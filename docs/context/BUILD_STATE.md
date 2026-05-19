@@ -6,13 +6,13 @@ M2 - Documentation Agent Foundation
 
 ## Current Goal
 
-Complete Issue #77, `Define project, agent, model, and queue registry architecture`, as the current substantive M2 design deliverable while preserving documentation-before-closeout as the normal closeout path.
+Use the completed registry and queue architecture as the bridge from M2 lifecycle foundations into the next substantive registry-schema design issue while preserving documentation-before-closeout as the normal closeout path.
 
 ## Current Repository State
 
-- Latest documented `main` commit before Issue #77 work: `7438ba6` (`Update docs after issue 75 closeout`).
-- Issue #77, `Define project, agent, model, and queue registry architecture`, is active.
-- PR #76 is merged.
+- Latest documented `main` commit: `1eb7efb` (`Define registry and queue architecture (#78)`).
+- Issue #77, `Define project, agent, model, and queue registry architecture`, is completed and closed through PR #78.
+- PR #78 is merged.
 - Issue #75, `Reconcile source-of-truth after issue 73 closeout`, is completed and closed through PR #76 as the corrective exception-path reconciliation issue.
 - Remaining open validation issue: #39, `validation: issue-38-state-lifecycle`, intentionally preserved as audit evidence.
 
@@ -304,10 +304,20 @@ During M2 foundation work, explicit human decisions and repository documentation
   - Latest `main` commit advanced to `e7bb49a`, `Reconcile source-of-truth after issue 73 closeout (#76)`.
   - Confirmed Issue #39 was not modified or closed.
   - Confirmed no scripts, runnable automation, workflows, commands, auto-merge, autonomous approval, autonomous issue closure, repository setting change, branch protection change, ruleset change, secret change, release change, tag change, or GitHub Project change was introduced.
+- Issue #77 completed and closed via PR #78:
+  - Defined the canonical registry and queue architecture artifact at `docs/architecture/REGISTRY_AND_QUEUE_ARCHITECTURE.md`.
+  - Documented the project, agent, model, queue, capability, and skill registry layers as documentation-only M2 architecture.
+  - Preserved the rule that source-of-truth documentation updates belong inside the same project-state-changing issue lifecycle before PR merge and issue closeout.
+  - Preserved the rule that Issue #75 should remain the last routine reconciliation issue.
+  - Preserved the rule that separate related source-of-truth documentation-update issues should not be created by default because they recreate the reconciliation loop.
+  - PR #78 merged successfully.
+  - Latest `main` commit advanced to `1eb7efb`, `Define registry and queue architecture (#78)`.
+  - Confirmed Issue #39 was not modified or closed.
+  - Confirmed no scripts, runnable automation, workflows, commands, auto-merge, autonomous approval, autonomous issue closure, repository setting change, branch protection change, ruleset change, secret change, release change, tag change, or GitHub Project change was introduced.
 ## In Progress
 
 - `docs/architecture/ISSUE_LIFECYCLE_AGENT_PIPELINE.md` remains the completed canonical lifecycle pipeline design artifact.
-- `docs/architecture/REGISTRY_AND_QUEUE_ARCHITECTURE.md` is the active M2 design deliverable for Issue #77.
+- `docs/architecture/REGISTRY_AND_QUEUE_ARCHITECTURE.md` remains the completed canonical registry and queue architecture design artifact from Issue #77 / PR #78.
 - Future project-state-changing issues must update source-of-truth docs before PR merge and issue closeout.
 - At minimum, future project-state-changing issues must review and update when needed:
   - `docs/context/BUILD_STATE.md`
@@ -318,7 +328,7 @@ During M2 foundation work, explicit human decisions and repository documentation
 - Separate reconciliation or documentation-update issues are not the default closeout pattern because they recreate the reconciliation loop.
 - Stale, conflicting, or incomplete source-of-truth documentation discovered after closeout may still justify a reconciliation or documentation-update issue as the exception path only.
 - Preserve the explicit rule that Issue #39 remains intentionally open as M1 validation audit evidence unless a future human-directed issue explicitly changes its state.
-- Preserve the explicit rule that no related source-of-truth documentation-update issue should be created by default for Issue #77 work.
+- Preserve the explicit rule that no related source-of-truth documentation-update issue should be created by default for future project-state-changing work.
 
 ## Next
 
@@ -331,7 +341,8 @@ During M2 foundation work, explicit human decisions and repository documentation
 - Do not create another routine reconciliation issue after Issue #75. Future project-state-changing issues must update the main source-of-truth docs before PR merge and issue closeout.
 - Do not create related source-of-truth documentation update issues by default because that recreates the reconciliation loop.
 - Use `docs/architecture/ISSUE_LIFECYCLE_AGENT_PIPELINE.md` as the canonical lifecycle correction for documentation-before-closeout.
-- Complete Issue #77 and use the registry architecture as the design bridge to the next M2 design or implementation issue.
+- Use `docs/architecture/REGISTRY_AND_QUEUE_ARCHITECTURE.md` as the completed canonical registry and queue architecture design artifact.
+- Define project registry schema as the next likely substantive M2 issue.
 - Keep documentation-sync evidence packages and handoff packages as review artifacts only.
 - Keep Codex prompt packages as review/input artifacts only.
 - Keep PR evidence packages as review artifacts only.

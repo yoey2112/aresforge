@@ -49,10 +49,10 @@ Current corrective closeout outcome:
 
 - Issue #75: Reconcile source-of-truth after issue 73 closeout, completed and closed through PR #76.
 
-Current active M2 design deliverable:
+Current completed M2 design deliverable:
 
-- Issue #77: Define project, agent, model, and queue registry architecture.
-- `docs/architecture/REGISTRY_AND_QUEUE_ARCHITECTURE.md` is the current M2 architecture deliverable.
+- Issue #77: Define project, agent, model, and queue registry architecture, completed and closed through PR #78.
+- `docs/architecture/REGISTRY_AND_QUEUE_ARCHITECTURE.md` remains the completed canonical M2 registry and queue architecture deliverable.
 
 Current M2 corrective rule:
 
@@ -62,7 +62,8 @@ Current M2 corrective rule:
 
 Next substantive M2 design direction:
 
-- Complete Issue #77 and use the resulting registry architecture to guide the next M2 design or implementation issue.
+- Use the completed registry and queue architecture to guide the next M2 design or implementation issue.
+- Next likely issue: Define project registry schema.
 
 ## Full Milestone Roadmap
 
@@ -137,7 +138,7 @@ Completed and active scope:
 - Issue lifecycle pipeline
 - Documentation-before-closeout gate
 - Local operator workflow design
-- Registry and queue architecture design via active Issue #77
+- Registry and queue architecture design completed via Issue #77 and merged PR #78
 - M2 reconciliation history through Issues #49, #57, #67, #69, #71, and closed Issue #75 via PR #76
 
 Current M2 boundary:
@@ -148,7 +149,8 @@ Current M2 boundary:
 
 Next substantive M2 design direction:
 
-- Complete the active registry and queue architecture deliverable, then use it to drive the next M2 design or implementation issue
+- Use the completed registry and queue architecture deliverable to drive the next M2 design or implementation issue
+- Next likely issue: Define project registry schema
 
 ### M3 - Registry and Routing Architecture
 
