@@ -19,7 +19,7 @@ The first managed project is:
 - Project name: AresForge
 - Repository: yoey2112/aresforge
 - Local path on Ares: C:\Projects\aresforge
-- Current phase: M0 — Self-Bootstrap Foundation
+- Current phase: M1 — GitHub Operations Validation
 - Current source of truth: GitHub plus repository documentation
 - Current execution model: human-guided implementation sessions
 - Current review model: human-reviewed pull requests
@@ -38,7 +38,7 @@ Until the AresForge dashboard exists, the temporary source of truth is split acr
 - Repository documentation under docs/
 - Local validation evidence captured during implementation work
 
-When these sources conflict during M0, repository documentation and human decisions take priority over inferred automation behavior.
+When these sources conflict during M1, repository documentation and human decisions take priority over inferred automation behavior.
 
 ## Self-Management Loop
 
@@ -52,24 +52,26 @@ AresForge should use the following loop to build itself:
 6. Update documentation as part of the work, not after the work.
 7. Capture validation evidence.
 8. Open a pull request linked to the issue.
-9. Review the pull request manually during M0.
+9. Review the pull request manually during the current human-reviewed phase.
 10. Merge only after acceptance criteria and documentation impact are satisfied.
 11. Let GitHub close linked issues only after merge.
 12. Update build state and handoff context for the next implementation session.
 
-## Current M0 Operating Rules
+## Current M1 Operating Rules
 
-During M0:
+During M1:
 
 - All implementation work is manually guided.
 - All documentation updates are manually reviewed.
 - Repo-owned markdown skills are governed project assets. They must remain auditable, stored in the repository, reviewed through normal human-approved changes, and advisory unless a later governance decision explicitly allows automation.
 - All pull requests require human review before merge.
-- Local AI review may produce evidence, but it is not a merge gate yet.
+- Local AI review may produce evidence when requested, but it is not a merge gate yet.
 - Agents may recommend work, but they must not autonomously merge, close issues, delete data, or enable destructive automation.
 - Temporary evidence folders such as tmp/ must not be committed unless explicitly required by an issue.
 - GitHub milestone number or ID should be preferred over milestone title matching in scripts and validation commands.
 - Documentation must remain the durable project memory layer until the dashboard exists.
+
+M0 operating rules remain historical project context for the self-bootstrap foundation milestone. They do not override the current M1 focus on GitHub operations validation, but the same manual-review and autonomy limits continue to apply unless a later governance update explicitly changes them.
 
 ## Future Dashboard State Fields
 
@@ -139,7 +141,7 @@ Initial proposed levels:
 | 4 | Controlled Auto-Merge | Agents may auto-merge low-risk PRs above a configured score. |
 | 5 | Managed Release Loop | Agents manage full release loops with human escalation only. |
 
-AresForge remains at Level 0 or Level 1 during M0.
+AresForge remains at Level 0 or Level 1 during M1.
 
 ## Risk Boundaries
 
@@ -155,12 +157,12 @@ The following actions require explicit human approval:
 - Publishing releases
 - Promoting future architecture claims as completed functionality
 
-## M0 Completion Expectations
+## Historical M0 Completion Expectations
 
 The self-management model is considered usable for M0 when:
 
 - AresForge is clearly documented as its own first managed project.
 - GitHub plus repository documentation are documented as the temporary source of truth.
 - Future dashboard state fields are documented.
-- Current M0 constraints are documented.
+- M0 constraints were documented.
 - The next-step handoff process is documented.
