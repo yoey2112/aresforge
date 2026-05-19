@@ -12,7 +12,7 @@ Every implementation should update relevant context, roadmap, architecture, gove
 
 Documentation agents are responsible for detecting documentation impact from changed files, issue requirements, PR summaries, validation evidence, existing context docs, and changelog or release notes when available.
 
-During M0, documentation agent work is manual and human-reviewed. Agents may update docs and report stale documentation warnings, but they must not enable automation, auto-merge, autonomous issue closure, or overwrite intentional human decisions.
+During M0 and M1, documentation agent work is manual and human-reviewed. Agents may update docs and report stale documentation warnings, but they must not enable automation, auto-merge, autonomous issue closure, or overwrite intentional human decisions.
 
 Documentation updates must preserve historical context and include validation evidence for PR review.
 
@@ -24,7 +24,7 @@ Future QA, Test, Documentation, and PR Scoring agents must use docs/governance/P
 
 AresForge will use repo-owned markdown skill definitions as the canonical reusable agent skills model.
 
-The skill model is defined in docs/agents/AGENT_SKILLS_MODEL.md. During M0, skills are advisory, manually guided, human-reviewed project assets. External skill frameworks may inform future adapters, but they are not required to operate AresForge.
+The skill model is defined in docs/agents/AGENT_SKILLS_MODEL.md. The initial draft skill registry is stored at .agent/AGENT_REGISTRY.md with draft skill files under .agent/skills/. During M1, skills are advisory, manually guided, human-reviewed project assets. External skill frameworks may inform future adapters, but they are not required to operate AresForge.
 
 ## Current Agent Roles
 
