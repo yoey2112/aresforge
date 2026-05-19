@@ -32,7 +32,7 @@ M2 began with Issue #43, `Create documentation agent foundation`, focused on doc
 
 ## M2 Documentation Agent Foundation Rules
 
-Issue #49 completed the M2 source-of-truth context reconciliation after Issue #47 closeout. Issue #57 completed the M2 source-of-truth reconciliation after Issue #55 and PR #56 closeout. Issue #59 completed the reusable Codex prompt package template after PR #60 closeout. Issue #61 added the future feature ideas planning document after PR #62 closeout. Issue #63 completed the reusable PR evidence package template after PR #64 closeout. After Issue #63 and PR #64 closeout, no active M2 implementation issue is currently assigned until the next deliverable is chosen.
+Issue #49 completed the M2 source-of-truth context reconciliation after Issue #47 closeout. Issue #57 completed the M2 source-of-truth reconciliation after Issue #55 and PR #56 closeout. Issue #59 completed the reusable Codex prompt package template after PR #60 closeout. Issue #61 added the future feature ideas planning document after PR #62 closeout. Issue #63 completed the reusable PR evidence package template after PR #64 closeout. Issue #65, `Define closeout evidence package template`, is the active M2 implementation issue for creating reusable closeout evidence package scaffolding.
 
 Future agents must treat `docs/agents/DOCUMENTATION_AGENTS.md` as the canonical documentation agent architecture document. The prior observed missing path `docs/architecture/DOCUMENTATION_AGENTS.md` should not be treated as canonical unless a future source-of-truth change explicitly moves the document.
 
@@ -48,6 +48,8 @@ Future agents must treat `docs/prompts/CODEX_PROMPT_PACKAGE_TEMPLATE.md` as the 
 
 Future agents must treat `docs/agents/PR_EVIDENCE_PACKAGE_TEMPLATE.md` as the reusable M2 PR evidence package template. PR evidence packages organize issue reference, PR reference, branch and commit context, source-of-truth documents reviewed, files changed, scope summary, documentation impact, freshness-check evidence when documentation-sync work is involved, validation results, diff review summary, human-review notes, limitations, protected Issue #39 confirmations, repository-boundary confirmations, and a non-authority statement. During M2, PR evidence packages are review artifacts only; they do not approve, merge, close, automate, bypass human review, replace human controls, change source-of-truth priority, implement `New-PrEvidencePackage`, or authorize future automation.
 
+Future agents must treat docs/agents/CLOSEOUT_EVIDENCE_PACKAGE_TEMPLATE.md as the reusable M2 closeout evidence package template. Closeout evidence packages organize issue references, PR references when applicable, merge or closeout trigger, branch and commit context, source-of-truth documents reviewed, documentation freshness-check evidence, closeout file changes, project-memory updates, roadmap and state updates, validation results, diff review summary, human-review notes, limitations, protected Issue #39 confirmations, repository-boundary confirmations, next-step handoff notes, and a non-authority statement. During M2, closeout evidence packages are review artifacts only; they do not approve, merge, close, automate, bypass human review, replace human controls, change source-of-truth priority, implement New-CloseoutEvidencePackage, or authorize future automation.
+
 M2 documentation-agent work must define and preserve:
 
 - Documentation agent responsibilities.
@@ -58,6 +60,7 @@ M2 documentation-agent work must define and preserve:
 - Documentation-sync handoff package templates.
 - Codex prompt package templates.
 - PR evidence package templates.
+- Closeout evidence package templates.
 - Human-reviewed documentation update expectations.
 - Required validation evidence for documentation changes.
 - Handoffs between implementation agents, documentation agents, validation agents, and the human owner.

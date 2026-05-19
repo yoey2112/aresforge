@@ -101,6 +101,8 @@ The reusable PR evidence package template is a review artifact scaffold only. It
 
 A closeout evidence package supports post-PR project-memory work after a human-reviewed PR has merged or when a human owner explicitly directs closeout preparation.
 
+The canonical reusable closeout evidence package template is docs/agents/CLOSEOUT_EVIDENCE_PACKAGE_TEMPLATE.md.
+
 Required closeout evidence:
 
 - Issue and PR references, including merge state when available.
@@ -116,6 +118,8 @@ Required closeout evidence:
 - Non-authority statement.
 
 Closeout evidence packages do not close issues by themselves. Any issue closure must happen through normal reviewed GitHub behavior or explicit human instruction.
+
+The reusable closeout evidence package template is a review artifact scaffold only. It does not approve, merge, close, automate, bypass human review, replace human controls, change source-of-truth priority, implement `New-CloseoutEvidencePackage`, or authorize future automation.
 
 ## Documentation-Sync Evidence Package
 
