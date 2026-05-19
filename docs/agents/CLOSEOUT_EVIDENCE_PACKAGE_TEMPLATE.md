@@ -309,6 +309,8 @@ Before using a completed closeout evidence package, confirm:
 - [ ] Branch and commit context is documented.
 - [ ] Source-of-truth documents reviewed are listed.
 - [ ] Documentation freshness check evidence is included when documentation-sync work occurred.
+- [ ] Source-of-truth docs were reviewed and updated before closeout when project state changed.
+- [ ] The issue is not still documented as active or in progress in source-of-truth docs.
 - [ ] Files changed during closeout are listed.
 - [ ] Project-memory updates are summarized.
 - [ ] Roadmap and state updates are summarized.

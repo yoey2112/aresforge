@@ -105,6 +105,7 @@ Every completed PR evidence package must include this statement:
 - Documentation impact classification:
 - Source-of-truth documents updated:
 - Source-of-truth documents reviewed but not changed:
+- Documentation-before-closeout readiness:
 - Agent, skill, registry, prompt, governance, validation, roadmap, or build-state impact:
 - Documentation updates deferred:
 - Reasoning:
