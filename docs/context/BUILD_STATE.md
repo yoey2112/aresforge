@@ -10,7 +10,7 @@ Continue M1 by validating safe GitHub-managed workflows using repo-owned documen
 
 ## Current Active Issue
 
-- No active implementation issue is currently assigned after Issue #32 draft PR creation.
+- No active implementation issue is currently assigned after Issue #32 completion.
 
 ## Current Source of Truth
 
@@ -138,7 +138,7 @@ During M1, explicit human decisions and repository documentation take priority o
   - Updated GitHub operations skill with safe project/table read guidance.
   - Confirmed no GitHub Project settings, fields, views, or items were modified.
   - Confirmed no runnable automation, auto-merge, autonomous approval, destructive automation, repository setting change, branch protection change, workflow change, release/tag change, secret change, permission change, or autonomous issue closure was introduced.
-- Issue #32 completed via draft PR #33:
+- Issue #32 completed via PR #33:
   - Documented read-only GitHub workflow run and artifact read validation.
   - Confirmed `.github/workflows` does not currently exist.
   - Confirmed no workflow files currently exist.
@@ -149,12 +149,10 @@ During M1, explicit human decisions and repository documentation take priority o
   - Confirmed no workflow creation, workflow editing, workflow triggering, artifact commit, runnable automation, auto-merge, autonomous approval, destructive automation, repository setting change, branch protection change, secret change, permission change, release/tag change, project change, or autonomous issue closure was introduced.
 ## In Progress
 
-- No active implementation issue is currently assigned after Issue #32 draft PR creation.
+- No active implementation issue is currently assigned after Issue #32 completion.
 
 ## Next
 
-- Human review of draft PR #33.
-- After human-reviewed merge, allow GitHub issue-closing language to close Issue #32 through normal PR merge behavior.
 - Select the next M1 GitHub operations validation issue.
 
 ## Current Operating Constraint
