@@ -6,11 +6,11 @@ M1 - GitHub Operations Validation
 
 ## Current Goal
 
-Validate repeatable, safe GitHub pull request lifecycle operations using repo-owned documentation, the GitHub operations skill, draft pull requests, and human-reviewed evidence.
+Continue M1 by validating safe GitHub-managed workflows using repo-owned documentation, issues, milestones, labels, branches, pull requests, and human-reviewed evidence.
 
 ## Current Active Issue
 
-- Issue #24: Validate repeatable GitHub pull request lifecycle operations using GitHub operations skill.
+- No active implementation issue is currently assigned after Issue #24 completion.
 
 ## Current Source of Truth
 
@@ -108,16 +108,19 @@ During M1, explicit human decisions and repository documentation take priority o
   - Added M1-ERROR-008 for multiline gh pr create --body argument splitting in Windows PowerShell
   - Confirmed no destructive label deletion, production label edits, runnable automation, auto-merge, autonomous approval, destructive automation, or autonomous issue closure was introduced
 
+- Issue #24 completed via PR #25:
+  - Documented repeatable GitHub pull request lifecycle validation
+  - Validated safe branch creation, draft PR creation, multiline PR body handling, PR metadata read expectations, changed files verification, commit count verification, base/head branch verification, draft/open/closed state verification, mergeability read limitations, and evidence comment expectations
+  - Updated GitHub operations skill with PR lifecycle guidance
+  - Confirmed the safe Windows PowerShell pattern for multiline PR bodies: here-string body piped to gh pr create --body-file -
+  - Confirmed no runnable automation, auto-merge, autonomous approval, destructive automation, repository setting change, branch protection change, workflow change, or autonomous issue closure was introduced
 ## In Progress
 
-- Issue #24:
-  - Validating repeatable pull request lifecycle operations for M1.
-  - Documenting safe branch creation, draft PR creation, multiline PR body handling, PR metadata reads and updates, changed files verification, commit count verification, base/head branch verification, draft/open/closed state verification, mergeability read limitations, and evidence comment expectations.
-  - Preserving the M1 safety boundary: no runnable automation, auto-merge, autonomous approval, destructive automation, or autonomous issue closure.
+- No active implementation issue is currently assigned after Issue #24 completion.
 
 ## Next
 
-- Complete Issue #24 through a human-reviewed draft PR.
+- Select the next M1 GitHub operations validation issue.
 - Continue validating repeatable GitHub-managed workflows using the documented GitHub operations, issue-planning, build-state, and error-pattern guidance.
 
 ## Current Operating Constraint
