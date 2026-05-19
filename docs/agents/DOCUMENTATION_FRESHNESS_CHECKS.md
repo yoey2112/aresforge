@@ -21,6 +21,7 @@ This model supports, but does not replace:
 - Documentation agent responsibilities.
 - Documentation impact detection.
 - Source-of-truth update flow.
+- Documentation-sync evidence packages defined in `docs/agents/DOCUMENTATION_SYNC_EVIDENCE_PACKAGES.md`.
 - Human-reviewed documentation update expectations.
 - PR validation and evidence review.
 - Human escalation when source-of-truth status is uncertain.
@@ -85,6 +86,8 @@ A freshness check must produce reviewable evidence that includes:
 - Confirmation that the check remains advisory, manually executed, and human-reviewed.
 
 The output may appear in a PR body, final implementation handoff, review comment, or documentation-change evidence summary.
+
+When documentation-sync work is performed, the freshness check output must be carried into the appropriate evidence package: PR evidence, closeout evidence, or documentation-sync evidence. The evidence package must preserve stale warnings, skipped checks, unavailable inputs, human escalation items, and the advisory/manual M2 boundary.
 
 ## Freshness Check Flow
 
@@ -233,11 +236,15 @@ The documentation-sync skill should:
 
 The freshness check is the diagnostic layer. Documentation sync is the focused update layer that follows after the diagnostic findings are understood.
 
+The documentation-sync evidence package model is the review artifact layer. It records the freshness findings, source documents reviewed, touched documents, validation summary, limitations, human-review notes, and handoff notes for PR review or closeout.
+
 ## Connection To Local Operator Workflow
 
 The local operator workflow in `docs/architecture/LOCAL_OPERATOR_WORKFLOW.md` may prepare freshness check inputs and evidence summaries before documentation-sync work.
 
 Operator-prepared packages should help identify source-of-truth docs, issue scope, likely documentation impact, stale or missing documentation findings, validation expectations, and human escalation items. They do not replace this freshness check model and do not authorize runnable automation, autonomous documentation updates, merge gates, approval gates, or issue closure.
+
+Operator-prepared PR and closeout evidence packages should follow `docs/agents/DOCUMENTATION_SYNC_EVIDENCE_PACKAGES.md` while remaining design-only review inputs during M2.
 
 ## M2 Boundary
 

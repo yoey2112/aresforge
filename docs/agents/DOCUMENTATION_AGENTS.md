@@ -47,6 +47,7 @@ Primary related skills:
 Primary related models:
 
 - `docs/agents/DOCUMENTATION_FRESHNESS_CHECKS.md`
+- `docs/agents/DOCUMENTATION_SYNC_EVIDENCE_PACKAGES.md`
 - `docs/architecture/LOCAL_OPERATOR_WORKFLOW.md`
 
 ## Documentation Agent Responsibilities
@@ -64,6 +65,7 @@ Core responsibilities:
 - Report validation evidence in the PR body or final handoff.
 - Preserve human-review boundaries and avoid implying approval, merge, issue closure, release, or automation that has not occurred.
 - Use local operator packages as review inputs when available, while treating them as evidence summaries rather than approval or automation.
+- Prepare documentation-sync evidence packages when documentation-sync work is performed, using `docs/agents/DOCUMENTATION_SYNC_EVIDENCE_PACKAGES.md` as the required review artifact model.
 
 ## Documentation Agent Types
 
@@ -207,6 +209,7 @@ Documentation agents must produce:
 - Updated documentation files for every confirmed documentation impact in scope.
 - A documentation impact summary for PR review.
 - Documentation freshness checks and stale documentation warnings when related docs may be outdated.
+- Documentation-sync evidence package content when documentation-sync work is performed.
 - Validation evidence for PR review, including commands or manual checks run and concise results.
 - Human-review boundary confirmation.
 - Follow-up issue recommendations when documentation gaps are real but out of scope.
@@ -227,7 +230,8 @@ Use this flow for M2 documentation-agent work:
 8. Add stale documentation warnings when related docs may need later review but are out of scope.
 9. Run requested validation checks.
 10. Review the changed files for scope, freshness, and human-review boundaries.
-11. Report files changed, documentation impact, freshness checks, validation evidence, warnings, and limitations in the PR or final handoff.
+11. Prepare the required evidence package content when documentation-sync work occurred.
+12. Report files changed, documentation impact, freshness checks, validation evidence, warnings, limitations, and non-authority statements in the PR or final handoff.
 
 During M2, this flow is manual and human-reviewed. It must not create scripts, watchers, workflows, auto-updaters, auto-merge behavior, autonomous approvals, or autonomous issue closure.
 
@@ -268,6 +272,14 @@ Documentation agents should also check freshness before final handoff by asking:
 - Are out-of-scope docs intentionally left unchanged and, if relevant, called out as warnings?
 
 Freshness checks do not authorize broad rewrites. They identify whether the current issue requires a focused update or a follow-up recommendation.
+
+## Documentation-Sync Evidence Packages
+
+Documentation agents must use `docs/agents/DOCUMENTATION_SYNC_EVIDENCE_PACKAGES.md` when documentation-sync work requires PR evidence, closeout evidence, or a documentation-sync handoff.
+
+Evidence packages must record purpose, issue and PR references, freshness-check evidence, required source documents reviewed, touched documents, diff and validation summaries, human-review notes, limitation and exception notes, handoff notes, and a non-authority statement.
+
+Evidence packages are review artifacts only. They do not approve, merge, close, automate, bypass review, or replace required human controls.
 
 ## Human-Reviewed Documentation Update Expectations
 

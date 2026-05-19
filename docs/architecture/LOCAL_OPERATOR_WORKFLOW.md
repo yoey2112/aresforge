@@ -36,6 +36,7 @@ The workflow may prepare:
 - Worktree validation checklists.
 - Pull request evidence packages.
 - Closeout evidence packages.
+- Documentation-sync evidence packages.
 - Documentation freshness findings.
 - Documentation-sync inputs.
 - Follow-up recommendations for human review.
@@ -145,9 +146,12 @@ Expected evidence outputs include:
 - Validation results when available.
 - PR evidence outline.
 - Closeout evidence outline.
+- Documentation-sync evidence outline.
 - Confirmation that future-state commands or workflow concepts were not treated as implemented capability.
 
 Evidence must distinguish confirmed facts, agent judgment, unavailable inputs, skipped checks, future recommendations, and human decisions.
+
+Evidence packages should follow `docs/agents/DOCUMENTATION_SYNC_EVIDENCE_PACKAGES.md` when they involve documentation-sync work. Each package must include a non-authority statement confirming that it is a review artifact only and does not approve, merge, close, automate, bypass human review, or authorize future automation.
 
 ## Validation Expectations
 
@@ -176,6 +180,8 @@ The operator should prepare freshness evidence by:
 
 The operator does not replace the freshness check model. It packages the inputs and evidence so the freshness check is easier to perform consistently.
 
+Freshness evidence prepared by the operator should be carried into the appropriate PR evidence package, closeout evidence package, or documentation-sync evidence package.
+
 ## Relationship To Documentation Sync
 
 The local operator workflow should prepare inputs for `.agent/skills/documentation-sync/SKILL.md`.
@@ -189,6 +195,8 @@ Before documentation-sync work, the operator should identify:
 - Human-review boundary confirmations required in the PR body.
 
 Documentation-sync remains a repo-owned markdown skill and a manual, human-reviewed behavior during M2. The local operator workflow does not turn documentation-sync into runnable automation.
+
+Documentation-sync evidence packages provide the review structure for operator-prepared documentation-sync handoffs. They do not execute the documentation-sync skill and do not replace human-reviewed PR evidence.
 
 ## Relationship To M3 Agent Workflow Orchestration
 
@@ -214,8 +222,8 @@ The following names are future design targets only. They are not implemented by 
 | `Start-IssueImplementation` | Prepare issue context, branch recommendation, source-of-truth reading list, constraints, and approval gates before implementation begins. | Design target only; not implemented. |
 | `New-CodexPromptPackage` | Generate a Codex prompt package aligned with `docs/prompts/CODEX_PROMPT_STANDARD.md`. | Design target only; not implemented. |
 | `Test-AresForgeWorktree` | Prepare or run approved local validation checks and summarize worktree state. | Design target only; not implemented. |
-| `New-PrEvidencePackage` | Prepare PR body evidence including summary, changed files, validation, approval gates, and issue linkage. | Design target only; not implemented. |
-| `New-CloseoutEvidencePackage` | Prepare post-PR closeout evidence for build state, roadmap, issue status, and documentation freshness. | Design target only; not implemented. |
+| `New-PrEvidencePackage` | Prepare PR body evidence including summary, changed files, freshness findings, validation, approval gates, non-authority statements, and issue linkage. | Design target only; not implemented. |
+| `New-CloseoutEvidencePackage` | Prepare post-PR closeout evidence for build state, roadmap, issue status, documentation freshness, limitations, and next handoff. | Design target only; not implemented. |
 
 Any future implementation of these design targets requires a separate issue, explicit human approval, governance review, validation expectations, and documentation updates.
 
