@@ -48,6 +48,7 @@ Primary related models:
 
 - `docs/agents/DOCUMENTATION_FRESHNESS_CHECKS.md`
 - `docs/agents/DOCUMENTATION_SYNC_EVIDENCE_PACKAGES.md`
+- `docs/agents/DOCUMENTATION_SYNC_HANDOFF_TEMPLATE.md`
 - `docs/architecture/LOCAL_OPERATOR_WORKFLOW.md`
 
 ## Documentation Agent Responsibilities
@@ -65,7 +66,7 @@ Core responsibilities:
 - Report validation evidence in the PR body or final handoff.
 - Preserve human-review boundaries and avoid implying approval, merge, issue closure, release, or automation that has not occurred.
 - Use local operator packages as review inputs when available, while treating them as evidence summaries rather than approval or automation.
-- Prepare documentation-sync evidence packages when documentation-sync work is performed, using `docs/agents/DOCUMENTATION_SYNC_EVIDENCE_PACKAGES.md` as the required review artifact model.
+- Prepare documentation-sync evidence packages when documentation-sync work is performed, using `docs/agents/DOCUMENTATION_SYNC_EVIDENCE_PACKAGES.md` as the required review artifact model and `docs/agents/DOCUMENTATION_SYNC_HANDOFF_TEMPLATE.md` when a reusable handoff package is needed.
 
 ## Documentation Agent Types
 
@@ -230,7 +231,7 @@ Use this flow for M2 documentation-agent work:
 8. Add stale documentation warnings when related docs may need later review but are out of scope.
 9. Run requested validation checks.
 10. Review the changed files for scope, freshness, and human-review boundaries.
-11. Prepare the required evidence package content when documentation-sync work occurred.
+11. Prepare the required evidence package content when documentation-sync work occurred, using the handoff template when the work must be passed to another agent, validator, operator, or human owner.
 12. Report files changed, documentation impact, freshness checks, validation evidence, warnings, limitations, and non-authority statements in the PR or final handoff.
 
 During M2, this flow is manual and human-reviewed. It must not create scripts, watchers, workflows, auto-updaters, auto-merge behavior, autonomous approvals, or autonomous issue closure.

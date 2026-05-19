@@ -34,6 +34,7 @@ Primary governing docs:
 - docs/agents/DOCUMENTATION_AGENTS.md
 - docs/agents/DOCUMENTATION_FRESHNESS_CHECKS.md
 - docs/agents/DOCUMENTATION_SYNC_EVIDENCE_PACKAGES.md
+- docs/agents/DOCUMENTATION_SYNC_HANDOFF_TEMPLATE.md
 - docs/architecture/LOCAL_OPERATOR_WORKFLOW.md
 - docs/governance/SELF_MANAGEMENT_MODEL.md
 - docs/governance/PR_VALIDATION_MODEL.md

@@ -27,6 +27,7 @@ Do not use this skill to rewrite unrelated documentation, replace source-of-trut
 - Existing context, agent, governance, roadmap, prompt, architecture, and validation docs.
 - Documentation freshness check model from docs/agents/DOCUMENTATION_FRESHNESS_CHECKS.md.
 - Documentation-sync evidence package model from docs/agents/DOCUMENTATION_SYNC_EVIDENCE_PACKAGES.md.
+- Documentation-sync handoff template from docs/agents/DOCUMENTATION_SYNC_HANDOFF_TEMPLATE.md when a reusable package or next-agent handoff is needed.
 - Documentation freshness checks from docs/agents/DOCUMENTATION_AGENTS.md when relevant.
 - Local operator workflow package or evidence outline from docs/architecture/LOCAL_OPERATOR_WORKFLOW.md when available.
 - Validation evidence and PR summary when available.
@@ -40,6 +41,7 @@ Do not use this skill to rewrite unrelated documentation, replace source-of-trut
 - Stale documentation warnings when a related update is real but out of scope.
 - Freshness check summary for source-of-truth docs affected by the issue.
 - Documentation-sync evidence package content, including source documents reviewed, touched documents, freshness evidence, diff and validation summary, human-review notes, limitations, handoff notes, issue and PR references, and a non-authority statement.
+- Completed handoff template content when the work must be transferred to an implementation agent, documentation agent, validation agent, local operator, or human owner.
 - Human-review boundary confirmation.
 - Validation evidence for documentation review.
 
@@ -54,6 +56,8 @@ This skill is advisory and manually executed. It does not create documentation a
 Local operator workflow support is also design-only during M2. Operator packages may organize documentation-sync inputs, but they do not execute this skill.
 
 Evidence packages prepared through this skill are review artifacts only. They do not approve, merge, close, automate, bypass human review, or authorize future automation.
+
+The documentation-sync handoff template is also a review artifact scaffold only. It does not run this skill, implement local operator commands, or replace human-reviewed PR evidence.
 
 ## Human approval boundaries
 
@@ -83,10 +87,13 @@ Confirm no automation, workflow, auto-merge, autonomous approval, autonomous iss
 
 Report files reviewed, files changed, documentation impact, freshness checks, stale documentation warnings, validation commands and results, skipped checks, human-review boundary confirmation, known limitations, issue and PR references, handoff notes, and the required non-authority statement from `docs/agents/DOCUMENTATION_SYNC_EVIDENCE_PACKAGES.md`.
 
+When a handoff package is required, use `docs/agents/DOCUMENTATION_SYNC_HANDOFF_TEMPLATE.md` to keep issue and PR references, source documents reviewed, freshness-check evidence, documentation-sync evidence, validation evidence, human-review notes, limitations, escalation items, and next-owner notes clearly separated.
+
 ## Related docs
 
 - docs/agents/DOCUMENTATION_FRESHNESS_CHECKS.md
 - docs/agents/DOCUMENTATION_SYNC_EVIDENCE_PACKAGES.md
+- docs/agents/DOCUMENTATION_SYNC_HANDOFF_TEMPLATE.md
 - docs/agents/DOCUMENTATION_AGENTS.md
 - docs/agents/AGENT_SKILLS_MODEL.md
 - docs/architecture/LOCAL_OPERATOR_WORKFLOW.md

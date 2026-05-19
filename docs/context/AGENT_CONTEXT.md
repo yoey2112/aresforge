@@ -42,6 +42,8 @@ Future agents must treat `docs/architecture/LOCAL_OPERATOR_WORKFLOW.md` as the c
 
 Future agents must treat `docs/agents/DOCUMENTATION_SYNC_EVIDENCE_PACKAGES.md` as the canonical M2 documentation-sync evidence package model. Evidence packages must include source documents reviewed, touched documents, freshness-check evidence, diff and validation summaries, human-review notes, limitation and exception notes, handoff notes, issue and PR references, and an explicit non-authority statement. Evidence packages are review artifacts only and do not approve, merge, close, automate, bypass review, or replace human controls.
 
+Future agents must treat `docs/agents/DOCUMENTATION_SYNC_HANDOFF_TEMPLATE.md` as the reusable M2 documentation-sync handoff package template. The template is the copy/paste-friendly structure for transferring documentation-sync evidence between implementation agents, documentation agents, validation agents, local operators, and human owners. It remains documentation-only, advisory, manually prepared, and human-reviewed.
+
 M2 documentation-agent work must define and preserve:
 
 - Documentation agent responsibilities.
@@ -49,6 +51,7 @@ M2 documentation-agent work must define and preserve:
 - Documentation impact detection rules.
 - Documentation freshness checks.
 - Documentation-sync evidence packages.
+- Documentation-sync handoff package templates.
 - Human-reviewed documentation update expectations.
 - Required validation evidence for documentation changes.
 - Handoffs between implementation agents, documentation agents, validation agents, and the human owner.
