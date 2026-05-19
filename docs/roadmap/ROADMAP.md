@@ -47,7 +47,7 @@ Closeout result:
 
 Goal: Establish documentation agent rules, source-of-truth update flow, documentation freshness checks, and human-reviewed documentation update behavior before any autonomous automation.
 
-Status: Active. Issue #43 completed the first M2 documentation agent foundation deliverable. Issue #45 completed the repeatable documentation freshness check model before documentation-sync work. Issue #47 completed the local operator workflow as a design-only documentation layer. Issue #49 completed corrective freshness reconciliation for M2 source-of-truth context. Issue #51 completed the documentation-sync evidence package model as a review artifact standard. Issue #55 completed the reusable documentation-sync handoff package template. Issue #57 completed source-of-truth reconciliation after Issue #55 closeout. Issue #59 completed the reusable Codex prompt package template as documentation-only review/input scaffolding. Issue #61 added the future feature ideas planning document for milestone-start idea review. Issue #63 completed the reusable PR evidence package template as documentation-only review scaffolding after PR #64 merged successfully, closeout evidence was posted, and Issue #63 was manually closed. Issue #65 completed the reusable closeout evidence package template as documentation-only review scaffolding after PR #66 merged successfully, closeout evidence was posted, and Issue #65 was manually closed. Issue #67 completed the M2 reconciliation update after PR #68 merged successfully and the issue was manually closed. Issue #69 completed the M2 reconciliation update after PR #70 merged successfully and the issue was manually closed. Issue #71 is the active M2 foundation deliverable while current reconciliation work is in progress.
+Status: Active. Issue #43 completed the first M2 documentation agent foundation deliverable. Issue #45 completed the repeatable documentation freshness check model before documentation-sync work. Issue #47 completed the local operator workflow as a design-only documentation layer. Issue #49 completed corrective freshness reconciliation for M2 source-of-truth context. Issue #51 completed the documentation-sync evidence package model as a review artifact standard. Issue #55 completed the reusable documentation-sync handoff package template. Issue #57 completed source-of-truth reconciliation after Issue #55 closeout. Issue #59 completed the reusable Codex prompt package template as documentation-only review/input scaffolding. Issue #61 added the future feature ideas planning document for milestone-start idea review. Issue #63 completed the reusable PR evidence package template as documentation-only review scaffolding after PR #64 merged successfully, closeout evidence was posted, and Issue #63 was manually closed. Issue #65 completed the reusable closeout evidence package template as documentation-only review scaffolding after PR #66 merged successfully, closeout evidence was posted, and Issue #65 was manually closed. Issue #67 completed the M2 reconciliation update after PR #68 merged successfully and the issue was manually closed. Issue #69 completed the M2 reconciliation update after PR #70 merged successfully and the issue was manually closed. Issue #71 completed the M2 reconciliation update after PR #72 merged successfully and the issue was manually closed. Issue #73 is the active M2 architecture and design corrective issue that defines the lifecycle pipeline and documentation-before-closeout gate needed to stop default reconciliation loops.
 
 Completed M2 foundation deliverables:
 
@@ -64,15 +64,18 @@ Completed M2 foundation deliverables:
 - Issue #65: Define closeout evidence package template.
 - Issue #67: Reconcile M2 source-of-truth after Issue #65 closeout.
 - Issue #69: Reconcile M2 source-of-truth after Issue #67 closeout.
-
-Active M2 foundation deliverable:
-
 - Issue #71: Reconcile M2 source-of-truth after Issue #69 closeout.
+
+Active M2 architecture and design corrective deliverable:
+
+- Issue #73: Define issue lifecycle agent pipeline and closeout documentation gate.
 
 Next M2 focus:
 
 - Review docs/planning/FUTURE_FEATURE_IDEAS.md at the beginning of each future milestone.
-- Complete Issue #71 reconciliation, then choose the next M2 deliverable before assigning new implementation work.
+- Complete Issue #73, then choose the next substantive M2 deliverable before assigning new implementation work.
+- Use `docs/architecture/ISSUE_LIFECYCLE_AGENT_PIPELINE.md` as the correction that moves documentation updates into the normal issue lifecycle before closeout.
+- Do not create another default reconciliation-only issue unless stale, conflicting, or incomplete source-of-truth documentation is discovered after closeout.
 - Use docs/agents/DOCUMENTATION_SYNC_HANDOFF_TEMPLATE.md for future documentation-sync handoffs.
 - Use docs/prompts/CODEX_PROMPT_PACKAGE_TEMPLATE.md for reusable Codex prompt packages.
 - Use docs/agents/PR_EVIDENCE_PACKAGE_TEMPLATE.md for reusable PR evidence packages.

@@ -6,13 +6,13 @@ M2 - Documentation Agent Foundation
 
 ## Current Goal
 
-Reconcile M2 source-of-truth documentation after Issue #69 and PR #70 closeout.
+Define the issue lifecycle agent pipeline and documentation-before-closeout gate for M2.
 
 ## Current Repository State
 
-- Latest documented `main` commit: `38fa94e` (`Reconcile source-of-truth after issue 67 closeout`).
-- Open pull requests before Issue #71 reconciliation work: none.
-- Active issue: #71, `Reconcile M2 source-of-truth after Issue 69 closeout`, in progress.
+- Latest documented `main` commit: `7d21189` (`Reconcile source-of-truth after issue 69 closeout (#72)`).
+- Open pull requests before Issue #73 design work: none expected.
+- Active issue: #73, `Define issue lifecycle agent pipeline and closeout documentation gate`, in progress.
 - Remaining open validation issue: #39, `validation: issue-38-state-lifecycle`, intentionally preserved as audit evidence.
 
 ## Current Source of Truth
@@ -275,9 +275,21 @@ During M2 foundation work, explicit human decisions and repository documentation
   - Issue #69 was manually closed after PR #70 closeout.
   - Confirmed Issue #39 was not modified or closed.
   - Confirmed no scripts, runnable automation, workflows, commands, auto-merge, autonomous approval, autonomous issue closure, repository setting change, branch protection change, ruleset change, secret change, release change, tag change, or GitHub Project change was introduced.
+- Issue #71 completed and closed after PR #72:
+  - Reconciled source-of-truth documentation after Issue #69 closeout.
+  - Updated build state, agent context, and roadmap wording so Issue #69 remained recorded as completed and closed rather than active.
+  - PR #72 merged successfully.
+  - Latest `main` commit advanced to `7d21189`, `Reconcile source-of-truth after issue 69 closeout (#72)`.
+  - Issue #71 was manually closed after closeout evidence was posted.
+  - Confirmed Issue #39 was not modified or closed.
+  - Confirmed no scripts, runnable automation, workflows, commands, auto-merge, autonomous approval, autonomous issue closure, repository setting change, branch protection change, ruleset change, secret change, release change, tag change, or GitHub Project change was introduced.
 ## In Progress
 
-- Issue #71 is the active M2 reconciliation issue while source-of-truth updates are in progress.
+- Issue #73 is the active M2 architecture and design corrective issue.
+- The canonical lifecycle design document is `docs/architecture/ISSUE_LIFECYCLE_AGENT_PIPELINE.md`.
+- Project-state-changing issues must update source-of-truth docs before closeout.
+- Separate reconciliation issues are not the default closeout pattern.
+- Stale, conflicting, or incomplete source-of-truth documentation discovered after closeout may still justify a reconciliation issue.
 - Preserve the explicit rule that Issue #39 remains intentionally open as M1 validation audit evidence unless a future human-directed issue explicitly changes its state.
 
 ## Next
@@ -288,7 +300,8 @@ During M2 foundation work, explicit human decisions and repository documentation
 - Use docs/prompts/CODEX_PROMPT_PACKAGE_TEMPLATE.md for future reusable Codex prompt packages.
 - Use docs/agents/PR_EVIDENCE_PACKAGE_TEMPLATE.md for future reusable PR evidence packages.
 - Use docs/agents/CLOSEOUT_EVIDENCE_PACKAGE_TEMPLATE.md for future reusable closeout evidence packages.
-- Complete Issue #71 source-of-truth reconciliation, then re-evaluate the next M2 deliverable before assigning new implementation work.
+- Complete Issue #73 and then select the next substantive M2 deliverable instead of creating another reconciliation-only issue by default.
+- Use `docs/architecture/ISSUE_LIFECYCLE_AGENT_PIPELINE.md` as the canonical lifecycle correction for documentation-before-closeout.
 - Keep documentation-sync evidence packages and handoff packages as review artifacts only.
 - Keep Codex prompt packages as review/input artifacts only.
 - Keep PR evidence packages as review artifacts only.
