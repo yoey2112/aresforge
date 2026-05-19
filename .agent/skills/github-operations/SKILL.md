@@ -35,6 +35,27 @@ Do not use this skill to bypass human review, change repository permissions, con
 
 This skill covers routine repository collaboration tasks for AresForge. It does not authorize repository administration, release publishing, branch deletion outside approved cleanup scope, security setting changes, or workflow changes.
 
+## Safe issue creation guidance for Windows PowerShell
+
+When a human-approved task requires creating a GitHub issue during M1, use a conservative manual pattern that can be verified after each step:
+
+1. Resolve the target milestone through `gh api`.
+2. Parse the milestone response with PowerShell JSON handling.
+3. Create the issue with `gh issue create`.
+4. Capture the issue URL returned by the command.
+5. Extract the issue number from the returned URL.
+6. Patch the issue milestone by milestone number through `gh api`.
+7. Verify the final issue state with `gh issue view --json`.
+8. Add an evidence comment when the operation discovers reusable command lessons, limitations, or safety guidance.
+
+Preferred milestone assignment uses the GitHub milestone number or API-backed milestone identifier rather than shell-level title matching. This is especially important for milestone titles that contain punctuation or characters that may display differently across shells.
+
+Avoid relying on `gh issue create --json` in the current AresForge environment because the installed GitHub CLI does not support that option.
+
+Avoid relying on fragile `gh api --jq` expressions for milestone discovery in Windows PowerShell when quoting or escaping makes the result unreliable. Prefer raw API output parsed with PowerShell JSON handling.
+
+Avoid direct JSON payload posting through temporary files unless encoding is intentionally controlled and verified. For routine issue creation, use `gh issue create` for the initial issue and an API-backed patch for milestone assignment.
+
 ## Execution boundaries
 
 This skill is advisory and manually executed. It may guide commands that are already allowed by the active issue, but it is not a script, workflow, package, or autonomous GitHub operator.

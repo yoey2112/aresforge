@@ -83,12 +83,19 @@ During M1, explicit human decisions and repository documentation take priority o
 
 ## In Progress
 
-- No active implementation issue is currently assigned after Issue #15 completion.
+- Issue #18 is the active M1 implementation issue:
+  - Title: Validate repeatable GitHub issue lifecycle operations using GitHub operations skill
+  - Expected branch: m1/issue-18-github-issue-lifecycle-validation
+  - Issue creation validated through manual GitHub CLI/API workflow
+  - Evidence-comment creation validated on issue #18
+  - Current scope is documentation-only validation of the repeatable issue lifecycle pattern
+  - No runnable automation, auto-merge, autonomous approval, destructive automation, or autonomous issue closure is enabled
 
 ## Next
 
-- Select the next M1 issue focused on GitHub operations validation.
-- Continue M1 GitHub operations validation work using GitHub plus repository documentation as the temporary source of truth.
+- Complete issue #18 documentation updates.
+- Open a draft PR targeting main.
+- Add final PR evidence back to issue #18 for human review.
 
 ## Current Operating Constraint
 

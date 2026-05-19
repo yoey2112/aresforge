@@ -28,6 +28,7 @@ Do not use this skill to create issues autonomously, change project priorities w
 - Draft issue scope and acceptance criteria.
 - Suggested labels, milestone, risk level, and evidence expectations.
 - Implementation prompt outline that follows the Codex prompt standard.
+- Issue creation documentation expectations when a planned issue will exercise or refine GitHub operations.
 - Human decisions or clarifications needed before issue creation.
 
 ## Scope boundaries
@@ -46,13 +47,15 @@ Human approval is required before creating issues, changing milestones, changing
 
 Review docs/roadmap/ROADMAP.md and docs/context/BUILD_STATE.md when issue planning affects milestone sequencing or active work. Review docs/prompts/CODEX_PROMPT_STANDARD.md for implementation prompt structure.
 
+When issue creation itself discovers reusable GitHub CLI, API, milestone, label, shell, or evidence-comment patterns, record those lessons in the relevant validation or skill documentation. Issue creation patterns should be captured for future automation reuse, but during M1 they remain advisory, manually executed, and human-reviewed.
+
 ## Validation expectations
 
 Check planned issue scope against source-of-truth docs and confirm it preserves current governance and autonomy boundaries.
 
 ## Evidence requirements
 
-Report source docs reviewed, planning assumptions, proposed scope, non-scope, acceptance criteria, validation expectations, documentation impact, and human decisions needed.
+Report source docs reviewed, planning assumptions, proposed scope, non-scope, acceptance criteria, validation expectations, documentation impact, issue creation lessons when relevant, and human decisions needed.
 
 ## Related docs
 
