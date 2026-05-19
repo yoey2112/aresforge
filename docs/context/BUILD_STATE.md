@@ -6,11 +6,11 @@ M2 - Documentation Agent Foundation
 
 ## Current Goal
 
-Continue M2 documentation automation foundation after completing the local operator workflow model, and decide the next human-reviewed M2 implementation issue.
+Reconcile stale M2 source-of-truth context after Issue #47 closeout.
 
 ## Current Active Issue
 
-- No active implementation issue is currently assigned after Issue #47 closeout.
+- Issue #49: Reconcile M2 source-of-truth context after Issue #47 closeout.
 
 ## Current Source of Truth
 
@@ -212,10 +212,10 @@ During M2 foundation work, explicit human decisions and repository documentation
   - Confirmed no scripts, runnable automation, workflow, auto-merge, autonomous approval, autonomous issue closure, repository setting change, branch protection change, GitHub Project change, release change, or tag change was introduced.
 ## In Progress
 
-- No active implementation issue is currently assigned after Issue #47 closeout.
+- Issue #49: Reconcile M2 source-of-truth context after Issue #47 closeout.
 ## Next
 
-- Decide and create the next M2 implementation issue after the completed local operator workflow review.
+- After Issue #49 review, decide the next M2 documentation automation foundation issue.
 
 ## Current Operating Constraint
 
