@@ -47,16 +47,14 @@ GitHub and repository documentation are the temporary source of truth until the 
 
 ## In Progress
 
-- Documentation agent definition
+- Issue #3: Define documentation agent model
 - AresForge self-project context refinement
 - Codex prompt standard refinement
 - PR validation and scoring model definition
 
 ## Next
 
-- Begin issue #3: Define documentation agent model
-- Define how documentation agents keep context, architecture, roadmap, governance, and validation docs synchronized
-- Define documentation update triggers and required evidence
+- Review issue #3 documentation agent model in PR
 - Continue documenting how AresForge will use itself to build itself
 
 ## Current Operating Constraint
