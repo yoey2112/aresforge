@@ -47,7 +47,7 @@ Closeout result:
 
 Goal: Establish documentation agent rules, source-of-truth update flow, documentation freshness checks, and human-reviewed documentation update behavior before any autonomous automation.
 
-Status: Active. Issue #43 completed the first M2 documentation agent foundation deliverable. Issue #45 completed the repeatable documentation freshness check model before documentation-sync work. Issue #47 completed the local operator workflow as a design-only documentation layer. Issue #49 completed corrective freshness reconciliation for M2 source-of-truth context. Issue #51 completed the documentation-sync evidence package model as a review artifact standard. Issue #55 completed the reusable documentation-sync handoff package template. Issue #57 completed source-of-truth reconciliation after Issue #55 closeout. Issue #59 completed the reusable Codex prompt package template as documentation-only review/input scaffolding. No active M2 implementation issue is currently assigned; the next M2 deliverable must be chosen.
+Status: Active. Issue #43 completed the first M2 documentation agent foundation deliverable. Issue #45 completed the repeatable documentation freshness check model before documentation-sync work. Issue #47 completed the local operator workflow as a design-only documentation layer. Issue #49 completed corrective freshness reconciliation for M2 source-of-truth context. Issue #51 completed the documentation-sync evidence package model as a review artifact standard. Issue #55 completed the reusable documentation-sync handoff package template. Issue #57 completed source-of-truth reconciliation after Issue #55 closeout. Issue #59 completed the reusable Codex prompt package template as documentation-only review/input scaffolding. Issue #61 added the future feature ideas planning document for milestone-start idea review. No active M2 implementation issue is currently assigned; the next M2 deliverable must be chosen.
 
 Completed M2 foundation deliverables:
 
@@ -59,9 +59,11 @@ Completed M2 foundation deliverables:
 - Issue #55: Define documentation-sync handoff package template.
 - Issue #57: Reconcile M2 source-of-truth after Issue #55 closeout.
 - Issue #59: Define Codex prompt package template.
+- Issue #61: Add future feature ideas planning document.
 
 Next M2 focus:
 
+- Review docs/planning/FUTURE_FEATURE_IDEAS.md at the beginning of each future milestone.
 - Choose the next M2 deliverable before assigning new implementation work.
 - Use docs/agents/DOCUMENTATION_SYNC_HANDOFF_TEMPLATE.md for future documentation-sync handoffs.
 - Use docs/prompts/CODEX_PROMPT_PACKAGE_TEMPLATE.md for reusable Codex prompt packages.

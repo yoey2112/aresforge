@@ -32,7 +32,7 @@ M2 began with Issue #43, `Create documentation agent foundation`, focused on doc
 
 ## M2 Documentation Agent Foundation Rules
 
-Issue #49 completed the M2 source-of-truth context reconciliation after Issue #47 closeout. Issue #57 completed the M2 source-of-truth reconciliation after Issue #55 and PR #56 closeout. Issue #59 completed the reusable Codex prompt package template after PR #60 closeout. After Issue #59 and PR #60 closeout, no active M2 implementation issue is currently assigned until the next deliverable is chosen.
+Issue #49 completed the M2 source-of-truth context reconciliation after Issue #47 closeout. Issue #57 completed the M2 source-of-truth reconciliation after Issue #55 and PR #56 closeout. Issue #59 completed the reusable Codex prompt package template after PR #60 closeout. Issue #61 added the future feature ideas planning document after PR #62 closeout. After Issue #61 and PR #62 closeout, no active M2 implementation issue is currently assigned until the next deliverable is chosen.
 
 Future agents must treat `docs/agents/DOCUMENTATION_AGENTS.md` as the canonical documentation agent architecture document. The prior observed missing path `docs/architecture/DOCUMENTATION_AGENTS.md` should not be treated as canonical unless a future source-of-truth change explicitly moves the document.
 

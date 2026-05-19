@@ -10,7 +10,7 @@ No active M2 implementation issue is currently assigned. The next M2 deliverable
 
 ## Current Repository State
 
-- Current main commit: 2e7a63d Define Codex prompt package template
+- Current main commit: 0053e9f Add future feature ideas planning document
 - Open pull requests: none.
 - Active issue: none currently assigned for M2 implementation work.
 - Remaining open validation issue: #39, `validation: issue-38-state-lifecycle`, intentionally preserved as audit evidence.
@@ -238,6 +238,13 @@ During M2 foundation work, explicit human decisions and repository documentation
   - Issue #59 was manually closed after closeout evidence was posted.
   - Confirmed Issue #39 was not modified or closed.
   - Confirmed no scripts, runnable automation, workflows, commands, auto-merge, autonomous approval, autonomous issue closure, repository setting change, branch protection change, ruleset change, secret change, release change, tag change, or GitHub Project change was introduced.
+- Issue #61 completed and closed after PR #62:
+  - Added docs/planning/FUTURE_FEATURE_IDEAS.md as a future feature ideas parking lot.
+  - Documented milestone-start review expectations, idea status values, an idea entry template, and MCP as a candidate future milestone review idea.
+  - PR #62 merged successfully.
+  - Issue #61 was manually closed after closeout evidence was posted.
+  - Confirmed Issue #39 was not modified or closed.
+  - Confirmed no scripts, runnable automation, workflows, commands, auto-merge, autonomous approval, autonomous issue closure, repository setting change, branch protection change, ruleset change, secret change, release change, tag change, or GitHub Project change was introduced.
 ## In Progress
 
 - No active M2 implementation issue is currently assigned.
@@ -252,6 +259,7 @@ During M2 foundation work, explicit human decisions and repository documentation
 - Keep documentation-sync evidence packages and handoff packages as review artifacts only.
 - Keep Codex prompt packages as review/input artifacts only.
 - Keep local operator command names as future design targets only until a later issue explicitly implements them.
+- Review docs/planning/FUTURE_FEATURE_IDEAS.md at the beginning of each future milestone.
 - Choose the next M2 deliverable before assigning new implementation work.
 
 ## Current Operating Constraint
