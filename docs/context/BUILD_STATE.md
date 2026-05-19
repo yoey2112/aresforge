@@ -89,18 +89,21 @@ During M1, explicit human decisions and repository documentation take priority o
   - Corrected current-phase references in the self-management model for M1
   - Confirmed no runnable automation, auto-merge, autonomous approval, destructive automation, or autonomous issue closure was introduced
 
+- Issue #20 completed via PR #21:
+  - Created canonical learning document at docs/learning/ERROR_PATTERNS.md
+  - Defined when repeatable errors must be promoted from chat/output into durable documentation
+  - Captured required learning-entry fields including observed facts, suspected causes, confirmed causes, workarounds, fixes, validation expectations, and update targets
+  - Seeded M1 learning entries for GitHub CLI, PowerShell, temp JSON payload, markdown encoding, special-character repair, verification mismatch, and ASCII-safe operational state patterns
+  - Updated relevant skills, AGENT_CONTEXT.md, SELF_MANAGEMENT_MODEL.md, CODEX_PROMPT_STANDARD.md, and BUILD_STATE.md
+  - Confirmed learning capture remains advisory/manual during M1 and does not enable runnable automation, auto-merge, autonomous approval, destructive automation, or autonomous issue closure
 ## In Progress
 
-- Issue #20 is the active M1 implementation issue:
-  - Title: Define repeatable error learning and prevention model
-  - Expected branch: m1/issue-20-error-learning-model
-  - Purpose: define self-learning and error-pattern documentation so repeatable command failures, encoding issues, and corrective guidance become durable project knowledge
-  - Seed evidence comment was added to issue #20 before implementation to capture the M1 failure patterns that motivated the work
+- No active implementation issue is currently assigned after Issue #20 completion.
 
 ## Next
 
-- Open a draft PR for issue #20 after documentation updates and validation are complete.
-- Keep the issue open until a human-reviewed PR is merged with valid issue-closing language.
+- Select the next M1 GitHub operations validation issue.
+- Continue validating repeatable GitHub-managed workflows using the documented GitHub operations, issue-planning, build-state, and error-pattern guidance.
 
 ## Current Operating Constraint
 
