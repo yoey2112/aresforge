@@ -159,14 +159,15 @@ During M1, explicit human decisions and repository documentation take priority o
   - Documented repeatable GitHub release and tag lifecycle validation.
   - Confirmed initial release inventory was empty.
   - Confirmed initial local and remote tag inventories were empty.
-  - Created only temporary validation tag alidation-issue-36-release-tag-lifecycle.
-  - Created only temporary prerelease Validation Issue 36 Release Lifecycle.
+  - Created only temporary validation tag `validation-issue-36-release-tag-lifecycle`.
+  - Created only temporary prerelease `Validation Issue 36 Release Lifecycle`.
   - Verified temporary release metadata and remote tag metadata.
   - Deleted only the temporary validation release and tag.
   - Final cleanup verification returned no releases, no local validation tag, and no remote validation tag.
-  - Added M1-ERROR-010 for unsupported gh release view --json isLatest in GitHub CLI 2.92.0.
+  - Added `M1-ERROR-010` for unsupported `gh release view --json isLatest` in GitHub CLI 2.92.0.
   - Updated GitHub operations skill with safe release and tag lifecycle guidance.
   - Confirmed no production releases, production tags, version-like production tags, repository settings, branch protection, repository rulesets, permissions, secrets, workflows, GitHub Projects, auto-merge, approvals, manual issue closure, or runnable automation were changed.
+
 ## In Progress
 
 - No active implementation issue is currently assigned after Issue #36 completion.
