@@ -35,6 +35,7 @@ Primary governing docs:
 - docs/agents/DOCUMENTATION_FRESHNESS_CHECKS.md
 - docs/agents/DOCUMENTATION_SYNC_EVIDENCE_PACKAGES.md
 - docs/agents/DOCUMENTATION_SYNC_HANDOFF_TEMPLATE.md
+- docs/agents/PR_EVIDENCE_PACKAGE_TEMPLATE.md
 - docs/architecture/LOCAL_OPERATOR_WORKFLOW.md
 - docs/governance/SELF_MANAGEMENT_MODEL.md
 - docs/governance/PR_VALIDATION_MODEL.md
@@ -64,3 +65,5 @@ Local operator workflow packages may reference registered skills as advisory inp
 Documentation-sync evidence packages may reference registered skills as reviewed source documents. They are evidence artifacts only and do not execute skills, approve changes, merge PRs, close issues, or automate repository behavior.
 
 Codex prompt packages may reference registered skills as source-of-truth inputs when preparing implementation handoffs. They are review/input artifacts only and do not execute skills, approve changes, merge PRs, close issues, implement commands, or automate repository behavior.
+
+PR evidence packages may reference registered skills as source-of-truth inputs when preparing pull request review evidence. They are review artifacts only and do not execute skills, approve changes, merge PRs, close issues, implement commands, change source-of-truth priority, bypass human review, or automate repository behavior.
