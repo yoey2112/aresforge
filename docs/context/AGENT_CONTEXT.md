@@ -26,6 +26,8 @@ AresForge will use repo-owned markdown skill definitions as the canonical reusab
 
 The skill model is defined in docs/agents/AGENT_SKILLS_MODEL.md. The initial draft skill registry is stored at .agent/AGENT_REGISTRY.md with draft skill files under .agent/skills/. During M1, skills are advisory, manually guided, human-reviewed project assets. External skill frameworks may inform future adapters, but they are not required to operate AresForge.
 
+Agents should consult docs/learning/ERROR_PATTERNS.md before generating or repeating GitHub CLI, Windows PowerShell, encoding-sensitive, or operational state update commands that match known failure patterns. During M1, the learning document is advisory project memory only and does not enable automation.
+
 ## Current Agent Roles
 
 Initial planned agent roles include:

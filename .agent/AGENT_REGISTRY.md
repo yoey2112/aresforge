@@ -29,6 +29,7 @@ Primary governing docs:
 - docs/context/PROJECT_CONTEXT.md
 - docs/context/AGENT_CONTEXT.md
 - docs/context/BUILD_STATE.md
+- docs/learning/ERROR_PATTERNS.md
 - docs/agents/AGENT_SKILLS_MODEL.md
 - docs/agents/DOCUMENTATION_AGENTS.md
 - docs/governance/SELF_MANAGEMENT_MODEL.md

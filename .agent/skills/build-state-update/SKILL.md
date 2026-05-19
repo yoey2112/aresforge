@@ -34,6 +34,8 @@ Do not use this skill to mark work complete before evidence exists, rewrite proj
 
 This skill covers project-state documentation. It does not authorize roadmap reprioritization, issue closure, merge decisions, release decisions, or autonomous state synchronization.
 
+Use ASCII-safe separators and punctuation in operational state updates unless special characters are required by a source-of-truth name or quoted external value. This reduces encoding risk in high-churn files such as BUILD_STATE during M1.
+
 ## Execution boundaries
 
 This skill is advisory and manually executed. It does not create state-sync scripts, dashboard adapters, workflows, packages, or runnable automation.
@@ -50,6 +52,8 @@ Update docs/context/BUILD_STATE.md when active work changes. Review docs/roadmap
 
 Confirm the build-state update matches issue scope, current branch or PR facts, and source-of-truth docs. For documentation-only updates, run the requested diff and status checks.
 
+For encoding-sensitive updates, command success is not enough. Inspect the actual file content after edits and use byte or code-point evidence when display output is ambiguous.
+
 ## Evidence requirements
 
 Report build-state fields changed, source evidence used, validation commands and results, unresolved blockers, and whether any related docs were reviewed but left unchanged.
@@ -62,6 +66,7 @@ Report build-state fields changed, source evidence used, validation commands and
 - docs/roadmap/ROADMAP.md
 - docs/governance/SELF_MANAGEMENT_MODEL.md
 - docs/agents/AGENT_SKILLS_MODEL.md
+- docs/learning/ERROR_PATTERNS.md
 
 ## Lifecycle status
 
