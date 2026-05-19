@@ -45,14 +45,15 @@ Status: Active.
 
 M2 is still documentation-only and design-first. It defines the documentation agent operating model, freshness checks, evidence packages, handoff templates, prompt package templates, PR and closeout evidence templates, the issue lifecycle pipeline, the documentation-before-closeout gate, and the local operator workflow model.
 
-Current active corrective item:
+Current corrective closeout outcome:
 
-- Issue #75: Reconcile source-of-truth after issue 73 closeout.
+- Issue #75: Reconcile source-of-truth after issue 73 closeout, completed and closed through PR #76.
 
 Current M2 corrective rule:
 
 - Issue #75 exists only because stale source-of-truth documentation was discovered after Issue #73 / PR #74 closeout.
 - Issue #75 should be the last routine reconciliation issue.
+- Separate related source-of-truth documentation update issues should not be created by default because that recreates the reconciliation loop.
 
 Next substantive M2 design direction:
 
@@ -131,7 +132,7 @@ Completed and active scope:
 - Issue lifecycle pipeline
 - Documentation-before-closeout gate
 - Local operator workflow design
-- M2 reconciliation history through Issues #49, #57, #67, #69, #71, and active Issue #75
+- M2 reconciliation history through Issues #49, #57, #67, #69, #71, and closed Issue #75 via PR #76
 
 Current M2 boundary:
 
@@ -141,7 +142,7 @@ Current M2 boundary:
 
 Next substantive M2 design direction:
 
-- Future project, agent, model, and queue registry architecture
+- Define AresForge project, agent, model, and queue registry architecture
 
 ### M3 - Registry and Routing Architecture
 

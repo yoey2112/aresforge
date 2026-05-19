@@ -32,7 +32,7 @@ M2 began with Issue #43, `Create documentation agent foundation`, focused on doc
 
 ## M2 Documentation Agent Foundation Rules
 
-Issue #49 completed the M2 source-of-truth context reconciliation after Issue #47 closeout. Issue #57 completed the M2 source-of-truth reconciliation after Issue #55 and PR #56 closeout. Issue #59 completed the reusable Codex prompt package template after PR #60 closeout. Issue #61 added the future feature ideas planning document after PR #62 closeout. Issue #63 completed the reusable PR evidence package template after PR #64 closeout. Issue #65 completed the reusable closeout evidence package template after PR #66 closeout and manual issue closure. Issue #67 completed the M2 source-of-truth reconciliation after PR #68 merged successfully and the issue was manually closed. Issue #69 completed the M2 source-of-truth reconciliation after PR #70 merged successfully, Issue #69 was manually closed, and `main` advanced to commit `38fa94e`. Issue #71 completed the M2 source-of-truth reconciliation after PR #72 merged successfully, closeout evidence was posted, Issue #71 was manually closed, and `main` advanced to commit `7d21189`. Issue #73 completed the issue lifecycle pipeline and documentation-before-closeout design correction through merged PR #74, and `main` advanced to commit `031c3c4`. Issue #75 is the active corrective reconciliation issue because stale source-of-truth documentation was discovered after Issue #73 / PR #74 closeout.
+Issue #49 completed the M2 source-of-truth context reconciliation after Issue #47 closeout. Issue #57 completed the M2 source-of-truth reconciliation after Issue #55 and PR #56 closeout. Issue #59 completed the reusable Codex prompt package template after PR #60 closeout. Issue #61 added the future feature ideas planning document after PR #62 closeout. Issue #63 completed the reusable PR evidence package template after PR #64 closeout. Issue #65 completed the reusable closeout evidence package template after PR #66 closeout and manual issue closure. Issue #67 completed the M2 source-of-truth reconciliation after PR #68 merged successfully and the issue was manually closed. Issue #69 completed the M2 source-of-truth reconciliation after PR #70 merged successfully, Issue #69 was manually closed, and `main` advanced to commit `38fa94e`. Issue #71 completed the M2 source-of-truth reconciliation after PR #72 merged successfully, closeout evidence was posted, Issue #71 was manually closed, and `main` advanced to commit `7d21189`. Issue #73 completed the issue lifecycle pipeline and documentation-before-closeout design correction through merged PR #74, and `main` advanced to commit `031c3c4`. Issue #75 completed the corrective reconciliation closeout through merged PR #76, and `main` advanced to commit `e7bb49a`.
 
 Future agents must treat `docs/agents/DOCUMENTATION_AGENTS.md` as the canonical documentation agent architecture document. The prior observed missing path `docs/architecture/DOCUMENTATION_AGENTS.md` should not be treated as canonical unless a future source-of-truth change explicitly moves the document.
 
@@ -52,7 +52,7 @@ Future agents must treat `docs/agents/PR_EVIDENCE_PACKAGE_TEMPLATE.md` as the re
 
 Future agents must treat docs/agents/CLOSEOUT_EVIDENCE_PACKAGE_TEMPLATE.md as the reusable M2 closeout evidence package template. Closeout evidence packages organize issue references, PR references when applicable, merge or closeout trigger, branch and commit context, source-of-truth documents reviewed, documentation freshness-check evidence, closeout file changes, project-memory updates, roadmap and state updates, validation results, diff review summary, human-review notes, limitations, protected Issue #39 confirmations, repository-boundary confirmations, next-step handoff notes, and a non-authority statement. During M2, closeout evidence packages are review artifacts only; they do not approve, merge, close, automate, bypass human review, replace human controls, change source-of-truth priority, implement New-CloseoutEvidencePackage, or authorize future automation.
 
-Future agents must not treat reconciliation-only issues as the default closeout pattern. Issue #75 should be the last routine reconciliation issue. When an issue changes project state, documentation updates must occur before PR merge and issue closeout. The Documentation Agent is a required pre-closeout gate, and the Final Closeout / Lifecycle Controller Agent closes the issue only after implementation, verification, testing, and documentation gates pass. Separate reconciliation issues should be reserved only for stale, conflicting, or incomplete source-of-truth documentation discovered after closeout.
+Future agents must not treat reconciliation-only issues as the default closeout pattern. Issue #75 should be the last routine reconciliation issue. When an issue changes project state, documentation updates must occur before PR merge and issue closeout. The Documentation Agent is a required pre-closeout gate, and the Final Closeout / Lifecycle Controller Agent closes the issue only after implementation, verification, testing, and documentation gates pass. Separate related source-of-truth documentation update issues should not be created by default because they recreate the reconciliation loop. Separate reconciliation or documentation-update issues should be reserved only for stale, conflicting, or incomplete source-of-truth documentation discovered after closeout.
 
 At minimum, future project-state-changing issues must review and update when needed:
 
@@ -62,7 +62,7 @@ At minimum, future project-state-changing issues must review and update when nee
 
 If one of those three documents does not need an update for a future project-state-changing issue, the PR evidence or closeout evidence must explicitly explain why.
 
-Issue #75 exists only because stale source-of-truth documentation was discovered after Issue #73 / PR #74 closeout. That is the exception path, not the standard future closeout pattern.
+Issue #75 existed only because stale source-of-truth documentation was discovered after Issue #73 / PR #74 closeout. That exception path is preserved for after-closeout stale, conflicting, or incomplete source-of-truth documentation, but it is not the standard future closeout pattern.
 
 M2 documentation-agent work must define and preserve:
 
@@ -82,7 +82,7 @@ M2 documentation-agent work must define and preserve:
 
 The M2 foundation does not introduce autonomous documentation automation. Documentation agents, repo-owned skills, and validation agents remain advisory, manually executed, and human-reviewed until a future human-approved governance change explicitly authorizes a different execution model.
 
-After Issue #75 closes, the next substantive M2 design issue should be the project, agent, model, and queue registry architecture issue.
+The next substantive M2 design issue should be the project, agent, model, and queue registry architecture issue.
 
 ## Reusable Skill Model
 
