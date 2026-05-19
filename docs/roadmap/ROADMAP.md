@@ -47,17 +47,18 @@ Closeout result:
 
 Goal: Establish documentation agent rules, source-of-truth update flow, documentation freshness checks, and human-reviewed documentation update behavior before any autonomous automation.
 
-Status: Active. Issue #43 completed the first M2 documentation agent foundation deliverable. Issue #45 completed the repeatable documentation freshness check model before documentation-sync work. Issue #47 completed the local operator workflow as a design-only documentation layer. Issue #49 is an active corrective freshness reconciliation issue for M2 source-of-truth context.
+Status: Active. Issue #43 completed the first M2 documentation agent foundation deliverable. Issue #45 completed the repeatable documentation freshness check model before documentation-sync work. Issue #47 completed the local operator workflow as a design-only documentation layer. Issue #49 completed corrective freshness reconciliation for M2 source-of-truth context.
 
 Completed M2 foundation deliverables:
 
 - Issue #43: Create documentation agent foundation.
 - Issue #45: Create documentation freshness check model.
 - Issue #47: Define local operator workflow.
+- Issue #49: Reconcile M2 source-of-truth context after Issue #47 closeout.
 
 Next M2 focus:
 
-- Complete Issue #49 source-of-truth context reconciliation, then decide the next documentation automation foundation issue now that documentation agents, documentation freshness checks, and the local operator workflow model are established.
+- Decide the next documentation automation foundation issue now that documentation agents, documentation freshness checks, local operator workflow, and source-of-truth context reconciliation are established.
 - Keep local operator commands such as `Start-IssueImplementation`, `New-CodexPromptPackage`, `Test-AresForgeWorktree`, `New-PrEvidencePackage`, and `New-CloseoutEvidencePackage` as future design targets only until a later issue explicitly implements them.
 ## M3 — Agent Workflow Orchestration
 

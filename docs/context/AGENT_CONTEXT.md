@@ -1,4 +1,4 @@
-﻿# AresForge Agent Context
+# AresForge Agent Context
 
 ## Purpose
 
@@ -32,7 +32,7 @@ M2 began with Issue #43, `Create documentation agent foundation`, focused on doc
 
 ## M2 Documentation Agent Foundation Rules
 
-Issue #49 is the active M2 implementation issue for reconciling stale source-of-truth context after Issue #47 closeout.
+Issue #49 completed the M2 source-of-truth context reconciliation after Issue #47 closeout. No active M2 implementation issue is currently assigned until the next issue is created.
 
 Future agents must treat `docs/agents/DOCUMENTATION_AGENTS.md` as the canonical documentation agent architecture document. The prior observed missing path `docs/architecture/DOCUMENTATION_AGENTS.md` should not be treated as canonical unless a future source-of-truth change explicitly moves the document.
 
