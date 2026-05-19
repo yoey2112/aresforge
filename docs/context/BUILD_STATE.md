@@ -52,21 +52,27 @@ During M0, explicit human decisions and repository documentation take priority o
   - Defined documentation agent responsibilities, required inputs, required outputs, update rules, stale documentation warnings, validation evidence expectations, M0 manual flow, risks, and anti-patterns
   - Updated AGENT_CONTEXT.md with the M0 documentation agent operating model
   - Preserved the M0 constraint that documentation agent work is manual and human-reviewed
+- Issue #4 completed:
+  - PR #11 created, merged, and auto-closed issue #4
+  - AresForge self-project context expanded across project context, self-management, architecture, roadmap, and build-state documentation
+  - Documented AresForge as its own first managed project
+  - Documented GitHub plus repository documentation as the temporary source of truth
+  - Documented future dashboard state fields
+  - Documented next-chat handoff expectations
 
 ## In Progress
 
-- Issue #4: Create AresForge self-project context
 - Codex prompt standard refinement
 - PR validation and scoring model definition
 
 ## Next
 
-- Validate issue #4 documentation changes
-- Open a pull request for issue #4 after validation
-- Continue with issue #5: Create Codex prompt standard after issue #4 is merged
+- Begin issue #5: Create Codex prompt standard
+- Continue with issue #6: Define PR validation and scoring model after issue #5 is merged
 
 ## Current Operating Constraint
 
 All M0 changes are manually guided and manually reviewed.
 
 No destructive automation, auto-merge, or autonomous issue closure is enabled during M0.
+
