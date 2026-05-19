@@ -15,8 +15,20 @@ Deliverables:
 - GitHub capability validation plan
 - Ollama validation plan
 - Documentation agent model
+- Self-management model
+- Future dashboard state field definition
 - Codex prompt standard
 - PR validation/scoring model
+
+Completion criteria:
+
+- GitHub operations are validated.
+- Local Ollama review is validated with documented limitations.
+- Documentation agent responsibilities are defined.
+- AresForge is documented as its own first managed project.
+- Temporary source-of-truth rules are documented.
+- Next-chat handoff expectations are documented.
+- Prompt and PR validation standards are documented.
 
 ## M1 — GitHub Operations Validation
 
