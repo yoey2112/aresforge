@@ -63,6 +63,7 @@ During M0:
 
 - All implementation work is manually guided.
 - All documentation updates are manually reviewed.
+- Repo-owned markdown skills are governed project assets. They must remain auditable, stored in the repository, reviewed through normal human-approved changes, and advisory unless a later governance decision explicitly allows automation.
 - All pull requests require human review before merge.
 - Local AI review may produce evidence, but it is not a merge gate yet.
 - Agents may recommend work, but they must not autonomously merge, close issues, delete data, or enable destructive automation.

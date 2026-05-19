@@ -14,6 +14,12 @@ In M0, these agents may be represented by one implementation session. The sessio
 
 Future versions may split these responsibilities into separate automated agents after the dashboard, validation workflows, and autonomy controls exist.
 
+## Relationship To Agent Skills
+
+AresForge's reusable skill model is defined in docs/agents/AGENT_SKILLS_MODEL.md.
+
+Future documentation agents should use repo-owned markdown skills for repeatable documentation-sync and build-state-update work. During M0, those skills are guidance only: a human-guided agent may follow them, but documentation changes remain manually reviewed and must include validation evidence.
+
 ## Documentation Agent Types
 
 ### Context Documentation Agent
