@@ -49,6 +49,11 @@ Current corrective closeout outcome:
 
 - Issue #75: Reconcile source-of-truth after issue 73 closeout, completed and closed through PR #76.
 
+Current active M2 design deliverable:
+
+- Issue #77: Define project, agent, model, and queue registry architecture.
+- `docs/architecture/REGISTRY_AND_QUEUE_ARCHITECTURE.md` is the current M2 architecture deliverable.
+
 Current M2 corrective rule:
 
 - Issue #75 exists only because stale source-of-truth documentation was discovered after Issue #73 / PR #74 closeout.
@@ -57,7 +62,7 @@ Current M2 corrective rule:
 
 Next substantive M2 design direction:
 
-- Define AresForge project, agent, model, and queue registry architecture.
+- Complete Issue #77 and use the resulting registry architecture to guide the next M2 design or implementation issue.
 
 ## Full Milestone Roadmap
 
@@ -132,6 +137,7 @@ Completed and active scope:
 - Issue lifecycle pipeline
 - Documentation-before-closeout gate
 - Local operator workflow design
+- Registry and queue architecture design via active Issue #77
 - M2 reconciliation history through Issues #49, #57, #67, #69, #71, and closed Issue #75 via PR #76
 
 Current M2 boundary:
@@ -142,7 +148,7 @@ Current M2 boundary:
 
 Next substantive M2 design direction:
 
-- Define AresForge project, agent, model, and queue registry architecture
+- Complete the active registry and queue architecture deliverable, then use it to drive the next M2 design or implementation issue
 
 ### M3 - Registry and Routing Architecture
 
@@ -150,7 +156,7 @@ Status: Planned. Design target only.
 
 Goal:
 
-Define the canonical registries and routing rules that let AresForge understand what work exists, who can do it, and how execution should be sequenced under human control.
+Expand the documentation-defined registry architecture into more specific schemas, routing rules, and later implementation planning that let AresForge understand what work exists, who can do it, and how execution should be sequenced under human control without implying current runtime capability.
 
 Planned scope:
 
@@ -169,6 +175,9 @@ Not yet implemented:
 - Runnable routing automation
 - Autonomous registry mutation
 - Autonomous issue dispatch
+- Registry storage
+- Queue execution
+- Model routing runtime
 
 ### M4 - Local Operator MVP
 
@@ -397,7 +406,6 @@ The current M2 phase does not authorize the following:
 
 These are roadmap-driven recommendations only. They are not created issues.
 
-- Define AresForge project, agent, model, and queue registry architecture.
 - Define project registry schema.
 - Define agent registry schema and lifecycle states.
 - Define model registry and local LLM routing rules.

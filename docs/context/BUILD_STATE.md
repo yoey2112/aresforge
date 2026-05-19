@@ -6,11 +6,12 @@ M2 - Documentation Agent Foundation
 
 ## Current Goal
 
-Preserve documentation-before-closeout as the normal M2 closeout path after Issue #75 / PR #76, and prepare for the next substantive M2 design issue: AresForge project, agent, model, and queue registry architecture.
+Complete Issue #77, `Define project, agent, model, and queue registry architecture`, as the current substantive M2 design deliverable while preserving documentation-before-closeout as the normal closeout path.
 
 ## Current Repository State
 
-- Latest documented `main` commit: `e7bb49a` (`Reconcile source-of-truth after issue 73 closeout (#76)`).
+- Latest documented `main` commit before Issue #77 work: `7438ba6` (`Update docs after issue 75 closeout`).
+- Issue #77, `Define project, agent, model, and queue registry architecture`, is active.
 - PR #76 is merged.
 - Issue #75, `Reconcile source-of-truth after issue 73 closeout`, is completed and closed through PR #76 as the corrective exception-path reconciliation issue.
 - Remaining open validation issue: #39, `validation: issue-38-state-lifecycle`, intentionally preserved as audit evidence.
@@ -306,6 +307,7 @@ During M2 foundation work, explicit human decisions and repository documentation
 ## In Progress
 
 - `docs/architecture/ISSUE_LIFECYCLE_AGENT_PIPELINE.md` remains the completed canonical lifecycle pipeline design artifact.
+- `docs/architecture/REGISTRY_AND_QUEUE_ARCHITECTURE.md` is the active M2 design deliverable for Issue #77.
 - Future project-state-changing issues must update source-of-truth docs before PR merge and issue closeout.
 - At minimum, future project-state-changing issues must review and update when needed:
   - `docs/context/BUILD_STATE.md`
@@ -316,6 +318,7 @@ During M2 foundation work, explicit human decisions and repository documentation
 - Separate reconciliation or documentation-update issues are not the default closeout pattern because they recreate the reconciliation loop.
 - Stale, conflicting, or incomplete source-of-truth documentation discovered after closeout may still justify a reconciliation or documentation-update issue as the exception path only.
 - Preserve the explicit rule that Issue #39 remains intentionally open as M1 validation audit evidence unless a future human-directed issue explicitly changes its state.
+- Preserve the explicit rule that no related source-of-truth documentation-update issue should be created by default for Issue #77 work.
 
 ## Next
 
@@ -328,7 +331,7 @@ During M2 foundation work, explicit human decisions and repository documentation
 - Do not create another routine reconciliation issue after Issue #75. Future project-state-changing issues must update the main source-of-truth docs before PR merge and issue closeout.
 - Do not create related source-of-truth documentation update issues by default because that recreates the reconciliation loop.
 - Use `docs/architecture/ISSUE_LIFECYCLE_AGENT_PIPELINE.md` as the canonical lifecycle correction for documentation-before-closeout.
-- The next substantive M2 design issue should be the project, agent, model, and queue registry architecture issue.
+- Complete Issue #77 and use the registry architecture as the design bridge to the next M2 design or implementation issue.
 - Keep documentation-sync evidence packages and handoff packages as review artifacts only.
 - Keep Codex prompt packages as review/input artifacts only.
 - Keep PR evidence packages as review artifacts only.
