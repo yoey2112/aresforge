@@ -1,4 +1,4 @@
-﻿# AresForge Build State
+# AresForge Build State
 
 ## Current Phase
 
@@ -208,4 +208,3 @@ During M2 foundation work, explicit human decisions and repository documentation
 All current M2 foundation changes are manually guided and manually reviewed.
 
 No runnable automation, workflow, auto-merge, autonomous approval, destructive automation, autonomous issue closure, repository setting change, branch protection change, ruleset change, secret change, release change, tag change, or GitHub Project change is enabled during M2 foundation work.
-

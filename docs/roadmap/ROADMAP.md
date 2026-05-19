@@ -1,4 +1,4 @@
-﻿# AresForge Roadmap
+# AresForge Roadmap
 
 ## M0 — Self-Bootstrap Foundation
 
@@ -68,4 +68,3 @@ Goal: Build the first AresForge dashboard that mirrors GitHub and documentation 
 ## M5 — Self-Managed Delivery Loop
 
 Goal: Enable AresForge to plan, execute, validate, score, document, and prepare releases with configurable autonomy.
-
