@@ -173,11 +173,14 @@ Additional evidence when relevant:
 - Screenshots or rendered artifacts.
 - Logs or workflow artifacts.
 - Local AI review output.
+- Local operator prompt, validation, PR evidence, or closeout evidence packages.
 - Manual QA notes.
 - Rollback notes.
 - Stale documentation warnings.
 
 Evidence must distinguish between verified facts, reviewer judgment, and future recommendations.
+
+Local operator packages are evidence aids only. They do not approve, merge, close issues, or replace human review.
 
 ## Risk Handling
 

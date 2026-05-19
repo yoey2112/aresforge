@@ -24,6 +24,7 @@ The first managed project is:
 - Current execution model: human-guided implementation sessions
 - Current review model: human-reviewed pull requests
 - Current local AI model validated for review evidence: qwen2.5:32b through Ollama on Ares
+- Current local operator model: design-only workflow documentation in docs/architecture/LOCAL_OPERATOR_WORKFLOW.md
 
 ## Temporary Source Of Truth
 
@@ -57,6 +58,8 @@ AresForge should use the following loop to build itself:
 11. Let GitHub close linked issues only after merge.
 12. Update build state and handoff context for the next implementation session.
 
+During M2, the local operator workflow may be used as a design model for preparing issue context, Codex prompt packages, validation checklists, PR evidence packages, and closeout evidence packages. It does not execute this loop or approve any step.
+
 ## Self-Learning Error Pattern Loop
 
 AresForge should preserve repeatable operational lessons in `docs/learning/ERROR_PATTERNS.md`.
@@ -79,6 +82,7 @@ During M2 documentation-agent foundation work:
 - GitHub milestone number or ID should be preferred over milestone title matching in scripts and validation commands.
 - Repeatable error lessons should be captured in `docs/learning/ERROR_PATTERNS.md` when they affect future GitHub operations, prompts, skills, validation, or project-state updates.
 - Documentation must remain the durable project memory layer until the dashboard exists.
+- The local operator workflow is a design-only documentation layer that may describe future command targets but must not implement scripts, workflows, runnable automation, autonomous approval, auto-merge, or autonomous issue closure during Issue #47.
 - Documentation-agent foundation work must not create runnable automation, workflows, auto-merge, autonomous approval, autonomous issue closure, repository setting changes, branch protection changes, ruleset changes, secret changes, release or tag changes, or GitHub Project changes.
 
 M0 operating rules remain historical project context for the self-bootstrap foundation milestone. M1 limitations remain documented and unresolved unless a later issue explicitly addresses them. The same manual-review and autonomy limits continue to apply unless a later governance update explicitly changes them.

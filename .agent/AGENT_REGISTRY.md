@@ -33,6 +33,7 @@ Primary governing docs:
 - docs/agents/AGENT_SKILLS_MODEL.md
 - docs/agents/DOCUMENTATION_AGENTS.md
 - docs/agents/DOCUMENTATION_FRESHNESS_CHECKS.md
+- docs/architecture/LOCAL_OPERATOR_WORKFLOW.md
 - docs/governance/SELF_MANAGEMENT_MODEL.md
 - docs/governance/PR_VALIDATION_MODEL.md
 - docs/prompts/CODEX_PROMPT_STANDARD.md
@@ -54,3 +55,5 @@ Primary governing docs:
 Skill additions, removals, lifecycle changes, and material scope changes must be made through normal repository changes and human-reviewed pull requests.
 
 Any change that expands a skill from manual guidance toward automation must also update the relevant governance documentation and receive explicit human approval.
+
+Local operator workflow packages may reference registered skills as advisory inputs. They do not execute skills, change skill lifecycle status, or grant automation authority.
