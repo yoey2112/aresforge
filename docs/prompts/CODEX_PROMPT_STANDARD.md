@@ -34,11 +34,12 @@ For current implementation work, agents should usually read:
 - docs/context/AGENT_CONTEXT.md
 - docs/context/BUILD_STATE.md
 - Relevant roadmap, architecture, governance, prompt, validation, or agent documentation.
+- docs/prompts/CODEX_PROMPT_PACKAGE_TEMPLATE.md when the prompt is packaged for reuse or local operator handoff.
 - The issue body or task prompt supplied by the human owner.
 
 Agents must treat GitHub and repository documentation as the temporary source of truth until the AresForge dashboard exists. During M2 foundation work, explicit human decisions and repository documentation take priority over AI-generated summaries or inferred automation behavior.
 
-When a prompt is prepared by a local operator workflow package, agents must treat the package as a convenience wrapper around source-of-truth documentation, not as approval or active automation. Future command names documented in the local operator workflow are design targets only unless a later issue implements them.
+When a prompt is prepared by a local operator workflow package, agents must treat the package as a convenience wrapper around source-of-truth documentation, not as approval or active automation. Reusable prompt packages should use `docs/prompts/CODEX_PROMPT_PACKAGE_TEMPLATE.md` when a copy/paste-ready package is needed. Future command names documented in the local operator workflow are design targets only unless a later issue implements them.
 
 For work that may repeat GitHub CLI, Windows PowerShell, encoding-sensitive, or operational state update patterns, agents should also review docs/learning/ERROR_PATTERNS.md and apply any relevant manual guidance. During M2 foundation work, the learning document remains advisory project memory and does not authorize automation.
 
@@ -138,6 +139,14 @@ Every implementation PR should include:
 - Issue linkage such as `Closes #N` when the PR should close the issue after merge.
 
 During M2 foundation work, PR evidence must not imply that a PR is accepted, merged, or issue-closing until the human owner reviews and merges it.
+
+## Relationship To Codex Prompt Packages
+
+The reusable Codex prompt package template is `docs/prompts/CODEX_PROMPT_PACKAGE_TEMPLATE.md`.
+
+Prompt packages are review/input artifacts that organize issue context, branch context, source-of-truth reading lists, scope, validation commands, documentation impact, PR evidence expectations, human-review boundaries, and non-authority statements before implementation work begins.
+
+During M2, prompt packages do not approve, merge, close, automate, bypass human review, change repository settings, or authorize future automation. The local operator command name `New-CodexPromptPackage` remains a future design target only until a later human-approved issue explicitly implements it.
 
 ## Branch, Commit, And PR Naming Expectations
 

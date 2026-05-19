@@ -6,13 +6,13 @@ M2 - Documentation Agent Foundation
 
 ## Current Goal
 
-No active M2 implementation issue is currently assigned. The next M2 deliverable must be chosen.
+Define the reusable Codex prompt package template for Issue #59 as documentation-only M2 review/input scaffolding.
 
 ## Current Repository State
 
-- Current main commit: a20c17a Reconcile M2 source of truth after issue 55 closeout
+- Current main commit: 4278a39 Update docs after issue 57 closeout
 - Open pull requests: none.
-- Active issue: none currently assigned for M2 implementation work.
+- Active issue: #59, `Define Codex prompt package template`.
 - Remaining open validation issue: #39, `validation: issue-38-state-lifecycle`, intentionally preserved as audit evidence.
 
 ## Current Source of Truth
@@ -233,17 +233,20 @@ During M2 foundation work, explicit human decisions and repository documentation
   - Confirmed no scripts, runnable automation, workflows, commands, auto-merge, autonomous approval, autonomous issue closure, repository setting change, branch protection change, ruleset change, secret change, release change, tag change, or GitHub Project change was introduced.
 ## In Progress
 
-- No active M2 implementation issue is currently assigned.
-- The next M2 deliverable must be chosen before new implementation work begins.
+- Issue #59, `Define Codex prompt package template`, is in progress on branch `m2/issue-59-codex-prompt-package-template`.
+- Scope: create `docs/prompts/CODEX_PROMPT_PACKAGE_TEMPLATE.md` and update only directly affected source-of-truth docs.
+- Boundary: documentation-only; no scripts, workflows, automation, commands, repository settings, releases, tags, GitHub Projects, autonomous behavior, manual issue closure, or Issue #39 state changes.
 
 ## Next
 
 - Preserve Issue #39 as the only remaining open validation issue unless a future human-directed issue explicitly changes its state.
 - Keep documentation freshness checks required before future documentation-sync work.
 - Use docs/agents/DOCUMENTATION_SYNC_HANDOFF_TEMPLATE.md for future documentation-sync handoffs.
+- Use docs/prompts/CODEX_PROMPT_PACKAGE_TEMPLATE.md for future reusable Codex prompt packages after Issue #59 is reviewed and merged.
 - Keep documentation-sync evidence packages and handoff packages as review artifacts only.
+- Keep Codex prompt packages as review/input artifacts only.
 - Keep local operator command names as future design targets only until a later issue explicitly implements them.
-- Choose the next M2 deliverable before assigning new implementation work.
+- Review the Issue #59 implementation PR when it is opened.
 
 ## Current Operating Constraint
 
