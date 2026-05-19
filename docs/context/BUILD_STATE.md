@@ -10,7 +10,7 @@ Continue M1 by validating safe GitHub-managed workflows using repo-owned documen
 
 ## Current Active Issue
 
-- No active implementation issue is currently assigned after Issue #36 completion.
+- Issue #38 - Validate GitHub issue state lifecycle operations.
 
 ## Current Source of Truth
 
@@ -170,11 +170,14 @@ During M1, explicit human decisions and repository documentation take priority o
 
 ## In Progress
 
-- No active implementation issue is currently assigned after Issue #36 completion.
+- Issue #38 - Validate GitHub issue state lifecycle operations:
+  - Validate a repeatable, safe issue state lifecycle pattern using one isolated temporary validation issue.
+  - Confirm the temporary issue can be read, closed, verified closed, reopened, and verified open.
+  - Preserve evidence on Issue #38 and document the safe manual guidance for future AresForge issue state operations.
 
 ## Next
 
-- Select the next M1 GitHub operations validation issue.
+- Complete Issue #38 through draft PR review and human-reviewed merge using the documented validation evidence.
 
 ## Current Operating Constraint
 
