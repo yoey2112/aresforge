@@ -10,7 +10,7 @@ No active M2 implementation issue is currently assigned.
 
 ## Current Repository State
 
-- Current main commit: 22f4544 Correct build state current main commit
+- Current main state: verify with git log -1 --oneline and git log -1 --oneline origin/main before implementation work.
 - Open pull requests: none.
 - Active issue: none assigned.
 - Remaining open validation issue: #39, `validation: issue-38-state-lifecycle`, intentionally preserved as audit evidence.
