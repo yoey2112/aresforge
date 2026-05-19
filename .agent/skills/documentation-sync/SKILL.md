@@ -30,6 +30,7 @@ Do not use this skill to rewrite unrelated documentation, replace source-of-trut
 - Documentation-sync handoff template from docs/agents/DOCUMENTATION_SYNC_HANDOFF_TEMPLATE.md when a reusable package or next-agent handoff is needed.
 - Documentation freshness checks from docs/agents/DOCUMENTATION_AGENTS.md when relevant.
 - Local operator workflow package or evidence outline from docs/architecture/LOCAL_OPERATOR_WORKFLOW.md when available.
+- Codex prompt package template from docs/prompts/CODEX_PROMPT_PACKAGE_TEMPLATE.md when prompt-package documentation or implementation handoff packaging is in scope.
 - Validation evidence and PR summary when available.
 - Explicit human decisions relevant to the work.
 
@@ -101,6 +102,7 @@ When a handoff package is required, use `docs/agents/DOCUMENTATION_SYNC_HANDOFF_
 - docs/context/BUILD_STATE.md
 - docs/governance/SELF_MANAGEMENT_MODEL.md
 - docs/prompts/CODEX_PROMPT_STANDARD.md
+- docs/prompts/CODEX_PROMPT_PACKAGE_TEMPLATE.md
 
 ## Lifecycle status
 

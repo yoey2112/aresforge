@@ -28,7 +28,7 @@ Future agents should treat `docs/validation/GITHUB_CAPABILITY_VALIDATION.md`, `.
 
 The M1 baseline confirms enough manual, human-reviewed GitHub operations to proceed to M2, while preserving known limitations around GitHub Projects v2 `read:project` access, absent workflow runs and artifacts, absent branch protection and rulesets, and production release governance.
 
-M2 began with Issue #43, `Create documentation agent foundation`, focused on documentation agent rules, source-of-truth update flow, documentation freshness checks, and human-reviewed documentation updates before any autonomous automation. Issue #45, `Create documentation freshness check model`, defines the repeatable freshness check layer that must run before documentation-sync work. Issue #47, `Define local operator workflow`, completed the local operator workflow as a design-only documentation layer for reducing manual copy/paste while preserving human-reviewed controls. Issue #51, `Define documentation-sync evidence package model`, completed the required PR evidence, closeout evidence, and documentation-sync evidence package structure for review artifacts. Issue #55, `Define documentation-sync handoff package template`, completed the reusable documentation-sync handoff package template for carrying documentation-sync evidence between implementation agents, documentation agents, validation agents, local operators, and human owners.
+M2 began with Issue #43, `Create documentation agent foundation`, focused on documentation agent rules, source-of-truth update flow, documentation freshness checks, and human-reviewed documentation updates before any autonomous automation. Issue #45, `Create documentation freshness check model`, defines the repeatable freshness check layer that must run before documentation-sync work. Issue #47, `Define local operator workflow`, completed the local operator workflow as a design-only documentation layer for reducing manual copy/paste while preserving human-reviewed controls. Issue #51, `Define documentation-sync evidence package model`, completed the required PR evidence, closeout evidence, and documentation-sync evidence package structure for review artifacts. Issue #55, `Define documentation-sync handoff package template`, completed the reusable documentation-sync handoff package template for carrying documentation-sync evidence between implementation agents, documentation agents, validation agents, local operators, and human owners. Issue #59, `Define Codex prompt package template`, defines the reusable Codex prompt package template as documentation-only review/input scaffolding for implementation-agent handoffs.
 
 ## M2 Documentation Agent Foundation Rules
 
@@ -44,6 +44,8 @@ Future agents must treat `docs/agents/DOCUMENTATION_SYNC_EVIDENCE_PACKAGES.md` a
 
 Future agents must treat `docs/agents/DOCUMENTATION_SYNC_HANDOFF_TEMPLATE.md` as the reusable M2 documentation-sync handoff package template. The template is the copy/paste-friendly structure for transferring documentation-sync evidence between implementation agents, documentation agents, validation agents, local operators, and human owners. It remains documentation-only, advisory, manually prepared, and human-reviewed.
 
+Future agents must treat `docs/prompts/CODEX_PROMPT_PACKAGE_TEMPLATE.md` as the reusable M2 Codex prompt package template. Prompt packages organize task context, repository and branch context, source-of-truth reading lists, issue and PR context, scope, implementation requirements, freshness checks, documentation impact, validation commands, PR evidence expectations, human-review boundaries, completion guidance, and a non-authority statement. During M2, prompt packages are review/input artifacts only; they do not approve, merge, close, automate, bypass human review, change repository settings, implement `New-CodexPromptPackage`, or authorize future automation.
+
 M2 documentation-agent work must define and preserve:
 
 - Documentation agent responsibilities.
@@ -52,6 +54,7 @@ M2 documentation-agent work must define and preserve:
 - Documentation freshness checks.
 - Documentation-sync evidence packages.
 - Documentation-sync handoff package templates.
+- Codex prompt package templates.
 - Human-reviewed documentation update expectations.
 - Required validation evidence for documentation changes.
 - Handoffs between implementation agents, documentation agents, validation agents, and the human owner.

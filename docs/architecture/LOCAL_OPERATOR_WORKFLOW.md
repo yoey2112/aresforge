@@ -48,7 +48,7 @@ The workflow must keep repository documentation, GitHub issue state, validation 
 The first version should be designed to:
 
 - Read an issue scope and identify required source-of-truth documents.
-- Prepare a Codex-ready implementation prompt package using `docs/prompts/CODEX_PROMPT_STANDARD.md`.
+- Prepare a Codex-ready implementation prompt package using `docs/prompts/CODEX_PROMPT_STANDARD.md` and the reusable template in `docs/prompts/CODEX_PROMPT_PACKAGE_TEMPLATE.md`.
 - List the expected working branch, changed-file targets, constraints, validation commands, and PR evidence sections.
 - Run or guide manual documentation freshness review before documentation-sync work.
 - Produce evidence summaries that a human can paste into a PR body or review before PR creation.
@@ -148,6 +148,7 @@ Expected evidence outputs include:
 - Closeout evidence outline.
 - Documentation-sync evidence outline.
 - Documentation-sync handoff package template content.
+- Codex prompt package template content from `docs/prompts/CODEX_PROMPT_PACKAGE_TEMPLATE.md`.
 - Confirmation that future-state commands or workflow concepts were not treated as implemented capability.
 
 Evidence must distinguish confirmed facts, agent judgment, unavailable inputs, skipped checks, future recommendations, and human decisions.
@@ -182,6 +183,14 @@ The operator should prepare freshness evidence by:
 The operator does not replace the freshness check model. It packages the inputs and evidence so the freshness check is easier to perform consistently.
 
 Freshness evidence prepared by the operator should be carried into the appropriate PR evidence package, closeout evidence package, or documentation-sync evidence package.
+
+## Relationship To Codex Prompt Packages
+
+The reusable Codex prompt package template is `docs/prompts/CODEX_PROMPT_PACKAGE_TEMPLATE.md`.
+
+The local operator workflow may prepare prompt package content from that template so a human owner or human-directed implementation agent can review issue context, branch context, source-of-truth reading lists, scope, validation commands, documentation impact, evidence expectations, and human-review boundaries before implementation begins.
+
+Prompt packages remain review/input artifacts only. They do not approve work, merge PRs, close issues, execute commands, implement `New-CodexPromptPackage`, bypass review, change repository settings, or authorize future automation.
 
 ## Relationship To Documentation Sync
 
@@ -223,7 +232,7 @@ The following names are future design targets only. They are not implemented by 
 | Design target | Intended future purpose | Current Issue #47 status |
 |---|---|---|
 | `Start-IssueImplementation` | Prepare issue context, branch recommendation, source-of-truth reading list, constraints, and approval gates before implementation begins. | Design target only; not implemented. |
-| `New-CodexPromptPackage` | Generate a Codex prompt package aligned with `docs/prompts/CODEX_PROMPT_STANDARD.md`. | Design target only; not implemented. |
+| `New-CodexPromptPackage` | Generate a Codex prompt package aligned with `docs/prompts/CODEX_PROMPT_STANDARD.md` and `docs/prompts/CODEX_PROMPT_PACKAGE_TEMPLATE.md`. | Design target only; not implemented. |
 | `Test-AresForgeWorktree` | Prepare or run approved local validation checks and summarize worktree state. | Design target only; not implemented. |
 | `New-PrEvidencePackage` | Prepare PR body evidence including summary, changed files, freshness findings, validation, approval gates, non-authority statements, and issue linkage. | Design target only; not implemented. |
 | `New-CloseoutEvidencePackage` | Prepare post-PR closeout evidence for build state, roadmap, issue status, documentation freshness, limitations, and next handoff. | Design target only; not implemented. |

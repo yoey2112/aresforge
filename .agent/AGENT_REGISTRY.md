@@ -39,6 +39,7 @@ Primary governing docs:
 - docs/governance/SELF_MANAGEMENT_MODEL.md
 - docs/governance/PR_VALIDATION_MODEL.md
 - docs/prompts/CODEX_PROMPT_STANDARD.md
+- docs/prompts/CODEX_PROMPT_PACKAGE_TEMPLATE.md
 - docs/roadmap/ROADMAP.md
 
 ## Registered Skills
@@ -61,3 +62,5 @@ Any change that expands a skill from manual guidance toward automation must also
 Local operator workflow packages may reference registered skills as advisory inputs. They do not execute skills, change skill lifecycle status, or grant automation authority.
 
 Documentation-sync evidence packages may reference registered skills as reviewed source documents. They are evidence artifacts only and do not execute skills, approve changes, merge PRs, close issues, or automate repository behavior.
+
+Codex prompt packages may reference registered skills as source-of-truth inputs when preparing implementation handoffs. They are review/input artifacts only and do not execute skills, approve changes, merge PRs, close issues, implement commands, or automate repository behavior.
