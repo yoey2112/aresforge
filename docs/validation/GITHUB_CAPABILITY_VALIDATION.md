@@ -36,7 +36,7 @@ AresForge must be able to safely perform and document the following GitHub opera
 | Issue read | Agent intake and planning | gh issue view | Confirmed |
 | Issue update | Labels, milestone, closure, evidence | GitHub CLI/API patch or comment | Pending |
 | Label read/create/update | Routing and governance | gh label list/create/edit or API | Pending |
-| Milestone read/create/update | Roadmap tracking | GitHub API milestone calls | Partially confirmed |
+| Milestone read/create/update | Roadmap tracking | GitHub API milestone calls | Confirmed |
 | Branch create | Isolated implementation work | Local git branch creation | Confirmed |
 | Commit and push | Deliver implementation changes | Git commit and push | Pending |
 | Pull request create/read | Review and merge workflow | gh pr create/view | Pending |
@@ -623,3 +623,204 @@ It does not introduce:
 - Destructive automation.
 - Autonomous issue closure.
 - Repository permission, secret, branch protection, workflow, or release setting changes.
+
+## M1 Repeatable GitHub Milestone Lifecycle Validation
+
+This section extends the original M0 GitHub capability validation for M1 milestone lifecycle operations.
+
+This validation belongs to:
+
+- Milestone: M1 - GitHub Operations Validation
+- Milestone number: 2
+- Issue: #26 Validate repeatable GitHub milestone lifecycle operations using GitHub operations skill
+- Phase: GitHub operations validation
+
+### Current M1 Safety Boundaries
+
+During M1, milestone lifecycle work is manually guided, manually reviewed, and evidence-based.
+
+Allowed milestone lifecycle operations for this validation are limited to:
+
+- Reading existing repository milestone metadata.
+- Creating one clearly named non-production validation milestone.
+- Updating only that temporary validation milestone metadata.
+- Closing and reopening only that temporary validation milestone when it has no assigned issues.
+- Verifying every write with an explicit API read.
+- Leaving the temporary validation milestone undeleted unless the human owner separately approves deletion.
+
+This validation must not:
+
+- Rename, close, delete, or otherwise alter production milestones.
+- Assign production issues to the validation milestone.
+- Delete the validation milestone without explicit human approval.
+- Change repository settings, branch protection, secrets, permissions, workflows, releases, or project settings.
+- Introduce runnable automation, auto-merge, autonomous approval, destructive automation, or autonomous issue closure.
+- Close issue #26 manually.
+
+### Milestone Read Pattern
+
+Read existing milestone metadata before any milestone write and preserve the output as validation evidence.
+
+Preferred commands:
+
+```powershell
+gh api repos/yoey2112/aresforge/milestones
+gh api repos/yoey2112/aresforge/milestones?state=all
+```
+
+Expected evidence:
+
+- The command succeeds.
+- Production milestone numbers, titles, states, descriptions, and issue counts are visible.
+- Future writes use the target milestone number or API URL returned by GitHub, not title matching.
+
+### Milestone Creation Pattern
+
+For M1 validation, create only a clearly named non-production milestone.
+
+Validated milestone:
+
+- Title: `validation: issue-26-milestone-lifecycle`
+- Number: `3`
+- API URL: `https://api.github.com/repos/yoey2112/aresforge/milestones/3`
+- Initial description: `Temporary validation milestone for Issue #26 milestone lifecycle evidence`
+- Initial state: `open`
+
+Preferred command:
+
+```powershell
+gh api repos/yoey2112/aresforge/milestones -X POST -f title='validation: issue-26-milestone-lifecycle' -f description='Temporary validation milestone for Issue #26 milestone lifecycle evidence' -f state='open'
+```
+
+Verification command:
+
+```powershell
+gh api repos/yoey2112/aresforge/milestones/3
+```
+
+Expected evidence:
+
+- The command succeeds.
+- The created milestone has the intended non-production title.
+- The created milestone returns a stable milestone number and API URL.
+- `open_issues` and `closed_issues` are both `0` at creation.
+
+### Milestone Metadata Update Pattern
+
+Update only the validation milestone by milestone number or API URL.
+
+Validated update:
+
+- Number: `3`
+- Updated description: `Updated temporary validation milestone for Issue #26 lifecycle evidence; safe to leave open after validation`
+
+Preferred command:
+
+```powershell
+gh api repos/yoey2112/aresforge/milestones/3 -X PATCH -f description='Updated temporary validation milestone for Issue #26 lifecycle evidence; safe to leave open after validation'
+```
+
+Verification command:
+
+```powershell
+gh api repos/yoey2112/aresforge/milestones/3
+```
+
+Expected evidence:
+
+- The command succeeds.
+- The milestone title remains `validation: issue-26-milestone-lifecycle`.
+- The description matches the intended updated description.
+- The milestone state remains `open`.
+- Production milestones are not changed.
+
+### Milestone Close And Reopen Pattern
+
+Close and reopen only the temporary validation milestone when the API read confirms it is safe to do so.
+
+Precondition:
+
+- The target milestone title is `validation: issue-26-milestone-lifecycle`.
+- The target milestone number is `3`.
+- `open_issues` is `0`.
+- `closed_issues` is `0`.
+
+Preferred close command:
+
+```powershell
+gh api repos/yoey2112/aresforge/milestones/3 -X PATCH -f state='closed'
+```
+
+Close verification command:
+
+```powershell
+gh api repos/yoey2112/aresforge/milestones/3
+```
+
+Preferred reopen command:
+
+```powershell
+gh api repos/yoey2112/aresforge/milestones/3 -X PATCH -f state='open'
+```
+
+Final verification command:
+
+```powershell
+gh api repos/yoey2112/aresforge/milestones/3
+```
+
+Expected evidence:
+
+- The close command changes only milestone `3` to `closed`.
+- The close verification shows `state` as `closed` and a populated `closed_at`.
+- The reopen command changes only milestone `3` back to `open`.
+- The final verification shows `state` as `open` and `closed_at` as `null`.
+- `open_issues` and `closed_issues` remain `0`.
+- A final all-state milestone read confirms production milestones remain open and the validation milestone is open.
+
+### Final Verified State
+
+Final milestone API verification for issue #26 confirmed:
+
+- Temporary validation milestone title: `validation: issue-26-milestone-lifecycle`
+- Temporary validation milestone number: `3`
+- Temporary validation milestone API URL: `https://api.github.com/repos/yoey2112/aresforge/milestones/3`
+- State: `open`
+- Description: `Updated temporary validation milestone for Issue #26 lifecycle evidence; safe to leave open after validation`
+- Open issues: `0`
+- Closed issues: `0`
+- Closed at: `null`
+
+The temporary milestone was not deleted.
+
+### Evidence Comment Expectations
+
+Future milestone lifecycle validations should add an issue evidence comment that includes:
+
+- Branch name.
+- Temporary milestone title, number, API URL, and final state.
+- Existing milestone read result summary.
+- Create, update, close, reopen, and final read verification summaries.
+- Confirmation that production milestones were not renamed, closed, deleted, or otherwise altered.
+- Confirmation that milestone deletion was not performed.
+- Any new reusable failure found, or an explicit statement that no new reusable failure was found.
+- Safety confirmation that no repository setting, branch protection, secret, permission, workflow, release setting, project setting, auto-merge, autonomous approval, destructive automation, or autonomous issue closure change was performed.
+
+### Milestone Deletion Boundary
+
+No destructive milestone deletion is required for this validation.
+
+Deleting milestones, including temporary validation milestones, should be avoided during M1 unless a separate human-approved issue or explicit human approval authorizes deletion. Future automation design must treat milestone deletion as a destructive operation requiring stricter approval and evidence than read, create, update, close, or reopen operations.
+
+### M1 Safety Confirmation
+
+This validation introduces documentation and manual operating guidance only.
+
+It does not introduce:
+
+- Runnable automation.
+- Auto-merge.
+- Autonomous approval.
+- Destructive automation.
+- Autonomous issue closure.
+- Repository permission, secret, branch protection, workflow, project setting, or release setting changes.
