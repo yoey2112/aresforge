@@ -6,11 +6,13 @@ M2 - Documentation Agent Foundation
 
 ## Current Goal
 
-Define the Issue #51 documentation-sync evidence package model for M2 documentation automation foundation work.
+Keep M2 documentation-agent foundation state current after Issue #51 closeout.
 
-## Current Active Issue
+## Current Repository State
 
-- Issue #51: Define documentation-sync evidence package model.
+- Current main commit: 061c103 Define documentation sync evidence package model (#52)
+- Open pull requests: none confirmed.
+- Remaining open issue: #39, `validation: issue-38-state-lifecycle`.
 
 ## Current Source of Truth
 
@@ -214,13 +216,21 @@ During M2 foundation work, explicit human decisions and repository documentation
   - Reconciled M2 source-of-truth context after Issue #47 closeout.
   - Updated build-state, roadmap, and agent context to remove stale next-issue wording.
   - Confirmed no automation, workflows, auto-merge, autonomous approval, autonomous issue closure, repository setting change, or repo automation change was introduced.
+- Issue #51 completed and closed via PR #52:
+  - Defined the documentation-sync evidence package model at docs/agents/DOCUMENTATION_SYNC_EVIDENCE_PACKAGES.md.
+  - Documented PR evidence packages, closeout evidence packages, documentation-sync evidence packages, freshness-check evidence, required source document lists, touched-document lists, diff and validation summaries, human-review notes, limitation and exception notes, handoff notes, issue and PR references, and non-authority statements.
+  - Updated documentation-sync guidance and M2 source-of-truth context to preserve evidence packages as review artifacts only.
+  - PR #52 merged successfully.
+  - Issue #51 was manually closed after closeout evidence was posted.
+  - Confirmed no scripts, runnable automation, workflows, commands, auto-merge, autonomous approval, autonomous issue closure, repository setting change, branch protection change, ruleset change, secret change, release change, tag change, or GitHub Project change was introduced.
 ## In Progress
 
-- Issue #51 defines the documentation-sync evidence package model as a documentation-only M2 foundation artifact.
-- Required evidence expectations include PR evidence packages, closeout evidence packages, documentation-sync evidence packages, freshness-check evidence, source document lists, touched-document lists, diff and validation summaries, human-review notes, limitation and exception notes, handoff notes, issue and PR references, and non-authority statements.
+- No active M2 implementation issue is currently assigned.
+- Documentation-sync evidence package model work is complete for Issue #51 and remains documentation-only, advisory, manually prepared, and human-reviewed.
 ## Next
 
-- Complete human review of the Issue #51 draft PR, then perform any human-directed closeout after merge.
+- Preserve Issue #39 as the only remaining open validation issue unless a future human-directed issue explicitly changes its state.
+- Keep documentation freshness checks required before future documentation-sync work.
 
 ## Current Operating Constraint
 
