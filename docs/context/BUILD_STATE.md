@@ -12,6 +12,8 @@ Complete the M0 self-bootstrap foundation by validating GitHub operations, Ollam
 
 GitHub and repository documentation are the temporary source of truth until the AresForge dashboard exists.
 
+During M0, explicit human decisions and repository documentation take priority over AI-generated summaries or inferred automation behavior.
+
 ## Completed
 
 - GitHub repository created: yoey2112/aresforge
@@ -53,19 +55,18 @@ GitHub and repository documentation are the temporary source of truth until the 
 
 ## In Progress
 
-- AresForge self-project context refinement
+- Issue #4: Create AresForge self-project context
 - Codex prompt standard refinement
 - PR validation and scoring model definition
 
 ## Next
 
-- Begin issue #4: Create AresForge self-project context
-- Continue documenting how AresForge will use itself to build itself
+- Validate issue #4 documentation changes
+- Open a pull request for issue #4 after validation
+- Continue with issue #5: Create Codex prompt standard after issue #4 is merged
 
 ## Current Operating Constraint
 
 All M0 changes are manually guided and manually reviewed.
 
 No destructive automation, auto-merge, or autonomous issue closure is enabled during M0.
-
-

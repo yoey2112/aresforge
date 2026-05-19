@@ -30,4 +30,31 @@ It is a new standalone product that can leverage both as references:
 
 The first managed project inside AresForge is AresForge itself.
 
-Until the dashboard exists, GitHub and documentation are the temporary source of truth.
+This means AresForge should use its own issues, documentation, validation evidence, agent handoffs, and future dashboard state to plan, build, validate, and document AresForge.
+
+Until the dashboard exists, GitHub and repository documentation are the temporary source of truth.
+
+## Current Bootstrap Context
+
+AresForge is currently in M0 — Self-Bootstrap Foundation.
+
+The M0 focus is to prove the minimum safe operating loop:
+
+- GitHub operations can be performed and validated.
+- Local Ollama review can evaluate GitHub operation evidence.
+- Documentation agents have a defined operating model.
+- AresForge has a clear self-project context.
+- Codex prompt standards are defined.
+- PR validation and scoring expectations are defined.
+
+## Source Of Truth Priority During M0
+
+During M0, source-of-truth priority is:
+
+1. Explicit human decisions.
+2. Repository documentation.
+3. GitHub issues, pull requests, milestones, and labels.
+4. Local validation evidence.
+5. AI-generated summaries or recommendations.
+
+AI-generated recommendations must not be treated as approved decisions until they are reviewed by the human owner.
