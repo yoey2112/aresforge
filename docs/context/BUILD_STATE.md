@@ -130,6 +130,8 @@ During M1, explicit human decisions and repository documentation take priority o
   - Identified the validation comment by returned comment ID, URL, author, and unique marker.
   - Updated only that validation comment by returned comment ID.
   - Verified updated body, author, URL, created_at, and updated_at metadata.
+  - Human review of PR #29 discovered M1-ERROR-009: a `gh api --jq` marker check can fail for hyphenated issue-comment markers when quoting is not safely preserved for jq parsing.
+  - PR #29 was updated before merge to capture the safer PowerShell `ConvertFrom-Json` marker verification pattern as reusable learning.
   - No comment deletion, production comment edit, runnable automation, auto-merge, autonomous approval, destructive automation, or autonomous issue closure was performed.
 
 ## Next

@@ -229,6 +229,17 @@ After creation, read comments through the GitHub API and identify the owned vali
 gh api repos/yoey2112/aresforge/issues/28/comments
 ```
 
+For single-comment verification after a comment ID is known, prefer an explicit comment ID or API URL read:
+
+```powershell
+$commentJson = gh api "repos/yoey2112/aresforge/issues/comments/<comment-id>"
+$comment = $commentJson | ConvertFrom-Json
+$marker = "ARESFORGE-ISSUE-28-COMMENT-LIFECYCLE-VALIDATION"
+$comment.body.Contains($marker)
+```
+
+Use raw JSON parsed with PowerShell for marker checks in Windows PowerShell. Avoid complex `gh api --jq` string `contains(...)` expressions for hyphenated markers unless the jq expression and shell quoting have been separately verified, because unsafe quoting can cause jq parser failures.
+
 Required identification evidence includes:
 
 - Comment `id`.

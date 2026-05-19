@@ -194,6 +194,22 @@ During M1, learning propagation is manual and human-reviewed. A learning entry m
 | Update targets | `.agent/skills/github-operations/SKILL.md`, future PR creation prompt guidance, future dashboard GitHub-operation rules. |
 | M1 boundary | Advisory/manual only; does not authorize autonomous PR creation or merge. |
 
+### M1-ERROR-009: Hyphenated Marker `gh api --jq` Comment Checks In PowerShell
+
+| Field | Value |
+|---|---|
+| Status | Observed |
+| Area | GitHub CLI, PowerShell, issue comments, jq |
+| Summary | `gh api --jq` marker checks can fail when marker strings contain hyphens and are not safely quoted or escaped for jq parsing. |
+| Observed fact | During PR #29 human review, `gh api "repos/yoey2112/aresforge/issues/comments/4484336358" --jq '{id: .id, user: .user.login, html_url: .html_url, created_at: .created_at, updated_at: .updated_at, marker_present: (.body | contains("ARESFORGE-ISSUE-28-COMMENT-LIFECYCLE-VALIDATION"))}'` failed with `function not defined: VALIDATION/0`. |
+| Suspected root cause | The jq expression or shell quoting path did not preserve the hyphenated marker string as intended before jq parsed it. |
+| Confirmed root cause | Not confirmed for every PowerShell, GitHub CLI, or jq quoting path. The observed review command failed and the safer raw JSON parsing pattern succeeded. |
+| Workaround | Use raw `gh api` output parsed with PowerShell `ConvertFrom-Json`, then use PowerShell string methods such as `.Contains($marker)` for marker checks. |
+| Confirmed fix | None during M1. |
+| Verification expectation | Verify comment ID, author, URL, timestamps, and marker presence after parsing the returned JSON. |
+| Update targets | `.agent/skills/github-operations/SKILL.md`, `docs/validation/GITHUB_CAPABILITY_VALIDATION.md`, `docs/context/BUILD_STATE.md`, future dashboard GitHub-operation rules. |
+| M1 boundary | Advisory/manual only; does not authorize comment automation. |
+
 ## M1 Boundary
 
 This document is a manual learning layer for M1. It may be cited by prompts, skills, validation evidence, governance docs, and future dashboard design notes, but it does not execute checks, repair files, update issues, approve PRs, merge work, close issues, or authorize future automation.

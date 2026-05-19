@@ -943,6 +943,42 @@ Validated update metadata:
 - Created at: `2026-05-19T04:18:25Z`
 - Updated at: `2026-05-19T04:18:42Z`
 
+### Review-Time Marker Verification Finding
+
+Human review of PR #29 found that a `gh api --jq` marker check can fail for the Issue #28 hyphenated marker when the marker string is not safely preserved for jq parsing.
+
+Failed review command:
+
+```powershell
+gh api "repos/yoey2112/aresforge/issues/comments/4484336358" --jq '{id: .id, user: .user.login, html_url: .html_url, created_at: .created_at, updated_at: .updated_at, marker_present: (.body | contains("ARESFORGE-ISSUE-28-COMMENT-LIFECYCLE-VALIDATION"))}'
+```
+
+Observed failure:
+
+```text
+function not defined: VALIDATION/0
+```
+
+Safer Windows PowerShell verification pattern:
+
+```powershell
+$commentJson = gh api "repos/yoey2112/aresforge/issues/comments/4484336358"
+$comment = $commentJson | ConvertFrom-Json
+$marker = "ARESFORGE-ISSUE-28-COMMENT-LIFECYCLE-VALIDATION"
+$comment.body.Contains($marker)
+```
+
+Successful verification result:
+
+- Comment ID: `4484336358`
+- Author: `yoey2112`
+- HTML URL: `https://github.com/yoey2112/aresforge/issues/28#issuecomment-4484336358`
+- Created at: `2026-05-19T04:18:25Z`
+- Updated at: `2026-05-19T04:18:42Z`
+- Marker present: `true`
+
+Future Issue #28-style comment verification should prefer comment ID or API URL reads, parse raw `gh api` JSON with PowerShell `ConvertFrom-Json`, and then verify comment ID, author, URL, timestamps, and marker presence from the parsed object.
+
 ### Final Verification Expectations
 
 Final verification for issue evidence comment lifecycle work should include:
