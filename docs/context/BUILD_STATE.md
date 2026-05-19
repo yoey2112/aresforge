@@ -37,24 +37,31 @@ GitHub and repository documentation are the temporary source of truth until the 
   - Confirmed issue read access
   - Confirmed workflow run visibility command execution
   - Confirmed branch creation, commit, push, pull request creation, pull request metadata read, PR merge, branch deletion, and issue auto-closure
+- Issue #2 completed:
+  - PR #9 created, merged, and auto-closed issue #2
+  - Ollama GitHub operation review validation documented at docs/validation/OLLAMA_GITHUB_OPERATION_REVIEW.md
+  - Confirmed local Ollama model qwen2.5:32b can review captured GitHub operation outputs
+  - Confirmed Ollama can produce structured Markdown validation evidence
+  - Confirmed conservative validation decisions such as NEEDS_HUMAN_REVIEW are useful as evidence when documented with human assessment
+  - Documented limitations around empty workflow run output, milestone title encoding/mojibake, and future need for workflow-triggered local Ollama validation
 
 ## In Progress
 
-- M0 validation planning
-- Ollama GitHub operation review planning
 - Documentation agent definition
+- AresForge self-project context refinement
+- Codex prompt standard refinement
 - PR validation and scoring model definition
 
 ## Next
 
-- Begin issue #2: Validate Ollama GitHub operation review
-- Use Ollama to review the GitHub operation evidence captured under issue #1
-- Document local AI review findings
-- Capture any limitations in Ollama review quality, evidence parsing, or GitHub evidence interpretation
-- Continue defining documentation agent behavior under issue #3
+- Begin issue #3: Define documentation agent model
+- Define how documentation agents keep context, architecture, roadmap, governance, and validation docs synchronized
+- Define documentation update triggers and required evidence
+- Continue documenting how AresForge will use itself to build itself
 
 ## Current Operating Constraint
 
 All M0 changes are manually guided and manually reviewed.
 
 No destructive automation, auto-merge, or autonomous issue closure is enabled during M0.
+
