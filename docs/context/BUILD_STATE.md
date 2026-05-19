@@ -8,6 +8,14 @@ M1 - GitHub Operations Validation
 
 Continue M1 by validating safe GitHub-managed workflows using repo-owned documentation, issues, milestones, labels, branches, pull requests, and human-reviewed evidence.
 
+## Current Active Issue
+
+- Issue: #22 Validate repeatable GitHub label lifecycle operations using GitHub operations skill
+- Branch: m1/issue-22-label-lifecycle-validation
+- Status: In progress
+- Execution model: manually guided and manually reviewed
+- Review model: draft pull request followed by human review
+
 ## Current Source of Truth
 
 GitHub and repository documentation are the temporary source of truth until the AresForge dashboard exists.
@@ -99,15 +107,22 @@ During M1, explicit human decisions and repository documentation take priority o
 
 ## In Progress
 
-- No active implementation issue is currently assigned after Issue #20 completion.
+- Issue #22: Validate repeatable GitHub label lifecycle operations using GitHub operations skill
+  - Current phase remains M1 - GitHub Operations Validation.
+  - Work is manually guided and manually reviewed.
+  - Validation is limited to safe GitHub label read, create, update, apply, remove-from-issue, and verification operations.
+  - No runnable automation, auto-merge, autonomous approval, destructive automation, autonomous issue closure, repository setting change, branch protection change, or PR merge is enabled.
 
 ## Next
 
-- Select the next M1 GitHub operations validation issue.
-- Continue validating repeatable GitHub-managed workflows using the documented GitHub operations, issue-planning, build-state, and error-pattern guidance.
+- Complete documentation updates for issue #22.
+- Commit the issue #22 documentation changes.
+- Push branch m1/issue-22-label-lifecycle-validation.
+- Open a draft pull request for human review.
+- Do not close issue #22 except through the human-reviewed PR process.
 
 ## Current Operating Constraint
 
 All M1 changes are manually guided and manually reviewed.
 
-No destructive automation, auto-merge, or autonomous issue closure is enabled during M1.
+No runnable automation, auto-merge, autonomous approval, destructive automation, or autonomous issue closure is enabled during M1.

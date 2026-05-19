@@ -289,3 +289,190 @@ It did not introduce:
 - Repository permission, secret, branch protection, or release setting changes.
 
 Issue #18 remains open until a human-reviewed PR is merged with valid issue-closing language.
+
+## M1 Repeatable GitHub Label Lifecycle Validation
+
+This section extends the original M0 GitHub capability validation for M1 label lifecycle operations.
+
+This validation belongs to:
+
+- Milestone: M1 - GitHub Operations Validation
+- Issue: #22 Validate repeatable GitHub label lifecycle operations using GitHub operations skill
+- Phase: GitHub operations validation
+
+### Current M1 Safety Boundaries
+
+During M1, label lifecycle work is manually guided, manually reviewed, and evidence-based.
+
+Allowed label lifecycle operations for this validation are limited to:
+
+- Reading repository labels.
+- Creating one clearly named non-critical validation label when needed.
+- Editing only that non-critical validation label.
+- Applying only that validation label to issue #22.
+- Removing only that validation label from issue #22.
+- Verifying the final repository and issue state.
+
+This validation must not:
+
+- Delete existing production labels.
+- Delete validation labels unless separately human-approved.
+- Alter branch protection, repository settings, repository permissions, secrets, workflows, auto-merge, or release settings.
+- Close issue #22 outside the normal human-reviewed PR merge process.
+- Introduce runnable automation or autonomous label management.
+
+### Label Read Pattern
+
+The safe read pattern is to inspect labels before changing them and preserve the output as validation evidence.
+
+Preferred commands:
+
+```powershell
+gh label list --limit 100 --json name,description,color
+gh issue view 22 --json number,title,state,labels,milestone,url
+```
+
+Expected evidence:
+
+- The command succeeds.
+- The repository label inventory can be read.
+- Issue #22 can be read with its current labels.
+- The validation label name is checked before creation or update.
+
+### Label Creation Pattern
+
+For M1 validation, create only a clearly named non-critical validation label.
+
+Validated label:
+
+- Name: `validation: issue-22-label-lifecycle`
+- Initial description: `Temporary validation label for Issue #22 label lifecycle evidence`
+- Initial color: `5319E7`
+
+Preferred command:
+
+```powershell
+gh label create "validation: issue-22-label-lifecycle" --description "Temporary validation label for Issue #22 label lifecycle evidence" --color 5319E7
+```
+
+Expected evidence:
+
+- The command succeeds.
+- The new label appears in a later label read.
+- No existing production label is changed.
+
+### Label Update Pattern
+
+Update only the non-critical validation label created for the validation.
+
+Validated update:
+
+- Name: `validation: issue-22-label-lifecycle`
+- Updated description: `Issue #22 validation label for manual lifecycle evidence`
+- Updated color: `1D76DB`
+
+Preferred command:
+
+```powershell
+gh label edit "validation: issue-22-label-lifecycle" --description "Issue #22 validation label for manual lifecycle evidence" --color 1D76DB
+```
+
+Verification command:
+
+```powershell
+gh label list --search "validation: issue-22-label-lifecycle" --json name,description,color
+```
+
+Expected evidence:
+
+- The command succeeds.
+- The exact validation label shows the updated description and color.
+- If a search command returns fuzzy matches, the exact label name must be checked in the returned data.
+
+### Label Application Pattern
+
+Apply only the validation label to the validation issue.
+
+Preferred command:
+
+```powershell
+gh issue edit 22 --add-label "validation: issue-22-label-lifecycle"
+```
+
+Verification command:
+
+```powershell
+gh issue view 22 --json number,title,state,labels,milestone,url
+```
+
+Expected evidence:
+
+- The command succeeds and returns the issue URL.
+- Issue #22 includes `validation: issue-22-label-lifecycle` after application.
+- Existing labels on issue #22 remain intact.
+
+### Label Removal Pattern
+
+Remove only the validation label from the validation issue.
+
+Preferred command:
+
+```powershell
+gh issue edit 22 --remove-label "validation: issue-22-label-lifecycle"
+```
+
+Final verification command:
+
+```powershell
+gh issue view 22 --json number,title,state,labels,milestone,url
+```
+
+Expected evidence:
+
+- The command succeeds and returns the issue URL.
+- Issue #22 no longer includes `validation: issue-22-label-lifecycle`.
+- Issue #22 keeps its original project labels.
+- The validation label may remain in the repository label inventory unless human approval separately authorizes deletion.
+
+### Final Verification Expectations
+
+Final verification for issue #22 should confirm:
+
+- Issue number: #22
+- Issue state: OPEN
+- Milestone: M1 - GitHub Operations Validation
+- Labels include the original project labels:
+  - `type: validation`
+  - `phase: m1`
+  - `agent: devops`
+  - `risk: level-1`
+  - `evidence: required`
+  - `status: ready`
+- Labels do not include `validation: issue-22-label-lifecycle` after removal.
+
+### Evidence Requirements
+
+PR or issue evidence for repeatable label lifecycle validation should include:
+
+- Branch name.
+- Files changed.
+- Commands used or summarized.
+- Result of label read validation.
+- Result of label create and update validation.
+- Result of label application and removal validation.
+- Final `gh issue view` verification for issue #22.
+- `git status --short` before commit and after commit.
+- `git diff --check` result.
+- Safety confirmation that no destructive label deletion, repository setting change, workflow automation, auto-merge, autonomous issue closure, or PR merge was performed.
+
+### Fragile Or Failed Approaches
+
+No reusable failed label lifecycle approach was encountered during issue #22 validation.
+
+One practical caution was observed: `gh label list --search "validation: issue-22-label-lifecycle"` can return fuzzy matches in addition to the exact validation label. Future validation should confirm the exact label name in the returned JSON instead of assuming every returned row is the target label.
+
+### Label Deletion Boundary
+
+No destructive label deletion is required for this validation.
+
+Deleting labels, including temporary or validation labels, should be avoided during M1 unless a separate human-approved issue or explicit human approval authorizes that deletion. Future automation design must treat label deletion as a destructive operation requiring stricter approval and evidence than read, create, update, apply, or remove-from-issue operations.

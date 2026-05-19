@@ -178,6 +178,22 @@ During M1, learning propagation is manual and human-reviewed. A learning entry m
 | Update targets | `.agent/skills/build-state-update/SKILL.md`, `docs/context/BUILD_STATE.md`, future dashboard display-normalization rules. |
 | M1 boundary | Advisory/manual only; does not change official GitHub milestone titles or enable automation. |
 
+### M1-ERROR-008: Multiline `gh pr create --body` Argument Splitting In PowerShell
+
+| Field | Value |
+|---|---|
+| Status | Observed |
+| Area | GitHub CLI, PowerShell, PR evidence |
+| Summary | Passing a multiline PR body variable directly to `gh pr create --body` can be split into unintended native command arguments when the body contains quoted command examples. |
+| Observed fact | During issue #22, `gh pr create --draft --title ... --body $body ...` failed with `unknown arguments` and fragments of quoted label commands from the intended PR body. |
+| Suspected root cause | Windows PowerShell native command argument passing can split or reinterpret complex multiline strings containing nested quotes when passed directly as a command argument. |
+| Confirmed root cause | Not confirmed for every PowerShell or GitHub CLI version. The observed command did not preserve the intended body as a single argument. |
+| Workaround | Prefer piping the PR body to `gh pr create --body-file -`, or use a carefully verified body file when multiline evidence includes quotes, backticks, or command examples. |
+| Confirmed fix | None during M1. |
+| Verification expectation | After PR creation, verify the PR body rendered with the intended evidence sections and command examples. |
+| Update targets | `.agent/skills/github-operations/SKILL.md`, future PR creation prompt guidance, future dashboard GitHub-operation rules. |
+| M1 boundary | Advisory/manual only; does not authorize autonomous PR creation or merge. |
+
 ## M1 Boundary
 
 This document is a manual learning layer for M1. It may be cited by prompts, skills, validation evidence, governance docs, and future dashboard design notes, but it does not execute checks, repair files, update issues, approve PRs, merge work, close issues, or authorize future automation.

@@ -60,6 +60,76 @@ Avoid direct JSON payload posting through temporary files unless encoding is int
 
 When a GitHub operation reveals a repeatable failure, shell limitation, encoding risk, or safer workaround, document the lesson in `docs/learning/ERROR_PATTERNS.md` or update an existing entry. During M1, these entries are advisory, manually reviewed, and do not authorize autonomous GitHub operations.
 
+## Safe label lifecycle guidance
+
+Before changing labels, read the current repository label inventory and the target issue label state.
+
+Recommended read commands:
+
+```powershell
+gh label list --limit 100 --json name,description,color
+gh issue view <issue-number> --json number,title,state,labels,milestone,url
+```
+
+For M1 validation, create or update only clearly named non-critical labels such as `validation: issue-22-label-lifecycle`. Avoid changing production labels unless the active issue explicitly requires it and the human owner has approved the scope.
+
+Recommended create pattern:
+
+```powershell
+gh label create "<validation-label-name>" --description "<clear validation description>" --color <RRGGBB>
+```
+
+Recommended update pattern:
+
+```powershell
+gh label edit "<validation-label-name>" --description "<updated validation description>" --color <RRGGBB>
+```
+
+Verify label creation or update after the command. If `gh label list --search` returns fuzzy matches, confirm the exact label name, description, and color in the returned JSON before treating the validation as successful.
+
+Apply labels to issues only when the issue scope allows it:
+
+```powershell
+gh issue edit <issue-number> --add-label "<validation-label-name>"
+```
+
+Remove labels from issues when cleanup is part of the validation:
+
+```powershell
+gh issue edit <issue-number> --remove-label "<validation-label-name>"
+```
+
+After applying or removing a label, verify the issue state:
+
+```powershell
+gh issue view <issue-number> --json number,title,state,labels,milestone,url
+```
+
+The verification should confirm the target label is present after application, absent after removal, and that unrelated labels remain intact.
+
+Avoid deleting labels during M1 unless a separate human-approved issue or explicit human approval authorizes deletion. Label deletion is destructive because it can affect historical issues, pull requests, filtering, and future project-state evidence.
+
+Update `docs/learning/ERROR_PATTERNS.md` only when label lifecycle work discovers a real repeatable failure pattern, such as a GitHub CLI limitation, PowerShell quoting issue, encoding problem, fuzzy-match verification risk that caused incorrect evidence, or a safer workaround future agents should reuse. Do not invent an error pattern for a clean validation run.
+
+## Safe pull request body guidance for PowerShell
+
+When creating pull requests with multiline evidence, command examples, quotes, or Markdown backticks in Windows PowerShell, avoid passing a complex body variable directly to `gh pr create --body` if the shell may split or reinterpret the content.
+
+Prefer piping the body to standard input and using `--body-file -`:
+
+```powershell
+$body = @'
+Closes #<issue-number>
+
+## Summary
+
+...
+'@
+$body | gh pr create --draft --title "<title>" --body-file - --base main --head <branch-name>
+```
+
+After creating the PR, verify that the PR body rendered with the intended evidence sections before treating PR creation evidence as complete.
+
 ## Execution boundaries
 
 This skill is advisory and manually executed. It may guide commands that are already allowed by the active issue, but it is not a script, workflow, package, or autonomous GitHub operator.
