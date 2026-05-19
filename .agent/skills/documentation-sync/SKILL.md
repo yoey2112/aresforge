@@ -28,6 +28,7 @@ Do not use this skill to rewrite unrelated documentation, replace source-of-trut
 - Documentation freshness check model from docs/agents/DOCUMENTATION_FRESHNESS_CHECKS.md.
 - Documentation-sync evidence package model from docs/agents/DOCUMENTATION_SYNC_EVIDENCE_PACKAGES.md.
 - Documentation-sync handoff template from docs/agents/DOCUMENTATION_SYNC_HANDOFF_TEMPLATE.md when a reusable package or next-agent handoff is needed.
+- PR evidence package template from docs/agents/PR_EVIDENCE_PACKAGE_TEMPLATE.md when reusable PR evidence scaffolding is needed.
 - Documentation freshness checks from docs/agents/DOCUMENTATION_AGENTS.md when relevant.
 - Local operator workflow package or evidence outline from docs/architecture/LOCAL_OPERATOR_WORKFLOW.md when available.
 - Codex prompt package template from docs/prompts/CODEX_PROMPT_PACKAGE_TEMPLATE.md when prompt-package documentation or implementation handoff packaging is in scope.
@@ -43,6 +44,7 @@ Do not use this skill to rewrite unrelated documentation, replace source-of-trut
 - Freshness check summary for source-of-truth docs affected by the issue.
 - Documentation-sync evidence package content, including source documents reviewed, touched documents, freshness evidence, diff and validation summary, human-review notes, limitations, handoff notes, issue and PR references, and a non-authority statement.
 - Completed handoff template content when the work must be transferred to an implementation agent, documentation agent, validation agent, local operator, or human owner.
+- Completed PR evidence package content when documentation-sync work must be summarized for pull request review.
 - Human-review boundary confirmation.
 - Validation evidence for documentation review.
 
@@ -59,6 +61,8 @@ Local operator workflow support is also design-only during M2. Operator packages
 Evidence packages prepared through this skill are review artifacts only. They do not approve, merge, close, automate, bypass human review, or authorize future automation.
 
 The documentation-sync handoff template is also a review artifact scaffold only. It does not run this skill, implement local operator commands, or replace human-reviewed PR evidence.
+
+The PR evidence package template is also a review artifact scaffold only. It does not run this skill, approve PRs, merge PRs, close issues, bypass human review, change source-of-truth priority, implement local operator commands, or authorize future automation.
 
 ## Human approval boundaries
 
@@ -90,11 +94,14 @@ Report files reviewed, files changed, documentation impact, freshness checks, st
 
 When a handoff package is required, use `docs/agents/DOCUMENTATION_SYNC_HANDOFF_TEMPLATE.md` to keep issue and PR references, source documents reviewed, freshness-check evidence, documentation-sync evidence, validation evidence, human-review notes, limitations, escalation items, and next-owner notes clearly separated.
 
+When PR evidence is required, use `docs/agents/PR_EVIDENCE_PACKAGE_TEMPLATE.md` to keep issue reference, PR reference, branch and commit context, source-of-truth documents reviewed, files changed, scope summary, documentation impact, freshness-check evidence, validation results, diff review, human-review notes, limitations, protected Issue #39 confirmations, repository-boundary confirmations, and the required non-authority statement clearly separated.
+
 ## Related docs
 
 - docs/agents/DOCUMENTATION_FRESHNESS_CHECKS.md
 - docs/agents/DOCUMENTATION_SYNC_EVIDENCE_PACKAGES.md
 - docs/agents/DOCUMENTATION_SYNC_HANDOFF_TEMPLATE.md
+- docs/agents/PR_EVIDENCE_PACKAGE_TEMPLATE.md
 - docs/agents/DOCUMENTATION_AGENTS.md
 - docs/agents/AGENT_SKILLS_MODEL.md
 - docs/architecture/LOCAL_OPERATOR_WORKFLOW.md

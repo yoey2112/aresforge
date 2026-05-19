@@ -74,6 +74,8 @@ Freshness evidence is required before documentation-sync work. It is not an auto
 
 A PR evidence package supports human review of a pull request that includes documentation-sync work.
 
+The canonical reusable PR evidence package template is `docs/agents/PR_EVIDENCE_PACKAGE_TEMPLATE.md`.
+
 Required PR evidence:
 
 - Summary of the documentation change and why it belongs to the issue.
@@ -92,6 +94,8 @@ Required PR evidence:
 - Non-authority statement.
 
 PR evidence packages may support a merge recommendation by a reviewer, but they do not approve or merge the PR.
+
+The reusable PR evidence package template is a review artifact scaffold only. It does not approve, merge, close, automate, bypass human review, replace human controls, change source-of-truth priority, or authorize future automation.
 
 ## Closeout Evidence Package
 

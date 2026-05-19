@@ -6,13 +6,13 @@ M2 - Documentation Agent Foundation
 
 ## Current Goal
 
-No active M2 implementation issue is currently assigned. The next M2 deliverable must be chosen.
+Issue #63, `Define PR evidence package template`, is the active M2 implementation issue.
 
 ## Current Repository State
 
 - Current main commit: 0053e9f Add future feature ideas planning document
 - Open pull requests: none.
-- Active issue: none currently assigned for M2 implementation work.
+- Active issue: #63, `Define PR evidence package template`, in progress on branch `m2/issue-63-pr-evidence-package-template`.
 - Remaining open validation issue: #39, `validation: issue-38-state-lifecycle`, intentionally preserved as audit evidence.
 
 ## Current Source of Truth
@@ -247,8 +247,9 @@ During M2 foundation work, explicit human decisions and repository documentation
   - Confirmed no scripts, runnable automation, workflows, commands, auto-merge, autonomous approval, autonomous issue closure, repository setting change, branch protection change, ruleset change, secret change, release change, tag change, or GitHub Project change was introduced.
 ## In Progress
 
-- No active M2 implementation issue is currently assigned.
-- The next M2 deliverable must be chosen before new implementation work begins.
+- Issue #63, `Define PR evidence package template`, is in progress.
+- The issue is defining `docs/agents/PR_EVIDENCE_PACKAGE_TEMPLATE.md` as documentation-only reusable PR evidence scaffolding for implementation agents, documentation agents, validation agents, local operators, and the human owner.
+- The template must preserve Issue #39, human-reviewed controls, source-of-truth priority, and the non-authority boundary for evidence packages, handoff packages, and prompt packages.
 
 ## Next
 
@@ -256,11 +257,12 @@ During M2 foundation work, explicit human decisions and repository documentation
 - Keep documentation freshness checks required before future documentation-sync work.
 - Use docs/agents/DOCUMENTATION_SYNC_HANDOFF_TEMPLATE.md for future documentation-sync handoffs.
 - Use docs/prompts/CODEX_PROMPT_PACKAGE_TEMPLATE.md for future reusable Codex prompt packages.
+- Use docs/agents/PR_EVIDENCE_PACKAGE_TEMPLATE.md for future reusable PR evidence packages after Issue #63 is reviewed and merged.
 - Keep documentation-sync evidence packages and handoff packages as review artifacts only.
 - Keep Codex prompt packages as review/input artifacts only.
+- Keep PR evidence packages as review artifacts only.
 - Keep local operator command names as future design targets only until a later issue explicitly implements them.
 - Review docs/planning/FUTURE_FEATURE_IDEAS.md at the beginning of each future milestone.
-- Choose the next M2 deliverable before assigning new implementation work.
 
 ## Current Operating Constraint
 

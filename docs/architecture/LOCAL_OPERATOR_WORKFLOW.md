@@ -101,6 +101,7 @@ The local operator workflow may be designed to support these non-autonomous oper
 - Prepare prompt text for Codex or another implementation agent.
 - Prepare validation checklists.
 - Prepare PR evidence outlines.
+- Prepare PR evidence package content from `docs/agents/PR_EVIDENCE_PACKAGE_TEMPLATE.md`.
 - Prepare closeout evidence outlines.
 - Summarize documentation freshness findings.
 - Summarize documentation-sync impact.
@@ -154,6 +155,8 @@ Expected evidence outputs include:
 Evidence must distinguish confirmed facts, agent judgment, unavailable inputs, skipped checks, future recommendations, and human decisions.
 
 Evidence packages should follow `docs/agents/DOCUMENTATION_SYNC_EVIDENCE_PACKAGES.md` when they involve documentation-sync work. Documentation-sync handoffs should use `docs/agents/DOCUMENTATION_SYNC_HANDOFF_TEMPLATE.md` for copy/paste-friendly package structure. Each package must include a non-authority statement confirming that it is a review artifact only and does not approve, merge, close, automate, bypass human review, or authorize future automation.
+
+PR evidence packages should use `docs/agents/PR_EVIDENCE_PACKAGE_TEMPLATE.md` when a copy/paste-friendly PR review artifact is needed. The template organizes issue reference, PR reference, branch and commit context, source-of-truth documents reviewed, files changed, scope summary, documentation impact, freshness-check evidence when documentation-sync work is involved, validation results, diff review summary, human-review notes, limitations, Issue #39 preservation, repository-boundary confirmations, and the required non-authority statement.
 
 ## Validation Expectations
 
