@@ -122,6 +122,8 @@ Each implementation PR should be scored against the categories below when applic
 
 Documentation-only PRs may mark code-specific checks as not applicable, but they still need evidence quality, documentation completeness, scope control, and M0 safety review.
 
+For PRs that add or change repo-owned agent skills, validation should also confirm that each skill includes required scope, execution boundaries, human approval boundaries, evidence expectations, validation expectations, and documentation impact. Reviewers must treat any skill that implies unapproved automation, auto-merge, autonomous issue closure, or hidden external dependency as a blocker during M0.
+
 ## Suggested Scoring Scale
 
 Use a 0 to 5 score for each applicable category.

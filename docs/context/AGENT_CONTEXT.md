@@ -20,6 +20,12 @@ Codex implementation agents must follow docs/prompts/CODEX_PROMPT_STANDARD.md as
 
 Future QA, Test, Documentation, and PR Scoring agents must use docs/governance/PR_VALIDATION_MODEL.md when evaluating implementation pull requests, producing review evidence, or recommending merge-readiness states.
 
+## Reusable Skill Model
+
+AresForge will use repo-owned markdown skill definitions as the canonical reusable agent skills model.
+
+The skill model is defined in docs/agents/AGENT_SKILLS_MODEL.md. During M0, skills are advisory, manually guided, human-reviewed project assets. External skill frameworks may inform future adapters, but they are not required to operate AresForge.
+
 ## Current Agent Roles
 
 Initial planned agent roles include:
