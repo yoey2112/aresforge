@@ -6,13 +6,13 @@ M2 - Documentation Agent Foundation
 
 ## Current Goal
 
-Issue #57 is the active M2 implementation issue for reconciling stale source-of-truth documentation after Issue #55 and PR #56 closeout. The next M2 deliverable still needs to be selected after this reconciliation is complete.
+No active M2 implementation issue is currently assigned. The next M2 deliverable must be chosen.
 
 ## Current Repository State
 
-- Current main commit: 6d4fd9c Update docs after issue 55 closeout
+- Current main commit: a20c17a Reconcile M2 source of truth after issue 55 closeout
 - Open pull requests: none.
-- Active M2 implementation issue: #57, `Reconcile M2 source-of-truth after Issue 55 closeout`.
+- Active issue: none currently assigned for M2 implementation work.
 - Remaining open validation issue: #39, `validation: issue-38-state-lifecycle`, intentionally preserved as audit evidence.
 
 ## Current Source of Truth
@@ -233,9 +233,9 @@ During M2 foundation work, explicit human decisions and repository documentation
   - Confirmed no scripts, runnable automation, workflows, commands, auto-merge, autonomous approval, autonomous issue closure, repository setting change, branch protection change, ruleset change, secret change, release change, tag change, or GitHub Project change was introduced.
 ## In Progress
 
-- Issue #57 is reconciling M2 source-of-truth documentation after Issue #55 and PR #56 closeout.
-- Issue #53 cleanup is not in progress; its closeout cleanup is complete and remains documentation-only, advisory, manually prepared, and human-reviewed.
-- The next M2 deliverable must be chosen after Issue #57 reconciliation is complete.
+- No active M2 implementation issue is currently assigned.
+- The next M2 deliverable must be chosen before new implementation work begins.
+
 ## Next
 
 - Preserve Issue #39 as the only remaining open validation issue unless a future human-directed issue explicitly changes its state.
@@ -243,7 +243,7 @@ During M2 foundation work, explicit human decisions and repository documentation
 - Use docs/agents/DOCUMENTATION_SYNC_HANDOFF_TEMPLATE.md for future documentation-sync handoffs.
 - Keep documentation-sync evidence packages and handoff packages as review artifacts only.
 - Keep local operator command names as future design targets only until a later issue explicitly implements them.
-- Choose the next M2 deliverable after Issue #57 reconciliation is complete.
+- Choose the next M2 deliverable before assigning new implementation work.
 
 ## Current Operating Constraint
 
