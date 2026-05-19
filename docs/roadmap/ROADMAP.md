@@ -53,12 +53,12 @@ Completed M2 foundation deliverables:
 
 - Issue #43: Create documentation agent foundation.
 - Issue #45: Create documentation freshness check model.
+- Issue #47: Define local operator workflow.
 
 Next M2 focus:
 
-- Issue #47: Define the local operator workflow that reduces manual copy/paste while preserving human-reviewed controls.
+- Decide the next documentation automation foundation issue now that documentation agents, documentation freshness checks, and the local operator workflow model are established.
 - Keep local operator commands such as `Start-IssueImplementation`, `New-CodexPromptPackage`, `Test-AresForgeWorktree`, `New-PrEvidencePackage`, and `New-CloseoutEvidencePackage` as future design targets only until a later issue explicitly implements them.
-
 ## M3 — Agent Workflow Orchestration
 
 Goal: Define and automate the handoffs between specialized agents.
