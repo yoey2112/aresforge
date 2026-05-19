@@ -278,6 +278,8 @@ Freshness checks do not authorize broad rewrites. They identify whether the curr
 
 Documentation agents must use `docs/agents/DOCUMENTATION_SYNC_EVIDENCE_PACKAGES.md` when documentation-sync work requires PR evidence, closeout evidence, or a documentation-sync handoff.
 
+Documentation agents must use docs/agents/CLOSEOUT_EVIDENCE_PACKAGE_TEMPLATE.md when a reusable closeout evidence package scaffold is needed.
+
 Evidence packages must record purpose, issue and PR references, freshness-check evidence, required source documents reviewed, touched documents, diff and validation summaries, human-review notes, limitation and exception notes, handoff notes, and a non-authority statement.
 
 Evidence packages are review artifacts only. They do not approve, merge, close, automate, bypass review, or replace required human controls.

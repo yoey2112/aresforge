@@ -29,6 +29,8 @@ Do not use this skill to rewrite unrelated documentation, replace source-of-trut
 - Documentation-sync evidence package model from docs/agents/DOCUMENTATION_SYNC_EVIDENCE_PACKAGES.md.
 - Documentation-sync handoff template from docs/agents/DOCUMENTATION_SYNC_HANDOFF_TEMPLATE.md when a reusable package or next-agent handoff is needed.
 - PR evidence package template from docs/agents/PR_EVIDENCE_PACKAGE_TEMPLATE.md when reusable PR evidence scaffolding is needed.
+
+- Closeout evidence package template from docs/agents/CLOSEOUT_EVIDENCE_PACKAGE_TEMPLATE.md when reusable closeout evidence scaffolding is needed.
 - Documentation freshness checks from docs/agents/DOCUMENTATION_AGENTS.md when relevant.
 - Local operator workflow package or evidence outline from docs/architecture/LOCAL_OPERATOR_WORKFLOW.md when available.
 - Codex prompt package template from docs/prompts/CODEX_PROMPT_PACKAGE_TEMPLATE.md when prompt-package documentation or implementation handoff packaging is in scope.
@@ -63,6 +65,8 @@ Evidence packages prepared through this skill are review artifacts only. They do
 The documentation-sync handoff template is also a review artifact scaffold only. It does not run this skill, implement local operator commands, or replace human-reviewed PR evidence.
 
 The PR evidence package template is also a review artifact scaffold only. It does not run this skill, approve PRs, merge PRs, close issues, bypass human review, change source-of-truth priority, implement local operator commands, or authorize future automation.
+
+The closeout evidence package template is also a review artifact scaffold only. It does not run this skill, approve PRs, merge PRs, close issues, bypass human review, change source-of-truth priority, implement `New-CloseoutEvidencePackage`, implement local operator commands, or authorize future automation.
 
 ## Human approval boundaries
 

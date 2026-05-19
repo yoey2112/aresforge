@@ -6,13 +6,13 @@ M2 - Documentation Agent Foundation
 
 ## Current Goal
 
-No active M2 implementation issue is currently assigned.
+Issue #65 is active: define closeout evidence package template.
 
 ## Current Repository State
 
 - Current main state: verify with git log -1 --oneline and git log -1 --oneline origin/main before implementation work.
 - Open pull requests: none.
-- Active issue: none assigned.
+- Active issue: #65, `Define closeout evidence package template`.
 - Remaining open validation issue: #39, `validation: issue-38-state-lifecycle`, intentionally preserved as audit evidence.
 
 ## Current Source of Truth
@@ -254,8 +254,8 @@ During M2 foundation work, explicit human decisions and repository documentation
   - Confirmed no scripts, runnable automation, workflows, commands, auto-merge, autonomous approval, autonomous issue closure, repository setting change, branch protection change, ruleset change, secret change, release change, tag change, or GitHub Project change was introduced.
 ## In Progress
 
-- No active M2 implementation issue is currently assigned.
-- The next M2 deliverable remains undecided until a future human-directed issue or source-of-truth update defines it.
+- Issue #65 is active: define closeout evidence package template.
+- The issue is documentation-only and must not implement New-CloseoutEvidencePackage or any runnable automation.
 
 ## Next
 
@@ -264,9 +264,11 @@ During M2 foundation work, explicit human decisions and repository documentation
 - Use docs/agents/DOCUMENTATION_SYNC_HANDOFF_TEMPLATE.md for future documentation-sync handoffs.
 - Use docs/prompts/CODEX_PROMPT_PACKAGE_TEMPLATE.md for future reusable Codex prompt packages.
 - Use docs/agents/PR_EVIDENCE_PACKAGE_TEMPLATE.md for future reusable PR evidence packages.
+- Use docs/agents/CLOSEOUT_EVIDENCE_PACKAGE_TEMPLATE.md for future reusable closeout evidence packages after Issue #65 is reviewed and merged.
 - Keep documentation-sync evidence packages and handoff packages as review artifacts only.
 - Keep Codex prompt packages as review/input artifacts only.
 - Keep PR evidence packages as review artifacts only.
+- Keep closeout evidence packages as review artifacts only.
 - Keep local operator command names as future design targets only until a later issue explicitly implements them.
 - Review docs/planning/FUTURE_FEATURE_IDEAS.md at the beginning of each future milestone.
 

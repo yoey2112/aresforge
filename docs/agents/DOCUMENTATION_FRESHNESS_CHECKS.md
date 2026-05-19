@@ -247,7 +247,7 @@ The local operator workflow in `docs/architecture/LOCAL_OPERATOR_WORKFLOW.md` ma
 
 Operator-prepared packages should help identify source-of-truth docs, issue scope, likely documentation impact, stale or missing documentation findings, validation expectations, and human escalation items. They do not replace this freshness check model and do not authorize runnable automation, autonomous documentation updates, merge gates, approval gates, or issue closure.
 
-Operator-prepared PR and closeout evidence packages should follow `docs/agents/DOCUMENTATION_SYNC_EVIDENCE_PACKAGES.md` while remaining design-only review inputs during M2.
+Operator-prepared PR and closeout evidence packages should follow `docs/agents/DOCUMENTATION_SYNC_EVIDENCE_PACKAGES.md`, `docs/agents/PR_EVIDENCE_PACKAGE_TEMPLATE.md`, and `docs/agents/CLOSEOUT_EVIDENCE_PACKAGE_TEMPLATE.md` as applicable while remaining design-only review inputs during M2.
 
 ## M2 Boundary
 
