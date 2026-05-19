@@ -824,3 +824,202 @@ It does not introduce:
 - Destructive automation.
 - Autonomous issue closure.
 - Repository permission, secret, branch protection, workflow, project setting, or release setting changes.
+
+## M1 Repeatable GitHub Issue Evidence Comment Lifecycle Validation
+
+This section extends the M1 GitHub operations validation for issue evidence comment lifecycle operations.
+
+This validation belongs to:
+
+- Milestone: M1 - GitHub Operations Validation
+- Milestone number: 2
+- Issue: #28 Validate repeatable GitHub issue evidence comment lifecycle operations using GitHub operations skill
+- Phase: GitHub operations validation
+
+### Current M1 Safety Boundaries
+
+During M1, issue evidence comment lifecycle work is manually guided, manually reviewed, and evidence-based.
+
+Allowed issue evidence comment lifecycle operations for this validation are limited to:
+
+- Reading the target issue state.
+- Creating one clearly owned validation evidence comment on Issue #28.
+- Reading issue comments through the GitHub API.
+- Identifying the validation comment by returned comment ID, API URL, HTML URL, author, and unique marker.
+- Updating only that clearly owned validation comment by returned comment ID or API URL.
+- Verifying the updated body and metadata with an explicit read after write.
+- Adding a final evidence comment to Issue #28.
+
+This validation must not:
+
+- Delete any issue comments.
+- Edit or delete production or historical evidence comments.
+- Modify unrelated issues, labels, milestones, pull requests, branches, repository settings, branch protection, secrets, workflows, permissions, project settings, or release settings.
+- Introduce runnable automation, auto-merge, autonomous approval, destructive automation, or autonomous issue closure.
+- Close Issue #28 manually.
+
+### Comment Creation Pattern
+
+For M1 validation, create only a clearly owned issue evidence comment with a unique marker.
+
+Validated marker:
+
+- `ARESFORGE-ISSUE-28-COMMENT-LIFECYCLE-VALIDATION`
+
+Preferred creation pattern:
+
+```powershell
+$body = @'
+ARESFORGE-ISSUE-28-COMMENT-LIFECYCLE-VALIDATION
+
+Initial validation comment for Issue #28 comment lifecycle evidence.
+'@
+$body | gh issue comment 28 --body-file -
+```
+
+Expected evidence:
+
+- The command succeeds.
+- `gh issue comment` returns a usable HTML URL.
+- The body includes a unique marker that distinguishes the validation comment from production or historical evidence comments.
+- The comment is clearly owned by the active validation task.
+
+### Comment Read And Identification Pattern
+
+Read issue comments through the GitHub API after creation and before any update.
+
+Preferred read command:
+
+```powershell
+gh api repos/yoey2112/aresforge/issues/28/comments
+```
+
+Expected evidence:
+
+- The command succeeds.
+- The target comment can be identified by returned `id`, `url`, `html_url`, `user.login`, and marker in `body`.
+- The validation process records enough metadata for a human reviewer to reconstruct the operation.
+- Future updates use the returned comment ID or API URL, not body-text guessing alone.
+
+Validated comment metadata:
+
+- Comment ID: `4484336358`
+- API URL: `https://api.github.com/repos/yoey2112/aresforge/issues/comments/4484336358`
+- HTML URL: `https://github.com/yoey2112/aresforge/issues/28#issuecomment-4484336358`
+- Author: `yoey2112`
+- Marker: `ARESFORGE-ISSUE-28-COMMENT-LIFECYCLE-VALIDATION`
+- Created at: `2026-05-19T04:18:25Z`
+
+### Comment Update Pattern
+
+Update only the clearly owned validation comment by returned comment ID or API URL.
+
+Preferred update pattern:
+
+```powershell
+$updatedBody = @'
+ARESFORGE-ISSUE-28-COMMENT-LIFECYCLE-VALIDATION
+
+Updated validation comment for Issue #28 comment lifecycle evidence.
+'@
+gh api repos/yoey2112/aresforge/issues/comments/4484336358 -X PATCH -f body="$updatedBody"
+```
+
+Expected evidence:
+
+- The command succeeds.
+- The returned `id`, `url`, `html_url`, and `user.login` still match the intended validation comment.
+- The returned `body` contains the updated content and the unique marker.
+- `created_at` remains unchanged.
+- `updated_at` is later than `created_at`.
+- No delete endpoint is used.
+- No other comments are edited.
+
+Validated update metadata:
+
+- Comment ID: `4484336358`
+- Author: `yoey2112`
+- HTML URL: `https://github.com/yoey2112/aresforge/issues/28#issuecomment-4484336358`
+- Created at: `2026-05-19T04:18:25Z`
+- Updated at: `2026-05-19T04:18:42Z`
+
+### Review-Time Marker Verification Finding
+
+Human review of PR #29 found that a `gh api --jq` marker check can fail for the Issue #28 hyphenated marker when the marker string is not safely preserved for jq parsing.
+
+Failed review command:
+
+```powershell
+gh api "repos/yoey2112/aresforge/issues/comments/4484336358" --jq '{id: .id, user: .user.login, html_url: .html_url, created_at: .created_at, updated_at: .updated_at, marker_present: (.body | contains("ARESFORGE-ISSUE-28-COMMENT-LIFECYCLE-VALIDATION"))}'
+```
+
+Observed failure:
+
+```text
+function not defined: VALIDATION/0
+```
+
+Safer Windows PowerShell verification pattern:
+
+```powershell
+$commentJson = gh api "repos/yoey2112/aresforge/issues/comments/4484336358"
+$comment = $commentJson | ConvertFrom-Json
+$marker = "ARESFORGE-ISSUE-28-COMMENT-LIFECYCLE-VALIDATION"
+$comment.body.Contains($marker)
+```
+
+Successful verification result:
+
+- Comment ID: `4484336358`
+- Author: `yoey2112`
+- HTML URL: `https://github.com/yoey2112/aresforge/issues/28#issuecomment-4484336358`
+- Created at: `2026-05-19T04:18:25Z`
+- Updated at: `2026-05-19T04:18:42Z`
+- Marker present: `true`
+
+Future Issue #28-style comment verification should prefer comment ID or API URL reads, parse raw `gh api` JSON with PowerShell `ConvertFrom-Json`, and then verify comment ID, author, URL, timestamps, and marker presence from the parsed object.
+
+### Final Verification Expectations
+
+Final verification for issue evidence comment lifecycle work should include:
+
+- The target issue number and state.
+- The validation comment marker.
+- The validation comment ID, API URL, HTML URL, author, `created_at`, and `updated_at`.
+- Confirmation that the updated comment body matches the intended validation content.
+- Confirmation that no comments were deleted.
+- Confirmation that production or historical evidence comments were not edited.
+- Confirmation that unrelated GitHub resources were not modified.
+
+### Evidence Comment Expectations
+
+Future issue evidence comment lifecycle validations should add a final issue evidence comment that includes:
+
+- Branch name.
+- Draft PR number and URL when available.
+- Validation comment marker.
+- Validation comment ID and URL.
+- Read, create, update, and final verification summary.
+- Files changed.
+- Local validation commands and concise results.
+- Any new reusable failure found, or an explicit statement that no new reusable failure was found.
+- Safety confirmation that no comment deletion, production comment edit, repository setting change, branch protection change, secret change, permission change, workflow change, project setting change, release setting change, auto-merge, autonomous approval, destructive automation, or autonomous issue closure was performed.
+
+### Comment Deletion Boundary
+
+No comment deletion is required for this validation.
+
+Deleting issue comments, including temporary validation comments, should be avoided during M1 unless a separate human-approved issue or explicit human approval authorizes deletion. Future automation design must treat comment deletion as a destructive operation requiring stricter approval and evidence than read, create, or update operations.
+
+### M1 Safety Confirmation
+
+This validation introduces documentation and manual operating guidance only.
+
+It does not introduce:
+
+- Runnable automation.
+- Auto-merge.
+- Autonomous approval.
+- Destructive automation.
+- Autonomous issue closure.
+- Repository permission, secret, branch protection, workflow, project setting, or release setting changes.

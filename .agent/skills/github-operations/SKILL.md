@@ -208,6 +208,70 @@ The verification should confirm the PR number, title, state, draft status, base 
 
 Do not merge, approve, enable auto-merge, mark ready for review, or close linked issues unless explicitly human-approved and allowed by the current phase rules. During M1, pull request lifecycle validation remains manually guided and manually reviewed.
 
+## Safe issue evidence comment lifecycle guidance
+
+Before creating or updating issue evidence comments, read the target issue state and confirm the active issue scope allows comment operations.
+
+For M1 validation, create only clearly owned evidence comments with a unique marker that identifies the active issue and validation purpose. Prefer `gh issue comment` for initial creation when it returns a usable HTML URL:
+
+```powershell
+$body = @'
+ARESFORGE-ISSUE-28-COMMENT-LIFECYCLE-VALIDATION
+
+Initial validation comment for Issue #28 comment lifecycle evidence.
+'@
+$body | gh issue comment 28 --body-file -
+```
+
+After creation, read comments through the GitHub API and identify the owned validation comment by returned metadata:
+
+```powershell
+gh api repos/yoey2112/aresforge/issues/28/comments
+```
+
+For single-comment verification after a comment ID is known, prefer an explicit comment ID or API URL read:
+
+```powershell
+$commentJson = gh api "repos/yoey2112/aresforge/issues/comments/<comment-id>"
+$comment = $commentJson | ConvertFrom-Json
+$marker = "ARESFORGE-ISSUE-28-COMMENT-LIFECYCLE-VALIDATION"
+$comment.body.Contains($marker)
+```
+
+Use raw JSON parsed with PowerShell for marker checks in Windows PowerShell. Avoid complex `gh api --jq` string `contains(...)` expressions for hyphenated markers unless the jq expression and shell quoting have been separately verified, because unsafe quoting can cause jq parser failures.
+
+Required identification evidence includes:
+
+- Comment `id`.
+- Comment API `url`.
+- Comment `html_url`.
+- Author `user.login`.
+- Unique marker in `body`.
+- `created_at` and `updated_at`.
+
+Update comments only when the returned metadata proves the comment is clearly owned by the active validation task. Prefer the returned comment ID or API URL over body-text guessing:
+
+```powershell
+$updatedBody = @'
+ARESFORGE-ISSUE-28-COMMENT-LIFECYCLE-VALIDATION
+
+Updated validation comment for Issue #28 comment lifecycle evidence.
+'@
+gh api repos/yoey2112/aresforge/issues/comments/<comment-id> -X PATCH -f body="$updatedBody"
+```
+
+After any update, run another explicit API read and verify:
+
+- The same comment ID was updated.
+- The author and URLs still match the intended comment.
+- The updated body contains the expected marker and content.
+- `created_at` remains unchanged.
+- `updated_at` is later than `created_at`.
+- No delete endpoint was used.
+- No production or historical evidence comments were edited.
+
+Do not delete issue comments during M1 unless a separate human-approved issue or explicit human approval authorizes deletion. Treat comment deletion as destructive because it can remove review evidence, historical decisions, and audit context.
+
 ## Execution boundaries
 
 This skill is advisory and manually executed. It may guide commands that are already allowed by the active issue, but it is not a script, workflow, package, or autonomous GitHub operator.

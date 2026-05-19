@@ -10,7 +10,8 @@ Continue M1 by validating safe GitHub-managed workflows using repo-owned documen
 
 ## Current Active Issue
 
-- No active implementation issue is currently assigned after Issue #26 completion.
+- Issue #28 - Validate repeatable GitHub issue evidence comment lifecycle operations using GitHub operations skill.
+- Active branch: m1/issue-28-comment-lifecycle-validation.
 
 ## Current Source of Truth
 
@@ -123,12 +124,20 @@ During M1, explicit human decisions and repository documentation take priority o
   - Confirmed no runnable automation, auto-merge, autonomous approval, destructive automation, repository setting change, branch protection change, workflow change, milestone deletion, or autonomous issue closure was introduced.
 ## In Progress
 
-- No active implementation issue is currently assigned after Issue #26 completion.
+- Issue #28 is validating safe, repeatable issue evidence comment lifecycle operations:
+  - Created one clearly owned validation comment on Issue #28.
+  - Read issue comments through the GitHub API.
+  - Identified the validation comment by returned comment ID, URL, author, and unique marker.
+  - Updated only that validation comment by returned comment ID.
+  - Verified updated body, author, URL, created_at, and updated_at metadata.
+  - Human review of PR #29 discovered M1-ERROR-009: a `gh api --jq` marker check can fail for hyphenated issue-comment markers when quoting is not safely preserved for jq parsing.
+  - PR #29 was updated before merge to capture the safer PowerShell `ConvertFrom-Json` marker verification pattern as reusable learning.
+  - No comment deletion, production comment edit, runnable automation, auto-merge, autonomous approval, destructive automation, or autonomous issue closure was performed.
 
 ## Next
 
-- Select the next M1 GitHub operations validation issue.
-- Continue validating repeatable GitHub-managed workflows using the documented GitHub operations, issue-planning, build-state, and error-pattern guidance.
+- Complete Issue #28 documentation, commit, draft PR creation, final issue evidence comment, and handoff evidence.
+- Continue validating repeatable GitHub-managed workflows using the documented GitHub operations, issue-planning, build-state, and error-pattern guidance after Issue #28 is reviewed.
 
 ## Current Operating Constraint
 
