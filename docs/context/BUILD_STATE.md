@@ -74,18 +74,21 @@ During M0, explicit human decisions and repository documentation take priority o
 ## In Progress
 
 - Human review of the Issue #6 PR validation and scoring model PR
-- Issue #8 is being implemented on branch codex/issue-8-agent-skill-model:
-  - Defining the AresForge-native repo-owned markdown skills model
-  - Linking the skill model to agent context, documentation agents, self-management governance, and PR validation expectations
+- Issue #8 completed via PR #14:
+  - Defined the AresForge-native repo-owned markdown skills model
+  - Evaluated external skill frameworks as optional inspiration or future adapters only
+  - Linked the skill model to agent context, documentation agents, self-management governance, and PR validation expectations
+  - Confirmed no external framework dependency, runnable skill automation, auto-merge, autonomous approval, or autonomous issue closure was introduced
 
 ## Next
 
 - Review and merge the Issue #6 PR after human approval
-- Review the Issue #8 agent skills model changes after local validation
+- M0 self-bootstrap foundation documentation is complete across issues #1-#6 and #8
 
 ## Current Operating Constraint
 
 All M0 changes are manually guided and manually reviewed.
 
 No destructive automation, auto-merge, or autonomous issue closure is enabled during M0.
+
 
