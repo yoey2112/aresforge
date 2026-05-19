@@ -1458,3 +1458,190 @@ It did not:
 - Change repository settings, branch protection, secrets, permissions, releases, tags, or GitHub Projects.
 - Enable runnable automation, auto-merge, autonomous approval, destructive automation, or autonomous issue closure.
 - Close Issue #32 manually.
+
+## M1 Repository Rules And Branch Protection Read-Only Validation
+
+This section extends the M1 GitHub operations validation for repository branch protection and repository ruleset read access.
+
+This validation belongs to:
+
+- Milestone: M1 - GitHub Operations Validation
+- Milestone number: 2
+- Issue: #34 Validate repository rules and branch protection read-only access
+- Phase: GitHub operations validation
+
+### Current M1 Safety Boundaries
+
+During M1, repository rule and branch protection validation is read-only, manually guided, manually reviewed, and evidence-based.
+
+Allowed operations for this validation are limited to:
+
+- Reading local repository branch, status, and latest commit state.
+- Reading GitHub CLI authentication and token scope state.
+- Reading branch metadata for `main`.
+- Reading branch protection state for `main`.
+- Reading repository rulesets.
+- Recording observed repository state, including empty or unprotected state.
+
+This validation must not:
+
+- Create, edit, enable, disable, or delete branch protection.
+- Create, edit, enable, disable, or delete repository rulesets.
+- Change repository settings, permissions, secrets, workflows, releases, tags, GitHub Projects, or auto-merge settings.
+- Approve, merge, or close pull requests.
+- Close Issue #34 manually.
+- Introduce runnable automation.
+
+### Commands Used
+
+Read-only validation commands run from Windows PowerShell:
+
+```powershell
+git branch --show-current
+git status --short
+git log -1 --oneline
+gh auth status
+gh api repos/yoey2112/aresforge/branches/main --jq '{name: .name, protected: .protected, protection_url: .protection_url, commit_sha: .commit.sha}'
+gh api repos/yoey2112/aresforge/branches/main/protection
+gh api repos/yoey2112/aresforge/rulesets
+```
+
+### Observed Results
+
+Local repository state after creating the issue branch:
+
+- Branch: `m1/issue-34-repository-rules-branch-protection-read-validation`
+- Working tree: clean before documentation edits.
+- Latest baseline commit: `f37a24e Update build state after issue 32 completion`
+
+GitHub CLI authentication:
+
+- Host: `github.com`
+- Account: `yoey2112`
+- Credential storage: keyring
+- Active account: true
+- Git operations protocol: https
+- Token scopes:
+  - `gist`
+  - `read:org`
+  - `repo`
+  - `workflow`
+
+### Branch Metadata Read Result
+
+Branch metadata read for `main` succeeded.
+
+Observed result:
+
+```json
+{"commit_sha":"f37a24ebbae2edc7b3946c80c866bbbc2612dbbf","name":"main","protected":false,"protection_url":"https://api.github.com/repos/yoey2112/aresforge/branches/main/protection"}
+```
+
+Confirmed branch metadata:
+
+- Branch name: `main`
+- Protected: `false`
+- Commit SHA: `f37a24ebbae2edc7b3946c80c866bbbc2612dbbf`
+- Protection URL is readable from branch metadata.
+
+### Branch Protection Read Result
+
+Branch protection read for `main` returned GitHub's expected unprotected-branch response.
+
+Observed result:
+
+```text
+{"message":"Branch not protected","documentation_url":"https://docs.github.com/rest/branches/branch-protection#get-branch-protection","status":"404"}gh: Branch not protected (HTTP 404)
+```
+
+This is treated as observed repository state, not as a reusable command failure, because the branch metadata read already confirmed `protected: false` for `main`.
+
+### Repository Rulesets Read Result
+
+Repository rulesets read succeeded.
+
+Observed result:
+
+```json
+[]
+```
+
+This confirms the rulesets endpoint is readable in the current environment and the repository currently returns no repository rulesets.
+
+### Successful Read-Only Patterns
+
+Safe branch metadata read pattern:
+
+```powershell
+gh api repos/<owner>/<repo>/branches/<branch> --jq '{name: .name, protected: .protected, protection_url: .protection_url, commit_sha: .commit.sha}'
+```
+
+Expected evidence:
+
+- The command exits successfully.
+- The result includes branch name, protected flag, protection URL, and commit SHA.
+- If `protected` is `false`, a later branch protection endpoint 404 can be documented as the unprotected branch state.
+
+Safe branch protection read pattern:
+
+```powershell
+gh api repos/<owner>/<repo>/branches/<branch>/protection
+```
+
+Expected evidence:
+
+- If protection exists, record the returned read-only protection metadata.
+- If GitHub returns `Branch not protected` with HTTP 404 and branch metadata confirms `protected: false`, document the response as observed repository state.
+- Do not create or change protection settings to manufacture validation data.
+
+Safe repository rulesets read pattern:
+
+```powershell
+gh api repos/<owner>/<repo>/rulesets
+```
+
+Expected evidence:
+
+- The command exits successfully.
+- Returned rulesets, when present, can be summarized for review.
+- An empty list is documented as current repository state, not as a failure.
+
+### Limitations
+
+The current repository state does not include branch protection or repository rulesets to inspect in detail.
+
+Current limitations:
+
+- `main` currently reports `protected: false`.
+- The branch protection endpoint returns `Branch not protected` with HTTP 404 for `main`.
+- The repository rulesets endpoint returns an empty list.
+- No branch protection rule details, required checks, required reviews, bypass actors, enforcement settings, or ruleset conditions were available to inspect.
+
+These limitations are observed repository state, not command failures.
+
+### Future Automation Guidance
+
+Future repository policy readers should use a conservative preflight sequence:
+
+1. Confirm authentication scopes with `gh auth status`.
+2. Read branch metadata before reading branch protection details.
+3. Treat `protected: false` plus `Branch not protected` as a valid unprotected branch result.
+4. Read repository rulesets with the rulesets endpoint and treat an empty list as valid repository state.
+5. Parse raw JSON with PowerShell `ConvertFrom-Json` when marker checks, body checks, or more complex verification are needed.
+6. Keep policy reads separate from policy writes.
+7. Require explicit human approval and a separate issue before any future branch protection, repository ruleset, repository setting, permission, secret, workflow, release, tag, project, auto-merge, approval, merge, or issue closure action.
+
+Future automation must never create branch protection rules or repository rulesets merely to validate read behavior unless a later human-approved issue explicitly authorizes repository policy changes.
+
+### M1 Safety Confirmation
+
+This validation introduced documentation and manual operating guidance only.
+
+It did not:
+
+- Create, edit, enable, disable, or delete branch protection.
+- Create, edit, enable, disable, or delete repository rulesets.
+- Change repository settings, permissions, secrets, workflows, releases, tags, GitHub Projects, or auto-merge settings.
+- Approve, merge, or close pull requests.
+- Close Issue #34 manually.
+- Enable runnable automation, autonomous approval, autonomous issue closure, or destructive automation.
