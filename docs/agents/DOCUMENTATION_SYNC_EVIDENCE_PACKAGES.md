@@ -135,6 +135,14 @@ Required documentation-sync evidence:
 
 Documentation-sync evidence packages are the bridge between the freshness check and the PR or closeout evidence. They explain why specific docs changed and which warnings remain.
 
+## Reusable Handoff Template
+
+The canonical reusable documentation-sync handoff package template is `docs/agents/DOCUMENTATION_SYNC_HANDOFF_TEMPLATE.md`.
+
+Use the template when documentation-sync work needs a copy/paste-friendly handoff for an implementation agent, documentation agent, validation agent, local operator, or human owner. The template preserves the required separation between issue and PR references, source documents reviewed, freshness-check evidence, documentation impact, touched or expected documents, documentation-sync evidence, validation results, human-review boundaries, limitations, escalation items, handoff notes, and the required non-authority statement.
+
+The template is a review artifact scaffold only. It does not execute this model, approve work, merge PRs, close issues, bypass human review, change repository settings, or authorize future automation.
+
 ## Relationship To Documentation Freshness Checks
 
 Freshness checks are the diagnostic layer. Evidence packages record the diagnostic findings, the updates made from those findings, and the unresolved warnings or limitations.
@@ -165,7 +173,7 @@ The agent context must continue to preserve the M2 boundary: advisory, manual, h
 
 ## Relationship To BUILD_STATE
 
-`docs/context/BUILD_STATE.md` should record Issue #51 as the active work while this evidence model is being defined and later record completion only after reviewed PR merge or explicit closeout evidence supports the update.
+`docs/context/BUILD_STATE.md` should record the current active documentation-sync foundation issue while evidence models or handoff templates are being defined and later record completion only after reviewed PR merge or explicit closeout evidence supports the update.
 
 Build-state updates are high-churn project memory and must include evidence of source documents reviewed, validation performed, and any stale warnings or next-step handoff notes.
 

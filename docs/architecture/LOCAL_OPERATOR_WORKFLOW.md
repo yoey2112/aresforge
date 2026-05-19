@@ -147,11 +147,12 @@ Expected evidence outputs include:
 - PR evidence outline.
 - Closeout evidence outline.
 - Documentation-sync evidence outline.
+- Documentation-sync handoff package template content.
 - Confirmation that future-state commands or workflow concepts were not treated as implemented capability.
 
 Evidence must distinguish confirmed facts, agent judgment, unavailable inputs, skipped checks, future recommendations, and human decisions.
 
-Evidence packages should follow `docs/agents/DOCUMENTATION_SYNC_EVIDENCE_PACKAGES.md` when they involve documentation-sync work. Each package must include a non-authority statement confirming that it is a review artifact only and does not approve, merge, close, automate, bypass human review, or authorize future automation.
+Evidence packages should follow `docs/agents/DOCUMENTATION_SYNC_EVIDENCE_PACKAGES.md` when they involve documentation-sync work. Documentation-sync handoffs should use `docs/agents/DOCUMENTATION_SYNC_HANDOFF_TEMPLATE.md` for copy/paste-friendly package structure. Each package must include a non-authority statement confirming that it is a review artifact only and does not approve, merge, close, automate, bypass human review, or authorize future automation.
 
 ## Validation Expectations
 
@@ -197,6 +198,8 @@ Before documentation-sync work, the operator should identify:
 Documentation-sync remains a repo-owned markdown skill and a manual, human-reviewed behavior during M2. The local operator workflow does not turn documentation-sync into runnable automation.
 
 Documentation-sync evidence packages provide the review structure for operator-prepared documentation-sync handoffs. They do not execute the documentation-sync skill and do not replace human-reviewed PR evidence.
+
+The reusable handoff template at `docs/agents/DOCUMENTATION_SYNC_HANDOFF_TEMPLATE.md` may be used to format operator-prepared documentation-sync handoff content, but it remains a manual review artifact scaffold and not an implemented local operator command.
 
 ## Relationship To M3 Agent Workflow Orchestration
 

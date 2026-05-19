@@ -22,6 +22,7 @@ This model supports, but does not replace:
 - Documentation impact detection.
 - Source-of-truth update flow.
 - Documentation-sync evidence packages defined in `docs/agents/DOCUMENTATION_SYNC_EVIDENCE_PACKAGES.md`.
+- Documentation-sync handoff packages defined in `docs/agents/DOCUMENTATION_SYNC_HANDOFF_TEMPLATE.md`.
 - Human-reviewed documentation update expectations.
 - PR validation and evidence review.
 - Human escalation when source-of-truth status is uncertain.
@@ -237,6 +238,8 @@ The documentation-sync skill should:
 The freshness check is the diagnostic layer. Documentation sync is the focused update layer that follows after the diagnostic findings are understood.
 
 The documentation-sync evidence package model is the review artifact layer. It records the freshness findings, source documents reviewed, touched documents, validation summary, limitations, human-review notes, and handoff notes for PR review or closeout.
+
+The documentation-sync handoff template is the copy/paste-friendly structure for carrying those findings to another agent, validation reviewer, local operator, or human owner. It remains a manual review artifact scaffold and does not approve, merge, close, automate, bypass review, or authorize future automation.
 
 ## Connection To Local Operator Workflow
 
