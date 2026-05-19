@@ -10,7 +10,7 @@ No active M2 implementation issue is currently assigned.
 
 ## Current Repository State
 
-- Current main commit: 4a8cc0c Merge pull request #64 from yoey2112/m2/issue-63-pr-evidence-package-template
+- Current main commit: 7c2705e Update docs after issue 63 closeout
 - Open pull requests: none.
 - Active issue: none assigned.
 - Remaining open validation issue: #39, `validation: issue-38-state-lifecycle`, intentionally preserved as audit evidence.
