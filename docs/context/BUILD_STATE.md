@@ -1,4 +1,4 @@
-﻿# AresForge Build State
+# AresForge Build State
 
 ## Current Phase
 
@@ -147,6 +147,14 @@ During M1, explicit human decisions and repository documentation take priority o
   - Updated GitHub operations skill with safe workflow run and artifact read guidance.
   - Confirmed no new reusable failure was discovered, so `docs/learning/ERROR_PATTERNS.md` was not updated.
   - Confirmed no workflow creation, workflow editing, workflow triggering, artifact commit, runnable automation, auto-merge, autonomous approval, destructive automation, repository setting change, branch protection change, secret change, permission change, release/tag change, project change, or autonomous issue closure was introduced.
+- Issue #34 completed via PR #35:
+  - Documented read-only repository branch protection and repository ruleset validation.
+  - Confirmed `main` branch metadata is readable and currently reports `protected: false`.
+  - Confirmed the branch protection endpoint returns `Branch not protected` for `main`, documented as current repository state rather than a reusable command failure.
+  - Confirmed the repository rulesets endpoint is readable and currently returns an empty list.
+  - Updated GitHub operations skill with safe branch protection and repository ruleset read guidance.
+  - Confirmed no new reusable failure was discovered, so `docs/learning/ERROR_PATTERNS.md` was not updated.
+  - Confirmed no branch protection, repository rulesets, settings, permissions, secrets, workflows, releases, tags, GitHub Projects, auto-merge, approvals, merges, manual issue closure, or runnable automation were changed.
 ## In Progress
 
 - No active implementation issue is currently assigned after Issue #34 completion.
