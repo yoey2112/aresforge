@@ -28,15 +28,17 @@ Future agents should treat `docs/validation/GITHUB_CAPABILITY_VALIDATION.md`, `.
 
 The M1 baseline confirms enough manual, human-reviewed GitHub operations to proceed to M2, while preserving known limitations around GitHub Projects v2 `read:project` access, absent workflow runs and artifacts, absent branch protection and rulesets, and production release governance.
 
-M2 began with Issue #43, `Create documentation agent foundation`, focused on documentation agent rules, source-of-truth update flow, documentation freshness checks, and human-reviewed documentation updates before any autonomous automation. Issue #45, `Create documentation freshness check model`, defines the repeatable freshness check layer that must run before documentation-sync work.
+M2 began with Issue #43, `Create documentation agent foundation`, focused on documentation agent rules, source-of-truth update flow, documentation freshness checks, and human-reviewed documentation updates before any autonomous automation. Issue #45, `Create documentation freshness check model`, defines the repeatable freshness check layer that must run before documentation-sync work. Issue #47, `Define local operator workflow`, is the current M2 design focus for reducing manual copy/paste while preserving human-reviewed controls.
 
 ## M2 Documentation Agent Foundation Rules
 
-Issue #45 is the active M2 implementation issue for creating the documentation freshness check model.
+Issue #47 is the active M2 implementation issue for defining the local operator workflow as a design-only documentation layer.
 
 Future agents must treat `docs/agents/DOCUMENTATION_AGENTS.md` as the canonical documentation agent architecture document. The prior observed missing path `docs/architecture/DOCUMENTATION_AGENTS.md` should not be treated as canonical unless a future source-of-truth change explicitly moves the document.
 
 Future agents must treat `docs/agents/DOCUMENTATION_FRESHNESS_CHECKS.md` as the canonical M2 documentation freshness check model. Documentation-sync work must perform the freshness check before updating docs, classify stale, missing, conflicting, incomplete, or outdated documentation, record evidence, and escalate unresolved uncertainty to the human owner.
+
+Future agents must treat `docs/architecture/LOCAL_OPERATOR_WORKFLOW.md` as the canonical local operator workflow model. During M2, the local operator workflow is a design target only. It may describe future prompt packages, evidence packages, approval gates, and command names, but it does not implement scripts, runnable automation, workflows, autonomous repository behavior, auto-merge, autonomous approval, or autonomous issue closure.
 
 M2 documentation-agent work must define and preserve:
 
@@ -47,6 +49,7 @@ M2 documentation-agent work must define and preserve:
 - Human-reviewed documentation update expectations.
 - Required validation evidence for documentation changes.
 - Handoffs between implementation agents, documentation agents, validation agents, and the human owner.
+- Local operator workflow expectations that package issue context, freshness check inputs, documentation-sync inputs, validation checklists, and PR evidence for human review.
 
 The M2 foundation does not introduce autonomous documentation automation. Documentation agents, repo-owned skills, and validation agents remain advisory, manually executed, and human-reviewed until a future human-approved governance change explicitly authorizes a different execution model.
 

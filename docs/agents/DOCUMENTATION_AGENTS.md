@@ -47,6 +47,7 @@ Primary related skills:
 Primary related models:
 
 - `docs/agents/DOCUMENTATION_FRESHNESS_CHECKS.md`
+- `docs/architecture/LOCAL_OPERATOR_WORKFLOW.md`
 
 ## Documentation Agent Responsibilities
 
@@ -62,6 +63,7 @@ Core responsibilities:
 - Flag stale documentation when a related doc appears outdated but cannot be safely updated in the current scope.
 - Report validation evidence in the PR body or final handoff.
 - Preserve human-review boundaries and avoid implying approval, merge, issue closure, release, or automation that has not occurred.
+- Use local operator packages as review inputs when available, while treating them as evidence summaries rather than approval or automation.
 
 ## Documentation Agent Types
 
@@ -228,6 +230,8 @@ Use this flow for M2 documentation-agent work:
 11. Report files changed, documentation impact, freshness checks, validation evidence, warnings, and limitations in the PR or final handoff.
 
 During M2, this flow is manual and human-reviewed. It must not create scripts, watchers, workflows, auto-updaters, auto-merge behavior, autonomous approvals, or autonomous issue closure.
+
+Local operator workflow packages may prepare issue context, freshness check evidence, documentation-sync inputs, validation checklists, and PR evidence outlines for this flow. They must not be treated as implemented automation or as permission to skip human review.
 
 ## Documentation Impact Detection Rules
 

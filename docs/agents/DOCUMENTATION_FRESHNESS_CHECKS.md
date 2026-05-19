@@ -24,6 +24,7 @@ This model supports, but does not replace:
 - Human-reviewed documentation update expectations.
 - PR validation and evidence review.
 - Human escalation when source-of-truth status is uncertain.
+- Local operator workflow packaging defined in `docs/architecture/LOCAL_OPERATOR_WORKFLOW.md`.
 
 ## When A Freshness Check Must Be Performed
 
@@ -62,6 +63,7 @@ Use all available inputs that apply to the current task:
 - `docs/learning/ERROR_PATTERNS.md`
 - Validation evidence, test results, screenshots, command output summaries, local AI review, or manual review notes.
 - Existing PR summary, review comments, issue comments, and recorded human decisions when available.
+- Local operator prompt packages, validation checklists, PR evidence packages, or closeout evidence packages when available.
 
 If an expected input is unavailable, the freshness check output must record the limitation instead of silently assuming the missing input is current.
 
@@ -230,6 +232,12 @@ The documentation-sync skill should:
 - Preserve the advisory, manual, human-reviewed M2 boundary.
 
 The freshness check is the diagnostic layer. Documentation sync is the focused update layer that follows after the diagnostic findings are understood.
+
+## Connection To Local Operator Workflow
+
+The local operator workflow in `docs/architecture/LOCAL_OPERATOR_WORKFLOW.md` may prepare freshness check inputs and evidence summaries before documentation-sync work.
+
+Operator-prepared packages should help identify source-of-truth docs, issue scope, likely documentation impact, stale or missing documentation findings, validation expectations, and human escalation items. They do not replace this freshness check model and do not authorize runnable automation, autonomous documentation updates, merge gates, approval gates, or issue closure.
 
 ## M2 Boundary
 

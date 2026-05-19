@@ -16,6 +16,7 @@ This standard should be used for:
 
 - GitHub issue implementation prompts.
 - Documentation implementation prompts.
+- Local operator prompt packages prepared from `docs/architecture/LOCAL_OPERATOR_WORKFLOW.md`.
 - Code, configuration, test, workflow, or prompt-standard changes.
 - Follow-up prompts that continue work on an existing implementation branch.
 - Handoff prompts for the next implementation session.
@@ -36,6 +37,8 @@ For current implementation work, agents should usually read:
 - The issue body or task prompt supplied by the human owner.
 
 Agents must treat GitHub and repository documentation as the temporary source of truth until the AresForge dashboard exists. During M2 foundation work, explicit human decisions and repository documentation take priority over AI-generated summaries or inferred automation behavior.
+
+When a prompt is prepared by a local operator workflow package, agents must treat the package as a convenience wrapper around source-of-truth documentation, not as approval or active automation. Future command names documented in the local operator workflow are design targets only unless a later issue implements them.
 
 For work that may repeat GitHub CLI, Windows PowerShell, encoding-sensitive, or operational state update patterns, agents should also review docs/learning/ERROR_PATTERNS.md and apply any relevant manual guidance. During M2 foundation work, the learning document remains advisory project memory and does not authorize automation.
 

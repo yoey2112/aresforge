@@ -27,6 +27,7 @@ Do not use this skill to rewrite unrelated documentation, replace source-of-trut
 - Existing context, agent, governance, roadmap, prompt, architecture, and validation docs.
 - Documentation freshness check model from docs/agents/DOCUMENTATION_FRESHNESS_CHECKS.md.
 - Documentation freshness checks from docs/agents/DOCUMENTATION_AGENTS.md when relevant.
+- Local operator workflow package or evidence outline from docs/architecture/LOCAL_OPERATOR_WORKFLOW.md when available.
 - Validation evidence and PR summary when available.
 - Explicit human decisions relevant to the work.
 
@@ -47,6 +48,8 @@ This skill covers documentation impact analysis and scoped documentation updates
 ## Execution boundaries
 
 This skill is advisory and manually executed. It does not create documentation agents as services, watchers, workflows, scripts, or runnable sync automation.
+
+Local operator workflow support is also design-only during M2. Operator packages may organize documentation-sync inputs, but they do not execute this skill.
 
 ## Human approval boundaries
 
@@ -81,6 +84,7 @@ Report files reviewed, files changed, documentation impact, freshness checks, st
 - docs/agents/DOCUMENTATION_FRESHNESS_CHECKS.md
 - docs/agents/DOCUMENTATION_AGENTS.md
 - docs/agents/AGENT_SKILLS_MODEL.md
+- docs/architecture/LOCAL_OPERATOR_WORKFLOW.md
 - docs/context/AGENT_CONTEXT.md
 - docs/context/BUILD_STATE.md
 - docs/governance/SELF_MANAGEMENT_MODEL.md

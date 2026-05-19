@@ -6,11 +6,11 @@ M2 - Documentation Agent Foundation
 
 ## Current Goal
 
-Continue M2 documentation automation foundation by moving from the completed documentation freshness check model toward the next human-reviewed documentation automation planning issue.
+Define the first local operator workflow as a design-only documentation layer that reduces manual copy/paste while preserving human-reviewed controls.
 
 ## Current Active Issue
 
-- No active implementation issue is currently assigned after Issue #45 closeout.
+- Issue #47: Define local operator workflow - in progress.
 
 ## Current Source of Truth
 
@@ -204,10 +204,12 @@ During M2 foundation work, explicit human decisions and repository documentation
   - Confirmed no runnable automation, workflow, auto-merge, autonomous approval, autonomous issue closure, repository setting change, branch protection change, ruleset change, secret change, release change, tag change, or GitHub Project change was introduced.
 ## In Progress
 
-- No active implementation issue is currently assigned after Issue #45 closeout.
+- Issue #47: Define local operator workflow.
+- Defining `docs/architecture/LOCAL_OPERATOR_WORKFLOW.md` as the canonical local operator workflow model.
+- Updating current M2 context so local operator work connects to documentation freshness checks, documentation-sync, validation evidence, and future M3 orchestration without implementing automation.
 ## Next
 
-- Decide and create the next M2 implementation issue, likely focused on the local operator workflow that reduces manual copy/paste while preserving human-reviewed controls.
+- Complete Issue #47 through a human-reviewed pull request, then decide the next M2 issue after local operator workflow review.
 
 ## Current Operating Constraint
 

@@ -80,6 +80,8 @@ The initial draft repo-owned skill structure is:
 
 The `.agent` folder is a documentation scaffold only. Draft skill files are advisory and manually executed until future governance explicitly approves a different execution model.
 
+The local operator workflow defined in `docs/architecture/LOCAL_OPERATOR_WORKFLOW.md` may package skill inputs, prompt context, validation checklists, and evidence summaries for human-guided sessions. During M2, it is a design-only operator model and does not execute skills or turn markdown skills into runnable automation.
+
 ## Initial Proposed Skill Set
 
 Initial AresForge skills should map to already documented M0 work:
@@ -292,6 +294,7 @@ Potential adapters include:
 - Dashboard skill registry views.
 - PR validation checklists derived from skill metadata.
 - Cross-agent prompt bundles for ChatGPT, Claude, Codex, Ollama, and future agents.
+- Local operator prompt and evidence packages.
 
 Adapter rules:
 
