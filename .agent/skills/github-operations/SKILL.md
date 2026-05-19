@@ -372,6 +372,49 @@ Do not commit downloaded artifacts unless they are intentionally small text evid
 
 Workflow run and artifact read validation must not create, edit, enable, disable, rename, delete, or trigger workflows. It must not change repository settings, branch protection, secrets, permissions, releases, tags, GitHub Projects, auto-merge, approvals, merges, destructive automation, or issue closure state.
 
+## Safe branch protection and repository ruleset read guidance
+
+Before relying on repository policy data, confirm the active issue allows branch protection or repository ruleset read validation and that the operation is read-only.
+
+Recommended local and authentication preflight:
+
+```powershell
+git branch --show-current
+git status --short
+git log -1 --oneline
+gh auth status
+```
+
+Read branch metadata before reading protection details:
+
+```powershell
+gh api repos/<owner>/<repo>/branches/<branch> --jq '{name: .name, protected: .protected, protection_url: .protection_url, commit_sha: .commit.sha}'
+```
+
+Expected evidence includes branch name, protected flag, protection URL, and commit SHA. If the branch metadata reports `protected: false`, the branch protection endpoint may return `Branch not protected` with HTTP 404. When confirmed by GitHub branch metadata, treat that response as a valid read result and observed repository state, not as a reusable command failure.
+
+Read branch protection only for inspection:
+
+```powershell
+gh api repos/<owner>/<repo>/branches/<branch>/protection
+```
+
+If protection exists, summarize the returned read-only metadata. If protection does not exist, document the exact GitHub response. Do not create, edit, enable, disable, or delete branch protection to produce validation data.
+
+Read repository rulesets only for inspection:
+
+```powershell
+gh api repos/<owner>/<repo>/rulesets
+```
+
+If the endpoint succeeds with an empty list, document that the repository currently returns no rulesets. Empty rulesets output is repository state, not a failure. If rulesets are returned, summarize their read-only metadata without changing enforcement, conditions, bypass actors, or targets.
+
+Reading branch protection or repository rulesets does not authorize changing them. Repository policy writes require explicit human approval, a separate approved issue, and updated governance documentation when applicable.
+
+Prefer raw JSON parsed with PowerShell `ConvertFrom-Json` for complex verification. Avoid fragile `gh api --jq` quoting patterns when verifying markers, body text, or nested state in Windows PowerShell.
+
+Branch protection and repository ruleset read validation must not change repository settings, permissions, secrets, workflows, releases, tags, GitHub Projects, auto-merge, approvals, merges, destructive automation, or issue closure state.
+
 ## Execution boundaries
 
 This skill is advisory and manually executed. It may guide commands that are already allowed by the active issue, but it is not a script, workflow, package, or autonomous GitHub operator.
