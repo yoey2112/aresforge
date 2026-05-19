@@ -272,6 +272,45 @@ After any update, run another explicit API read and verify:
 
 Do not delete issue comments during M1 unless a separate human-approved issue or explicit human approval authorizes deletion. Treat comment deletion as destructive because it can remove review evidence, historical decisions, and audit context.
 
+## Safe issue state lifecycle guidance
+
+Before closing or reopening an issue, read the target issue metadata and confirm the active issue scope explicitly allows state changes.
+
+Recommended read command:
+
+```powershell
+gh issue view <issue-number> --json number,title,state,labels,milestone,url,closedAt
+```
+
+During M1 validation, close and reopen only explicitly scoped temporary validation issues with clear titles such as `validation: issue-38-state-lifecycle`. Do not close production, roadmap, milestone, or active implementation issues to validate state behavior.
+
+Use issue numbers rather than title matching for state writes, and verify the title and current state before changing anything. If the issue number, title, milestone, labels, or current state does not match the expected validation target, stop and escalate to the human owner.
+
+Safe close pattern for a temporary validation issue:
+
+```powershell
+gh issue close <temporary-validation-issue-number> --comment "<clear validation-scope comment>"
+gh issue view <temporary-validation-issue-number> --json number,title,state,labels,milestone,url,closedAt
+```
+
+Safe reopen pattern for the same temporary validation issue:
+
+```powershell
+gh issue reopen <temporary-validation-issue-number> --comment "<clear validation-scope comment>"
+gh issue view <temporary-validation-issue-number> --json number,title,state,labels,milestone,url,closedAt
+```
+
+After close or reopen, verify that:
+
+- The state changed only on the intended temporary validation issue.
+- The issue title, labels, milestone, URL, and `closedAt` field match the expected state.
+- The active implementation issue remains open unless a reviewed PR merge with valid closing language later closes it.
+- No production, roadmap, milestone, or active implementation issue state changed.
+
+Do not manually close implementation issues during M1. For implementation issues, rely on a human-reviewed PR merge with approved closing keywords unless a later governance issue explicitly approves another workflow.
+
+Preserve evidence comment links or concise command output summaries on the active validation issue so a human reviewer can reconstruct the operation. Issue state lifecycle guidance remains advisory and manually executed during M1; it does not authorize autonomous issue closure, autonomous issue reopening, auto-merge, or state-sync automation.
+
 ## Safe GitHub Project/table read guidance
 
 Before relying on GitHub Projects v2 data, confirm that the current token has the required project read scope:

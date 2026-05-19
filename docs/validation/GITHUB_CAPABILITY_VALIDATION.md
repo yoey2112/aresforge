@@ -1960,3 +1960,205 @@ It does not:
 - Create version-like production tags.
 - Change repository settings, permissions, secrets, workflows, branch protection, repository rulesets, GitHub Projects, milestones, labels, auto-merge settings, approvals, merges, or issue closure state.
 - Enable runnable automation, autonomous approval, autonomous issue closure, or destructive automation.
+
+## M1 GitHub Issue State Lifecycle Validation
+
+This section extends the M1 GitHub operations validation for issue state lifecycle operations.
+
+This validation belongs to:
+
+- Milestone: M1 - GitHub Operations Validation
+- Milestone number: 2
+- Issue: #38 Validate GitHub issue state lifecycle operations
+- Phase: GitHub operations validation
+
+### Current M1 Safety Boundaries
+
+During M1, issue state lifecycle validation is manually guided, manually reviewed, issue-scoped, and evidence-based.
+
+Allowed operations for this validation are limited to:
+
+- Reading Issue #38 metadata before validation.
+- Creating one clearly named temporary validation issue.
+- Reading the temporary validation issue state before changing it.
+- Closing only the temporary validation issue.
+- Verifying the temporary validation issue closed state.
+- Reopening only the temporary validation issue.
+- Verifying the temporary validation issue open state.
+- Adding one final evidence comment to Issue #38.
+- Updating repository documentation and opening a draft PR for human review.
+
+This validation must not:
+
+- Close Issue #38 manually.
+- Close any production, roadmap, milestone, or active implementation issue.
+- Assign the temporary validation issue to a production milestone.
+- Modify repository settings, branch protection, repository rulesets, workflows, releases, tags, GitHub Projects, labels, milestones, permissions, secrets, auto-merge settings, approvals, merges, or issue closure automation.
+- Delete issues or comments.
+- Enable runnable automation, autonomous approval, autonomous issue closure, or destructive automation.
+
+### Commands Used
+
+Validation commands run from Windows PowerShell:
+
+```powershell
+git status --short
+git branch --show-current
+git log -1 --oneline
+git switch -c m1/issue-38-issue-state-lifecycle-validation
+gh auth status
+gh issue view 38 --repo yoey2112/aresforge --json number,title,state,labels,milestone,url
+$body | gh issue create --repo yoey2112/aresforge --title "validation: issue-38-state-lifecycle" --body-file -
+gh issue view 39 --repo yoey2112/aresforge --json number,title,state,labels,milestone,url,closedAt
+gh issue close 39 --repo yoey2112/aresforge --comment "Temporary Issue #38 validation step: closing only this isolated validation issue to verify issue state lifecycle behavior. This does not close Issue #38."
+gh issue view 39 --repo yoey2112/aresforge --json number,title,state,labels,milestone,url,closedAt
+gh issue reopen 39 --repo yoey2112/aresforge --comment "Temporary Issue #38 validation step: reopening only this isolated validation issue to verify issue state lifecycle behavior. Final state is intentionally open for auditability."
+gh issue view 39 --repo yoey2112/aresforge --json number,title,state,labels,milestone,url,closedAt
+gh issue view 38 --repo yoey2112/aresforge --json number,title,state,milestone,labels,url
+$body | gh issue comment 38 --repo yoey2112/aresforge --body-file -
+```
+
+### Temporary Validation Issue Details
+
+Temporary issue created for this validation:
+
+- Issue number: #39
+- Title: `validation: issue-38-state-lifecycle`
+- URL: https://github.com/yoey2112/aresforge/issues/39
+- Purpose: temporary M1 validation evidence for Issue #38.
+- Milestone: none.
+- Labels: none.
+- Isolation: not assigned to a production milestone and not used to close Issue #38.
+
+The temporary issue body states that it is isolated from production roadmap and implementation work, exists only to validate safe GitHub issue state lifecycle operations, and must not use auto-close language against Issue #38.
+
+### Initial State Read Result
+
+Initial temporary issue read succeeded:
+
+```json
+{"closedAt":null,"labels":[],"milestone":null,"number":39,"state":"OPEN","title":"validation: issue-38-state-lifecycle","url":"https://github.com/yoey2112/aresforge/issues/39"}
+```
+
+Initial Issue #38 state was also read before changing the temporary issue:
+
+- Issue #38 state: `OPEN`
+- Issue #38 milestone: `M1 - GitHub Operations Validation`
+- Issue #38 URL: https://github.com/yoey2112/aresforge/issues/38
+
+### Close Operation Pattern
+
+The safe close pattern is to close only the explicitly scoped temporary validation issue after reading its metadata:
+
+```powershell
+gh issue close 39 --repo yoey2112/aresforge --comment "Temporary Issue #38 validation step: closing only this isolated validation issue to verify issue state lifecycle behavior. This does not close Issue #38."
+```
+
+Observed result:
+
+```text
+✓ Closed issue yoey2112/aresforge#39 (validation: issue-38-state-lifecycle)
+```
+
+The close comment included human-readable context and explicitly stated that the operation did not close Issue #38.
+
+### Closed-State Verification
+
+Closed-state verification succeeded:
+
+```json
+{"closedAt":"2026-05-19T17:23:26Z","labels":[],"milestone":null,"number":39,"state":"CLOSED","title":"validation: issue-38-state-lifecycle","url":"https://github.com/yoey2112/aresforge/issues/39"}
+```
+
+Expected evidence confirmed:
+
+- Issue #39 state changed to `CLOSED`.
+- Issue #39 retained no milestone.
+- Issue #39 retained no labels.
+- Issue #39 returned a non-null `closedAt` timestamp.
+- No production issue state was changed.
+
+### Reopen Operation Pattern
+
+The safe reopen pattern is to reopen only the same explicitly scoped temporary validation issue after closed-state verification:
+
+```powershell
+gh issue reopen 39 --repo yoey2112/aresforge --comment "Temporary Issue #38 validation step: reopening only this isolated validation issue to verify issue state lifecycle behavior. Final state is intentionally open for auditability."
+```
+
+Observed result:
+
+```text
+✓ Reopened issue yoey2112/aresforge#39 (validation: issue-38-state-lifecycle)
+```
+
+### Open-State Verification
+
+Open-state verification after reopen succeeded:
+
+```json
+{"closedAt":null,"labels":[],"milestone":null,"number":39,"state":"OPEN","title":"validation: issue-38-state-lifecycle","url":"https://github.com/yoey2112/aresforge/issues/39"}
+```
+
+Issue #38 was verified again after the temporary issue lifecycle operation:
+
+```json
+{"labels":[],"milestone":{"number":2,"title":"M1 — GitHub Operations Validation","description":"Prove AresForge can safely create, update, validate, and close work through GitHub-managed workflows.","dueOn":null},"number":38,"state":"OPEN","title":"Validate GitHub issue state lifecycle operations","url":"https://github.com/yoey2112/aresforge/issues/38"}
+```
+
+Expected evidence confirmed:
+
+- Issue #39 state changed back to `OPEN`.
+- Issue #39 returned `closedAt: null` after reopen.
+- Issue #39 retained no milestone.
+- Issue #39 retained no labels.
+- Issue #38 remained `OPEN`.
+
+### Final Verified State
+
+Final temporary validation issue state:
+
+- Issue #39 is `OPEN`.
+- Issue #39 has no milestone.
+- Issue #39 has no labels.
+- Issue #39 remains available as audit evidence for the close and reopen lifecycle.
+
+The final state is intentionally open because the required lifecycle sequence ended with reopen verification. Leaving the temporary validation issue open preserves direct evidence of the final reopened state without performing an additional state change outside the requested validation sequence.
+
+Final Issue #38 evidence comment:
+
+- URL: https://github.com/yoey2112/aresforge/issues/38#issuecomment-4490292261
+
+### Failed Or Fragile Approaches
+
+No reusable failure or fragile command pattern was discovered during Issue #38 validation.
+
+`docs/learning/ERROR_PATTERNS.md` was not updated because the validation used already documented safe PowerShell patterns and all required issue state lifecycle commands succeeded.
+
+### Future Automation Guidance
+
+Future issue state lifecycle automation should remain conservative until later governance explicitly approves automation:
+
+1. Read issue metadata before any close or reopen operation.
+2. Require an exact issue number and title match before changing state.
+3. During validation, close and reopen only clearly named temporary validation issues.
+4. Never manually close implementation issues during M1; rely on reviewed PR merge with approved closing keywords unless a later governance issue approves another workflow.
+5. Add a human-readable close or reopen comment that explains the validation scope.
+6. Verify state immediately after close and after reopen with `gh issue view --json`.
+7. Preserve evidence comment links or concise command output summaries on the active validation issue.
+8. Refuse to change production, roadmap, milestone, or active implementation issue state unless a later human-approved issue explicitly authorizes that operation.
+
+Issue lifecycle automation must not infer that an issue should be closed from labels, titles, branch names, draft PRs, unreviewed documentation, or AI-generated summaries. During M1, issue state writes remain manually guided and manually reviewed.
+
+### M1 Safety Confirmation
+
+This validation introduces documentation and manual operating guidance only.
+
+It did not:
+
+- Close Issue #38 manually.
+- Close any production, roadmap, milestone, or active implementation issue.
+- Assign the temporary validation issue to a production milestone.
+- Delete any issue or comment.
+- Modify repository settings, branch protection, repository rulesets, workflows, releases, tags, GitHub Projects, labels, milestones, permissions, secrets, auto-merge settings, approvals, merges, or issue closure automation.
+- Enable runnable automation, autonomous approval, autonomous issue closure, or destructive automation.
