@@ -6,11 +6,11 @@ M1 - GitHub Operations Validation
 
 ## Current Goal
 
-Continue M1 by validating safe GitHub-managed workflows using repo-owned documentation, issues, milestones, labels, branches, pull requests, and human-reviewed evidence.
+Validate repeatable, safe GitHub pull request lifecycle operations using repo-owned documentation, the GitHub operations skill, draft pull requests, and human-reviewed evidence.
 
 ## Current Active Issue
 
-- No active implementation issue is currently assigned after Issue #22 completion.
+- Issue #24: Validate repeatable GitHub pull request lifecycle operations using GitHub operations skill.
 
 ## Current Source of Truth
 
@@ -110,11 +110,14 @@ During M1, explicit human decisions and repository documentation take priority o
 
 ## In Progress
 
-- No active implementation issue is currently assigned after Issue #22 completion.
+- Issue #24:
+  - Validating repeatable pull request lifecycle operations for M1.
+  - Documenting safe branch creation, draft PR creation, multiline PR body handling, PR metadata reads and updates, changed files verification, commit count verification, base/head branch verification, draft/open/closed state verification, mergeability read limitations, and evidence comment expectations.
+  - Preserving the M1 safety boundary: no runnable automation, auto-merge, autonomous approval, destructive automation, or autonomous issue closure.
 
 ## Next
 
-- Select the next M1 GitHub operations validation issue.
+- Complete Issue #24 through a human-reviewed draft PR.
 - Continue validating repeatable GitHub-managed workflows using the documented GitHub operations, issue-planning, build-state, and error-pattern guidance.
 
 ## Current Operating Constraint

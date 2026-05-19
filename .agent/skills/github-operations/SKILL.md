@@ -128,7 +128,29 @@ Closes #<issue-number>
 $body | gh pr create --draft --title "<title>" --body-file - --base main --head <branch-name>
 ```
 
+Avoid this pattern when the body is multiline or contains quotes, backticks, command examples, issue evidence, or other shell-sensitive content:
+
+```powershell
+gh pr create --draft --title "<title>" --body $body --base main --head <branch-name>
+```
+
+Create draft pull requests by default during M1 unless the active issue or human owner explicitly requests a ready-for-review PR:
+
+```powershell
+$body | gh pr create --draft --title "<title>" --body-file - --base main --head <branch-name>
+```
+
 After creating the PR, verify that the PR body rendered with the intended evidence sections before treating PR creation evidence as complete.
+
+Always verify pull request metadata after creation or after any metadata update:
+
+```powershell
+gh pr view <number> --json number,title,state,isDraft,baseRefName,headRefName,changedFiles,commits,mergeable,url
+```
+
+The verification should confirm the PR number, title, state, draft status, base branch, head branch, changed files, commit count, mergeability read result, and URL. Treat `mergeable` as advisory metadata because GitHub can report delayed, unknown, or stale mergeability while background checks update.
+
+Do not merge, approve, enable auto-merge, mark ready for review, or close linked issues unless explicitly human-approved and allowed by the current phase rules. During M1, pull request lifecycle validation remains manually guided and manually reviewed.
 
 ## Execution boundaries
 

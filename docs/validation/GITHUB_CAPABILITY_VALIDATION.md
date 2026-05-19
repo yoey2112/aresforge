@@ -476,3 +476,150 @@ One practical caution was observed: `gh label list --search "validation: issue-2
 No destructive label deletion is required for this validation.
 
 Deleting labels, including temporary or validation labels, should be avoided during M1 unless a separate human-approved issue or explicit human approval authorizes that deletion. Future automation design must treat label deletion as a destructive operation requiring stricter approval and evidence than read, create, update, apply, or remove-from-issue operations.
+
+## M1 Repeatable GitHub Pull Request Lifecycle Validation
+
+This section extends the original M0 GitHub capability validation for M1 pull request lifecycle operations.
+
+This validation belongs to:
+
+- Milestone: M1 - GitHub Operations Validation
+- Milestone number: 2
+- Issue: #24 Validate repeatable GitHub pull request lifecycle operations using GitHub operations skill
+- Phase: GitHub operations validation
+
+### Current M1 Safety Boundaries
+
+During M1, pull request lifecycle work is manually guided, manually reviewed, and evidence-based.
+
+Allowed pull request lifecycle operations for this validation are limited to:
+
+- Creating a scoped implementation branch.
+- Creating a draft pull request linked to the validation issue.
+- Handling multiline pull request bodies safely in Windows PowerShell.
+- Reading pull request metadata after creation.
+- Updating pull request metadata only when needed to correct title, body, base branch, draft state, or review evidence.
+- Verifying changed files, commit count, base branch, head branch, state, draft status, and URL.
+- Reading mergeability as advisory metadata with known limitations.
+- Adding issue evidence comments.
+
+This validation must not:
+
+- Merge the pull request.
+- Approve the pull request.
+- Enable auto-merge.
+- Close issue #24 manually.
+- Change branch protection, repository settings, secrets, permissions, workflows, or release settings.
+- Introduce runnable automation, autonomous approval, destructive automation, or autonomous issue closure.
+
+### Safe Pull Request Lifecycle Pattern
+
+The preferred M1 pull request lifecycle pattern is:
+
+1. Confirm the working tree is clean or contains only intentional issue-scoped changes.
+2. Create a dedicated branch for the issue.
+3. Make focused documentation or implementation changes.
+4. Run local validation before commit.
+5. Commit only issue-scoped files.
+6. Push the issue branch.
+7. Create a draft pull request linked to the issue.
+8. Verify pull request metadata after creation.
+9. Add an issue evidence comment summarizing branch, files changed, validation, PR pattern, reusable failures, and safety status.
+10. Leave merge, approval, auto-merge, and issue closure to the human-reviewed process.
+
+### Preferred Windows PowerShell Multiline Body Pattern
+
+When creating a pull request with multiline Markdown evidence, command examples, quotes, or backticks in Windows PowerShell, use a here-string and pipe it to `gh pr create --body-file -`.
+
+Preferred pattern:
+
+```powershell
+$body = @'
+Closes #24
+
+## Summary
+
+- Documented repeatable PR lifecycle validation.
+- Preserved M1 manual review boundaries.
+
+## Validation performed
+
+- git status --short
+- git diff --check
+'@
+
+$body | gh pr create --draft --title "Validate PR lifecycle operations" --body-file - --base main --head m1/issue-24-pr-lifecycle-validation
+```
+
+Avoid this pattern for multiline evidence:
+
+```powershell
+gh pr create --draft --title "Validate PR lifecycle operations" --body $body --base main --head m1/issue-24-pr-lifecycle-validation
+```
+
+Passing complex multiline content directly through `--body $body` can be fragile in Windows PowerShell when the body includes quoted command examples, Markdown backticks, or other shell-sensitive content. Use `--body-file -` so GitHub CLI receives the intended body through standard input.
+
+### Required Pull Request Verification Commands
+
+After creating or materially updating a pull request, run:
+
+```powershell
+gh pr view <number> --json number,title,state,isDraft,baseRefName,headRefName,changedFiles,commits,mergeable,url
+```
+
+Before committing documentation-only pull request lifecycle changes, run:
+
+```powershell
+git status --short
+git diff --check
+```
+
+Expected pull request metadata evidence:
+
+- `number` matches the created or updated pull request.
+- `title` matches the intended validation scope.
+- `state` is `OPEN` for draft PRs awaiting human review, or `CLOSED` only when reading historical state.
+- `isDraft` is `true` for M1 validation PRs unless a human explicitly requests otherwise.
+- `baseRefName` is `main` unless the issue explicitly specifies another base.
+- `headRefName` is the issue branch.
+- `changedFiles` includes only issue-scoped files.
+- `commits` supports commit count verification.
+- `mergeable` is treated as advisory because GitHub can report delayed, unknown, or stale mergeability while background checks update.
+- `url` is recorded for evidence.
+
+### PR Metadata Update Guidance
+
+Metadata updates are allowed only when they correct or complete review evidence within the active issue scope, such as:
+
+- Fixing a title typo.
+- Replacing or extending a body section.
+- Correcting issue linkage.
+- Keeping the PR as draft when human review is still pending.
+
+After any metadata update, repeat the `gh pr view` verification command and record the relevant result in PR or issue evidence.
+
+### Evidence Comment Expectations
+
+Future PR lifecycle validations should add an issue evidence comment that includes:
+
+- Branch name.
+- Draft PR number and URL when available.
+- Files changed.
+- Validation commands run and concise results.
+- Pull request lifecycle pattern documented or exercised.
+- Confirmation that multiline PR body handling used `gh pr create --body-file -` when applicable.
+- Any new reusable failure found, or an explicit statement that no new reusable failure was found.
+- Safety confirmation that no merge, approval, auto-merge, autonomous issue closure, destructive repository setting change, branch protection change, secret change, permission change, workflow change, or release setting change was performed.
+
+### M1 Safety Confirmation
+
+This validation introduces documentation and manual operating guidance only.
+
+It does not introduce:
+
+- Runnable automation.
+- Auto-merge.
+- Autonomous approval.
+- Destructive automation.
+- Autonomous issue closure.
+- Repository permission, secret, branch protection, workflow, or release setting changes.
