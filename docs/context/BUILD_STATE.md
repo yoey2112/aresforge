@@ -6,11 +6,11 @@ M2 - Documentation Agent Foundation
 
 ## Current Goal
 
-Continue M2 documentation automation foundation after completing the Issue #49 source-of-truth context reconciliation, and decide the next human-reviewed M2 implementation issue.
+Define the Issue #51 documentation-sync evidence package model for M2 documentation automation foundation work.
 
 ## Current Active Issue
 
-- No active implementation issue is currently assigned after Issue #49 closeout.
+- Issue #51: Define documentation-sync evidence package model.
 
 ## Current Source of Truth
 
@@ -210,12 +210,17 @@ During M2 foundation work, explicit human decisions and repository documentation
   - PR #48 merged successfully.
   - Issue #47 required manual closeout after merge because PR #48 did not auto-close the issue.
   - Confirmed no scripts, runnable automation, workflow, auto-merge, autonomous approval, autonomous issue closure, repository setting change, branch protection change, GitHub Project change, release change, or tag change was introduced.
+- Issue #49 completed:
+  - Reconciled M2 source-of-truth context after Issue #47 closeout.
+  - Updated build-state, roadmap, and agent context to remove stale next-issue wording.
+  - Confirmed no automation, workflows, auto-merge, autonomous approval, autonomous issue closure, repository setting change, or repo automation change was introduced.
 ## In Progress
 
-- No active implementation issue is currently assigned after Issue #49 closeout.
+- Issue #51 defines the documentation-sync evidence package model as a documentation-only M2 foundation artifact.
+- Required evidence expectations include PR evidence packages, closeout evidence packages, documentation-sync evidence packages, freshness-check evidence, source document lists, touched-document lists, diff and validation summaries, human-review notes, limitation and exception notes, handoff notes, issue and PR references, and non-authority statements.
 ## Next
 
-- Decide and create the next M2 implementation issue after the completed Issue #49 source-of-truth context reconciliation.
+- Complete human review of the Issue #51 draft PR, then perform any human-directed closeout after merge.
 
 ## Current Operating Constraint
 

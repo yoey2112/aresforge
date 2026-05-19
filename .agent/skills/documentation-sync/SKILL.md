@@ -26,6 +26,7 @@ Do not use this skill to rewrite unrelated documentation, replace source-of-trut
 - Changed files or planned file changes.
 - Existing context, agent, governance, roadmap, prompt, architecture, and validation docs.
 - Documentation freshness check model from docs/agents/DOCUMENTATION_FRESHNESS_CHECKS.md.
+- Documentation-sync evidence package model from docs/agents/DOCUMENTATION_SYNC_EVIDENCE_PACKAGES.md.
 - Documentation freshness checks from docs/agents/DOCUMENTATION_AGENTS.md when relevant.
 - Local operator workflow package or evidence outline from docs/architecture/LOCAL_OPERATOR_WORKFLOW.md when available.
 - Validation evidence and PR summary when available.
@@ -38,6 +39,7 @@ Do not use this skill to rewrite unrelated documentation, replace source-of-trut
 - Freshness check findings classified as stale, missing, conflicting, incomplete, outdated build-state or roadmap references, unavailable inputs, or out of scope.
 - Stale documentation warnings when a related update is real but out of scope.
 - Freshness check summary for source-of-truth docs affected by the issue.
+- Documentation-sync evidence package content, including source documents reviewed, touched documents, freshness evidence, diff and validation summary, human-review notes, limitations, handoff notes, issue and PR references, and a non-authority statement.
 - Human-review boundary confirmation.
 - Validation evidence for documentation review.
 
@@ -50,6 +52,8 @@ This skill covers documentation impact analysis and scoped documentation updates
 This skill is advisory and manually executed. It does not create documentation agents as services, watchers, workflows, scripts, or runnable sync automation.
 
 Local operator workflow support is also design-only during M2. Operator packages may organize documentation-sync inputs, but they do not execute this skill.
+
+Evidence packages prepared through this skill are review artifacts only. They do not approve, merge, close, automate, bypass human review, or authorize future automation.
 
 ## Human approval boundaries
 
@@ -77,11 +81,12 @@ Confirm no automation, workflow, auto-merge, autonomous approval, autonomous iss
 
 ## Evidence requirements
 
-Report files reviewed, files changed, documentation impact, freshness checks, stale documentation warnings, validation commands and results, skipped checks, human-review boundary confirmation, and known limitations.
+Report files reviewed, files changed, documentation impact, freshness checks, stale documentation warnings, validation commands and results, skipped checks, human-review boundary confirmation, known limitations, issue and PR references, handoff notes, and the required non-authority statement from `docs/agents/DOCUMENTATION_SYNC_EVIDENCE_PACKAGES.md`.
 
 ## Related docs
 
 - docs/agents/DOCUMENTATION_FRESHNESS_CHECKS.md
+- docs/agents/DOCUMENTATION_SYNC_EVIDENCE_PACKAGES.md
 - docs/agents/DOCUMENTATION_AGENTS.md
 - docs/agents/AGENT_SKILLS_MODEL.md
 - docs/architecture/LOCAL_OPERATOR_WORKFLOW.md

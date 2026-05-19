@@ -28,7 +28,7 @@ Future agents should treat `docs/validation/GITHUB_CAPABILITY_VALIDATION.md`, `.
 
 The M1 baseline confirms enough manual, human-reviewed GitHub operations to proceed to M2, while preserving known limitations around GitHub Projects v2 `read:project` access, absent workflow runs and artifacts, absent branch protection and rulesets, and production release governance.
 
-M2 began with Issue #43, `Create documentation agent foundation`, focused on documentation agent rules, source-of-truth update flow, documentation freshness checks, and human-reviewed documentation updates before any autonomous automation. Issue #45, `Create documentation freshness check model`, defines the repeatable freshness check layer that must run before documentation-sync work. Issue #47, `Define local operator workflow`, completed the local operator workflow as a design-only documentation layer for reducing manual copy/paste while preserving human-reviewed controls.
+M2 began with Issue #43, `Create documentation agent foundation`, focused on documentation agent rules, source-of-truth update flow, documentation freshness checks, and human-reviewed documentation updates before any autonomous automation. Issue #45, `Create documentation freshness check model`, defines the repeatable freshness check layer that must run before documentation-sync work. Issue #47, `Define local operator workflow`, completed the local operator workflow as a design-only documentation layer for reducing manual copy/paste while preserving human-reviewed controls. Issue #51, `Define documentation-sync evidence package model`, defines the required PR evidence, closeout evidence, and documentation-sync evidence package structure for review artifacts.
 
 ## M2 Documentation Agent Foundation Rules
 
@@ -40,12 +40,15 @@ Future agents must treat `docs/agents/DOCUMENTATION_FRESHNESS_CHECKS.md` as the 
 
 Future agents must treat `docs/architecture/LOCAL_OPERATOR_WORKFLOW.md` as the canonical local operator workflow model. During M2, the local operator workflow is a design target only. It may describe future prompt packages, evidence packages, approval gates, and command names, but it does not implement scripts, runnable automation, workflows, autonomous repository behavior, auto-merge, autonomous approval, or autonomous issue closure.
 
+Future agents must treat `docs/agents/DOCUMENTATION_SYNC_EVIDENCE_PACKAGES.md` as the canonical M2 documentation-sync evidence package model. Evidence packages must include source documents reviewed, touched documents, freshness-check evidence, diff and validation summaries, human-review notes, limitation and exception notes, handoff notes, issue and PR references, and an explicit non-authority statement. Evidence packages are review artifacts only and do not approve, merge, close, automate, bypass review, or replace human controls.
+
 M2 documentation-agent work must define and preserve:
 
 - Documentation agent responsibilities.
 - Source-of-truth update flow.
 - Documentation impact detection rules.
 - Documentation freshness checks.
+- Documentation-sync evidence packages.
 - Human-reviewed documentation update expectations.
 - Required validation evidence for documentation changes.
 - Handoffs between implementation agents, documentation agents, validation agents, and the human owner.
