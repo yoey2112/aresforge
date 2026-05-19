@@ -415,6 +415,74 @@ Prefer raw JSON parsed with PowerShell `ConvertFrom-Json` for complex verificati
 
 Branch protection and repository ruleset read validation must not change repository settings, permissions, secrets, workflows, releases, tags, GitHub Projects, auto-merge, approvals, merges, destructive automation, or issue closure state.
 
+## Safe release and tag lifecycle guidance
+
+Before creating, reading, or deleting releases or tags, confirm the active issue explicitly authorizes release and tag lifecycle validation. Release and tag operations are normally outside routine M1 collaboration because they can affect release history, package consumers, and future automation triggers.
+
+Recommended preflight:
+
+```powershell
+git branch --show-current
+git status --short
+git log -1 --oneline
+gh release list --repo <owner>/<repo> --limit 20
+git fetch --tags origin
+git tag --list
+git ls-remote --tags origin
+```
+
+For validation work, first confirm whether production releases or tags exist. If production releases or tags are present, do not modify them. Use a clearly issue-owned temporary validation tag and release name, and document the inventory before any write.
+
+Safe temporary tag creation pattern:
+
+```powershell
+git tag <validation-tag-name>
+git push origin <validation-tag-name>
+```
+
+Create the tag only after the issue branch documentation changes have been committed, and push only that exact validation tag. Do not create version-like production tags such as `v1.0.0` for validation.
+
+Safe temporary release creation pattern:
+
+```powershell
+$notes = @'
+Temporary M1 validation evidence for Issue #<issue-number>.
+
+This release validates release and tag lifecycle operations and must be deleted before validation completes.
+'@
+$notes | gh release create <validation-tag-name> --repo <owner>/<repo> --title "<validation-release-title>" --notes-file - --prerelease --latest=false
+```
+
+Use `--prerelease` when appropriate so the temporary release does not look production-ready. Use `--latest=false` when the installed GitHub CLI supports it. If `--latest=false` is unsupported, stop and document the limitation before deciding whether the validation can continue safely.
+
+Verify release and tag metadata before cleanup:
+
+```powershell
+gh release view <validation-tag-name> --repo <owner>/<repo> --json tagName,name,isDraft,isPrerelease,url,createdAt,publishedAt,targetCommitish
+git ls-remote --tags origin <validation-tag-name>
+gh release list --repo <owner>/<repo> --limit 20
+```
+
+Do not assume every release JSON field is available in every installed GitHub CLI version. In GitHub CLI 2.92.0, `gh release view --json isLatest` is not supported even though `gh release create --latest=false` is accepted. Keep `--latest=false` in the create command when supported, then verify the release with available fields and document the limitation when direct latest-state verification is unavailable.
+
+Cleanup must target only the issue-owned temporary release and tag:
+
+```powershell
+gh release delete <validation-tag-name> --repo <owner>/<repo> --yes
+git tag -d <validation-tag-name>
+git push origin ":refs/tags/<validation-tag-name>"
+```
+
+After cleanup, verify final state:
+
+```powershell
+gh release list --repo <owner>/<repo> --limit 20
+git tag --list <validation-tag-name>
+git ls-remote --tags origin <validation-tag-name>
+```
+
+Final evidence should confirm whether any release remains, whether the validation tag exists locally or remotely, which commit the temporary tag targeted, and whether cleanup completed. Do not leave temporary validation releases or tags behind unless cleanup fails; if cleanup fails, document the exact failure and do not attempt broad deletion commands.
+
 ## Execution boundaries
 
 This skill is advisory and manually executed. It may guide commands that are already allowed by the active issue, but it is not a script, workflow, package, or autonomous GitHub operator.
