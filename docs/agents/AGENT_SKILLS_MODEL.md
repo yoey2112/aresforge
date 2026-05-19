@@ -87,7 +87,7 @@ Initial AresForge skills should map to already documented M0 work:
 | Skill | Purpose | Primary source-of-truth docs |
 |---|---|---|
 | GitHub operations | Guide safe issue, branch, PR, label, milestone, and evidence handling. | docs/context/PROJECT_CONTEXT.md, docs/governance/SELF_MANAGEMENT_MODEL.md |
-| Documentation sync | Detect and apply required documentation updates for changed work. | docs/agents/DOCUMENTATION_AGENTS.md, docs/context/AGENT_CONTEXT.md |
+| Documentation sync | Run freshness checks and apply required documentation updates for changed work. | docs/agents/DOCUMENTATION_FRESHNESS_CHECKS.md, docs/agents/DOCUMENTATION_AGENTS.md, docs/context/AGENT_CONTEXT.md |
 | Ollama evidence review | Review local model validation evidence and limitations. | docs/validation/, docs/governance/PR_VALIDATION_MODEL.md |
 | Issue planning | Convert approved project goals into scoped issues, prompts, and review expectations. | docs/roadmap/ROADMAP.md, docs/prompts/CODEX_PROMPT_STANDARD.md |
 | PR validation | Evaluate PR evidence, risk, documentation impact, and merge-readiness recommendation. | docs/governance/PR_VALIDATION_MODEL.md |

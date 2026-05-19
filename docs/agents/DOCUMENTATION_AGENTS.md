@@ -44,6 +44,10 @@ Primary related skills:
 - `.agent/skills/build-state-update/SKILL.md`
 - `.agent/skills/pr-validation/SKILL.md`
 
+Primary related models:
+
+- `docs/agents/DOCUMENTATION_FRESHNESS_CHECKS.md`
+
 ## Documentation Agent Responsibilities
 
 Documentation agents are responsible for keeping source-of-truth documentation aligned with issue scope, implementation changes, validation evidence, and human decisions.
@@ -242,7 +246,11 @@ No documentation impact exists only when the issue or PR changes no project memo
 
 ## Documentation Freshness Checks
 
-Documentation agents should check freshness before final handoff by asking:
+Documentation agents must use the repeatable freshness check model in `docs/agents/DOCUMENTATION_FRESHNESS_CHECKS.md` before documentation-sync work.
+
+The freshness check model defines required inputs, required outputs, stale documentation detection, missing documentation detection, conflicting documentation detection, incomplete documentation detection, outdated build-state and roadmap detection, evidence rules, and human escalation rules.
+
+Documentation agents should also check freshness before final handoff by asking:
 
 - Does `BUILD_STATE` name the correct phase, active issue, current goal, in-progress work, and next step?
 - Does `AGENT_CONTEXT` reflect current agent behavior, source-of-truth rules, handoff expectations, and phase-specific boundaries?

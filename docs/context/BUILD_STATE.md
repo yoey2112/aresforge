@@ -6,11 +6,11 @@ M2 - Documentation Agent Foundation
 
 ## Current Goal
 
-Begin M2 by creating the documentation agent foundation for human-reviewed source-of-truth updates, documentation freshness checks, and repeatable documentation handoffs.
+Create the M2 documentation freshness check model so documentation-sync work can consistently detect stale, missing, conflicting, incomplete, or outdated project documentation before source-of-truth docs are updated.
 
 ## Current Active Issue
 
-- No active implementation issue is currently assigned after Issue #43 closeout.
+- Issue #45: Create documentation freshness check model.
 
 ## Current Source of Truth
 
@@ -197,11 +197,12 @@ During M2 foundation work, explicit human decisions and repository documentation
   - Issue #43 required manual closeout after merge because PR #44 did not auto-close the issue.
 ## In Progress
 
-- No active implementation issue is currently assigned after Issue #43 closeout.
+- Issue #45 is in progress on branch `m2/issue-45-documentation-freshness-check-model`.
+- The issue is defining the repeatable M2 documentation freshness check model and wiring it into documentation-sync guidance.
 
 ## Next
 
-- Create the next M2 implementation issue based on the documentation agent foundation now established by Issue #43.
+- Open a human-reviewed draft PR for Issue #45 after validation.
 
 ## Current Operating Constraint
 
