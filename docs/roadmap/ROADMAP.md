@@ -47,7 +47,7 @@ Closeout result:
 
 Goal: Establish documentation agent rules, source-of-truth update flow, documentation freshness checks, and human-reviewed documentation update behavior before any autonomous automation.
 
-Status: Active. Issue #43 completed the first M2 documentation agent foundation deliverable. Issue #45 completed the repeatable documentation freshness check model before documentation-sync work. Issue #47 completed the local operator workflow as a design-only documentation layer. Issue #49 completed corrective freshness reconciliation for M2 source-of-truth context. Issue #51 completed the documentation-sync evidence package model as a review artifact standard. Issue #55 completed the reusable documentation-sync handoff package template. Issue #57 completed source-of-truth reconciliation after Issue #55 closeout. Issue #59 completed the reusable Codex prompt package template as documentation-only review/input scaffolding. Issue #61 added the future feature ideas planning document for milestone-start idea review. Issue #63 completed the reusable PR evidence package template as documentation-only review scaffolding after PR #64 merged successfully, closeout evidence was posted, and Issue #63 was manually closed. Issue #65 is active to define the reusable closeout evidence package template.
+Status: Active. Issue #43 completed the first M2 documentation agent foundation deliverable. Issue #45 completed the repeatable documentation freshness check model before documentation-sync work. Issue #47 completed the local operator workflow as a design-only documentation layer. Issue #49 completed corrective freshness reconciliation for M2 source-of-truth context. Issue #51 completed the documentation-sync evidence package model as a review artifact standard. Issue #55 completed the reusable documentation-sync handoff package template. Issue #57 completed source-of-truth reconciliation after Issue #55 closeout. Issue #59 completed the reusable Codex prompt package template as documentation-only review/input scaffolding. Issue #61 added the future feature ideas planning document for milestone-start idea review. Issue #63 completed the reusable PR evidence package template as documentation-only review scaffolding after PR #64 merged successfully, closeout evidence was posted, and Issue #63 was manually closed. Issue #65 completed the reusable closeout evidence package template as documentation-only review scaffolding after PR #66 merged successfully, closeout evidence was posted, and Issue #65 was manually closed.
 
 Completed M2 foundation deliverables:
 
@@ -61,19 +61,20 @@ Completed M2 foundation deliverables:
 - Issue #59: Define Codex prompt package template.
 - Issue #61: Add future feature ideas planning document.
 - Issue #63: Define PR evidence package template.
+- Issue #65: Define closeout evidence package template.
 
 Active M2 foundation deliverable:
 
-- Issue #65: Define closeout evidence package template.
+- None currently assigned.
 
 Next M2 focus:
 
 - Review docs/planning/FUTURE_FEATURE_IDEAS.md at the beginning of each future milestone.
-- Complete Issue #65 before choosing the next M2 deliverable.
+- Choose the next M2 deliverable before assigning new implementation work.
 - Use docs/agents/DOCUMENTATION_SYNC_HANDOFF_TEMPLATE.md for future documentation-sync handoffs.
 - Use docs/prompts/CODEX_PROMPT_PACKAGE_TEMPLATE.md for reusable Codex prompt packages.
 - Use docs/agents/PR_EVIDENCE_PACKAGE_TEMPLATE.md for reusable PR evidence packages.
-- Use docs/agents/CLOSEOUT_EVIDENCE_PACKAGE_TEMPLATE.md for reusable closeout evidence packages after Issue #65 is reviewed and merged.
+- Use docs/agents/CLOSEOUT_EVIDENCE_PACKAGE_TEMPLATE.md for reusable closeout evidence packages.
 - Keep documentation-sync evidence packages as review artifacts only.
 - Keep documentation-sync handoff packages as review artifacts only.
 - Keep Codex prompt packages as review/input artifacts only.
