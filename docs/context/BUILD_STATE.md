@@ -6,13 +6,14 @@ M2 - Documentation Agent Foundation
 
 ## Current Goal
 
-Use the completed registry and queue architecture as the bridge from M2 lifecycle foundations into the next substantive registry-schema design issue while preserving documentation-before-closeout as the normal closeout path.
+Define the documentation-only project registry schema for Issue #79 so the completed registry and queue architecture has a reusable project-record design that can guide later agent registry, queue, and multi-project work while preserving documentation-before-closeout as the normal closeout path.
 
 ## Current Repository State
 
-- Latest documented `main` commit: `1eb7efb` (`Define registry and queue architecture (#78)`).
+- Latest documented `main` commit before Issue #79 work: `5f8f1af` (`Update docs after issue 77 closeout`).
+- Issue #79, `Define project registry schema`, is active.
 - Issue #77, `Define project, agent, model, and queue registry architecture`, is completed and closed through PR #78.
-- PR #78 is merged.
+- PR #78 is merged and the post-closeout documentation update is recorded on `main` at `5f8f1af`.
 - Issue #75, `Reconcile source-of-truth after issue 73 closeout`, is completed and closed through PR #76 as the corrective exception-path reconciliation issue.
 - Remaining open validation issue: #39, `validation: issue-38-state-lifecycle`, intentionally preserved as audit evidence.
 
@@ -318,6 +319,8 @@ During M2 foundation work, explicit human decisions and repository documentation
 
 - `docs/architecture/ISSUE_LIFECYCLE_AGENT_PIPELINE.md` remains the completed canonical lifecycle pipeline design artifact.
 - `docs/architecture/REGISTRY_AND_QUEUE_ARCHITECTURE.md` remains the completed canonical registry and queue architecture design artifact from Issue #77 / PR #78.
+- Issue #79 is the current substantive M2 design work.
+- `docs/architecture/PROJECT_REGISTRY_SCHEMA.md` is the active M2 design deliverable for the project registry schema.
 - Future project-state-changing issues must update source-of-truth docs before PR merge and issue closeout.
 - At minimum, future project-state-changing issues must review and update when needed:
   - `docs/context/BUILD_STATE.md`
@@ -342,7 +345,8 @@ During M2 foundation work, explicit human decisions and repository documentation
 - Do not create related source-of-truth documentation update issues by default because that recreates the reconciliation loop.
 - Use `docs/architecture/ISSUE_LIFECYCLE_AGENT_PIPELINE.md` as the canonical lifecycle correction for documentation-before-closeout.
 - Use `docs/architecture/REGISTRY_AND_QUEUE_ARCHITECTURE.md` as the completed canonical registry and queue architecture design artifact.
-- Define project registry schema as the next likely substantive M2 issue.
+- Complete Issue #79 and use `docs/architecture/PROJECT_REGISTRY_SCHEMA.md` as the canonical project registry schema design artifact.
+- Use the completed project registry schema to drive the next likely substantive M2 issue: define agent registry schema and lifecycle states.
 - Keep documentation-sync evidence packages and handoff packages as review artifacts only.
 - Keep Codex prompt packages as review/input artifacts only.
 - Keep PR evidence packages as review artifacts only.
