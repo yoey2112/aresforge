@@ -1,8 +1,8 @@
-﻿# AresForge Build State
+# AresForge Build State
 
 ## Current Phase
 
-M1 — GitHub Operations Validation
+M1 â€” GitHub Operations Validation
 
 ## Current Goal
 
@@ -20,7 +20,7 @@ During M1, explicit human decisions and repository documentation take priority o
 - Repository cloned locally to: C:\Projects\aresforge
 - Baseline document-driven structure created
 - Initial self-project context docs created
-- M0 milestone created: M0 — Self-Bootstrap Foundation
+- M0 milestone created: M0 â€” Self-Bootstrap Foundation
 - Baseline GitHub labels created
 - First six M0 issues created and assigned to the M0 milestone:
   - #1 Validate GitHub capability operations
@@ -81,21 +81,22 @@ During M1, explicit human decisions and repository documentation take priority o
   - Updated BUILD_STATE.md, AGENT_CONTEXT.md, and AGENT_SKILLS_MODEL.md
   - Kept all skills advisory, manually executed, and human-reviewed until future governance approves automation
 
+- Issue #18 completed via PR #19:
+  - Documented repeatable GitHub issue lifecycle validation
+  - Captured the reliable Windows PowerShell issue creation pattern using `gh issue create`, returned URL parsing, milestone-number patching, and final `gh issue view --json` verification
+  - Documented failed or fragile approaches including unsupported `gh issue create --json`, fragile quoted `gh api --jq` milestone discovery, and temp-file JSON encoding issues
+  - Updated GitHub operations and issue-planning skills with advisory/manual issue creation guidance
+  - Corrected current-phase references in the self-management model for M1
+  - Confirmed no runnable automation, auto-merge, autonomous approval, destructive automation, or autonomous issue closure was introduced
+
 ## In Progress
 
-- Issue #18 is the active M1 implementation issue:
-  - Title: Validate repeatable GitHub issue lifecycle operations using GitHub operations skill
-  - Expected branch: m1/issue-18-github-issue-lifecycle-validation
-  - Issue creation validated through manual GitHub CLI/API workflow
-  - Evidence-comment creation validated on issue #18
-  - Current scope is documentation-only validation of the repeatable issue lifecycle pattern
-  - No runnable automation, auto-merge, autonomous approval, destructive automation, or autonomous issue closure is enabled
+- No active implementation issue is currently assigned after Issue #18 completion.
 
 ## Next
 
-- Complete issue #18 documentation updates.
-- Open a draft PR targeting main.
-- Add final PR evidence back to issue #18 for human review.
+- Select the next M1 GitHub operations validation issue.
+- Continue validating repeatable GitHub-managed workflows using the documented GitHub operations and issue-planning skill guidance.
 
 ## Current Operating Constraint
 
