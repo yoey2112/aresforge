@@ -12,6 +12,8 @@ Guide agents in detecting documentation impact and updating the correct AresForg
 
 Use this skill when a change affects project context, build state, roadmap sequencing, agent behavior, governance, architecture, prompt standards, validation expectations, or release-facing project memory.
 
+During M2 documentation-agent foundation work, also use this skill to verify documentation impact detection, freshness checks, source-of-truth update flow, validation evidence, and handoff expectations.
+
 ## When not to use
 
 Do not use this skill to rewrite unrelated documentation, replace source-of-truth governance docs, overwrite intentional human decisions, or promote future-state ideas into completed functionality.
@@ -21,6 +23,7 @@ Do not use this skill to rewrite unrelated documentation, replace source-of-trut
 - Active issue or task requirements.
 - Changed files or planned file changes.
 - Existing context, agent, governance, roadmap, prompt, architecture, and validation docs.
+- Documentation freshness checks from docs/agents/DOCUMENTATION_AGENTS.md when relevant.
 - Validation evidence and PR summary when available.
 - Explicit human decisions relevant to the work.
 
@@ -29,6 +32,8 @@ Do not use this skill to rewrite unrelated documentation, replace source-of-trut
 - Focused documentation edits.
 - Documentation impact summary.
 - Stale documentation warnings when a related update is real but out of scope.
+- Freshness check summary for source-of-truth docs affected by the issue.
+- Human-review boundary confirmation.
 - Validation evidence for documentation review.
 
 ## Scope boundaries
@@ -37,7 +42,7 @@ This skill covers documentation impact analysis and scoped documentation updates
 
 ## Execution boundaries
 
-This skill is advisory and manually executed. It does not create documentation agents, watchers, workflows, scripts, or runnable sync automation.
+This skill is advisory and manually executed. It does not create documentation agents as services, watchers, workflows, scripts, or runnable sync automation.
 
 ## Human approval boundaries
 
@@ -47,13 +52,25 @@ Human approval is required before changing governance meaning, autonomy levels, 
 
 Review docs/agents/DOCUMENTATION_AGENTS.md for documentation-agent behavior and docs/context/BUILD_STATE.md for active project state. Update only the docs affected by the current task.
 
+For M2 documentation-agent foundation work, confirm whether the change affects:
+
+- Documentation agent responsibilities.
+- Source-of-truth update flow.
+- Documentation impact detection rules.
+- Documentation freshness checks.
+- Human-reviewed documentation update expectations.
+- Required validation evidence.
+- Handoffs between implementation agents, documentation agents, validation agents, and the human owner.
+
 ## Validation expectations
 
-Validate documentation-only changes with the issue-requested commands, normally including `git diff --check` and `git status --short`. Confirm changed docs preserve manual-review and advisory boundaries during M0 and M1 unless governance changes them.
+Validate documentation-only changes with the issue-requested commands, normally including `git diff --check` and `git status --short`. Confirm changed docs preserve manual-review and advisory boundaries during M2 foundation work unless governance changes them.
+
+Confirm no automation, workflow, auto-merge, autonomous approval, autonomous issue closure, repository setting, branch protection, ruleset, secret, release, tag, or GitHub Project change was introduced.
 
 ## Evidence requirements
 
-Report files reviewed, files changed, documentation impact, stale documentation warnings, validation commands and results, skipped checks, and known limitations.
+Report files reviewed, files changed, documentation impact, freshness checks, stale documentation warnings, validation commands and results, skipped checks, human-review boundary confirmation, and known limitations.
 
 ## Related docs
 

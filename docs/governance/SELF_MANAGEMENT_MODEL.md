@@ -19,7 +19,7 @@ The first managed project is:
 - Project name: AresForge
 - Repository: yoey2112/aresforge
 - Local path on Ares: C:\Projects\aresforge
-- Current phase: M1 — GitHub Operations Validation
+- Current phase: M2 - Documentation Agent Foundation
 - Current source of truth: GitHub plus repository documentation
 - Current execution model: human-guided implementation sessions
 - Current review model: human-reviewed pull requests
@@ -38,7 +38,7 @@ Until the AresForge dashboard exists, the temporary source of truth is split acr
 - Repository documentation under docs/
 - Local validation evidence captured during implementation work
 
-When these sources conflict during M1, repository documentation and human decisions take priority over inferred automation behavior.
+When these sources conflict during M2 foundation work, repository documentation and human decisions take priority over inferred automation behavior.
 
 ## Self-Management Loop
 
@@ -63,24 +63,25 @@ AresForge should preserve repeatable operational lessons in `docs/learning/ERROR
 
 When a human-guided session discovers a repeatable command failure, shell limitation, encoding issue, fragile workaround, or validation gap, the session should decide whether the lesson should be promoted from chat or command output into durable documentation. Confirmed lessons can guide future prompts, repo-owned skills, validation docs, governance updates, and future dashboard rule design.
 
-During M1, this loop is advisory and manual. Learning entries do not authorize automation, auto-merge, autonomous approval, autonomous issue closure, destructive automation, or autonomous command execution by themselves.
+During M2 foundation work, this loop remains advisory and manual. Learning entries do not authorize automation, auto-merge, autonomous approval, autonomous issue closure, destructive automation, or autonomous command execution by themselves.
 
-## Current M1 Operating Rules
+## Current M2 Foundation Operating Rules
 
-During M1:
+During M2 documentation-agent foundation work:
 
 - All implementation work is manually guided.
 - All documentation updates are manually reviewed.
 - Repo-owned markdown skills are governed project assets. They must remain auditable, stored in the repository, reviewed through normal human-approved changes, and advisory unless a later governance decision explicitly allows automation.
 - All pull requests require human review before merge.
 - Local AI review may produce evidence when requested, but it is not a merge gate yet.
-- Agents may recommend work, but they must not autonomously merge, close issues, delete data, or enable destructive automation.
+- Agents may recommend work, but they must not autonomously merge, approve, close issues, delete data, or enable destructive automation.
 - Temporary evidence folders such as tmp/ must not be committed unless explicitly required by an issue.
 - GitHub milestone number or ID should be preferred over milestone title matching in scripts and validation commands.
 - Repeatable error lessons should be captured in `docs/learning/ERROR_PATTERNS.md` when they affect future GitHub operations, prompts, skills, validation, or project-state updates.
 - Documentation must remain the durable project memory layer until the dashboard exists.
+- Documentation-agent foundation work must not create runnable automation, workflows, auto-merge, autonomous approval, autonomous issue closure, repository setting changes, branch protection changes, ruleset changes, secret changes, release or tag changes, or GitHub Project changes.
 
-M0 operating rules remain historical project context for the self-bootstrap foundation milestone. They do not override the current M1 focus on GitHub operations validation, but the same manual-review and autonomy limits continue to apply unless a later governance update explicitly changes them.
+M0 operating rules remain historical project context for the self-bootstrap foundation milestone. M1 limitations remain documented and unresolved unless a later issue explicitly addresses them. The same manual-review and autonomy limits continue to apply unless a later governance update explicitly changes them.
 
 ## Future Dashboard State Fields
 
@@ -150,7 +151,7 @@ Initial proposed levels:
 | 4 | Controlled Auto-Merge | Agents may auto-merge low-risk PRs above a configured score. |
 | 5 | Managed Release Loop | Agents manage full release loops with human escalation only. |
 
-AresForge remains at Level 0 or Level 1 during M1.
+AresForge remains at Level 0 or Level 1 during M2 foundation work.
 
 ## Risk Boundaries
 

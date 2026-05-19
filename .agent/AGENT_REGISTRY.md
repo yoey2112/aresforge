@@ -4,7 +4,7 @@
 
 This registry lists repo-owned AresForge agent skills and their current lifecycle status.
 
-The registry is documentation only. During M1, skills are advisory project assets that may guide a human-directed agent session, but they are not runnable automation, approval mechanisms, merge gates, or issue-closing systems.
+The registry is documentation only. During M2 foundation work, skills are advisory project assets that may guide a human-directed agent session, but they are not runnable automation, approval mechanisms, merge gates, or issue-closing systems.
 
 ## Operating Boundary
 
