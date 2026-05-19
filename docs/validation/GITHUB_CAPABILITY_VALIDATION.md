@@ -1023,3 +1023,253 @@ It does not introduce:
 - Destructive automation.
 - Autonomous issue closure.
 - Repository permission, secret, branch protection, workflow, project setting, or release setting changes.
+
+## M1 GitHub Project/Table Access Validation
+
+This section extends the M1 GitHub operations validation for GitHub Projects and table-style project metadata.
+
+This validation belongs to:
+
+- Milestone: M1 - GitHub Operations Validation
+- Milestone number: 2
+- Issue: #30 Validate GitHub project table access
+- Phase: GitHub operations validation
+
+### Current M1 Safety Boundaries
+
+During M1, GitHub Project/table validation is read-only, manually guided, manually reviewed, and evidence-based.
+
+Allowed operations for this validation are limited to:
+
+- Reading GitHub CLI version and authentication scope state.
+- Reading repository metadata that indicates whether projects are enabled for the repository.
+- Reading issue-level project item summaries when available through `gh issue view --json`.
+- Attempting read-only project list, ProjectV2, field, view, and item metadata reads.
+- Recording permission, scope, and command-pattern limitations.
+
+This validation must not:
+
+- Create, edit, archive, delete, link, or unlink GitHub Projects.
+- Create, edit, archive, or delete project fields, views, or items.
+- Modify repository settings, branch protection, secrets, workflows, releases, tags, or permissions.
+- Enable runnable automation, auto-merge, autonomous approval, destructive automation, or autonomous issue closure.
+- Close Issue #30 manually.
+
+### Commands Attempted
+
+Read-only commands and patterns attempted from Windows PowerShell:
+
+```powershell
+gh --version
+gh auth status
+gh extension list
+gh project --help
+gh project list --owner yoey2112 --format json
+gh api repos/yoey2112/aresforge
+gh api user
+gh api repos/yoey2112/aresforge/projects
+gh issue view 30 --json number,title,state,labels,milestone,url
+gh issue view 30 --json number,title,state,projectItems,url
+gh api repos/yoey2112/aresforge/issues/30/events
+```
+
+GraphQL ProjectV2 read attempts used here-string query variables and raw `gh api graphql` output, with PowerShell `ConvertFrom-Json` reserved for successful JSON responses:
+
+```powershell
+$query = @'
+query($owner:String!, $repo:String!) {
+  repository(owner:$owner, name:$repo) {
+    id
+    nameWithOwner
+    projectsV2(first: 20) {
+      totalCount
+      nodes { id number title closed url shortDescription public readme }
+    }
+  }
+}
+'@
+gh api graphql -f query="$query" -F owner=yoey2112 -F repo=aresforge
+```
+
+```powershell
+$query = @'
+query($login:String!) {
+  user(login:$login) {
+    id
+    login
+    projectsV2(first: 20) {
+      totalCount
+      nodes { id number title closed url shortDescription public readme }
+    }
+  }
+}
+'@
+gh api graphql -f query="$query" -F login=yoey2112
+```
+
+```powershell
+$query = @'
+query($owner:String!, $repo:String!, $number:Int!) {
+  repository(owner:$owner, name:$repo) {
+    issue(number:$number) {
+      number
+      title
+      projectItems(first: 20) {
+        totalCount
+        nodes { id project { id number title url } }
+      }
+    }
+  }
+}
+'@
+gh api graphql -f query="$query" -F owner=yoey2112 -F repo=aresforge -F number=30
+```
+
+### Successful Read Patterns
+
+The current environment can read general repository, issue, and event metadata relevant to project access planning.
+
+Confirmed repository metadata:
+
+- Repository: `yoey2112/aresforge`
+- Owner login: `yoey2112`
+- Owner type: `User`
+- Repository visibility: `public`
+- Default branch: `main`
+- Repository `has_projects`: `true`
+
+Confirmed GitHub CLI state:
+
+- GitHub CLI version: `2.92.0`
+- Native `gh project` command is available.
+- No GitHub CLI extensions are currently installed.
+- `gh project --help` reports that project commands require a project-related token scope.
+
+Confirmed authentication scopes:
+
+- `gist`
+- `read:org`
+- `repo`
+- `workflow`
+
+Confirmed issue-level project summary read:
+
+```powershell
+gh issue view 30 --json number,title,state,projectItems,url
+```
+
+Result:
+
+- Issue #30 is open.
+- `projectItems` returned an empty array.
+- This confirms the issue summary command can run, but it does not confirm access to project table metadata.
+
+Confirmed issue events read:
+
+- Issue #30 events were readable through the REST issue events endpoint.
+- The returned events included `milestoned` and `labeled` activity.
+- No project item movement or project table metadata was observed in the returned event summary.
+
+### Failed Or Limited Patterns
+
+The current token does not have the project read scope needed for GitHub Projects v2 metadata.
+
+Limited command:
+
+```powershell
+gh project list --owner yoey2112 --format json
+```
+
+Observed result:
+
+```text
+error: your authentication token is missing required scopes [read:project]
+To request it, run:  gh auth refresh -s read:project
+```
+
+Classic repository projects endpoint:
+
+```powershell
+gh api repos/yoey2112/aresforge/projects
+```
+
+Observed result:
+
+```text
+Not Found (HTTP 404)
+```
+
+This endpoint did not provide usable table metadata in the current environment.
+
+GraphQL ProjectV2 repository and user reads failed because the token lacks `read:project`. The error explicitly reported that `projectsV2` and ProjectV2 fields such as `id`, `number`, `title`, `closed`, `url`, `shortDescription`, `public`, and `readme` require `read:project`.
+
+GraphQL issue `projectItems` metadata with nested project fields also failed for the same `read:project` scope requirement.
+
+Because no project number could be safely listed with the current token, field, view, and item reads such as these could not be validated:
+
+```powershell
+gh project view <number> --owner yoey2112 --format json
+gh project field-list <number> --owner yoey2112 --format json
+gh project item-list <number> --owner yoey2112 --format json
+```
+
+These commands should be retried only after `read:project` is granted and after a project number is discovered through a successful read-only list or GraphQL query.
+
+### Permission And Scope Findings
+
+GitHub Project/table metadata is partially available but blocked for the core ProjectV2 table surface.
+
+Current state:
+
+- Repository metadata confirms projects are enabled with `has_projects: true`.
+- Native `gh project` support exists in the installed GitHub CLI.
+- Current authentication does not include `read:project`.
+- `gh project list` is blocked by missing `read:project`.
+- GraphQL ProjectV2 metadata reads are blocked by missing `read:project`.
+- Issue-level `projectItems` through `gh issue view --json` succeeds but returns no linked project items for Issue #30.
+
+No authorization refresh was performed during this validation because changing token scopes is outside the read-only validation scope for Issue #30.
+
+### Final Verified State
+
+Final verified state for Issue #30:
+
+- GitHub Project access is partially available.
+- Repository-level project enablement can be read.
+- Issue-level project item summary can be requested and currently returns no project items for Issue #30.
+- ProjectV2 owner/repository project lists, table fields, views, and items are blocked until the token has `read:project`.
+- No confirmed project number, project fields, project views, or project items were read during this validation.
+- No project settings, fields, views, or items were modified.
+
+### Future Automation Guidance
+
+Future project board or dashboard sync should treat `read:project` as a required preflight scope before attempting GitHub Projects v2 synchronization.
+
+Recommended Windows PowerShell-safe pattern:
+
+1. Run `gh auth status` and confirm `read:project` is present.
+2. Confirm native `gh project` support with `gh project --help`.
+3. Use `gh project list --owner <owner> --format json` for project discovery after the scope exists.
+4. Parse returned JSON with `ConvertFrom-Json` instead of relying on fragile `gh api --jq` quoting.
+5. Use project numbers from the read result for `gh project view`, `gh project field-list`, and `gh project item-list`.
+6. Treat any project write command as out of scope unless a later human-approved issue explicitly authorizes it.
+7. Keep future dashboard sync read-only until governance approves project item updates.
+
+Recommended GraphQL pattern after `read:project` is available:
+
+- Store GraphQL in a PowerShell here-string.
+- Pass variables with `-F`.
+- Parse raw successful JSON with `ConvertFrom-Json`.
+- Verify project owner, number, title, URL, fields, views, and items from parsed objects before using the data.
+
+### M1 Safety Confirmation
+
+This validation introduced documentation and manual operating guidance only.
+
+It did not:
+
+- Modify project settings, fields, views, or items.
+- Create, edit, archive, delete, link, or unlink any GitHub Project.
+- Change repository settings, branch protection, secrets, permissions, workflows, releases, or tags.
+- Enable runnable automation, auto-merge, autonomous approval, destructive automation, or autonomous issue closure.
+- Close Issue #30 manually.
