@@ -32,18 +32,21 @@ AresForge must be able to safely perform and document the following GitHub opera
 
 | Capability | Required For | Validation Method | Status |
 |---|---|---|---|
-| Repository metadata read | Project context and repo validation | GitHub CLI/API query | Pending |
+| Repository metadata read | Project context and repo validation | GitHub CLI/API query | Confirmed |
 | Issue read | Agent intake and planning | gh issue view | Confirmed |
-| Issue update | Labels, milestone, closure, evidence | GitHub CLI/API patch or comment | Pending |
-| Label read/create/update | Routing and governance | gh label list/create/edit or API | Pending |
-| Milestone read/create/update | Roadmap tracking | GitHub API milestone calls | Confirmed |
+| Issue update | Labels, milestone, closure, evidence | GitHub CLI/API patch or comment | Confirmed - manual |
+| Label read/create/update | Routing and governance | gh label list/create/edit or API | Confirmed - manual |
+| Milestone read/create/update | Roadmap tracking | GitHub API milestone calls | Confirmed - manual |
 | Branch create | Isolated implementation work | Local git branch creation | Confirmed |
-| Commit and push | Deliver implementation changes | Git commit and push | Pending |
-| Pull request create/read | Review and merge workflow | gh pr create/view | Pending |
-| Workflow run read | Automation validation | gh run list/view | Pending |
-| Artifact read/download | Evidence collection | gh run download | Pending |
-| Project board/table access | Delivery board sync | GitHub Projects API/CLI check | Pending |
-| Issue closure | Done-state automation | gh issue close or API patch | Pending |
+| Commit and push | Deliver implementation changes | Git commit and push | Confirmed - manual |
+| Pull request create/read | Review and merge workflow | gh pr create/view | Confirmed - manual |
+| Workflow run read | Automation validation | gh run list/view | Partially confirmed |
+| Artifact read/download | Evidence collection | gh run download | Deferred - requires future workflow/artifact existence |
+| Project board/table access | Delivery board sync | GitHub Projects API/CLI check | Blocked - requires `read:project` |
+| Issue evidence comments | Review evidence and audit trail | gh issue comment and issue comment API reads | Confirmed - manual |
+| Issue closure | Done-state lifecycle and reviewed PR auto-close | gh issue close/reopen on temporary validation issue and reviewed PR merge closure | Confirmed - manual |
+| Branch protection and repository ruleset read | Repository policy awareness | GitHub branch and ruleset API reads | Partially confirmed |
+| Release and tag lifecycle | Release operation safety modeling | gh release and git tag validation with temporary release/tag cleanup | Confirmed - manual |
 
 ## Current Confirmed Evidence
 
@@ -2162,3 +2165,86 @@ It did not:
 - Delete any issue or comment.
 - Modify repository settings, branch protection, repository rulesets, workflows, releases, tags, GitHub Projects, labels, milestones, permissions, secrets, auto-merge settings, approvals, merges, or issue closure automation.
 - Enable runnable automation, autonomous approval, autonomous issue closure, or destructive automation.
+
+## M1 GitHub Operations Validation Closeout
+
+M1 closes out the GitHub operations validation phase by reconciling the evidence gathered across the M1 validation issues and documenting which surfaces are ready to support the next phase.
+
+The M1 result is intentionally conservative: AresForge has validated the manual, human-reviewed GitHub operation surfaces needed to continue building itself, but it has not enabled runnable automation, auto-merge, autonomous approval, autonomous issue closure, or repository administration behavior.
+
+### M1 Closeout Summary
+
+M1 confirmed that AresForge can use GitHub and repository documentation as the temporary source of truth for human-guided delivery. The project can plan work through issues and milestones, make scoped branch and pull request changes, preserve evidence in issues and PRs, update labels and milestones under explicit scope, inspect several repository policy surfaces, and document limitations before future automation depends on them.
+
+The validation evidence is enough to proceed to M2 because the next phase is documentation-agent foundation work, not autonomous GitHub operation execution.
+
+### Completed Validation Issue Summary
+
+| Issue | Validation area | Closeout status |
+|---|---|---|
+| #18 | Repeatable GitHub issue lifecycle validation | Confirmed safe manual issue creation, milestone assignment by number, evidence comments, and final issue-state verification patterns. |
+| #20 | Repeatable error learning model | Confirmed durable learning capture in `docs/learning/ERROR_PATTERNS.md` for reusable GitHub CLI, PowerShell, encoding, and validation lessons. |
+| #22 | Label lifecycle validation | Confirmed manual label read, validation label create/update, issue label apply/remove, and final issue verification. |
+| #24 | Pull request lifecycle validation | Confirmed scoped branch work, draft PR creation, multiline PR body handling, PR metadata reads, file and commit verification, and evidence expectations. |
+| #26 | Milestone lifecycle validation | Confirmed manual milestone inventory reads, temporary validation milestone create/update, close/reopen, and final reopened verification. |
+| #28 | Issue evidence/comment lifecycle validation | Confirmed manual issue evidence comment creation, API read, owned comment identification, safe update, and verification. |
+| #30 | GitHub Project/table read access validation | Partially confirmed repository project enablement and issue-level project item reads; full Projects v2 table metadata remains blocked by missing `read:project`. |
+| #32 | Workflow run and artifact read validation | Partially confirmed workflow directory absence and `gh run list` availability; real run detail and artifact behavior remain deferred until workflows, runs, and artifacts exist. |
+| #34 | Repository rules and branch protection read-only validation | Partially confirmed branch metadata and ruleset endpoint reads; branch protection and ruleset contents cannot be fully validated until protection or rulesets exist. |
+| #36 | Release and tag lifecycle validation | Confirmed temporary release and tag lifecycle handling, including inventory, temporary creation, metadata verification, and cleanup; production release governance remains future work. |
+| #38 | Issue state lifecycle validation | Confirmed manual close and reopen behavior on an isolated temporary validation issue while leaving the implementation issue open for PR-based closure. |
+
+### Capability Status Reconciliation
+
+The top capability matrix now reflects later M1 evidence instead of the older M0 pending state.
+
+Confirmed manual surfaces include:
+
+- Issue read and scoped issue updates.
+- Label read, create, update, apply, and remove.
+- Milestone read, create, update, close, and reopen for temporary validation milestones.
+- Branch creation, commit, push, draft PR creation, and PR metadata reads.
+- Issue evidence comments and owned comment updates.
+- Temporary issue close and reopen lifecycle validation.
+- Temporary release and tag lifecycle validation.
+
+Partially confirmed or deferred surfaces include:
+
+- GitHub Projects v2 table metadata, which remains blocked until the token has `read:project`.
+- Workflow run detail and artifact download behavior, which remains deferred until the repository has workflow files, workflow runs, and artifacts.
+- Branch protection and ruleset detail validation, which remains partial because `main` is currently unprotected and the repository currently has no rulesets.
+
+### Remaining Limitations
+
+- GitHub Projects v2 table metadata remains blocked until the token has `read:project`.
+- Workflow and artifact validation is partial because this repository does not yet have real workflow files, workflow runs, or artifacts to inspect.
+- Branch protection and ruleset validation is partial because `main` currently has no branch protection and the repository currently has no rulesets.
+- Release and tag validation proved temporary lifecycle handling, not production release governance.
+- M1 validation does not authorize production release publishing, version tag creation, branch protection changes, ruleset changes, GitHub Project writes, workflow creation, workflow triggering, or repository settings changes.
+- All M1 behavior remains manual, human-reviewed, and documentation-driven.
+
+### Closeout Decision
+
+M1 is complete enough to proceed to M2.
+
+This decision is based on the confirmed manual GitHub operation baseline, the documented limitations for unavailable or blocked surfaces, and the explicit boundary that M2 should begin with documentation-agent foundation work before any autonomous automation is introduced.
+
+### Recommended First M2 Issue
+
+Recommended first M2 implementation issue:
+
+`Create documentation agent foundation`
+
+The issue should establish documentation agent rules, source-of-truth update flow, documentation freshness checks, and human-reviewed documentation update behavior. It should not create runnable automation, workflow files, auto-merge, autonomous approval, or autonomous issue closure.
+
+### Safety Confirmation
+
+This closeout is documentation-only.
+
+It does not:
+
+- Create scripts, packages, runnable automation, workflow files, or autonomous behavior.
+- Enable auto-merge, autonomous approval, or autonomous issue closure.
+- Modify repository settings, permissions, secrets, branch protection, repository rulesets, releases, tags, GitHub Projects, labels, milestones, or unrelated issue state.
+- Close unrelated issues manually.
+- Change the M1 operating model that all GitHub operations remain manually guided, manually reviewed, and evidence-based.

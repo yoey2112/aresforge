@@ -20,6 +20,16 @@ Codex implementation agents must follow docs/prompts/CODEX_PROMPT_STANDARD.md as
 
 Future QA, Test, Documentation, and PR Scoring agents must use docs/governance/PR_VALIDATION_MODEL.md when evaluating implementation pull requests, producing review evidence, or recommending merge-readiness states.
 
+## M1 Closeout Context
+
+M1 GitHub operations validation is being closed out through Issue #41.
+
+Future agents should treat `docs/validation/GITHUB_CAPABILITY_VALIDATION.md`, `.agent/skills/github-operations/SKILL.md`, `.agent/skills/build-state-update/SKILL.md`, and `docs/learning/ERROR_PATTERNS.md` as the baseline for manual GitHub operations until a later human-approved governance change explicitly authorizes automation.
+
+The M1 baseline confirms enough manual, human-reviewed GitHub operations to proceed to M2, while preserving known limitations around GitHub Projects v2 `read:project` access, absent workflow runs and artifacts, absent branch protection and rulesets, and production release governance.
+
+M2 should begin with documentation agent foundation work. The first recommended M2 issue is `Create documentation agent foundation`, focused on documentation agent rules, source-of-truth update flow, documentation freshness checks, and human-reviewed documentation updates before any autonomous automation.
+
 ## Reusable Skill Model
 
 AresForge will use repo-owned markdown skill definitions as the canonical reusable agent skills model.

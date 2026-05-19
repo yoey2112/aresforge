@@ -10,7 +10,7 @@ Continue M1 by validating safe GitHub-managed workflows using repo-owned documen
 
 ## Current Active Issue
 
-- No active implementation issue is currently assigned after Issue #38 completion.
+- Issue #41 - Close out M1 GitHub operations validation.
 
 ## Current Source of Truth
 
@@ -180,11 +180,15 @@ During M1, explicit human decisions and repository documentation take priority o
 
 ## In Progress
 
-- No active implementation issue is currently assigned after Issue #38 completion.
+- Issue #41:
+  - Reconcile M1 GitHub operations validation evidence.
+  - Summarize completed M1 validation work across issues #18, #20, #22, #24, #26, #28, #30, #32, #34, #36, and #38.
+  - Document remaining limitations and confirm whether M1 is complete enough to proceed to M2.
+  - Keep closeout work documentation-only, manually guided, and manually reviewed.
 
 ## Next
 
-- Create the final M1 closeout issue to reconcile validation status, summarize remaining limits, and prepare the transition to M2.
+- Complete Issue #41 through draft PR review, then begin M2 planning and build work with documentation agent foundation as the recommended first implementation issue.
 
 ## Current Operating Constraint
 
