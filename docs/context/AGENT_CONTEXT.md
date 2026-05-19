@@ -16,6 +16,8 @@ During M0, documentation agent work is manual and human-reviewed. Agents may upd
 
 Documentation updates must preserve historical context and include validation evidence for PR review.
 
+Codex implementation agents must follow docs/prompts/CODEX_PROMPT_STANDARD.md as the required implementation-agent handoff format when performing repository implementation work.
+
 ## Current Agent Roles
 
 Initial planned agent roles include:
