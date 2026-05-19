@@ -4,9 +4,9 @@
 
 The PR validation model defines how AresForge evaluates whether a pull request is ready for merge.
 
-It gives future QA, Test, Documentation, and PR Scoring agents a shared review foundation while preserving the current M0 rule that all implementation work remains manually guided and manually reviewed.
+It gives future QA, Test, Documentation, and PR Scoring agents a shared review foundation while preserving the current rule that all implementation work remains manually guided and manually reviewed.
 
-During M0, this model is guidance for human-reviewed pull requests. It does not enable auto-merge, autonomous issue closure, autonomous approval, destructive automation, or any workflow that can merge or approve work without a human decision.
+During M2 foundation work, this model is guidance for human-reviewed pull requests. It does not enable auto-merge, autonomous issue closure, autonomous approval, destructive automation, or any workflow that can merge or approve work without a human decision.
 
 ## Scope
 
@@ -22,9 +22,9 @@ The model should be used to:
 
 This model does not replace issue acceptance criteria, source-of-truth documentation, human review, GitHub branch protections, or future release approval rules.
 
-## M0 Manual-Review Constraint
+## Manual-Review Constraint
 
-During M0:
+During M2 foundation work:
 
 - All implementation work is manually guided.
 - All pull requests require human review before merge.
@@ -36,7 +36,7 @@ During M0:
 - No destructive automation is enabled.
 - GitHub may close linked issues after a human merges a PR that contains valid closing language.
 
-If any issue, PR, prompt, script, workflow, or agent output appears to enable auto-merge, autonomous issue closure, autonomous approval, or destructive automation during M0, reviewers must treat it as a blocker and escalate to the human owner.
+If any issue, PR, prompt, script, workflow, or agent output appears to enable auto-merge, autonomous issue closure, autonomous approval, or destructive automation during M2 foundation work, reviewers must treat it as a blocker and escalate to the human owner.
 
 ## Required Validation Agents
 
@@ -47,7 +47,7 @@ A mature AresForge PR validation flow should include these review perspectives:
 - Documentation Agent
 - PR Scoring Agent
 
-During M0, these are required perspectives rather than autonomous services. A single Codex session or human reviewer may perform multiple perspectives, but the PR evidence should still make the relevant checks visible.
+During M2 foundation work, these are required perspectives rather than autonomous services. A single Codex session or human reviewer may perform multiple perspectives, but the PR evidence should still make the relevant checks visible.
 
 Future phases may split these perspectives into separate agents after the dashboard, validation workflows, and autonomy controls exist.
 
@@ -85,7 +85,7 @@ Responsibilities:
 
 - Detect documentation impact from changed files, issue requirements, PR summaries, validation evidence, context docs, roadmap docs, governance docs, prompt docs, architecture docs, and release notes when available.
 - Confirm required documentation updates are included.
-- Confirm documentation preserves M0 manual-review and autonomy constraints.
+- Confirm documentation preserves current manual-review and autonomy constraints.
 - Flag stale documentation warnings when related docs may need follow-up but cannot be safely changed in the PR scope.
 - Ensure documentation claims do not imply completed functionality, approval, merge, release, or autonomy that has not happened.
 
@@ -102,7 +102,7 @@ Responsibilities:
 - Assign one merge-readiness decision state.
 - Explain the decision in terms that a human reviewer can verify.
 
-During M0, the PR Scoring Agent must not approve, merge, close, or request auto-merge. Its output is evidence for manual review only.
+During M2 foundation work, the PR Scoring Agent must not approve, merge, close, or request auto-merge. Its output is evidence for manual review only.
 
 ## Scoring Categories
 
@@ -120,9 +120,9 @@ Each implementation PR should be scored against the categories below when applic
 | Operational risk | The PR has acceptable runtime, deployment, workflow, repository, and rollback implications. |
 | Evidence quality | The PR body and final handoff provide enough evidence for a human reviewer to understand what changed and how it was validated. |
 
-Documentation-only PRs may mark code-specific checks as not applicable, but they still need evidence quality, documentation completeness, scope control, and M0 safety review.
+Documentation-only PRs may mark code-specific checks as not applicable, but they still need evidence quality, documentation completeness, scope control, and current safety review.
 
-For PRs that add or change repo-owned agent skills, validation should also confirm that each skill includes required scope, execution boundaries, human approval boundaries, evidence expectations, validation expectations, and documentation impact. Reviewers must treat any skill that implies unapproved automation, auto-merge, autonomous issue closure, or hidden external dependency as a blocker during M0.
+For PRs that add or change repo-owned agent skills, validation should also confirm that each skill includes required scope, execution boundaries, human approval boundaries, evidence expectations, validation expectations, and documentation impact. Reviewers must treat any skill that implies unapproved automation, auto-merge, autonomous approval, autonomous issue closure, or hidden external dependency as a blocker during M2 foundation work.
 
 ## Suggested Scoring Scale
 
@@ -148,7 +148,7 @@ Example:
 
 - 38 earned points across 45 applicable points = 84 percent.
 
-The percentage is an advisory review signal. During M0, it must not cause automatic approval, merge, or issue closure.
+The percentage is an advisory review signal. During M2 foundation work, it must not cause automatic approval, merge, or issue closure.
 
 ## Evidence Requirements
 
@@ -203,11 +203,11 @@ Risk notes should describe:
 
 Validation agents and reviewers must preserve these safeguards:
 
-- Treat repository documentation and explicit human decisions as source of truth during M0.
+- Treat repository documentation and explicit human decisions as source of truth during M2 foundation work.
 - Keep validation advisory unless and until a later governance document explicitly changes autonomy level.
-- Do not enable auto-merge during M0.
-- Do not enable autonomous issue closure during M0.
-- Do not enable autonomous approval during M0.
+- Do not enable auto-merge during M2 foundation work.
+- Do not enable autonomous issue closure during M2 foundation work.
+- Do not enable autonomous approval during M2 foundation work.
 - Do not create or modify destructive automation unless a human-approved issue explicitly requires it.
 - Do not approve changes that add secrets, change repository permissions, alter runner security settings, publish releases, or promote autonomy without explicit human approval.
 - Do not treat future-state documentation as current functionality.
@@ -222,7 +222,7 @@ Validation agents must escalate to the human owner before recommending merge rea
 - Required validation fails and the fix is outside the PR scope.
 - Required evidence is missing or cannot be produced.
 - The PR changes security, secrets, permissions, repository visibility, runner settings, release behavior, or destructive operations.
-- The PR appears to enable auto-merge, autonomous issue closure, autonomous approval, or destructive automation during M0.
+- The PR appears to enable auto-merge, autonomous issue closure, autonomous approval, or destructive automation during M2 foundation work.
 - The PR introduces high-risk architecture or operational changes.
 - The work depends on unavailable credentials, external approvals, or unclear ownership.
 - Unrelated local changes prevent safe staging or review.
@@ -242,7 +242,7 @@ The PR Scoring Agent should assign exactly one advisory decision state.
 | NEEDS_HUMAN_ESCALATION | A human decision is required because of risk, conflict, missing authority, or unclear source-of-truth boundaries. |
 | BLOCKED | The PR should not proceed until a required input, validation result, conflict, or safety issue is resolved. |
 
-No decision state is an approval during M0. A human reviewer remains the final authority.
+No decision state is an approval during M2 foundation work. A human reviewer remains the final authority.
 
 ## Future 90 Percent Auto-Merge Concept
 
@@ -258,11 +258,11 @@ That future behavior would require all of the following before it could be enabl
 - Escalation behavior for failed checks, high-risk changes, missing evidence, and source-of-truth conflicts.
 - A way to disable or pause auto-merge quickly.
 
-The 90 percent concept is future behavior only. It is not active during M0, does not authorize any current workflow change, and must not be interpreted as approval for autonomous merge, autonomous issue closure, autonomous approval, or destructive automation.
+The 90 percent concept is future behavior only. It is not active during M2 foundation work, does not authorize any current workflow change, and must not be interpreted as approval for autonomous merge, autonomous issue closure, autonomous approval, or destructive automation.
 
-## Initial M0 Validation Flow
+## Manual Validation Flow
 
-For M0 implementation PRs, use this manual flow:
+For current implementation PRs, use this manual flow:
 
 1. Read the issue, PR summary, changed files, and relevant source-of-truth documentation.
 2. Confirm the PR scope matches the issue.
@@ -274,4 +274,4 @@ For M0 implementation PRs, use this manual flow:
 8. Report evidence, limitations, and escalation needs in the PR or final handoff.
 9. Leave the merge decision to the human reviewer.
 
-This flow is intentionally practical and lightweight so it can support M0 documentation-only PRs as well as future implementation PRs.
+This flow is intentionally practical and lightweight so it can support documentation-only PRs as well as future implementation PRs.

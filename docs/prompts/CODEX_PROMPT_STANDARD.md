@@ -6,7 +6,7 @@ This standard defines how implementation work should be handed to Codex or anoth
 
 It exists so future implementation sessions are structured, safe, document-driven, reviewable, and able to produce usable validation evidence for the human owner and pull request reviewers.
 
-During M0, this standard supports manually guided, manually reviewed work. It does not authorize destructive automation, auto-merge, autonomous issue closure, or autonomous project management.
+During M2 foundation work, this standard supports manually guided, manually reviewed work. It does not authorize destructive automation, auto-merge, autonomous approval, autonomous issue closure, or autonomous project management.
 
 ## When To Use This Standard
 
@@ -28,16 +28,16 @@ Implementation agents must read the relevant source-of-truth documentation befor
 
 Every implementation prompt should list exact files under a `Read first` section. At minimum, prompts should include the files that define the current project state, agent operating rules, affected domain, and issue-specific requirements.
 
-For M0 implementation work, agents should usually read:
+For current implementation work, agents should usually read:
 
 - docs/context/AGENT_CONTEXT.md
 - docs/context/BUILD_STATE.md
 - Relevant roadmap, architecture, governance, prompt, validation, or agent documentation.
 - The issue body or task prompt supplied by the human owner.
 
-Agents must treat GitHub and repository documentation as the temporary source of truth until the AresForge dashboard exists. During M0, explicit human decisions and repository documentation take priority over AI-generated summaries or inferred automation behavior.
+Agents must treat GitHub and repository documentation as the temporary source of truth until the AresForge dashboard exists. During M2 foundation work, explicit human decisions and repository documentation take priority over AI-generated summaries or inferred automation behavior.
 
-For work that may repeat GitHub CLI, Windows PowerShell, encoding-sensitive, or operational state update patterns, agents should also review docs/learning/ERROR_PATTERNS.md and apply any relevant manual guidance. During M1, the learning document is advisory project memory and does not authorize automation.
+For work that may repeat GitHub CLI, Windows PowerShell, encoding-sensitive, or operational state update patterns, agents should also review docs/learning/ERROR_PATTERNS.md and apply any relevant manual guidance. During M2 foundation work, the learning document remains advisory project memory and does not authorize automation.
 
 ## Required Prompt Sections
 
@@ -66,7 +66,7 @@ Every prompt should tell the agent to:
 - Keep changes small, focused, and reviewable.
 - Preserve historical context unless the issue explicitly replaces it.
 - Consult documented error patterns before repeating known fragile command, shell, encoding, or operational state update patterns.
-- Respect the M0 constraint that all work is manually guided and manually reviewed.
+- Respect the current constraint that all work is manually guided and manually reviewed.
 - Avoid destructive local commands unless explicitly approved by the human owner.
 - Avoid auto-merge, autonomous issue closure, or autonomous write operations outside the requested implementation work.
 - Avoid changing repository visibility, permissions, secrets, runner security settings, or release state unless the issue explicitly requires it and the human owner approves it.
@@ -100,7 +100,7 @@ Documentation updates are required when the work changes:
 - Governance, autonomy boundaries, approval gates, escalation paths, or source-of-truth rules.
 - Validation standards, evidence requirements, PR review expectations, or release-facing behavior.
 
-During M0, documentation changes must remain manually reviewed and must not imply that automation, auto-merge, or autonomous closure is enabled.
+During M2 foundation work, documentation changes must remain manually reviewed and must not imply that automation, auto-merge, autonomous approval, or autonomous closure is enabled.
 
 ## Required Validation Evidence Requirements
 
@@ -134,7 +134,7 @@ Every implementation PR should include:
 - `Risk notes`: Known risks, assumptions, skipped checks, or follow-up recommendations.
 - Issue linkage such as `Closes #N` when the PR should close the issue after merge.
 
-During M0, PR evidence must not imply that a PR is accepted, merged, or issue-closing until the human owner reviews and merges it.
+During M2 foundation work, PR evidence must not imply that a PR is accepted, merged, or issue-closing until the human owner reviews and merges it.
 
 ## Branch, Commit, And PR Naming Expectations
 
@@ -157,7 +157,7 @@ Default PR expectations:
 - Use a concise PR title that matches the implemented scope.
 - Include the required PR evidence sections.
 - Include `Closes #N` only when the PR should close the linked issue after merge.
-- Do not enable auto-merge or merge the PR during M0 unless the human owner explicitly instructs it.
+- Do not enable auto-merge or merge the PR during M2 foundation work unless the human owner explicitly instructs it.
 
 ## Rules For Human Escalation
 
@@ -220,7 +220,7 @@ Constraints:
 - Do not make unrelated changes.
 - Do not enable destructive automation.
 - Do not introduce auto-merge, autonomous issue closure, or autonomous write operations beyond the requested implementation work.
-- Preserve the M0 constraint that all work is manually guided and manually reviewed.
+- Preserve the current constraint that all work is manually guided and manually reviewed.
 - Preserve historical context unless the issue explicitly replaces it.
 - Stage only files that belong to this issue.
 - Escalate to the human owner if source-of-truth documentation conflicts with the issue or if safe implementation is unclear.

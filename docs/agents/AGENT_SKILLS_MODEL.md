@@ -6,13 +6,13 @@ This document defines how AresForge should represent reusable agent skills insid
 
 The model exists so future human-guided agents, documentation agents, local AI reviewers, PR validation agents, and the future AresForge dashboard can reuse project-specific operating instructions without depending on an external agent framework.
 
-During M0 and M1, this is a documentation model only. It does not create runnable skills, agent automation, auto-merge, autonomous issue closure, or autonomous approval.
+During M0, M1, and M2 foundation work, this is a documentation model only. It does not create runnable skills, agent automation, auto-merge, autonomous issue closure, or autonomous approval.
 
 ## Decision Summary
 
 AresForge will define its own repo-owned markdown skill model first.
 
-External skill frameworks may be used as references, inspiration, or future adapter targets, but they are not required to build, review, or operate AresForge during M0 or M1.
+External skill frameworks may be used as references, inspiration, or future adapter targets, but they are not required to build, review, or operate AresForge during M0, M1, or M2 foundation work.
 
 The canonical AresForge skill format is a reviewable markdown file stored in the repository. Each skill must describe its purpose, scope, required inputs, execution boundaries, human approval boundaries, documentation impact, validation expectations, and evidence requirements.
 
@@ -56,7 +56,7 @@ Every AresForge skill should include:
 | Related docs | Links to source-of-truth docs that govern the skill. |
 | Lifecycle status | Draft, active, deprecated, or archived. |
 
-During M0 and M1, all skills should be treated as advisory and manually executed unless a later human-approved issue changes that boundary.
+During M0, M1, and M2 foundation work, all skills should be treated as advisory and manually executed unless a later human-approved issue changes that boundary.
 
 ## Repo Structure
 
@@ -108,7 +108,7 @@ Skill changes should be made through normal branch and PR review. Material chang
 
 ## Skill Execution Boundaries
 
-During M0 and M1:
+During M0, M1, and M2 foundation work:
 
 - Skills are markdown guidance, not autonomous services.
 - A human-guided agent session may follow a skill manually.
@@ -160,7 +160,7 @@ Expected evidence includes:
 - Documentation impact summary.
 - Commands or checks run for the PR.
 
-For M0 and M1 documentation-only skill work, a diff review, `git diff --check`, `git status --short`, and issue-specific documentation scans are usually sufficient.
+For M0, M1, and M2 foundation documentation-only skill work, a diff review, `git diff --check`, `git status --short`, and issue-specific documentation scans are usually sufficient.
 
 ## External Framework Evaluation
 
@@ -267,7 +267,7 @@ Risks:
 - Inconsistent execution if skills do not define inputs, outputs, boundaries, and evidence.
 - Governance drift if skills quietly expand agent authority.
 
-Limitations during M0 and M1:
+Limitations during M0, M1, and M2 foundation work:
 
 - No skill execution engine exists.
 - The `.agent` registry exists as draft documentation only.

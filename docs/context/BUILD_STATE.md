@@ -10,13 +10,13 @@ Begin M2 by creating the documentation agent foundation for human-reviewed sourc
 
 ## Current Active Issue
 
-- No active implementation issue is currently assigned after M1 closeout.
+- Issue #43: Create documentation agent foundation.
 
 ## Current Source of Truth
 
 GitHub and repository documentation are the temporary source of truth until the AresForge dashboard exists.
 
-During M1, explicit human decisions and repository documentation take priority over AI-generated summaries or inferred automation behavior.
+During M2 foundation work, explicit human decisions and repository documentation take priority over AI-generated summaries or inferred automation behavior.
 
 ## Completed
 
@@ -188,14 +188,17 @@ During M1, explicit human decisions and repository documentation take priority o
 
 ## In Progress
 
-- No active implementation issue is currently assigned after M1 closeout.
+- Issue #43: Create documentation agent foundation.
+  - Branch: m2/issue-43-documentation-agent-foundation
+  - Goal: Establish the M2 documentation agent operating model before autonomous documentation automation is introduced.
+  - Scope: Documentation agent responsibilities, source-of-truth update flow, documentation impact detection rules, documentation freshness checks, human-reviewed documentation update expectations, validation evidence, and agent handoffs.
 
 ## Next
 
-- Create the first M2 implementation issue: Create documentation agent foundation.
+- Complete Issue #43 through a human-reviewed draft pull request against main.
 
 ## Current Operating Constraint
 
-All M1 changes are manually guided and manually reviewed.
+All current M2 foundation changes are manually guided and manually reviewed.
 
-No runnable automation, auto-merge, autonomous approval, destructive automation, or autonomous issue closure is enabled during M1.
+No runnable automation, workflow, auto-merge, autonomous approval, destructive automation, autonomous issue closure, repository setting change, branch protection change, ruleset change, secret change, release change, tag change, or GitHub Project change is enabled during M2 foundation work.

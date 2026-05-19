@@ -34,9 +34,9 @@ Completion criteria:
 
 Goal: Prove AresForge can safely create, update, validate, and close work through GitHub-managed workflows.
 
-Status: Near complete - closeout in progress through Issue #41.
+Status: Complete enough to proceed to M2. M1 limitations remain documented and unresolved unless a later issue explicitly addresses them.
 
-Closeout focus:
+Closeout result:
 
 - Reconcile M1 GitHub operations validation evidence.
 - Summarize completed validation work from issues #18, #20, #22, #24, #26, #28, #30, #32, #34, #36, and #38.
@@ -47,9 +47,9 @@ Closeout focus:
 
 Goal: Establish documentation agent rules, source-of-truth update flow, documentation freshness checks, and human-reviewed documentation update behavior before any autonomous automation.
 
-Status: Next phase.
+Status: Active through Issue #43.
 
-Recommended first M2 implementation issue:
+First M2 implementation issue:
 
 - Create documentation agent foundation.
 
