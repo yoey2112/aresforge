@@ -10,11 +10,7 @@ Continue M1 by validating safe GitHub-managed workflows using repo-owned documen
 
 ## Current Active Issue
 
-- Issue: #22 Validate repeatable GitHub label lifecycle operations using GitHub operations skill
-- Branch: m1/issue-22-label-lifecycle-validation
-- Status: In progress
-- Execution model: manually guided and manually reviewed
-- Review model: draft pull request followed by human review
+- No active implementation issue is currently assigned after Issue #22 completion.
 
 ## Current Source of Truth
 
@@ -105,21 +101,20 @@ During M1, explicit human decisions and repository documentation take priority o
   - Updated relevant skills, AGENT_CONTEXT.md, SELF_MANAGEMENT_MODEL.md, CODEX_PROMPT_STANDARD.md, and BUILD_STATE.md
   - Confirmed learning capture remains advisory/manual during M1 and does not enable runnable automation, auto-merge, autonomous approval, destructive automation, or autonomous issue closure
 
+- Issue #22 completed via PR #23:
+  - Documented repeatable GitHub label lifecycle validation
+  - Validated safe label read, create, update, apply-to-issue, remove-from-issue, and verification operations
+  - Updated GitHub operations skill with label lifecycle guidance
+  - Added M1-ERROR-008 for multiline gh pr create --body argument splitting in Windows PowerShell
+  - Confirmed no destructive label deletion, production label edits, runnable automation, auto-merge, autonomous approval, destructive automation, or autonomous issue closure was introduced
 ## In Progress
 
-- Issue #22: Validate repeatable GitHub label lifecycle operations using GitHub operations skill
-  - Current phase remains M1 - GitHub Operations Validation.
-  - Work is manually guided and manually reviewed.
-  - Validation is limited to safe GitHub label read, create, update, apply, remove-from-issue, and verification operations.
-  - No runnable automation, auto-merge, autonomous approval, destructive automation, autonomous issue closure, repository setting change, branch protection change, or PR merge is enabled.
+- No active implementation issue is currently assigned after Issue #22 completion.
 
 ## Next
 
-- Complete documentation updates for issue #22.
-- Commit the issue #22 documentation changes.
-- Push branch m1/issue-22-label-lifecycle-validation.
-- Open a draft pull request for human review.
-- Do not close issue #22 except through the human-reviewed PR process.
+- Select the next M1 GitHub operations validation issue.
+- Continue validating repeatable GitHub-managed workflows using the documented GitHub operations, issue-planning, build-state, and error-pattern guidance.
 
 ## Current Operating Constraint
 
