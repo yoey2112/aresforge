@@ -59,19 +59,25 @@ During M0, explicit human decisions and repository documentation take priority o
   - Documented GitHub plus repository documentation as the temporary source of truth
   - Documented future dashboard state fields
   - Documented next-chat handoff expectations
-- Issue #5 completed by this PR:
+- Issue #5 completed:
   - Codex prompt standard expanded at docs/prompts/CODEX_PROMPT_STANDARD.md
   - Required implementation prompt sections, safety constraints, documentation requirements, validation evidence, PR evidence, naming expectations, source-of-truth reading rules, unrelated-change rules, human escalation rules, and owner evidence reporting rules documented
   - AGENT_CONTEXT.md updated to require Codex implementation agents to follow the prompt standard
   - Preserved the M0 constraint that implementation work remains manually guided and manually reviewed
+- Issue #6 completed by this PR:
+  - PR validation and scoring model expanded at docs/governance/PR_VALIDATION_MODEL.md
+  - Required validation agents, agent responsibilities, scoring categories, suggested scoring scale, evidence requirements, risk handling, safeguards, escalation rules, and merge-readiness decision states documented
+  - AGENT_CONTEXT.md updated to require future QA, Test, Documentation, and PR Scoring agents to use the PR validation model when evaluating implementation work
+  - Future 90 percent auto-merge concept documented as future behavior only
+  - Preserved the M0 constraint that no auto-merge, autonomous issue closure, or autonomous approval is enabled
 
 ## In Progress
 
-- PR validation and scoring model definition
+- Human review of the Issue #6 PR validation and scoring model PR
 
 ## Next
 
-- Continue with issue #6: Define PR validation and scoring model after issue #5 is reviewed and merged
+- Review and merge the Issue #6 PR after human approval
 
 ## Current Operating Constraint
 

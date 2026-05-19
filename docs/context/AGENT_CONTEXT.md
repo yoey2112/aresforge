@@ -18,6 +18,8 @@ Documentation updates must preserve historical context and include validation ev
 
 Codex implementation agents must follow docs/prompts/CODEX_PROMPT_STANDARD.md as the required implementation-agent handoff format when performing repository implementation work.
 
+Future QA, Test, Documentation, and PR Scoring agents must use docs/governance/PR_VALIDATION_MODEL.md when evaluating implementation pull requests, producing review evidence, or recommending merge-readiness states.
+
 ## Current Agent Roles
 
 Initial planned agent roles include:
