@@ -1273,3 +1273,188 @@ It did not:
 - Change repository settings, branch protection, secrets, permissions, workflows, releases, or tags.
 - Enable runnable automation, auto-merge, autonomous approval, destructive automation, or autonomous issue closure.
 - Close Issue #30 manually.
+
+## M1 GitHub Workflow Run And Artifact Read Validation
+
+This section extends the M1 GitHub operations validation for GitHub Actions workflow run and artifact read operations.
+
+This validation belongs to:
+
+- Milestone: M1 - GitHub Operations Validation
+- Milestone number: 2
+- Issue: #32 Validate GitHub workflow run and artifact read operations
+- Phase: GitHub operations validation
+
+### Current M1 Safety Boundaries
+
+During M1, workflow run and artifact validation is read-only, manually guided, manually reviewed, and evidence-based.
+
+Allowed operations for this validation are limited to:
+
+- Reading local repository branch, status, and latest commit state.
+- Reading GitHub CLI authentication and token scope state.
+- Checking whether `.github/workflows` exists locally.
+- Listing workflow files if workflow files exist.
+- Reading workflow run lists with `gh run list`.
+- Reading a workflow run and checking artifacts only when at least one workflow run exists.
+- Downloading artifacts only into a clearly named local validation folder when artifacts exist and the active issue explicitly allows the download.
+
+This validation must not:
+
+- Create, edit, enable, disable, rename, or delete workflows.
+- Add a workflow file.
+- Trigger a workflow.
+- Change repository settings, branch protection, secrets, permissions, releases, tags, or GitHub Projects.
+- Enable runnable automation, auto-merge, autonomous approval, destructive automation, or autonomous issue closure.
+- Close Issue #32 manually.
+
+### Commands Used
+
+Read-only validation commands run from Windows PowerShell:
+
+```powershell
+git branch --show-current
+git status --short
+git log -1 --oneline
+gh auth status
+if (Test-Path .github/workflows) { Get-ChildItem .github/workflows -File | Select-Object -ExpandProperty Name } else { 'NO_WORKFLOW_DIRECTORY' }
+gh run list --repo yoey2112/aresforge --limit 10
+```
+
+No workflow run detail, artifact list, or artifact download command was run because the repository currently has no workflow runs in the returned list.
+
+### Observed Results
+
+Local repository state after creating the issue branch:
+
+- Branch: `m1/issue-32-workflow-artifact-read-validation`
+- Working tree: clean before documentation edits.
+- Latest baseline commit: `299e322 Update build state after issue 30 completion`
+
+GitHub CLI authentication:
+
+- Host: `github.com`
+- Account: `yoey2112`
+- Credential storage: keyring
+- Active account: true
+- Git operations protocol: https
+- Token scopes:
+  - `gist`
+  - `read:org`
+  - `repo`
+  - `workflow`
+
+Workflow file state:
+
+- `.github/workflows` does not currently exist in the local repository.
+- No workflow files are currently present.
+
+Workflow run list behavior:
+
+- `gh run list --repo yoey2112/aresforge --limit 10` completed successfully.
+- The command returned no workflow run rows.
+- This confirms the workflow run list command is available and can be executed against `yoey2112/aresforge`, but the repository currently has no runs to inspect.
+
+Artifact state:
+
+- Artifact listing could not be fully validated because no workflow run exists to inspect.
+- Artifact download could not be fully validated because no workflow run or artifact exists.
+- No `.validation/issue-32-artifact-download/` folder was created because there was no artifact to download.
+
+### Successful Read Patterns
+
+Safe workflow run list pattern:
+
+```powershell
+gh run list --repo <owner>/<repo> --limit 10
+```
+
+Expected evidence:
+
+- The command exits successfully.
+- Returned rows, when present, can be used to select one run for read-only inspection.
+- Empty output should be documented as a no-run baseline, not treated as an error.
+
+Safe workflow directory check:
+
+```powershell
+if (Test-Path .github/workflows) {
+  Get-ChildItem .github/workflows -File | Select-Object -ExpandProperty Name
+} else {
+  'NO_WORKFLOW_DIRECTORY'
+}
+```
+
+Expected evidence:
+
+- If the directory exists, list the workflow files without editing them.
+- If the directory does not exist, record that no workflow files currently exist.
+
+Safe run detail pattern when at least one run exists:
+
+```powershell
+gh run view <run-id> --repo <owner>/<repo>
+```
+
+Use a run ID from `gh run list`. Do not trigger a run to create validation data.
+
+Safe artifact check pattern when a run exists:
+
+```powershell
+gh run view <run-id> --repo <owner>/<repo> --json databaseId,artifacts,conclusion,createdAt,event,headBranch,status,url,workflowName
+```
+
+If JSON output support differs by GitHub CLI version, read the available help for the installed CLI and document the exact read-only command that succeeds.
+
+Safe artifact download pattern when artifacts exist and the active issue explicitly allows download:
+
+```powershell
+New-Item -ItemType Directory -Force .validation/issue-32-artifact-download
+gh run download <run-id> --repo <owner>/<repo> --dir .validation/issue-32-artifact-download
+```
+
+Downloaded artifacts should not be committed unless they are intentionally small text evidence and clearly appropriate for review. Prefer documenting the observed result instead.
+
+### Limitations
+
+The current repository state does not yet allow full workflow run detail or artifact download validation.
+
+Current limitations:
+
+- No `.github/workflows` directory exists.
+- No workflow files exist.
+- `gh run list` returns no workflow runs.
+- No run ID is available for read-only `gh run view` validation.
+- No artifact inventory is available.
+- No artifact download target exists.
+
+These limitations are observed repository state, not command failures.
+
+### Future Automation Guidance
+
+Future workflow or artifact readers should use a conservative preflight sequence:
+
+1. Confirm authentication scopes with `gh auth status`.
+2. Confirm whether `.github/workflows` exists before expecting workflow runs.
+3. Run `gh run list --repo <owner>/<repo> --limit <n>`.
+4. If no runs are returned, document the no-run baseline and stop.
+5. If runs exist, select one run ID from the returned list.
+6. Read run detail with `gh run view <run-id> --repo <owner>/<repo>`.
+7. Check artifacts only after a run exists.
+8. Download artifacts only when explicitly allowed, only into a clearly named validation folder, and do not commit downloaded content unless the issue explicitly requires it.
+
+Future automation must never create workflow runs merely to validate read behavior unless a later human-approved issue explicitly authorizes workflow creation or triggering.
+
+### M1 Safety Confirmation
+
+This validation introduced documentation and manual operating guidance only.
+
+It did not:
+
+- Create, edit, enable, disable, rename, or delete workflows.
+- Add a workflow file.
+- Trigger a workflow.
+- Download or commit artifacts.
+- Change repository settings, branch protection, secrets, permissions, releases, tags, or GitHub Projects.
+- Enable runnable automation, auto-merge, autonomous approval, destructive automation, or autonomous issue closure.
+- Close Issue #32 manually.
