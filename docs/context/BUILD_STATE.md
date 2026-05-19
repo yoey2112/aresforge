@@ -10,8 +10,7 @@ Continue M1 by validating safe GitHub-managed workflows using repo-owned documen
 
 ## Current Active Issue
 
-- Issue #28 - Validate repeatable GitHub issue evidence comment lifecycle operations using GitHub operations skill.
-- Active branch: m1/issue-28-comment-lifecycle-validation.
+- No active implementation issue is currently assigned after Issue #28 completion.
 
 ## Current Source of Truth
 
@@ -122,22 +121,21 @@ During M1, explicit human decisions and repository documentation take priority o
   - Updated GitHub operations skill with milestone lifecycle guidance.
   - Confirmed production milestones were not renamed, closed, deleted, or otherwise altered.
   - Confirmed no runnable automation, auto-merge, autonomous approval, destructive automation, repository setting change, branch protection change, workflow change, milestone deletion, or autonomous issue closure was introduced.
+- Issue #28 completed via PR #29:
+  - Documented repeatable GitHub issue evidence/comment lifecycle validation.
+  - Validated adding one clearly owned validation comment, reading comments through GitHub API output, identifying the validation comment by returned comment ID, URL, author, and unique marker, updating only that owned comment, and verifying body, author, URL, created_at, and updated_at metadata.
+  - Added M1-ERROR-009 for `gh api --jq` marker checks failing with hyphenated issue-comment markers when quoting is not safely preserved for jq parsing.
+  - Documented the safer PowerShell pattern: read raw `gh api` JSON, parse with `ConvertFrom-Json`, then verify marker presence with PowerShell string methods.
+  - Updated GitHub operations skill with issue comment lifecycle guidance.
+  - Confirmed no comment deletion, production comment edit, runnable automation, auto-merge, autonomous approval, destructive automation, repository setting change, branch protection change, workflow change, or autonomous issue closure was introduced.
 ## In Progress
 
-- Issue #28 is validating safe, repeatable issue evidence comment lifecycle operations:
-  - Created one clearly owned validation comment on Issue #28.
-  - Read issue comments through the GitHub API.
-  - Identified the validation comment by returned comment ID, URL, author, and unique marker.
-  - Updated only that validation comment by returned comment ID.
-  - Verified updated body, author, URL, created_at, and updated_at metadata.
-  - Human review of PR #29 discovered M1-ERROR-009: a `gh api --jq` marker check can fail for hyphenated issue-comment markers when quoting is not safely preserved for jq parsing.
-  - PR #29 was updated before merge to capture the safer PowerShell `ConvertFrom-Json` marker verification pattern as reusable learning.
-  - No comment deletion, production comment edit, runnable automation, auto-merge, autonomous approval, destructive automation, or autonomous issue closure was performed.
+- No active implementation issue is currently assigned after Issue #28 completion.
 
 ## Next
 
-- Complete Issue #28 documentation, commit, draft PR creation, final issue evidence comment, and handoff evidence.
-- Continue validating repeatable GitHub-managed workflows using the documented GitHub operations, issue-planning, build-state, and error-pattern guidance after Issue #28 is reviewed.
+- Select the next M1 GitHub operations validation issue.
+- Continue validating repeatable GitHub-managed workflows using the documented GitHub operations, issue-planning, build-state, and error-pattern guidance.
 
 ## Current Operating Constraint
 
