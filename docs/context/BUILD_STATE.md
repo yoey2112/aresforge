@@ -10,7 +10,7 @@ Continue M1 by validating safe GitHub-managed workflows using repo-owned documen
 
 ## Current Active Issue
 
-- No active implementation issue is currently assigned after Issue #30 completion.
+- No active implementation issue is currently assigned after Issue #32 draft PR creation.
 
 ## Current Source of Truth
 
@@ -138,14 +138,24 @@ During M1, explicit human decisions and repository documentation take priority o
   - Updated GitHub operations skill with safe project/table read guidance.
   - Confirmed no GitHub Project settings, fields, views, or items were modified.
   - Confirmed no runnable automation, auto-merge, autonomous approval, destructive automation, repository setting change, branch protection change, workflow change, release/tag change, secret change, permission change, or autonomous issue closure was introduced.
+- Issue #32 completed via draft PR #33:
+  - Documented read-only GitHub workflow run and artifact read validation.
+  - Confirmed `.github/workflows` does not currently exist.
+  - Confirmed no workflow files currently exist.
+  - Confirmed `gh run list --repo yoey2112/aresforge --limit 10` is available and returns no workflow runs.
+  - Documented that run detail, artifact list, and artifact download behavior cannot yet be fully validated because no workflow runs or artifacts exist.
+  - Updated GitHub operations skill with safe workflow run and artifact read guidance.
+  - Confirmed no new reusable failure was discovered, so `docs/learning/ERROR_PATTERNS.md` was not updated.
+  - Confirmed no workflow creation, workflow editing, workflow triggering, artifact commit, runnable automation, auto-merge, autonomous approval, destructive automation, repository setting change, branch protection change, secret change, permission change, release/tag change, project change, or autonomous issue closure was introduced.
 ## In Progress
 
-- No active implementation issue is currently assigned after Issue #30 completion.
+- No active implementation issue is currently assigned after Issue #32 draft PR creation.
 
 ## Next
 
+- Human review of draft PR #33.
+- After human-reviewed merge, allow GitHub issue-closing language to close Issue #32 through normal PR merge behavior.
 - Select the next M1 GitHub operations validation issue.
-- Continue validating repeatable GitHub-managed workflows using the documented GitHub operations, issue-planning, build-state, and error-pattern guidance.
 
 ## Current Operating Constraint
 

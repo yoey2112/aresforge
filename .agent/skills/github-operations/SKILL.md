@@ -309,6 +309,69 @@ For GraphQL reads, place the query in a PowerShell here-string, pass variables w
 
 Do not create, edit, archive, delete, link, or unlink projects, fields, views, or project items during M1 unless a later human-approved issue explicitly authorizes that write. Future dashboard sync should start as read-only and should include a preflight check for `read:project`.
 
+## Safe workflow run and artifact read guidance
+
+Before relying on GitHub Actions run or artifact data, confirm the active issue allows workflow read validation and that the operation is read-only.
+
+Recommended local and authentication preflight:
+
+```powershell
+git branch --show-current
+git status --short
+git log -1 --oneline
+gh auth status
+```
+
+Check whether workflow files exist without creating or editing them:
+
+```powershell
+if (Test-Path .github/workflows) {
+  Get-ChildItem .github/workflows -File | Select-Object -ExpandProperty Name
+} else {
+  'NO_WORKFLOW_DIRECTORY'
+}
+```
+
+Read workflow run lists with:
+
+```powershell
+gh run list --repo <owner>/<repo> --limit 10
+```
+
+If the run list returns no rows, document that the command is available but the repository currently has no workflow runs. Treat no-run output as repository state, not as a failure. Do not create, add, enable, or trigger a workflow to manufacture validation data.
+
+Inspect a workflow run only when one exists in `gh run list` output. Use a returned run ID:
+
+```powershell
+gh run view <run-id> --repo <owner>/<repo>
+```
+
+Check artifacts only when a run exists. Prefer a read-only run detail command that exposes artifact metadata when supported by the installed GitHub CLI:
+
+```powershell
+gh run view <run-id> --repo <owner>/<repo> --json databaseId,artifacts,conclusion,createdAt,event,headBranch,status,url,workflowName
+```
+
+If the installed CLI does not support the desired JSON fields, read the command help and document the exact read-only command that succeeds. Do not switch to write operations to work around missing read data.
+
+Download artifacts only when all of these are true:
+
+- A workflow run exists.
+- Artifacts exist for that run.
+- The active issue explicitly allows artifact download.
+- The destination is a clearly named local validation folder under the repository.
+
+Preferred validation download pattern:
+
+```powershell
+New-Item -ItemType Directory -Force .validation/issue-32-artifact-download
+gh run download <run-id> --repo <owner>/<repo> --dir .validation/issue-32-artifact-download
+```
+
+Do not commit downloaded artifacts unless they are intentionally small text evidence and clearly appropriate for review. Prefer documenting the observed artifact names, counts, and download result instead.
+
+Workflow run and artifact read validation must not create, edit, enable, disable, rename, delete, or trigger workflows. It must not change repository settings, branch protection, secrets, permissions, releases, tags, GitHub Projects, auto-merge, approvals, merges, destructive automation, or issue closure state.
+
 ## Execution boundaries
 
 This skill is advisory and manually executed. It may guide commands that are already allowed by the active issue, but it is not a script, workflow, package, or autonomous GitHub operator.
