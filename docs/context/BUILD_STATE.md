@@ -6,13 +6,13 @@ M2 - Documentation Agent Foundation
 
 ## Current Goal
 
-No active M2 implementation issue is currently assigned.
+Reconcile stale M2 source-of-truth wording after Issue #65 closeout.
 
 ## Current Repository State
 
 - Current main state: verify with git log -1 --oneline and git log -1 --oneline origin/main before implementation work.
 - Open pull requests: none.
-- Active issue: #65, `Define closeout evidence package template`.
+- Active issue: #67, `Reconcile M2 source-of-truth after Issue #65 closeout`.
 - Remaining open validation issue: #39, `validation: issue-38-state-lifecycle`, intentionally preserved as audit evidence.
 
 ## Current Source of Truth
@@ -262,8 +262,10 @@ During M2 foundation work, explicit human decisions and repository documentation
   - Confirmed no scripts, runnable automation, workflows, commands, auto-merge, autonomous approval, autonomous issue closure, repository setting change, branch protection change, ruleset change, secret change, release change, tag change, or GitHub Project change was introduced.
 ## In Progress
 
-- No active M2 implementation issue is currently assigned.
-- The next M2 deliverable remains undecided until a future human-directed issue or source-of-truth update defines it.
+- Issue #67 is active:
+  - Reconcile stale M2 source-of-truth wording after Issue #65 closeout.
+  - Update current-state project memory so Issue #65 remains recorded as completed and closed after PR #66 closeout.
+  - Preserve the explicit rule that Issue #39 remains intentionally open as M1 validation audit evidence unless a future human-directed issue explicitly changes its state.
 
 ## Next
 
@@ -273,6 +275,7 @@ During M2 foundation work, explicit human decisions and repository documentation
 - Use docs/prompts/CODEX_PROMPT_PACKAGE_TEMPLATE.md for future reusable Codex prompt packages.
 - Use docs/agents/PR_EVIDENCE_PACKAGE_TEMPLATE.md for future reusable PR evidence packages.
 - Use docs/agents/CLOSEOUT_EVIDENCE_PACKAGE_TEMPLATE.md for future reusable closeout evidence packages.
+- Re-evaluate the next M2 deliverable after Issue #67 closeout.
 - Keep documentation-sync evidence packages and handoff packages as review artifacts only.
 - Keep Codex prompt packages as review/input artifacts only.
 - Keep PR evidence packages as review artifacts only.
