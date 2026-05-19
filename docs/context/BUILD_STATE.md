@@ -96,6 +96,7 @@ During M1, explicit human decisions and repository documentation take priority o
   - Seeded M1 learning entries for GitHub CLI, PowerShell, temp JSON payload, markdown encoding, special-character repair, verification mismatch, and ASCII-safe operational state patterns
   - Updated relevant skills, AGENT_CONTEXT.md, SELF_MANAGEMENT_MODEL.md, CODEX_PROMPT_STANDARD.md, and BUILD_STATE.md
   - Confirmed learning capture remains advisory/manual during M1 and does not enable runnable automation, auto-merge, autonomous approval, destructive automation, or autonomous issue closure
+
 ## In Progress
 
 - No active implementation issue is currently assigned after Issue #20 completion.
