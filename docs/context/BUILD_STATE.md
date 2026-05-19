@@ -12,7 +12,8 @@ Continue M1 by validating safe GitHub-managed workflows using repo-owned documen
 
 - Issue #30 - Validate GitHub project table access
   - Branch: m1/issue-30-project-table-access-validation
-  - Status: In progress; read-only GitHub Project/table access validation documented locally, draft PR pending.
+  - Draft PR: #31
+  - Status: In progress; read-only GitHub Project/table access validation documented and draft PR opened for human review.
   - Current finding: repository project enablement and issue-level project item summaries are readable, but ProjectV2 lists, fields, views, and items are blocked until the token has `read:project`.
 
 ## Current Source of Truth
@@ -141,7 +142,7 @@ During M1, explicit human decisions and repository documentation take priority o
 
 ## Next
 
-- Create the draft PR for Issue #30 and leave merge, approval, and issue closure to the human-reviewed process.
+- Leave Issue #30 draft PR review, merge, approval, and issue closure to the human-reviewed process.
 - After Issue #30 is human-reviewed and merged, select the next M1 GitHub operations validation issue.
 
 ## Current Operating Constraint
