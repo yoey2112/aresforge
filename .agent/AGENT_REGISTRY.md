@@ -32,6 +32,7 @@ Primary governing docs:
 - docs/learning/ERROR_PATTERNS.md
 - docs/agents/AGENT_SKILLS_MODEL.md
 - docs/agents/DOCUMENTATION_AGENTS.md
+- docs/agents/DOCUMENTATION_FRESHNESS_CHECKS.md
 - docs/governance/SELF_MANAGEMENT_MODEL.md
 - docs/governance/PR_VALIDATION_MODEL.md
 - docs/prompts/CODEX_PROMPT_STANDARD.md
@@ -42,7 +43,7 @@ Primary governing docs:
 | Skill | Path | Lifecycle status | Summary |
 |---|---|---|---|
 | GitHub operations | .agent/skills/github-operations/SKILL.md | Draft | Guidance for safe issue, branch, PR, label, milestone, and GitHub evidence handling. |
-| Documentation sync | .agent/skills/documentation-sync/SKILL.md | Draft | Guidance for detecting and applying required documentation updates. |
+| Documentation sync | .agent/skills/documentation-sync/SKILL.md | Draft | Guidance for running freshness checks and applying required documentation updates. |
 | Ollama evidence review | .agent/skills/ollama-evidence-review/SKILL.md | Draft | Guidance for reviewing local Ollama validation evidence and limitations. |
 | Issue planning | .agent/skills/issue-planning/SKILL.md | Draft | Guidance for turning approved goals into scoped issues and implementation prompts. |
 | PR validation | .agent/skills/pr-validation/SKILL.md | Draft | Guidance for advisory PR review, scoring, evidence review, and merge-readiness recommendations. |

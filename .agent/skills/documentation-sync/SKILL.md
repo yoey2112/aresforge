@@ -8,6 +8,8 @@ Documentation sync
 
 Guide agents in detecting documentation impact and updating the correct AresForge docs as part of scoped implementation work.
 
+Documentation sync must begin with the freshness check model in `docs/agents/DOCUMENTATION_FRESHNESS_CHECKS.md` so agents classify stale, missing, conflicting, incomplete, or outdated project documentation before updating source-of-truth docs.
+
 ## When to use
 
 Use this skill when a change affects project context, build state, roadmap sequencing, agent behavior, governance, architecture, prompt standards, validation expectations, or release-facing project memory.
@@ -23,6 +25,7 @@ Do not use this skill to rewrite unrelated documentation, replace source-of-trut
 - Active issue or task requirements.
 - Changed files or planned file changes.
 - Existing context, agent, governance, roadmap, prompt, architecture, and validation docs.
+- Documentation freshness check model from docs/agents/DOCUMENTATION_FRESHNESS_CHECKS.md.
 - Documentation freshness checks from docs/agents/DOCUMENTATION_AGENTS.md when relevant.
 - Validation evidence and PR summary when available.
 - Explicit human decisions relevant to the work.
@@ -31,6 +34,7 @@ Do not use this skill to rewrite unrelated documentation, replace source-of-trut
 
 - Focused documentation edits.
 - Documentation impact summary.
+- Freshness check findings classified as stale, missing, conflicting, incomplete, outdated build-state or roadmap references, unavailable inputs, or out of scope.
 - Stale documentation warnings when a related update is real but out of scope.
 - Freshness check summary for source-of-truth docs affected by the issue.
 - Human-review boundary confirmation.
@@ -50,7 +54,7 @@ Human approval is required before changing governance meaning, autonomy levels, 
 
 ## Documentation impact
 
-Review docs/agents/DOCUMENTATION_AGENTS.md for documentation-agent behavior and docs/context/BUILD_STATE.md for active project state. Update only the docs affected by the current task.
+Review docs/agents/DOCUMENTATION_FRESHNESS_CHECKS.md before updating docs, docs/agents/DOCUMENTATION_AGENTS.md for documentation-agent behavior, and docs/context/BUILD_STATE.md for active project state. Update only the docs affected by the current task.
 
 For M2 documentation-agent foundation work, confirm whether the change affects:
 
@@ -74,6 +78,7 @@ Report files reviewed, files changed, documentation impact, freshness checks, st
 
 ## Related docs
 
+- docs/agents/DOCUMENTATION_FRESHNESS_CHECKS.md
 - docs/agents/DOCUMENTATION_AGENTS.md
 - docs/agents/AGENT_SKILLS_MODEL.md
 - docs/context/AGENT_CONTEXT.md
