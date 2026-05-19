@@ -60,6 +60,62 @@ Avoid direct JSON payload posting through temporary files unless encoding is int
 
 When a GitHub operation reveals a repeatable failure, shell limitation, encoding risk, or safer workaround, document the lesson in `docs/learning/ERROR_PATTERNS.md` or update an existing entry. During M1, these entries are advisory, manually reviewed, and do not authorize autonomous GitHub operations.
 
+## Safe milestone lifecycle guidance
+
+Before changing milestones, read the existing repository milestone inventory and preserve enough evidence for review.
+
+Recommended read commands:
+
+```powershell
+gh api repos/yoey2112/aresforge/milestones
+gh api repos/yoey2112/aresforge/milestones?state=all
+```
+
+Use milestone numbers or API URLs returned by GitHub for all write operations. Avoid title matching for milestone writes because shell quoting, punctuation, and display encoding can make title-based matching fragile.
+
+For M1 validation, create or update only clearly named non-production milestones such as `validation: issue-26-milestone-lifecycle`. Avoid changing production milestones unless the active issue explicitly requires it and the human owner has approved the scope.
+
+Recommended create pattern:
+
+```powershell
+gh api repos/<owner>/<repo>/milestones -X POST -f title='<validation-milestone-name>' -f description='<clear validation description>' -f state='open'
+```
+
+After creation, record the returned milestone number and API URL. Verify the created milestone with an explicit read:
+
+```powershell
+gh api repos/<owner>/<repo>/milestones/<milestone-number>
+```
+
+Recommended metadata update pattern:
+
+```powershell
+gh api repos/<owner>/<repo>/milestones/<milestone-number> -X PATCH -f description='<updated validation description>'
+```
+
+After update, verify that the exact milestone number has the intended metadata and that production milestones were not changed.
+
+Close and reopen a validation milestone only when an API read confirms the milestone is clearly non-production and has no assigned open or closed issues:
+
+```powershell
+gh api repos/<owner>/<repo>/milestones/<milestone-number> -X PATCH -f state='closed'
+gh api repos/<owner>/<repo>/milestones/<milestone-number>
+gh api repos/<owner>/<repo>/milestones/<milestone-number> -X PATCH -f state='open'
+gh api repos/<owner>/<repo>/milestones/<milestone-number>
+```
+
+The final verification should confirm:
+
+- The validation milestone title, number, API URL, description, and state.
+- `state` is `open` after reopen.
+- `closed_at` is `null` after reopen.
+- `open_issues` and `closed_issues` remain unchanged from the expected validation state.
+- Production milestones were not renamed, closed, deleted, or otherwise altered.
+
+Avoid deleting milestones during M1 unless a separate human-approved issue or explicit human approval authorizes deletion. Milestone deletion is destructive because it can affect historical planning evidence, issue organization, roadmap reconstruction, and future project-state synchronization.
+
+Update `docs/learning/ERROR_PATTERNS.md` only when milestone lifecycle work discovers a real repeatable failure pattern, such as a GitHub API limitation, PowerShell quoting issue, encoding problem, unsafe title-matching behavior, or a safer workaround future agents should reuse. Do not invent an error pattern for a clean validation run.
+
 ## Safe label lifecycle guidance
 
 Before changing labels, read the current repository label inventory and the target issue label state.
