@@ -54,6 +54,11 @@ Current completed M2 design deliverable:
 - Issue #77: Define project, agent, model, and queue registry architecture, completed and closed through PR #78.
 - `docs/architecture/REGISTRY_AND_QUEUE_ARCHITECTURE.md` remains the completed canonical M2 registry and queue architecture deliverable.
 
+Current active M2 design deliverable:
+
+- Issue #79: Define project registry schema, active.
+- `docs/architecture/PROJECT_REGISTRY_SCHEMA.md` is the current canonical M2 project registry schema design deliverable.
+
 Current M2 corrective rule:
 
 - Issue #75 exists only because stale source-of-truth documentation was discovered after Issue #73 / PR #74 closeout.
@@ -62,8 +67,8 @@ Current M2 corrective rule:
 
 Next substantive M2 design direction:
 
-- Use the completed registry and queue architecture to guide the next M2 design or implementation issue.
-- Next likely issue: Define project registry schema.
+- Complete the project registry schema so the registry architecture has a reusable self-project and external-project record model.
+- Next likely issue after Issue #79: Define agent registry schema and lifecycle states.
 
 ## Full Milestone Roadmap
 
@@ -139,6 +144,7 @@ Completed and active scope:
 - Documentation-before-closeout gate
 - Local operator workflow design
 - Registry and queue architecture design completed via Issue #77 and merged PR #78
+- Project registry schema design active via Issue #79
 - M2 reconciliation history through Issues #49, #57, #67, #69, #71, and closed Issue #75 via PR #76
 
 Current M2 boundary:
@@ -149,8 +155,8 @@ Current M2 boundary:
 
 Next substantive M2 design direction:
 
-- Use the completed registry and queue architecture deliverable to drive the next M2 design or implementation issue
-- Next likely issue: Define project registry schema
+- Complete `docs/architecture/PROJECT_REGISTRY_SCHEMA.md` as the current M2 design deliverable
+- Next likely issue: Define agent registry schema and lifecycle states
 
 ### M3 - Registry and Routing Architecture
 
@@ -408,7 +414,6 @@ The current M2 phase does not authorize the following:
 
 These are roadmap-driven recommendations only. They are not created issues.
 
-- Define project registry schema.
 - Define agent registry schema and lifecycle states.
 - Define model registry and local LLM routing rules.
 - Define queue registry and work item state transitions.
