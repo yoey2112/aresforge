@@ -173,3 +173,15 @@ Summary:
 
 
 Result: GitHub read operations for repository metadata, labels, milestones, issues, and workflow runs were validated from Ares.
+
+## Pull Request Metadata Evidence
+
+Captured during issue #1 validation.
+
+Pull request metadata read succeeded.
+
+Summary:
+
+{"baseRefName":"main","changedFiles":["docs/validation/GITHUB_CAPABILITY_VALIDATION.md"],"commitCount":1,"headRefName":"m0/issue-1-github-capability-validation","mergeable":"MERGEABLE","number":7,"reviewDecision":"","state":"OPEN","title":"Document GitHub capability validation for issue 1","url":"https://github.com/yoey2112/aresforge/pull/7"}
+
+Result: Pull request creation and metadata read access were validated from Ares.
