@@ -47,7 +47,9 @@ Human approval is required before creating issues, changing milestones, changing
 
 Review docs/roadmap/ROADMAP.md and docs/context/BUILD_STATE.md when issue planning affects milestone sequencing or active work. Review docs/prompts/CODEX_PROMPT_STANDARD.md for implementation prompt structure.
 
-When issue creation itself discovers reusable GitHub CLI, API, milestone, label, shell, or evidence-comment patterns, record those lessons in the relevant validation or skill documentation. Issue creation patterns should be captured for future automation reuse, but during M1 they remain advisory, manually executed, and human-reviewed.
+When issue creation itself discovers reusable GitHub CLI, API, milestone, label, shell, or evidence-comment patterns, record those lessons in the relevant validation, learning, or skill documentation. Issue creation patterns should be captured for future automation reuse, but during M1 they remain advisory, manually executed, and human-reviewed.
+
+Recurring planning or issue-creation failures should become entries in `docs/learning/ERROR_PATTERNS.md` when they could affect future prompts, issue evidence, GitHub operations, or validation expectations.
 
 ## Validation expectations
 
@@ -65,6 +67,7 @@ Report source docs reviewed, planning assumptions, proposed scope, non-scope, ac
 - docs/governance/SELF_MANAGEMENT_MODEL.md
 - docs/prompts/CODEX_PROMPT_STANDARD.md
 - docs/agents/AGENT_SKILLS_MODEL.md
+- docs/learning/ERROR_PATTERNS.md
 
 ## Lifecycle status
 

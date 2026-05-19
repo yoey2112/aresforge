@@ -57,6 +57,14 @@ AresForge should use the following loop to build itself:
 11. Let GitHub close linked issues only after merge.
 12. Update build state and handoff context for the next implementation session.
 
+## Self-Learning Error Pattern Loop
+
+AresForge should preserve repeatable operational lessons in `docs/learning/ERROR_PATTERNS.md`.
+
+When a human-guided session discovers a repeatable command failure, shell limitation, encoding issue, fragile workaround, or validation gap, the session should decide whether the lesson should be promoted from chat or command output into durable documentation. Confirmed lessons can guide future prompts, repo-owned skills, validation docs, governance updates, and future dashboard rule design.
+
+During M1, this loop is advisory and manual. Learning entries do not authorize automation, auto-merge, autonomous approval, autonomous issue closure, destructive automation, or autonomous command execution by themselves.
+
 ## Current M1 Operating Rules
 
 During M1:
@@ -69,6 +77,7 @@ During M1:
 - Agents may recommend work, but they must not autonomously merge, close issues, delete data, or enable destructive automation.
 - Temporary evidence folders such as tmp/ must not be committed unless explicitly required by an issue.
 - GitHub milestone number or ID should be preferred over milestone title matching in scripts and validation commands.
+- Repeatable error lessons should be captured in `docs/learning/ERROR_PATTERNS.md` when they affect future GitHub operations, prompts, skills, validation, or project-state updates.
 - Documentation must remain the durable project memory layer until the dashboard exists.
 
 M0 operating rules remain historical project context for the self-bootstrap foundation milestone. They do not override the current M1 focus on GitHub operations validation, but the same manual-review and autonomy limits continue to apply unless a later governance update explicitly changes them.

@@ -37,6 +37,8 @@ This skill covers routine repository collaboration tasks for AresForge. It does 
 
 ## Safe issue creation guidance for Windows PowerShell
 
+Before repeating a GitHub CLI, API, or Windows PowerShell pattern that previously failed, consult `docs/learning/ERROR_PATTERNS.md` for durable lessons and safer manual workarounds.
+
 When a human-approved task requires creating a GitHub issue during M1, use a conservative manual pattern that can be verified after each step:
 
 1. Resolve the target milestone through `gh api`.
@@ -56,6 +58,8 @@ Avoid relying on fragile `gh api --jq` expressions for milestone discovery in Wi
 
 Avoid direct JSON payload posting through temporary files unless encoding is intentionally controlled and verified. For routine issue creation, use `gh issue create` for the initial issue and an API-backed patch for milestone assignment.
 
+When a GitHub operation reveals a repeatable failure, shell limitation, encoding risk, or safer workaround, document the lesson in `docs/learning/ERROR_PATTERNS.md` or update an existing entry. During M1, these entries are advisory, manually reviewed, and do not authorize autonomous GitHub operations.
+
 ## Execution boundaries
 
 This skill is advisory and manually executed. It may guide commands that are already allowed by the active issue, but it is not a script, workflow, package, or autonomous GitHub operator.
@@ -66,7 +70,7 @@ Explicit human approval is required before changing repository visibility, permi
 
 ## Documentation impact
 
-Review docs/context/BUILD_STATE.md when GitHub work changes active issue, branch, PR, milestone, blockers, validation status, or next steps. Review docs/context/AGENT_CONTEXT.md and governance docs when GitHub operating rules change.
+Review docs/context/BUILD_STATE.md when GitHub work changes active issue, branch, PR, milestone, blockers, validation status, or next steps. Review docs/context/AGENT_CONTEXT.md, docs/learning/ERROR_PATTERNS.md, and governance docs when GitHub operating rules or repeatable error guidance change.
 
 ## Validation expectations
 
@@ -81,6 +85,7 @@ Report branch name, commit hash when created, PR URL when created, files changed
 - docs/context/PROJECT_CONTEXT.md
 - docs/context/AGENT_CONTEXT.md
 - docs/context/BUILD_STATE.md
+- docs/learning/ERROR_PATTERNS.md
 - docs/governance/SELF_MANAGEMENT_MODEL.md
 - docs/governance/PR_VALIDATION_MODEL.md
 - docs/prompts/CODEX_PROMPT_STANDARD.md

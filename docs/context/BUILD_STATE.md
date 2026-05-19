@@ -91,12 +91,16 @@ During M1, explicit human decisions and repository documentation take priority o
 
 ## In Progress
 
-- No active implementation issue is currently assigned after Issue #18 completion.
+- Issue #20 is the active M1 implementation issue:
+  - Title: Define repeatable error learning and prevention model
+  - Expected branch: m1/issue-20-error-learning-model
+  - Purpose: define self-learning and error-pattern documentation so repeatable command failures, encoding issues, and corrective guidance become durable project knowledge
+  - Seed evidence comment was added to issue #20 before implementation to capture the M1 failure patterns that motivated the work
 
 ## Next
 
-- Select the next M1 GitHub operations validation issue.
-- Continue validating repeatable GitHub-managed workflows using the documented GitHub operations and issue-planning skill guidance.
+- Open a draft PR for issue #20 after documentation updates and validation are complete.
+- Keep the issue open until a human-reviewed PR is merged with valid issue-closing language.
 
 ## Current Operating Constraint
 

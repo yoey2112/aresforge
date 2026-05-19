@@ -37,6 +37,8 @@ For M0 implementation work, agents should usually read:
 
 Agents must treat GitHub and repository documentation as the temporary source of truth until the AresForge dashboard exists. During M0, explicit human decisions and repository documentation take priority over AI-generated summaries or inferred automation behavior.
 
+For work that may repeat GitHub CLI, Windows PowerShell, encoding-sensitive, or operational state update patterns, agents should also review docs/learning/ERROR_PATTERNS.md and apply any relevant manual guidance. During M1, the learning document is advisory project memory and does not authorize automation.
+
 ## Required Prompt Sections
 
 Each implementation prompt should include:
@@ -63,6 +65,7 @@ Every prompt should tell the agent to:
 - Avoid unrelated changes.
 - Keep changes small, focused, and reviewable.
 - Preserve historical context unless the issue explicitly replaces it.
+- Consult documented error patterns before repeating known fragile command, shell, encoding, or operational state update patterns.
 - Respect the M0 constraint that all work is manually guided and manually reviewed.
 - Avoid destructive local commands unless explicitly approved by the human owner.
 - Avoid auto-merge, autonomous issue closure, or autonomous write operations outside the requested implementation work.
