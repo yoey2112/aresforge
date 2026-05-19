@@ -6,7 +6,7 @@ M1 — GitHub Operations Validation
 
 ## Current Goal
 
-Start M1 by creating the initial repo-owned `.agent` registry and draft skill scaffold for manually executed AresForge agent skills.
+Continue M1 by validating safe GitHub-managed workflows using repo-owned documentation, issues, milestones, labels, branches, pull requests, and human-reviewed evidence.
 
 ## Current Source of Truth
 
@@ -70,22 +70,24 @@ During M1, explicit human decisions and repository documentation take priority o
   - AGENT_CONTEXT.md updated to require future QA, Test, Documentation, and PR Scoring agents to use the PR validation model when evaluating implementation work
   - Future 90 percent auto-merge concept documented as future behavior only
   - Preserved the M0 constraint that no auto-merge, autonomous issue closure, or autonomous approval is enabled
-
-## In Progress
-
-- Issue #15 active M1 work:
-  - Create `.agent/AGENT_REGISTRY.md`
-  - Create the first draft skill files under `.agent/skills/`
-  - Keep all skills advisory, manually executed, and human-reviewed until future governance approves automation
 - Issue #8 completed via PR #14:
   - Defined the AresForge-native repo-owned markdown skills model
   - Evaluated external skill frameworks as optional inspiration or future adapters only
   - Linked the skill model to agent context, documentation agents, self-management governance, and PR validation expectations
   - Confirmed no external framework dependency, runnable skill automation, auto-merge, autonomous approval, or autonomous issue closure was introduced
+- Issue #15 completed via PR #16:
+  - Created `.agent/AGENT_REGISTRY.md`
+  - Created the first six draft skill files under `.agent/skills/`
+  - Updated BUILD_STATE.md, AGENT_CONTEXT.md, and AGENT_SKILLS_MODEL.md
+  - Kept all skills advisory, manually executed, and human-reviewed until future governance approves automation
+
+## In Progress
+
+- No active implementation issue is currently assigned after Issue #15 completion.
 
 ## Next
 
-- Complete Issue #15 through a human-reviewed PR.
+- Select the next M1 issue focused on GitHub operations validation.
 - Continue M1 GitHub operations validation work using GitHub plus repository documentation as the temporary source of truth.
 
 ## Current Operating Constraint
@@ -93,5 +95,3 @@ During M1, explicit human decisions and repository documentation take priority o
 All M1 changes are manually guided and manually reviewed.
 
 No destructive automation, auto-merge, or autonomous issue closure is enabled during M1.
-
-
