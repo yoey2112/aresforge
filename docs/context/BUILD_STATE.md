@@ -6,7 +6,7 @@ M0 — Self-Bootstrap Foundation
 
 ## Current Goal
 
-Create the new AresForge repo and define AresForge as its own first managed project.
+Complete the M0 self-bootstrap foundation by validating GitHub operations, Ollama review capability, documentation agents, self-project context, Codex prompt standards, and PR validation/scoring.
 
 ## Current Source of Truth
 
@@ -27,22 +27,31 @@ GitHub and repository documentation are the temporary source of truth until the 
   - #4 Create AresForge self-project context
   - #5 Create Codex prompt standard
   - #6 Define PR validation and scoring model
+- Issue #1 completed:
+  - PR #7 created, merged, and auto-closed issue #1
+  - GitHub capability validation documented at docs/validation/GITHUB_CAPABILITY_VALIDATION.md
+  - Confirmed GitHub CLI authentication scopes: gist, read:org, repo, workflow
+  - Confirmed repository metadata read access
+  - Confirmed label inventory read access
+  - Confirmed milestone inventory read access
+  - Confirmed issue read access
+  - Confirmed workflow run visibility command execution
+  - Confirmed branch creation, commit, push, pull request creation, pull request metadata read, PR merge, branch deletion, and issue auto-closure
 
 ## In Progress
 
 - M0 validation planning
-- GitHub capability validation
-- Ollama validation planning
+- Ollama GitHub operation review planning
 - Documentation agent definition
 - PR validation and scoring model definition
 
 ## Next
 
-- Begin issue #1: Validate GitHub capability operations
-- Document current GitHub CLI permissions
-- Validate milestone, issue, label, PR, workflow, artifact, and closure operations
-- Capture limitations around GitHub Projects or project-table permissions
-- Use Ollama to review GitHub operation evidence under issue #2
+- Begin issue #2: Validate Ollama GitHub operation review
+- Use Ollama to review the GitHub operation evidence captured under issue #1
+- Document local AI review findings
+- Capture any limitations in Ollama review quality, evidence parsing, or GitHub evidence interpretation
+- Continue defining documentation agent behavior under issue #3
 
 ## Current Operating Constraint
 
