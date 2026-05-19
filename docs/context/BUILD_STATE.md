@@ -10,7 +10,7 @@ Continue M1 by validating safe GitHub-managed workflows using repo-owned documen
 
 ## Current Active Issue
 
-- Issue #38 - Validate GitHub issue state lifecycle operations.
+- No active implementation issue is currently assigned after Issue #38 completion.
 
 ## Current Source of Truth
 
@@ -167,21 +167,27 @@ During M1, explicit human decisions and repository documentation take priority o
   - Added `M1-ERROR-010` for unsupported `gh release view --json isLatest` in GitHub CLI 2.92.0.
   - Updated GitHub operations skill with safe release and tag lifecycle guidance.
   - Confirmed no production releases, production tags, version-like production tags, repository settings, branch protection, repository rulesets, permissions, secrets, workflows, GitHub Projects, auto-merge, approvals, manual issue closure, or runnable automation were changed.
+- Issue #38 completed via PR #40:
+  - Documented repeatable GitHub issue state lifecycle validation.
+  - Created one isolated temporary validation issue, #39, titled `validation: issue-38-state-lifecycle`.
+  - Confirmed temporary issue #39 could be read, closed, verified closed, reopened, and verified open.
+  - Left temporary issue #39 open with no milestone and no labels for future auditability.
+  - Added final evidence comment to Issue #38.
+  - Updated GitHub operations skill with safe issue state lifecycle guidance.
+  - Confirmed Issue #38 was not manually closed and closed only through the reviewed PR merge.
+  - Confirmed no production, roadmap, milestone, or active implementation issue state was changed.
+  - Confirmed no repository settings, branch protection, repository rulesets, workflows, releases, tags, GitHub Projects, automation, auto-merge, approvals, or autonomous closure behavior were modified or enabled.
 
 ## In Progress
 
-- Issue #38 - Validate GitHub issue state lifecycle operations:
-  - Validate a repeatable, safe issue state lifecycle pattern using one isolated temporary validation issue.
-  - Confirm the temporary issue can be read, closed, verified closed, reopened, and verified open.
-  - Preserve evidence on Issue #38 and document the safe manual guidance for future AresForge issue state operations.
+- No active implementation issue is currently assigned after Issue #38 completion.
 
 ## Next
 
-- Complete Issue #38 through draft PR review and human-reviewed merge using the documented validation evidence.
+- Create the final M1 closeout issue to reconcile validation status, summarize remaining limits, and prepare the transition to M2.
 
 ## Current Operating Constraint
 
 All M1 changes are manually guided and manually reviewed.
 
 No runnable automation, auto-merge, autonomous approval, destructive automation, or autonomous issue closure is enabled during M1.
-
