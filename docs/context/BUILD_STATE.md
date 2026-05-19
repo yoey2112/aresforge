@@ -195,11 +195,16 @@ During M2 foundation work, explicit human decisions and repository documentation
   - Confirmed no runnable automation, workflow, auto-merge, autonomous approval, autonomous issue closure, repository setting change, branch protection change, ruleset change, secret change, release change, tag change, or GitHub Project change was introduced.
   - PR #44 merged successfully.
   - Issue #43 required manual closeout after merge because PR #44 did not auto-close the issue.
+- Issue #45 completed via PR #46:
+  - Created the M2 documentation freshness check model at docs/agents/DOCUMENTATION_FRESHNESS_CHECKS.md.
+  - Updated documentation-sync skill guidance so freshness checks run before documentation-sync work.
+  - Updated documentation agent, agent skills, agent context, build state, roadmap, and agent registry references.
+  - PR #46 merged successfully.
+  - Issue #45 required manual closeout after merge because PR #46 did not auto-close the issue.
+  - Confirmed no runnable automation, workflow, auto-merge, autonomous approval, autonomous issue closure, repository setting change, branch protection change, ruleset change, secret change, release change, tag change, or GitHub Project change was introduced.
 ## In Progress
 
-- Issue #45 is in progress on branch `m2/issue-45-documentation-freshness-check-model`.
-- The issue is defining the repeatable M2 documentation freshness check model and wiring it into documentation-sync guidance.
-
+- No active implementation issue is currently assigned after Issue #45 closeout.
 ## Next
 
 - Decide and create the next M2 implementation issue, likely focused on the local operator workflow that reduces manual copy/paste while preserving human-reviewed controls.

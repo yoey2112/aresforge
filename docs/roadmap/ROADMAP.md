@@ -49,13 +49,14 @@ Goal: Establish documentation agent rules, source-of-truth update flow, document
 
 Status: Active. Issue #43 completed the first M2 documentation agent foundation deliverable. Issue #45 completed the repeatable documentation freshness check model before documentation-sync work.
 
-Completed M2 foundation deliverable:
+Completed M2 foundation deliverables:
 
 - Issue #43: Create documentation agent foundation.
-
-Active M2 foundation deliverable:
-
 - Issue #45: Create documentation freshness check model.
+
+Next M2 focus:
+
+- Define the local operator workflow that reduces manual copy/paste while preserving human-reviewed controls.
 
 ## M3 — Agent Workflow Orchestration
 
