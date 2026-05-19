@@ -10,11 +10,7 @@ Continue M1 by validating safe GitHub-managed workflows using repo-owned documen
 
 ## Current Active Issue
 
-- Issue #30 - Validate GitHub project table access
-  - Branch: m1/issue-30-project-table-access-validation
-  - Draft PR: #31
-  - Status: In progress; read-only GitHub Project/table access validation documented and draft PR opened for human review.
-  - Current finding: repository project enablement and issue-level project item summaries are readable, but ProjectV2 lists, fields, views, and items are blocked until the token has `read:project`.
+- No active implementation issue is currently assigned after Issue #30 completion.
 
 ## Current Source of Truth
 
@@ -132,18 +128,24 @@ During M1, explicit human decisions and repository documentation take priority o
   - Documented the safer PowerShell pattern: read raw `gh api` JSON, parse with `ConvertFrom-Json`, then verify marker presence with PowerShell string methods.
   - Updated GitHub operations skill with issue comment lifecycle guidance.
   - Confirmed no comment deletion, production comment edit, runnable automation, auto-merge, autonomous approval, destructive automation, repository setting change, branch protection change, workflow change, or autonomous issue closure was introduced.
+
+- Issue #30 completed via PR #31:
+  - Documented read-only GitHub Project/table access validation.
+  - Confirmed repository project enablement is readable through repository metadata.
+  - Confirmed issue-level `projectItems` summary can be requested but returned no project items for Issue #30.
+  - Confirmed native `gh project` support is available.
+  - Confirmed ProjectV2 project lists, fields, views, and items are blocked until the current token has `read:project`.
+  - Updated GitHub operations skill with safe project/table read guidance.
+  - Confirmed no GitHub Project settings, fields, views, or items were modified.
+  - Confirmed no runnable automation, auto-merge, autonomous approval, destructive automation, repository setting change, branch protection change, workflow change, release/tag change, secret change, permission change, or autonomous issue closure was introduced.
 ## In Progress
 
-- Issue #30:
-  - Validated current GitHub CLI version, auth scopes, native `gh project` command availability, repository `has_projects` metadata, Issue #30 project item summary, and read-only REST/GraphQL limitations.
-  - Confirmed current token scopes are `gist`, `read:org`, `repo`, and `workflow`; `read:project` is not present.
-  - Confirmed `gh project list --owner yoey2112 --format json` and GraphQL ProjectV2 metadata reads are blocked by missing `read:project`.
-  - Confirmed no GitHub Project settings, fields, views, or items were modified.
+- No active implementation issue is currently assigned after Issue #30 completion.
 
 ## Next
 
-- Leave Issue #30 draft PR review, merge, approval, and issue closure to the human-reviewed process.
-- After Issue #30 is human-reviewed and merged, select the next M1 GitHub operations validation issue.
+- Select the next M1 GitHub operations validation issue.
+- Continue validating repeatable GitHub-managed workflows using the documented GitHub operations, issue-planning, build-state, and error-pattern guidance.
 
 ## Current Operating Constraint
 
