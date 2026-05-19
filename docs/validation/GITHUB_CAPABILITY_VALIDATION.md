@@ -1645,3 +1645,318 @@ It did not:
 - Approve, merge, or close pull requests.
 - Close Issue #34 manually.
 - Enable runnable automation, autonomous approval, autonomous issue closure, or destructive automation.
+
+## M1 GitHub Release And Tag Lifecycle Validation
+
+This section extends the M1 GitHub operations validation for release and tag lifecycle operations.
+
+This validation belongs to:
+
+- Milestone: M1 - GitHub Operations Validation
+- Milestone number: 2
+- Issue: #36 Validate GitHub release and tag lifecycle operations using GitHub operations skill
+- Phase: GitHub operations validation
+
+### Current M1 Safety Boundaries
+
+During M1, release and tag lifecycle validation is manually guided, manually reviewed, issue-scoped, and evidence-based.
+
+Allowed operations for this validation are limited to:
+
+- Reading existing release inventory.
+- Reading existing local and remote tag inventory.
+- Confirming no existing production releases or tags are present before validation.
+- Creating only the temporary validation tag `validation-issue-36-release-tag-lifecycle`.
+- Creating only the temporary validation release `Validation Issue 36 Release Lifecycle`.
+- Attaching the release only to `validation-issue-36-release-tag-lifecycle`.
+- Reading and verifying validation release metadata.
+- Reading and verifying validation tag metadata.
+- Deleting only the temporary validation release after verification.
+- Deleting only the temporary validation tag locally and remotely after verification.
+- Adding an evidence comment to Issue #36.
+- Opening a draft PR linked to Issue #36.
+
+This validation must not:
+
+- Create, modify, or delete production releases.
+- Create, modify, or delete production tags.
+- Create version-like production tags such as `v1.0.0`.
+- Alter branch protection, repository rulesets, settings, permissions, secrets, workflows, GitHub Projects, milestones, or labels.
+- Enable runnable automation.
+- Approve, auto-merge, merge, or close any pull request.
+- Close Issue #36 manually.
+- Modify unrelated files.
+
+### Commands Used
+
+Validation commands run from Windows PowerShell:
+
+```powershell
+git branch --show-current
+git status --short
+git log -1 --oneline
+gh auth status
+git pull --ff-only
+gh issue view 36 --repo yoey2112/aresforge --json number,title,state,labels,milestone,url
+gh release list --repo yoey2112/aresforge --limit 20
+git fetch --tags origin
+git tag --list
+git ls-remote --tags origin
+git tag validation-issue-36-release-tag-lifecycle
+git push origin validation-issue-36-release-tag-lifecycle
+$notes | gh release create validation-issue-36-release-tag-lifecycle --repo yoey2112/aresforge --title "Validation Issue 36 Release Lifecycle" --notes-file - --prerelease --latest=false
+gh release view validation-issue-36-release-tag-lifecycle --repo yoey2112/aresforge --json tagName,name,isDraft,isPrerelease,isLatest,url,createdAt,publishedAt
+gh release view validation-issue-36-release-tag-lifecycle --repo yoey2112/aresforge --json tagName,name,isDraft,isPrerelease,url,createdAt,publishedAt,targetCommitish
+git ls-remote --tags origin validation-issue-36-release-tag-lifecycle
+gh release list --repo yoey2112/aresforge --limit 20
+gh release delete validation-issue-36-release-tag-lifecycle --repo yoey2112/aresforge --yes
+git tag -d validation-issue-36-release-tag-lifecycle
+git push origin ":refs/tags/validation-issue-36-release-tag-lifecycle"
+gh release list --repo yoey2112/aresforge --limit 20
+git tag --list validation-issue-36-release-tag-lifecycle
+git ls-remote --tags origin validation-issue-36-release-tag-lifecycle
+```
+
+### Observed Results
+
+Local repository state after creating the issue branch:
+
+- Branch: `m1/issue-36-release-tag-lifecycle-validation`
+- Working tree: clean before documentation edits.
+- Latest baseline commit: `46db76d Repair build state issue 34 completion entry`
+
+GitHub CLI authentication:
+
+- Host: `github.com`
+- Account: `yoey2112`
+- Credential storage: keyring
+- Active account: true
+- Git operations protocol: https
+- Token scopes:
+  - `gist`
+  - `read:org`
+  - `repo`
+  - `workflow`
+
+Issue #36 read result:
+
+- Issue number: #36
+- State: `OPEN`
+- Milestone: `M1 - GitHub Operations Validation`
+- Milestone number: 2
+- Labels include `type: validation`, `phase: m1`, `agent: devops`, `risk: level-1`, and `evidence: required`.
+
+### Release Inventory Read Result
+
+The initial release inventory read succeeded:
+
+```powershell
+gh release list --repo yoey2112/aresforge --limit 20
+```
+
+Observed result: no releases were returned.
+
+This confirmed there were no existing production releases visible before the temporary validation release was created.
+
+### Tag Inventory Read Result
+
+The initial tag inventory reads succeeded:
+
+```powershell
+git fetch --tags origin
+git tag --list
+git ls-remote --tags origin
+```
+
+Observed result: no local tags and no remote tags were returned.
+
+This confirmed there were no existing production tags visible before the temporary validation tag was created.
+
+### Temporary Validation Tag Creation Pattern
+
+The validation tag must be created only after the issue branch documentation changes are committed:
+
+```powershell
+git tag validation-issue-36-release-tag-lifecycle
+git push origin validation-issue-36-release-tag-lifecycle
+```
+
+Expected evidence:
+
+- Only the tag `validation-issue-36-release-tag-lifecycle` is created.
+- The tag points to the current issue branch commit.
+- No version-like tag such as `v1.0.0` is created.
+- `git ls-remote --tags origin validation-issue-36-release-tag-lifecycle` returns the pushed validation tag.
+
+### Temporary Validation Release Creation Pattern
+
+The temporary validation release should be attached only to `validation-issue-36-release-tag-lifecycle`:
+
+```powershell
+$notes = @'
+Temporary M1 validation evidence for Issue #36.
+
+This prerelease validates release and tag lifecycle operations for AresForge and must be deleted before Issue #36 validation completes.
+'@
+$notes | gh release create validation-issue-36-release-tag-lifecycle --repo yoey2112/aresforge --title "Validation Issue 36 Release Lifecycle" --notes-file - --prerelease --latest=false
+```
+
+Expected evidence:
+
+- The release is named `Validation Issue 36 Release Lifecycle`.
+- The release tag is `validation-issue-36-release-tag-lifecycle`.
+- The release is marked prerelease.
+- The release is not marked latest when `--latest=false` is supported by the installed GitHub CLI.
+- The release notes clearly state that it is temporary M1 validation evidence for Issue #36.
+
+### Release Metadata Verification Pattern
+
+The initially requested release metadata command was:
+
+```powershell
+gh release view validation-issue-36-release-tag-lifecycle --repo yoey2112/aresforge --json tagName,name,isDraft,isPrerelease,isLatest,url,createdAt,publishedAt
+```
+
+In the installed GitHub CLI version, this failed because `isLatest` is not an available JSON field for `gh release view`. Use the supported-field fallback:
+
+```powershell
+gh release view validation-issue-36-release-tag-lifecycle --repo yoey2112/aresforge --json tagName,name,isDraft,isPrerelease,url,createdAt,publishedAt,targetCommitish
+```
+
+Expected evidence:
+
+- `tagName` is `validation-issue-36-release-tag-lifecycle`.
+- `name` is `Validation Issue 36 Release Lifecycle`.
+- `isDraft` is `false`.
+- `isPrerelease` is `true`.
+- `url`, `createdAt`, `publishedAt`, and `targetCommitish` are returned for audit evidence.
+- Latest-state intent is covered by release creation using `--latest=false`, but `gh release view --json` cannot verify `isLatest` directly in the current CLI.
+
+Observed supported-field result:
+
+```json
+{"createdAt":"2026-05-19T17:10:42Z","isDraft":false,"isPrerelease":true,"name":"Validation Issue 36 Release Lifecycle","publishedAt":"2026-05-19T17:11:02Z","tagName":"validation-issue-36-release-tag-lifecycle","targetCommitish":"main","url":"https://github.com/yoey2112/aresforge/releases/tag/validation-issue-36-release-tag-lifecycle"}
+```
+
+Observed human-readable result:
+
+```text
+title: Validation Issue 36 Release Lifecycle
+tag: validation-issue-36-release-tag-lifecycle
+draft: false
+prerelease: true
+immutable: false
+author: yoey2112
+created: 2026-05-19T17:10:42Z
+published: 2026-05-19T17:11:02Z
+url: https://github.com/yoey2112/aresforge/releases/tag/validation-issue-36-release-tag-lifecycle
+```
+
+### Tag Metadata Verification Pattern
+
+Verify the pushed remote tag with:
+
+```powershell
+git ls-remote --tags origin validation-issue-36-release-tag-lifecycle
+```
+
+Expected evidence:
+
+- The remote tag exists before cleanup.
+- The returned object ID matches the issue branch commit that was tagged.
+
+Observed remote tag result before cleanup:
+
+```text
+29e4b834ad390b5fefca92d42624c3409bf5a485 refs/tags/validation-issue-36-release-tag-lifecycle
+```
+
+Observed local tag result before cleanup:
+
+```text
+29e4b834ad390b5fefca92d42624c3409bf5a485 refs/tags/validation-issue-36-release-tag-lifecycle
+```
+
+### Cleanup Pattern
+
+Delete only the temporary validation release and temporary validation tag:
+
+```powershell
+gh release delete validation-issue-36-release-tag-lifecycle --repo yoey2112/aresforge --yes
+git tag -d validation-issue-36-release-tag-lifecycle
+git push origin ":refs/tags/validation-issue-36-release-tag-lifecycle"
+```
+
+After cleanup, verify:
+
+```powershell
+gh release list --repo yoey2112/aresforge --limit 20
+git tag --list validation-issue-36-release-tag-lifecycle
+git ls-remote --tags origin validation-issue-36-release-tag-lifecycle
+```
+
+Expected final evidence:
+
+- No releases are returned.
+- No local validation tag is returned.
+- No remote validation tag is returned.
+
+### Final Verified State
+
+Final verification after cleanup succeeded:
+
+```powershell
+gh release list --repo yoey2112/aresforge --limit 20
+git tag --list validation-issue-36-release-tag-lifecycle
+git ls-remote --tags origin validation-issue-36-release-tag-lifecycle
+```
+
+Observed result:
+
+- No releases were returned.
+- No local validation tag was returned.
+- No remote validation tag was returned.
+- The temporary validation release was deleted.
+- The temporary validation tag was deleted locally and remotely.
+- No production release or production tag was created, modified, or deleted.
+
+### Failed Or Fragile Approaches
+
+Reusable failure discovered:
+
+- `gh release view validation-issue-36-release-tag-lifecycle --repo yoey2112/aresforge --json tagName,name,isDraft,isPrerelease,isLatest,url,createdAt,publishedAt` failed because `isLatest` is not an available JSON field in GitHub CLI 2.92.0.
+- This is captured as `M1-ERROR-010` in `docs/learning/ERROR_PATTERNS.md`.
+
+Preferred workaround:
+
+- Keep `--latest=false` in the release creation command when supported.
+- Verify release metadata with supported `gh release view` fields such as `tagName`, `name`, `isDraft`, `isPrerelease`, `url`, `createdAt`, `publishedAt`, and `targetCommitish`.
+- Document that latest-state intent was set at creation time but cannot be directly verified through `gh release view --json isLatest` in the current CLI.
+
+### Future Automation Guidance
+
+Future release automation should start with read-only inventory checks and explicit safety gates:
+
+1. Confirm the active issue or approved release plan authorizes release/tag writes.
+2. Read existing releases and tags before creating anything.
+3. Refuse to create version-like production tags during validation issues.
+4. Use clearly issue-owned temporary validation names for lifecycle tests.
+5. Mark validation releases as prerelease and not latest when supported.
+6. Verify release metadata and tag metadata after creation with fields supported by the installed GitHub CLI.
+7. Delete only the exact issue-owned temporary release and tag during cleanup.
+8. Verify final absence of temporary release and tag before reporting success.
+9. Require separate human approval and release governance before any production release is published.
+
+Release and tag lifecycle commands must remain manually guided and manually reviewed during M1. This validation does not authorize release automation, production release publishing, or version tag creation.
+
+### M1 Safety Confirmation
+
+This validation introduces documentation and manual operating guidance only.
+
+It does not:
+
+- Create, modify, or delete production releases.
+- Create, modify, or delete production tags.
+- Create version-like production tags.
+- Change repository settings, permissions, secrets, workflows, branch protection, repository rulesets, GitHub Projects, milestones, labels, auto-merge settings, approvals, merges, or issue closure state.
+- Enable runnable automation, autonomous approval, autonomous issue closure, or destructive automation.

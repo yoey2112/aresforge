@@ -10,7 +10,9 @@ Continue M1 by validating safe GitHub-managed workflows using repo-owned documen
 
 ## Current Active Issue
 
-- No active implementation issue is currently assigned after Issue #34 completion.
+- Issue #36: Validate GitHub release and tag lifecycle operations using GitHub operations skill.
+- Branch: `m1/issue-36-release-tag-lifecycle-validation`.
+- Scope: Validate only the temporary release/tag lifecycle for `validation-issue-36-release-tag-lifecycle`, document safe manual commands, clean up the temporary release and tag, add issue evidence, and open a draft PR.
 
 ## Current Source of Truth
 
@@ -157,11 +159,17 @@ During M1, explicit human decisions and repository documentation take priority o
   - Confirmed no branch protection, repository rulesets, settings, permissions, secrets, workflows, releases, tags, GitHub Projects, auto-merge, approvals, merges, manual issue closure, or runnable automation were changed.
 ## In Progress
 
-- No active implementation issue is currently assigned after Issue #34 completion.
+- Issue #36 is in progress on branch `m1/issue-36-release-tag-lifecycle-validation`.
+- Initial release inventory read returned no releases.
+- Initial local and remote tag inventory reads returned no tags.
+- Validation is limited to the temporary tag `validation-issue-36-release-tag-lifecycle` and temporary release `Validation Issue 36 Release Lifecycle`.
+- Temporary release and tag creation, metadata reads, and cleanup were validated.
+- Final cleanup verification returned no releases, no local validation tag, and no remote validation tag.
+- Reusable GitHub CLI limitation found: `gh release view --json isLatest` is not supported in GitHub CLI 2.92.0; captured as `M1-ERROR-010`.
 
 ## Next
 
-- Select the next M1 GitHub operations validation issue.
+- Complete Issue #36 release/tag lifecycle validation, clean up the temporary validation release and tag, add evidence to Issue #36, and open a draft PR.
 
 ## Current Operating Constraint
 

@@ -210,6 +210,22 @@ During M1, learning propagation is manual and human-reviewed. A learning entry m
 | Update targets | `.agent/skills/github-operations/SKILL.md`, `docs/validation/GITHUB_CAPABILITY_VALIDATION.md`, `docs/context/BUILD_STATE.md`, future dashboard GitHub-operation rules. |
 | M1 boundary | Advisory/manual only; does not authorize comment automation. |
 
+### M1-ERROR-010: Unsupported `gh release view --json isLatest`
+
+| Field | Value |
+|---|---|
+| Status | Observed |
+| Area | GitHub CLI, release validation |
+| Summary | GitHub CLI 2.92.0 accepts `gh release create --latest=false`, but `gh release view --json isLatest` is not a supported metadata field. |
+| Observed fact | During Issue #36 validation, `gh release view validation-issue-36-release-tag-lifecycle --repo yoey2112/aresforge --json tagName,name,isDraft,isPrerelease,isLatest,url,createdAt,publishedAt` failed with `Unknown JSON field: "isLatest"` and listed the available fields. |
+| Suspected root cause | The installed GitHub CLI exposes latest-state control during release creation but does not expose an `isLatest` JSON field in the release view command surface. |
+| Confirmed root cause | Not confirmed beyond the observed GitHub CLI 2.92.0 command behavior. |
+| Workaround | Keep `--latest=false` in the release creation command when supported, then verify release metadata with supported fields such as `tagName`, `name`, `isDraft`, `isPrerelease`, `url`, `createdAt`, `publishedAt`, and `targetCommitish`. Document that direct latest-state verification is unavailable through `gh release view --json isLatest` in this CLI. |
+| Confirmed fix | None during M1. |
+| Verification expectation | Before requiring release JSON fields, check the installed CLI's available field list or run a supported-field query. Verify temporary release cleanup with `gh release list`, local tag lookup, and remote tag lookup. |
+| Update targets | `.agent/skills/github-operations/SKILL.md`, `docs/validation/GITHUB_CAPABILITY_VALIDATION.md`, `docs/context/BUILD_STATE.md`, future dashboard release-operation rules. |
+| M1 boundary | Advisory/manual only; does not authorize release automation or production release publishing. |
+
 ## M1 Boundary
 
 This document is a manual learning layer for M1. It may be cited by prompts, skills, validation evidence, governance docs, and future dashboard design notes, but it does not execute checks, repair files, update issues, approve PRs, merge work, close issues, or authorize future automation.
