@@ -10,7 +10,10 @@ Continue M1 by validating safe GitHub-managed workflows using repo-owned documen
 
 ## Current Active Issue
 
-- No active implementation issue is currently assigned after Issue #28 completion.
+- Issue #30 - Validate GitHub project table access
+  - Branch: m1/issue-30-project-table-access-validation
+  - Status: In progress; read-only GitHub Project/table access validation documented locally, draft PR pending.
+  - Current finding: repository project enablement and issue-level project item summaries are readable, but ProjectV2 lists, fields, views, and items are blocked until the token has `read:project`.
 
 ## Current Source of Truth
 
@@ -130,12 +133,16 @@ During M1, explicit human decisions and repository documentation take priority o
   - Confirmed no comment deletion, production comment edit, runnable automation, auto-merge, autonomous approval, destructive automation, repository setting change, branch protection change, workflow change, or autonomous issue closure was introduced.
 ## In Progress
 
-- No active implementation issue is currently assigned after Issue #28 completion.
+- Issue #30:
+  - Validated current GitHub CLI version, auth scopes, native `gh project` command availability, repository `has_projects` metadata, Issue #30 project item summary, and read-only REST/GraphQL limitations.
+  - Confirmed current token scopes are `gist`, `read:org`, `repo`, and `workflow`; `read:project` is not present.
+  - Confirmed `gh project list --owner yoey2112 --format json` and GraphQL ProjectV2 metadata reads are blocked by missing `read:project`.
+  - Confirmed no GitHub Project settings, fields, views, or items were modified.
 
 ## Next
 
-- Select the next M1 GitHub operations validation issue.
-- Continue validating repeatable GitHub-managed workflows using the documented GitHub operations, issue-planning, build-state, and error-pattern guidance.
+- Create the draft PR for Issue #30 and leave merge, approval, and issue closure to the human-reviewed process.
+- After Issue #30 is human-reviewed and merged, select the next M1 GitHub operations validation issue.
 
 ## Current Operating Constraint
 

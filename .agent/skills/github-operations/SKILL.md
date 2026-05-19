@@ -272,6 +272,43 @@ After any update, run another explicit API read and verify:
 
 Do not delete issue comments during M1 unless a separate human-approved issue or explicit human approval authorizes deletion. Treat comment deletion as destructive because it can remove review evidence, historical decisions, and audit context.
 
+## Safe GitHub Project/table read guidance
+
+Before relying on GitHub Projects v2 data, confirm that the current token has the required project read scope:
+
+```powershell
+gh auth status
+```
+
+For the current AresForge environment, native `gh project` support is available, but project table metadata requires `read:project`. If `read:project` is missing, `gh project list --owner <owner> --format json` and GraphQL ProjectV2 queries can fail before any project number, fields, views, or items are returned.
+
+Preferred read-only discovery pattern after `read:project` is available:
+
+```powershell
+gh project list --owner <owner> --format json
+```
+
+Then parse the returned JSON with PowerShell instead of using fragile shell-quoted jq expressions:
+
+```powershell
+$projectJson = gh project list --owner <owner> --format json
+$projects = $projectJson | ConvertFrom-Json
+```
+
+After a project number is known, use read-only commands for project metadata:
+
+```powershell
+gh project view <project-number> --owner <owner> --format json
+gh project field-list <project-number> --owner <owner> --format json
+gh project item-list <project-number> --owner <owner> --format json
+```
+
+For GraphQL reads, place the query in a PowerShell here-string, pass variables with `-F`, and parse successful raw JSON with `ConvertFrom-Json`. Avoid `gh api --jq` for complex ProjectV2 reads unless quoting has been separately verified.
+
+`gh issue view <issue-number> --json projectItems` can provide an issue-level project item summary, but an empty result does not prove project table access. Treat full project list, field, view, and item reads as blocked until `read:project` exists.
+
+Do not create, edit, archive, delete, link, or unlink projects, fields, views, or project items during M1 unless a later human-approved issue explicitly authorizes that write. Future dashboard sync should start as read-only and should include a preflight check for `read:project`.
+
 ## Execution boundaries
 
 This skill is advisory and manually executed. It may guide commands that are already allowed by the active issue, but it is not a script, workflow, package, or autonomous GitHub operator.
