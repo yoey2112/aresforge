@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-M1 â€” GitHub Operations Validation
+M1 Ã¢â‚¬â€ GitHub Operations Validation
 
 ## Current Goal
 
@@ -20,7 +20,7 @@ During M1, explicit human decisions and repository documentation take priority o
 - Repository cloned locally to: C:\Projects\aresforge
 - Baseline document-driven structure created
 - Initial self-project context docs created
-- M0 milestone created: M0 â€” Self-Bootstrap Foundation
+- M0 milestone created: M0 Ã¢â‚¬â€ Self-Bootstrap Foundation
 - Baseline GitHub labels created
 - First six M0 issues created and assigned to the M0 milestone:
   - #1 Validate GitHub capability operations
