@@ -2,17 +2,17 @@
 
 ## Current Phase
 
-M0 — Self-Bootstrap Foundation
+M1 — GitHub Operations Validation
 
 ## Current Goal
 
-Complete the M0 self-bootstrap foundation by validating GitHub operations, Ollama review capability, documentation agents, self-project context, Codex prompt standards, and PR validation/scoring.
+Start M1 by creating the initial repo-owned `.agent` registry and draft skill scaffold for manually executed AresForge agent skills.
 
 ## Current Source of Truth
 
 GitHub and repository documentation are the temporary source of truth until the AresForge dashboard exists.
 
-During M0, explicit human decisions and repository documentation take priority over AI-generated summaries or inferred automation behavior.
+During M1, explicit human decisions and repository documentation take priority over AI-generated summaries or inferred automation behavior.
 
 ## Completed
 
@@ -64,7 +64,7 @@ During M0, explicit human decisions and repository documentation take priority o
   - Required implementation prompt sections, safety constraints, documentation requirements, validation evidence, PR evidence, naming expectations, source-of-truth reading rules, unrelated-change rules, human escalation rules, and owner evidence reporting rules documented
   - AGENT_CONTEXT.md updated to require Codex implementation agents to follow the prompt standard
   - Preserved the M0 constraint that implementation work remains manually guided and manually reviewed
-- Issue #6 completed by this PR:
+- Issue #6 completed:
   - PR validation and scoring model expanded at docs/governance/PR_VALIDATION_MODEL.md
   - Required validation agents, agent responsibilities, scoring categories, suggested scoring scale, evidence requirements, risk handling, safeguards, escalation rules, and merge-readiness decision states documented
   - AGENT_CONTEXT.md updated to require future QA, Test, Documentation, and PR Scoring agents to use the PR validation model when evaluating implementation work
@@ -73,7 +73,10 @@ During M0, explicit human decisions and repository documentation take priority o
 
 ## In Progress
 
-- Human review of the Issue #6 PR validation and scoring model PR
+- Issue #15 active M1 work:
+  - Create `.agent/AGENT_REGISTRY.md`
+  - Create the first draft skill files under `.agent/skills/`
+  - Keep all skills advisory, manually executed, and human-reviewed until future governance approves automation
 - Issue #8 completed via PR #14:
   - Defined the AresForge-native repo-owned markdown skills model
   - Evaluated external skill frameworks as optional inspiration or future adapters only
@@ -82,13 +85,13 @@ During M0, explicit human decisions and repository documentation take priority o
 
 ## Next
 
-- Review and merge the Issue #6 PR after human approval
-- M0 self-bootstrap foundation documentation is complete across issues #1-#6 and #8
+- Complete Issue #15 through a human-reviewed PR.
+- Continue M1 GitHub operations validation work using GitHub plus repository documentation as the temporary source of truth.
 
 ## Current Operating Constraint
 
-All M0 changes are manually guided and manually reviewed.
+All M1 changes are manually guided and manually reviewed.
 
-No destructive automation, auto-merge, or autonomous issue closure is enabled during M0.
+No destructive automation, auto-merge, or autonomous issue closure is enabled during M1.
 
 

@@ -6,13 +6,13 @@ This document defines how AresForge should represent reusable agent skills insid
 
 The model exists so future human-guided agents, documentation agents, local AI reviewers, PR validation agents, and the future AresForge dashboard can reuse project-specific operating instructions without depending on an external agent framework.
 
-During M0, this is a documentation model only. It does not create runnable skills, agent automation, auto-merge, autonomous issue closure, or autonomous approval.
+During M0 and M1, this is a documentation model only. It does not create runnable skills, agent automation, auto-merge, autonomous issue closure, or autonomous approval.
 
 ## Decision Summary
 
 AresForge will define its own repo-owned markdown skill model first.
 
-External skill frameworks may be used as references, inspiration, or future adapter targets, but they are not required to build, review, or operate AresForge during M0.
+External skill frameworks may be used as references, inspiration, or future adapter targets, but they are not required to build, review, or operate AresForge during M0 or M1.
 
 The canonical AresForge skill format is a reviewable markdown file stored in the repository. Each skill must describe its purpose, scope, required inputs, execution boundaries, human approval boundaries, documentation impact, validation expectations, and evidence requirements.
 
@@ -56,11 +56,11 @@ Every AresForge skill should include:
 | Related docs | Links to source-of-truth docs that govern the skill. |
 | Lifecycle status | Draft, active, deprecated, or archived. |
 
-During M0, all skills should be treated as advisory and manually executed unless a later human-approved issue changes that boundary.
+During M0 and M1, all skills should be treated as advisory and manually executed unless a later human-approved issue changes that boundary.
 
-## Recommended Repo Structure
+## Repo Structure
 
-The future repo-owned skill structure should be:
+The initial draft repo-owned skill structure is:
 
 - .agent/
   - AGENT_REGISTRY.md
@@ -78,7 +78,7 @@ The future repo-owned skill structure should be:
     - build-state-update/
       - SKILL.md
 
-This issue documents the model only. The `.agent` folder should not be created until a future issue approves the first concrete skill definitions and review workflow.
+The `.agent` folder is a documentation scaffold only. Draft skill files are advisory and manually executed until future governance explicitly approves a different execution model.
 
 ## Initial Proposed Skill Set
 
@@ -108,7 +108,7 @@ Skill changes should be made through normal branch and PR review. Material chang
 
 ## Skill Execution Boundaries
 
-During M0:
+During M0 and M1:
 
 - Skills are markdown guidance, not autonomous services.
 - A human-guided agent session may follow a skill manually.
@@ -160,7 +160,7 @@ Expected evidence includes:
 - Documentation impact summary.
 - Commands or checks run for the PR.
 
-For M0 documentation-only skill work, a diff review, `git diff --check`, `git status --short`, and issue-specific documentation scans are usually sufficient.
+For M0 and M1 documentation-only skill work, a diff review, `git diff --check`, `git status --short`, and issue-specific documentation scans are usually sufficient.
 
 ## External Framework Evaluation
 
@@ -267,10 +267,10 @@ Risks:
 - Inconsistent execution if skills do not define inputs, outputs, boundaries, and evidence.
 - Governance drift if skills quietly expand agent authority.
 
-Limitations during M0:
+Limitations during M0 and M1:
 
 - No skill execution engine exists.
-- No `.agent` registry exists yet.
+- The `.agent` registry exists as draft documentation only.
 - No automated skill validation exists.
 - Skills are not merge gates, approval mechanisms, or autonomous agents.
 - Human review remains required for all PRs and governance-relevant decisions.
@@ -279,7 +279,7 @@ Limitations during M0:
 
 AresForge should adopt repo-owned markdown skills as the canonical reusable agent skills model.
 
-The next implementation step should be a future issue that creates the `.agent` structure, defines `AGENT_REGISTRY.md`, and adds the first small set of draft `SKILL.md` files. That future issue should remain documentation-first unless governance explicitly approves runnable automation.
+The next implementation step after the draft scaffold is human review of the registry and skill files, followed by focused updates through normal issues and pull requests as the skill model matures.
 
 ## Future Adapter Strategy
 
