@@ -20,6 +20,7 @@ Continue the M2 runtime foundation by extending human-triggered local operator s
 - `validate-registries`, `inspect-queue --write-artifact`, `inspect-work-item --write-artifact`, and `list-models` are available on `main`
 - `inspect-model` is available on `main`
 - `inspect-registries` is available on `main`
+- `list-artifacts` is available on `main`
 - Issue #95 was completed through PR #96 and is merged `main` behavior
 - Issue #97 was completed through PR #98 and is merged `main` behavior
 - Issue #75 remains the last routine reconciliation issue
@@ -65,6 +66,7 @@ The current human-triggered local operator foundation supports:
 - deterministic read-only local registry and lifecycle source inspection through `inspect-registries`
 - read-only queue and work-item inspection
 - read-only inspection report artifact generation through `inspect-queue --write-artifact` and `inspect-work-item --write-artifact`
+- deterministic read-only generated artifact discovery through `list-artifacts`
 - a human-triggered phase-based PR lifecycle helper for explicit validation, staging, commit and push, PR creation, PR verification, merge verification, post-merge verification, and source-of-truth scanning
 - prompt package, evidence package, and Codex handoff artifact preparation
 - bounded local Ollama connectivity and dry-run support
@@ -81,6 +83,7 @@ The current M2 implementation does allow:
 - read-only project inspection from local seeded project rows
 - visible human-triggered PR lifecycle helper phases selected one at a time
 - local artifact generation for review
+- local artifact discovery for review
 - bounded local model inspection, listing, and Ollama dry-run checks
 - bounded local model inspection, listing, and Ollama dry-run checks without autonomous selection or routing
 

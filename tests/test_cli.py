@@ -6,7 +6,12 @@ import pytest
 
 from aresforge.artifacts.store import ArtifactBundle
 from aresforge import cli
-from aresforge.cli import build_parser, parse_metadata, parse_metadata_pairs
+from aresforge.cli import (
+    build_parser,
+    command_requires_directories,
+    parse_metadata,
+    parse_metadata_pairs,
+)
 from aresforge.validation import ValidationFinding, ValidationReport
 
 
@@ -20,6 +25,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-project-state",
         "inspect-project",
         "inspect-registries",
+        "list-artifacts",
         "inspect-model",
         "inspect-queue",
         "inspect-work-item",
@@ -80,6 +86,8 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     assert inspect_project_args.project_id == "project-aresforge"
     inspect_registries_args = parser.parse_args(["inspect-registries"])
     assert inspect_registries_args.command == "inspect-registries"
+    list_artifacts_args = parser.parse_args(["list-artifacts"])
+    assert list_artifacts_args.command == "list-artifacts"
 
     inspect_model_args = parser.parse_args(["inspect-model", "--model-id", "model-ollama-default"])
     assert inspect_model_args.model_id == "model-ollama-default"
@@ -121,6 +129,31 @@ def test_cli_inspection_commands_accept_write_artifact_flag() -> None:
         ["inspect-work-item", "--work-item-id", "work-123", "--write-artifact"]
     )
     assert inspect_work_item_args.write_artifact is True
+
+
+def test_command_requires_directories_only_for_commands_that_write_artifacts() -> None:
+    parser = build_parser()
+
+    assert command_requires_directories(parser.parse_args(["validate-config"])) is True
+    assert (
+        command_requires_directories(
+            parser.parse_args(["generate-prompt-package", "--title", "Prompt", "--objective", "Goal"])
+        )
+        is True
+    )
+    assert (
+        command_requires_directories(
+            parser.parse_args(["inspect-queue", "--queue-id", "queue-implementation"])
+        )
+        is False
+    )
+    assert (
+        command_requires_directories(
+            parser.parse_args(["inspect-queue", "--queue-id", "queue-implementation", "--write-artifact"])
+        )
+        is True
+    )
+    assert command_requires_directories(parser.parse_args(["list-artifacts"])) is False
 
 
 def test_validate_registries_command_emits_ok_json_and_zero_exit(
@@ -356,6 +389,63 @@ def test_inspect_registries_is_read_only_dispatch(
 
     assert exit_code == 0
     assert payload["ok"] is True
+
+
+def test_list_artifacts_emits_json_and_skips_directory_creation(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    discovery_payload = {
+        "ok": True,
+        "inspection_mode": "local_artifact_root_only",
+        "artifact_root": "C:/Projects/aresforge/artifacts",
+        "artifact_root_exists": False,
+        "artifact_count": 0,
+        "artifacts": [],
+    }
+    ensure_calls: list[bool] = []
+
+    monkeypatch.setattr(
+        cli,
+        "discover_local_artifacts",
+        lambda _config: discovery_payload,
+    )
+    monkeypatch.setattr(
+        cli.AppConfig,
+        "ensure_directories",
+        lambda _self: ensure_calls.append(True),
+    )
+    monkeypatch.setattr(
+        cli,
+        "connect",
+        lambda *_args, **_kwargs: pytest.fail("list-artifacts must not connect to PostgreSQL"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "test_generate",
+        lambda *_args, **_kwargs: pytest.fail("list-artifacts must not call Ollama"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "create_work_item",
+        lambda *_args, **_kwargs: pytest.fail("list-artifacts must not create work items"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "build_route_plan",
+        lambda *_args, **_kwargs: pytest.fail("list-artifacts must not route work"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "bootstrap_reference_data",
+        lambda *_args, **_kwargs: pytest.fail("list-artifacts must not bootstrap state"),
+    )
+
+    exit_code = cli.main(["list-artifacts"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert ensure_calls == []
+    assert payload == discovery_payload
 
 
 def test_list_models_emits_valid_json_without_ollama(

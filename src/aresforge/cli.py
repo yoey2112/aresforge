@@ -30,6 +30,7 @@ from aresforge.db.repository import (
     WorkItemCreate,
 )
 from aresforge.integrations.ollama import test_generate
+from aresforge.operator.artifact_discovery import discover_local_artifacts
 from aresforge.operator.inspection_reports import (
     render_queue_inspection_report,
     render_work_item_inspection_report,
@@ -69,6 +70,10 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser(
         "inspect-registries",
         help="Summarize documented local registry and lifecycle sources in the repo.",
+    )
+    subparsers.add_parser(
+        "list-artifacts",
+        help="Summarize generated local artifacts under the configured artifact root.",
     )
     subparsers.add_parser("list-projects", help="List registered projects.")
     subparsers.add_parser("list-agents", help="List registered agent roles.")
@@ -196,11 +201,26 @@ def parse_metadata_pairs(items: list[str]) -> dict[str, str]:
     return parsed
 
 
+def command_requires_directories(args: argparse.Namespace) -> bool:
+    if args.command == "validate-config":
+        return True
+    if args.command in (
+        "generate-prompt-package",
+        "record-evidence-package",
+        "prepare-codex-handoff",
+    ):
+        return True
+    if args.command in ("inspect-queue", "inspect-work-item"):
+        return bool(getattr(args, "write_artifact", False))
+    return False
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     config = AppConfig.from_env()
-    config.ensure_directories()
+    if command_requires_directories(args):
+        config.ensure_directories()
 
     if args.command == "validate-config":
         errors = config.validate()
@@ -251,6 +271,10 @@ def main(argv: list[str] | None = None) -> int:
         payload = inspect_local_registries(config.repo_root)
         emit_json(payload)
         return 0 if payload["ok"] else 1
+
+    if args.command == "list-artifacts":
+        emit_json(discover_local_artifacts(config))
+        return 0
 
     if args.command == "list-projects":
         with connect(config) as conn:
