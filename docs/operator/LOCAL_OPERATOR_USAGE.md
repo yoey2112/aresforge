@@ -28,6 +28,14 @@ python -m aresforge validate-config
 
 This checks local config shape and ensures artifact directories exist.
 
+Validate registry seed data without requiring PostgreSQL:
+
+```powershell
+python -m aresforge validate-registries
+```
+
+This command is read-only and local-only. It emits JSON with `ok` and structured `findings`, returns exit code `0` when validation passes, and returns exit code `1` when any finding has `error` severity. It does not transition queues, mutate routing, or perform GitHub-state-changing behavior.
+
 ## Database Commands
 
 See pending migrations:
@@ -62,11 +70,17 @@ Inspect one queue with registry-aware metadata expansion:
 python -m aresforge inspect-queue --queue-id queue-implementation
 ```
 
+Write local inspection report artifacts while preserving JSON output:
+
+```powershell
+python -m aresforge inspect-queue --queue-id queue-implementation --write-artifact
+```
+
 `list-agents` is read-only. It shows the seeded M2 agent-role records that align the local skeleton with the canonical schema in `docs/architecture/AGENT_REGISTRY_SCHEMA.md`.
 
 The current CLI does not yet expose a dedicated `list-models` command. Model metadata is presently visible through `inspect-project-state`, the configured `.env` values, and the seeded local `models` table described in `docs/architecture/LOCAL_STATE_STORE.md`.
 
-`inspect-queue` is read-only. It emits JSON that expands queue metadata into registry-aware fields such as lifecycle-stage mapping, accepted work-item types, allowed next queues, human approval requirements, local operator visibility expectations, and the source document path.
+`inspect-queue` is read-only and local-only. It emits JSON that expands queue metadata into registry-aware fields such as lifecycle-stage mapping, accepted work-item types, allowed next queues, human approval requirements, local operator visibility expectations, and the source document path. With `--write-artifact`, it still emits JSON and additionally includes `inspection_payload`, `markdown_path`, and `json_path` for a local report written under `artifacts/inspection_reports/generated/`.
 
 The current CLI still does not expose queue-transition commands or autonomous routing behavior. Canonical queue meaning, full M2 queue coverage, transition rules, blocked handling, corrective loops, and work-item state fields are defined by `docs/architecture/QUEUE_REGISTRY_SCHEMA.md`.
 
@@ -93,7 +107,13 @@ Inspect one work item with registry-aware queue, agent, and model context:
 python -m aresforge inspect-work-item --work-item-id work-123
 ```
 
-The current runtime can create and list work items against the seeded canonical M2 queue set. `inspect-work-item` is read-only and emits JSON that combines the work item with queue metadata, optional agent/model references, and work-item metadata fields such as lifecycle state, approval state, blocked reason, failure reason, and retry or correction context when present.
+Write local inspection report artifacts while preserving JSON output:
+
+```powershell
+python -m aresforge inspect-work-item --work-item-id work-123 --write-artifact
+```
+
+The current runtime can create and list work items against the seeded canonical M2 queue set. `inspect-work-item` is read-only and local-only. It emits JSON that combines the work item with queue metadata, optional agent/model references, and work-item metadata fields such as lifecycle state, approval state, blocked reason, failure reason, and retry or correction context when present. With `--write-artifact`, it still emits JSON and additionally includes `inspection_payload`, `markdown_path`, and `json_path` for a local report written under `artifacts/inspection_reports/generated/`.
 
 These inspection commands do not transition queues, mutate routing, approve anything, merge anything, close anything, or change GitHub state. Issue #39 remains protected and must not be modified or closed by this operator surface.
 
@@ -147,6 +167,7 @@ Recommended local validation sequence:
 python -m pytest
 python -m aresforge --help
 python -m aresforge validate-config
+python -m aresforge validate-registries
 python -m aresforge migrate --plan
 git diff --check
 git diff --cached --check

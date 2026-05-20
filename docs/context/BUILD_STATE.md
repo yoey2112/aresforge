@@ -11,9 +11,13 @@ Carry the runnable local skeleton, queue-registry schema, and work-item state-tr
 ## Current Repository State
 
 - Main branch latest merged state: `e2bbe85` (`Define model registry schema and routing rules (#85) (#86)`).
+- Current working branch: `m2/overnight-registry-inspection-stack`.
+- Current branch work is unmerged and preparing for human review. It must not be described as completed `main` behavior until a later reviewed merge lands.
 - Issue #81, `Build runnable local skeleton and automation foundation`, is completed through PR #82.
 - Issue #83, `Define agent registry schema and lifecycle states`, is completed and remains the canonical agent-registry schema layer.
 - Issue #85, `Define model registry and local LLM routing rules`, is completed through PR #86.
+- Issue #92, `read-only registry validation module`, and Issue #93, `local inspection report artifacts`, are implemented on this branch as local-only, human-triggered, read-only review surfaces and remain unmerged branch work pending human review.
+- The branch command-surface expansion includes `validate-registries` plus optional `--write-artifact` flags on `inspect-queue` and `inspect-work-item`.
 - `docs/architecture/REGISTRY_AND_QUEUE_ARCHITECTURE.md` remains the canonical registry and queue architecture artifact.
 - `docs/architecture/PROJECT_REGISTRY_SCHEMA.md` remains the canonical project registry schema artifact.
 - `docs/architecture/AGENT_REGISTRY_SCHEMA.md` is the canonical agent registry schema artifact.
@@ -374,7 +378,11 @@ Repository documentation remains the authoritative source for roadmap, governanc
   - `docs/architecture/MODEL_REGISTRY_SCHEMA.md`
 - The queue-registry and work-item state-transition work now adds:
   - `docs/architecture/QUEUE_REGISTRY_SCHEMA.md`
-- The local operator now also includes read-only registry-aware queue and work-item inspection commands that expose richer queue and metadata interpretation without queue transitions or GitHub-state-changing behavior.
+- The current branch now also includes review-ready local operator additions for read-only registry validation and inspection reporting:
+  - `validate-registries`
+  - `inspect-queue --write-artifact`
+  - `inspect-work-item --write-artifact`
+- These branch-only additions are local-only, human-triggered, read-only, non-authoritative helper surfaces. They do not transition queues, mutate routing, autonomously route work, approve anything, merge anything, close anything, or perform GitHub-state-changing behavior.
 - Future project-state-changing issues must continue updating source-of-truth docs before PR merge and issue closeout.
 - Issue #75 remains the last routine reconciliation issue.
 - Separate reconciliation or documentation-update issues remain the exception path only.
@@ -385,7 +393,9 @@ Repository documentation remains the authoritative source for roadmap, governanc
 
 - Preserve Issue #39 as the only remaining open protected validation issue unless a future human-directed issue explicitly changes its state.
 - Use the new canonical queue schema to guide later work-item state enrichment and registry-aware operator inspection on top of the now-aligned local queue seed set.
-- Keep registry-aware queue and work-item inspection read-only, human-triggered, and non-authoritative while later operator inspection evolves.
+- Take the branch-only Issue #92 and Issue #93 stack through human review before describing it as merged repository state.
+- Keep registry validation, queue inspection, work-item inspection, and local inspection-report artifacts read-only, local-only, human-triggered, and non-authoritative while later operator inspection evolves.
+- Keep queue transitions, autonomous routing, autonomous GitHub-state-changing behavior, and any GitHub-state-changing behavior out of scope for this branch stack.
 - Validate and iterate on the local operator CLI, migration flow, local artifact outputs, and registry seed or listing behavior created by Issues #81, #83, #85, and #87.
 - Keep documentation freshness checks required before future documentation-sync work.
 - Use the new runnable skeleton docs when extending the local operator:
@@ -407,6 +417,6 @@ Repository documentation remains the authoritative source for roadmap, governanc
 
 All current M2 runnable-skeleton changes remain manually guided, human-triggered, and manually reviewed.
 
-Human-triggered local automation is allowed for config validation, local migrations, local state inspection, read-only registry listing, local artifact generation, local Ollama checks, and advisory model-selection reasoning that remains reviewable and non-governance-authoritative.
+Human-triggered local automation is allowed for config validation, local migrations, local state inspection, read-only registry listing, read-only registry validation, local inspection-report artifact generation, local artifact generation, local Ollama checks, and advisory model-selection reasoning that remains reviewable and non-governance-authoritative.
 
-No autonomous PR merge, autonomous approval, autonomous issue closure, autonomous GitHub-state-changing behavior, repository setting change, branch protection change, ruleset change, secret change, release change, tag change, hosted external model call, or GitHub Project change is enabled by Issues #81, #83, #85, or #87.
+No queue transitions, autonomous routing, autonomous PR merge, autonomous approval, autonomous issue closure, autonomous GitHub-state-changing behavior, repository setting change, branch protection change, ruleset change, secret change, release change, tag change, hosted external model call, or GitHub Project change is enabled by this branch stack or by Issues #81, #83, #85, or #87.

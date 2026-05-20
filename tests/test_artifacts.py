@@ -1,7 +1,12 @@
+import json
 from pathlib import Path
 
 from aresforge.artifacts.store import write_markdown_json_bundle
 from aresforge.config import AppConfig
+from aresforge.operator.inspection_reports import (
+    render_queue_inspection_report,
+    render_work_item_inspection_report,
+)
 from aresforge.operator.service import (
     render_codex_handoff,
     render_evidence_package,
@@ -76,3 +81,91 @@ def test_prompt_evidence_and_handoff_renderers(tmp_path: Path) -> None:
     assert prompt.markdown_path.exists()
     assert evidence.json_path.exists()
     assert handoff.markdown_path.read_text(encoding="utf-8").startswith("# Codex Handoff")
+
+
+def test_queue_inspection_report_renderer_writes_markdown_and_json(tmp_path: Path) -> None:
+    config = make_config(tmp_path)
+    inspection_payload = {
+        "id": "queue-verification",
+        "name": "verification",
+        "status": "active",
+        "purpose": "Confirm that implementation matches scope.",
+        "lifecycle_stage_mapping": "verification",
+        "accepted_work_item_types": ["github_issue", "verification_pass"],
+        "allowed_next_queues": ["queue-testing", "queue-corrective", "queue-blocked"],
+        "human_approval_requirement": "human_review_required",
+        "local_operator_visibility_expectations": [
+            "visible findings",
+            "pass/fail posture",
+        ],
+        "source_document": "docs/architecture/QUEUE_REGISTRY_SCHEMA.md",
+        "metadata": {
+            "registry_version": "m2-v1",
+            "notes": "Fixture payload for report rendering.",
+        },
+    }
+
+    bundle = render_queue_inspection_report(
+        config=config,
+        inspection_payload=inspection_payload,
+    )
+
+    assert bundle.markdown_path.exists()
+    assert bundle.json_path.exists()
+    assert bundle.markdown_path.read_text(encoding="utf-8").startswith("# Queue Inspection Report")
+
+    json_payload = json.loads(bundle.json_path.read_text(encoding="utf-8"))
+    assert json_payload["inspection_payload"] == inspection_payload
+    assert json_payload["report_metadata"]["report_type"] == "queue_inspection"
+    assert json_payload["report_metadata"]["queue_id"] == "queue-verification"
+    assert bundle.payload == json_payload
+
+
+def test_work_item_inspection_report_renderer_writes_markdown_and_json(tmp_path: Path) -> None:
+    config = make_config(tmp_path)
+    inspection_payload = {
+        "id": "work-123",
+        "title": "Implement inspection reports",
+        "description": "Render read-only inspection output into review artifacts.",
+        "status": "in_progress",
+        "priority": "high",
+        "route_status": "ready",
+        "queue_id": "queue-implementation",
+        "queue_name": "implementation",
+        "queue_purpose": "Hold issue-scoped repository work while implementation changes are prepared.",
+        "queue_lifecycle_stage_mapping": "implementation",
+        "queue_allowed_next_queues": ["queue-verification", "queue-blocked"],
+        "queue_human_approval_requirement": "human_review_required",
+        "agent_id": "agent-worker",
+        "agent_name": "worker-agent",
+        "model_id": "model-ollama-default",
+        "model_name": "qwen2.5:32b",
+        "model_provider": "ollama",
+        "prompt_id": "prompt-123",
+        "metadata": {
+            "issue": 93,
+            "retry_or_correction_context": "Retain for metadata preservation.",
+        },
+        "lifecycle_state": "implementation_ready",
+        "approval_state": "pending_human_review",
+        "blocked_reason": None,
+        "failure_reason": None,
+        "retry_or_correction_context": "Return to verification if report output is incomplete.",
+    }
+
+    bundle = render_work_item_inspection_report(
+        config=config,
+        inspection_payload=inspection_payload,
+    )
+
+    assert bundle.markdown_path.exists()
+    assert bundle.json_path.exists()
+    assert bundle.markdown_path.read_text(encoding="utf-8").startswith(
+        "# Work Item Inspection Report"
+    )
+
+    json_payload = json.loads(bundle.json_path.read_text(encoding="utf-8"))
+    assert json_payload["inspection_payload"] == inspection_payload
+    assert json_payload["report_metadata"]["report_type"] == "work_item_inspection"
+    assert json_payload["report_metadata"]["work_item_id"] == "work-123"
+    assert bundle.payload == json_payload
