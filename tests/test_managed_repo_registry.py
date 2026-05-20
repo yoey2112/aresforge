@@ -110,4 +110,3 @@ def test_inspect_managed_repos_merges_optional_registry_entries(monkeypatch, tmp
     assert payload["managed_repositories"][1]["project_key"] == "project-demo"
     assert payload["managed_repositories"][1]["disabled"] is True
     assert payload["managed_repositories"][1]["bootstrap_status"] == "degraded"
-
