@@ -45,6 +45,10 @@ from aresforge.operator.inspection_reports import (
 )
 from aresforge.operator.local_review import LocalReviewOptions, run_local_review
 from aresforge.operator.registry_inspection import inspect_local_registries
+from aresforge.operator.ready_issue_intake import (
+    inspect_ready_issue,
+    list_ready_issues,
+)
 from aresforge.operator.service import (
     render_codex_handoff,
     render_evidence_package,
@@ -121,6 +125,15 @@ def build_parser() -> argparse.ArgumentParser:
         "list-evidence-packages",
         help="Summarize generated local evidence packages under the configured evidence root.",
     )
+    subparsers.add_parser(
+        "list-ready-issues",
+        help="List GitHub issues labeled for ready intake without mutating GitHub state.",
+    )
+    inspect_ready_issue_parser = subparsers.add_parser(
+        "inspect-ready-issue",
+        help="Inspect one GitHub issue labeled for ready intake without mutating GitHub state.",
+    )
+    inspect_ready_issue_parser.add_argument("--issue-number", type=int, required=True)
     inspect_review_parser = subparsers.add_parser(
         "inspect-review-package",
         help="Inspect one generated local review package under the configured review package root.",
@@ -376,6 +389,14 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "list-evidence-packages":
         emit_json(discover_local_evidence_packages(config))
+        return 0
+
+    if args.command == "list-ready-issues":
+        emit_json(list_ready_issues(config))
+        return 0
+
+    if args.command == "inspect-ready-issue":
+        emit_json(inspect_ready_issue(config, args.issue_number))
         return 0
 
     if args.command == "inspect-review-package":

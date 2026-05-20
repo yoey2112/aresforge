@@ -92,6 +92,22 @@ python -m aresforge inspect-evidence-package --evidence-path 20260520T120001Z-is
 
 This command is read-only and local-only. It reads only one existing file under the configured evidence root, rejects empty, unsafe, traversal, absolute, and out-of-root paths, and emits deterministic JSON with bounded metadata plus an optional preview for safe UTF-8 text artifacts. It does not create missing evidence directories, mutate files, call the network, require PostgreSQL, call Ollama, transition queues, mutate routing, or change GitHub state.
 
+List GitHub issues labeled for ready intake:
+
+```powershell
+python -m aresforge list-ready-issues
+```
+
+This command is read-only. It queries GitHub for open issues labeled `aresforge-ready`, excludes Issue #39, and emits deterministic JSON sorted by issue number. It does not create or modify issues, labels, or pull requests.
+
+Inspect one ready issue labeled for intake:
+
+```powershell
+python -m aresforge inspect-ready-issue --issue-number 114
+```
+
+This command is read-only. It reads GitHub issue metadata only when the issue is labeled `aresforge-ready`, rejects Issue #39, and emits deterministic JSON with the issue metadata and manual trigger confirmation. It does not create or modify issues, labels, or pull requests.
+
 Run the bounded local review orchestration over the existing read-only operator surfaces:
 
 ```powershell
