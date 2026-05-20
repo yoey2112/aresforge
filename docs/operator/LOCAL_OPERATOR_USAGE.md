@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This guide explains how to run the current local AresForge operator surfaces introduced during M2 and expanded during M3.
+This guide explains how to run the current local AresForge operator surfaces introduced during M2 and expanded during M3 and M4.
 
 ## Setup
 
@@ -245,6 +245,18 @@ python -m aresforge project-state-summary
 ```
 
 This full flow remains read-only and human-triggered. It provides reusable governance inspection, bootstrap contract visibility, managed repository registry posture, readiness classification, setup planning placeholders, end-to-end demo output, and consolidated project-state context without setup mutation.
+
+Bootstrap setup guidance for M4:
+
+- Labels and canonical platform milestones may be created manually with `gh` as a human-triggered setup step.
+- M4 used human-triggered manual setup for labels and milestones; no AresForge setup-mutation command was introduced.
+- After manual setup, rerun `inspect-repo-governance`, `managed-repo-readiness-report`, `plan-repo-bootstrap`, and `demo-managed-repo-governance`.
+- Unknown legacy or project-specific milestones should be mapped in documentation unless a human explicitly chooses rename, closure, or migration actions.
+- Current legacy milestone mapping guidance is:
+  - `M0 - Self-Bootstrap Foundation` -> `M0 - Foundation`
+  - `M1 - GitHub Operations Validation` -> `M1 - Validation`
+  - `M2 - Documentation Automation` -> `M2 - Local Automation Foundation`
+  - `validation: issue-26-milestone-lifecycle` -> `M1 - Validation`
 
 Run the bounded local review orchestration over the existing read-only operator surfaces:
 

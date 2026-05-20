@@ -10,7 +10,7 @@ Detailed historical background for completed M0-M2 work lives in `docs/history/M
 
 Agents must treat repository documentation as the source of truth for project meaning, governance, milestone state, lifecycle rules, and autonomy boundaries.
 
-During M3, implementation remains human-triggered and human-reviewed. Agents may help with documentation, code, migrations, local operator tooling, and evidence preparation, but they must not imply that current M3 foundations authorize autonomous control.
+During M4, implementation remains human-triggered and human-reviewed. Agents may help with documentation, code, migrations, local operator tooling, and evidence preparation, but they must not imply that current foundations authorize autonomous control.
 
 ## Required Source-Of-Truth Behavior
 
@@ -21,7 +21,7 @@ During M3, implementation remains human-triggered and human-reviewed. Agents may
 - Treat Issue #75 as the last routine reconciliation issue
 - Do not create separate documentation-update or reconciliation issues by default; use that path only if stale source-of-truth wording is discovered after closeout
 
-## Current M3 Rules
+## Current M4 Rules
 
 - Documentation-before-closeout is mandatory for project-state-changing work
 - The Documentation Agent remains a required pre-closeout gate
@@ -47,7 +47,13 @@ During M3, implementation remains human-triggered and human-reviewed. Agents may
 - Issue #134 extends M3 with `managed-repo-readiness-report`, a reusable read-only managed repository readiness command that classifies safe automation readiness levels per registered repository with deterministic JSON and graceful degradation
 - Issue #135 extends M3 with `plan-repo-bootstrap`, a reusable read-only managed repository bootstrap planning command that emits deterministic required, recommended, optional, and deferred setup actions without performing setup mutation
 - Issue #136 extends M3 with `demo-managed-repo-governance`, a reusable read-only end-to-end managed repository governance demo command that composes inspection, contract, registry, readiness, and bootstrap-plan outputs while preserving warnings and boundary confirmations
-- Issue #138 is the M3 source-of-truth reconciliation closeout issue for the completed managed repository governance stack and should remain docs-focused unless a tiny validation or wording-consistency fix is required
+- Issue #138 is completed through PR #144 and remains historical closeout context for M3 governance-stack source-of-truth reconciliation
+- Issue #145 is the active M4 parent sprint issue
+- Issue #146 is the active M4 bootstrap setup documentation reconciliation workstream and should remain docs-focused
+- Next M4 workstreams after #146 are #148 (harden QA validation), #149 (add validate-pr end-to-end), and #147 (prove multi-repo governance)
+- Human-triggered bootstrap setup has already created required and optional platform labels plus canonical platform milestones
+- Remaining readiness `attention_needed` posture is legacy or project-specific milestone mapping documentation alignment only
+- No setup or mutation command surface has been implemented for bootstrap setup; GitHub mutation remains human-triggered and gated
 - Issue #101 was completed through PR #102 and added merged `main` support for read-only local model inspection without introducing model selection, routing, or GitHub-state-changing behavior
 - Issue #97 was completed through PR #98 and added merged `main` support for read-only local project inspection without changing routing, queue state, or GitHub state
 - Issue #99 was completed through PR #100 and added merged `main` support for a human-triggered PR lifecycle helper that keeps validation, staging, PR creation, PR verification, merge execution, post-merge verification, and source-of-truth scanning phase-gated and visible
@@ -131,7 +137,7 @@ The local operator may currently support:
 - deterministic reusable read-only managed repository readiness reporting via `managed-repo-readiness-report`
 - deterministic reusable read-only managed repository bootstrap planning via `plan-repo-bootstrap`
 - deterministic reusable read-only managed repository governance demo reporting via `demo-managed-repo-governance`
-- current default managed repository readiness posture should be treated as `attention_needed` until `aresforge-automerge`, optional platform-known labels, canonical platform milestones, and project-specific milestone mapping documentation are aligned
+- current default managed repository readiness posture should be treated as `attention_needed` only for remaining legacy or project-specific milestone mapping documentation alignment; labels and canonical platform milestones are now present via human-triggered setup
 - a human-triggered PR lifecycle helper that requires an explicit phase selection before validation, staging, PR creation, PR verification, merge execution, post-merge verification, or source-of-truth scanning
 - prompt, evidence, and Codex handoff artifact preparation, including opt-in local artifact discovery capture in evidence packages plus opt-in latest local review package capture in evidence and handoff outputs
 - opt-in local review package generation under `artifacts/local_reviews/generated/`

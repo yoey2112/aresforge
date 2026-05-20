@@ -118,6 +118,13 @@ Canonical platform milestone naming should be present and unambiguous:
 
 Project-specific milestones are allowed, but they should map to one canonical platform milestone phase for traceability.
 
+Current AresForge legacy milestone mapping guidance:
+
+- `M0 - Self-Bootstrap Foundation` maps to `M0 - Foundation`
+- `M1 - GitHub Operations Validation` maps to `M1 - Validation`
+- `M2 - Documentation Automation` maps to `M2 - Local Automation Foundation`
+- `validation: issue-26-milestone-lifecycle` maps to `M1 - Validation`
+
 ### Issue Templates Or Issue Conventions
 
 Managed repositories should provide either issue templates or explicit issue conventions that preserve clear problem framing, trigger labeling posture, and evidence expectations.
@@ -191,7 +198,9 @@ Bootstrap setup or setup correction is human-triggered only.
 
 This contract does not authorize autonomous setup mutation (for example creating labels, milestones, templates, branch rules, workflows, or documentation updates without explicit human invocation).
 
-No setup or mutation command surface is implemented as part of this contract in M3. Current command surfaces provide read-only evaluation, readiness reporting, planning placeholders, and demo outputs only.
+No setup or mutation command surface is implemented as part of this contract in M4. Current command surfaces provide read-only evaluation, readiness reporting, planning placeholders, and demo outputs only.
+
+For AresForge M4, label and canonical milestone setup was completed as human-triggered manual GitHub work before this documentation reconciliation.
 
 ## Multi-Repository Extension Point
 
