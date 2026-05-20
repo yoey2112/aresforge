@@ -10,9 +10,9 @@ Continue the M2 runtime foundation by extending human-triggered local operator s
 
 ## Current Repository State
 
-- Current branch: `m2/sprint-112-review-handoff-automation`
-- Latest `main` commit: `496c1b1` (`Add local review orchestration and review package support (#110) (#113)`)
-- Latest runtime-affecting merged foundation commit: `496c1b1` (`Add local review orchestration and review package support (#110) (#113)`)
+- Current branch: `m2/issue-114-model-routing-strategy`
+- Latest `main` commit: `02416cf` (`Add review package inspection and handoff capture (#112) (#115)`)
+- Latest runtime-affecting merged foundation commit: `02416cf` (`Add review package inspection and handoff capture (#112) (#115)`)
 - Issue #105 was completed through PR #106 and is merged `main` behavior
 - Issue #107 was completed through PR #108 and is merged `main` behavior
 - Issue #109 was completed through PR #111 and is merged `main` behavior
@@ -28,8 +28,10 @@ Continue the M2 runtime foundation by extending human-triggered local operator s
 - `run-local-review` with opt-in local review package generation is available on `main`
 - `list-evidence-packages` and `inspect-evidence-package` are available on `main`
 - opt-in artifact discovery capture for `record-evidence-package` is available on `main`
-- `list-review-packages` and `inspect-review-package` are available on the current implementation branch as proposed M2 extensions pending review
-- opt-in latest local review package capture for `record-evidence-package` and `prepare-codex-handoff` is available on the current implementation branch as a proposed M2 extension pending review
+- `list-review-packages` and `inspect-review-package` are available on `main`
+- opt-in latest local review package capture for `record-evidence-package` and `prepare-codex-handoff` is available on `main`
+- Issue #112 was completed through PR #115 and is merged `main` behavior
+- Issue #114 was completed through PR pending merge and added the canonical model-routing and LLM escalation strategy documentation
 - Issue #95 was completed through PR #96 and is merged `main` behavior
 - Issue #97 was completed through PR #98 and is merged `main` behavior
 - Issue #75 remains the last routine reconciliation issue
@@ -60,6 +62,7 @@ Future project-state-changing work must review and update those documents when n
   - `docs/architecture/AGENT_REGISTRY_SCHEMA.md`
   - `docs/architecture/MODEL_REGISTRY_SCHEMA.md`
   - `docs/architecture/QUEUE_REGISTRY_SCHEMA.md`
+  - `docs/architecture/MODEL_ROUTING_STRATEGY.md`
 
 Older completed M0-M2 issue history now lives in `docs/history/M0_M2_COMPLETED_WORK_SUMMARY.md`.
 
