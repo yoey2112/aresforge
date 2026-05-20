@@ -16,6 +16,7 @@ Continue the M2 runtime foundation by extending human-triggered local operator s
 - Issue #99 was completed through PR #100 and is merged `main` behavior
 - Issue #92 and Issue #93 were completed through PR #94 and are merged `main` behavior
 - `validate-registries`, `inspect-queue --write-artifact`, `inspect-work-item --write-artifact`, and `list-models` are available on `main`
+- `inspect-model` is now available on the working branch as a pending M2 local operator visibility improvement
 - Issue #95 was completed through PR #96 and is merged `main` behavior
 - Issue #97 was completed through PR #98 and is merged `main` behavior
 - Issue #75 remains the last routine reconciliation issue
@@ -56,6 +57,7 @@ The current human-triggered local operator foundation supports:
 - local config and registry validation
 - database migration execution for the repo-stored local state layer
 - deterministic read-only local model listing through `list-models`
+- deterministic read-only local model inspection through `inspect-model`
 - deterministic read-only local project inspection through `inspect-project`
 - read-only queue and work-item inspection
 - read-only inspection report artifact generation through `inspect-queue --write-artifact` and `inspect-work-item --write-artifact`
@@ -75,6 +77,7 @@ The current M2 implementation does allow:
 - visible human-triggered PR lifecycle helper phases selected one at a time
 - local artifact generation for review
 - bounded local model inspection, listing, and Ollama dry-run checks
+- bounded local model inspection, listing, and Ollama dry-run checks without autonomous selection or routing
 
 The current M2 implementation does not authorize:
 
@@ -91,6 +94,7 @@ The current M2 implementation does not authorize:
 
 - Use the merged human-triggered PR lifecycle helper to reduce repetitive PR validation, merge verification, and source-of-truth scanning work
 - Continue the M2 runtime foundation with richer read-only registry inspection views and safer human-triggered helper flows where useful
+- Prioritize richer read-only registry inspection views such as model-level inspection while keeping them local-only and non-authoritative
 - Extend local operator visibility while keeping queue transitions and GitHub-state-changing behavior tightly human-triggered and reviewable
 - Optionally perform local historical branch cleanup as separate human-directed repository hygiene work
 - Keep documentation freshness, documentation-before-closeout, and source-of-truth updates mandatory for future project-state-changing work

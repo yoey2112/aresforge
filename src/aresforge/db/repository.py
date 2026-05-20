@@ -16,6 +16,7 @@ DEFAULT_AGENT_ID = "agent-local-operator"
 DEFAULT_MODEL_ID = "model-ollama-default"
 DEFAULT_AGENT_REGISTRY_VERSION = "m2-v1"
 QUEUE_SCHEMA_SOURCE_DOCUMENT = "docs/architecture/QUEUE_REGISTRY_SCHEMA.md"
+MODEL_SCHEMA_SOURCE_DOCUMENT = "docs/architecture/MODEL_REGISTRY_SCHEMA.md"
 CANONICAL_QUEUE_IDS = (
     "queue-intake",
     "queue-planning",
@@ -486,6 +487,82 @@ DEFAULT_AGENT_RECORDS = (
 )
 
 
+def build_default_model_metadata(*, model_name: str) -> dict[str, Any]:
+    return {
+        "default": True,
+        "display_name": model_name,
+        "model_key": f"ollama/{model_name}",
+        "runtime": "ollama_local",
+        "execution_location": "local_machine",
+        "hosting_posture": "local_only",
+        "purpose": "Local drafting, documentation support, and bounded validation evidence review.",
+        "allowed_task_classes": [
+            "documentation_support",
+            "implementation_support",
+            "validation_evidence_review",
+            "diff_review_support",
+            "project_state_summary_support",
+        ],
+        "default_routing_priority": "primary",
+        "fallback_rules": [
+            "If unavailable, try another approved local model for the same task class.",
+            "If no approved local model is suitable, escalate to the human owner.",
+        ],
+        "approval_requirements": [
+            "Human review remains required for all output.",
+            "Human approval is mandatory for any governance-sensitive interpretation or action.",
+        ],
+        "approval_posture": "local_human_review_required",
+        "validation_suitability": "bounded_validation_support",
+        "evidence_expectations": [
+            "record selected model key",
+            "record task class",
+            "record routing reason",
+            "record limitations relevant to the task",
+        ],
+        "known_limitations": [
+            "May produce useful review evidence without being authoritative.",
+            "Must not be treated as approval, merge, or closeout authority.",
+        ],
+        "restricted_task_classes": [
+            "governance_decision",
+            "merge_authority",
+            "issue_close_authority",
+            "repo_mutation",
+            "release_mutation",
+            "secret_handling",
+            "ruleset_mutation",
+            "settings_mutation",
+        ],
+        "governance_sensitive_task_posture": "advisory_only_human_approval_required",
+        "source_document": MODEL_SCHEMA_SOURCE_DOCUMENT,
+    }
+
+
+def build_default_model_seed(config: AppConfig) -> dict[str, Any]:
+    return {
+        "id": DEFAULT_MODEL_ID,
+        "name": config.ollama_model,
+        "provider": "ollama",
+        "status": "configured",
+        "endpoint": config.ollama_base_url,
+        "metadata": build_default_model_metadata(model_name=config.ollama_model),
+    }
+
+
+def build_default_model_seed_from_row(row: dict[str, Any]) -> dict[str, Any] | None:
+    if row.get("id") != DEFAULT_MODEL_ID or row.get("provider") != "ollama":
+        return None
+    return {
+        "id": DEFAULT_MODEL_ID,
+        "name": row["name"],
+        "provider": row["provider"],
+        "status": row["status"],
+        "endpoint": row.get("endpoint"),
+        "metadata": build_default_model_metadata(model_name=row["name"]),
+    }
+
+
 @dataclass(frozen=True, slots=True)
 class WorkItemCreate:
     project_id: str
@@ -525,7 +602,11 @@ def enrich_queue_record(row: dict[str, Any]) -> dict[str, Any]:
 
 
 def enrich_model_record(row: dict[str, Any]) -> dict[str, Any]:
-    metadata = row.get("metadata") or {}
+    default_seed = build_default_model_seed_from_row(row)
+    metadata = {
+        **((default_seed or {}).get("metadata") or {}),
+        **(row.get("metadata") or {}),
+    }
     return {
         "id": row["id"],
         "name": row["name"],
@@ -537,6 +618,21 @@ def enrich_model_record(row: dict[str, Any]) -> dict[str, Any]:
         "local_endpoint": metadata.get("local_endpoint") or row.get("endpoint"),
         "model_key": metadata.get("model_key"),
         "execution_location": metadata.get("execution_location"),
+        "hosting_posture": metadata.get("hosting_posture"),
+        "purpose": metadata.get("purpose"),
+        "allowed_task_classes": metadata.get("allowed_task_classes"),
+        "default_routing_priority": metadata.get("default_routing_priority"),
+        "fallback_rules": metadata.get("fallback_rules"),
+        "approval_requirements": metadata.get("approval_requirements"),
+        "approval_posture": metadata.get("approval_posture"),
+        "validation_suitability": metadata.get("validation_suitability"),
+        "evidence_expectations": metadata.get("evidence_expectations"),
+        "known_limitations": metadata.get("known_limitations"),
+        "restricted_task_classes": metadata.get("restricted_task_classes"),
+        "governance_sensitive_task_posture": metadata.get(
+            "governance_sensitive_task_posture"
+        ),
+        "source_document": metadata.get("source_document"),
         "metadata": metadata,
         "updated_at": row["updated_at"],
     }
@@ -653,6 +749,7 @@ def bootstrap_reference_data(conn: Connection, config: AppConfig) -> None:
                     json.dumps(record["metadata"]),
                 ),
             )
+        model_record = build_default_model_seed(config)
         cur.execute(
             """
             INSERT INTO models (id, name, provider, status, endpoint, metadata)
@@ -664,12 +761,12 @@ def bootstrap_reference_data(conn: Connection, config: AppConfig) -> None:
                 updated_at = NOW()
             """,
             (
-                DEFAULT_MODEL_ID,
-                config.ollama_model,
-                "ollama",
-                "configured",
-                config.ollama_base_url,
-                json.dumps({"default": True}),
+                model_record["id"],
+                model_record["name"],
+                model_record["provider"],
+                model_record["status"],
+                model_record["endpoint"],
+                json.dumps(model_record["metadata"]),
             ),
         )
         for record in DEFAULT_QUEUES:
@@ -766,6 +863,22 @@ def list_models(conn: Connection) -> list[dict[str, Any]]:
             """
         )
         return [enrich_model_record(row) for row in cur.fetchall()]
+
+
+def inspect_model(conn: Connection, model_id: str) -> dict[str, Any] | None:
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT id, name, provider, status, endpoint, metadata, updated_at
+            FROM models
+            WHERE id = %s
+            """,
+            (model_id,),
+        )
+        row = cur.fetchone()
+    if row is None:
+        return None
+    return enrich_model_record(row)
 
 
 def inspect_queue(conn: Connection, queue_id: str) -> dict[str, Any] | None:

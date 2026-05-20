@@ -5,7 +5,9 @@ from aresforge.db.migrations import discover_migrations
 from aresforge.db.repository import (
     CANONICAL_QUEUE_IDS,
     DEFAULT_QUEUES,
+    MODEL_SCHEMA_SOURCE_DOCUMENT,
     QUEUE_SCHEMA_SOURCE_DOCUMENT,
+    build_default_model_seed,
     enrich_model_record,
     enrich_queue_record,
     enrich_work_item_record,
@@ -99,6 +101,12 @@ def test_enrich_model_record_exposes_existing_row_fields_and_metadata() -> None:
                 "runtime": "ollama_local",
                 "model_key": "ollama/qwen2.5:32b",
                 "execution_location": "local_machine",
+                "hosting_posture": "local_only",
+                "allowed_task_classes": ["documentation_support"],
+                "approval_posture": "local_human_review_required",
+                "restricted_task_classes": ["governance_decision"],
+                "governance_sensitive_task_posture": "advisory_only_human_approval_required",
+                "source_document": MODEL_SCHEMA_SOURCE_DOCUMENT,
             },
             "updated_at": "2026-05-20T00:00:00Z",
         }
@@ -113,7 +121,45 @@ def test_enrich_model_record_exposes_existing_row_fields_and_metadata() -> None:
     assert model_record["local_endpoint"] == "http://127.0.0.1:11434"
     assert model_record["model_key"] == "ollama/qwen2.5:32b"
     assert model_record["execution_location"] == "local_machine"
+    assert model_record["hosting_posture"] == "local_only"
+    assert model_record["allowed_task_classes"] == ["documentation_support"]
+    assert model_record["approval_posture"] == "local_human_review_required"
+    assert model_record["restricted_task_classes"] == ["governance_decision"]
+    assert (
+        model_record["governance_sensitive_task_posture"]
+        == "advisory_only_human_approval_required"
+    )
+    assert model_record["source_document"] == MODEL_SCHEMA_SOURCE_DOCUMENT
     assert model_record["metadata"]["default"] is True
+
+
+def test_default_model_seed_includes_registry_visibility_fields() -> None:
+    config = AppConfig(
+        repo_root=Path("C:/Projects/aresforge"),
+        db_host="127.0.0.1",
+        db_port=5433,
+        db_name="aresforge",
+        db_user="aresforge",
+        db_password="aresforge",
+        ollama_base_url="http://127.0.0.1:11434",
+        ollama_model="qwen2.5:32b",
+        artifact_root=Path("C:/Projects/aresforge/artifacts"),
+        prompts_dir=Path("C:/Projects/aresforge/artifacts/prompts"),
+        evidence_dir=Path("C:/Projects/aresforge/artifacts/evidence"),
+        codex_handoffs_dir=Path("C:/Projects/aresforge/artifacts/handoffs"),
+        github_owner="yoey2112",
+        github_repo="aresforge",
+    )
+
+    model_seed = build_default_model_seed(config)
+
+    assert model_seed["id"] == "model-ollama-default"
+    assert model_seed["provider"] == "ollama"
+    assert model_seed["metadata"]["model_key"] == "ollama/qwen2.5:32b"
+    assert model_seed["metadata"]["approval_posture"] == "local_human_review_required"
+    assert model_seed["metadata"]["allowed_task_classes"]
+    assert model_seed["metadata"]["restricted_task_classes"]
+    assert model_seed["metadata"]["source_document"] == MODEL_SCHEMA_SOURCE_DOCUMENT
 
 
 def test_enrich_work_item_record_exposes_registry_aware_queue_and_runtime_fields() -> None:

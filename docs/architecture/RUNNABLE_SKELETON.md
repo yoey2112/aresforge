@@ -48,6 +48,7 @@ Supported commands:
 - `migrate`
 - `inspect-project-state`
 - `inspect-project`
+- `inspect-model`
 - `inspect-queue`
 - `inspect-work-item`
 - `list-projects`
@@ -69,6 +70,8 @@ The `inspect-queue` and `inspect-work-item` commands are read-only registry-awar
 
 The `list-models` command is a read-only local listing helper for seeded local model rows. It emits deterministic JSON, does not require Ollama to be running, and does not select a model, recommend a model, or route a task.
 
+The `inspect-model` command is a read-only local inspection helper for one stored model row. It reads only from the local `models` table and existing seeded model registry metadata, expands stored JSON metadata into visible top-level fields such as approval posture, allowed task classes, governance-sensitive task posture, fallback rules, and source document references, and returns explicit `ok` / `model_not_found` JSON without selecting a model, recommending a model, routing work, or calling Ollama.
+
 The `inspect-project` command is a read-only local inspection helper for one stored project row. It reads only from the local `projects` table, expands stored JSON metadata into visible top-level fields such as autonomy posture and issue references, and returns explicit `ok` / `project_not_found` JSON without bootstrapping state, creating work items, routing work, or calling Ollama.
 
 The current implementation layer also includes read-only inspection report artifact wiring for `inspect-queue --write-artifact` and `inspect-work-item --write-artifact`. Those options turn inspection payloads into human-reviewable Markdown and JSON artifacts under `artifacts/inspection_reports/generated/` while preserving the normal JSON command output. They remain local-only, human-triggered reporting helpers and do not change queue state, routing state, GitHub state, or protected Issue #39.
@@ -83,7 +86,7 @@ The current vertical slice is:
 2. start PostgreSQL locally
 3. apply repo-stored migrations
 4. bootstrap minimal reference data
-5. inspect seeded project, agent, queue, and model records
+5. inspect seeded project, agent, queue, and model records, including a single model view
 6. inspect a specific queue or work item through registry-aware read-only views
 7. create a work item and assign a queue
 8. generate a prompt package
