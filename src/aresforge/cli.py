@@ -34,6 +34,7 @@ from aresforge.operator.inspection_reports import (
     render_queue_inspection_report,
     render_work_item_inspection_report,
 )
+from aresforge.operator.registry_inspection import inspect_local_registries
 from aresforge.operator.service import (
     render_codex_handoff,
     render_evidence_package,
@@ -65,6 +66,10 @@ def build_parser() -> argparse.ArgumentParser:
         "inspect-project", help="Inspect one local project record with expanded metadata."
     )
     inspect_project_parser.add_argument("--project-id", required=True)
+    subparsers.add_parser(
+        "inspect-registries",
+        help="Summarize documented local registry and lifecycle sources in the repo.",
+    )
     subparsers.add_parser("list-projects", help="List registered projects.")
     subparsers.add_parser("list-agents", help="List registered agent roles.")
     subparsers.add_parser("list-models", help="List registered local model records.")
@@ -241,6 +246,11 @@ def main(argv: list[str] | None = None) -> int:
             return 1
         emit_json({"ok": True, "project": project_record})
         return 0
+
+    if args.command == "inspect-registries":
+        payload = inspect_local_registries(config.repo_root)
+        emit_json(payload)
+        return 0 if payload["ok"] else 1
 
     if args.command == "list-projects":
         with connect(config) as conn:

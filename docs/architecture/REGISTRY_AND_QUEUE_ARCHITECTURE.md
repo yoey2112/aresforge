@@ -440,6 +440,7 @@ The registry should make those expectations visible so that handoffs are structu
 
 The local operator workflow may later read queue definitions to prepare prompt packages, validation checklists, documentation-sync handoffs, and PR or closeout evidence packages.
 The current runnable local operator should treat `docs/architecture/QUEUE_REGISTRY_SCHEMA.md` as the canonical queue and work-item meaning layer even when the local database still seeds only a conservative subset of those queues.
+The broader read-only `inspect-registries` operator summary should likewise treat the repo-owned project, agent, model, queue, and work-item lifecycle source documents as non-authoritative visibility surfaces that report what is present without mutating files or replacing the source-of-truth role of the docs.
 
 No queue-reading command is implemented by this issue.
 
@@ -632,6 +633,8 @@ Future local commands may read registry definitions to:
 Prompt package generation may use project, agent, capability, queue, and skill registry data to assemble more consistent inputs.
 
 Evidence package generation may use queue and capability definitions to explain why a work item is ready for a given transition.
+
+The current runnable operator now also includes a broader read-only `inspect-registries` summary surface that inspects canonical repo-owned registry and lifecycle source documents plus existing seeded validation findings. That command is visibility-only and does not change registry meaning, queue state, routing state, or GitHub state.
 
 No commands are implemented by this issue.
 

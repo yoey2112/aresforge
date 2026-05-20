@@ -19,6 +19,7 @@ def test_cli_has_expected_commands() -> None:
         "migrate",
         "inspect-project-state",
         "inspect-project",
+        "inspect-registries",
         "inspect-model",
         "inspect-queue",
         "inspect-work-item",
@@ -77,6 +78,8 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
 
     inspect_project_args = parser.parse_args(["inspect-project", "--project-id", "project-aresforge"])
     assert inspect_project_args.project_id == "project-aresforge"
+    inspect_registries_args = parser.parse_args(["inspect-registries"])
+    assert inspect_registries_args.command == "inspect-registries"
 
     inspect_model_args = parser.parse_args(["inspect-model", "--model-id", "model-ollama-default"])
     assert inspect_model_args.model_id == "model-ollama-default"
@@ -223,6 +226,42 @@ def test_inspect_project_preserves_json_shape_when_found(
     assert payload == {"ok": True, "project": project_payload}
 
 
+def test_inspect_registries_emits_summary_and_exit_zero_when_ok(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    registry_payload = {
+        "ok": True,
+        "inspection_mode": "local_repo_only",
+        "summary": {"registry_count": 5, "ok": 5, "problem_registry_count": 0},
+        "registries": [{"registry": "project_registry", "status": "ok"}],
+    }
+    monkeypatch.setattr(cli, "inspect_local_registries", lambda _repo_root: registry_payload)
+
+    exit_code = cli.main(["inspect-registries"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert payload == registry_payload
+
+
+def test_inspect_registries_returns_exit_one_when_any_registry_has_problem(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    registry_payload = {
+        "ok": False,
+        "inspection_mode": "local_repo_only",
+        "summary": {"registry_count": 5, "ok": 4, "problem_registry_count": 1},
+        "registries": [{"registry": "queue_registry", "status": "missing"}],
+    }
+    monkeypatch.setattr(cli, "inspect_local_registries", lambda _repo_root: registry_payload)
+
+    exit_code = cli.main(["inspect-registries"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 1
+    assert payload == registry_payload
+
+
 def test_inspect_project_returns_not_found_with_exit_code_one(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -271,6 +310,52 @@ def test_inspect_project_is_read_only_dispatch(
 
     assert exit_code == 0
     assert payload == {"ok": True, "project": {"id": "project-aresforge"}}
+
+
+def test_inspect_registries_is_read_only_dispatch(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setattr(
+        cli,
+        "inspect_local_registries",
+        lambda _repo_root: {
+            "ok": True,
+            "inspection_mode": "local_repo_only",
+            "summary": {"registry_count": 5, "ok": 5, "problem_registry_count": 0},
+            "registries": [],
+        },
+    )
+    monkeypatch.setattr(
+        cli,
+        "connect",
+        lambda *_args, **_kwargs: pytest.fail("inspect-registries must not connect to PostgreSQL"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "test_generate",
+        lambda *_args, **_kwargs: pytest.fail("inspect-registries must not call Ollama"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "create_work_item",
+        lambda *_args, **_kwargs: pytest.fail("inspect-registries must not create work items"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "build_route_plan",
+        lambda *_args, **_kwargs: pytest.fail("inspect-registries must not route work"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "bootstrap_reference_data",
+        lambda *_args, **_kwargs: pytest.fail("inspect-registries must not bootstrap state"),
+    )
+
+    exit_code = cli.main(["inspect-registries"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert payload["ok"] is True
 
 
 def test_list_models_emits_valid_json_without_ollama(

@@ -47,6 +47,7 @@ Supported commands:
 - `validate-registries`
 - `migrate`
 - `inspect-project-state`
+- `inspect-registries`
 - `inspect-project`
 - `inspect-model`
 - `inspect-queue`
@@ -65,6 +66,8 @@ Supported commands:
 These commands are human-triggered only and operate as local-only helper surfaces.
 
 The `validate-registries` command is a read-only local validation helper for seeded agent and queue registry data. It emits structured findings without requiring queue transitions, autonomous routing, or GitHub-state-changing behavior.
+
+The `inspect-registries` command is a read-only local summary helper for repo-owned registry and lifecycle source documents. It inspects the documented project, agent, model, and queue registry sources plus the documented work-item lifecycle schema view, reuses existing seed-validation findings where applicable, and emits deterministic JSON that makes found, missing, empty, malformed, read-error, and validation-problem states visible without mutating files, requiring PostgreSQL, or calling the network.
 
 The `inspect-queue` and `inspect-work-item` commands are read-only registry-aware inspection helpers. They expand local queue and work-item records into richer JSON views, but they do not transition queues, mutate routing, authorize autonomous routing, or authorize GitHub-state-changing behavior.
 
@@ -86,7 +89,7 @@ The current vertical slice is:
 2. start PostgreSQL locally
 3. apply repo-stored migrations
 4. bootstrap minimal reference data
-5. inspect seeded project, agent, queue, and model records, including a single model view
+5. inspect documented registry and lifecycle sources plus seeded project, agent, queue, and model records, including a single model view
 6. inspect a specific queue or work item through registry-aware read-only views
 7. create a work item and assign a queue
 8. generate a prompt package
