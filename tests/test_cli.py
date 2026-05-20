@@ -36,6 +36,7 @@ def test_cli_has_expected_commands() -> None:
         "run-ready-issue-pipeline",
         "run-ready-issue-batch",
         "automation-readiness-report",
+        "project-state-summary",
         "qa-review-pr",
         "qa-closeout-pr",
         "inspect-review-package",
@@ -138,6 +139,8 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     assert run_batch_plan_args.timestamp_override is None
     readiness_report_args = parser.parse_args(["automation-readiness-report"])
     assert readiness_report_args.command == "automation-readiness-report"
+    project_state_summary_args = parser.parse_args(["project-state-summary"])
+    assert project_state_summary_args.command == "project-state-summary"
     qa_review_args = parser.parse_args(["qa-review-pr", "--pr-number", "118"])
     assert qa_review_args.pr_number == 118
     qa_closeout_args = parser.parse_args(["qa-closeout-pr", "--pr-number", "119"])
@@ -442,6 +445,41 @@ def test_cli_dispatches_qa_review_pr(
 
     assert exit_code == 0
     assert payload == {"ok": True}
+
+
+def test_cli_dispatches_project_state_summary(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+) -> None:
+    config = AppConfig(
+        repo_root=tmp_path,
+        db_host="127.0.0.1",
+        db_port=5433,
+        db_name="aresforge",
+        db_user="aresforge",
+        db_password="aresforge",
+        ollama_base_url="http://127.0.0.1:11434",
+        ollama_model="qwen2.5:32b",
+        artifact_root=tmp_path / "artifacts",
+        prompts_dir=tmp_path / "artifacts" / "prompts" / "generated",
+        evidence_dir=tmp_path / "artifacts" / "evidence" / "generated",
+        codex_handoffs_dir=tmp_path / "artifacts" / "codex_handoffs" / "generated",
+        github_owner="yoey2112",
+        github_repo="aresforge",
+    )
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: config)
+    monkeypatch.setattr(
+        cli,
+        "project_state_summary",
+        lambda _config: {"command": "project-state-summary", "ok": True},
+    )
+
+    exit_code = cli.main(["project-state-summary"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert payload == {"command": "project-state-summary", "ok": True}
 
 
 def test_cli_dispatches_qa_closeout_pr(

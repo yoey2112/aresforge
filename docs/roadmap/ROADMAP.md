@@ -34,7 +34,7 @@ M1 validated manual, human-reviewed GitHub operations across issue, PR, label, m
 
 ### M2 - Documentation And Runnable Local Foundation
 
-Status: Active.
+Status: Completed.
 
 M2 established the documentation agent model, freshness checks, evidence templates, lifecycle pipeline, documentation-before-closeout gate, registry architecture, registry schemas, runnable local skeleton, and the first bounded local operator foundation.
 
@@ -72,11 +72,15 @@ Issue #120 adds reusable ready issue orchestration via `run-ready-issue-pipeline
 
 Issue #127 adds reusable read-only batch ready issue planning via `run-ready-issue-batch --plan-only` plus read-only `automation-readiness-report`, including deterministic local JSON and Markdown batch artifacts and optional local-only selected issue handoff package generation for Copilot or Codex selected issues.
 
-## Planned Milestone Sequence
-
 ### M3 - Registry And Routing Deepening
 
-Deepen the registry model and routing vocabulary on top of the current project, agent, model, and queue schema foundation without authorizing autonomous dispatch.
+Status: Active.
+
+M3 starts with local-first, read-only project-state visibility and milestone-aware operator guidance while preserving non-mutating defaults and explicit human review gates.
+
+Issue #129 adds `project-state-summary`, a local-first read-only command that summarizes branch status, local-versus-origin commit posture where available, open GitHub issues and PRs where available, source-of-truth docs, latest generated artifacts, current milestone direction, and recommended next action with graceful degradation when `git`, `gh`, `origin/main`, or network access is unavailable.
+
+## Planned Milestone Sequence
 
 ### M4 - Local Operator Expansion
 
@@ -128,7 +132,7 @@ Long-term target: allow AresForge to plan, route, validate, document, and prepar
 
 ## Explicit Non-Goals For The Current Phase
 
-The current M2 phase does not authorize:
+The current M3 phase does not authorize:
 
 - autonomous queue transitions
 - autonomous routing
@@ -140,7 +144,7 @@ The current M2 phase does not authorize:
 
 ## Next Recommended Direction
 
-- Continue the M2 runtime foundation with broader read-only registry inspection summaries and safer human-triggered helper flows
+- Continue the M3 runtime foundation with broader read-only registry inspection summaries and safer human-triggered helper flows
 - Extend local operator visibility with safer human-triggered helper commands while keeping queue transitions out of scope and GitHub-state-changing behavior tightly phase-gated
 - Continue improving local review-aid visibility, including deterministic summaries of generated artifacts that remain non-authoritative
 - Continue improving local review-aid visibility, including deterministic single-artifact inspection that remains non-authoritative
