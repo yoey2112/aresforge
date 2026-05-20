@@ -47,6 +47,7 @@ Supported commands:
 - `validate-registries`
 - `migrate`
 - `inspect-project-state`
+- `inspect-project`
 - `inspect-queue`
 - `inspect-work-item`
 - `list-projects`
@@ -67,6 +68,8 @@ The `validate-registries` command is a read-only local validation helper for see
 The `inspect-queue` and `inspect-work-item` commands are read-only registry-aware inspection helpers. They expand local queue and work-item records into richer JSON views, but they do not transition queues, mutate routing, authorize autonomous routing, or authorize GitHub-state-changing behavior.
 
 The `list-models` command is a read-only local listing helper for seeded local model rows. It emits deterministic JSON, does not require Ollama to be running, and does not select a model, recommend a model, or route a task.
+
+The `inspect-project` command is a read-only local inspection helper for one stored project row. It reads only from the local `projects` table, expands stored JSON metadata into visible top-level fields such as autonomy posture and issue references, and returns explicit `ok` / `project_not_found` JSON without bootstrapping state, creating work items, routing work, or calling Ollama.
 
 The current implementation layer also includes read-only inspection report artifact wiring for `inspect-queue --write-artifact` and `inspect-work-item --write-artifact`. Those options turn inspection payloads into human-reviewable Markdown and JSON artifacts under `artifacts/inspection_reports/generated/` while preserving the normal JSON command output. They remain local-only, human-triggered reporting helpers and do not change queue state, routing state, GitHub state, or protected Issue #39.
 

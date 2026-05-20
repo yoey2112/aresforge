@@ -10,12 +10,13 @@ Continue the M2 runtime foundation by extending human-triggered, local-first, re
 
 ## Current Repository State
 
-- Current branch: `main`
+- Current branch: `codex/issue-97-inspect-project`
 - Latest `main` commit: `bce494c` (`Add read-only model listing command (#96)`)
 - Latest runtime-affecting merged foundation commit: `1f7b5fd` (`Add local registry validation and inspection report artifacts (#94)`)
 - Issue #92 and Issue #93 were completed through PR #94 and are merged `main` behavior
 - `validate-registries`, `inspect-queue --write-artifact`, `inspect-work-item --write-artifact`, and `list-models` are available on `main`
 - Issue #95 was completed through PR #96 and is merged `main` behavior
+- Issue #97 adds `inspect-project` on the current branch as a human-triggered, local-only, read-only project inspection command backed only by the local `projects` table
 - Issue #75 remains the last routine reconciliation issue
 - Issue #39, `validation: issue-38-state-lifecycle`, remains intentionally open protected audit evidence and must not be modified or closed except through a future human-directed issue
 
@@ -54,6 +55,7 @@ The current human-triggered local operator foundation supports:
 - local config and registry validation
 - database migration execution for the repo-stored local state layer
 - deterministic read-only local model listing through `list-models`
+- deterministic read-only local project inspection through `inspect-project`
 - read-only queue and work-item inspection
 - read-only inspection report artifact generation through `inspect-queue --write-artifact` and `inspect-work-item --write-artifact`
 - prompt package, evidence package, and Codex handoff artifact preparation
@@ -67,6 +69,7 @@ The current M2 implementation does allow:
 
 - human-triggered local commands
 - read-only registry-aware validation and inspection
+- read-only project inspection from local seeded project rows
 - local artifact generation for review
 - bounded local model inspection, listing, and Ollama dry-run checks
 
@@ -82,7 +85,7 @@ The current M2 implementation does not authorize:
 
 ## Next Recommended Direction
 
-- Continue the M2 runtime foundation with richer read-only model, project, or registry inspection views
+- Continue the M2 runtime foundation with richer read-only registry inspection views and project inspection follow-ons where useful
 - Extend local operator visibility while keeping queue transitions and GitHub-state-changing behavior out of scope
 - Optionally perform local historical branch cleanup as separate human-directed repository hygiene work
 - Keep documentation freshness, documentation-before-closeout, and source-of-truth updates mandatory for future project-state-changing work

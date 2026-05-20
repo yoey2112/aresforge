@@ -99,6 +99,8 @@ The current runnable state store does not yet implement full model-routing polic
 
 The local operator now also exposes read-only `list-models` output on top of these rows. That command emits deterministic JSON for stored model records and existing JSON metadata without calling Ollama, selecting a model, recommending a model, routing a task, or mutating model state.
 
+The local operator now also exposes read-only `inspect-project` output on top of the `projects` table. That command reads only the requested stored project row, preserves the underlying `metadata` object, and expands selected metadata fields such as `autonomy_level`, `protected_issue`, `active_issue`, and `completed_issue` into visible top-level JSON fields without mutating project state.
+
 ### Queues
 
 Stores visible routing lanes. The local bootstrap seeds the canonical initial M2 queue set:

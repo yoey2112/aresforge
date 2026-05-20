@@ -542,6 +542,26 @@ def enrich_model_record(row: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def enrich_project_record(row: dict[str, Any]) -> dict[str, Any]:
+    metadata = row.get("metadata") or {}
+    return {
+        "id": row["id"],
+        "slug": row["slug"],
+        "name": row["name"],
+        "status": row["status"],
+        "repo_owner": row["repo_owner"],
+        "repo_name": row["repo_name"],
+        "default_branch": row["default_branch"],
+        "local_path": row["local_path"],
+        "metadata": metadata,
+        "autonomy_level": metadata.get("autonomy_level"),
+        "protected_issue": metadata.get("protected_issue"),
+        "active_issue": metadata.get("active_issue"),
+        "completed_issue": metadata.get("completed_issue"),
+        "updated_at": row["updated_at"],
+    }
+
+
 def enrich_work_item_record(row: dict[str, Any]) -> dict[str, Any]:
     metadata = row.get("metadata") or {}
     queue_metadata = row.get("queue_metadata") or {}
@@ -607,8 +627,8 @@ def bootstrap_reference_data(conn: Connection, config: AppConfig) -> None:
                     {
                         "autonomy_level": "human_triggered_local_only",
                         "protected_issue": 39,
-                        "active_issue": 83,
-                        "completed_issue": 81,
+                        "active_issue": 97,
+                        "completed_issue": 96,
                     }
                 ),
             ),
@@ -696,6 +716,32 @@ def list_projects(conn: Connection) -> list[dict[str, Any]]:
             """
         )
         return list(cur.fetchall())
+
+
+def inspect_project(conn: Connection, project_id: str) -> dict[str, Any] | None:
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT
+                id,
+                slug,
+                name,
+                status,
+                repo_owner,
+                repo_name,
+                default_branch,
+                local_path,
+                metadata,
+                updated_at
+            FROM projects
+            WHERE id = %s
+            """,
+            (project_id,),
+        )
+        row = cur.fetchone()
+    if row is None:
+        return None
+    return enrich_project_record(row)
 
 
 def list_queues(conn: Connection) -> list[dict[str, Any]]:

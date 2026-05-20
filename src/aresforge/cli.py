@@ -15,6 +15,7 @@ from aresforge.db.repository import (
     DEFAULT_PROJECT_ID,
     bootstrap_reference_data,
     create_work_item,
+    inspect_project,
     inspect_queue,
     inspect_state,
     inspect_work_item,
@@ -59,6 +60,10 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     subparsers.add_parser("inspect-project-state", help="Show local database state summary.")
+    inspect_project_parser = subparsers.add_parser(
+        "inspect-project", help="Inspect one local project record with expanded metadata."
+    )
+    inspect_project_parser.add_argument("--project-id", required=True)
     subparsers.add_parser("list-projects", help="List registered projects.")
     subparsers.add_parser("list-agents", help="List registered agent roles.")
     subparsers.add_parser("list-models", help="List registered local model records.")
@@ -219,6 +224,17 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "inspect-project-state":
         with connect(config) as conn:
             emit_json(inspect_state(conn))
+        return 0
+
+    if args.command == "inspect-project":
+        with connect(config) as conn:
+            project_record = inspect_project(conn, args.project_id)
+        if project_record is None:
+            emit_json(
+                {"ok": False, "error": "project_not_found", "project_id": args.project_id}
+            )
+            return 1
+        emit_json({"ok": True, "project": project_record})
         return 0
 
     if args.command == "list-projects":
