@@ -60,6 +60,8 @@ python -m aresforge list-queues
 
 The current CLI does not yet expose a dedicated `list-models` command. Model metadata is presently visible through `inspect-project-state`, the configured `.env` values, and the seeded local `models` table described in `docs/architecture/LOCAL_STATE_STORE.md`.
 
+The current CLI also does not yet expose a dedicated queue-transition or work-item-state inspection command beyond the seeded queue and work-item listings. Canonical queue meaning, full M2 queue coverage, transition rules, blocked handling, corrective loops, and work-item state fields are defined by `docs/architecture/QUEUE_REGISTRY_SCHEMA.md`.
+
 ## Work Item Commands
 
 Create a work item:
@@ -76,6 +78,8 @@ List work items:
 ```powershell
 python -m aresforge list-work-items
 ```
+
+The current runtime can create and list work items against the seeded local queue subset. The broader canonical queue path for `triage`, `testing`, `closeout`, `blocked`, and `corrective` is documentation-defined in `docs/architecture/QUEUE_REGISTRY_SCHEMA.md` and may be added to local seeded state only through a later human-directed implementation issue.
 
 ## Prompt, Evidence, And Handoff Artifacts
 

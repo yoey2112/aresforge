@@ -6,7 +6,7 @@ M2 - Runnable Local Skeleton Pivot
 
 ## Current Goal
 
-Carry the runnable local skeleton, agent-registry schema, and model-registry schema forward into queue and work-item state modeling while keeping implementation human-triggered, local-first, read-only where possible, and aligned with the existing registry and lifecycle architecture.
+Carry the runnable local skeleton, queue-registry schema, and work-item state-transition schema forward into later local runtime alignment while keeping implementation human-triggered, local-first, read-only where possible, and aligned with the existing registry and lifecycle architecture.
 
 ## Current Repository State
 
@@ -18,8 +18,9 @@ Carry the runnable local skeleton, agent-registry schema, and model-registry sch
 - `docs/architecture/PROJECT_REGISTRY_SCHEMA.md` remains the canonical project registry schema artifact.
 - `docs/architecture/AGENT_REGISTRY_SCHEMA.md` is the canonical agent registry schema artifact.
 - `docs/architecture/MODEL_REGISTRY_SCHEMA.md` is the canonical model registry and local LLM routing artifact.
+- `docs/architecture/QUEUE_REGISTRY_SCHEMA.md` is the canonical M2 queue registry and work-item state transition artifact.
 - Issue #75 remains the last routine reconciliation issue.
-- Remaining open protected validation issue: #39, `validation: issue-38-state-lifecycle`, intentionally preserved as audit evidence and not modified by Issue #85 closeout.
+- Remaining open protected validation issue: #39, `validation: issue-38-state-lifecycle`, intentionally preserved as audit evidence and not modified by Issue #87 closeout.
 
 ## Current Source of Truth
 
@@ -346,6 +347,13 @@ Repository documentation remains the authoritative source for roadmap, governanc
   - Latest `main` commit advanced to `e2bbe85`, `Define model registry schema and routing rules (#85) (#86)`.
   - Confirmed Issue #39 was not modified or closed.
   - Confirmed no autonomous execution, autonomous model selection for governance-sensitive actions, hosted model enablement, autonomous approval, autonomous merge, autonomous issue closure, or GitHub-state-changing behavior was introduced.
+- Issue #87 completed:
+  - Defined the canonical M2 queue registry and work-item state transition artifact at `docs/architecture/QUEUE_REGISTRY_SCHEMA.md`.
+  - Formalized queue identities, queue meaning, accepted work-item types, entry and exit criteria, allowed transitions, handoff evidence, blocked and waiting handling, corrective-loop routing, lifecycle-state mapping, and local operator visibility expectations.
+  - Aligned the registry architecture, local state-store, runnable skeleton, and local operator usage docs with the new queue and work-item state source of truth while preserving the current seeded runtime subset as a conservative implementation slice.
+  - Confirmed documentation-before-closeout remains a mandatory gate.
+  - Confirmed Issue #39 was not modified or closed.
+  - Confirmed no code, migrations, tests, scripts, workflows, autonomous routing, autonomous approval, autonomous merge, autonomous issue closure, hosted model use, or GitHub-state-changing behavior was introduced.
 ## In Progress
 
 - `docs/architecture/ISSUE_LIFECYCLE_AGENT_PIPELINE.md` remains the completed canonical lifecycle pipeline design artifact.
@@ -353,7 +361,9 @@ Repository documentation remains the authoritative source for roadmap, governanc
 - `docs/architecture/PROJECT_REGISTRY_SCHEMA.md` remains the completed canonical project registry schema artifact.
 - `docs/architecture/AGENT_REGISTRY_SCHEMA.md` remains the completed canonical agent registry schema artifact from Issue #83.
 - `docs/architecture/MODEL_REGISTRY_SCHEMA.md` remains the completed canonical model registry and local LLM routing artifact from Issue #85.
+- `docs/architecture/QUEUE_REGISTRY_SCHEMA.md` remains the completed canonical queue registry and work-item state transition artifact from Issue #87.
 - The repository now has a completed runnable local operator foundation from Issue #81 plus completed agent-registry and model-registry schema layers from Issues #83 and #85.
+- The repository now also has the completed queue-registry and work-item state-transition schema layer from Issue #87.
 - The new local state-store and operator usage docs are:
   - `docs/architecture/LOCAL_STATE_STORE.md`
   - `docs/architecture/RUNNABLE_SKELETON.md`
@@ -362,6 +372,8 @@ Repository documentation remains the authoritative source for roadmap, governanc
   - `docs/architecture/AGENT_REGISTRY_SCHEMA.md`
 - The model-registry schema and local-routing work now adds:
   - `docs/architecture/MODEL_REGISTRY_SCHEMA.md`
+- The queue-registry and work-item state-transition work now adds:
+  - `docs/architecture/QUEUE_REGISTRY_SCHEMA.md`
 - Future project-state-changing issues must continue updating source-of-truth docs before PR merge and issue closeout.
 - Issue #75 remains the last routine reconciliation issue.
 - Separate reconciliation or documentation-update issues remain the exception path only.
@@ -371,8 +383,8 @@ Repository documentation remains the authoritative source for roadmap, governanc
 ## Next
 
 - Preserve Issue #39 as the only remaining open protected validation issue unless a future human-directed issue explicitly changes its state.
-- Define queue registry and work-item state transitions on top of the runnable local skeleton plus the project, agent, and model registry layers.
-- Validate and iterate on the local operator CLI, migration flow, local artifact outputs, and registry seed/listing behavior created by Issues #81, #83, and #85.
+- Use the new canonical queue schema to guide later local queue seed expansion, work-item state enrichment, and registry-aware operator inspection.
+- Validate and iterate on the local operator CLI, migration flow, local artifact outputs, and registry seed or listing behavior created by Issues #81, #83, #85, and #87.
 - Keep documentation freshness checks required before future documentation-sync work.
 - Use the new runnable skeleton docs when extending the local operator:
   - `docs/architecture/LOCAL_STATE_STORE.md`
@@ -380,12 +392,13 @@ Repository documentation remains the authoritative source for roadmap, governanc
   - `docs/operator/LOCAL_OPERATOR_USAGE.md`
 - Use `docs/architecture/AGENT_REGISTRY_SCHEMA.md` as the canonical agent-role, lifecycle-state, capability-boundary, and queue-participation artifact.
 - Use `docs/architecture/MODEL_REGISTRY_SCHEMA.md` as the canonical model-record, routing-priority, fallback, approval-posture, and local-endpoint artifact.
+- Use `docs/architecture/QUEUE_REGISTRY_SCHEMA.md` as the canonical queue-record, transition-rule, work-item-state, blocked-handling, and corrective-loop artifact.
 - Keep Codex handoff generation as output-file preparation only until a later human-approved issue expands it.
 - Keep Ollama integration bounded to human-triggered local test, support, and advisory routing contexts until a later issue explicitly authorizes richer routing or execution.
 - Do not create another routine reconciliation issue after Issue #75.
 - Do not create related source-of-truth documentation update issues by default.
 - Use `docs/architecture/ISSUE_LIFECYCLE_AGENT_PIPELINE.md` as the canonical lifecycle correction for documentation-before-closeout.
-- Use `docs/architecture/REGISTRY_AND_QUEUE_ARCHITECTURE.md`, `docs/architecture/PROJECT_REGISTRY_SCHEMA.md`, `docs/architecture/AGENT_REGISTRY_SCHEMA.md`, and `docs/architecture/MODEL_REGISTRY_SCHEMA.md` as the architectural input for later queue evolution, capability alignment, and multi-project routing work.
+- Use `docs/architecture/REGISTRY_AND_QUEUE_ARCHITECTURE.md`, `docs/architecture/PROJECT_REGISTRY_SCHEMA.md`, `docs/architecture/AGENT_REGISTRY_SCHEMA.md`, `docs/architecture/MODEL_REGISTRY_SCHEMA.md`, and `docs/architecture/QUEUE_REGISTRY_SCHEMA.md` as the architectural input for later queue evolution, capability alignment, and multi-project routing work.
 - Review docs/planning/FUTURE_FEATURE_IDEAS.md at the beginning of each future milestone.
 
 ## Current Operating Constraint
@@ -394,4 +407,4 @@ All current M2 runnable-skeleton changes remain manually guided, human-triggered
 
 Human-triggered local automation is allowed for config validation, local migrations, local state inspection, read-only registry listing, local artifact generation, local Ollama checks, and advisory model-selection reasoning that remains reviewable and non-governance-authoritative.
 
-No autonomous PR merge, autonomous approval, autonomous issue closure, autonomous GitHub-state-changing behavior, repository setting change, branch protection change, ruleset change, secret change, release change, tag change, hosted external model call, or GitHub Project change is enabled by Issues #81, #83, or #85.
+No autonomous PR merge, autonomous approval, autonomous issue closure, autonomous GitHub-state-changing behavior, repository setting change, branch protection change, ruleset change, secret change, release change, tag change, hosted external model call, or GitHub Project change is enabled by Issues #81, #83, #85, or #87.

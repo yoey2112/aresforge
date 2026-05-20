@@ -77,6 +77,11 @@ Current completed M2 registry deliverable:
 - Issue #85: Define model registry and local LLM routing rules, completed through PR #86.
 - `docs/architecture/MODEL_REGISTRY_SCHEMA.md` is the canonical M2 model registry and bounded local routing artifact.
 
+Current completed M2 registry deliverable:
+
+- Issue #87: Define queue registry and work-item state transitions, completed.
+- `docs/architecture/QUEUE_REGISTRY_SCHEMA.md` is the canonical M2 queue registry and work-item state-transition artifact.
+
 Current M2 corrective rule:
 
 - Issue #75 exists only because stale source-of-truth documentation was discovered after Issue #73 / PR #74 closeout.
@@ -85,8 +90,8 @@ Current M2 corrective rule:
 
 Next substantive M2 direction:
 
-- Deepen queue and work-item state modeling against the runnable local foundation without expanding into hosted model use or autonomous GitHub control.
-- Extend the local operator with richer registry-aware inspection after queue and work-item state meaning is formalized.
+- Align later local queue seed data and work-item runtime fields with the canonical queue registry without expanding into hosted model use or autonomous GitHub control.
+- Extend the local operator with richer registry-aware inspection now that queue and work-item state meaning is formalized.
 
 ## Full Milestone Roadmap
 
@@ -168,6 +173,8 @@ Completed and active scope:
 - Canonical agent registry schema artifact at `docs/architecture/AGENT_REGISTRY_SCHEMA.md`
 - Model registry and bounded local routing completed via Issue #85 and merged PR #86
 - Canonical model registry artifact at `docs/architecture/MODEL_REGISTRY_SCHEMA.md`
+- Queue registry and work-item state-transition schema completed via Issue #87
+- Canonical queue registry artifact at `docs/architecture/QUEUE_REGISTRY_SCHEMA.md`
 - PostgreSQL local state-store foundation
 - Repo-stored SQL migrations
 - Human-reviewable prompt/evidence/Codex handoff artifact generation
@@ -184,8 +191,8 @@ Current M2 boundary:
 
 Next substantive M2 direction:
 
-- Next likely issue: Define queue registry and work item state transitions
-- Follow with richer registry-aware local operator inspection once queue and work-item state meaning is in place
+- Next likely issue: align the seeded local queue set and work-item runtime interpretation with the canonical queue schema where human-directed implementation scope allows it
+- Follow with richer registry-aware local operator inspection now that queue and work-item state meaning is in place
 
 ### M3 - Registry and Routing Deepening
 
@@ -206,6 +213,13 @@ Planned scope:
 - Routing rules
 - Work item state model
 - Human approval boundary model
+
+Completed foundation now available to this milestone:
+
+- Project registry canonical schema
+- Agent registry canonical schema
+- Model registry canonical schema
+- Queue registry and work-item state-transition canonical schema
 
 Not yet implemented:
 

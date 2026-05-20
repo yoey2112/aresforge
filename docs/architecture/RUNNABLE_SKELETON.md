@@ -18,6 +18,8 @@ The goal is not a polished autonomous system. The goal is to make AresForge exec
 
 The canonical source-of-truth for model-record meaning and bounded local routing rules is now `docs/architecture/MODEL_REGISTRY_SCHEMA.md`.
 
+The canonical source-of-truth for queue-record meaning, work-item state fields, transition rules, blocked handling, and corrective-loop routing is now `docs/architecture/QUEUE_REGISTRY_SCHEMA.md`.
+
 ## Implemented Structure
 
 The runnable skeleton introduces these repo areas:
@@ -72,6 +74,8 @@ The current vertical slice is:
 10. optionally test a local Ollama model call
 
 That is enough to prove the local execution path without over-designing agents, routing intelligence, or background automation.
+
+The current runnable seed data intentionally remains narrower than the full canonical M2 queue schema. The local database currently exposes only a conservative queue subset while the documentation-defined queue registry already defines the broader lifecycle path, including triage, testing, closeout, blocked, and corrective lanes.
 
 ## Ollama Boundary
 

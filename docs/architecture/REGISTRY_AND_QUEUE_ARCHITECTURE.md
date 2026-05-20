@@ -373,6 +373,8 @@ Issue #85 does not turn that surface into autonomous runtime routing. Instead, i
 
 ## Queue Registry
 
+`docs/architecture/QUEUE_REGISTRY_SCHEMA.md` is the canonical M2 source-of-truth document for queue records, work-item state fields, transition rules, blocked or waiting handling, corrective-loop routing, lifecycle-stage mapping, evidence expectations, and local operator visibility expectations.
+
 ### Purpose
 
 The queue registry should define the visible routing lanes that work items move through as they progress across planning, routing, implementation, verification, testing, documentation, closeout, and failure loops.
@@ -426,6 +428,7 @@ It should not replace the detailed issue requirements or human approval decision
 The queue registry should map directly to the lifecycle stages defined in `docs/architecture/ISSUE_LIFECYCLE_AGENT_PIPELINE.md`.
 
 That means queues should preserve the order and gate logic between planning, triage, worker, verification, testing, documentation, and final closeout rather than bypassing them.
+The dedicated queue and work-item state conventions now live in `docs/architecture/QUEUE_REGISTRY_SCHEMA.md`.
 
 ### Relationship To Handoffs
 
@@ -436,6 +439,7 @@ The registry should make those expectations visible so that handoffs are structu
 ### Relationship To Local Operator Workflow
 
 The local operator workflow may later read queue definitions to prepare prompt packages, validation checklists, documentation-sync handoffs, and PR or closeout evidence packages.
+The current runnable local operator should treat `docs/architecture/QUEUE_REGISTRY_SCHEMA.md` as the canonical queue and work-item meaning layer even when the local database still seeds only a conservative subset of those queues.
 
 No queue-reading command is implemented by this issue.
 
@@ -456,6 +460,7 @@ The queue registry should make human approval requirements explicit for transiti
 The queue registry should define how failed verification or testing returns a work item to the correct corrective path without collapsing documentation and closeout gates.
 
 Failure routing should preserve evidence and explain why the work item moved backward.
+The canonical M2 blocked-state and corrective-loop definitions now live in `docs/architecture/QUEUE_REGISTRY_SCHEMA.md`.
 
 ## Capability Registry
 
