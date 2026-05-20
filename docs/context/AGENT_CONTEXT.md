@@ -103,6 +103,7 @@ The local operator may currently support:
 - deterministic read-only evidence package discovery
 - deterministic read-only single evidence package inspection
 - deterministic human-triggered local review orchestration across existing local operator checks
+- deterministic decision-only ready issue routing for automation intake
 - a human-triggered PR lifecycle helper that requires an explicit phase selection before validation, staging, PR creation, PR verification, merge execution, post-merge verification, or source-of-truth scanning
 - prompt, evidence, and Codex handoff artifact preparation, including opt-in local artifact discovery capture in evidence packages plus opt-in latest local review package capture in evidence and handoff outputs
 - opt-in local review package generation under `artifacts/local_reviews/generated/`

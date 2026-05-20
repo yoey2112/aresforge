@@ -10,9 +10,9 @@ Continue the M2 runtime foundation by extending human-triggered local operator s
 
 ## Current Repository State
 
-- Current branch: `m2/issue-114-model-routing-strategy`
-- Latest `main` commit: `02416cf` (`Add review package inspection and handoff capture (#112) (#115)`)
-- Latest runtime-affecting merged foundation commit: `02416cf` (`Add review package inspection and handoff capture (#112) (#115)`)
+- Current branch: `main`
+- Latest `main` commit: `7c79653` (`Add ready issue intake commands (#122)`)
+- Latest runtime-affecting merged foundation commit: `7c79653` (`Add ready issue intake commands (#122)`)
 - Issue #105 was completed through PR #106 and is merged `main` behavior
 - Issue #107 was completed through PR #108 and is merged `main` behavior
 - Issue #109 was completed through PR #111 and is merged `main` behavior
@@ -85,6 +85,7 @@ The current human-triggered local operator foundation supports:
 - deterministic read-only evidence package discovery through `list-evidence-packages`
 - deterministic read-only single evidence package inspection through `inspect-evidence-package`
 - deterministic human-triggered local review orchestration through `run-local-review`
+- deterministic decision-only ready issue routing through `plan-ready-issue`
 - a human-triggered phase-based PR lifecycle helper for explicit validation, staging, commit and push, PR creation, PR verification, merge verification, post-merge verification, and source-of-truth scanning
 - prompt package, evidence package, and Codex handoff artifact preparation, including opt-in local artifact discovery capture in evidence packages plus opt-in latest local review package capture in evidence and handoff outputs
 - opt-in local review package generation under `artifacts/local_reviews/generated/`

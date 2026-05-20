@@ -49,6 +49,7 @@ from aresforge.operator.ready_issue_intake import (
     inspect_ready_issue,
     list_ready_issues,
 )
+from aresforge.operator.ready_issue_planning import plan_ready_issue
 from aresforge.operator.service import (
     render_codex_handoff,
     render_evidence_package,
@@ -134,6 +135,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Inspect one GitHub issue labeled for ready intake without mutating GitHub state.",
     )
     inspect_ready_issue_parser.add_argument("--issue-number", type=int, required=True)
+    plan_ready_issue_parser = subparsers.add_parser(
+        "plan-ready-issue",
+        help="Plan agent and model routing for a ready issue without mutating GitHub state.",
+    )
+    plan_ready_issue_parser.add_argument("--issue-number", type=int, required=True)
     inspect_review_parser = subparsers.add_parser(
         "inspect-review-package",
         help="Inspect one generated local review package under the configured review package root.",
@@ -397,6 +403,10 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "inspect-ready-issue":
         emit_json(inspect_ready_issue(config, args.issue_number))
+        return 0
+
+    if args.command == "plan-ready-issue":
+        emit_json(plan_ready_issue(config, args.issue_number))
         return 0
 
     if args.command == "inspect-review-package":
