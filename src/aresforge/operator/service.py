@@ -68,6 +68,7 @@ def render_evidence_package(
     skipped_checks: list[str],
     protected_issue_checks: list[str],
     automation_boundary_confirmation: str,
+    artifact_discovery: dict[str, Any] | None = None,
 ) -> ArtifactBundle:
     payload = {
         "title": title,
@@ -77,7 +78,17 @@ def render_evidence_package(
         "skipped_checks": skipped_checks,
         "protected_issue_checks": protected_issue_checks,
         "automation_boundary_confirmation": automation_boundary_confirmation,
+        "artifact_discovery": artifact_discovery,
     }
+    artifact_discovery_lines = (
+        [
+            "```json",
+            json.dumps(artifact_discovery, indent=2, sort_keys=True),
+            "```",
+        ]
+        if artifact_discovery is not None
+        else ["Not included."]
+    )
     markdown = "\n".join(
         [
             f"# {title}",
@@ -93,6 +104,9 @@ def render_evidence_package(
             "",
             "## Protected Issue Checks",
             *_bullet_lines(protected_issue_checks, "None recorded."),
+            "",
+            "## Artifact Discovery Snapshot",
+            *artifact_discovery_lines,
             "",
             "## Automation Boundary Confirmation",
             automation_boundary_confirmation,

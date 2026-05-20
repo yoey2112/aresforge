@@ -5,7 +5,9 @@ from aresforge.config import AppConfig
 from aresforge.operator.artifact_discovery import (
     _TEXT_PREVIEW_CHAR_LIMIT,
     discover_local_artifacts,
+    discover_local_evidence_packages,
     inspect_local_artifact,
+    inspect_local_evidence_package,
 )
 
 
@@ -147,6 +149,66 @@ def test_discover_local_artifacts_payload_is_json_serializable(tmp_path: Path) -
     assert json.loads(json.dumps(payload)) == payload
 
 
+def test_discover_local_evidence_packages_handles_missing_evidence_root(tmp_path: Path) -> None:
+    payload = discover_local_evidence_packages(make_config(tmp_path))
+
+    assert payload["ok"] is True
+    assert payload["evidence_root_exists"] is False
+    assert payload["evidence_package_count"] == 0
+    assert payload["evidence_packages"] == []
+
+
+def test_discover_local_evidence_packages_summarizes_known_generated_evidence(
+    tmp_path: Path,
+) -> None:
+    config = make_config(tmp_path)
+    evidence_json = config.evidence_dir / "20260520T120001Z-issue-109-evidence.json"
+    evidence_markdown = config.evidence_dir / "20260520T120001Z-issue-109-evidence.md"
+
+    evidence_json.parent.mkdir(parents=True)
+    evidence_json.write_text('{"ok": true}', encoding="utf-8")
+    evidence_markdown.write_text("# Evidence", encoding="utf-8")
+
+    payload = discover_local_evidence_packages(config)
+
+    assert payload["evidence_package_count"] == 2
+    assert payload["evidence_packages"] == [
+        {
+            "evidence_path": "20260520T120001Z-issue-109-evidence.json",
+            "filename": "20260520T120001Z-issue-109-evidence.json",
+            "size_bytes": 12,
+            "modified_at": payload["evidence_packages"][0]["modified_at"],
+            "artifact_type": "evidence_package",
+            "command_source_hint": "record-evidence-package",
+            "extension": ".json",
+            "text_readable": True,
+            "text_preview": '{"ok": true}',
+        },
+        {
+            "evidence_path": "20260520T120001Z-issue-109-evidence.md",
+            "filename": "20260520T120001Z-issue-109-evidence.md",
+            "size_bytes": 10,
+            "modified_at": payload["evidence_packages"][1]["modified_at"],
+            "artifact_type": "evidence_package",
+            "command_source_hint": "record-evidence-package",
+            "extension": ".md",
+            "text_readable": True,
+            "text_preview": "# Evidence",
+        },
+    ]
+
+
+def test_discover_local_evidence_packages_payload_is_json_serializable(tmp_path: Path) -> None:
+    config = make_config(tmp_path)
+    evidence_path = config.evidence_dir / "artifact.json"
+    evidence_path.parent.mkdir(parents=True)
+    evidence_path.write_text('{"ok": true}', encoding="utf-8")
+
+    payload = discover_local_evidence_packages(config)
+
+    assert json.loads(json.dumps(payload)) == payload
+
+
 def test_inspect_local_artifact_rejects_empty_path(tmp_path: Path) -> None:
     payload = inspect_local_artifact(make_config(tmp_path), "   ")
 
@@ -218,5 +280,86 @@ def test_inspect_local_artifact_payload_is_json_serializable(tmp_path: Path) -> 
     artifact_path.write_text('{"ok": true}', encoding="utf-8")
 
     payload = inspect_local_artifact(config, "evidence/generated/artifact.json")
+
+    assert json.loads(json.dumps(payload)) == payload
+
+
+def test_inspect_local_evidence_package_rejects_empty_path(tmp_path: Path) -> None:
+    payload = inspect_local_evidence_package(make_config(tmp_path), "   ")
+
+    assert payload["ok"] is False
+    assert payload["error"] == "evidence_path_empty"
+
+
+def test_inspect_local_evidence_package_rejects_unsafe_traversal_path(tmp_path: Path) -> None:
+    payload = inspect_local_evidence_package(make_config(tmp_path), "../secrets.txt")
+
+    assert payload["ok"] is False
+    assert payload["error"] == "evidence_path_unsafe"
+
+
+def test_inspect_local_evidence_package_rejects_absolute_path_outside_root(
+    tmp_path: Path,
+) -> None:
+    payload = inspect_local_evidence_package(make_config(tmp_path), "C:\\temp\\artifact.json")
+
+    assert payload["ok"] is False
+    assert payload["error"] == "evidence_path_outside_root"
+
+
+def test_inspect_local_evidence_package_returns_not_found_for_missing_evidence(
+    tmp_path: Path,
+) -> None:
+    payload = inspect_local_evidence_package(make_config(tmp_path), "missing.json")
+
+    assert payload["ok"] is False
+    assert payload["error"] == "evidence_package_not_found"
+    assert payload["evidence_path"] == "missing.json"
+
+
+def test_inspect_local_evidence_package_returns_metadata_for_valid_file(tmp_path: Path) -> None:
+    config = make_config(tmp_path)
+    evidence_path = config.evidence_dir / "artifact.md"
+    evidence_path.parent.mkdir(parents=True)
+    evidence_path.write_text("# Preview\r\nHello evidence", encoding="utf-8")
+
+    payload = inspect_local_evidence_package(config, "artifact.md")
+
+    assert payload["ok"] is True
+    assert payload["evidence_package"] == {
+        "evidence_path": "artifact.md",
+        "filename": "artifact.md",
+        "size_bytes": evidence_path.stat().st_size,
+        "modified_at": payload["evidence_package"]["modified_at"],
+        "artifact_type": "evidence_package",
+        "command_source_hint": "record-evidence-package",
+        "extension": ".md",
+        "text_readable": True,
+        "text_preview": "# Preview\nHello evidence",
+    }
+
+
+def test_inspect_local_evidence_package_binds_text_preview_to_deterministic_limit(
+    tmp_path: Path,
+) -> None:
+    config = make_config(tmp_path)
+    evidence_path = config.evidence_dir / "long.txt"
+    evidence_path.parent.mkdir(parents=True)
+    evidence_path.write_text("a" * (_TEXT_PREVIEW_CHAR_LIMIT + 50), encoding="utf-8")
+
+    payload = inspect_local_evidence_package(config, "long.txt")
+
+    assert payload["ok"] is True
+    assert payload["evidence_package"]["text_readable"] is True
+    assert payload["evidence_package"]["text_preview"] == "a" * _TEXT_PREVIEW_CHAR_LIMIT
+
+
+def test_inspect_local_evidence_package_payload_is_json_serializable(tmp_path: Path) -> None:
+    config = make_config(tmp_path)
+    evidence_path = config.evidence_dir / "artifact.json"
+    evidence_path.parent.mkdir(parents=True)
+    evidence_path.write_text('{"ok": true}', encoding="utf-8")
+
+    payload = inspect_local_evidence_package(config, "artifact.json")
 
     assert json.loads(json.dumps(payload)) == payload

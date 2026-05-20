@@ -26,7 +26,9 @@ def test_cli_has_expected_commands() -> None:
         "inspect-project",
         "inspect-registries",
         "list-artifacts",
+        "list-evidence-packages",
         "inspect-artifact",
+        "inspect-evidence-package",
         "inspect-model",
         "inspect-queue",
         "inspect-work-item",
@@ -89,10 +91,16 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     assert inspect_registries_args.command == "inspect-registries"
     list_artifacts_args = parser.parse_args(["list-artifacts"])
     assert list_artifacts_args.command == "list-artifacts"
+    list_evidence_args = parser.parse_args(["list-evidence-packages"])
+    assert list_evidence_args.command == "list-evidence-packages"
     inspect_artifact_args = parser.parse_args(
         ["inspect-artifact", "--artifact-path", "prompts/generated/artifact.md"]
     )
     assert inspect_artifact_args.artifact_path == "prompts/generated/artifact.md"
+    inspect_evidence_args = parser.parse_args(
+        ["inspect-evidence-package", "--evidence-path", "20260520T120001Z-issue-109-evidence.json"]
+    )
+    assert inspect_evidence_args.evidence_path == "20260520T120001Z-issue-109-evidence.json"
 
     inspect_model_args = parser.parse_args(["inspect-model", "--model-id", "model-ollama-default"])
     assert inspect_model_args.model_id == "model-ollama-default"
@@ -127,6 +135,13 @@ def test_cli_inspect_artifact_requires_artifact_path() -> None:
 
     with pytest.raises(SystemExit):
         parser.parse_args(["inspect-artifact"])
+
+
+def test_cli_inspect_evidence_package_requires_evidence_path() -> None:
+    parser = build_parser()
+
+    with pytest.raises(SystemExit):
+        parser.parse_args(["inspect-evidence-package"])
 
 
 def test_cli_inspection_commands_accept_write_artifact_flag() -> None:
@@ -166,9 +181,16 @@ def test_command_requires_directories_only_for_commands_that_write_artifacts() -
         is True
     )
     assert command_requires_directories(parser.parse_args(["list-artifacts"])) is False
+    assert command_requires_directories(parser.parse_args(["list-evidence-packages"])) is False
     assert (
         command_requires_directories(
             parser.parse_args(["inspect-artifact", "--artifact-path", "prompts/generated/artifact.md"])
+        )
+        is False
+    )
+    assert (
+        command_requires_directories(
+            parser.parse_args(["inspect-evidence-package", "--evidence-path", "artifact.json"])
         )
         is False
     )
@@ -552,6 +574,143 @@ def test_inspect_artifact_returns_exit_one_when_helper_reports_error(
     assert payload == inspection_payload
 
 
+def test_list_evidence_packages_emits_json_and_skips_directory_creation(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    discovery_payload = {
+        "ok": True,
+        "inspection_mode": "local_evidence_root_only",
+        "evidence_root": "C:/Projects/aresforge/artifacts/evidence/generated",
+        "evidence_root_exists": False,
+        "evidence_package_count": 0,
+        "evidence_packages": [],
+    }
+    ensure_calls: list[bool] = []
+
+    monkeypatch.setattr(cli, "discover_local_evidence_packages", lambda _config: discovery_payload)
+    monkeypatch.setattr(cli.AppConfig, "ensure_directories", lambda _self: ensure_calls.append(True))
+    monkeypatch.setattr(
+        cli,
+        "connect",
+        lambda *_args, **_kwargs: pytest.fail("list-evidence-packages must not connect to PostgreSQL"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "test_generate",
+        lambda *_args, **_kwargs: pytest.fail("list-evidence-packages must not call Ollama"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "create_work_item",
+        lambda *_args, **_kwargs: pytest.fail("list-evidence-packages must not create work items"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "build_route_plan",
+        lambda *_args, **_kwargs: pytest.fail("list-evidence-packages must not route work"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "bootstrap_reference_data",
+        lambda *_args, **_kwargs: pytest.fail("list-evidence-packages must not bootstrap state"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "render_evidence_package",
+        lambda *_args, **_kwargs: pytest.fail("list-evidence-packages must not mutate evidence files"),
+    )
+
+    exit_code = cli.main(["list-evidence-packages"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert ensure_calls == []
+    assert payload == discovery_payload
+
+
+def test_inspect_evidence_package_emits_json_and_skips_directory_creation(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    inspection_payload = {
+        "ok": True,
+        "inspection_mode": "local_evidence_root_only",
+        "evidence_root": "C:/Projects/aresforge/artifacts/evidence/generated",
+        "evidence_root_exists": True,
+        "evidence_package": {
+            "evidence_path": "artifact.json",
+            "filename": "artifact.json",
+            "size_bytes": 12,
+            "modified_at": "2026-05-20T00:00:00+00:00",
+            "artifact_type": "evidence_package",
+            "command_source_hint": "record-evidence-package",
+            "extension": ".json",
+            "text_readable": True,
+            "text_preview": '{"ok": true}',
+        },
+    }
+    ensure_calls: list[bool] = []
+
+    monkeypatch.setattr(cli, "inspect_local_evidence_package", lambda _config, _evidence_path: inspection_payload)
+    monkeypatch.setattr(cli.AppConfig, "ensure_directories", lambda _self: ensure_calls.append(True))
+    monkeypatch.setattr(
+        cli,
+        "connect",
+        lambda *_args, **_kwargs: pytest.fail("inspect-evidence-package must not connect to PostgreSQL"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "test_generate",
+        lambda *_args, **_kwargs: pytest.fail("inspect-evidence-package must not call Ollama"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "create_work_item",
+        lambda *_args, **_kwargs: pytest.fail("inspect-evidence-package must not create work items"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "build_route_plan",
+        lambda *_args, **_kwargs: pytest.fail("inspect-evidence-package must not route work"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "bootstrap_reference_data",
+        lambda *_args, **_kwargs: pytest.fail("inspect-evidence-package must not bootstrap state"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "render_evidence_package",
+        lambda *_args, **_kwargs: pytest.fail("inspect-evidence-package must not mutate evidence files"),
+    )
+
+    exit_code = cli.main(["inspect-evidence-package", "--evidence-path", "artifact.json"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert ensure_calls == []
+    assert payload == inspection_payload
+
+
+def test_inspect_evidence_package_returns_exit_one_when_helper_reports_error(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    inspection_payload = {
+        "ok": False,
+        "inspection_mode": "local_evidence_root_only",
+        "evidence_root": "C:/Projects/aresforge/artifacts/evidence/generated",
+        "evidence_root_exists": True,
+        "error": "evidence_package_not_found",
+        "evidence_path": "missing.json",
+    }
+    monkeypatch.setattr(cli, "inspect_local_evidence_package", lambda _config, _evidence_path: inspection_payload)
+
+    exit_code = cli.main(["inspect-evidence-package", "--evidence-path", "missing.json"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 1
+    assert payload == inspection_payload
+
+
 def test_list_models_emits_valid_json_without_ollama(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -808,4 +967,76 @@ def test_inspect_work_item_write_artifact_renders_report_and_emits_paths(
         "inspection_payload": work_item_payload,
         "markdown_path": str(markdown_path),
         "json_path": str(json_path),
+    }
+
+
+def test_record_evidence_package_does_not_capture_artifact_discovery_by_default(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], tmp_path: Path
+) -> None:
+    calls: list[dict[str, object | None]] = []
+    bundle = ArtifactBundle(
+        markdown_path=tmp_path / "evidence.md",
+        json_path=tmp_path / "evidence.json",
+        payload={"ok": True},
+    )
+
+    monkeypatch.setattr(
+        cli,
+        "discover_local_artifacts",
+        lambda _config: pytest.fail("record-evidence-package must not capture artifact discovery unless opted in"),
+    )
+
+    def fake_render_evidence_package(**kwargs: object) -> ArtifactBundle:
+        calls.append({"artifact_discovery": kwargs["artifact_discovery"]})
+        return bundle
+
+    monkeypatch.setattr(cli, "render_evidence_package", fake_render_evidence_package)
+
+    exit_code = cli.main(["record-evidence-package", "--title", "Evidence"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert calls == [{"artifact_discovery": None}]
+    assert payload == {
+        "markdown_path": str(bundle.markdown_path),
+        "json_path": str(bundle.json_path),
+    }
+
+
+def test_record_evidence_package_can_capture_artifact_discovery_when_opted_in(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], tmp_path: Path
+) -> None:
+    artifact_discovery_payload = {
+        "ok": True,
+        "inspection_mode": "local_artifact_root_only",
+        "artifact_root": "C:/Projects/aresforge/artifacts",
+        "artifact_root_exists": True,
+        "artifact_count": 1,
+        "artifacts": [{"artifact_path": "prompts/generated/example.md"}],
+    }
+    calls: list[dict[str, object | None]] = []
+    bundle = ArtifactBundle(
+        markdown_path=tmp_path / "evidence.md",
+        json_path=tmp_path / "evidence.json",
+        payload={"ok": True},
+    )
+
+    monkeypatch.setattr(cli, "discover_local_artifacts", lambda _config: artifact_discovery_payload)
+
+    def fake_render_evidence_package(**kwargs: object) -> ArtifactBundle:
+        calls.append({"artifact_discovery": kwargs["artifact_discovery"]})
+        return bundle
+
+    monkeypatch.setattr(cli, "render_evidence_package", fake_render_evidence_package)
+
+    exit_code = cli.main(
+        ["record-evidence-package", "--title", "Evidence", "--include-artifact-discovery"]
+    )
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert calls == [{"artifact_discovery": artifact_discovery_payload}]
+    assert payload == {
+        "markdown_path": str(bundle.markdown_path),
+        "json_path": str(bundle.json_path),
     }

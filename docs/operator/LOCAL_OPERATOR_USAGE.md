@@ -60,6 +60,22 @@ python -m aresforge inspect-artifact --artifact-path prompts/generated/example-p
 
 This command is read-only and local-only. It reads only one existing file under the configured artifact root, rejects empty, unsafe, traversal, absolute, and out-of-root paths, and emits deterministic JSON with bounded metadata plus an optional preview for safe UTF-8 text artifacts. It does not create missing artifact directories, mutate files, call the network, require PostgreSQL, call Ollama, transition queues, mutate routing, or change GitHub state.
 
+Summarize generated local evidence packages without requiring PostgreSQL:
+
+```powershell
+python -m aresforge list-evidence-packages
+```
+
+This command is read-only and local-only. It reads only from the configured evidence root when that directory already exists and emits deterministic JSON sorted by relative evidence path. It does not create missing evidence directories, mutate files, call the network, require PostgreSQL, call Ollama, transition queues, mutate routing, or change GitHub state.
+
+Inspect one generated local evidence package without requiring PostgreSQL:
+
+```powershell
+python -m aresforge inspect-evidence-package --evidence-path 20260520T120001Z-issue-109-evidence.json
+```
+
+This command is read-only and local-only. It reads only one existing file under the configured evidence root, rejects empty, unsafe, traversal, absolute, and out-of-root paths, and emits deterministic JSON with bounded metadata plus an optional preview for safe UTF-8 text artifacts. It does not create missing evidence directories, mutate files, call the network, require PostgreSQL, call Ollama, transition queues, mutate routing, or change GitHub state.
+
 ## Database Commands
 
 See pending migrations:
@@ -127,6 +143,10 @@ python -m aresforge inspect-queue --queue-id queue-implementation --write-artifa
 
 `inspect-artifact` is read-only and local-only. It reads only one existing file under the configured artifact root and emits JSON shaped as `{"ok": true, "inspection_mode": "local_artifact_root_only", "artifact_root": "...", "artifact_root_exists": <bool>, "artifact": {...}}` when found. The artifact payload includes relative path, filename, byte size, modified timestamp, inferred artifact type, inferred command-source hint, extension, text-readability, and a bounded preview for safe UTF-8 text artifacts. Missing files, empty paths, unsafe traversal, and out-of-root paths are reported explicitly instead of causing fallback behavior.
 
+`list-evidence-packages` is read-only and local-only. It reads only from the configured evidence root when that directory already exists and emits JSON shaped as `{"ok": true, "inspection_mode": "local_evidence_root_only", "evidence_root": "...", "evidence_root_exists": <bool>, "evidence_package_count": <int>, "evidence_packages": [...]}`. Results are sorted deterministically by relative evidence path. Evidence packages remain review artifacts only and must not be treated as source of truth.
+
+`inspect-evidence-package` is read-only and local-only. It reads only one existing file under the configured evidence root and emits JSON shaped as `{"ok": true, "inspection_mode": "local_evidence_root_only", "evidence_root": "...", "evidence_root_exists": <bool>, "evidence_package": {...}}` when found. The evidence-package payload includes relative path, filename, byte size, modified timestamp, extension, text-readability, and a bounded preview for safe UTF-8 text artifacts. Missing files, empty paths, unsafe traversal, and out-of-root paths are reported explicitly instead of causing fallback behavior.
+
 `inspect-queue` is read-only and local-only. It emits JSON that expands queue metadata into registry-aware fields such as lifecycle-stage mapping, accepted work-item types, allowed next queues, human approval requirements, local operator visibility expectations, and the source document path. With `--write-artifact`, it still emits JSON and additionally includes `inspection_payload`, `markdown_path`, and `json_path` for a local report written under `artifacts/inspection_reports/generated/`.
 
 The current CLI still does not expose queue-transition commands or autonomous routing behavior. Canonical queue meaning, full M2 queue coverage, transition rules, blocked handling, corrective loops, and work-item state fields are defined by `docs/architecture/QUEUE_REGISTRY_SCHEMA.md`.
@@ -182,8 +202,11 @@ python -m aresforge record-evidence-package `
   --title "Issue 81 evidence package" `
   --files-changed src/aresforge/cli.py docs/operator/LOCAL_OPERATOR_USAGE.md `
   --validations-run "python -m pytest" "python -m aresforge validate-config" `
-  --protected-issue-checks "Issue #39 was not modified or closed."
+  --protected-issue-checks "Issue #39 was not modified or closed." `
+  --include-artifact-discovery
 ```
+
+`record-evidence-package --include-artifact-discovery` is opt-in. When supplied, it embeds a deterministic local `list-artifacts` snapshot into the generated evidence package for auditability. When omitted, no artifact-discovery capture is performed. This automation remains local-only, human-triggered, read-only with respect to existing artifacts, and must not be treated as source-of-truth or approval.
 
 Prepare a Codex handoff file:
 
@@ -218,6 +241,8 @@ python -m aresforge validate-registries
 python -m aresforge inspect-registries
 python -m aresforge list-artifacts
 python -m aresforge inspect-artifact --artifact-path prompts/generated/example-prompt.md
+python -m aresforge list-evidence-packages
+python -m aresforge inspect-evidence-package --evidence-path 20260520T120001Z-issue-109-evidence.json
 python -m aresforge migrate --plan
 python -m aresforge list-models
 python -m aresforge inspect-model --model-id model-ollama-default

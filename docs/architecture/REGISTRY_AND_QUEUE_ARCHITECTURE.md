@@ -635,7 +635,7 @@ Prompt package generation may use project, agent, capability, queue, and skill r
 
 Evidence package generation may use queue and capability definitions to explain why a work item is ready for a given transition.
 
-The current runnable operator now also includes a broader read-only `inspect-registries` summary surface that inspects canonical repo-owned registry and lifecycle source documents plus existing seeded validation findings, along with read-only `list-artifacts` and `inspect-artifact` visibility surfaces for generated local review artifacts. These commands are visibility-only and do not change registry meaning, queue state, routing state, or GitHub state.
+The current runnable operator now also includes a broader read-only `inspect-registries` summary surface that inspects canonical repo-owned registry and lifecycle source documents plus existing seeded validation findings, along with read-only `list-artifacts`, `inspect-artifact`, `list-evidence-packages`, and `inspect-evidence-package` visibility surfaces for generated local review artifacts. These commands are visibility-only and do not change registry meaning, queue state, routing state, or GitHub state. Opt-in local artifact discovery capture inside `record-evidence-package` remains an auditable review aid only and does not promote generated artifacts or evidence packages into source of truth.
 
 No commands are implemented by this issue.
 

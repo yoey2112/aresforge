@@ -69,6 +69,7 @@ def test_prompt_evidence_and_handoff_renderers(tmp_path: Path) -> None:
         skipped_checks=["Ollama not running"],
         protected_issue_checks=["Issue #39 left unchanged."],
         automation_boundary_confirmation="No autonomous GitHub actions were used.",
+        artifact_discovery={"ok": True, "artifact_count": 1, "artifacts": []},
     )
     handoff = render_codex_handoff(
         config=config,
@@ -81,6 +82,10 @@ def test_prompt_evidence_and_handoff_renderers(tmp_path: Path) -> None:
     assert prompt.markdown_path.exists()
     assert evidence.json_path.exists()
     assert handoff.markdown_path.read_text(encoding="utf-8").startswith("# Codex Handoff")
+    assert (
+        json.loads(evidence.json_path.read_text(encoding="utf-8"))["artifact_discovery"]["artifact_count"]
+        == 1
+    )
 
 
 def test_queue_inspection_report_renderer_writes_markdown_and_json(tmp_path: Path) -> None:
