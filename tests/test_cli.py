@@ -37,6 +37,7 @@ def test_cli_has_expected_commands() -> None:
         "run-ready-issue-batch",
         "automation-readiness-report",
         "project-state-summary",
+        "inspect-repo-governance",
         "qa-review-pr",
         "qa-closeout-pr",
         "inspect-review-package",
@@ -141,6 +142,8 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     assert readiness_report_args.command == "automation-readiness-report"
     project_state_summary_args = parser.parse_args(["project-state-summary"])
     assert project_state_summary_args.command == "project-state-summary"
+    governance_args = parser.parse_args(["inspect-repo-governance"])
+    assert governance_args.command == "inspect-repo-governance"
     qa_review_args = parser.parse_args(["qa-review-pr", "--pr-number", "118"])
     assert qa_review_args.pr_number == 118
     qa_closeout_args = parser.parse_args(["qa-closeout-pr", "--pr-number", "119"])
@@ -345,6 +348,7 @@ def test_command_requires_directories_only_for_commands_that_write_artifacts() -
         is True
     )
     assert command_requires_directories(parser.parse_args(["automation-readiness-report"])) is False
+    assert command_requires_directories(parser.parse_args(["inspect-repo-governance"])) is False
 
 
 def test_validate_registries_command_emits_ok_json_and_zero_exit(
@@ -480,6 +484,41 @@ def test_cli_dispatches_project_state_summary(
 
     assert exit_code == 0
     assert payload == {"command": "project-state-summary", "ok": True}
+
+
+def test_cli_dispatches_inspect_repo_governance(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+) -> None:
+    config = AppConfig(
+        repo_root=tmp_path,
+        db_host="127.0.0.1",
+        db_port=5433,
+        db_name="aresforge",
+        db_user="aresforge",
+        db_password="aresforge",
+        ollama_base_url="http://127.0.0.1:11434",
+        ollama_model="qwen2.5:32b",
+        artifact_root=tmp_path / "artifacts",
+        prompts_dir=tmp_path / "artifacts" / "prompts" / "generated",
+        evidence_dir=tmp_path / "artifacts" / "evidence" / "generated",
+        codex_handoffs_dir=tmp_path / "artifacts" / "codex_handoffs" / "generated",
+        github_owner="yoey2112",
+        github_repo="aresforge",
+    )
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: config)
+    monkeypatch.setattr(
+        cli,
+        "inspect_repo_governance",
+        lambda _config: {"command": "inspect-repo-governance", "ok": True},
+    )
+
+    exit_code = cli.main(["inspect-repo-governance"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert payload == {"command": "inspect-repo-governance", "ok": True}
 
 
 def test_cli_dispatches_qa_closeout_pr(

@@ -6,13 +6,13 @@ M3 - Registry And Routing Deepening
 
 ## Current Goal
 
-Start M3 by adding a local-first, read-only project state summary command and continue deepening registry and routing visibility without introducing autonomous repository, queue, or GitHub control.
+Continue M3 by adding a reusable read-only repository governance inspection layer for labels and milestones, while preserving local-first human-triggered boundaries and non-mutating defaults.
 
 ## Current Repository State
 
-- Current branch: `m3/project-state-summary-command`
-- Latest `main` commit: `c4dd1bf` (`Reconcile retired issue 39 active doc wording`)
-- Latest runtime-affecting merged foundation commit: `c4dd1bf` (`Reconcile retired issue 39 active doc wording`)
+- Current branch: `m3/reusable-label-milestone-governance`
+- Latest `main` commit: `ea0cb40` (`M3: add project state summary command (#130)`)
+- Latest runtime-affecting merged foundation commit: `ea0cb40` (`M3: add project state summary command (#130)`)
 - Issue #105 was completed through PR #106 and is merged `main` behavior
 - Issue #107 was completed through PR #108 and is merged `main` behavior
 - Issue #109 was completed through PR #111 and is merged `main` behavior
@@ -36,7 +36,8 @@ Start M3 by adding a local-first, read-only project state summary command and co
 - Issue #119 was completed through PR #125 and is merged `main` behavior
 - Issue #120 is merged `main` behavior and provides `run-ready-issue-pipeline` orchestration with explicit mode gating
 - Issue #127 is merged `main` behavior and provides read-only `run-ready-issue-batch --plan-only` plus `automation-readiness-report`, deterministic batch artifact generation, and optional local-only selected issue handoff package generation
-- Issue #129 is in progress and adds `project-state-summary` for local-first, read-only project state visibility with graceful degradation
+- Issue #129 was completed through PR #130 and is merged `main` behavior
+- Issue #131 is in progress and adds `inspect-repo-governance` for reusable read-only label and milestone governance inspection with graceful degradation
 - Issue #95 was completed through PR #96 and is merged `main` behavior
 - Issue #97 was completed through PR #98 and is merged `main` behavior
 - Issue #75 remains the last routine reconciliation issue
@@ -97,6 +98,7 @@ The current human-triggered local operator foundation supports:
 - deterministic reusable read-only ready issue batch planning through `run-ready-issue-batch --plan-only` with deterministic JSON and Markdown artifact generation
 - deterministic read-only automation readiness dashboard reporting through `automation-readiness-report`
 - deterministic local-first read-only project state reporting through `project-state-summary`
+- deterministic reusable read-only repository governance inspection through `inspect-repo-governance`
 - a human-triggered phase-based PR lifecycle helper for explicit validation, staging, commit and push, PR creation, PR verification, merge verification, post-merge verification, and source-of-truth scanning
 - prompt package, evidence package, and Codex handoff artifact preparation, including opt-in local artifact discovery capture in evidence packages plus opt-in latest local review package capture in evidence and handoff outputs
 - opt-in local review package generation under `artifacts/local_reviews/generated/`
@@ -123,6 +125,7 @@ The current M3 implementation does allow:
 - deterministic local review orchestration across existing local operator checks
 - local review package generation only when explicitly requested
 - opt-in latest local review package capture in handoff and evidence outputs
+- read-only repository governance inspection for reusable label and milestone contract visibility
 - bounded local model inspection, listing, and Ollama dry-run checks
 - bounded local model inspection, listing, and Ollama dry-run checks without autonomous selection or routing
 

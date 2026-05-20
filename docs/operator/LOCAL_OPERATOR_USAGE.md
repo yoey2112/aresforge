@@ -184,6 +184,14 @@ python -m aresforge project-state-summary
 
 This command is read-only and safe to run repeatedly. It summarizes current branch, working-tree cleanliness, latest local commit, `origin/main` commit when available, HEAD parity with `origin/main` when available, open GitHub issues and PRs when available, source-of-truth docs, latest generated artifacts by known artifact roots, current milestone direction from source-of-truth docs, and a recommended next action. It degrades gracefully when `git`, `gh`, `origin/main`, or network access is unavailable by emitting partial data plus explicit warnings. It does not mutate GitHub state, git state, files, labels, issues, PRs, milestones, or artifacts.
 
+Inspect reusable repository governance labels and milestones without mutating GitHub state:
+
+```powershell
+python -m aresforge inspect-repo-governance
+```
+
+This command is read-only and safe to run repeatedly. It inspects the configured repository slug and default branch where available, evaluates required, optional, and automation-trigger label governance, checks canonical platform milestone naming status, summarizes open issue and PR readiness signals, and emits warnings plus recommended next action. It degrades gracefully when `gh` or network access is unavailable by marking unavailable sections explicitly. It does not create, edit, or delete labels, milestones, issues, PRs, branches, workflows, settings, or artifacts.
+
 Run the bounded local review orchestration over the existing read-only operator surfaces:
 
 ```powershell
