@@ -9,6 +9,7 @@ The goal is to let AresForge represent multiple managed repositories in a reusab
 ## Command Surface
 
 - `python -m aresforge inspect-managed-repos`
+- `python -m aresforge managed-repo-readiness-report`
 
 This command is human-triggered, read-only, deterministic JSON output, and safe to run repeatedly.
 
@@ -86,7 +87,7 @@ Issue 39 remains retired historical validation evidence only.
 
 ## Extension Direction
 
-This M3 extension is intentionally minimal. It provides a stable registry shape for future work including:
+This M3 extension is intentionally minimal. It now provides a stable registry shape that is consumed by:
 
 - managed repository readiness reporting
 - bootstrap plan generation
