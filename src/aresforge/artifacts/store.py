@@ -36,5 +36,8 @@ def write_markdown_json_bundle(
     markdown_path = base_dir / f"{stem}.md"
     json_path = base_dir / f"{stem}.json"
     markdown_path.write_text(markdown, encoding="utf-8")
-    json_path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+    json_path.write_text(
+        json.dumps(payload, indent=2, sort_keys=True, default=str),
+        encoding="utf-8",
+    )
     return ArtifactBundle(markdown_path=markdown_path, json_path=json_path, payload=payload)

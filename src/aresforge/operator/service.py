@@ -69,6 +69,7 @@ def render_evidence_package(
     protected_issue_checks: list[str],
     automation_boundary_confirmation: str,
     artifact_discovery: dict[str, Any] | None = None,
+    latest_review_package: dict[str, Any] | None = None,
 ) -> ArtifactBundle:
     payload = {
         "title": title,
@@ -79,6 +80,7 @@ def render_evidence_package(
         "protected_issue_checks": protected_issue_checks,
         "automation_boundary_confirmation": automation_boundary_confirmation,
         "artifact_discovery": artifact_discovery,
+        "latest_review_package": latest_review_package,
     }
     artifact_discovery_lines = (
         [
@@ -87,6 +89,15 @@ def render_evidence_package(
             "```",
         ]
         if artifact_discovery is not None
+        else ["Not included."]
+    )
+    latest_review_package_lines = (
+        [
+            "```json",
+            json.dumps(latest_review_package, indent=2, sort_keys=True),
+            "```",
+        ]
+        if latest_review_package is not None
         else ["Not included."]
     )
     markdown = "\n".join(
@@ -108,6 +119,9 @@ def render_evidence_package(
             "## Artifact Discovery Snapshot",
             *artifact_discovery_lines,
             "",
+            "## Latest Local Review Package",
+            *latest_review_package_lines,
+            "",
             "## Automation Boundary Confirmation",
             automation_boundary_confirmation,
         ]
@@ -123,6 +137,7 @@ def render_codex_handoff(
     work_item_id: str | None,
     route_plan: RoutePlan | None,
     requested_output: str,
+    latest_review_package: dict[str, Any] | None = None,
 ) -> ArtifactBundle:
     payload = {
         "title": title,
@@ -130,8 +145,18 @@ def render_codex_handoff(
         "work_item_id": work_item_id,
         "route_plan": route_plan.as_dict() if route_plan else None,
         "requested_output": requested_output,
+        "latest_review_package": latest_review_package,
         "boundary": "Output-file generation only. No autonomous Codex invocation.",
     }
+    latest_review_package_lines = (
+        [
+            "```json",
+            json.dumps(latest_review_package, indent=2, sort_keys=True),
+            "```",
+        ]
+        if latest_review_package is not None
+        else ["Not included."]
+    )
     markdown = "\n".join(
         [
             f"# {title}",
@@ -146,6 +171,9 @@ def render_codex_handoff(
             "```json",
             json.dumps(payload["route_plan"], indent=2),
             "```",
+            "",
+            "## Latest Local Review Package",
+            *latest_review_package_lines,
             "",
             "## Safety Boundary",
             "This handoff file is for human review and manual execution only. It must not trigger autonomous Codex, GitHub, or repository actions.",

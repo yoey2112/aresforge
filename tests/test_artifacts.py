@@ -1,4 +1,5 @@
 import json
+from datetime import UTC, datetime
 from pathlib import Path
 
 from aresforge.artifacts.store import write_markdown_json_bundle
@@ -42,6 +43,19 @@ def test_generic_bundle_writer(tmp_path: Path) -> None:
     assert bundle.json_path.exists()
 
 
+def test_generic_bundle_writer_serializes_datetimes(tmp_path: Path) -> None:
+    bundle = write_markdown_json_bundle(
+        tmp_path,
+        title="Example Prompt",
+        markdown="# Test",
+        payload={"generated_at": datetime(2026, 5, 20, tzinfo=UTC)},
+    )
+
+    assert json.loads(bundle.json_path.read_text(encoding="utf-8")) == {
+        "generated_at": "2026-05-20 00:00:00+00:00"
+    }
+
+
 def test_prompt_evidence_and_handoff_renderers(tmp_path: Path) -> None:
     config = make_config(tmp_path)
     route_plan = build_route_plan(
@@ -70,6 +84,7 @@ def test_prompt_evidence_and_handoff_renderers(tmp_path: Path) -> None:
         protected_issue_checks=["Issue #39 left unchanged."],
         automation_boundary_confirmation="No autonomous GitHub actions were used.",
         artifact_discovery={"ok": True, "artifact_count": 1, "artifacts": []},
+        latest_review_package={"selected_review_path": "20260520T120003Z-local-review.json"},
     )
     handoff = render_codex_handoff(
         config=config,
@@ -78,6 +93,7 @@ def test_prompt_evidence_and_handoff_renderers(tmp_path: Path) -> None:
         work_item_id="work-123",
         route_plan=route_plan,
         requested_output="Generate a human-reviewable implementation prompt.",
+        latest_review_package={"selected_review_path": "20260520T120003Z-local-review.json"},
     )
     assert prompt.markdown_path.exists()
     assert evidence.json_path.exists()
@@ -86,6 +102,11 @@ def test_prompt_evidence_and_handoff_renderers(tmp_path: Path) -> None:
         json.loads(evidence.json_path.read_text(encoding="utf-8"))["artifact_discovery"]["artifact_count"]
         == 1
     )
+    assert (
+        json.loads(evidence.json_path.read_text(encoding="utf-8"))["latest_review_package"]["selected_review_path"]
+        == "20260520T120003Z-local-review.json"
+    )
+    assert "Latest Local Review Package" in handoff.markdown_path.read_text(encoding="utf-8")
 
 
 def test_queue_inspection_report_renderer_writes_markdown_and_json(tmp_path: Path) -> None:

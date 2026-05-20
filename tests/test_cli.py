@@ -26,8 +26,10 @@ def test_cli_has_expected_commands() -> None:
         "inspect-project",
         "inspect-registries",
         "list-artifacts",
+        "list-review-packages",
         "run-local-review",
         "list-evidence-packages",
+        "inspect-review-package",
         "inspect-artifact",
         "inspect-evidence-package",
         "inspect-model",
@@ -92,6 +94,8 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     assert inspect_registries_args.command == "inspect-registries"
     list_artifacts_args = parser.parse_args(["list-artifacts"])
     assert list_artifacts_args.command == "list-artifacts"
+    list_review_packages_args = parser.parse_args(["list-review-packages"])
+    assert list_review_packages_args.command == "list-review-packages"
     run_local_review_args = parser.parse_args(["run-local-review"])
     assert run_local_review_args.command == "run-local-review"
     assert run_local_review_args.project_id == "project-aresforge"
@@ -101,6 +105,10 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     assert run_local_review_args.write_review_package is False
     list_evidence_args = parser.parse_args(["list-evidence-packages"])
     assert list_evidence_args.command == "list-evidence-packages"
+    inspect_review_args = parser.parse_args(
+        ["inspect-review-package", "--review-path", "20260520T120003Z-local-review.json"]
+    )
+    assert inspect_review_args.review_path == "20260520T120003Z-local-review.json"
     inspect_artifact_args = parser.parse_args(
         ["inspect-artifact", "--artifact-path", "prompts/generated/artifact.md"]
     )
@@ -143,6 +151,13 @@ def test_cli_inspect_artifact_requires_artifact_path() -> None:
 
     with pytest.raises(SystemExit):
         parser.parse_args(["inspect-artifact"])
+
+
+def test_cli_inspect_review_package_requires_review_path() -> None:
+    parser = build_parser()
+
+    with pytest.raises(SystemExit):
+        parser.parse_args(["inspect-review-package"])
 
 
 def test_cli_inspect_evidence_package_requires_evidence_path() -> None:
@@ -189,6 +204,7 @@ def test_command_requires_directories_only_for_commands_that_write_artifacts() -
         is True
     )
     assert command_requires_directories(parser.parse_args(["list-artifacts"])) is False
+    assert command_requires_directories(parser.parse_args(["list-review-packages"])) is False
     assert command_requires_directories(parser.parse_args(["run-local-review"])) is False
     assert (
         command_requires_directories(
@@ -197,6 +213,14 @@ def test_command_requires_directories_only_for_commands_that_write_artifacts() -
         is True
     )
     assert command_requires_directories(parser.parse_args(["list-evidence-packages"])) is False
+    assert (
+        command_requires_directories(
+            parser.parse_args(
+                ["inspect-review-package", "--review-path", "20260520T120003Z-local-review.json"]
+            )
+        )
+        is False
+    )
     assert (
         command_requires_directories(
             parser.parse_args(["inspect-artifact", "--artifact-path", "prompts/generated/artifact.md"])
@@ -503,6 +527,60 @@ def test_list_artifacts_emits_json_and_skips_directory_creation(
     assert payload == discovery_payload
 
 
+def test_list_review_packages_emits_json_and_skips_directory_creation(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    discovery_payload = {
+        "ok": True,
+        "inspection_mode": "local_review_package_root_only",
+        "review_package_root": "C:/Projects/aresforge/artifacts/local_reviews/generated",
+        "review_package_root_exists": False,
+        "review_package_count": 0,
+        "review_packages": [],
+    }
+    ensure_calls: list[bool] = []
+
+    monkeypatch.setattr(cli, "discover_local_review_packages", lambda _config: discovery_payload)
+    monkeypatch.setattr(cli.AppConfig, "ensure_directories", lambda _self: ensure_calls.append(True))
+    monkeypatch.setattr(
+        cli,
+        "connect",
+        lambda *_args, **_kwargs: pytest.fail("list-review-packages must not connect to PostgreSQL"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "test_generate",
+        lambda *_args, **_kwargs: pytest.fail("list-review-packages must not call Ollama"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "create_work_item",
+        lambda *_args, **_kwargs: pytest.fail("list-review-packages must not create work items"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "build_route_plan",
+        lambda *_args, **_kwargs: pytest.fail("list-review-packages must not route work"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "bootstrap_reference_data",
+        lambda *_args, **_kwargs: pytest.fail("list-review-packages must not bootstrap state"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "render_evidence_package",
+        lambda *_args, **_kwargs: pytest.fail("list-review-packages must not mutate evidence files"),
+    )
+
+    exit_code = cli.main(["list-review-packages"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert ensure_calls == []
+    assert payload == discovery_payload
+
+
 def test_run_local_review_dispatches_without_ollama_routing_or_mutation(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -626,6 +704,97 @@ def test_inspect_artifact_emits_json_and_skips_directory_creation(
 
     assert exit_code == 0
     assert ensure_calls == []
+    assert payload == inspection_payload
+
+
+def test_inspect_review_package_emits_json_and_skips_directory_creation(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    inspection_payload = {
+        "ok": True,
+        "inspection_mode": "local_review_package_root_only",
+        "review_package_root": "C:/Projects/aresforge/artifacts/local_reviews/generated",
+        "review_package_root_exists": True,
+        "review_package": {
+            "review_path": "20260520T120003Z-local-review.json",
+            "filename": "20260520T120003Z-local-review.json",
+            "size_bytes": 12,
+            "modified_at": "2026-05-20T00:00:00+00:00",
+            "artifact_type": "local_review_package",
+            "command_source_hint": "run-local-review --write-review-package",
+            "extension": ".json",
+            "text_readable": True,
+            "text_preview": '{"ok": true}',
+            "parsed_summary": {
+                "command": "run-local-review",
+                "status": "passed",
+                "project_id": "project-aresforge",
+                "model_id": "model-ollama-default",
+                "checks_run_count": 1,
+                "checks_skipped_count": 0,
+                "has_artifact_summary": False,
+                "has_evidence_package_summary": False,
+                "write_review_package_requested": True,
+            },
+        },
+    }
+    ensure_calls: list[bool] = []
+
+    monkeypatch.setattr(cli, "inspect_local_review_package", lambda _config, _review_path: inspection_payload)
+    monkeypatch.setattr(cli.AppConfig, "ensure_directories", lambda _self: ensure_calls.append(True))
+    monkeypatch.setattr(
+        cli,
+        "connect",
+        lambda *_args, **_kwargs: pytest.fail("inspect-review-package must not connect to PostgreSQL"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "test_generate",
+        lambda *_args, **_kwargs: pytest.fail("inspect-review-package must not call Ollama"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "create_work_item",
+        lambda *_args, **_kwargs: pytest.fail("inspect-review-package must not create work items"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "build_route_plan",
+        lambda *_args, **_kwargs: pytest.fail("inspect-review-package must not route work"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "bootstrap_reference_data",
+        lambda *_args, **_kwargs: pytest.fail("inspect-review-package must not bootstrap state"),
+    )
+
+    exit_code = cli.main(["inspect-review-package", "--review-path", "20260520T120003Z-local-review.json"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert ensure_calls == []
+    assert payload == inspection_payload
+
+
+def test_inspect_review_package_returns_exit_one_when_helper_reports_error(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    inspection_payload = {
+        "ok": False,
+        "inspection_mode": "local_review_package_root_only",
+        "review_package_root": "C:/Projects/aresforge/artifacts/local_reviews/generated",
+        "review_package_root_exists": True,
+        "error": "review_package_not_found",
+        "review_path": "missing.json",
+    }
+    monkeypatch.setattr(
+        cli, "inspect_local_review_package", lambda _config, _review_path: inspection_payload
+    )
+
+    exit_code = cli.main(["inspect-review-package", "--review-path", "missing.json"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 1
     assert payload == inspection_payload
 
 
@@ -1060,9 +1229,19 @@ def test_record_evidence_package_does_not_capture_artifact_discovery_by_default(
         "discover_local_artifacts",
         lambda _config: pytest.fail("record-evidence-package must not capture artifact discovery unless opted in"),
     )
+    monkeypatch.setattr(
+        cli,
+        "latest_local_review_package_summary",
+        lambda _config: pytest.fail("record-evidence-package must not capture latest review package unless opted in"),
+    )
 
     def fake_render_evidence_package(**kwargs: object) -> ArtifactBundle:
-        calls.append({"artifact_discovery": kwargs["artifact_discovery"]})
+        calls.append(
+            {
+                "artifact_discovery": kwargs["artifact_discovery"],
+                "latest_review_package": kwargs["latest_review_package"],
+            }
+        )
         return bundle
 
     monkeypatch.setattr(cli, "render_evidence_package", fake_render_evidence_package)
@@ -1071,7 +1250,7 @@ def test_record_evidence_package_does_not_capture_artifact_discovery_by_default(
     payload = json.loads(capsys.readouterr().out)
 
     assert exit_code == 0
-    assert calls == [{"artifact_discovery": None}]
+    assert calls == [{"artifact_discovery": None, "latest_review_package": None}]
     assert payload == {
         "markdown_path": str(bundle.markdown_path),
         "json_path": str(bundle.json_path),
@@ -1111,6 +1290,148 @@ def test_record_evidence_package_can_capture_artifact_discovery_when_opted_in(
 
     assert exit_code == 0
     assert calls == [{"artifact_discovery": artifact_discovery_payload}]
+    assert payload == {
+        "markdown_path": str(bundle.markdown_path),
+        "json_path": str(bundle.json_path),
+    }
+
+
+def test_record_evidence_package_can_capture_latest_review_package_when_opted_in(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], tmp_path: Path
+) -> None:
+    latest_review_payload = {
+        "ok": True,
+        "selection_mode": "latest_review_package",
+        "review_package_root": "C:/Projects/aresforge/artifacts/local_reviews/generated",
+        "review_package_root_exists": True,
+        "review_package_count": 1,
+        "selected_review_path": "20260520T120003Z-local-review.json",
+        "selected_review_package": {"review_path": "20260520T120003Z-local-review.json"},
+    }
+    calls: list[dict[str, object | None]] = []
+    bundle = ArtifactBundle(
+        markdown_path=tmp_path / "evidence.md",
+        json_path=tmp_path / "evidence.json",
+        payload={"ok": True},
+    )
+
+    monkeypatch.setattr(
+        cli,
+        "latest_local_review_package_summary",
+        lambda _config: latest_review_payload,
+    )
+
+    def fake_render_evidence_package(**kwargs: object) -> ArtifactBundle:
+        calls.append({"latest_review_package": kwargs["latest_review_package"]})
+        return bundle
+
+    monkeypatch.setattr(cli, "render_evidence_package", fake_render_evidence_package)
+
+    exit_code = cli.main(
+        ["record-evidence-package", "--title", "Evidence", "--include-latest-review-package"]
+    )
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert calls == [{"latest_review_package": latest_review_payload}]
+    assert payload == {
+        "markdown_path": str(bundle.markdown_path),
+        "json_path": str(bundle.json_path),
+    }
+
+
+def test_prepare_codex_handoff_does_not_capture_latest_review_package_by_default(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], tmp_path: Path
+) -> None:
+    bundle = ArtifactBundle(
+        markdown_path=tmp_path / "handoff.md",
+        json_path=tmp_path / "handoff.json",
+        payload={"ok": True},
+    )
+    calls: list[dict[str, object | None]] = []
+
+    monkeypatch.setattr(cli, "build_route_plan", lambda **_kwargs: object())
+    monkeypatch.setattr(
+        cli,
+        "latest_local_review_package_summary",
+        lambda _config: pytest.fail("prepare-codex-handoff must not capture latest review package unless opted in"),
+    )
+
+    def fake_render_codex_handoff(**kwargs: object) -> ArtifactBundle:
+        calls.append({"latest_review_package": kwargs["latest_review_package"]})
+        return bundle
+
+    monkeypatch.setattr(cli, "render_codex_handoff", fake_render_codex_handoff)
+
+    exit_code = cli.main(
+        [
+            "prepare-codex-handoff",
+            "--title",
+            "Handoff",
+            "--summary",
+            "Summary",
+            "--requested-output",
+            "Output",
+        ]
+    )
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert calls == [{"latest_review_package": None}]
+    assert payload == {
+        "markdown_path": str(bundle.markdown_path),
+        "json_path": str(bundle.json_path),
+    }
+
+
+def test_prepare_codex_handoff_can_capture_latest_review_package_when_opted_in(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], tmp_path: Path
+) -> None:
+    latest_review_payload = {
+        "ok": True,
+        "selection_mode": "latest_review_package",
+        "review_package_root": "C:/Projects/aresforge/artifacts/local_reviews/generated",
+        "review_package_root_exists": True,
+        "review_package_count": 1,
+        "selected_review_path": "20260520T120003Z-local-review.json",
+        "selected_review_package": {"review_path": "20260520T120003Z-local-review.json"},
+    }
+    bundle = ArtifactBundle(
+        markdown_path=tmp_path / "handoff.md",
+        json_path=tmp_path / "handoff.json",
+        payload={"ok": True},
+    )
+    calls: list[dict[str, object | None]] = []
+
+    monkeypatch.setattr(cli, "build_route_plan", lambda **_kwargs: object())
+    monkeypatch.setattr(
+        cli,
+        "latest_local_review_package_summary",
+        lambda _config: latest_review_payload,
+    )
+
+    def fake_render_codex_handoff(**kwargs: object) -> ArtifactBundle:
+        calls.append({"latest_review_package": kwargs["latest_review_package"]})
+        return bundle
+
+    monkeypatch.setattr(cli, "render_codex_handoff", fake_render_codex_handoff)
+
+    exit_code = cli.main(
+        [
+            "prepare-codex-handoff",
+            "--title",
+            "Handoff",
+            "--summary",
+            "Summary",
+            "--requested-output",
+            "Output",
+            "--include-latest-review-package",
+        ]
+    )
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert calls == [{"latest_review_package": latest_review_payload}]
     assert payload == {
         "markdown_path": str(bundle.markdown_path),
         "json_path": str(bundle.json_path),
