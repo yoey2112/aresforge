@@ -46,6 +46,8 @@ Supported commands:
 - `validate-config`
 - `migrate`
 - `inspect-project-state`
+- `inspect-queue`
+- `inspect-work-item`
 - `list-projects`
 - `list-agents`
 - `list-queues`
@@ -58,6 +60,8 @@ Supported commands:
 
 These commands are human-triggered only.
 
+The `inspect-queue` and `inspect-work-item` commands are read-only registry-aware inspection helpers. They expand local queue and work-item records into richer JSON views, but they do not transition queues, mutate routing, or authorize GitHub-state-changing behavior.
+
 ## Vertical Slice Achieved
 
 The current vertical slice is:
@@ -67,11 +71,12 @@ The current vertical slice is:
 3. apply repo-stored migrations
 4. bootstrap minimal reference data
 5. inspect seeded project, agent, and queue records
-6. create a work item and assign a queue
-7. generate a prompt package
-8. record evidence metadata
-9. prepare a Codex handoff artifact
-10. optionally test a local Ollama model call
+6. inspect a specific queue or work item through registry-aware read-only views
+7. create a work item and assign a queue
+8. generate a prompt package
+9. record evidence metadata
+10. prepare a Codex handoff artifact
+11. optionally test a local Ollama model call
 
 That is enough to prove the local execution path without over-designing agents, routing intelligence, or background automation.
 

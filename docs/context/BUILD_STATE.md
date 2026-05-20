@@ -374,6 +374,7 @@ Repository documentation remains the authoritative source for roadmap, governanc
   - `docs/architecture/MODEL_REGISTRY_SCHEMA.md`
 - The queue-registry and work-item state-transition work now adds:
   - `docs/architecture/QUEUE_REGISTRY_SCHEMA.md`
+- The local operator now also includes read-only registry-aware queue and work-item inspection commands that expose richer queue and metadata interpretation without queue transitions or GitHub-state-changing behavior.
 - Future project-state-changing issues must continue updating source-of-truth docs before PR merge and issue closeout.
 - Issue #75 remains the last routine reconciliation issue.
 - Separate reconciliation or documentation-update issues remain the exception path only.
@@ -384,6 +385,7 @@ Repository documentation remains the authoritative source for roadmap, governanc
 
 - Preserve Issue #39 as the only remaining open protected validation issue unless a future human-directed issue explicitly changes its state.
 - Use the new canonical queue schema to guide later work-item state enrichment and registry-aware operator inspection on top of the now-aligned local queue seed set.
+- Keep registry-aware queue and work-item inspection read-only, human-triggered, and non-authoritative while later operator inspection evolves.
 - Validate and iterate on the local operator CLI, migration flow, local artifact outputs, and registry seed or listing behavior created by Issues #81, #83, #85, and #87.
 - Keep documentation freshness checks required before future documentation-sync work.
 - Use the new runnable skeleton docs when extending the local operator:

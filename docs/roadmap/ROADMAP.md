@@ -90,7 +90,7 @@ Current M2 corrective rule:
 
 Next substantive M2 direction:
 
-- Enrich local work-item runtime interpretation and inspection on top of the canonical queue registry without expanding into hosted model use or autonomous GitHub control.
+- Build on the new read-only registry-aware queue and work-item inspection slice without expanding into hosted model use or autonomous GitHub control.
 - Extend the local operator with richer registry-aware inspection now that queue and work-item state meaning is formalized.
 
 ## Full Milestone Roadmap
@@ -175,6 +175,7 @@ Completed and active scope:
 - Canonical model registry artifact at `docs/architecture/MODEL_REGISTRY_SCHEMA.md`
 - Queue registry and work-item state-transition schema completed via Issue #87
 - Canonical queue registry artifact at `docs/architecture/QUEUE_REGISTRY_SCHEMA.md`
+- Read-only registry-aware queue and work-item inspection slice
 - PostgreSQL local state-store foundation
 - Repo-stored SQL migrations
 - Human-reviewable prompt/evidence/Codex handoff artifact generation
@@ -186,13 +187,14 @@ Current M2 boundary:
 - Human-triggered local runtime implementation is now allowed where Issue #81 explicitly implements it
 - Human-triggered read-only agent-registry seed/listing support is allowed where Issue #83 explicitly implements it
 - Human-triggered local model inspection, local Ollama checks, and advisory routing guidance are allowed where Issues #81 and #85 describe them
+- Human-triggered read-only registry-aware queue and work-item inspection is allowed where later M2 issues implement it
 - Human-reviewed controls remain mandatory
 - No autonomous GitHub-state-changing behavior or hosted external model traffic is authorized during current M2 work
 
 Next substantive M2 direction:
 
-- Next likely issue: enrich local work-item runtime interpretation and queue-aware inspection now that the seeded local queue set matches the canonical M2 queue IDs
-- Follow with richer registry-aware local operator inspection now that queue and work-item state meaning is in place
+- Next likely issue: build on the new read-only registry-aware queue and work-item inspection slice with richer operator inspection views
+- Follow with broader registry-aware local operator inspection while keeping queue transitions and GitHub-state-changing behavior human-controlled
 
 ### M3 - Registry and Routing Deepening
 
@@ -457,7 +459,6 @@ The current M2 phase does not authorize the following:
 
 These are roadmap-driven recommendations only. They are not created issues.
 
-- Align local queue seeds and work-item runtime fields with the canonical queue schema.
 - Extend the local operator with richer registry-aware inspection after queue and work-item state meaning is formalized.
 
 ## Maintenance Rules

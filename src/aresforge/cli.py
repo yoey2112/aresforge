@@ -14,7 +14,9 @@ from aresforge.db.repository import (
     DEFAULT_PROJECT_ID,
     bootstrap_reference_data,
     create_work_item,
+    inspect_queue,
     inspect_state,
+    inspect_work_item,
     list_agents,
     list_projects,
     list_queues,
@@ -49,6 +51,14 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser("list-projects", help="List registered projects.")
     subparsers.add_parser("list-agents", help="List registered agent roles.")
     subparsers.add_parser("list-queues", help="List known queues.")
+    inspect_queue_parser = subparsers.add_parser(
+        "inspect-queue", help="Inspect one queue with registry-aware metadata interpretation."
+    )
+    inspect_queue_parser.add_argument("--queue-id", required=True)
+    inspect_work_item_parser = subparsers.add_parser(
+        "inspect-work-item", help="Inspect one work item with registry-aware queue context."
+    )
+    inspect_work_item_parser.add_argument("--work-item-id", required=True)
 
     create_work = subparsers.add_parser("create-work-item", help="Create a local work item.")
     create_work.add_argument("--title", required=True)
@@ -194,6 +204,15 @@ def main(argv: list[str] | None = None) -> int:
             emit_json({"queues": list_queues(conn)})
         return 0
 
+    if args.command == "inspect-queue":
+        with connect(config) as conn:
+            queue_record = inspect_queue(conn, args.queue_id)
+        if queue_record is None:
+            emit_json({"ok": False, "error": "queue_not_found", "queue_id": args.queue_id})
+            return 1
+        emit_json({"ok": True, "queue": queue_record})
+        return 0
+
     if args.command == "create-work-item":
         metadata = parse_metadata(args.metadata_json)
         metadata.update(parse_metadata_pairs(args.metadata))
@@ -217,6 +236,15 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "list-work-items":
         with connect(config) as conn:
             emit_json({"work_items": list_work_items(conn, status=args.status)})
+        return 0
+
+    if args.command == "inspect-work-item":
+        with connect(config) as conn:
+            work_item = inspect_work_item(conn, args.work_item_id)
+        if work_item is None:
+            emit_json({"ok": False, "error": "work_item_not_found", "work_item_id": args.work_item_id})
+            return 1
+        emit_json({"ok": True, "work_item": work_item})
         return 0
 
     if args.command == "generate-prompt-package":

@@ -8,6 +8,8 @@ def test_cli_has_expected_commands() -> None:
         "validate-config",
         "migrate",
         "inspect-project-state",
+        "inspect-queue",
+        "inspect-work-item",
         "list-projects",
         "list-agents",
         "list-queues",
@@ -55,3 +57,15 @@ def test_cli_route_status_defaults_use_canonical_vocabulary() -> None:
         ]
     )
     assert handoff_args.route_status == "ready"
+
+
+def test_cli_inspection_commands_require_expected_ids() -> None:
+    parser = build_parser()
+
+    inspect_queue_args = parser.parse_args(["inspect-queue", "--queue-id", "queue-implementation"])
+    assert inspect_queue_args.queue_id == "queue-implementation"
+
+    inspect_work_item_args = parser.parse_args(
+        ["inspect-work-item", "--work-item-id", "work-123"]
+    )
+    assert inspect_work_item_args.work_item_id == "work-123"

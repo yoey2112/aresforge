@@ -116,6 +116,8 @@ The canonical queue meaning, full M2 queue set, blocked or waiting handling, cor
 
 The current seeded local queue rows should be treated as a conservative runnable reflection of that canonical schema. Queue meaning still comes from the source-of-truth document, and additional queue fields still live in JSON metadata rather than first-class columns.
 
+The local operator now also exposes read-only registry-aware queue inspection on top of these rows. That inspection expands JSONB metadata into visible fields such as lifecycle-stage mapping, accepted work-item types, allowed next queues, human approval requirements, local operator visibility expectations, and the source document reference without mutating queue state.
+
 ### Work Items
 
 Stores local units of work with queue, optional agent, optional model, optional prompt package, route status, and JSON metadata.
@@ -123,6 +125,8 @@ Stores local units of work with queue, optional agent, optional model, optional 
 The canonical work-item state meaning now lives in `docs/architecture/QUEUE_REGISTRY_SCHEMA.md`, including `work_item_type`, `lifecycle_state`, `route_status`, `current_queue`, evidence references, blocked or failure context, approval posture, and audit expectations.
 
 The current `work_items` table remains a practical M2 runtime layer that captures part of that meaning through `queue_id`, `status`, `route_status`, `agent_id`, `model_id`, `prompt_id`, and JSON `metadata`. Current CLI defaults now use conservative canonical `route_status` values such as `queued` and `ready`.
+
+The local operator also now exposes read-only registry-aware work-item inspection that joins queue, agent, and model reference data with work-item metadata so a human can inspect current runtime interpretation without transitioning queues, mutating routing, or changing GitHub state.
 
 ### Prompts And Prompt Runs
 

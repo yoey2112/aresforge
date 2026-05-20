@@ -2,7 +2,13 @@ from pathlib import Path
 
 from aresforge.config import AppConfig
 from aresforge.db.migrations import discover_migrations
-from aresforge.db.repository import CANONICAL_QUEUE_IDS, DEFAULT_QUEUES, QUEUE_SCHEMA_SOURCE_DOCUMENT
+from aresforge.db.repository import (
+    CANONICAL_QUEUE_IDS,
+    DEFAULT_QUEUES,
+    QUEUE_SCHEMA_SOURCE_DOCUMENT,
+    enrich_queue_record,
+    enrich_work_item_record,
+)
 
 
 def test_config_validation_and_directory_creation(tmp_path: Path) -> None:
@@ -51,3 +57,80 @@ def test_default_queue_allowed_next_queues_reference_only_canonical_queue_ids() 
     for record in DEFAULT_QUEUES:
         allowed_next_queues = record["metadata"]["allowed_next_queues"]
         assert set(allowed_next_queues).issubset(canonical_ids)
+
+
+def test_enrich_queue_record_exposes_registry_aware_metadata_fields() -> None:
+    queue_record = enrich_queue_record(
+        {
+            "id": "queue-implementation",
+            "name": "implementation",
+            "status": "active",
+            "purpose": "Active implementation work.",
+            "metadata": {
+                "lifecycle_stage_mapping": "implementation",
+                "accepted_work_item_types": ["github_issue", "correction_pass"],
+                "allowed_next_queues": ["queue-verification", "queue-blocked"],
+                "human_approval_requirement": "human_review_required",
+                "local_operator_visibility_expectations": ["changed files", "current route status"],
+                "source_document": QUEUE_SCHEMA_SOURCE_DOCUMENT,
+            },
+        }
+    )
+
+    assert queue_record["lifecycle_stage_mapping"] == "implementation"
+    assert queue_record["accepted_work_item_types"] == ["github_issue", "correction_pass"]
+    assert queue_record["allowed_next_queues"] == ["queue-verification", "queue-blocked"]
+    assert queue_record["human_approval_requirement"] == "human_review_required"
+    assert queue_record["source_document"] == QUEUE_SCHEMA_SOURCE_DOCUMENT
+
+
+def test_enrich_work_item_record_exposes_registry_aware_queue_and_runtime_fields() -> None:
+    work_item_record = enrich_work_item_record(
+        {
+            "id": "work-123",
+            "title": "Implement inspection",
+            "description": "Add read-only inspection commands.",
+            "status": "queued",
+            "priority": "normal",
+            "route_status": "ready",
+            "queue_id": "queue-implementation",
+            "queue_name": "implementation",
+            "queue_purpose": "Active implementation work.",
+            "queue_metadata": {
+                "lifecycle_stage_mapping": "implementation",
+                "accepted_work_item_types": ["github_issue", "correction_pass"],
+                "allowed_next_queues": ["queue-verification", "queue-blocked"],
+                "human_approval_requirement": "human_review_required",
+                "local_operator_visibility_expectations": ["changed files", "current route status"],
+            },
+            "agent_id": "agent-worker",
+            "agent_name": "worker-agent",
+            "model_id": "model-ollama-default",
+            "model_name": "qwen2.5:32b",
+            "model_provider": "ollama",
+            "prompt_id": "prompt-123",
+            "metadata": {
+                "lifecycle_state": "implementation_ready",
+                "approval_state": "not_requested",
+                "blocked_reason": None,
+                "failure_reason": None,
+                "retry_or_correction_context": None,
+            },
+            "created_at": "2026-05-19T20:00:00Z",
+            "updated_at": "2026-05-19T20:05:00Z",
+        }
+    )
+
+    assert work_item_record["queue_lifecycle_stage_mapping"] == "implementation"
+    assert work_item_record["queue_accepted_work_item_types"] == [
+        "github_issue",
+        "correction_pass",
+    ]
+    assert work_item_record["queue_allowed_next_queues"] == [
+        "queue-verification",
+        "queue-blocked",
+    ]
+    assert work_item_record["agent_id"] == "agent-worker"
+    assert work_item_record["model_provider"] == "ollama"
+    assert work_item_record["lifecycle_state"] == "implementation_ready"
+    assert work_item_record["approval_state"] == "not_requested"
