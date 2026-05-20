@@ -75,7 +75,19 @@ Stores managed-project records for local runtime use. Issue #81 bootstraps AresF
 
 ### Agents
 
-Stores bounded agent-role rows. The initial bootstrap inserts a `local-operator` agent record to anchor route planning.
+Stores bounded agent-role rows. The initial bootstrap inserts a conservative M2 reference set that includes:
+
+- Planning / Next-Issue Agent
+- Triage / Routing Agent
+- Worker Agent
+- Verification Agent
+- Testing Agent
+- Debug Routing Agent
+- Documentation Agent
+- Final Closeout / Lifecycle Controller Agent
+- Local Operator
+
+These rows are seed/reference data only during M2. They support inspection and future schema alignment. They do not create queue consumers, background workers, autonomous routing, or autonomous execution.
 
 ### Models
 

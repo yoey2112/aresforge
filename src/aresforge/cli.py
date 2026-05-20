@@ -15,6 +15,7 @@ from aresforge.db.repository import (
     bootstrap_reference_data,
     create_work_item,
     inspect_state,
+    list_agents,
     list_projects,
     list_queues,
     list_work_items,
@@ -46,6 +47,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     subparsers.add_parser("inspect-project-state", help="Show local database state summary.")
     subparsers.add_parser("list-projects", help="List registered projects.")
+    subparsers.add_parser("list-agents", help="List registered agent roles.")
     subparsers.add_parser("list-queues", help="List known queues.")
 
     create_work = subparsers.add_parser("create-work-item", help="Create a local work item.")
@@ -180,6 +182,11 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "list-projects":
         with connect(config) as conn:
             emit_json({"projects": list_projects(conn)})
+        return 0
+
+    if args.command == "list-agents":
+        with connect(config) as conn:
+            emit_json({"agents": list_agents(conn)})
         return 0
 
     if args.command == "list-queues":

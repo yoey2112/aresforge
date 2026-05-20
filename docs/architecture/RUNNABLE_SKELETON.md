@@ -43,6 +43,7 @@ Supported commands:
 - `migrate`
 - `inspect-project-state`
 - `list-projects`
+- `list-agents`
 - `list-queues`
 - `create-work-item`
 - `list-work-items`
@@ -61,11 +62,12 @@ The current vertical slice is:
 2. start PostgreSQL locally
 3. apply repo-stored migrations
 4. bootstrap minimal reference data
-5. create a work item and assign a queue
-6. generate a prompt package
-7. record evidence metadata
-8. prepare a Codex handoff artifact
-9. optionally test a local Ollama model call
+5. inspect seeded project, agent, and queue records
+6. create a work item and assign a queue
+7. generate a prompt package
+8. record evidence metadata
+9. prepare a Codex handoff artifact
+10. optionally test a local Ollama model call
 
 That is enough to prove the local execution path without over-designing agents, routing intelligence, or background automation.
 

@@ -14,6 +14,7 @@ from aresforge.config import AppConfig
 DEFAULT_PROJECT_ID = "project-aresforge"
 DEFAULT_AGENT_ID = "agent-local-operator"
 DEFAULT_MODEL_ID = "model-ollama-default"
+DEFAULT_AGENT_REGISTRY_VERSION = "m2-v1"
 DEFAULT_QUEUES = {
     "queue-intake": ("intake", "New work waiting for classification."),
     "queue-planning": ("planning", "Work being prepared for implementation."),
@@ -21,6 +22,235 @@ DEFAULT_QUEUES = {
     "queue-verification": ("verification", "Validation and review work."),
     "queue-documentation": ("documentation", "Documentation and evidence closeout."),
 }
+DEFAULT_AGENT_RECORDS = (
+    {
+        "id": "agent-planning-next-issue",
+        "name": "planning-next-issue-agent",
+        "status": "planned",
+        "role": "Selects the next approved issue and packages scope and reading inputs.",
+        "metadata": {
+            "registry_version": DEFAULT_AGENT_REGISTRY_VERSION,
+            "agent_name": "Planning / Next-Issue Agent",
+            "agent_slug": "planning-next-issue-agent",
+            "role_kind": "lifecycle",
+            "queue_participation": ["queue-intake", "queue-planning"],
+            "allowed_capabilities": [
+                "issue_selection_support",
+                "sequencing_analysis",
+                "source_of_truth_reading_list_preparation",
+            ],
+            "approval_boundary": "human_review_required",
+            "evidence_expectations": [
+                "issue recommendation notes",
+                "dependency notes",
+                "required source-of-truth list",
+            ],
+        },
+    },
+    {
+        "id": "agent-triage-routing",
+        "name": "triage-routing-agent",
+        "status": "planned",
+        "role": "Converts approved issue scope into a bounded routing and execution handoff.",
+        "metadata": {
+            "registry_version": DEFAULT_AGENT_REGISTRY_VERSION,
+            "agent_name": "Triage / Routing Agent",
+            "agent_slug": "triage-routing-agent",
+            "role_kind": "lifecycle",
+            "queue_participation": ["queue-planning"],
+            "allowed_capabilities": [
+                "scope_refinement",
+                "queue_path_recommendation",
+                "validation_requirement_packaging",
+            ],
+            "approval_boundary": "human_review_required",
+            "evidence_expectations": [
+                "routing notes",
+                "scoped handoff summary",
+                "boundary notes",
+            ],
+        },
+    },
+    {
+        "id": "agent-worker",
+        "name": "worker-agent",
+        "status": "planned",
+        "role": "Performs issue-scoped implementation work under human review.",
+        "metadata": {
+            "registry_version": DEFAULT_AGENT_REGISTRY_VERSION,
+            "agent_name": "Worker Agent",
+            "agent_slug": "worker-agent",
+            "role_kind": "lifecycle",
+            "queue_participation": ["queue-implementation"],
+            "allowed_capabilities": [
+                "implementation_drafting",
+                "local_file_changes",
+                "local_validation_support",
+            ],
+            "approval_boundary": "human_review_required",
+            "evidence_expectations": [
+                "changed-file summary",
+                "implementation notes",
+                "initial validation notes",
+            ],
+        },
+    },
+    {
+        "id": "agent-verification",
+        "name": "verification-agent",
+        "status": "planned",
+        "role": "Confirms that implementation output matches issue scope and requirements.",
+        "metadata": {
+            "registry_version": DEFAULT_AGENT_REGISTRY_VERSION,
+            "agent_name": "Verification Agent",
+            "agent_slug": "verification-agent",
+            "role_kind": "lifecycle",
+            "queue_participation": ["queue-verification"],
+            "allowed_capabilities": [
+                "requirement_fit_review",
+                "scope_control_review",
+                "defect_identification",
+            ],
+            "approval_boundary": "human_review_required",
+            "evidence_expectations": [
+                "findings summary",
+                "requirement coverage notes",
+                "scope warnings",
+            ],
+        },
+    },
+    {
+        "id": "agent-testing",
+        "name": "testing-agent",
+        "status": "planned",
+        "role": "Runs or reports issue-appropriate validation commands and manual checks.",
+        "metadata": {
+            "registry_version": DEFAULT_AGENT_REGISTRY_VERSION,
+            "agent_name": "Testing Agent",
+            "agent_slug": "testing-agent",
+            "role_kind": "lifecycle",
+            "queue_participation": ["queue-verification"],
+            "allowed_capabilities": [
+                "test_execution_support",
+                "validation_reporting",
+                "skipped_check_reporting",
+            ],
+            "approval_boundary": "human_review_required",
+            "evidence_expectations": [
+                "validation results",
+                "skipped-check notes",
+                "remaining-risk notes",
+            ],
+        },
+    },
+    {
+        "id": "agent-debug-routing",
+        "name": "debug-routing-agent",
+        "status": "planned",
+        "role": "Routes failed verification or testing work back to the right corrective path.",
+        "metadata": {
+            "registry_version": DEFAULT_AGENT_REGISTRY_VERSION,
+            "agent_name": "Debug Routing Agent",
+            "agent_slug": "debug-routing-agent",
+            "role_kind": "lifecycle",
+            "queue_participation": ["queue-verification"],
+            "allowed_capabilities": [
+                "defect_classification",
+                "corrective_handoff_preparation",
+                "failure_loop_support",
+            ],
+            "approval_boundary": "human_review_required",
+            "evidence_expectations": [
+                "defect summary",
+                "corrective route notes",
+                "retry expectations",
+            ],
+        },
+    },
+    {
+        "id": "agent-documentation",
+        "name": "documentation-agent",
+        "status": "active",
+        "role": "Performs documentation-before-closeout review and source-of-truth updates.",
+        "metadata": {
+            "registry_version": DEFAULT_AGENT_REGISTRY_VERSION,
+            "agent_name": "Documentation Agent",
+            "agent_slug": "documentation-agent",
+            "role_kind": "lifecycle",
+            "queue_participation": ["queue-documentation"],
+            "allowed_capabilities": [
+                "documentation_impact_review",
+                "documentation_updates",
+                "freshness_check_reporting",
+                "evidence_package_support",
+            ],
+            "approval_boundary": "human_review_required",
+            "evidence_expectations": [
+                "source-of-truth update summary",
+                "freshness findings",
+                "PR and closeout evidence inputs",
+            ],
+        },
+    },
+    {
+        "id": "agent-final-closeout",
+        "name": "final-closeout-lifecycle-controller-agent",
+        "status": "planned",
+        "role": "Confirms lifecycle gates passed and prepares final closeout readiness.",
+        "metadata": {
+            "registry_version": DEFAULT_AGENT_REGISTRY_VERSION,
+            "agent_name": "Final Closeout / Lifecycle Controller Agent",
+            "agent_slug": "final-closeout-lifecycle-controller-agent",
+            "role_kind": "lifecycle",
+            "queue_participation": ["queue-documentation"],
+            "allowed_capabilities": [
+                "closeout_readiness_review",
+                "final_gate_confirmation",
+                "human_handoff_preparation",
+            ],
+            "approval_boundary": "human_review_required",
+            "evidence_expectations": [
+                "closeout readiness summary",
+                "unresolved limitation notes",
+                "final handoff notes",
+            ],
+        },
+    },
+    {
+        "id": DEFAULT_AGENT_ID,
+        "name": "local-operator",
+        "status": "active",
+        "role": "Human-triggered operator CLI for local inspection, artifacts, and approved local state actions.",
+        "metadata": {
+            "registry_version": DEFAULT_AGENT_REGISTRY_VERSION,
+            "agent_name": "Local Operator",
+            "agent_slug": "local-operator",
+            "role_kind": "human",
+            "queue_participation": [
+                "queue-intake",
+                "queue-planning",
+                "queue-implementation",
+                "queue-verification",
+                "queue-documentation",
+            ],
+            "allowed_capabilities": [
+                "local_state_inspection",
+                "migration_execution",
+                "prompt_package_generation",
+                "evidence_package_recording",
+                "codex_handoff_preparation",
+                "read_only_registry_listing",
+            ],
+            "approval_boundary": "human_owner",
+            "evidence_expectations": [
+                "command output",
+                "artifact paths",
+                "boundary confirmations",
+            ],
+            "automation_boundary": "No autonomous GitHub state changes.",
+        },
+    },
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -70,32 +300,32 @@ def bootstrap_reference_data(conn: Connection, config: AppConfig) -> None:
                     {
                         "autonomy_level": "human_triggered_local_only",
                         "protected_issue": 39,
-                        "active_issue": 81,
+                        "active_issue": 83,
+                        "completed_issue": 81,
                     }
                 ),
             ),
         )
-        cur.execute(
-            """
-            INSERT INTO agents (id, name, status, role, metadata)
-            VALUES (%s, %s, %s, %s, %s::jsonb)
-            ON CONFLICT (id) DO UPDATE
-            SET status = EXCLUDED.status,
-                metadata = EXCLUDED.metadata,
-                updated_at = NOW()
-            """,
-            (
-                DEFAULT_AGENT_ID,
-                "local-operator",
-                "active",
-                "Human-triggered operator CLI",
-                json.dumps(
-                    {
-                        "automation_boundary": "No autonomous GitHub state changes.",
-                    }
+        for record in DEFAULT_AGENT_RECORDS:
+            cur.execute(
+                """
+                INSERT INTO agents (id, name, status, role, metadata)
+                VALUES (%s, %s, %s, %s, %s::jsonb)
+                ON CONFLICT (id) DO UPDATE
+                SET name = EXCLUDED.name,
+                    status = EXCLUDED.status,
+                    role = EXCLUDED.role,
+                    metadata = EXCLUDED.metadata,
+                    updated_at = NOW()
+                """,
+                (
+                    record["id"],
+                    record["name"],
+                    record["status"],
+                    record["role"],
+                    json.dumps(record["metadata"]),
                 ),
-            ),
-        )
+            )
         cur.execute(
             """
             INSERT INTO models (id, name, provider, status, endpoint, metadata)
@@ -160,6 +390,18 @@ def list_queues(conn: Connection) -> list[dict[str, Any]]:
             """
             SELECT id, name, status, purpose, updated_at
             FROM queues
+            ORDER BY name
+            """
+        )
+        return list(cur.fetchall())
+
+
+def list_agents(conn: Connection) -> list[dict[str, Any]]:
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT id, name, status, role, metadata, updated_at
+            FROM agents
             ORDER BY name
             """
         )

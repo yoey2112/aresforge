@@ -9,6 +9,7 @@ def test_cli_has_expected_commands() -> None:
         "migrate",
         "inspect-project-state",
         "list-projects",
+        "list-agents",
         "list-queues",
         "create-work-item",
         "list-work-items",

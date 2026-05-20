@@ -6,16 +6,18 @@ M2 - Runnable Local Skeleton Pivot
 
 ## Current Goal
 
-Implement the first runnable local AresForge skeleton for Issue #81 so the repository moves from documentation-only architecture into a practical human-triggered local operator foundation with PostgreSQL-backed local state, repo-stored migrations, reviewable prompt/evidence/handoff artifacts, and a minimal Ollama integration boundary.
+Define the first canonical agent registry schema and lifecycle-state model for Issue #83 on top of the runnable local skeleton completed by Issue #81 / PR #82, while keeping the implementation human-triggered, read-only where possible, and aligned with the existing registry and lifecycle architecture.
 
 ## Current Repository State
 
 - Main branch baseline for the runnable pivot: `d04041c` (`Define project registry schema (#80)`).
-- Issue #81, `Build runnable local skeleton and automation foundation`, is the active implementation issue.
+- Issue #81, `Build runnable local skeleton and automation foundation`, is completed through PR #82.
+- Issue #83, `Define agent registry schema and lifecycle states`, is the active implementation issue.
 - `docs/architecture/REGISTRY_AND_QUEUE_ARCHITECTURE.md` remains the canonical registry and queue architecture artifact.
 - `docs/architecture/PROJECT_REGISTRY_SCHEMA.md` remains the canonical project registry schema artifact.
+- `docs/architecture/AGENT_REGISTRY_SCHEMA.md` is the canonical agent registry schema artifact.
 - Issue #75 remains the last routine reconciliation issue.
-- Remaining open protected validation issue: #39, `validation: issue-38-state-lifecycle`, intentionally preserved as audit evidence and not touched by Issue #81.
+- Remaining open protected validation issue: #39, `validation: issue-38-state-lifecycle`, intentionally preserved as audit evidence and not touched by Issue #83.
 
 ## Current Source of Truth
 
@@ -321,17 +323,28 @@ Repository documentation remains the authoritative source for roadmap, governanc
   - Latest `main` commit advanced to `d04041c`, `Define project registry schema (#80)`.
   - Confirmed Issue #39 was not modified or closed.
   - Confirmed no runnable automation, auto-merge, autonomous approval, autonomous issue closure, repository setting change, branch protection change, ruleset change, secret change, release change, tag change, or GitHub Project change was introduced.
+- Issue #81 completed via PR #82:
+  - Built the first runnable local skeleton and automation foundation.
+  - Added the PostgreSQL-backed local state store, repo-stored migrations, human-triggered CLI commands, reviewable prompt/evidence/Codex handoff artifacts, and the bounded Ollama dry-run integration layer.
+  - Added the first local `projects`, `agents`, `models`, `queues`, `work_items`, `prompts`, `evidence_packages`, `documentation_state`, `approvals`, and `audit_events` runtime tables.
+  - Added `docs/architecture/LOCAL_STATE_STORE.md`, `docs/architecture/RUNNABLE_SKELETON.md`, and `docs/operator/LOCAL_OPERATOR_USAGE.md` as the canonical runnable-skeleton implementation artifacts.
+  - PR #82 merged successfully.
+  - Confirmed Issue #39 was not modified or closed.
+  - Confirmed no autonomous PR merge, autonomous approval, autonomous issue closure, autonomous GitHub-state-changing behavior, repository setting change, branch protection change, ruleset change, secret change, release change, tag change, or GitHub Project change was introduced.
 ## In Progress
 
 - `docs/architecture/ISSUE_LIFECYCLE_AGENT_PIPELINE.md` remains the completed canonical lifecycle pipeline design artifact.
 - `docs/architecture/REGISTRY_AND_QUEUE_ARCHITECTURE.md` remains the completed canonical registry and queue architecture artifact.
 - `docs/architecture/PROJECT_REGISTRY_SCHEMA.md` remains the completed canonical project registry schema artifact.
-- Issue #81 is the active runnable local skeleton implementation issue.
-- The repository now has an implementation pivot from documentation-only design into a human-triggered local operator foundation.
+- `docs/architecture/AGENT_REGISTRY_SCHEMA.md` is the active canonical agent registry schema artifact for Issue #83.
+- Issue #83 is the active agent-registry implementation issue.
+- The repository now has a completed runnable local operator foundation from Issue #81 and is formalizing bounded lifecycle roles on top of it.
 - The new local state-store and operator usage docs are:
   - `docs/architecture/LOCAL_STATE_STORE.md`
   - `docs/architecture/RUNNABLE_SKELETON.md`
   - `docs/operator/LOCAL_OPERATOR_USAGE.md`
+- The agent-registry schema and lifecycle-state work now adds:
+  - `docs/architecture/AGENT_REGISTRY_SCHEMA.md`
 - Future project-state-changing issues must continue updating source-of-truth docs before PR merge and issue closeout.
 - Issue #75 remains the last routine reconciliation issue.
 - Separate reconciliation or documentation-update issues remain the exception path only.
@@ -341,12 +354,13 @@ Repository documentation remains the authoritative source for roadmap, governanc
 ## Next
 
 - Preserve Issue #39 as the only remaining open protected validation issue unless a future human-directed issue explicitly changes its state.
-- Validate and iterate on the local operator CLI, migration flow, and local artifact outputs created by Issue #81.
+- Validate and iterate on the local operator CLI, migration flow, local artifact outputs, and agent-registry seed/listing behavior created by Issues #81 and #83.
 - Keep documentation freshness checks required before future documentation-sync work.
 - Use the new runnable skeleton docs when extending the local operator:
   - `docs/architecture/LOCAL_STATE_STORE.md`
   - `docs/architecture/RUNNABLE_SKELETON.md`
   - `docs/operator/LOCAL_OPERATOR_USAGE.md`
+- Use `docs/architecture/AGENT_REGISTRY_SCHEMA.md` as the canonical agent-role, lifecycle-state, capability-boundary, and queue-participation artifact.
 - Keep Codex handoff generation as output-file preparation only until a later human-approved issue expands it.
 - Keep Ollama integration bounded to local test and support flows until a later issue explicitly authorizes richer routing or execution.
 - Do not create another routine reconciliation issue after Issue #75.
@@ -359,6 +373,6 @@ Repository documentation remains the authoritative source for roadmap, governanc
 
 All current M2 runnable-skeleton changes remain manually guided, human-triggered, and manually reviewed.
 
-Human-triggered local automation is allowed for config validation, local migrations, local state inspection, local artifact generation, and local Ollama checks.
+Human-triggered local automation is allowed for config validation, local migrations, local state inspection, read-only registry listing, local artifact generation, and local Ollama checks.
 
-No autonomous PR merge, autonomous approval, autonomous issue closure, autonomous GitHub-state-changing behavior, repository setting change, branch protection change, ruleset change, secret change, release change, tag change, or GitHub Project change is enabled by Issue #81.
+No autonomous PR merge, autonomous approval, autonomous issue closure, autonomous GitHub-state-changing behavior, repository setting change, branch protection change, ruleset change, secret change, release change, tag change, or GitHub Project change is enabled by Issues #81 or #83.
