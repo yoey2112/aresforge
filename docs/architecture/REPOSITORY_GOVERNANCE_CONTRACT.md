@@ -131,6 +131,8 @@ Managed-repository setup or mutation commands are not implemented by this govern
 
 For AresForge M4, required and optional platform labels plus canonical platform milestones were created through explicit human-triggered manual setup before documentation reconciliation. This contract remains read-only and does not introduce setup mutation commands.
 
+Issue #158 (M5) allows `plan-repo-bootstrap` to emit exact human-reviewable `gh` setup command recommendations for known missing canonical labels and milestones. Those commands remain recommendation output only and are never executed by AresForge.
+
 ## Extension Point For Multi-Repository Management
 
 The current runtime inspects the repository configured by `ARESFORGE_GITHUB_OWNER` and `ARESFORGE_GITHUB_REPO`.

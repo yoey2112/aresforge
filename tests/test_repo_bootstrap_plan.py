@@ -98,6 +98,30 @@ def test_plan_repo_bootstrap_generates_default_repo_plan(monkeypatch, tmp_path: 
         action["title"] == "Document project-specific milestone mapping"
         for action in repo_plan["actions"]
     )
+    assert repo_plan["setup_command_generation_status"] == "exact_commands_generated"
+    assert repo_plan["manual_verification_commands"] == [
+        "python -m aresforge inspect-repo-governance",
+        "python -m aresforge inspect-repo-bootstrap-contract",
+        "python -m aresforge plan-repo-bootstrap",
+    ]
+    setup_commands = repo_plan["human_reviewable_setup_commands"]
+    assert any(
+        row.get("kind") == "gh_label_create"
+        and row.get("command")
+        == "gh label create aresforge-automerge --repo yoey2112/aresforge --color 1D76DB --description \"Gated intent marker; does not authorize autonomous merge.\""
+        for row in setup_commands
+    )
+    assert any(
+        row.get("kind") == "gh_milestone_create"
+        and row.get("command")
+        == "gh api repos/yoey2112/aresforge/milestones -X POST -f title='M2 - Local Automation Foundation'"
+        for row in setup_commands
+    )
+    assert any(row.get("kind") == "manual_note" for row in setup_commands)
+    all_commands = " ".join(str(row.get("command", "")) for row in setup_commands)
+    assert "<label-name>" not in all_commands
+    assert "<hex>" not in all_commands
+    assert "<description>" not in all_commands
 
 
 def test_plan_repo_bootstrap_handles_disabled_and_archived(monkeypatch, tmp_path: Path) -> None:
@@ -203,6 +227,16 @@ def test_plan_repo_bootstrap_degrades_when_data_unavailable(monkeypatch, tmp_pat
     assert any("Local path is registered but not available on disk." in warning for warning in repo_plan["warnings"])
     assert any(action["category"] == "required" for action in repo_plan["actions"])
     assert any("global registry warning" in warning for warning in payload["warnings"])
+    assert repo_plan["setup_command_generation_status"] == "unavailable"
+    assert not [
+        row
+        for row in repo_plan["human_reviewable_setup_commands"]
+        if isinstance(row, dict) and row.get("kind") in {"gh_label_create", "gh_milestone_create"}
+    ]
+    assert any("restore gh/network/repository access" in row.get("note", "").lower() for row in repo_plan["human_reviewable_setup_commands"])
+    assert "This plan does not create labels." in repo_plan["boundary_confirmations"]
+    assert "This plan does not create milestones." in repo_plan["boundary_confirmations"]
+    assert "This plan does not modify GitHub state." in repo_plan["boundary_confirmations"]
 
 
 def test_plan_repo_bootstrap_includes_per_repository_actions_for_default_and_fixture(
@@ -267,3 +301,55 @@ def test_plan_repo_bootstrap_includes_per_repository_actions_for_default_and_fix
         repo for repo in payload["repositories"] if repo["repository_slug"] == "yoey2112/aresforge-demo-managed-repo"
     )
     assert any(action["title"] == "Confirm local path alignment" for action in fixture["actions"])
+
+
+def test_plan_repo_bootstrap_generates_alignment_note_for_unknown_platform_like_milestones(
+    monkeypatch, tmp_path: Path
+) -> None:
+    config = make_config(tmp_path)
+    monkeypatch.setattr(
+        repo_bootstrap_plan,
+        "inspect_managed_repos",
+        lambda _cfg: {
+            "managed_repositories": [
+                {
+                    "repository_slug": "yoey2112/aresforge",
+                    "is_default": True,
+                    "local_path": str(tmp_path),
+                    "disabled": False,
+                    "archived": False,
+                }
+            ],
+            "warnings": [],
+        },
+    )
+    monkeypatch.setattr(
+        repo_bootstrap_plan,
+        "inspect_repo_governance",
+        lambda _cfg: {
+            "default_branch": "main",
+            "required_platform_labels": {"available": True, "missing": []},
+            "optional_platform_labels": {"available": True, "missing": []},
+            "automation_trigger_labels": {"available": True, "missing": []},
+            "milestone_naming_status": {
+                "available": True,
+                "missing_platform_milestones": [],
+                "unknown_platform_like_milestones": ["M3 - Registry Deepening Variant"],
+                "project_specific_milestones": [],
+            },
+            "warnings": [],
+        },
+    )
+    monkeypatch.setattr(
+        repo_bootstrap_plan,
+        "inspect_repo_bootstrap_contract",
+        lambda _cfg: {"area_evaluation": []},
+    )
+
+    payload = repo_bootstrap_plan.plan_repo_bootstrap(config)
+    commands = payload["repositories"][0]["human_reviewable_setup_commands"]
+    assert any(
+        row.get("kind") == "manual_note"
+        and "not safely deterministic" in row.get("note", "")
+        for row in commands
+    )

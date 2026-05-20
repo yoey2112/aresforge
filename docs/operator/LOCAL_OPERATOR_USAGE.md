@@ -249,6 +249,17 @@ python -m aresforge plan-repo-bootstrap
 
 This command is read-only and safe to run repeatedly. It inspects registered managed repositories, reuses governance and bootstrap/readiness signals where available, and emits deterministic JSON with human-reviewable required, recommended, optional, and deferred setup actions. The plan explicitly includes future setup command placeholders, warnings, and boundary confirmations while making clear that no setup is executed. It degrades gracefully when local paths, `gh`, `git`, network access, or registry data are unavailable and does not mutate files, git state, labels, milestones, issues, PRs, branches, workflows, settings, or artifacts.
 
+M5 adds exact human-reviewable setup command recommendations when required inspection data is available. The output includes:
+
+- `human_reviewable_setup_commands` with exact `gh label create` and `gh api .../milestones` commands for known missing canonical labels and milestones
+- manual notes (not fake commands) for milestone alignment or mapping cases that are not safely deterministic
+- `manual_verification_commands` for rerunning:
+  - `python -m aresforge inspect-repo-governance`
+  - `python -m aresforge inspect-repo-bootstrap-contract`
+  - `python -m aresforge plan-repo-bootstrap`
+
+These generated commands are not executed by AresForge. Operators must manually review and run any mutation commands.
+
 Run a deterministic read-only end-to-end managed repository governance demo:
 
 ```powershell
@@ -275,6 +286,7 @@ Bootstrap setup guidance for M4:
 
 - Labels and canonical platform milestones may be created manually with `gh` as a human-triggered setup step.
 - M4 used human-triggered manual setup for labels and milestones; no AresForge setup-mutation command was introduced.
+- M5 can generate exact human-reviewable setup command recommendations, but still does not execute those commands.
 - After manual setup, rerun `inspect-repo-governance`, `managed-repo-readiness-report`, `plan-repo-bootstrap`, and `demo-managed-repo-governance`.
 - Unknown legacy or project-specific milestones should be mapped in documentation unless a human explicitly chooses rename, closure, or migration actions.
 - Current legacy milestone mapping guidance is:
