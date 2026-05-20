@@ -6,13 +6,13 @@ M4 - Local Operator Expansion
 
 ## Current Goal
 
-Complete Issue #149 by adding a read-only end-to-end PR validation orchestration command that composes deterministic QA review output and operator-facing next-action guidance without GitHub mutation.
+Complete Issue #147 by expanding managed repository governance validation to include a second fixture/demo managed repository while preserving read-only and human-gated mutation boundaries.
 
 ## Current Repository State
 
-- Current branch: `m4/issue-148-validator-hardening`
-- Latest `main` commit: `f6b02a4` (`M4: reconcile bootstrap setup documentation (#146) (#150)`)
-- Latest runtime-affecting merged foundation commit: `f6b02a4` (`M4: reconcile bootstrap setup documentation (#146) (#150)`)
+- Current branch: `main`
+- Latest `main` commit: `f3de8c8` (`M4: add end-to-end PR validation orchestration (#149) (#152)`)
+- Latest runtime-affecting merged foundation commit: `f3de8c8` (`M4: add end-to-end PR validation orchestration (#149) (#152)`)
 - Issue #105 was completed through PR #106 and is merged `main` behavior
 - Issue #107 was completed through PR #108 and is merged `main` behavior
 - Issue #109 was completed through PR #111 and is merged `main` behavior
@@ -46,8 +46,8 @@ Complete Issue #149 by adding a read-only end-to-end PR validation orchestration
 - M4 sprint has started under parent sprint Issue #145
 - Issue #146 is complete through PR #150 and is merged `main` behavior
 - Issue #148 is complete and merged `main` behavior through PR #151
-- Issue #149 is active and is the M4 end-to-end PR validation orchestration workstream under Issue #145
-- Remaining M4 workstream after #149 is #147 (multi-repo governance proof)
+- Issue #149 is complete and merged `main` behavior through PR #152
+- Issue #147 is active and is the remaining M4 multi-repository governance fixture workstream under Issue #145
 - Human-triggered bootstrap setup has already been performed for labels and milestones using manual `gh`-driven operations outside AresForge runtime mutation surfaces
 - Required and optional platform labels are present: `aresforge-ready`, `aresforge-automerge`, `aresforge-blocked`, `aresforge-needs-evidence`, `aresforge-needs-docs`, `aresforge-closeout-ready`, `aresforge-managed`, and `aresforge-generated`
 - Canonical platform milestones are present: `M0 - Foundation`, `M1 - Validation`, `M2 - Local Automation Foundation`, `M3 - Registry And Routing Deepening`, and `M4 - Local Operator Expansion`
@@ -145,7 +145,7 @@ The current M3 implementation does allow:
 - opt-in latest local review package capture in handoff and evidence outputs
 - read-only repository governance inspection for reusable label and milestone contract visibility
 - read-only repository bootstrap contract inspection for reusable setup readiness visibility
-- read-only managed repository registry inspection where AresForge is represented as the first/default managed repository
+- read-only managed repository registry inspection where AresForge is represented as the first/default managed repository and additional fixture/demo repositories can be included read-only
 - read-only managed repository readiness reporting with explicit `attention_needed` posture when remaining legacy or project-specific milestone mapping alignment remains to be documented
 - read-only managed repository bootstrap planning that reports setup action placeholders without executing setup mutation
 - bounded local model inspection, listing, and Ollama dry-run checks

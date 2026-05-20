@@ -113,9 +113,9 @@ Issue #146 is docs-only posture reconciliation and does not implement setup muta
 
 Issue #148 hardens `qa-review-pr` validation evidence detection so explicit PR-body validation sections are recognized with strict command-plus-pass/result requirements and deterministic failure diagnostics.
 
-Issue #149 adds `validate-pr-end-to-end`, a deterministic read-only end-to-end PR validation orchestration command that composes `qa-review-pr` output plus operator validation-command guidance without GitHub mutation.
+Issue #149 was completed through PR #152 and adds `validate-pr-end-to-end`, a deterministic read-only end-to-end PR validation orchestration command that composes `qa-review-pr` output plus operator validation-command guidance without GitHub mutation.
 
-Remaining M4 workstreams after #149 are:
+Remaining open M4 workstreams are:
 
 - Issue #147 to prove multi-repository governance behavior
 
@@ -181,7 +181,6 @@ The current M4 phase does not authorize:
 
 - Continue M4 local operator expansion while preserving read-only-by-default governance and explicit human mutation gates
 - Keep Issue #146 closed as docs-only bootstrap setup reconciliation with explicit milestone mapping guidance
-- Complete Issue #149 to add validate-pr end-to-end coverage
 - Complete Issue #147 to prove multi-repository governance behavior without autonomous mutation
 - Extend local operator visibility with safer human-triggered helper commands while keeping queue transitions out of scope and GitHub-state-changing behavior tightly phase-gated
 - Continue improving local review-aid visibility, including deterministic summaries of generated artifacts that remain non-authoritative

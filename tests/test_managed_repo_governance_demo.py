@@ -44,12 +44,22 @@ def test_demo_managed_repo_governance_includes_end_to_end_sections(monkeypatch, 
     monkeypatch.setattr(
         managed_repo_governance_demo,
         "inspect_managed_repos",
-        lambda _cfg: {"managed_repository_count": 1, "warnings": []},
+        lambda _cfg: {"managed_repository_count": 2, "warnings": []},
     )
     monkeypatch.setattr(
         managed_repo_governance_demo,
         "managed_repo_readiness_report",
-        lambda _cfg: {"repositories": [{"readiness_level": "attention_needed"}], "warnings": []},
+        lambda _cfg: {
+            "repository_count": 2,
+            "repositories": [
+                {"repository_slug": "yoey2112/aresforge", "readiness_level": "attention_needed"},
+                {
+                    "repository_slug": "yoey2112/aresforge-demo-managed-repo",
+                    "readiness_level": "degraded",
+                },
+            ],
+            "warnings": [],
+        },
     )
     monkeypatch.setattr(
         managed_repo_governance_demo,
@@ -75,6 +85,7 @@ def test_demo_managed_repo_governance_includes_end_to_end_sections(monkeypatch, 
         "documentation_expectations",
     }
     assert payload["demo_summary"]["attention_needed_steps"] >= 1
+    assert payload["demo_summary"]["repository_count"] == 2
     assert "governance_inspection" in payload
     assert "bootstrap_contract_evaluation" in payload
     assert "registry_representation" in payload
