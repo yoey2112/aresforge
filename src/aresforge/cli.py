@@ -33,8 +33,11 @@ from aresforge.integrations.ollama import test_generate
 from aresforge.operator.artifact_discovery import (
     discover_local_artifacts,
     discover_local_evidence_packages,
+    discover_local_review_packages,
     inspect_local_artifact,
     inspect_local_evidence_package,
+    inspect_local_review_package,
+    latest_local_review_package_summary,
 )
 from aresforge.operator.inspection_reports import (
     render_queue_inspection_report,
@@ -81,6 +84,10 @@ def build_parser() -> argparse.ArgumentParser:
         "list-artifacts",
         help="Summarize generated local artifacts under the configured artifact root.",
     )
+    subparsers.add_parser(
+        "list-review-packages",
+        help="Summarize generated local review packages under the configured review package root.",
+    )
     run_local_review_parser = subparsers.add_parser(
         "run-local-review",
         help="Run a bounded deterministic local review orchestration over existing operator checks.",
@@ -114,6 +121,11 @@ def build_parser() -> argparse.ArgumentParser:
         "list-evidence-packages",
         help="Summarize generated local evidence packages under the configured evidence root.",
     )
+    inspect_review_parser = subparsers.add_parser(
+        "inspect-review-package",
+        help="Inspect one generated local review package under the configured review package root.",
+    )
+    inspect_review_parser.add_argument("--review-path", required=True)
     inspect_artifact_parser = subparsers.add_parser(
         "inspect-artifact",
         help="Inspect one generated local artifact under the configured artifact root.",
@@ -210,6 +222,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Embed a deterministic local list-artifacts snapshot in the evidence package.",
     )
+    evidence_parser.add_argument(
+        "--include-latest-review-package",
+        action="store_true",
+        help="Embed a deterministic summary of the latest generated local review package.",
+    )
     evidence_parser.add_argument("--store-db", action="store_true")
 
     ollama_parser = subparsers.add_parser("test-ollama", help="Send a small prompt to Ollama.")
@@ -230,6 +247,11 @@ def build_parser() -> argparse.ArgumentParser:
     handoff_parser.add_argument("--agent-id", default=DEFAULT_AGENT_ID)
     handoff_parser.add_argument("--model-id", default=DEFAULT_MODEL_ID)
     handoff_parser.add_argument("--route-status", default="ready")
+    handoff_parser.add_argument(
+        "--include-latest-review-package",
+        action="store_true",
+        help="Embed a deterministic summary of the latest generated local review package.",
+    )
 
     return parser
 
@@ -332,6 +354,10 @@ def main(argv: list[str] | None = None) -> int:
         emit_json(discover_local_artifacts(config))
         return 0
 
+    if args.command == "list-review-packages":
+        emit_json(discover_local_review_packages(config))
+        return 0
+
     if args.command == "run-local-review":
         payload = run_local_review(
             config,
@@ -351,6 +377,11 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "list-evidence-packages":
         emit_json(discover_local_evidence_packages(config))
         return 0
+
+    if args.command == "inspect-review-package":
+        payload = inspect_local_review_package(config, args.review_path)
+        emit_json(payload)
+        return 0 if payload["ok"] else 1
 
     if args.command == "inspect-artifact":
         payload = inspect_local_artifact(config, args.artifact_path)
@@ -491,6 +522,11 @@ def main(argv: list[str] | None = None) -> int:
         artifact_discovery = (
             discover_local_artifacts(config) if args.include_artifact_discovery else None
         )
+        latest_review_package = (
+            latest_local_review_package_summary(config)
+            if args.include_latest_review_package
+            else None
+        )
         bundle = render_evidence_package(
             config=config,
             title=args.title,
@@ -501,6 +537,7 @@ def main(argv: list[str] | None = None) -> int:
             protected_issue_checks=args.protected_issue_checks,
             automation_boundary_confirmation=args.automation_boundary_confirmation,
             artifact_discovery=artifact_discovery,
+            latest_review_package=latest_review_package,
         )
         response = {
             "markdown_path": str(bundle.markdown_path),
@@ -539,6 +576,11 @@ def main(argv: list[str] | None = None) -> int:
             prompt_package=None,
             route_status=args.route_status,
         )
+        latest_review_package = (
+            latest_local_review_package_summary(config)
+            if args.include_latest_review_package
+            else None
+        )
         bundle = render_codex_handoff(
             config=config,
             title=args.title,
@@ -546,6 +588,7 @@ def main(argv: list[str] | None = None) -> int:
             work_item_id=args.work_item_id,
             route_plan=route_plan,
             requested_output=args.requested_output,
+            latest_review_package=latest_review_package,
         )
         emit_json(
             {

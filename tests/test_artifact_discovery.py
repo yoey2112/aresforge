@@ -6,8 +6,11 @@ from aresforge.operator.artifact_discovery import (
     _TEXT_PREVIEW_CHAR_LIMIT,
     discover_local_artifacts,
     discover_local_evidence_packages,
+    discover_local_review_packages,
     inspect_local_artifact,
     inspect_local_evidence_package,
+    inspect_local_review_package,
+    latest_local_review_package_summary,
 )
 
 
@@ -223,6 +226,93 @@ def test_discover_local_evidence_packages_payload_is_json_serializable(tmp_path:
     assert json.loads(json.dumps(payload)) == payload
 
 
+def test_discover_local_review_packages_handles_missing_review_root(tmp_path: Path) -> None:
+    payload = discover_local_review_packages(make_config(tmp_path))
+
+    assert payload["ok"] is True
+    assert payload["review_package_root_exists"] is False
+    assert payload["review_package_count"] == 0
+    assert payload["review_packages"] == []
+
+
+def test_discover_local_review_packages_summarizes_known_generated_reviews(tmp_path: Path) -> None:
+    config = make_config(tmp_path)
+    review_json = config.artifact_root / "local_reviews" / "generated" / "20260520T120003Z-local-review-project-aresforge.json"
+    review_markdown = config.artifact_root / "local_reviews" / "generated" / "20260520T120003Z-local-review-project-aresforge.md"
+
+    review_json.parent.mkdir(parents=True)
+    review_json.write_text(
+        json.dumps(
+            {
+                "command": "run-local-review",
+                "status": "passed",
+                "requested_options": {
+                    "project_id": "project-aresforge",
+                    "model_id": "model-ollama-default",
+                    "write_review_package": True,
+                },
+                "checks_run": [{"name": "validate-config"}],
+                "checks_skipped": [{"name": "inspect-artifact"}],
+                "artifact_summary": None,
+                "evidence_package_summary": None,
+            }
+        ),
+        encoding="utf-8",
+    )
+    review_markdown.write_text("# Review", encoding="utf-8")
+
+    payload = discover_local_review_packages(config)
+
+    assert payload["review_package_count"] == 2
+    assert payload["review_packages"] == [
+        {
+            "review_path": "20260520T120003Z-local-review-project-aresforge.json",
+            "filename": "20260520T120003Z-local-review-project-aresforge.json",
+            "size_bytes": review_json.stat().st_size,
+            "modified_at": payload["review_packages"][0]["modified_at"],
+            "artifact_type": "local_review_package",
+            "command_source_hint": "run-local-review --write-review-package",
+            "extension": ".json",
+            "text_readable": True,
+            "text_preview": review_json.read_text(encoding="utf-8"),
+            "parsed_summary": {
+                "command": "run-local-review",
+                "status": "passed",
+                "project_id": "project-aresforge",
+                "model_id": "model-ollama-default",
+                "checks_run_count": 1,
+                "checks_skipped_count": 1,
+                "has_artifact_summary": False,
+                "has_evidence_package_summary": False,
+                "write_review_package_requested": True,
+            },
+        },
+        {
+            "review_path": "20260520T120003Z-local-review-project-aresforge.md",
+            "filename": "20260520T120003Z-local-review-project-aresforge.md",
+            "size_bytes": 8,
+            "modified_at": payload["review_packages"][1]["modified_at"],
+            "artifact_type": "local_review_package",
+            "command_source_hint": "run-local-review --write-review-package",
+            "extension": ".md",
+            "text_readable": True,
+            "text_preview": "# Review",
+            "parsed_summary": None,
+        },
+    ]
+
+
+def test_discover_local_review_packages_payload_is_json_serializable(tmp_path: Path) -> None:
+    config = make_config(tmp_path)
+    review_path = config.artifact_root / "local_reviews" / "generated" / "review.json"
+    review_path.parent.mkdir(parents=True)
+    review_path.write_text('{"command": "run-local-review", "status": "passed"}', encoding="utf-8")
+
+    payload = discover_local_review_packages(config)
+
+    assert json.loads(json.dumps(payload)) == payload
+
+
 def test_inspect_local_artifact_rejects_empty_path(tmp_path: Path) -> None:
     payload = inspect_local_artifact(make_config(tmp_path), "   ")
 
@@ -296,6 +386,149 @@ def test_inspect_local_artifact_payload_is_json_serializable(tmp_path: Path) -> 
     payload = inspect_local_artifact(config, "evidence/generated/artifact.json")
 
     assert json.loads(json.dumps(payload)) == payload
+
+
+def test_inspect_local_review_package_rejects_empty_path(tmp_path: Path) -> None:
+    payload = inspect_local_review_package(make_config(tmp_path), "   ")
+
+    assert payload["ok"] is False
+    assert payload["error"] == "review_path_empty"
+
+
+def test_inspect_local_review_package_rejects_unsafe_traversal_path(tmp_path: Path) -> None:
+    payload = inspect_local_review_package(make_config(tmp_path), "../secrets.txt")
+
+    assert payload["ok"] is False
+    assert payload["error"] == "review_path_unsafe"
+
+
+def test_inspect_local_review_package_rejects_absolute_path_outside_root(tmp_path: Path) -> None:
+    payload = inspect_local_review_package(make_config(tmp_path), "C:\\temp\\review.json")
+
+    assert payload["ok"] is False
+    assert payload["error"] == "review_path_outside_root"
+
+
+def test_inspect_local_review_package_returns_not_found_for_missing_review(tmp_path: Path) -> None:
+    payload = inspect_local_review_package(make_config(tmp_path), "missing.json")
+
+    assert payload["ok"] is False
+    assert payload["error"] == "review_package_not_found"
+    assert payload["review_path"] == "missing.json"
+
+
+def test_inspect_local_review_package_returns_metadata_for_valid_review(tmp_path: Path) -> None:
+    config = make_config(tmp_path)
+    review_path = config.artifact_root / "local_reviews" / "generated" / "review.json"
+    review_path.parent.mkdir(parents=True)
+    review_path.write_text(
+        json.dumps(
+            {
+                "command": "run-local-review",
+                "status": "passed",
+                "requested_options": {
+                    "project_id": "project-aresforge",
+                    "model_id": "model-ollama-default",
+                    "write_review_package": True,
+                },
+                "checks_run": [{"name": "validate-config"}, {"name": "list-projects"}],
+                "checks_skipped": [{"name": "inspect-artifact"}],
+                "artifact_summary": {"list_artifacts": {}},
+                "evidence_package_summary": None,
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    payload = inspect_local_review_package(config, "review.json")
+
+    assert payload["ok"] is True
+    assert payload["review_package"] == {
+        "review_path": "review.json",
+        "filename": "review.json",
+        "size_bytes": review_path.stat().st_size,
+        "modified_at": payload["review_package"]["modified_at"],
+        "artifact_type": "local_review_package",
+        "command_source_hint": "run-local-review --write-review-package",
+        "extension": ".json",
+        "text_readable": True,
+        "text_preview": review_path.read_text(encoding="utf-8"),
+        "parsed_summary": {
+            "command": "run-local-review",
+            "status": "passed",
+            "project_id": "project-aresforge",
+            "model_id": "model-ollama-default",
+            "checks_run_count": 2,
+            "checks_skipped_count": 1,
+            "has_artifact_summary": True,
+            "has_evidence_package_summary": False,
+            "write_review_package_requested": True,
+        },
+    }
+
+
+def test_inspect_local_review_package_binds_text_preview_to_deterministic_limit(tmp_path: Path) -> None:
+    config = make_config(tmp_path)
+    review_path = config.artifact_root / "local_reviews" / "generated" / "long.txt"
+    review_path.parent.mkdir(parents=True)
+    review_path.write_text("a" * (_TEXT_PREVIEW_CHAR_LIMIT + 50), encoding="utf-8")
+
+    payload = inspect_local_review_package(config, "long.txt")
+
+    assert payload["ok"] is True
+    assert payload["review_package"]["text_readable"] is True
+    assert payload["review_package"]["text_preview"] == "a" * _TEXT_PREVIEW_CHAR_LIMIT
+
+
+def test_inspect_local_review_package_payload_is_json_serializable(tmp_path: Path) -> None:
+    config = make_config(tmp_path)
+    review_path = config.artifact_root / "local_reviews" / "generated" / "review.json"
+    review_path.parent.mkdir(parents=True)
+    review_path.write_text('{"command": "run-local-review"}', encoding="utf-8")
+
+    payload = inspect_local_review_package(config, "review.json")
+
+    assert json.loads(json.dumps(payload)) == payload
+
+
+def test_latest_local_review_package_summary_selects_latest_file_deterministically(tmp_path: Path) -> None:
+    config = make_config(tmp_path)
+    review_root = config.artifact_root / "local_reviews" / "generated"
+    earlier = review_root / "20260520T120003Z-earlier.json"
+    later = review_root / "20260520T120004Z-later.json"
+
+    earlier.parent.mkdir(parents=True)
+    earlier.write_text('{"command": "run-local-review", "status": "passed"}', encoding="utf-8")
+    later.write_text('{"command": "run-local-review", "status": "failed"}', encoding="utf-8")
+
+    summary = latest_local_review_package_summary(config)
+
+    assert summary == {
+        "ok": True,
+        "selection_mode": "latest_review_package",
+        "review_package_root": str(review_root),
+        "review_package_root_exists": True,
+        "review_package_count": 2,
+        "selected_review_path": "20260520T120004Z-later.json",
+        "selected_review_package": summary["selected_review_package"],
+    }
+    assert summary["selected_review_package"]["review_path"] == "20260520T120004Z-later.json"
+
+
+def test_latest_local_review_package_summary_reports_missing_review_packages(tmp_path: Path) -> None:
+    config = make_config(tmp_path)
+
+    summary = latest_local_review_package_summary(config)
+
+    assert summary == {
+        "ok": True,
+        "selection_mode": "latest_review_package",
+        "review_package_root": str(config.artifact_root / "local_reviews" / "generated"),
+        "review_package_root_exists": False,
+        "review_package_count": 0,
+        "selected_review_path": None,
+        "selected_review_package": None,
+    }
 
 
 def test_inspect_local_evidence_package_rejects_empty_path(tmp_path: Path) -> None:

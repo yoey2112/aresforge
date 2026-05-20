@@ -33,6 +33,7 @@ During M2, implementation remains human-triggered and human-reviewed. Agents may
 - Issue #103 was completed through PR #104 and added merged `main` support for read-only local registry inspection across project, agent, model, queue, and work-item lifecycle surfaces without introducing routing, queue mutation, file mutation, network calls, or GitHub-state-changing behavior
 - Issue #107 was completed through PR #108 and added merged `main` support for read-only single-artifact inspection without introducing file mutation, routing, queue mutation, network calls, or GitHub-state-changing behavior
 - Issue #109 was completed through PR #111 and added merged `main` support for read-only evidence package discovery, read-only single evidence-package inspection, and opt-in artifact discovery capture during evidence package recording without introducing routing, queue mutation, network calls, or GitHub-state-changing behavior
+- Issue #110 was completed through PR #113 and added merged `main` support for human-triggered `run-local-review` orchestration plus opt-in local review package generation without introducing routing, queue mutation, network calls, or GitHub-state-changing behavior
 - Issue #101 was completed through PR #102 and added merged `main` support for read-only local model inspection without introducing model selection, routing, or GitHub-state-changing behavior
 - Issue #97 was completed through PR #98 and added merged `main` support for read-only local project inspection without changing routing, queue state, or GitHub state
 - Issue #99 was completed through PR #100 and added merged `main` support for a human-triggered PR lifecycle helper that keeps validation, staging, PR creation, PR verification, merge execution, post-merge verification, and source-of-truth scanning phase-gated and visible
@@ -94,11 +95,13 @@ The local operator may currently support:
 - read-only inspection report artifact generation
 - deterministic read-only generated artifact discovery
 - deterministic read-only single-artifact inspection
+- deterministic read-only local review package discovery
+- deterministic read-only single local review package inspection
 - deterministic read-only evidence package discovery
 - deterministic read-only single evidence package inspection
 - deterministic human-triggered local review orchestration across existing local operator checks
 - a human-triggered PR lifecycle helper that requires an explicit phase selection before validation, staging, PR creation, PR verification, merge execution, post-merge verification, or source-of-truth scanning
-- prompt, evidence, and Codex handoff artifact preparation, including opt-in local artifact discovery capture in evidence packages
+- prompt, evidence, and Codex handoff artifact preparation, including opt-in local artifact discovery capture in evidence packages plus opt-in latest local review package capture in evidence and handoff outputs
 - opt-in local review package generation under `artifacts/local_reviews/generated/`
 - bounded local Ollama connectivity or dry-run checks
 - bounded local model inspection visibility from seeded local model records

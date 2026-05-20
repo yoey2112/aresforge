@@ -10,9 +10,9 @@ Continue the M2 runtime foundation by extending human-triggered local operator s
 
 ## Current Repository State
 
-- Current branch: `m2/sprint-110-local-review-automation`
-- Latest `main` commit: `b6e774b` (`Add evidence package inspection and artifact discovery capture (#109) (#111)`)
-- Latest runtime-affecting merged foundation commit: `b6e774b` (`Add evidence package inspection and artifact discovery capture (#109) (#111)`)
+- Current branch: `m2/sprint-112-review-handoff-automation`
+- Latest `main` commit: `496c1b1` (`Add local review orchestration and review package support (#110) (#113)`)
+- Latest runtime-affecting merged foundation commit: `496c1b1` (`Add local review orchestration and review package support (#110) (#113)`)
 - Issue #105 was completed through PR #106 and is merged `main` behavior
 - Issue #107 was completed through PR #108 and is merged `main` behavior
 - Issue #109 was completed through PR #111 and is merged `main` behavior
@@ -25,9 +25,11 @@ Continue the M2 runtime foundation by extending human-triggered local operator s
 - `inspect-registries` is available on `main`
 - `list-artifacts` is available on `main`
 - `inspect-artifact` is available on `main`
+- `run-local-review` with opt-in local review package generation is available on `main`
 - `list-evidence-packages` and `inspect-evidence-package` are available on `main`
 - opt-in artifact discovery capture for `record-evidence-package` is available on `main`
-- `run-local-review` with opt-in local review package generation is available on the current implementation branch as a proposed M2 extension pending review
+- `list-review-packages` and `inspect-review-package` are available on the current implementation branch as proposed M2 extensions pending review
+- opt-in latest local review package capture for `record-evidence-package` and `prepare-codex-handoff` is available on the current implementation branch as a proposed M2 extension pending review
 - Issue #95 was completed through PR #96 and is merged `main` behavior
 - Issue #97 was completed through PR #98 and is merged `main` behavior
 - Issue #75 remains the last routine reconciliation issue
@@ -75,11 +77,13 @@ The current human-triggered local operator foundation supports:
 - read-only inspection report artifact generation through `inspect-queue --write-artifact` and `inspect-work-item --write-artifact`
 - deterministic read-only generated artifact discovery through `list-artifacts`
 - deterministic read-only single-artifact inspection through `inspect-artifact`
+- deterministic read-only local review package discovery through `list-review-packages`
+- deterministic read-only single local review package inspection through `inspect-review-package`
 - deterministic read-only evidence package discovery through `list-evidence-packages`
 - deterministic read-only single evidence package inspection through `inspect-evidence-package`
 - deterministic human-triggered local review orchestration through `run-local-review`
 - a human-triggered phase-based PR lifecycle helper for explicit validation, staging, commit and push, PR creation, PR verification, merge verification, post-merge verification, and source-of-truth scanning
-- prompt package, evidence package, and Codex handoff artifact preparation, including opt-in local artifact discovery capture in evidence packages
+- prompt package, evidence package, and Codex handoff artifact preparation, including opt-in local artifact discovery capture in evidence packages plus opt-in latest local review package capture in evidence and handoff outputs
 - opt-in local review package generation under `artifacts/local_reviews/generated/`
 - bounded local Ollama connectivity and dry-run support
 
@@ -97,10 +101,13 @@ The current M2 implementation does allow:
 - local artifact generation for review
 - local artifact discovery for review
 - local single-artifact inspection for review
+- local review package discovery for review
+- local single review package inspection for review
 - local evidence package discovery for review
 - local single evidence package inspection for review
 - deterministic local review orchestration across existing local operator checks
 - local review package generation only when explicitly requested
+- opt-in latest local review package capture in handoff and evidence outputs
 - bounded local model inspection, listing, and Ollama dry-run checks
 - bounded local model inspection, listing, and Ollama dry-run checks without autonomous selection or routing
 
@@ -119,7 +126,7 @@ The current M2 implementation does not authorize:
 
 - Use the merged human-triggered PR lifecycle helper to reduce repetitive PR validation, merge verification, and source-of-truth scanning work
 - Continue the M2 runtime foundation with richer read-only registry inspection views and safer human-triggered helper flows where useful
-- Continue the M2 runtime foundation with deterministic local review orchestration that remains human-triggered, local-only, and auditable
+- Continue the M2 runtime foundation with deterministic local review orchestration, review package inspection, and auditable handoff or evidence capture that remain human-triggered and local-only
 - Prioritize broader read-only registry inspection summaries and safer helper flows while keeping them local-only and non-authoritative
 - Extend local operator visibility while keeping queue transitions and GitHub-state-changing behavior tightly human-triggered and reviewable
 - Optionally perform local historical branch cleanup as separate human-directed repository hygiene work

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+import json
 from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Callable
 
@@ -105,6 +106,15 @@ def _normalize_relative_evidence_path(raw_path: str) -> Path:
     )
 
 
+def _normalize_relative_review_path(raw_path: str) -> Path:
+    return _normalize_relative_path(
+        raw_path,
+        empty_error="review_path_empty",
+        outside_root_error="review_path_outside_root",
+        unsafe_error="review_path_unsafe",
+    )
+
+
 def _is_safe_text_extension(path: Path) -> bool:
     return path.suffix.lower() in _TEXT_EXTENSIONS
 
@@ -160,6 +170,55 @@ def _evidence_package_payload(evidence_root: Path, path: Path) -> dict[str, obje
         "extension": path.suffix.lower(),
         "text_readable": text_readable,
         "text_preview": text_preview,
+    }
+
+
+def _review_package_summary(path: Path) -> dict[str, object] | None:
+    if path.suffix.lower() != ".json":
+        return None
+
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        return None
+
+    if not isinstance(payload, dict):
+        return None
+
+    requested_options = payload.get("requested_options")
+    if not isinstance(requested_options, dict):
+        requested_options = {}
+
+    checks_run = payload.get("checks_run")
+    checks_skipped = payload.get("checks_skipped")
+
+    return {
+        "command": payload.get("command"),
+        "status": payload.get("status"),
+        "project_id": requested_options.get("project_id"),
+        "model_id": requested_options.get("model_id"),
+        "checks_run_count": len(checks_run) if isinstance(checks_run, list) else 0,
+        "checks_skipped_count": len(checks_skipped) if isinstance(checks_skipped, list) else 0,
+        "has_artifact_summary": payload.get("artifact_summary") is not None,
+        "has_evidence_package_summary": payload.get("evidence_package_summary") is not None,
+        "write_review_package_requested": bool(requested_options.get("write_review_package")),
+    }
+
+
+def _review_package_payload(review_root: Path, path: Path) -> dict[str, object]:
+    relative_path = path.relative_to(review_root)
+    text_readable, text_preview = _read_text_preview(path)
+    return {
+        "review_path": relative_path.as_posix(),
+        "filename": path.name,
+        "size_bytes": path.stat().st_size,
+        "modified_at": _modified_at(path),
+        "artifact_type": "local_review_package",
+        "command_source_hint": "run-local-review --write-review-package",
+        "extension": path.suffix.lower(),
+        "text_readable": text_readable,
+        "text_preview": text_preview,
+        "parsed_summary": _review_package_summary(path),
     }
 
 
@@ -295,3 +354,65 @@ def inspect_local_evidence_package(config: AppConfig, evidence_path: str) -> dic
     if payload.get("ok") is True and "evidence" in payload:
         payload["evidence_package"] = payload.pop("evidence")
     return payload
+
+
+def _review_packages_root(config: AppConfig) -> Path:
+    return config.artifact_root / "local_reviews" / "generated"
+
+
+def discover_local_review_packages(config: AppConfig) -> dict[str, object]:
+    return _discover_local_files(
+        _review_packages_root(config),
+        inspection_mode="local_review_package_root_only",
+        root_key="review_package_root",
+        collection_key="review_packages",
+        payload_builder=_review_package_payload,
+    )
+
+
+def inspect_local_review_package(config: AppConfig, review_path: str) -> dict[str, object]:
+    payload = _inspect_local_file(
+        _review_packages_root(config),
+        inspection_mode="local_review_package_root_only",
+        root_key="review_package_root",
+        item_key="review_path",
+        requested_path=review_path,
+        normalize_path=_normalize_relative_review_path,
+        not_found_error="review_package_not_found",
+        payload_builder=_review_package_payload,
+    )
+    if payload.get("ok") is True and "review" in payload:
+        payload["review_package"] = payload.pop("review")
+    return payload
+
+
+def latest_local_review_package_summary(config: AppConfig) -> dict[str, object]:
+    discovery = discover_local_review_packages(config)
+    review_packages = discovery.get("review_packages")
+    if not isinstance(review_packages, list) or not review_packages:
+        return {
+            "ok": True,
+            "selection_mode": "latest_review_package",
+            "review_package_root": discovery["review_package_root"],
+            "review_package_root_exists": discovery["review_package_root_exists"],
+            "review_package_count": discovery["review_package_count"],
+            "selected_review_path": None,
+            "selected_review_package": None,
+        }
+
+    latest = max(
+        review_packages,
+        key=lambda review_package: (
+            str(review_package.get("modified_at") or ""),
+            str(review_package.get("review_path") or ""),
+        ),
+    )
+    return {
+        "ok": True,
+        "selection_mode": "latest_review_package",
+        "review_package_root": discovery["review_package_root"],
+        "review_package_root_exists": discovery["review_package_root_exists"],
+        "review_package_count": discovery["review_package_count"],
+        "selected_review_path": latest["review_path"],
+        "selected_review_package": latest,
+    }
