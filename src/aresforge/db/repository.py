@@ -524,6 +524,24 @@ def enrich_queue_record(row: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def enrich_model_record(row: dict[str, Any]) -> dict[str, Any]:
+    metadata = row.get("metadata") or {}
+    return {
+        "id": row["id"],
+        "name": row["name"],
+        "display_name": metadata.get("display_name") or row["name"],
+        "provider": row["provider"],
+        "runtime": metadata.get("runtime"),
+        "status": row["status"],
+        "endpoint": row.get("endpoint"),
+        "local_endpoint": metadata.get("local_endpoint") or row.get("endpoint"),
+        "model_key": metadata.get("model_key"),
+        "execution_location": metadata.get("execution_location"),
+        "metadata": metadata,
+        "updated_at": row["updated_at"],
+    }
+
+
 def enrich_work_item_record(row: dict[str, Any]) -> dict[str, Any]:
     metadata = row.get("metadata") or {}
     queue_metadata = row.get("queue_metadata") or {}
@@ -690,6 +708,18 @@ def list_queues(conn: Connection) -> list[dict[str, Any]]:
             """
         )
         return list(cur.fetchall())
+
+
+def list_models(conn: Connection) -> list[dict[str, Any]]:
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT id, name, provider, status, endpoint, metadata, updated_at
+            FROM models
+            ORDER BY LOWER(name), id
+            """
+        )
+        return [enrich_model_record(row) for row in cur.fetchall()]
 
 
 def inspect_queue(conn: Connection, queue_id: str) -> dict[str, Any] | None:

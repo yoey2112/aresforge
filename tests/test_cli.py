@@ -22,6 +22,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-work-item",
         "list-projects",
         "list-agents",
+        "list-models",
         "list-queues",
         "create-work-item",
         "list-work-items",
@@ -164,6 +165,69 @@ def test_inspect_queue_preserves_json_shape_without_write_artifact(
 
     assert exit_code == 0
     assert payload == {"ok": True, "queue": queue_payload}
+
+
+def test_list_models_emits_valid_json_without_ollama(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    models_payload = [
+        {
+            "id": "model-ollama-default",
+            "name": "qwen2.5:32b",
+            "display_name": "qwen2.5:32b",
+            "provider": "ollama",
+            "runtime": None,
+            "status": "configured",
+            "endpoint": "http://127.0.0.1:11434",
+            "local_endpoint": "http://127.0.0.1:11434",
+            "model_key": None,
+            "execution_location": None,
+            "metadata": {"default": True},
+            "updated_at": "2026-05-20T00:00:00Z",
+        }
+    ]
+
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(cli, "list_models", lambda _conn: models_payload)
+    monkeypatch.setattr(
+        cli,
+        "test_generate",
+        lambda *_args, **_kwargs: pytest.fail("list-models must not call Ollama"),
+    )
+
+    exit_code = cli.main(["list-models"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert payload == {"models": models_payload}
+
+
+def test_list_models_is_read_only_dispatch(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(cli, "list_models", lambda _conn: [])
+    monkeypatch.setattr(
+        cli,
+        "bootstrap_reference_data",
+        lambda *_args, **_kwargs: pytest.fail("list-models must not bootstrap state"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "create_work_item",
+        lambda *_args, **_kwargs: pytest.fail("list-models must not create work items"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "build_route_plan",
+        lambda *_args, **_kwargs: pytest.fail("list-models must not route work"),
+    )
+
+    exit_code = cli.main(["list-models"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert payload == {"models": []}
 
 
 def test_inspect_queue_write_artifact_renders_report_and_emits_paths(

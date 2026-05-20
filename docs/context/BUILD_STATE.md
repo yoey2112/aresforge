@@ -15,6 +15,7 @@ Continue the M2 runtime foundation by extending human-triggered, local-first, re
 - Latest runtime-affecting merged foundation commit: `1f7b5fd` (`Add local registry validation and inspection report artifacts (#94)`)
 - Issue #92 and Issue #93 were completed through PR #94 and are merged `main` behavior
 - `validate-registries`, `inspect-queue --write-artifact`, and `inspect-work-item --write-artifact` are available on `main`
+- Issue #95 adds a branch-scoped `list-models` local operator command that emits deterministic JSON from seeded local model rows without calling Ollama
 - Issue #75 remains the last routine reconciliation issue
 - Issue #39, `validation: issue-38-state-lifecycle`, remains intentionally open protected audit evidence and must not be modified or closed except through a future human-directed issue
 
@@ -52,6 +53,7 @@ The current human-triggered local operator foundation supports:
 
 - local config and registry validation
 - database migration execution for the repo-stored local state layer
+- deterministic read-only local model listing through `list-models`
 - read-only queue and work-item inspection
 - read-only inspection report artifact generation through `inspect-queue --write-artifact` and `inspect-work-item --write-artifact`
 - prompt package, evidence package, and Codex handoff artifact preparation
@@ -66,7 +68,7 @@ The current M2 implementation does allow:
 - human-triggered local commands
 - read-only registry-aware validation and inspection
 - local artifact generation for review
-- bounded local model inspection and Ollama dry-run checks
+- bounded local model inspection, listing, and Ollama dry-run checks
 
 The current M2 implementation does not authorize:
 

@@ -61,6 +61,7 @@ List projects and queues:
 ```powershell
 python -m aresforge list-projects
 python -m aresforge list-agents
+python -m aresforge list-models
 python -m aresforge list-queues
 ```
 
@@ -78,7 +79,7 @@ python -m aresforge inspect-queue --queue-id queue-implementation --write-artifa
 
 `list-agents` is read-only. It shows the seeded M2 agent-role records that align the local skeleton with the canonical schema in `docs/architecture/AGENT_REGISTRY_SCHEMA.md`.
 
-The current CLI does not yet expose a dedicated `list-models` command. Model metadata is presently visible through `inspect-project-state`, the configured `.env` values, and the seeded local `models` table described in `docs/architecture/LOCAL_STATE_STORE.md`.
+`list-models` is read-only and local-only. It emits deterministic JSON for seeded local `models` rows without calling Ollama, selecting a model, recommending a model, routing a task, or mutating local or GitHub state. It exposes stored row fields plus any existing model metadata already present in the local state store.
 
 `inspect-queue` is read-only and local-only. It emits JSON that expands queue metadata into registry-aware fields such as lifecycle-stage mapping, accepted work-item types, allowed next queues, human approval requirements, local operator visibility expectations, and the source document path. With `--write-artifact`, it still emits JSON and additionally includes `inspection_payload`, `markdown_path`, and `json_path` for a local report written under `artifacts/inspection_reports/generated/`.
 
@@ -179,6 +180,7 @@ If PostgreSQL is running locally, also run:
 ```powershell
 python -m aresforge migrate
 python -m aresforge inspect-project-state
+python -m aresforge list-models
 ```
 
 The included Compose file maps PostgreSQL to host port `5433` by default so it does not collide with an existing local PostgreSQL on `5432`.

@@ -19,6 +19,7 @@ from aresforge.db.repository import (
     inspect_state,
     inspect_work_item,
     list_agents,
+    list_models,
     list_projects,
     list_queues,
     list_work_items,
@@ -60,6 +61,7 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser("inspect-project-state", help="Show local database state summary.")
     subparsers.add_parser("list-projects", help="List registered projects.")
     subparsers.add_parser("list-agents", help="List registered agent roles.")
+    subparsers.add_parser("list-models", help="List registered local model records.")
     subparsers.add_parser("list-queues", help="List known queues.")
     inspect_queue_parser = subparsers.add_parser(
         "inspect-queue", help="Inspect one queue with registry-aware metadata interpretation."
@@ -227,6 +229,11 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "list-agents":
         with connect(config) as conn:
             emit_json({"agents": list_agents(conn)})
+        return 0
+
+    if args.command == "list-models":
+        with connect(config) as conn:
+            emit_json({"models": list_models(conn)})
         return 0
 
     if args.command == "list-queues":

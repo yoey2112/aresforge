@@ -80,6 +80,7 @@ The local operator may currently support:
 - config and registry validation
 - local database migrations
 - local state inspection
+- deterministic read-only local model listing
 - read-only queue and work-item inspection
 - read-only inspection report artifact generation
 - prompt, evidence, and Codex handoff artifact preparation

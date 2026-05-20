@@ -6,6 +6,7 @@ from aresforge.db.repository import (
     CANONICAL_QUEUE_IDS,
     DEFAULT_QUEUES,
     QUEUE_SCHEMA_SOURCE_DOCUMENT,
+    enrich_model_record,
     enrich_queue_record,
     enrich_work_item_record,
 )
@@ -82,6 +83,37 @@ def test_enrich_queue_record_exposes_registry_aware_metadata_fields() -> None:
     assert queue_record["allowed_next_queues"] == ["queue-verification", "queue-blocked"]
     assert queue_record["human_approval_requirement"] == "human_review_required"
     assert queue_record["source_document"] == QUEUE_SCHEMA_SOURCE_DOCUMENT
+
+
+def test_enrich_model_record_exposes_existing_row_fields_and_metadata() -> None:
+    model_record = enrich_model_record(
+        {
+            "id": "model-ollama-default",
+            "name": "qwen2.5:32b",
+            "provider": "ollama",
+            "status": "configured",
+            "endpoint": "http://127.0.0.1:11434",
+            "metadata": {
+                "default": True,
+                "display_name": "Qwen 2.5 32B",
+                "runtime": "ollama_local",
+                "model_key": "ollama/qwen2.5:32b",
+                "execution_location": "local_machine",
+            },
+            "updated_at": "2026-05-20T00:00:00Z",
+        }
+    )
+
+    assert model_record["id"] == "model-ollama-default"
+    assert model_record["name"] == "qwen2.5:32b"
+    assert model_record["display_name"] == "Qwen 2.5 32B"
+    assert model_record["provider"] == "ollama"
+    assert model_record["runtime"] == "ollama_local"
+    assert model_record["status"] == "configured"
+    assert model_record["local_endpoint"] == "http://127.0.0.1:11434"
+    assert model_record["model_key"] == "ollama/qwen2.5:32b"
+    assert model_record["execution_location"] == "local_machine"
+    assert model_record["metadata"]["default"] is True
 
 
 def test_enrich_work_item_record_exposes_registry_aware_queue_and_runtime_fields() -> None:
