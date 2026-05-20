@@ -52,8 +52,11 @@ List projects and queues:
 
 ```powershell
 python -m aresforge list-projects
+python -m aresforge list-agents
 python -m aresforge list-queues
 ```
+
+`list-agents` is read-only. It shows the seeded M2 agent-role records that align the local skeleton with the canonical schema in `docs/architecture/AGENT_REGISTRY_SCHEMA.md`.
 
 ## Work Item Commands
 

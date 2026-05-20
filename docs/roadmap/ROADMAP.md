@@ -43,7 +43,7 @@ M1 validated manual, human-reviewed GitHub operations across issue, PR, label, m
 
 Status: Active.
 
-M2 began as documentation-only and design-first, but Issue #81 pivots it into a runnable local foundation. M2 now includes the documentation agent operating model, freshness checks, evidence packages, handoff templates, prompt package templates, PR and closeout evidence templates, the issue lifecycle pipeline, the documentation-before-closeout gate, the local operator workflow model, and the first human-triggered runnable local operator skeleton.
+M2 began as documentation-only and design-first, but Issue #81 pivoted it into a runnable local foundation. M2 now includes the documentation agent operating model, freshness checks, evidence packages, handoff templates, prompt package templates, PR and closeout evidence templates, the issue lifecycle pipeline, the documentation-before-closeout gate, the local operator workflow model, the first human-triggered runnable local operator skeleton, and the first canonical agent-registry schema.
 
 Current corrective closeout outcome:
 
@@ -59,13 +59,18 @@ Current completed M2 design deliverable:
 - Issue #79: Define project registry schema, completed and closed through PR #80.
 - `docs/architecture/PROJECT_REGISTRY_SCHEMA.md` is the canonical M2 project registry schema artifact.
 
-Current active M2 implementation pivot:
+Current completed M2 implementation pivot:
 
-- Issue #81: Build runnable local skeleton and automation foundation, active.
+- Issue #81: Build runnable local skeleton and automation foundation, completed through PR #82.
 - The Issue #81 runnable implementation is documented by:
   - `docs/architecture/LOCAL_STATE_STORE.md`
   - `docs/architecture/RUNNABLE_SKELETON.md`
   - `docs/operator/LOCAL_OPERATOR_USAGE.md`
+
+Current active M2 registry implementation:
+
+- Issue #83: Define agent registry schema and lifecycle states, active.
+- `docs/architecture/AGENT_REGISTRY_SCHEMA.md` is the canonical M2 agent registry schema artifact.
 
 Current M2 corrective rule:
 
@@ -75,8 +80,8 @@ Current M2 corrective rule:
 
 Next substantive M2 direction:
 
-- Validate and iterate on the first runnable local skeleton without expanding into autonomous GitHub control.
-- Next likely design/implementation issue after Issue #81: define agent registry schema and lifecycle states, then deepen queue/model routing against the runnable local foundation.
+- Complete the Issue #83 agent registry schema and seed/reference role alignment without expanding into autonomous GitHub control.
+- After Issue #83, deepen queue/model routing against the runnable local foundation.
 
 ## Full Milestone Roadmap
 
@@ -153,7 +158,9 @@ Completed and active scope:
 - Local operator workflow design
 - Project registry schema design completed via Issue #79 and merged PR #80
 - Registry and queue architecture design completed via Issue #77 and merged PR #78
-- Runnable local operator skeleton active via Issue #81
+- Runnable local operator skeleton completed via Issue #81 and merged PR #82
+- Agent registry schema active via Issue #83
+- Canonical agent registry schema artifact at `docs/architecture/AGENT_REGISTRY_SCHEMA.md`
 - PostgreSQL local state-store foundation
 - Repo-stored SQL migrations
 - Human-reviewable prompt/evidence/Codex handoff artifact generation
@@ -163,13 +170,14 @@ Completed and active scope:
 Current M2 boundary:
 
 - Human-triggered local runtime implementation is now allowed where Issue #81 explicitly implements it
+- Human-triggered read-only agent-registry seed/listing support is allowed where Issue #83 explicitly implements it
 - Human-reviewed controls remain mandatory
 - No autonomous GitHub-state-changing behavior is authorized during current M2 work
 
 Next substantive M2 direction:
 
-- Validate and extend the Issue #81 local runtime foundation carefully
-- Next likely issue: Define agent registry schema and lifecycle states
+- Complete and validate the Issue #83 agent registry schema and lifecycle-state model carefully
+- Next likely issue: Define model registry and local LLM routing rules
 
 ### M3 - Registry and Routing Deepening
 
@@ -427,10 +435,9 @@ The current M2 phase does not authorize the following:
 
 These are roadmap-driven recommendations only. They are not created issues.
 
-- Define agent registry schema and lifecycle states.
 - Define model registry and local LLM routing rules.
 - Define queue registry and work item state transitions.
-- Extend the Issue #81 local operator with richer registry-aware inspection.
+- Extend the local operator with richer registry-aware inspection after Issue #83.
 
 ## Maintenance Rules
 

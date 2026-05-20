@@ -28,7 +28,7 @@ Future agents should treat `docs/validation/GITHUB_CAPABILITY_VALIDATION.md`, `.
 
 The M1 baseline confirms enough manual, human-reviewed GitHub operations to proceed to M2, while preserving known limitations around GitHub Projects v2 `read:project` access, absent workflow runs and artifacts, absent branch protection and rulesets, and production release governance.
 
-M2 began with Issue #43, `Create documentation agent foundation`, focused on documentation agent rules, source-of-truth update flow, documentation freshness checks, and human-reviewed documentation updates before any autonomous automation. Issue #45, `Create documentation freshness check model`, defines the repeatable freshness check layer that must run before documentation-sync work. Issue #47, `Define local operator workflow`, completed the local operator workflow as a design-only documentation layer for reducing manual copy/paste while preserving human-reviewed controls. Issue #51, `Define documentation-sync evidence package model`, completed the required PR evidence, closeout evidence, and documentation-sync evidence package structure for review artifacts. Issue #55, `Define documentation-sync handoff package template`, completed the reusable documentation-sync handoff package template for carrying documentation-sync evidence between implementation agents, documentation agents, validation agents, local operators, and human owners. Issue #59, `Define Codex prompt package template`, defines the reusable Codex prompt package template as documentation-only review/input scaffolding for implementation-agent handoffs. Issue #63, `Define PR evidence package template`, completed the reusable PR evidence package template as documentation-only review scaffolding for implementation PRs after PR #64 merged successfully, closeout evidence was posted, and Issue #63 was manually closed. Issue #65, `Define closeout evidence package template`, completed the reusable closeout evidence package template as documentation-only review scaffolding after PR #66 merged successfully, closeout evidence was posted, and Issue #65 was manually closed. Issue #77, `Define project, agent, model, and queue registry architecture`, completed through merged PR #78 and now serves as the bridge from the lifecycle foundation to later registry schema, queue, local-first model routing, and multi-project support work. Issue #79, `Define project registry schema`, completed through PR #80. Issue #81, `Build runnable local skeleton and automation foundation`, is the current implementation pivot from design-only M2 work into a practical human-triggered local operator foundation.
+M2 began with Issue #43, `Create documentation agent foundation`, focused on documentation agent rules, source-of-truth update flow, documentation freshness checks, and human-reviewed documentation updates before any autonomous automation. Issue #45, `Create documentation freshness check model`, defines the repeatable freshness check layer that must run before documentation-sync work. Issue #47, `Define local operator workflow`, completed the local operator workflow as a design-only documentation layer for reducing manual copy/paste while preserving human-reviewed controls. Issue #51, `Define documentation-sync evidence package model`, completed the required PR evidence, closeout evidence, and documentation-sync evidence package structure for review artifacts. Issue #55, `Define documentation-sync handoff package template`, completed the reusable documentation-sync handoff package template for carrying documentation-sync evidence between implementation agents, documentation agents, validation agents, local operators, and human owners. Issue #59, `Define Codex prompt package template`, defines the reusable Codex prompt package template as documentation-only review/input scaffolding for implementation-agent handoffs. Issue #63, `Define PR evidence package template`, completed the reusable PR evidence package template as documentation-only review scaffolding for implementation PRs after PR #64 merged successfully, closeout evidence was posted, and Issue #63 was manually closed. Issue #65, `Define closeout evidence package template`, completed the reusable closeout evidence package template as documentation-only review scaffolding after PR #66 merged successfully, closeout evidence was posted, and Issue #65 was manually closed. Issue #77, `Define project, agent, model, and queue registry architecture`, completed through merged PR #78 and now serves as the bridge from the lifecycle foundation to later registry schema, queue, local-first model routing, and multi-project support work. Issue #79, `Define project registry schema`, completed through PR #80. Issue #81, `Build runnable local skeleton and automation foundation`, completed through PR #82 and introduced the practical human-triggered local operator foundation. Issue #83, `Define agent registry schema and lifecycle states`, is the active implementation issue and formalizes bounded agent roles on top of that skeleton.
 
 ## M2 Runnable Skeleton Rules
 
@@ -45,6 +45,8 @@ Future agents must treat `docs/architecture/LOCAL_OPERATOR_WORKFLOW.md` as the p
 Future agents must treat `docs/architecture/REGISTRY_AND_QUEUE_ARCHITECTURE.md` as the canonical registry and queue architecture document. It still defines the main architectural relationships. Issue #81 adds a minimal runnable local state layer that reflects those concepts in PostgreSQL tables and local CLI commands without claiming that the full architecture is complete.
 
 Future agents must treat `docs/architecture/PROJECT_REGISTRY_SCHEMA.md` as the canonical project registry schema design document. Issue #81 uses that schema as input for the first local `projects` table and AresForge bootstrap record, but the document still remains the source for intended meaning and boundaries.
+
+Future agents must treat `docs/architecture/AGENT_REGISTRY_SCHEMA.md` as the canonical agent registry schema design document. Issue #83 formalizes bounded agent-role records, lifecycle states, capability relationships, queue participation expectations, evidence outputs, escalation rules, and local operator integration points. The current local `agents` table remains a conservative seed/reference layer for those records and does not authorize autonomous execution.
 
 Future agents must treat `docs/architecture/LOCAL_STATE_STORE.md` as the canonical explanation of the new PostgreSQL-backed local state layer and repo-stored migration process.
 
@@ -92,7 +94,7 @@ M2 documentation-agent work must define and preserve:
 
 The M2 runnable skeleton still does not introduce autonomous documentation automation or autonomous GitHub control. Documentation agents, repo-owned skills, validation agents, and the new local operator remain bounded, human-triggered, and human-reviewed until a future human-approved governance change explicitly authorizes a different execution model.
 
-Issue #77 is completed and closed through PR #78. Issue #79 is completed through PR #80. Future agents should use the resulting registry architecture and project-registry schema to shape later agent registry, model routing, queue evolution, and multi-project work. Issue #81 is the current local runtime foundation issue. No related source-of-truth documentation-update issue should be created by default for this kind of project-state-changing work.
+Issue #77 is completed and closed through PR #78. Issue #79 is completed through PR #80. Issue #81 is completed through PR #82. Future agents should use the resulting registry architecture, project-registry schema, runnable local skeleton, and agent-registry schema to shape later model routing, queue evolution, and multi-project work. Issue #83 is the current agent-registry implementation issue. No related source-of-truth documentation-update issue should be created by default for this kind of project-state-changing work.
 
 ## Reusable Skill Model
 
@@ -104,23 +106,17 @@ Agents should consult docs/learning/ERROR_PATTERNS.md before generating or repea
 
 ## Current Agent Roles
 
-Initial planned agent roles include:
+Current canonical lifecycle and operator roles are:
 
-- Intake Agent
-- Product Analyst Agent
-- Architecture Agent
-- Planning Agent
-- Frontend Agent
-- Backend Agent
-- DevOps Agent
-- Automation Agent
-- QA Agent
-- Test Agent
+- Planning / Next-Issue Agent
+- Triage / Routing Agent
+- Worker Agent
+- Verification Agent
+- Testing Agent
+- Debug Routing Agent
 - Documentation Agent
-- Monitoring Agent
-- PR Scoring Agent
-- Release Agent
-- Escalation Agent
+- Final Closeout / Lifecycle Controller Agent
+- Local Operator
 
 ## Current Human Role
 
