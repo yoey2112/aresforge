@@ -11,12 +11,14 @@ Continue the M2 runtime foundation by extending human-triggered local operator s
 ## Current Repository State
 
 - Current branch: `main`
-- Latest `main` commit: `2b69712` (`Add human-triggered PR lifecycle helper (#100)`)
-- Latest runtime-affecting merged foundation commit: `2b69712` (`Add human-triggered PR lifecycle helper (#100)`)
+- Latest `main` commit: `8bf1319` (`Add read-only model inspection command (#101) (#102)`)
+- Latest runtime-affecting merged foundation commit: `8bf1319` (`Add read-only model inspection command (#101) (#102)`)
+- Issue #101 was completed through PR #102 and is merged `main` behavior
 - Issue #99 was completed through PR #100 and is merged `main` behavior
 - Issue #92 and Issue #93 were completed through PR #94 and are merged `main` behavior
 - `validate-registries`, `inspect-queue --write-artifact`, `inspect-work-item --write-artifact`, and `list-models` are available on `main`
-- `inspect-model` is now available on the working branch as a pending M2 local operator visibility improvement
+- `inspect-model` is available on `main`
+- `inspect-registries` is available on the working branch as a pending broader read-only registry inspection summary improvement
 - Issue #95 was completed through PR #96 and is merged `main` behavior
 - Issue #97 was completed through PR #98 and is merged `main` behavior
 - Issue #75 remains the last routine reconciliation issue
@@ -59,6 +61,7 @@ The current human-triggered local operator foundation supports:
 - deterministic read-only local model listing through `list-models`
 - deterministic read-only local model inspection through `inspect-model`
 - deterministic read-only local project inspection through `inspect-project`
+- deterministic read-only local registry and lifecycle source inspection through `inspect-registries`
 - read-only queue and work-item inspection
 - read-only inspection report artifact generation through `inspect-queue --write-artifact` and `inspect-work-item --write-artifact`
 - a human-triggered phase-based PR lifecycle helper for explicit validation, staging, commit and push, PR creation, PR verification, merge verification, post-merge verification, and source-of-truth scanning
@@ -73,6 +76,7 @@ The current M2 implementation does allow:
 
 - human-triggered local commands
 - read-only registry-aware validation and inspection
+- read-only inspection of repo-owned registry and lifecycle source documents
 - read-only project inspection from local seeded project rows
 - visible human-triggered PR lifecycle helper phases selected one at a time
 - local artifact generation for review
@@ -94,7 +98,7 @@ The current M2 implementation does not authorize:
 
 - Use the merged human-triggered PR lifecycle helper to reduce repetitive PR validation, merge verification, and source-of-truth scanning work
 - Continue the M2 runtime foundation with richer read-only registry inspection views and safer human-triggered helper flows where useful
-- Prioritize richer read-only registry inspection views such as model-level inspection while keeping them local-only and non-authoritative
+- Prioritize broader read-only registry inspection summaries and safer helper flows while keeping them local-only and non-authoritative
 - Extend local operator visibility while keeping queue transitions and GitHub-state-changing behavior tightly human-triggered and reviewable
 - Optionally perform local historical branch cleanup as separate human-directed repository hygiene work
 - Keep documentation freshness, documentation-before-closeout, and source-of-truth updates mandatory for future project-state-changing work

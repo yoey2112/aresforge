@@ -36,6 +36,14 @@ python -m aresforge validate-registries
 
 This command is read-only and local-only. It emits JSON with `ok` and structured `findings`, returns exit code `0` when validation passes, and returns exit code `1` when any finding has `error` severity. It does not transition queues, mutate routing, or perform GitHub-state-changing behavior.
 
+Summarize documented local registry and lifecycle sources without requiring PostgreSQL:
+
+```powershell
+python -m aresforge inspect-registries
+```
+
+This command is read-only and local-only. It inspects the repo-owned project, agent, model, and queue registry source documents plus the documented work-item lifecycle schema view, reuses existing queue and agent seed validation findings where applicable, and emits deterministic JSON that distinguishes `ok`, `missing`, `empty`, `malformed`, `read_error`, and `validation_problem` states per registry surface. It does not mutate files, call the network, require PostgreSQL, transition queues, mutate routing, or change GitHub state.
+
 ## Database Commands
 
 See pending migrations:
@@ -96,6 +104,8 @@ python -m aresforge inspect-queue --queue-id queue-implementation --write-artifa
 `inspect-model` is read-only and local-only. It reads only from the local `models` table and existing seeded model registry metadata, emits deterministic JSON shaped as `{"ok": true, "model": {...}}` when found, and expands visible metadata fields such as `display_name`, `provider`, `runtime`, `execution_location`, `hosting_posture`, `approval_posture`, `allowed_task_classes`, `restricted_task_classes`, `governance_sensitive_task_posture`, `fallback_rules`, and `source_document`. If the requested model row is missing, it emits `{"ok": false, "error": "model_not_found", "model_id": "<requested id>"}` and returns exit code `1`.
 
 `inspect-project` is read-only and local-only. It reads only from the local `projects` table and emits JSON shaped as `{"ok": true, "project": {...}}` when found. It expands stored project metadata into visible top-level fields such as `autonomy_level`, `protected_issue`, `active_issue`, and `completed_issue`. If the requested project row is missing, it emits `{"ok": false, "error": "project_not_found", "project_id": "<requested id>"}` and returns exit code `1`.
+
+`inspect-registries` is read-only and local-only. It reads only repo-owned source documents and existing seeded registry-validation surfaces. It emits JSON shaped as `{"ok": <bool>, "inspection_mode": "local_repo_only", "summary": {...}, "registries": [...]}` and reports project, agent, model, queue, and work-item lifecycle inspection status in deterministic order. Missing files, empty files, malformed documents, and validation findings are surfaced explicitly instead of causing hidden mutation or fallback behavior.
 
 `inspect-queue` is read-only and local-only. It emits JSON that expands queue metadata into registry-aware fields such as lifecycle-stage mapping, accepted work-item types, allowed next queues, human approval requirements, local operator visibility expectations, and the source document path. With `--write-artifact`, it still emits JSON and additionally includes `inspection_payload`, `markdown_path`, and `json_path` for a local report written under `artifacts/inspection_reports/generated/`.
 
@@ -185,6 +195,7 @@ python -m pytest
 python -m aresforge --help
 python -m aresforge validate-config
 python -m aresforge validate-registries
+python -m aresforge inspect-registries
 python -m aresforge migrate --plan
 python -m aresforge list-models
 python -m aresforge inspect-model --model-id model-ollama-default
@@ -348,6 +359,7 @@ The local operator is allowed to:
 
 - validate config
 - manage local PostgreSQL migrations
+- inspect documented local registry and lifecycle sources
 - write local prompt/evidence/handoff artifacts
 - perform local Ollama test calls
 - inspect local project state
