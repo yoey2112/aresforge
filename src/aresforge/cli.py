@@ -50,6 +50,12 @@ from aresforge.operator.ready_issue_intake import (
     list_ready_issues,
 )
 from aresforge.operator.ready_issue_planning import plan_ready_issue
+from aresforge.operator.ready_issue_pipeline import (
+    MODE_CLOSEOUT_WHEN_ELIGIBLE,
+    MODE_PLAN_ONLY,
+    MODE_REVIEW_PR,
+    run_ready_issue_pipeline,
+)
 from aresforge.operator.qa_closeout_pr import qa_closeout_pr
 from aresforge.operator.qa_pr_validation import qa_review_pr
 from aresforge.operator.service import (
@@ -142,6 +148,48 @@ def build_parser() -> argparse.ArgumentParser:
         help="Plan agent and model routing for a ready issue without mutating GitHub state.",
     )
     plan_ready_issue_parser.add_argument("--issue-number", type=int, required=True)
+    ready_pipeline_parser = subparsers.add_parser(
+        "run-ready-issue-pipeline",
+        help="Run reusable ready issue orchestration with safe non-mutating defaults.",
+    )
+    ready_pipeline_parser.add_argument("--issue-number", type=int, required=True)
+    ready_pipeline_parser.add_argument("--pr-number", type=int)
+    mode_group = ready_pipeline_parser.add_mutually_exclusive_group(required=True)
+    mode_group.add_argument(
+        "--plan-only",
+        action="store_true",
+        help="Inspect and plan one ready issue without PR validation or closeout.",
+    )
+    mode_group.add_argument(
+        "--review-pr",
+        action="store_true",
+        help="Run planning plus qa-review-pr for one issue/PR pair.",
+    )
+    mode_group.add_argument(
+        "--closeout-when-eligible",
+        action="store_true",
+        help="Delegate closeout eligibility through qa-closeout-pr after all gates pass.",
+    )
+    ready_pipeline_parser.add_argument(
+        "--execute-closeout",
+        action="store_true",
+        help="Enable execute mode delegation to qa-closeout-pr in closeout mode only.",
+    )
+    ready_pipeline_parser.add_argument(
+        "--write-review-package",
+        action="store_true",
+        help="Optionally write a local review package artifact during review/closeout modes.",
+    )
+    ready_pipeline_parser.add_argument(
+        "--write-evidence-package",
+        action="store_true",
+        help="Optionally write an evidence package artifact for review/closeout modes.",
+    )
+    ready_pipeline_parser.add_argument(
+        "--write-implementation-handoff",
+        action="store_true",
+        help="Optionally write a Codex handoff artifact for plan-only mode.",
+    )
     qa_review_parser = subparsers.add_parser(
         "qa-review-pr",
         help="Validate a pull request without mutating GitHub state.",
@@ -431,6 +479,37 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "plan-ready-issue":
         emit_json(plan_ready_issue(config, args.issue_number))
         return 0
+
+    if args.command == "run-ready-issue-pipeline":
+        if args.execute_closeout and not args.closeout_when_eligible:
+            emit_json(
+                {
+                    "command": "run-ready-issue-pipeline",
+                    "ok": False,
+                    "error": "execute_closeout_requires_closeout_mode",
+                    "failed_gates": ["invalid_mode_combination"],
+                }
+            )
+            return 1
+
+        mode = MODE_PLAN_ONLY
+        if args.review_pr:
+            mode = MODE_REVIEW_PR
+        elif args.closeout_when_eligible:
+            mode = MODE_CLOSEOUT_WHEN_ELIGIBLE
+
+        payload = run_ready_issue_pipeline(
+            config,
+            issue_number=args.issue_number,
+            pr_number=args.pr_number,
+            mode=mode,
+            execute_closeout=bool(args.execute_closeout),
+            write_review_package=bool(args.write_review_package),
+            write_evidence_package=bool(args.write_evidence_package),
+            write_implementation_handoff=bool(args.write_implementation_handoff),
+        )
+        emit_json(payload)
+        return 0 if not payload["failed_gates"] else 1
 
     if args.command == "qa-review-pr":
         emit_json(qa_review_pr(config, args.pr_number))

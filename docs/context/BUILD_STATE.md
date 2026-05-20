@@ -10,9 +10,9 @@ Continue the M2 runtime foundation by extending human-triggered local operator s
 
 ## Current Repository State
 
-- Current branch: `m2/sprint-119-qa-gated-closeout`
-- Latest `main` commit: `05da49d` (`Add QA PR validation contract (#124)`)
-- Latest runtime-affecting merged foundation commit: `05da49d` (`Add QA PR validation contract (#124)`)
+- Current branch: `m2/sprint-120-ready-issue-pipeline`
+- Latest `main` commit: `874b500` (`M2 sprint: QA-gated automatic PR merge and issue closeout (#125)`)
+- Latest runtime-affecting merged foundation commit: `874b500` (`M2 sprint: QA-gated automatic PR merge and issue closeout (#125)`)
 - Issue #105 was completed through PR #106 and is merged `main` behavior
 - Issue #107 was completed through PR #108 and is merged `main` behavior
 - Issue #109 was completed through PR #111 and is merged `main` behavior
@@ -33,7 +33,8 @@ Continue the M2 runtime foundation by extending human-triggered local operator s
 - Issue #112 was completed through PR #115 and is merged `main` behavior
 - Issue #114 was completed through PR pending merge and added the canonical model-routing and LLM escalation strategy documentation
 - Issue #118 was completed through PR #124 and is merged `main` behavior
-- Issue #119 is in progress on the current branch and adds `qa-closeout-pr` with default dry-run and explicit execute gating for merge and linked issue closeout
+- Issue #119 was completed through PR #125 and is merged `main` behavior
+- Issue #120 is in progress on the current branch and adds `run-ready-issue-pipeline` orchestration with explicit mode gating
 - Issue #95 was completed through PR #96 and is merged `main` behavior
 - Issue #97 was completed through PR #98 and is merged `main` behavior
 - Issue #75 remains the last routine reconciliation issue
@@ -90,6 +91,7 @@ The current human-triggered local operator foundation supports:
 - deterministic decision-only ready issue routing through `plan-ready-issue`
 - deterministic QA PR validation-only inspection through `qa-review-pr`
 - deterministic QA-gated PR closeout through `qa-closeout-pr` with default dry-run/no-mutation and explicit execute mode
+- deterministic reusable ready issue orchestration through `run-ready-issue-pipeline` with explicit plan-only, review-pr, and closeout-when-eligible modes
 - a human-triggered phase-based PR lifecycle helper for explicit validation, staging, commit and push, PR creation, PR verification, merge verification, post-merge verification, and source-of-truth scanning
 - prompt package, evidence package, and Codex handoff artifact preparation, including opt-in local artifact discovery capture in evidence packages plus opt-in latest local review package capture in evidence and handoff outputs
 - opt-in local review package generation under `artifacts/local_reviews/generated/`

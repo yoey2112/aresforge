@@ -33,6 +33,7 @@ def test_cli_has_expected_commands() -> None:
         "list-ready-issues",
         "inspect-ready-issue",
         "plan-ready-issue",
+        "run-ready-issue-pipeline",
         "qa-review-pr",
         "qa-closeout-pr",
         "inspect-review-package",
@@ -117,6 +118,16 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     assert inspect_ready_args.issue_number == 114
     plan_ready_args = parser.parse_args(["plan-ready-issue", "--issue-number", "114"])
     assert plan_ready_args.issue_number == 114
+    run_pipeline_plan_args = parser.parse_args(
+        ["run-ready-issue-pipeline", "--issue-number", "120", "--plan-only"]
+    )
+    assert run_pipeline_plan_args.issue_number == 120
+    assert run_pipeline_plan_args.pr_number is None
+    assert run_pipeline_plan_args.plan_only is True
+    assert run_pipeline_plan_args.execute_closeout is False
+    assert run_pipeline_plan_args.write_review_package is False
+    assert run_pipeline_plan_args.write_evidence_package is False
+    assert run_pipeline_plan_args.write_implementation_handoff is False
     qa_review_args = parser.parse_args(["qa-review-pr", "--pr-number", "118"])
     assert qa_review_args.pr_number == 118
     qa_closeout_args = parser.parse_args(["qa-closeout-pr", "--pr-number", "119"])
@@ -190,6 +201,13 @@ def test_cli_plan_ready_issue_requires_issue_number() -> None:
 
     with pytest.raises(SystemExit):
         parser.parse_args(["plan-ready-issue"])
+
+
+def test_cli_run_ready_issue_pipeline_requires_mode() -> None:
+    parser = build_parser()
+
+    with pytest.raises(SystemExit):
+        parser.parse_args(["run-ready-issue-pipeline", "--issue-number", "120"])
 
 
 def test_cli_qa_review_pr_requires_pr_number() -> None:
@@ -298,6 +316,12 @@ def test_command_requires_directories_only_for_commands_that_write_artifacts() -
     assert (
         command_requires_directories(
             parser.parse_args(["qa-closeout-pr", "--pr-number", "119"])
+        )
+        is False
+    )
+    assert (
+        command_requires_directories(
+            parser.parse_args(["run-ready-issue-pipeline", "--issue-number", "120", "--plan-only"])
         )
         is False
     )
@@ -443,6 +467,45 @@ def test_cli_dispatches_qa_closeout_pr(
     execute_payload = json.loads(capsys.readouterr().out)
     assert execute_exit_code == 0
     assert execute_payload["mode"] == "execute"
+
+
+def test_cli_dispatches_run_ready_issue_pipeline(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+) -> None:
+    config = AppConfig(
+        repo_root=tmp_path,
+        db_host="127.0.0.1",
+        db_port=5433,
+        db_name="aresforge",
+        db_user="aresforge",
+        db_password="aresforge",
+        ollama_base_url="http://127.0.0.1:11434",
+        ollama_model="qwen2.5:32b",
+        artifact_root=tmp_path / "artifacts",
+        prompts_dir=tmp_path / "artifacts" / "prompts" / "generated",
+        evidence_dir=tmp_path / "artifacts" / "evidence" / "generated",
+        codex_handoffs_dir=tmp_path / "artifacts" / "codex_handoffs" / "generated",
+        github_owner="yoey2112",
+        github_repo="aresforge",
+    )
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: config)
+    monkeypatch.setattr(
+        cli,
+        "run_ready_issue_pipeline",
+        lambda _config, **_kwargs: {
+            "command": "run-ready-issue-pipeline",
+            "failed_gates": [],
+            "mode": "plan-only",
+        },
+    )
+
+    exit_code = cli.main(["run-ready-issue-pipeline", "--issue-number", "120", "--plan-only"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert payload["command"] == "run-ready-issue-pipeline"
 
 
 def test_inspect_project_preserves_json_shape_when_found(

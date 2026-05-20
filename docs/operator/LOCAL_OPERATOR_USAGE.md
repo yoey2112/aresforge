@@ -138,6 +138,27 @@ python -m aresforge qa-closeout-pr --pr-number 119 --execute
 
 `qa-closeout-pr` defaults to dry-run/no-mutation behavior unless `--execute` is explicitly supplied. Execute mode is strongly gated: the PR must be open, non-draft, cleanly mergeable, linked to a non-protected issue, and pass `qa-review-pr` with merge and closeout eligibility. The linked issue must include both manual labels `aresforge-ready` and `aresforge-automerge`. If any gate fails, the command refuses merge and closeout and emits deterministic JSON for failed gates. Issue #39 remains protected and is never modified.
 
+Run the reusable ready issue automation pipeline in plan-only mode:
+
+```powershell
+python -m aresforge run-ready-issue-pipeline --issue-number 120 --plan-only
+```
+
+Run pipeline review mode for an issue plus PR pair:
+
+```powershell
+python -m aresforge run-ready-issue-pipeline --issue-number 120 --pr-number 128 --review-pr
+```
+
+Run closeout-eligibility mode (safe by default) and optionally delegate execute mode explicitly:
+
+```powershell
+python -m aresforge run-ready-issue-pipeline --issue-number 120 --pr-number 128 --closeout-when-eligible
+python -m aresforge run-ready-issue-pipeline --issue-number 120 --pr-number 128 --closeout-when-eligible --execute-closeout
+```
+
+`run-ready-issue-pipeline` is human-triggered orchestration. It reuses existing `inspect-ready-issue`, `plan-ready-issue`, `qa-review-pr`, `qa-closeout-pr`, and `run-local-review` components instead of duplicating lower-level logic. `plan-only` and `review-pr` modes are non-mutating with respect to GitHub state. `closeout-when-eligible` delegates closeout only through `qa-closeout-pr`, and mutation remains blocked unless execute mode is explicitly requested and all QA plus required label gates pass. The pipeline excludes Issue #39 and does not run background jobs or autonomous polling.
+
 Run the bounded local review orchestration over the existing read-only operator surfaces:
 
 ```powershell

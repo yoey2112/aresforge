@@ -66,7 +66,9 @@ Issue #117 adds decision-only ready-issue routing via `plan-ready-issue`, provid
 
 Issue #118 adds validation-only QA PR inspection via `qa-review-pr`, providing deterministic pass/fail/blocked output without mutating GitHub state.
 
-Issue #119 adds QA-gated PR closeout via `qa-closeout-pr`, with default dry-run/no-mutation behavior and execute-mode mutation limited to the target PR and linked non-protected issue only after all QA and required-label gates pass.
+Issue #119 was completed through PR #125 and adds QA-gated PR closeout via `qa-closeout-pr`, with default dry-run/no-mutation behavior and execute-mode mutation limited to the target PR and linked non-protected issue only after all QA and required-label gates pass.
+
+Issue #120 adds reusable ready issue orchestration via `run-ready-issue-pipeline`, with explicit plan-only, review-pr, and closeout-when-eligible modes that compose existing intake, planning, QA review, and QA-gated closeout behaviors while preserving non-mutating defaults.
 
 ## Planned Milestone Sequence
 
