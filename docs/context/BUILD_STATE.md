@@ -6,20 +6,20 @@ M2 - Runnable Local Skeleton Pivot
 
 ## Current Goal
 
-Define the first canonical model registry schema and bounded local LLM routing rules for Issue #85 on top of the runnable local skeleton completed by Issue #81 / PR #82 and the agent-registry layer completed by Issue #83, while keeping the implementation human-triggered, local-first, read-only where possible, and aligned with the existing registry and lifecycle architecture.
+Carry the runnable local skeleton, agent-registry schema, and model-registry schema forward into queue and work-item state modeling while keeping implementation human-triggered, local-first, read-only where possible, and aligned with the existing registry and lifecycle architecture.
 
 ## Current Repository State
 
-- Main branch baseline for the runnable pivot: `d04041c` (`Define project registry schema (#80)`).
+- Main branch latest merged state: `e2bbe85` (`Define model registry schema and routing rules (#85) (#86)`).
 - Issue #81, `Build runnable local skeleton and automation foundation`, is completed through PR #82.
 - Issue #83, `Define agent registry schema and lifecycle states`, is completed and remains the canonical agent-registry schema layer.
-- Issue #85, `Define model registry and local LLM routing rules`, is the active implementation issue.
+- Issue #85, `Define model registry and local LLM routing rules`, is completed through PR #86.
 - `docs/architecture/REGISTRY_AND_QUEUE_ARCHITECTURE.md` remains the canonical registry and queue architecture artifact.
 - `docs/architecture/PROJECT_REGISTRY_SCHEMA.md` remains the canonical project registry schema artifact.
 - `docs/architecture/AGENT_REGISTRY_SCHEMA.md` is the canonical agent registry schema artifact.
 - `docs/architecture/MODEL_REGISTRY_SCHEMA.md` is the canonical model registry and local LLM routing artifact.
 - Issue #75 remains the last routine reconciliation issue.
-- Remaining open protected validation issue: #39, `validation: issue-38-state-lifecycle`, intentionally preserved as audit evidence and not touched by Issue #85.
+- Remaining open protected validation issue: #39, `validation: issue-38-state-lifecycle`, intentionally preserved as audit evidence and not modified by Issue #85 closeout.
 
 ## Current Source of Truth
 
@@ -339,15 +339,21 @@ Repository documentation remains the authoritative source for roadmap, governanc
    - Preserved the local `agents` table as conservative seed/reference data rather than autonomous execution authority.
    - Confirmed Issue #39 was not modified or closed.
    - Confirmed no autonomous execution, autonomous routing, autonomous approval, autonomous merge, autonomous issue closure, hosted model enablement, or GitHub-state-changing behavior was introduced.
+- Issue #85 completed via PR #86:
+  - Defined the canonical model registry and local LLM routing artifact at `docs/architecture/MODEL_REGISTRY_SCHEMA.md`.
+  - Aligned the registry architecture, runnable-skeleton, local state-store, and operator usage docs with the new model-record, routing-priority, fallback, approval-posture, and evidence expectations.
+  - PR #86 merged successfully.
+  - Latest `main` commit advanced to `e2bbe85`, `Define model registry schema and routing rules (#85) (#86)`.
+  - Confirmed Issue #39 was not modified or closed.
+  - Confirmed no autonomous execution, autonomous model selection for governance-sensitive actions, hosted model enablement, autonomous approval, autonomous merge, autonomous issue closure, or GitHub-state-changing behavior was introduced.
 ## In Progress
 
 - `docs/architecture/ISSUE_LIFECYCLE_AGENT_PIPELINE.md` remains the completed canonical lifecycle pipeline design artifact.
 - `docs/architecture/REGISTRY_AND_QUEUE_ARCHITECTURE.md` remains the completed canonical registry and queue architecture artifact.
 - `docs/architecture/PROJECT_REGISTRY_SCHEMA.md` remains the completed canonical project registry schema artifact.
 - `docs/architecture/AGENT_REGISTRY_SCHEMA.md` remains the completed canonical agent registry schema artifact from Issue #83.
-- `docs/architecture/MODEL_REGISTRY_SCHEMA.md` is the active canonical model registry and local LLM routing artifact for Issue #85.
-- Issue #85 is the active model-registry and bounded local-routing implementation issue.
-- The repository now has a completed runnable local operator foundation from Issue #81 and is formalizing bounded lifecycle-role and model-routing meaning on top of it.
+- `docs/architecture/MODEL_REGISTRY_SCHEMA.md` remains the completed canonical model registry and local LLM routing artifact from Issue #85.
+- The repository now has a completed runnable local operator foundation from Issue #81 plus completed agent-registry and model-registry schema layers from Issues #83 and #85.
 - The new local state-store and operator usage docs are:
   - `docs/architecture/LOCAL_STATE_STORE.md`
   - `docs/architecture/RUNNABLE_SKELETON.md`
@@ -365,7 +371,8 @@ Repository documentation remains the authoritative source for roadmap, governanc
 ## Next
 
 - Preserve Issue #39 as the only remaining open protected validation issue unless a future human-directed issue explicitly changes its state.
-- Validate and iterate on the local operator CLI, migration flow, local artifact outputs, and agent-registry seed/listing behavior created by Issues #81 and #83.
+- Define queue registry and work-item state transitions on top of the runnable local skeleton plus the project, agent, and model registry layers.
+- Validate and iterate on the local operator CLI, migration flow, local artifact outputs, and registry seed/listing behavior created by Issues #81, #83, and #85.
 - Keep documentation freshness checks required before future documentation-sync work.
 - Use the new runnable skeleton docs when extending the local operator:
   - `docs/architecture/LOCAL_STATE_STORE.md`

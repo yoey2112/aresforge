@@ -72,9 +72,9 @@ Current completed M2 registry deliverable:
 - Issue #83: Define agent registry schema and lifecycle states, completed.
 - `docs/architecture/AGENT_REGISTRY_SCHEMA.md` is the canonical M2 agent registry schema artifact.
 
-Current active M2 registry implementation:
+Current completed M2 registry deliverable:
 
-- Issue #85: Define model registry and local LLM routing rules, active.
+- Issue #85: Define model registry and local LLM routing rules, completed through PR #86.
 - `docs/architecture/MODEL_REGISTRY_SCHEMA.md` is the canonical M2 model registry and bounded local routing artifact.
 
 Current M2 corrective rule:
@@ -85,8 +85,8 @@ Current M2 corrective rule:
 
 Next substantive M2 direction:
 
-- Complete the Issue #85 model registry schema and bounded local routing rules without expanding into hosted model use or autonomous GitHub control.
-- After Issue #85, deepen queue and work-item state modeling against the runnable local foundation.
+- Deepen queue and work-item state modeling against the runnable local foundation without expanding into hosted model use or autonomous GitHub control.
+- Extend the local operator with richer registry-aware inspection after queue and work-item state meaning is formalized.
 
 ## Full Milestone Roadmap
 
@@ -166,7 +166,7 @@ Completed and active scope:
 - Runnable local operator skeleton completed via Issue #81 and merged PR #82
 - Agent registry schema completed via Issue #83
 - Canonical agent registry schema artifact at `docs/architecture/AGENT_REGISTRY_SCHEMA.md`
-- Model registry and bounded local routing active via Issue #85
+- Model registry and bounded local routing completed via Issue #85 and merged PR #86
 - Canonical model registry artifact at `docs/architecture/MODEL_REGISTRY_SCHEMA.md`
 - PostgreSQL local state-store foundation
 - Repo-stored SQL migrations
@@ -184,8 +184,8 @@ Current M2 boundary:
 
 Next substantive M2 direction:
 
-- Complete and validate the Issue #85 model registry and bounded local LLM routing model carefully
 - Next likely issue: Define queue registry and work item state transitions
+- Follow with richer registry-aware local operator inspection once queue and work-item state meaning is in place
 
 ### M3 - Registry and Routing Deepening
 
@@ -443,9 +443,8 @@ The current M2 phase does not authorize the following:
 
 These are roadmap-driven recommendations only. They are not created issues.
 
-- Define model registry and local LLM routing rules.
 - Define queue registry and work item state transitions.
-- Extend the local operator with richer registry-aware inspection after Issue #85.
+- Extend the local operator with richer registry-aware inspection after queue and work-item state meaning is formalized.
 
 ## Maintenance Rules
 
