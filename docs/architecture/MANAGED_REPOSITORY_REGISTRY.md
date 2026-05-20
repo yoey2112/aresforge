@@ -75,6 +75,8 @@ Each repository entry includes:
 
 Status values are derived from reusable read-only governance and bootstrap contract inspection surfaces. No setup mutation is performed.
 
+For the default AresForge managed repository, current readiness posture should be expected to remain `attention_needed` until `aresforge-automerge`, optional platform-known labels, canonical platform milestones, and project-specific milestone mapping documentation are aligned.
+
 ## Safety Boundaries
 
 This extension does not authorize:
@@ -84,6 +86,8 @@ This extension does not authorize:
 - autonomous queue or routing mutation
 - background schedulers, daemons, or polling loops
 - autonomous merge, closeout, or approval
+
+Setup command execution is also out of scope for this registry extension. It represents managed repositories and reports posture only.
 
 Issue 39 remains retired historical validation evidence only.
 

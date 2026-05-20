@@ -120,6 +120,8 @@ This governance layer is intentionally conservative:
 - No paid/API model usage by default behavior.
 - Issue #39 remains retired historical validation evidence only.
 
+Managed-repository setup or mutation commands are not implemented by this governance contract. Any future setup mutation remains a separate human-triggered concern outside this read-only inspection layer.
+
 ## Extension Point For Multi-Repository Management
 
 The current runtime inspects the repository configured by `ARESFORGE_GITHUB_OWNER` and `ARESFORGE_GITHUB_REPO`.

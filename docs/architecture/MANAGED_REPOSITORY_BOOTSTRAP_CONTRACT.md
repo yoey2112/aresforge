@@ -191,6 +191,8 @@ Bootstrap setup or setup correction is human-triggered only.
 
 This contract does not authorize autonomous setup mutation (for example creating labels, milestones, templates, branch rules, workflows, or documentation updates without explicit human invocation).
 
+No setup or mutation command surface is implemented as part of this contract in M3. Current command surfaces provide read-only evaluation, readiness reporting, planning placeholders, and demo outputs only.
+
 ## Multi-Repository Extension Point
 
 Future multi-repository support should reuse this contract shape and add project-scoped profile selection through registry-backed project identity.

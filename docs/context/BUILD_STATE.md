@@ -6,13 +6,13 @@ M3 - Registry And Routing Deepening
 
 ## Current Goal
 
-Continue M3 by adding an end-to-end managed repository governance demo so AresForge can prove the full read-only governance flow (inspection to bootstrap plan) under deterministic output, while preserving local-first human-triggered boundaries and non-mutating defaults.
+Close out Issue #138 by reconciling AresForge source-of-truth documentation after completing the M3 managed repository governance stack so architecture, operator usage, and milestone posture remain aligned, deterministic, and explicitly read-only by default.
 
 ## Current Repository State
 
-- Current branch: `m3/managed-repo-governance-demo`
-- Latest `main` commit: `a80762d` (`M3: add managed repository registry extension (#140)`)
-- Latest runtime-affecting merged foundation commit: `a80762d` (`M3: add managed repository registry extension (#140)`)
+- Current branch: `m3/governance-stack-source-of-truth-reconciliation`
+- Latest `main` commit: `203ee84` (`M3: add managed repository governance demo (#143)`)
+- Latest runtime-affecting merged foundation commit: `203ee84` (`M3: add managed repository governance demo (#143)`)
 - Issue #105 was completed through PR #106 and is merged `main` behavior
 - Issue #107 was completed through PR #108 and is merged `main` behavior
 - Issue #109 was completed through PR #111 and is merged `main` behavior
@@ -42,7 +42,8 @@ Continue M3 by adding an end-to-end managed repository governance demo so AresFo
 - Issue #133 was completed through PR #140 and is merged `main` behavior
 - Issue #134 was completed through PR #141 and is merged `main` behavior
 - Issue #135 was completed through PR #142 and is merged `main` behavior
-- Issue #136 is in progress and adds a reusable end-to-end managed repository governance demo command with deterministic read-only output and no setup mutation
+- Issue #136 was completed through PR #143 and is merged `main` behavior
+- Issue #138 is active and is the M3 source-of-truth reconciliation closeout item for the completed managed repository governance stack
 - Issue #95 was completed through PR #96 and is merged `main` behavior
 - Issue #97 was completed through PR #98 and is merged `main` behavior
 - Issue #75 remains the last routine reconciliation issue
@@ -137,6 +138,9 @@ The current M3 implementation does allow:
 - opt-in latest local review package capture in handoff and evidence outputs
 - read-only repository governance inspection for reusable label and milestone contract visibility
 - read-only repository bootstrap contract inspection for reusable setup readiness visibility
+- read-only managed repository registry inspection where AresForge is represented as the first/default managed repository
+- read-only managed repository readiness reporting with explicit `attention_needed` posture when required or optional governance setup remains missing
+- read-only managed repository bootstrap planning that reports setup action placeholders without executing setup mutation
 - bounded local model inspection, listing, and Ollama dry-run checks
 - bounded local model inspection, listing, and Ollama dry-run checks without autonomous selection or routing
 
@@ -146,6 +150,7 @@ The current M3 implementation does not authorize:
 - routing mutation or autonomous routing
 - autonomous approval, merge, or issue closure
 - GitHub-state-changing behavior except when a human explicitly runs a matching visible PR lifecycle helper phase such as `CreatePr` or `MergePr`
+- setup mutation commands for labels, milestones, templates, rulesets, or settings as part of managed repository governance stack behavior
 - repo setting, branch protection, ruleset, secret, release, tag, workflow, or GitHub Project changes
 - hosted external model use as part of the default runtime foundation
 - unauthorized modification of retired validation evidence
@@ -156,6 +161,7 @@ The current M3 implementation does not authorize:
 - Use `project-state-summary` as the first M3 local-first status checkpoint before planning or closeout work
 - Continue M3 registry and routing deepening through broader read-only summaries and safer helper flows
 - Continue M3 managed-repository readiness work with reusable bootstrap contract evaluation before any setup mutation
+- Keep readiness posture explicit: the default AresForge repository remains `attention_needed` until `aresforge-automerge`, optional platform-known labels, and canonical platform milestones are aligned and project-specific milestone mapping is documented
 - Continue deterministic local review orchestration, review package inspection, and auditable handoff or evidence capture that remain human-triggered and local-only
 - Extend local operator visibility while keeping queue transitions and GitHub-state-changing behavior tightly human-triggered and reviewable
 - Optionally perform local historical branch cleanup as separate human-directed repository hygiene work
