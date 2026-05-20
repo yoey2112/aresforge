@@ -45,7 +45,7 @@ Status: Active.
 
 M2 began as documentation-only and design-first, but Issue #81 pivoted it into a runnable local foundation. M2 now includes the documentation agent operating model, freshness checks, evidence packages, handoff templates, prompt package templates, PR and closeout evidence templates, the issue lifecycle pipeline, the documentation-before-closeout gate, the local operator workflow model, the first human-triggered runnable local operator skeleton, and the first canonical agent-registry schema.
 
-The latest overnight stack also has unmerged branch work for Issue #92 and Issue #93: a read-only registry validation helper, local inspection report artifacts, and optional `--write-artifact` flags on `inspect-queue` and `inspect-work-item`. That work is review-ready on the current branch, but it is not yet merged `main` behavior.
+Issue #92 and Issue #93 were completed through PR #94, which advances `main` to `1f7b5fd` (`Add local registry validation and inspection report artifacts (#94)`). `validate-registries`, `inspect-queue --write-artifact`, and `inspect-work-item --write-artifact` are now merged `main` behavior. These surfaces remain local-only, human-triggered, read-only, non-authoritative, and out of scope for queue transitions, routing mutation, autonomous routing, approvals, merges, issue closure, GitHub-state changes, or any modification to protected Issue #39.
 
 Current corrective closeout outcome:
 
@@ -190,14 +190,14 @@ Current M2 boundary:
 - Human-triggered read-only agent-registry seed/listing support is allowed where Issue #83 explicitly implements it
 - Human-triggered local model inspection, local Ollama checks, and advisory routing guidance are allowed where Issues #81 and #85 describe them
 - Human-triggered read-only registry-aware queue and work-item inspection is allowed where later M2 issues implement it
-- Human-triggered read-only registry validation and local inspection report artifact generation are allowed where the current branch implements them for Issue #92 and Issue #93
+- Human-triggered read-only registry validation and local inspection report artifact generation are allowed where PR #94 now implements them on `main` for Issue #92 and Issue #93
 - Human-reviewed controls remain mandatory
 - No queue transitions, autonomous routing, autonomous GitHub-state-changing behavior, GitHub-state-changing behavior, or hosted external model traffic is authorized during current M2 work
 
 Next substantive M2 direction:
 
-- Near-term branch-ready work: take the Issue #92 and Issue #93 read-only validation and reporting helpers through human review without claiming merged completion early
-- Next likely issue after that: build on the new read-only registry-aware queue and work-item inspection slice with richer operator inspection views
+- Direct source-of-truth correction note: stale wording discovered after PR #94 closeout was corrected on `main` without creating a new routine reconciliation issue; Issue #75 remains the last routine reconciliation issue
+- Next likely issue: continue the M2 runtime foundation with richer read-only model, project, or registry inspection views, or perform local historical branch cleanup, while keeping queue transitions and GitHub-state-changing behavior out of scope
 - Follow with broader registry-aware local operator inspection while keeping queue transitions and GitHub-state-changing behavior human-controlled
 
 ### M3 - Registry and Routing Deepening
