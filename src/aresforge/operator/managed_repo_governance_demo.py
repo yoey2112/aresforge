@@ -42,6 +42,7 @@ def demo_managed_repo_governance(config: AppConfig) -> dict[str, Any]:
         "demo_version": DEMO_VERSION,
         "demo_summary": {
             "goal": "Demonstrate end-to-end managed repository governance inspection through read-only deterministic outputs.",
+            "repository_count": readiness.get("repository_count"),
             "step_count": len(steps),
             "attention_needed_steps": sum(1 for step in steps if step["status"] == "attention_needed"),
             "deferred_steps": sum(1 for step in steps if step["status"] == "deferred"),

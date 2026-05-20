@@ -231,6 +231,8 @@ python -m aresforge inspect-managed-repos
 
 This command is read-only and safe to run repeatedly. It always includes the current configured AresForge repository as the first default managed repository and can optionally merge additional entries from `config/managed_repositories.json`. It reports deterministic JSON for repository slug, local path posture, default branch, project key, repo role, governance profile, automation status, bootstrap status, documentation roots, artifact roots, allowed automation capabilities, disabled or archived posture, and warnings. It degrades gracefully when local paths, `gh`, or network access are unavailable and does not mutate files, git state, labels, milestones, issues, PRs, branches, workflows, settings, or artifacts.
 
+The M4 fixture pattern adds a second demo managed repository record (`yoey2112/aresforge-demo-managed-repo`) for read-only governance coverage. Fixture/demo records remain non-mutating and may report `local_path_exists: false` with warning-driven `attention_needed` or fixture-only posture.
+
 Summarize read-only managed repository readiness for safe automation usage:
 
 ```powershell

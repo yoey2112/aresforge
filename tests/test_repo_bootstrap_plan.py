@@ -203,3 +203,67 @@ def test_plan_repo_bootstrap_degrades_when_data_unavailable(monkeypatch, tmp_pat
     assert any("Local path is registered but not available on disk." in warning for warning in repo_plan["warnings"])
     assert any(action["category"] == "required" for action in repo_plan["actions"])
     assert any("global registry warning" in warning for warning in payload["warnings"])
+
+
+def test_plan_repo_bootstrap_includes_per_repository_actions_for_default_and_fixture(
+    monkeypatch, tmp_path: Path
+) -> None:
+    config = make_config(tmp_path)
+    missing_repo = "C:/Projects/aresforge-demo-managed-repo"
+    monkeypatch.setattr(
+        repo_bootstrap_plan,
+        "inspect_managed_repos",
+        lambda _cfg: {
+            "managed_repositories": [
+                {
+                    "repository_slug": "yoey2112/aresforge",
+                    "is_default": True,
+                    "local_path": str(tmp_path),
+                    "project_key": "project-aresforge",
+                    "repo_role": "platform_self_managed",
+                    "disabled": False,
+                    "archived": False,
+                },
+                {
+                    "repository_slug": "yoey2112/aresforge-demo-managed-repo",
+                    "is_default": False,
+                    "local_path": missing_repo,
+                    "project_key": "project-aresforge-demo",
+                    "repo_role": "demo_managed_repository",
+                    "disabled": False,
+                    "archived": False,
+                },
+            ],
+            "warnings": [],
+        },
+    )
+    monkeypatch.setattr(
+        repo_bootstrap_plan,
+        "inspect_repo_governance",
+        lambda _cfg: {
+            "default_branch": "main",
+            "required_platform_labels": {"available": True, "missing": []},
+            "optional_platform_labels": {"available": True, "missing": []},
+            "automation_trigger_labels": {"available": True, "missing": []},
+            "milestone_naming_status": {
+                "available": True,
+                "missing_platform_milestones": [],
+                "unknown_platform_like_milestones": [],
+                "project_specific_milestones": [],
+            },
+            "warnings": [],
+        },
+    )
+    monkeypatch.setattr(
+        repo_bootstrap_plan,
+        "inspect_repo_bootstrap_contract",
+        lambda _cfg: {"area_evaluation": []},
+    )
+
+    payload = repo_bootstrap_plan.plan_repo_bootstrap(config)
+    assert payload["repository_count"] == 2
+    assert all(isinstance(repo["actions"], list) for repo in payload["repositories"])
+    fixture = next(
+        repo for repo in payload["repositories"] if repo["repository_slug"] == "yoey2112/aresforge-demo-managed-repo"
+    )
+    assert any(action["title"] == "Confirm local path alignment" for action in fixture["actions"])

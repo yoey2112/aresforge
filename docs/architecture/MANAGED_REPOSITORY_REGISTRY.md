@@ -63,6 +63,18 @@ If present, `config/managed_repositories.json` may define additional repository 
 }
 ```
 
+Current M4 fixture example:
+
+- `repository_slug`: `yoey2112/aresforge-demo-managed-repo`
+- `project_key`: `project-aresforge-demo`
+- `repo_role`: `demo_managed_repository`
+- `local_path`: `C:/Projects/aresforge-demo-managed-repo`
+- `automation_status`: `fixture_read_only`
+- `bootstrap_status`: `fixture_only`
+- `allowed_automation_capabilities`: `human_triggered_validation`, `read_only_inspection`
+
+Fixture/demo records are inspection-only and must not imply live setup or mutation.
+
 When this file is missing, malformed, or incomplete, the command degrades gracefully and still returns the default managed repository record plus warnings.
 
 ## Status Evaluation

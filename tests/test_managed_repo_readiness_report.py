@@ -194,3 +194,64 @@ def test_readiness_report_degrades_when_data_unavailable(monkeypatch, tmp_path: 
     assert row["local_path_exists"] is False
     assert any("Local path is registered but not available on disk." in item for item in row["warnings"])
     assert any("registry warning" in item for item in payload["warnings"])
+
+
+def test_readiness_report_includes_default_and_fixture_repositories(monkeypatch, tmp_path: Path) -> None:
+    config = make_config(tmp_path)
+    monkeypatch.setattr(
+        managed_repo_readiness_report,
+        "inspect_managed_repos",
+        lambda _cfg: {
+            "managed_repositories": [
+                {
+                    "repository_slug": "yoey2112/aresforge",
+                    "is_default": True,
+                    "local_path": str(tmp_path),
+                    "disabled": False,
+                    "archived": False,
+                },
+                {
+                    "repository_slug": "yoey2112/aresforge-demo-managed-repo",
+                    "is_default": False,
+                    "local_path": "C:/Projects/aresforge-demo-managed-repo",
+                    "repo_role": "demo_managed_repository",
+                    "disabled": False,
+                    "archived": False,
+                },
+            ],
+            "warnings": [],
+        },
+    )
+    monkeypatch.setattr(
+        managed_repo_readiness_report,
+        "inspect_repo_governance",
+        lambda _cfg: {
+            "default_branch": "main",
+            "required_platform_labels": {"available": True, "missing": []},
+            "optional_platform_labels": {"available": True, "missing": []},
+            "automation_trigger_labels": {"available": True, "missing": []},
+            "milestone_naming_status": {"available": True, "missing_platform_milestones": []},
+            "open_issue_readiness_signal": {"signal": "no_ready_issues_detected"},
+            "open_pr_readiness_signal": {"signal": "no_open_prs_detected"},
+            "warnings": [],
+        },
+    )
+    monkeypatch.setattr(
+        managed_repo_readiness_report,
+        "inspect_repo_bootstrap_contract",
+        lambda _cfg: {"summary": {"required_attention_needed": 0, "unavailable": 0}, "area_evaluation": []},
+    )
+    monkeypatch.setattr(
+        managed_repo_readiness_report,
+        "_local_git_state",
+        lambda _path, exists: ("main", True, None) if exists else (None, None, None),
+    )
+
+    payload = managed_repo_readiness_report.managed_repo_readiness_report(config)
+    slugs = [row["repository_slug"] for row in payload["repositories"]]
+    fixture = next(row for row in payload["repositories"] if row["repository_slug"] == "yoey2112/aresforge-demo-managed-repo")
+
+    assert payload["repository_count"] == 2
+    assert "yoey2112/aresforge" in slugs
+    assert "yoey2112/aresforge-demo-managed-repo" in slugs
+    assert fixture["local_path_exists"] is False

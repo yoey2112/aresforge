@@ -167,21 +167,31 @@ def _evaluate_managed_repository(
     bootstrap = inspect_repo_bootstrap_contract(repo_config)
 
     default_branch = _coerce_string(entry.get("default_branch")) or governance.get("default_branch")
+    repo_role = _coerce_string(entry.get("repo_role"))
+    configured_automation_status = _coerce_string(entry.get("automation_status"))
+    configured_bootstrap_status = _coerce_string(entry.get("bootstrap_status"))
     repo_warnings = _normalize_string_list(governance.get("warnings", []))
     if local_path is None:
         repo_warnings.append("Local path is not registered for this managed repository.")
+    elif not Path(local_path).exists() and repo_role and "demo" in repo_role:
+        repo_warnings.append(
+            "Local path is not available on disk for the fixture/demo repository; read-only fixture posture is preserved."
+        )
+
+    automation_status = configured_automation_status or _automation_status_from_governance(governance)
+    bootstrap_status = configured_bootstrap_status or _bootstrap_status_from_contract(bootstrap)
 
     return {
         "repository_slug": slug,
         "is_default": bool(entry.get("is_default")),
         "project_key": _coerce_string(entry.get("project_key")),
-        "repo_role": _coerce_string(entry.get("repo_role")),
+        "repo_role": repo_role,
         "local_path": local_path,
         "local_path_exists": bool(local_path and Path(local_path).exists()),
         "default_branch": default_branch,
         "governance_profile": _coerce_string(entry.get("governance_profile")) or "aresforge-default",
-        "automation_status": _automation_status_from_governance(governance),
-        "bootstrap_status": _bootstrap_status_from_contract(bootstrap),
+        "automation_status": automation_status,
+        "bootstrap_status": bootstrap_status,
         "documentation_roots": _normalize_string_list(entry.get("documentation_roots", [])),
         "artifact_roots": _normalize_string_list(entry.get("artifact_roots", [])),
         "allowed_automation_capabilities": _normalize_string_list(
