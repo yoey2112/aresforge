@@ -11,14 +11,15 @@ Continue the M2 runtime foundation by extending human-triggered local operator s
 ## Current Repository State
 
 - Current branch: `main`
-- Latest `main` commit: `8bf1319` (`Add read-only model inspection command (#101) (#102)`)
-- Latest runtime-affecting merged foundation commit: `8bf1319` (`Add read-only model inspection command (#101) (#102)`)
+- Latest `main` commit: `1a00e01` (`Add read-only registry inspection summary command (#103) (#104)`)
+- Latest runtime-affecting merged foundation commit: `1a00e01` (`Add read-only registry inspection summary command (#103) (#104)`)
+- Issue #103 was completed through PR #104 and is merged `main` behavior
 - Issue #101 was completed through PR #102 and is merged `main` behavior
 - Issue #99 was completed through PR #100 and is merged `main` behavior
 - Issue #92 and Issue #93 were completed through PR #94 and are merged `main` behavior
 - `validate-registries`, `inspect-queue --write-artifact`, `inspect-work-item --write-artifact`, and `list-models` are available on `main`
 - `inspect-model` is available on `main`
-- `inspect-registries` is available on the working branch as a pending broader read-only registry inspection summary improvement
+- `inspect-registries` is available on `main`
 - Issue #95 was completed through PR #96 and is merged `main` behavior
 - Issue #97 was completed through PR #98 and is merged `main` behavior
 - Issue #75 remains the last routine reconciliation issue

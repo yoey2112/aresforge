@@ -30,6 +30,7 @@ During M2, implementation remains human-triggered and human-reviewed. Agents may
 - Current local runtime foundations are local-first, human-triggered, read-only where possible, and non-authoritative
 - Issue #92 and Issue #93 are completed through PR #94 and are merged `main` behavior
 - The docs-only correction at commit `42b02dd` fixed stale post-closeout wording on `main` without creating a new routine reconciliation issue
+- Issue #103 was completed through PR #104 and added merged `main` support for read-only local registry inspection across project, agent, model, queue, and work-item lifecycle surfaces without introducing routing, queue mutation, file mutation, network calls, or GitHub-state-changing behavior
 - Issue #101 was completed through PR #102 and added merged `main` support for read-only local model inspection without introducing model selection, routing, or GitHub-state-changing behavior
 - Issue #97 was completed through PR #98 and added merged `main` support for read-only local project inspection without changing routing, queue state, or GitHub state
 - Issue #99 was completed through PR #100 and added merged `main` support for a human-triggered PR lifecycle helper that keeps validation, staging, PR creation, PR verification, merge execution, post-merge verification, and source-of-truth scanning phase-gated and visible

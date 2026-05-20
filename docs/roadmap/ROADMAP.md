@@ -48,7 +48,7 @@ PR #98 completed Issue #97 and extended the merged `main` M2 operator foundation
 
 PR #100 completed Issue #99 and extended the merged `main` M2 operator foundation with a human-triggered PowerShell PR lifecycle helper that keeps validation, staging, commit and push, PR creation, PR verification, merge execution, post-merge verification, and source-of-truth scanning explicit and phase-gated rather than autonomous or hidden.
 
-The current in-flight M2 implementation branch also adds a human-triggered, local-only, read-only `inspect-registries` command that summarizes repo-owned project, agent, model, queue, and work-item lifecycle source documents plus existing seeded registry validation surfaces into deterministic JSON without calling the network, mutating files, or changing queue, routing, or GitHub state.
+PR #104 completed Issue #103 and extended the merged `main` M2 operator foundation with a human-triggered, local-only, read-only `inspect-registries` command that summarizes repo-owned project, agent, model, queue, and work-item lifecycle source documents plus existing seeded registry validation surfaces into deterministic JSON without calling the network, mutating files, or changing queue, routing, or GitHub state.
 
 ## Planned Milestone Sequence
 
