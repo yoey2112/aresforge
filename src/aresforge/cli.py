@@ -30,7 +30,10 @@ from aresforge.db.repository import (
     WorkItemCreate,
 )
 from aresforge.integrations.ollama import test_generate
-from aresforge.operator.artifact_discovery import discover_local_artifacts
+from aresforge.operator.artifact_discovery import (
+    discover_local_artifacts,
+    inspect_local_artifact,
+)
 from aresforge.operator.inspection_reports import (
     render_queue_inspection_report,
     render_work_item_inspection_report,
@@ -75,6 +78,11 @@ def build_parser() -> argparse.ArgumentParser:
         "list-artifacts",
         help="Summarize generated local artifacts under the configured artifact root.",
     )
+    inspect_artifact_parser = subparsers.add_parser(
+        "inspect-artifact",
+        help="Inspect one generated local artifact under the configured artifact root.",
+    )
+    inspect_artifact_parser.add_argument("--artifact-path", required=True)
     subparsers.add_parser("list-projects", help="List registered projects.")
     subparsers.add_parser("list-agents", help="List registered agent roles.")
     subparsers.add_parser("list-models", help="List registered local model records.")
@@ -275,6 +283,11 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "list-artifacts":
         emit_json(discover_local_artifacts(config))
         return 0
+
+    if args.command == "inspect-artifact":
+        payload = inspect_local_artifact(config, args.artifact_path)
+        emit_json(payload)
+        return 0 if payload["ok"] else 1
 
     if args.command == "list-projects":
         with connect(config) as conn:

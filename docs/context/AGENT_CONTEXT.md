@@ -91,6 +91,7 @@ The local operator may currently support:
 - read-only queue and work-item inspection
 - read-only inspection report artifact generation
 - deterministic read-only generated artifact discovery
+- deterministic read-only single-artifact inspection
 - a human-triggered PR lifecycle helper that requires an explicit phase selection before validation, staging, PR creation, PR verification, merge execution, post-merge verification, or source-of-truth scanning
 - prompt, evidence, and Codex handoff artifact preparation
 - bounded local Ollama connectivity or dry-run checks

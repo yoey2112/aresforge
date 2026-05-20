@@ -2,7 +2,11 @@ import json
 from pathlib import Path
 
 from aresforge.config import AppConfig
-from aresforge.operator.artifact_discovery import discover_local_artifacts
+from aresforge.operator.artifact_discovery import (
+    _TEXT_PREVIEW_CHAR_LIMIT,
+    discover_local_artifacts,
+    inspect_local_artifact,
+)
 
 
 def make_config(tmp_path: Path) -> AppConfig:
@@ -73,6 +77,9 @@ def test_discover_local_artifacts_summarizes_known_generated_artifacts(tmp_path:
             "modified_at": payload["artifacts"][0]["modified_at"],
             "artifact_type": "codex_handoff",
             "command_source_hint": "prepare-codex-handoff",
+            "extension": ".md",
+            "text_readable": True,
+            "text_preview": "# Handoff",
         },
         {
             "artifact_path": "evidence/generated/20260520T120001Z-issue-105-evidence.json",
@@ -81,6 +88,9 @@ def test_discover_local_artifacts_summarizes_known_generated_artifacts(tmp_path:
             "modified_at": payload["artifacts"][1]["modified_at"],
             "artifact_type": "evidence_package",
             "command_source_hint": "record-evidence-package",
+            "extension": ".json",
+            "text_readable": True,
+            "text_preview": "{}",
         },
         {
             "artifact_path": "inspection_reports/generated/queue-inspection-report-queue-implementation-implementation.json",
@@ -89,6 +99,9 @@ def test_discover_local_artifacts_summarizes_known_generated_artifacts(tmp_path:
             "modified_at": payload["artifacts"][2]["modified_at"],
             "artifact_type": "inspection_report",
             "command_source_hint": "inspect-queue --write-artifact",
+            "extension": ".json",
+            "text_readable": True,
+            "text_preview": "{}",
         },
         {
             "artifact_path": "prompts/generated/20260520T120000Z-issue-105-prompt.md",
@@ -97,6 +110,9 @@ def test_discover_local_artifacts_summarizes_known_generated_artifacts(tmp_path:
             "modified_at": payload["artifacts"][3]["modified_at"],
             "artifact_type": "prompt_package",
             "command_source_hint": "generate-prompt-package",
+            "extension": ".md",
+            "text_readable": True,
+            "text_preview": "# Prompt",
         },
     ]
 
@@ -127,5 +143,80 @@ def test_discover_local_artifacts_payload_is_json_serializable(tmp_path: Path) -
     artifact_path.write_text("content", encoding="utf-8")
 
     payload = discover_local_artifacts(config)
+
+    assert json.loads(json.dumps(payload)) == payload
+
+
+def test_inspect_local_artifact_rejects_empty_path(tmp_path: Path) -> None:
+    payload = inspect_local_artifact(make_config(tmp_path), "   ")
+
+    assert payload["ok"] is False
+    assert payload["error"] == "artifact_path_empty"
+
+
+def test_inspect_local_artifact_rejects_unsafe_traversal_path(tmp_path: Path) -> None:
+    payload = inspect_local_artifact(make_config(tmp_path), "../secrets.txt")
+
+    assert payload["ok"] is False
+    assert payload["error"] == "artifact_path_unsafe"
+
+
+def test_inspect_local_artifact_rejects_absolute_path_outside_artifact_root(tmp_path: Path) -> None:
+    payload = inspect_local_artifact(make_config(tmp_path), "C:\\temp\\artifact.json")
+
+    assert payload["ok"] is False
+    assert payload["error"] == "artifact_path_outside_root"
+
+
+def test_inspect_local_artifact_returns_not_found_for_missing_artifact(tmp_path: Path) -> None:
+    payload = inspect_local_artifact(make_config(tmp_path), "prompts/generated/missing.md")
+
+    assert payload["ok"] is False
+    assert payload["error"] == "artifact_not_found"
+    assert payload["artifact_path"] == "prompts/generated/missing.md"
+
+
+def test_inspect_local_artifact_returns_metadata_for_valid_artifact(tmp_path: Path) -> None:
+    config = make_config(tmp_path)
+    artifact_path = config.artifact_root / "prompts" / "generated" / "artifact.md"
+    artifact_path.parent.mkdir(parents=True)
+    artifact_path.write_text("# Preview\r\nHello world", encoding="utf-8")
+
+    payload = inspect_local_artifact(config, "prompts/generated/artifact.md")
+
+    assert payload["ok"] is True
+    assert payload["artifact"] == {
+        "artifact_path": "prompts/generated/artifact.md",
+        "filename": "artifact.md",
+        "size_bytes": artifact_path.stat().st_size,
+        "modified_at": payload["artifact"]["modified_at"],
+        "artifact_type": "prompt_package",
+        "command_source_hint": "generate-prompt-package",
+        "extension": ".md",
+        "text_readable": True,
+        "text_preview": "# Preview\nHello world",
+    }
+
+
+def test_inspect_local_artifact_binds_text_preview_to_deterministic_limit(tmp_path: Path) -> None:
+    config = make_config(tmp_path)
+    artifact_path = config.artifact_root / "prompts" / "generated" / "long.txt"
+    artifact_path.parent.mkdir(parents=True)
+    artifact_path.write_text("a" * (_TEXT_PREVIEW_CHAR_LIMIT + 50), encoding="utf-8")
+
+    payload = inspect_local_artifact(config, "prompts/generated/long.txt")
+
+    assert payload["ok"] is True
+    assert payload["artifact"]["text_readable"] is True
+    assert payload["artifact"]["text_preview"] == "a" * _TEXT_PREVIEW_CHAR_LIMIT
+
+
+def test_inspect_local_artifact_payload_is_json_serializable(tmp_path: Path) -> None:
+    config = make_config(tmp_path)
+    artifact_path = config.artifact_root / "evidence" / "generated" / "artifact.json"
+    artifact_path.parent.mkdir(parents=True)
+    artifact_path.write_text('{"ok": true}', encoding="utf-8")
+
+    payload = inspect_local_artifact(config, "evidence/generated/artifact.json")
 
     assert json.loads(json.dumps(payload)) == payload

@@ -26,6 +26,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-project",
         "inspect-registries",
         "list-artifacts",
+        "inspect-artifact",
         "inspect-model",
         "inspect-queue",
         "inspect-work-item",
@@ -88,6 +89,10 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     assert inspect_registries_args.command == "inspect-registries"
     list_artifacts_args = parser.parse_args(["list-artifacts"])
     assert list_artifacts_args.command == "list-artifacts"
+    inspect_artifact_args = parser.parse_args(
+        ["inspect-artifact", "--artifact-path", "prompts/generated/artifact.md"]
+    )
+    assert inspect_artifact_args.artifact_path == "prompts/generated/artifact.md"
 
     inspect_model_args = parser.parse_args(["inspect-model", "--model-id", "model-ollama-default"])
     assert inspect_model_args.model_id == "model-ollama-default"
@@ -115,6 +120,13 @@ def test_cli_inspect_model_requires_model_id() -> None:
 
     with pytest.raises(SystemExit):
         parser.parse_args(["inspect-model"])
+
+
+def test_cli_inspect_artifact_requires_artifact_path() -> None:
+    parser = build_parser()
+
+    with pytest.raises(SystemExit):
+        parser.parse_args(["inspect-artifact"])
 
 
 def test_cli_inspection_commands_accept_write_artifact_flag() -> None:
@@ -154,6 +166,12 @@ def test_command_requires_directories_only_for_commands_that_write_artifacts() -
         is True
     )
     assert command_requires_directories(parser.parse_args(["list-artifacts"])) is False
+    assert (
+        command_requires_directories(
+            parser.parse_args(["inspect-artifact", "--artifact-path", "prompts/generated/artifact.md"])
+        )
+        is False
+    )
 
 
 def test_validate_registries_command_emits_ok_json_and_zero_exit(
@@ -446,6 +464,92 @@ def test_list_artifacts_emits_json_and_skips_directory_creation(
     assert exit_code == 0
     assert ensure_calls == []
     assert payload == discovery_payload
+
+
+def test_inspect_artifact_emits_json_and_skips_directory_creation(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    inspection_payload = {
+        "ok": True,
+        "inspection_mode": "local_artifact_root_only",
+        "artifact_root": "C:/Projects/aresforge/artifacts",
+        "artifact_root_exists": True,
+        "artifact": {
+            "artifact_path": "prompts/generated/artifact.md",
+            "filename": "artifact.md",
+            "size_bytes": 12,
+            "modified_at": "2026-05-20T00:00:00+00:00",
+            "artifact_type": "prompt_package",
+            "command_source_hint": "generate-prompt-package",
+            "extension": ".md",
+            "text_readable": True,
+            "text_preview": "# Artifact",
+        },
+    }
+    ensure_calls: list[bool] = []
+
+    monkeypatch.setattr(
+        cli,
+        "inspect_local_artifact",
+        lambda _config, _artifact_path: inspection_payload,
+    )
+    monkeypatch.setattr(
+        cli.AppConfig,
+        "ensure_directories",
+        lambda _self: ensure_calls.append(True),
+    )
+    monkeypatch.setattr(
+        cli,
+        "connect",
+        lambda *_args, **_kwargs: pytest.fail("inspect-artifact must not connect to PostgreSQL"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "test_generate",
+        lambda *_args, **_kwargs: pytest.fail("inspect-artifact must not call Ollama"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "create_work_item",
+        lambda *_args, **_kwargs: pytest.fail("inspect-artifact must not create work items"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "build_route_plan",
+        lambda *_args, **_kwargs: pytest.fail("inspect-artifact must not route work"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "bootstrap_reference_data",
+        lambda *_args, **_kwargs: pytest.fail("inspect-artifact must not bootstrap state"),
+    )
+
+    exit_code = cli.main(["inspect-artifact", "--artifact-path", "prompts/generated/artifact.md"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert ensure_calls == []
+    assert payload == inspection_payload
+
+
+def test_inspect_artifact_returns_exit_one_when_helper_reports_error(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    inspection_payload = {
+        "ok": False,
+        "inspection_mode": "local_artifact_root_only",
+        "artifact_root": "C:/Projects/aresforge/artifacts",
+        "artifact_root_exists": True,
+        "error": "artifact_not_found",
+        "artifact_path": "prompts/generated/missing.md",
+    }
+    monkeypatch.setattr(cli, "inspect_local_artifact", lambda _config, _artifact_path: inspection_payload)
+
+    exit_code = cli.main(["inspect-artifact", "--artifact-path", "prompts/generated/missing.md"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 1
+    assert payload == inspection_payload
 
 
 def test_list_models_emits_valid_json_without_ollama(
