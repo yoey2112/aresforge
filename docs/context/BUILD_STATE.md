@@ -6,13 +6,13 @@ M4 - Local Operator Expansion
 
 ## Current Goal
 
-Complete Issue #146 by reconciling bootstrap setup outcomes in source-of-truth documentation after the human-triggered label and milestone setup, so governance posture and milestone-mapping expectations remain explicit, deterministic, and read-only by default.
+Complete Issue #148 by hardening QA validation-evidence detection so explicit PR-body validation sections are recognized deterministically while preserving strict gates and local-first human-triggered behavior.
 
 ## Current Repository State
 
-- Current branch: `m4/issue-146-bootstrap-setup-reconciliation`
-- Latest `main` commit: `8efb214` (`M3: reconcile governance stack source of truth (#138) (#144)`)
-- Latest runtime-affecting merged foundation commit: `8efb214` (`M3: reconcile governance stack source of truth (#138) (#144)`)
+- Current branch: `m4/issue-148-validator-hardening`
+- Latest `main` commit: `f6b02a4` (`M4: reconcile bootstrap setup documentation (#146) (#150)`)
+- Latest runtime-affecting merged foundation commit: `f6b02a4` (`M4: reconcile bootstrap setup documentation (#146) (#150)`)
 - Issue #105 was completed through PR #106 and is merged `main` behavior
 - Issue #107 was completed through PR #108 and is merged `main` behavior
 - Issue #109 was completed through PR #111 and is merged `main` behavior
@@ -44,8 +44,9 @@ Complete Issue #146 by reconciling bootstrap setup outcomes in source-of-truth d
 - Issue #135 was completed through PR #142 and is merged `main` behavior
 - Issue #136 was completed through PR #143 and is merged `main` behavior
 - M4 sprint has started under parent sprint Issue #145
-- Issue #146 is active and is the bootstrap setup documentation reconciliation workstream under Issue #145
-- Next M4 workstreams after #146 are #148 (QA validation hardening), #149 (validate-pr end-to-end), and #147 (multi-repo governance proof)
+- Issue #146 is complete through PR #150 and is merged `main` behavior
+- Issue #148 is active and is the QA validation-evidence hardening workstream under Issue #145
+- Remaining M4 workstreams after #148 are #149 (validate-pr end-to-end) and #147 (multi-repo governance proof)
 - Human-triggered bootstrap setup has already been performed for labels and milestones using manual `gh`-driven operations outside AresForge runtime mutation surfaces
 - Required and optional platform labels are present: `aresforge-ready`, `aresforge-automerge`, `aresforge-blocked`, `aresforge-needs-evidence`, `aresforge-needs-docs`, `aresforge-closeout-ready`, `aresforge-managed`, and `aresforge-generated`
 - Canonical platform milestones are present: `M0 - Foundation`, `M1 - Validation`, `M2 - Local Automation Foundation`, `M3 - Registry And Routing Deepening`, and `M4 - Local Operator Expansion`

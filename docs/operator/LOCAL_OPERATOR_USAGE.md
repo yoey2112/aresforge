@@ -124,6 +124,21 @@ python -m aresforge qa-review-pr --pr-number 118
 
 This command is validation-only and read-only. It inspects GitHub PR metadata, detects linked issues and changed files, checks for required validation evidence, and emits deterministic JSON with pass/fail/blocked decisions plus merge and closeout eligibility recommendations. It does not create PRs, merge PRs, close issues, comment on PRs, label issues, or mutate GitHub state.
 
+Validation evidence detection accepts either linked local evidence/review package coverage or explicit PR-body evidence under headings such as `Validation`, `Validation evidence`, `Required validation`, `Required tests`, or `Test evidence`.
+
+PR-body validation evidence is strict:
+
+- A heading alone is not enough.
+- Vague claims like `tests are fine` are not enough.
+- At least one concrete command or check must be present (for example `python -m pytest`, `pytest`, `git diff --check`, `git status --short`, `inspect-repo-governance`, `managed-repo-readiness-report`, `plan-repo-bootstrap`, `demo-managed-repo-governance`).
+- At least one explicit pass/result signal must be present (for example `Result: passed`, `Passed: 194 passed`, or `194 passed`).
+
+When validation evidence gates fail, the payload includes deterministic diagnostics:
+
+- `validation_heading_found`
+- `validation_command_evidence_found`
+- `validation_pass_signal_found`
+
 Run QA-gated PR closeout in default safe dry-run mode:
 
 ```powershell
