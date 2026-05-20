@@ -192,6 +192,14 @@ python -m aresforge inspect-repo-governance
 
 This command is read-only and safe to run repeatedly. It inspects the configured repository slug and default branch where available, evaluates required, optional, and automation-trigger label governance, checks canonical platform milestone naming status, summarizes open issue and PR readiness signals, and emits warnings plus recommended next action. It degrades gracefully when `gh` or network access is unavailable by marking unavailable sections explicitly. It does not create, edit, or delete labels, milestones, issues, PRs, branches, workflows, settings, or artifacts.
 
+Inspect reusable managed repository bootstrap contract readiness without mutating GitHub state:
+
+```powershell
+python -m aresforge inspect-repo-bootstrap-contract
+```
+
+This command is read-only and safe to run repeatedly. It reuses repository governance inspection where practical and summarizes managed repository bootstrap setup areas across required, recommended, optional, and deferred buckets. It evaluates default branch posture, label posture, milestone posture, issue/PR convention readiness signals, evidence and closeout documentation expectations, generated artifact conventions, automation boundaries, protected historical evidence handling, local path/repository slug posture, and governance profile expectations. It emits deterministic JSON, degrades gracefully when `gh` or network access is unavailable, and does not mutate files, git state, labels, milestones, issues, PRs, branches, workflows, settings, or artifacts.
+
 Run the bounded local review orchestration over the existing read-only operator surfaces:
 
 ```powershell
