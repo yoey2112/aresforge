@@ -116,6 +116,14 @@ python -m aresforge plan-ready-issue --issue-number 114
 
 This command is decision-only and read-only. It inspects the target issue, confirms the `aresforge-ready` trigger label, excludes Issue #39, and emits deterministic JSON describing the recommended handling agent and model tier. It does not run implementation, create PRs, merge PRs, close issues, comment on issues, label issues, or mutate GitHub state.
 
+Review a pull request with the QA validation contract:
+
+```powershell
+python -m aresforge qa-review-pr --pr-number 118
+```
+
+This command is validation-only and read-only. It inspects GitHub PR metadata, detects linked issues and changed files, checks for required validation evidence, and emits deterministic JSON with pass/fail/blocked decisions plus merge and closeout eligibility recommendations. It does not create PRs, merge PRs, close issues, comment on PRs, label issues, or mutate GitHub state.
+
 Run the bounded local review orchestration over the existing read-only operator surfaces:
 
 ```powershell
