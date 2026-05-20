@@ -138,4 +138,4 @@ The current M2 foundation does not authorize:
 
 ## Protected Issue #39 Rule
 
-Issue #39, `validation: issue-38-state-lifecycle`, remains protected audit evidence. Agents must not modify, close, or otherwise change it unless a future human-directed issue explicitly authorizes that work.
+Issue #39, `validation: issue-38-state-lifecycle`, is retired and closed by explicit human direction. It should be treated as historical validation evidence only, not as an active protected open issue.

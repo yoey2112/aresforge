@@ -16,7 +16,7 @@ Detailed completed M0-M2 history now lives in `docs/history/M0_M2_COMPLETED_WORK
 - Separate reconciliation or related source-of-truth update issues are exception paths only when stale wording is discovered after closeout
 - `docs/architecture/ISSUE_LIFECYCLE_AGENT_PIPELINE.md` remains the canonical lifecycle correction for documentation-before-closeout
 - `docs/planning/FUTURE_FEATURE_IDEAS.md` must be reviewed at the start of each milestone
-- Issue #39, `validation: issue-38-state-lifecycle`, remains intentionally open protected audit evidence unless a future human-directed issue explicitly changes it
+- Issue #39, `validation: issue-38-state-lifecycle`, is retired and closed by explicit human direction and is now historical validation evidence only
 
 ## Current Milestone Summary
 

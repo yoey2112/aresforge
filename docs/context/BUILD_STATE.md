@@ -39,7 +39,7 @@ Continue the M2 runtime foundation by extending human-triggered local operator s
 - Issue #95 was completed through PR #96 and is merged `main` behavior
 - Issue #97 was completed through PR #98 and is merged `main` behavior
 - Issue #75 remains the last routine reconciliation issue
-- Issue #39, `validation: issue-38-state-lifecycle`, remains intentionally open protected audit evidence and must not be modified or closed except through a future human-directed issue
+- Issue #39, `validation: issue-38-state-lifecycle`, is retired and closed by explicit human direction and is now historical validation evidence only
 
 ## Current Source Of Truth
 
