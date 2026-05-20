@@ -200,6 +200,14 @@ python -m aresforge inspect-repo-bootstrap-contract
 
 This command is read-only and safe to run repeatedly. It reuses repository governance inspection where practical and summarizes managed repository bootstrap setup areas across required, recommended, optional, and deferred buckets. It evaluates default branch posture, label posture, milestone posture, issue/PR convention readiness signals, evidence and closeout documentation expectations, generated artifact conventions, automation boundaries, protected historical evidence handling, local path/repository slug posture, and governance profile expectations. It emits deterministic JSON, degrades gracefully when `gh` or network access is unavailable, and does not mutate files, git state, labels, milestones, issues, PRs, branches, workflows, settings, or artifacts.
 
+Inspect read-only managed repository registry posture across multiple repositories:
+
+```powershell
+python -m aresforge inspect-managed-repos
+```
+
+This command is read-only and safe to run repeatedly. It always includes the current configured AresForge repository as the first default managed repository and can optionally merge additional entries from `config/managed_repositories.json`. It reports deterministic JSON for repository slug, local path posture, default branch, project key, repo role, governance profile, automation status, bootstrap status, documentation roots, artifact roots, allowed automation capabilities, disabled or archived posture, and warnings. It degrades gracefully when local paths, `gh`, or network access are unavailable and does not mutate files, git state, labels, milestones, issues, PRs, branches, workflows, settings, or artifacts.
+
 Run the bounded local review orchestration over the existing read-only operator surfaces:
 
 ```powershell

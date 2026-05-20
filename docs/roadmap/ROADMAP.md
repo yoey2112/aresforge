@@ -84,6 +84,8 @@ Issue #131 adds `inspect-repo-governance`, a reusable read-only command that ins
 
 Issue #132 adds `inspect-repo-bootstrap-contract` and `docs/architecture/MANAGED_REPOSITORY_BOOTSTRAP_CONTRACT.md`, defining reusable required, recommended, optional, and deferred setup areas for managed repositories and providing deterministic read-only bootstrap readiness evaluation before any setup mutation.
 
+Issue #133 adds `inspect-managed-repos` and `docs/architecture/MANAGED_REPOSITORY_REGISTRY.md`, extending M3 with a minimal read-only managed repository registry model that always includes AresForge as the first/default managed repository while supporting additional registered repositories.
+
 ## Planned Milestone Sequence
 
 ### M4 - Local Operator Expansion
@@ -150,6 +152,7 @@ The current M3 phase does not authorize:
 
 - Continue the M3 runtime foundation with broader read-only registry inspection summaries and safer human-triggered helper flows
 - Continue the M3 runtime foundation with reusable managed repository bootstrap readiness checks that remain read-only by default
+- Continue the M3 runtime foundation with reusable managed repository registry visibility that remains read-only by default and deterministic across multiple repository records
 - Extend local operator visibility with safer human-triggered helper commands while keeping queue transitions out of scope and GitHub-state-changing behavior tightly phase-gated
 - Continue improving local review-aid visibility, including deterministic summaries of generated artifacts that remain non-authoritative
 - Continue improving local review-aid visibility, including deterministic single-artifact inspection that remains non-authoritative

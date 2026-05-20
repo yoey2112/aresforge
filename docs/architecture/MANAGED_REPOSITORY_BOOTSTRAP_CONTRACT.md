@@ -20,8 +20,11 @@ This contract supports:
 The bootstrap contract can be inspected through:
 
 - `python -m aresforge inspect-repo-bootstrap-contract`
+- `python -m aresforge inspect-managed-repos`
 
 This command is read-only and deterministic JSON output by design. It reuses existing repository governance inspection where practical and degrades gracefully when GitHub CLI or network access is unavailable.
+
+`inspect-managed-repos` reuses this bootstrap contract evaluation per managed repository entry and surfaces summarized per-repository bootstrap status while keeping read-only boundaries intact.
 
 The command does not mutate files, labels, milestones, issues, pull requests, branches, workflows, settings, artifacts, or git state.
 
