@@ -62,6 +62,7 @@ from aresforge.operator.ready_issue_pipeline import (
 )
 from aresforge.operator.project_state_summary import project_state_summary
 from aresforge.operator.repo_bootstrap_contract import inspect_repo_bootstrap_contract
+from aresforge.operator.repo_bootstrap_plan import plan_repo_bootstrap
 from aresforge.operator.repo_governance import inspect_repo_governance
 from aresforge.operator.qa_closeout_pr import qa_closeout_pr
 from aresforge.operator.qa_pr_validation import qa_review_pr
@@ -238,6 +239,10 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser(
         "managed-repo-readiness-report",
         help="Summarize read-only managed repository readiness for safe automation usage.",
+    )
+    subparsers.add_parser(
+        "plan-repo-bootstrap",
+        help="Generate a read-only deterministic bootstrap setup plan for managed repositories.",
     )
     qa_review_parser = subparsers.add_parser(
         "qa-review-pr",
@@ -604,6 +609,10 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "managed-repo-readiness-report":
         emit_json(managed_repo_readiness_report(config))
+        return 0
+
+    if args.command == "plan-repo-bootstrap":
+        emit_json(plan_repo_bootstrap(config))
         return 0
 
     if args.command == "qa-review-pr":

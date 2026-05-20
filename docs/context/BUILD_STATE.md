@@ -40,7 +40,8 @@ Continue M3 by extending managed repository readiness visibility so AresForge ca
 - Issue #131 was completed through PR #137 and is merged `main` behavior
 - Issue #132 was completed through PR #139 and is merged `main` behavior
 - Issue #133 was completed through PR #140 and is merged `main` behavior
-- Issue #134 is in progress and adds a reusable read-only managed repository readiness report plus deterministic `managed-repo-readiness-report` visibility for registered managed repositories
+- Issue #134 was completed through PR #141 and is merged `main` behavior
+- Issue #135 is in progress and adds a reusable read-only managed repository bootstrap planning command with deterministic plan output and no setup mutation
 - Issue #95 was completed through PR #96 and is merged `main` behavior
 - Issue #97 was completed through PR #98 and is merged `main` behavior
 - Issue #75 remains the last routine reconciliation issue
@@ -105,6 +106,7 @@ The current human-triggered local operator foundation supports:
 - deterministic reusable read-only managed repository bootstrap contract inspection through `inspect-repo-bootstrap-contract`
 - deterministic reusable read-only managed repository registry inspection through `inspect-managed-repos`
 - deterministic reusable read-only managed repository readiness reporting through `managed-repo-readiness-report`
+- deterministic reusable read-only managed repository bootstrap planning through `plan-repo-bootstrap`
 - a human-triggered phase-based PR lifecycle helper for explicit validation, staging, commit and push, PR creation, PR verification, merge verification, post-merge verification, and source-of-truth scanning
 - prompt package, evidence package, and Codex handoff artifact preparation, including opt-in local artifact discovery capture in evidence packages plus opt-in latest local review package capture in evidence and handoff outputs
 - opt-in local review package generation under `artifacts/local_reviews/generated/`

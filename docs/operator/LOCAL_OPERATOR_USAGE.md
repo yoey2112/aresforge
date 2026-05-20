@@ -216,6 +216,14 @@ python -m aresforge managed-repo-readiness-report
 
 This command is read-only and safe to run repeatedly. It inspects registered managed repositories and reports deterministic JSON for repository identity, local path posture, current branch where local, default branch where available, working tree cleanliness where local, governance profile status, bootstrap contract status, required and optional label posture, automation trigger label posture, milestone posture, documentation baseline status, open issue and PR readiness signals, evidence artifact expectations, allowed automation capabilities, warnings, readiness level, recommended next action, and boundary confirmations. It degrades gracefully when local paths, `gh`, `git`, or network access are unavailable and does not mutate files, git state, labels, milestones, issues, PRs, branches, workflows, settings, or artifacts.
 
+Generate a deterministic read-only bootstrap setup plan for managed repositories:
+
+```powershell
+python -m aresforge plan-repo-bootstrap
+```
+
+This command is read-only and safe to run repeatedly. It inspects registered managed repositories, reuses governance and bootstrap/readiness signals where available, and emits deterministic JSON with human-reviewable required, recommended, optional, and deferred setup actions. The plan explicitly includes future setup command placeholders, warnings, and boundary confirmations while making clear that no setup is executed. It degrades gracefully when local paths, `gh`, `git`, network access, or registry data are unavailable and does not mutate files, git state, labels, milestones, issues, PRs, branches, workflows, settings, or artifacts.
+
 Run the bounded local review orchestration over the existing read-only operator surfaces:
 
 ```powershell

@@ -88,6 +88,8 @@ Issue #133 adds `inspect-managed-repos` and `docs/architecture/MANAGED_REPOSITOR
 
 Issue #134 adds `managed-repo-readiness-report`, extending M3 with read-only per-repository readiness classification (`ready`, `attention_needed`, `degraded`, `unavailable`, `disabled`, `archived`) for registered managed repositories while preserving deterministic output and graceful degradation.
 
+Issue #135 adds `plan-repo-bootstrap`, extending M3 with deterministic read-only bootstrap planning for managed repositories that identifies required, recommended, optional, and deferred setup actions without performing setup mutation.
+
 ## Planned Milestone Sequence
 
 ### M4 - Local Operator Expansion
@@ -156,6 +158,7 @@ The current M3 phase does not authorize:
 - Continue the M3 runtime foundation with reusable managed repository bootstrap readiness checks that remain read-only by default
 - Continue the M3 runtime foundation with reusable managed repository registry visibility that remains read-only by default and deterministic across multiple repository records
 - Continue the M3 runtime foundation with reusable managed repository readiness reporting that remains read-only by default and highlights missing automation-trigger labels and milestone posture
+- Continue the M3 runtime foundation with reusable managed repository bootstrap planning that remains read-only by default and prepares human-triggered setup actions without executing setup
 - Extend local operator visibility with safer human-triggered helper commands while keeping queue transitions out of scope and GitHub-state-changing behavior tightly phase-gated
 - Continue improving local review-aid visibility, including deterministic summaries of generated artifacts that remain non-authoritative
 - Continue improving local review-aid visibility, including deterministic single-artifact inspection that remains non-authoritative
