@@ -67,6 +67,7 @@ from aresforge.operator.repo_bootstrap_plan import plan_repo_bootstrap
 from aresforge.operator.repo_governance import inspect_repo_governance
 from aresforge.operator.qa_closeout_pr import qa_closeout_pr
 from aresforge.operator.qa_pr_validation import qa_review_pr
+from aresforge.operator.validate_pr_end_to_end import validate_pr_end_to_end
 from aresforge.operator.service import (
     render_codex_handoff,
     render_evidence_package,
@@ -270,6 +271,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Execute merge and issue closeout only when all gates pass.",
     )
+    validate_end_to_end_parser = subparsers.add_parser(
+        "validate-pr-end-to-end",
+        help="Run end-to-end read-only PR validation orchestration without GitHub mutation.",
+    )
+    validate_end_to_end_parser.add_argument("--pr-number", type=int, required=True)
     inspect_review_parser = subparsers.add_parser(
         "inspect-review-package",
         help="Inspect one generated local review package under the configured review package root.",
@@ -632,6 +638,11 @@ def main(argv: list[str] | None = None) -> int:
         payload = qa_closeout_pr(config, args.pr_number, execute=bool(args.execute))
         emit_json(payload)
         return 0 if not payload["failed_gates"] else 1
+
+    if args.command == "validate-pr-end-to-end":
+        payload = validate_pr_end_to_end(config, args.pr_number)
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
 
     if args.command == "inspect-review-package":
         payload = inspect_local_review_package(config, args.review_path)

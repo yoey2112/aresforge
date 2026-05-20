@@ -6,7 +6,7 @@ M4 - Local Operator Expansion
 
 ## Current Goal
 
-Complete Issue #148 by hardening QA validation-evidence detection so explicit PR-body validation sections are recognized deterministically while preserving strict gates and local-first human-triggered behavior.
+Complete Issue #149 by adding a read-only end-to-end PR validation orchestration command that composes deterministic QA review output and operator-facing next-action guidance without GitHub mutation.
 
 ## Current Repository State
 
@@ -45,8 +45,9 @@ Complete Issue #148 by hardening QA validation-evidence detection so explicit PR
 - Issue #136 was completed through PR #143 and is merged `main` behavior
 - M4 sprint has started under parent sprint Issue #145
 - Issue #146 is complete through PR #150 and is merged `main` behavior
-- Issue #148 is active and is the QA validation-evidence hardening workstream under Issue #145
-- Remaining M4 workstreams after #148 are #149 (validate-pr end-to-end) and #147 (multi-repo governance proof)
+- Issue #148 is complete and merged `main` behavior through PR #151
+- Issue #149 is active and is the M4 end-to-end PR validation orchestration workstream under Issue #145
+- Remaining M4 workstream after #149 is #147 (multi-repo governance proof)
 - Human-triggered bootstrap setup has already been performed for labels and milestones using manual `gh`-driven operations outside AresForge runtime mutation surfaces
 - Required and optional platform labels are present: `aresforge-ready`, `aresforge-automerge`, `aresforge-blocked`, `aresforge-needs-evidence`, `aresforge-needs-docs`, `aresforge-closeout-ready`, `aresforge-managed`, and `aresforge-generated`
 - Canonical platform milestones are present: `M0 - Foundation`, `M1 - Validation`, `M2 - Local Automation Foundation`, `M3 - Registry And Routing Deepening`, and `M4 - Local Operator Expansion`
