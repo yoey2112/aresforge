@@ -8,13 +8,20 @@ The contract is platform-level and is not specific to one repository. The curren
 
 This document introduces read-only governance inspection behavior only. It does not authorize label creation, milestone creation, or any autonomous repository mutation.
 
+The broader managed repository setup contract now lives in `docs/architecture/MANAGED_REPOSITORY_BOOTSTRAP_CONTRACT.md`.
+
 ## Command Surface
 
 The contract is inspected through:
 
 - `python -m aresforge inspect-repo-governance`
+- `python -m aresforge inspect-repo-bootstrap-contract`
 
 This command is human-triggered, read-only, and local-first. It uses GitHub CLI read calls where available and degrades gracefully with explicit warnings when GitHub CLI or network access is unavailable.
+
+`inspect-repo-governance` is focused on reusable labels and milestones.
+
+`inspect-repo-bootstrap-contract` is focused on broader repository bootstrap setup readiness across required, recommended, optional, and deferred setup areas.
 
 ## Reusable Label Contract
 
@@ -83,6 +90,8 @@ Platform milestone naming convention:
 - Milestone state (open or closed) is informational for inspection and does not authorize mutation.
 
 ## Managed Repository Bootstrap Expectations
+
+Canonical bootstrap contract details are defined in `docs/architecture/MANAGED_REPOSITORY_BOOTSTRAP_CONTRACT.md`.
 
 Before automation is considered safe, a newly managed repository should satisfy:
 

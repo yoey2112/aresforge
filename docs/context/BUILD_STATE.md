@@ -6,13 +6,13 @@ M3 - Registry And Routing Deepening
 
 ## Current Goal
 
-Continue M3 by adding a reusable read-only repository governance inspection layer for labels and milestones, while preserving local-first human-triggered boundaries and non-mutating defaults.
+Continue M3 by defining a reusable managed repository bootstrap contract and adding read-only bootstrap contract inspection, while preserving local-first human-triggered boundaries and non-mutating defaults.
 
 ## Current Repository State
 
-- Current branch: `m3/reusable-label-milestone-governance`
-- Latest `main` commit: `ea0cb40` (`M3: add project state summary command (#130)`)
-- Latest runtime-affecting merged foundation commit: `ea0cb40` (`M3: add project state summary command (#130)`)
+- Current branch: `m3/managed-repo-bootstrap-contract`
+- Latest `main` commit: `cc7580d` (`M3: add reusable repository governance inspection (#131) (#137)`)
+- Latest runtime-affecting merged foundation commit: `cc7580d` (`M3: add reusable repository governance inspection (#131) (#137)`)
 - Issue #105 was completed through PR #106 and is merged `main` behavior
 - Issue #107 was completed through PR #108 and is merged `main` behavior
 - Issue #109 was completed through PR #111 and is merged `main` behavior
@@ -37,7 +37,8 @@ Continue M3 by adding a reusable read-only repository governance inspection laye
 - Issue #120 is merged `main` behavior and provides `run-ready-issue-pipeline` orchestration with explicit mode gating
 - Issue #127 is merged `main` behavior and provides read-only `run-ready-issue-batch --plan-only` plus `automation-readiness-report`, deterministic batch artifact generation, and optional local-only selected issue handoff package generation
 - Issue #129 was completed through PR #130 and is merged `main` behavior
-- Issue #131 is in progress and adds `inspect-repo-governance` for reusable read-only label and milestone governance inspection with graceful degradation
+- Issue #131 was completed through PR #137 and is merged `main` behavior
+- Issue #132 is in progress and adds a reusable managed repository bootstrap contract plus read-only `inspect-repo-bootstrap-contract` evaluation
 - Issue #95 was completed through PR #96 and is merged `main` behavior
 - Issue #97 was completed through PR #98 and is merged `main` behavior
 - Issue #75 remains the last routine reconciliation issue
@@ -99,6 +100,7 @@ The current human-triggered local operator foundation supports:
 - deterministic read-only automation readiness dashboard reporting through `automation-readiness-report`
 - deterministic local-first read-only project state reporting through `project-state-summary`
 - deterministic reusable read-only repository governance inspection through `inspect-repo-governance`
+- deterministic reusable read-only managed repository bootstrap contract inspection through `inspect-repo-bootstrap-contract`
 - a human-triggered phase-based PR lifecycle helper for explicit validation, staging, commit and push, PR creation, PR verification, merge verification, post-merge verification, and source-of-truth scanning
 - prompt package, evidence package, and Codex handoff artifact preparation, including opt-in local artifact discovery capture in evidence packages plus opt-in latest local review package capture in evidence and handoff outputs
 - opt-in local review package generation under `artifacts/local_reviews/generated/`
@@ -126,6 +128,7 @@ The current M3 implementation does allow:
 - local review package generation only when explicitly requested
 - opt-in latest local review package capture in handoff and evidence outputs
 - read-only repository governance inspection for reusable label and milestone contract visibility
+- read-only repository bootstrap contract inspection for reusable setup readiness visibility
 - bounded local model inspection, listing, and Ollama dry-run checks
 - bounded local model inspection, listing, and Ollama dry-run checks without autonomous selection or routing
 
@@ -144,6 +147,7 @@ The current M3 implementation does not authorize:
 
 - Use `project-state-summary` as the first M3 local-first status checkpoint before planning or closeout work
 - Continue M3 registry and routing deepening through broader read-only summaries and safer helper flows
+- Continue M3 managed-repository readiness work with reusable bootstrap contract evaluation before any setup mutation
 - Continue deterministic local review orchestration, review package inspection, and auditable handoff or evidence capture that remain human-triggered and local-only
 - Extend local operator visibility while keeping queue transitions and GitHub-state-changing behavior tightly human-triggered and reviewable
 - Optionally perform local historical branch cleanup as separate human-directed repository hygiene work
