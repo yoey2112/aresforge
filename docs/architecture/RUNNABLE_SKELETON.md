@@ -103,6 +103,8 @@ The `plan-ready-issue` command is a decision-only GitHub intake helper for one r
 
 The `qa-review-pr` command is a validation-only GitHub PR inspection helper. It reads PR metadata, detects linked issues and changed files, checks for validation evidence, and emits deterministic JSON with pass/fail/blocked decisions. It does not create PRs, merge PRs, close issues, comment on PRs, label issues, or mutate GitHub state.
 
+The `qa-closeout-pr` command is a human-triggered QA-gated closeout helper with dry-run as the default safety mode. In dry-run mode it performs no GitHub mutation and emits deterministic JSON describing pass/fail gate status. Execute mode is explicit (`--execute`) and allowed only when all closeout gates pass, including required manual labels (`aresforge-ready` and `aresforge-automerge`) on the linked issue, pass-level `qa-review-pr` decision, and Issue #39 protection checks. When fully eligible, execute mode may squash-merge the target PR, delete the remote branch through merge flow, comment on the linked issue, and close only that linked issue.
+
 The `inspect-queue` and `inspect-work-item` commands are read-only registry-aware inspection helpers. They expand local queue and work-item records into richer JSON views, but they do not transition queues, mutate routing, authorize autonomous routing, or authorize GitHub-state-changing behavior.
 
 The `list-models` command is a read-only local listing helper for seeded local model rows. It emits deterministic JSON, does not require Ollama to be running, and does not select a model, recommend a model, or route a task.
