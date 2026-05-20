@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This guide explains how to run the current local AresForge operator surfaces introduced during M2.
+This guide explains how to run the current local AresForge operator surfaces introduced during M2 and expanded during M3.
 
 ## Setup
 
@@ -231,6 +231,20 @@ python -m aresforge demo-managed-repo-governance
 ```
 
 This command is read-only and safe to run repeatedly. It composes `inspect-repo-governance`, `inspect-repo-bootstrap-contract`, `inspect-managed-repos`, `managed-repo-readiness-report`, and `plan-repo-bootstrap` into one deterministic end-to-end demo payload for the current configured managed repository context. It emits `demo_summary`, `demo_steps`, stack outputs, warnings, recommended next action, QA validation expectations, documentation expectations, and boundary confirmations. Attention-needed items are preserved (not hidden), and the command degrades gracefully when `gh`, `git`, network access, local path checks, or registry data are unavailable. It does not mutate files, git state, labels, milestones, issues, PRs, branches, workflows, settings, or artifacts.
+
+Recommended full governance-stack flow:
+
+```powershell
+python -m aresforge inspect-repo-governance
+python -m aresforge inspect-repo-bootstrap-contract
+python -m aresforge inspect-managed-repos
+python -m aresforge managed-repo-readiness-report
+python -m aresforge plan-repo-bootstrap
+python -m aresforge demo-managed-repo-governance
+python -m aresforge project-state-summary
+```
+
+This full flow remains read-only and human-triggered. It provides reusable governance inspection, bootstrap contract visibility, managed repository registry posture, readiness classification, setup planning placeholders, end-to-end demo output, and consolidated project-state context without setup mutation.
 
 Run the bounded local review orchestration over the existing read-only operator surfaces:
 

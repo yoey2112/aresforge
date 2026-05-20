@@ -47,6 +47,7 @@ During M3, implementation remains human-triggered and human-reviewed. Agents may
 - Issue #134 extends M3 with `managed-repo-readiness-report`, a reusable read-only managed repository readiness command that classifies safe automation readiness levels per registered repository with deterministic JSON and graceful degradation
 - Issue #135 extends M3 with `plan-repo-bootstrap`, a reusable read-only managed repository bootstrap planning command that emits deterministic required, recommended, optional, and deferred setup actions without performing setup mutation
 - Issue #136 extends M3 with `demo-managed-repo-governance`, a reusable read-only end-to-end managed repository governance demo command that composes inspection, contract, registry, readiness, and bootstrap-plan outputs while preserving warnings and boundary confirmations
+- Issue #138 is the M3 source-of-truth reconciliation closeout issue for the completed managed repository governance stack and should remain docs-focused unless a tiny validation or wording-consistency fix is required
 - Issue #101 was completed through PR #102 and added merged `main` support for read-only local model inspection without introducing model selection, routing, or GitHub-state-changing behavior
 - Issue #97 was completed through PR #98 and added merged `main` support for read-only local project inspection without changing routing, queue state, or GitHub state
 - Issue #99 was completed through PR #100 and added merged `main` support for a human-triggered PR lifecycle helper that keeps validation, staging, PR creation, PR verification, merge execution, post-merge verification, and source-of-truth scanning phase-gated and visible
@@ -130,6 +131,7 @@ The local operator may currently support:
 - deterministic reusable read-only managed repository readiness reporting via `managed-repo-readiness-report`
 - deterministic reusable read-only managed repository bootstrap planning via `plan-repo-bootstrap`
 - deterministic reusable read-only managed repository governance demo reporting via `demo-managed-repo-governance`
+- current default managed repository readiness posture should be treated as `attention_needed` until `aresforge-automerge`, optional platform-known labels, canonical platform milestones, and project-specific milestone mapping documentation are aligned
 - a human-triggered PR lifecycle helper that requires an explicit phase selection before validation, staging, PR creation, PR verification, merge execution, post-merge verification, or source-of-truth scanning
 - prompt, evidence, and Codex handoff artifact preparation, including opt-in local artifact discovery capture in evidence packages plus opt-in latest local review package capture in evidence and handoff outputs
 - opt-in local review package generation under `artifacts/local_reviews/generated/`
@@ -148,6 +150,7 @@ The current M3 foundation does not authorize:
 - autonomous model selection for governance-sensitive actions
 - autonomous approval, merge, or issue closure
 - autonomous GitHub-state-changing behavior
+- setup mutation commands for managed repository bootstrap areas
 - repo setting, branch protection, ruleset, workflow, secret, release, tag, or GitHub Project changes
 - hidden background workers, bots, daemons, or services that change project state
 - hidden background PR lifecycle execution

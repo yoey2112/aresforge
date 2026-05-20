@@ -92,6 +92,8 @@ Issue #135 adds `plan-repo-bootstrap`, extending M3 with deterministic read-only
 
 Issue #136 adds `demo-managed-repo-governance`, extending M3 with a deterministic read-only end-to-end managed repository governance demo that composes governance inspection, bootstrap contract evaluation, managed repository registry representation, readiness reporting, and bootstrap planning in one safe proof flow without setup mutation.
 
+Issue #138 reconciles source-of-truth documentation after completion of Issues #131 through #136 so roadmap, context, operator usage, and architecture documents remain mutually consistent without introducing new mutation behavior.
+
 ## Planned Milestone Sequence
 
 ### M4 - Local Operator Expansion
@@ -162,6 +164,7 @@ The current M3 phase does not authorize:
 - Continue the M3 runtime foundation with reusable managed repository readiness reporting that remains read-only by default and highlights missing automation-trigger labels and milestone posture
 - Continue the M3 runtime foundation with reusable managed repository bootstrap planning that remains read-only by default and prepares human-triggered setup actions without executing setup
 - Continue the M3 runtime foundation with reusable end-to-end managed repository governance demos that preserve attention-needed posture and explicit read-only boundary confirmations
+- Complete Issue #138 as the M3 source-of-truth reconciliation closeout after governance stack delivery
 - Extend local operator visibility with safer human-triggered helper commands while keeping queue transitions out of scope and GitHub-state-changing behavior tightly phase-gated
 - Continue improving local review-aid visibility, including deterministic summaries of generated artifacts that remain non-authoritative
 - Continue improving local review-aid visibility, including deterministic single-artifact inspection that remains non-authoritative
