@@ -56,11 +56,19 @@ python -m aresforge list-agents
 python -m aresforge list-queues
 ```
 
+Inspect one queue with registry-aware metadata expansion:
+
+```powershell
+python -m aresforge inspect-queue --queue-id queue-implementation
+```
+
 `list-agents` is read-only. It shows the seeded M2 agent-role records that align the local skeleton with the canonical schema in `docs/architecture/AGENT_REGISTRY_SCHEMA.md`.
 
 The current CLI does not yet expose a dedicated `list-models` command. Model metadata is presently visible through `inspect-project-state`, the configured `.env` values, and the seeded local `models` table described in `docs/architecture/LOCAL_STATE_STORE.md`.
 
-The current CLI also does not yet expose a dedicated queue-transition or work-item-state inspection command beyond the seeded queue and work-item listings. Canonical queue meaning, full M2 queue coverage, transition rules, blocked handling, corrective loops, and work-item state fields are defined by `docs/architecture/QUEUE_REGISTRY_SCHEMA.md`.
+`inspect-queue` is read-only. It emits JSON that expands queue metadata into registry-aware fields such as lifecycle-stage mapping, accepted work-item types, allowed next queues, human approval requirements, local operator visibility expectations, and the source document path.
+
+The current CLI still does not expose queue-transition commands or autonomous routing behavior. Canonical queue meaning, full M2 queue coverage, transition rules, blocked handling, corrective loops, and work-item state fields are defined by `docs/architecture/QUEUE_REGISTRY_SCHEMA.md`.
 
 ## Work Item Commands
 
@@ -79,7 +87,15 @@ List work items:
 python -m aresforge list-work-items
 ```
 
-The current runtime can create and list work items against the seeded canonical M2 queue set. Queue-transition logic, blocked or failure handling, and fuller work-item state interpretation still remain documentation-defined in `docs/architecture/QUEUE_REGISTRY_SCHEMA.md` rather than autonomous runtime behavior.
+Inspect one work item with registry-aware queue, agent, and model context:
+
+```powershell
+python -m aresforge inspect-work-item --work-item-id work-123
+```
+
+The current runtime can create and list work items against the seeded canonical M2 queue set. `inspect-work-item` is read-only and emits JSON that combines the work item with queue metadata, optional agent/model references, and work-item metadata fields such as lifecycle state, approval state, blocked reason, failure reason, and retry or correction context when present.
+
+These inspection commands do not transition queues, mutate routing, approve anything, merge anything, close anything, or change GitHub state. Issue #39 remains protected and must not be modified or closed by this operator surface.
 
 ## Prompt, Evidence, And Handoff Artifacts
 

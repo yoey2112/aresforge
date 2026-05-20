@@ -52,6 +52,8 @@ Future agents must treat `docs/architecture/MODEL_REGISTRY_SCHEMA.md` as the can
 
 Future agents must treat `docs/architecture/QUEUE_REGISTRY_SCHEMA.md` as the canonical queue registry and work-item state-transition document. Issue #87 formalizes queue identities, queue meaning, queue transitions, blocked and waiting handling, corrective-loop routing, lifecycle-state mapping, evidence requirements, and local operator visibility expectations. The current local `queues` and `work_items` tables remain conservative runtime reference layers even though the seeded local queue set now covers the canonical initial M2 queue IDs.
 
+The current local operator also exposes read-only `inspect-queue` and `inspect-work-item` commands that expand local queue and work-item records into richer registry-aware JSON views. These commands do not transition queues, mutate routing, approve or merge anything, close Issue #39, or authorize autonomous GitHub-state-changing behavior.
+
 Future agents must treat `docs/architecture/LOCAL_STATE_STORE.md` as the canonical explanation of the new PostgreSQL-backed local state layer and repo-stored migration process.
 
 Future agents must treat `docs/architecture/RUNNABLE_SKELETON.md` as the canonical explanation of the first runnable vertical slice and its explicit boundaries.

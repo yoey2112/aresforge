@@ -505,6 +505,62 @@ def _new_id(prefix: str) -> str:
     return f"{prefix}-{uuid4().hex[:12]}"
 
 
+def enrich_queue_record(row: dict[str, Any]) -> dict[str, Any]:
+    metadata = row.get("metadata") or {}
+    return {
+        "id": row["id"],
+        "name": row["name"],
+        "status": row["status"],
+        "purpose": row["purpose"],
+        "metadata": metadata,
+        "lifecycle_stage_mapping": metadata.get("lifecycle_stage_mapping"),
+        "accepted_work_item_types": metadata.get("accepted_work_item_types"),
+        "allowed_next_queues": metadata.get("allowed_next_queues"),
+        "human_approval_requirement": metadata.get("human_approval_requirement"),
+        "local_operator_visibility_expectations": metadata.get(
+            "local_operator_visibility_expectations"
+        ),
+        "source_document": metadata.get("source_document"),
+    }
+
+
+def enrich_work_item_record(row: dict[str, Any]) -> dict[str, Any]:
+    metadata = row.get("metadata") or {}
+    queue_metadata = row.get("queue_metadata") or {}
+    return {
+        "id": row["id"],
+        "title": row["title"],
+        "description": row["description"],
+        "status": row["status"],
+        "priority": row["priority"],
+        "route_status": row["route_status"],
+        "queue_id": row["queue_id"],
+        "queue_name": row["queue_name"],
+        "queue_purpose": row["queue_purpose"],
+        "queue_lifecycle_stage_mapping": queue_metadata.get("lifecycle_stage_mapping"),
+        "queue_accepted_work_item_types": queue_metadata.get("accepted_work_item_types"),
+        "queue_allowed_next_queues": queue_metadata.get("allowed_next_queues"),
+        "queue_human_approval_requirement": queue_metadata.get("human_approval_requirement"),
+        "queue_local_operator_visibility_expectations": queue_metadata.get(
+            "local_operator_visibility_expectations"
+        ),
+        "agent_id": row.get("agent_id"),
+        "agent_name": row.get("agent_name"),
+        "model_id": row.get("model_id"),
+        "model_name": row.get("model_name"),
+        "model_provider": row.get("model_provider"),
+        "prompt_id": row.get("prompt_id"),
+        "metadata": metadata,
+        "lifecycle_state": metadata.get("lifecycle_state"),
+        "approval_state": metadata.get("approval_state"),
+        "blocked_reason": metadata.get("blocked_reason"),
+        "failure_reason": metadata.get("failure_reason"),
+        "retry_or_correction_context": metadata.get("retry_or_correction_context"),
+        "created_at": row["created_at"],
+        "updated_at": row["updated_at"],
+    }
+
+
 def bootstrap_reference_data(conn: Connection, config: AppConfig) -> None:
     with conn.cursor() as cur:
         cur.execute(
@@ -636,6 +692,22 @@ def list_queues(conn: Connection) -> list[dict[str, Any]]:
         return list(cur.fetchall())
 
 
+def inspect_queue(conn: Connection, queue_id: str) -> dict[str, Any] | None:
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT id, name, status, purpose, metadata
+            FROM queues
+            WHERE id = %s
+            """,
+            (queue_id,),
+        )
+        row = cur.fetchone()
+    if row is None:
+        return None
+    return enrich_queue_record(row)
+
+
 def list_agents(conn: Connection) -> list[dict[str, Any]]:
     with conn.cursor() as cur:
         cur.execute(
@@ -726,6 +798,44 @@ def list_work_items(conn: Connection, status: str | None = None) -> list[dict[st
     with conn.cursor() as cur:
         cur.execute(query, params)
         return list(cur.fetchall())
+
+
+def inspect_work_item(conn: Connection, work_item_id: str) -> dict[str, Any] | None:
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT
+                wi.id,
+                wi.title,
+                wi.description,
+                wi.status,
+                wi.priority,
+                wi.route_status,
+                wi.queue_id,
+                wi.agent_id,
+                wi.model_id,
+                wi.prompt_id,
+                wi.metadata,
+                wi.created_at,
+                wi.updated_at,
+                q.name AS queue_name,
+                q.purpose AS queue_purpose,
+                q.metadata AS queue_metadata,
+                a.name AS agent_name,
+                m.name AS model_name,
+                m.provider AS model_provider
+            FROM work_items wi
+            JOIN queues q ON q.id = wi.queue_id
+            LEFT JOIN agents a ON a.id = wi.agent_id
+            LEFT JOIN models m ON m.id = wi.model_id
+            WHERE wi.id = %s
+            """,
+            (work_item_id,),
+        )
+        row = cur.fetchone()
+    if row is None:
+        return None
+    return enrich_work_item_record(row)
 
 
 def inspect_state(conn: Connection) -> dict[str, Any]:
