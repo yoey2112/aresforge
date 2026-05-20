@@ -18,6 +18,7 @@ def test_cli_has_expected_commands() -> None:
         "validate-registries",
         "migrate",
         "inspect-project-state",
+        "inspect-project",
         "inspect-queue",
         "inspect-work-item",
         "list-projects",
@@ -73,6 +74,9 @@ def test_cli_route_status_defaults_use_canonical_vocabulary() -> None:
 def test_cli_inspection_commands_require_expected_ids() -> None:
     parser = build_parser()
 
+    inspect_project_args = parser.parse_args(["inspect-project", "--project-id", "project-aresforge"])
+    assert inspect_project_args.project_id == "project-aresforge"
+
     inspect_queue_args = parser.parse_args(["inspect-queue", "--queue-id", "queue-implementation"])
     assert inspect_queue_args.queue_id == "queue-implementation"
     assert inspect_queue_args.write_artifact is False
@@ -82,6 +86,13 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     )
     assert inspect_work_item_args.work_item_id == "work-123"
     assert inspect_work_item_args.write_artifact is False
+
+
+def test_cli_inspect_project_requires_project_id() -> None:
+    parser = build_parser()
+
+    with pytest.raises(SystemExit):
+        parser.parse_args(["inspect-project"])
 
 
 def test_cli_inspection_commands_accept_write_artifact_flag() -> None:
@@ -165,6 +176,90 @@ def test_inspect_queue_preserves_json_shape_without_write_artifact(
 
     assert exit_code == 0
     assert payload == {"ok": True, "queue": queue_payload}
+
+
+def test_inspect_project_preserves_json_shape_when_found(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    project_payload = {
+        "id": "project-aresforge",
+        "slug": "aresforge",
+        "name": "AresForge",
+        "status": "active",
+        "repo_owner": "yoey2112",
+        "repo_name": "aresforge",
+        "default_branch": "main",
+        "local_path": "C:\\Projects\\aresforge",
+        "metadata": {
+            "autonomy_level": "human_triggered_local_only",
+            "protected_issue": 39,
+            "active_issue": 97,
+            "completed_issue": 96,
+        },
+        "autonomy_level": "human_triggered_local_only",
+        "protected_issue": 39,
+        "active_issue": 97,
+        "completed_issue": 96,
+        "updated_at": "2026-05-20T00:00:00Z",
+    }
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(cli, "inspect_project", lambda _conn, _project_id: project_payload)
+
+    exit_code = cli.main(["inspect-project", "--project-id", "project-aresforge"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert payload == {"ok": True, "project": project_payload}
+
+
+def test_inspect_project_returns_not_found_with_exit_code_one(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(cli, "inspect_project", lambda _conn, _project_id: None)
+
+    exit_code = cli.main(["inspect-project", "--project-id", "project-missing"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 1
+    assert payload == {
+        "ok": False,
+        "error": "project_not_found",
+        "project_id": "project-missing",
+    }
+
+
+def test_inspect_project_is_read_only_dispatch(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(cli, "inspect_project", lambda _conn, _project_id: {"id": _project_id})
+    monkeypatch.setattr(
+        cli,
+        "test_generate",
+        lambda *_args, **_kwargs: pytest.fail("inspect-project must not call Ollama"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "create_work_item",
+        lambda *_args, **_kwargs: pytest.fail("inspect-project must not create work items"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "build_route_plan",
+        lambda *_args, **_kwargs: pytest.fail("inspect-project must not route work"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "bootstrap_reference_data",
+        lambda *_args, **_kwargs: pytest.fail("inspect-project must not bootstrap state"),
+    )
+
+    exit_code = cli.main(["inspect-project", "--project-id", "project-aresforge"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert payload == {"ok": True, "project": {"id": "project-aresforge"}}
 
 
 def test_list_models_emits_valid_json_without_ollama(

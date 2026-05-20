@@ -6,7 +6,7 @@ The project registry exists so AresForge can describe each managed project with 
 
 The first use case is AresForge managing itself. Later, the same schema should support additional managed projects without collapsing their ownership, source-of-truth rules, approval boundaries, or documentation entry points into AresForge's own project memory.
 
-During M2, this schema is documentation-only architecture. It defines intended project-record structure and validation expectations, but it does not implement storage, commands, workflows, scripts, or runtime behavior.
+During M2, this schema remains primarily documentation-driven architecture. The local runnable skeleton now exposes a narrow read-only `inspect-project` helper over the seeded `projects` table, but that helper is inspection-only and does not replace this document as the canonical source of meaning for project records.
 
 ## Relationship To Registry Architecture
 
@@ -15,6 +15,8 @@ During M2, this schema is documentation-only architecture. It defines intended p
 This document specializes only the project registry portion of that architecture. It turns the project-registry concept into a clearer schema design that future issues can reuse when defining project records, project onboarding rules, local operator inputs, queue routing inputs, and multi-project support boundaries.
 
 This document does not implement registry storage, registry loading, runtime queue behavior, dashboard synchronization, or any other executable capability.
+
+The current local `inspect-project` helper should be understood as a conservative visibility surface only. It reads a stored project row, returns explicit JSON for human review, and expands selected metadata fields into top-level output without authorizing routing, automation, or GitHub-state-changing behavior.
 
 ## Core Project Definitions
 

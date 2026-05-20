@@ -30,6 +30,7 @@ During M2, implementation remains human-triggered and human-reviewed. Agents may
 - Current local runtime foundations are local-first, human-triggered, read-only where possible, and non-authoritative
 - Issue #92 and Issue #93 are completed through PR #94 and are merged `main` behavior
 - The docs-only correction at commit `42b02dd` fixed stale post-closeout wording on `main` without creating a new routine reconciliation issue
+- Issue #97 adds a current-branch `inspect-project` command for read-only local project inspection without changing routing, queue state, or GitHub state
 
 ## Canonical Documents Agents Must Consult
 
@@ -80,6 +81,7 @@ The local operator may currently support:
 - config and registry validation
 - local database migrations
 - local state inspection
+- read-only local project inspection from the `projects` table
 - deterministic read-only local model listing
 - read-only queue and work-item inspection
 - read-only inspection report artifact generation

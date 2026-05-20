@@ -56,6 +56,12 @@ Inspect local state:
 python -m aresforge inspect-project-state
 ```
 
+Inspect one local project record with expanded metadata:
+
+```powershell
+python -m aresforge inspect-project --project-id project-aresforge
+```
+
 List projects and queues:
 
 ```powershell
@@ -80,6 +86,8 @@ python -m aresforge inspect-queue --queue-id queue-implementation --write-artifa
 `list-agents` is read-only. It shows the seeded M2 agent-role records that align the local skeleton with the canonical schema in `docs/architecture/AGENT_REGISTRY_SCHEMA.md`.
 
 `list-models` is read-only and local-only. It emits deterministic JSON for seeded local `models` rows without calling Ollama, selecting a model, recommending a model, routing a task, or mutating local or GitHub state. It exposes stored row fields plus any existing model metadata already present in the local state store.
+
+`inspect-project` is read-only and local-only. It reads only from the local `projects` table and emits JSON shaped as `{"ok": true, "project": {...}}` when found. It expands stored project metadata into visible top-level fields such as `autonomy_level`, `protected_issue`, `active_issue`, and `completed_issue`. If the requested project row is missing, it emits `{"ok": false, "error": "project_not_found", "project_id": "<requested id>"}` and returns exit code `1`.
 
 `inspect-queue` is read-only and local-only. It emits JSON that expands queue metadata into registry-aware fields such as lifecycle-stage mapping, accepted work-item types, allowed next queues, human approval requirements, local operator visibility expectations, and the source document path. With `--write-artifact`, it still emits JSON and additionally includes `inspection_payload`, `markdown_path`, and `json_path` for a local report written under `artifacts/inspection_reports/generated/`.
 
@@ -170,6 +178,7 @@ python -m aresforge --help
 python -m aresforge validate-config
 python -m aresforge validate-registries
 python -m aresforge migrate --plan
+python -m aresforge inspect-project --project-id project-aresforge
 git diff --check
 git diff --cached --check
 git status --short
@@ -180,6 +189,7 @@ If PostgreSQL is running locally, also run:
 ```powershell
 python -m aresforge migrate
 python -m aresforge inspect-project-state
+python -m aresforge inspect-project --project-id project-aresforge
 python -m aresforge list-models
 ```
 
