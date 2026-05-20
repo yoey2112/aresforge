@@ -283,6 +283,8 @@ The future agent registry should import and formalize those lifecycle roles, inc
 
 ## Model Registry
 
+`docs/architecture/MODEL_REGISTRY_SCHEMA.md` is the canonical M2 source-of-truth document for model records and bounded local LLM routing rules.
+
 ### Purpose
 
 The model registry should define which local and later-approved external models are available for which capabilities, under which privacy, cost, validation, and approval constraints.
@@ -300,6 +302,7 @@ The model registry should define which local and later-approved external models 
 The future model registry should be authoritative for approved model options, capability fit metadata, routing constraints, and validation expectations tied to model choice.
 
 It should not replace governance decisions about whether a class of work is allowed at all.
+It also should not replace the dedicated model-registry schema document that defines required record fields, local endpoint conventions, task-class rules, routing-priority rules, fallback rules, and evidence expectations for M2.
 
 ### Minimum Future Fields
 
@@ -336,6 +339,7 @@ It should not replace governance decisions about whether a class of work is allo
 Model routing should prefer local models first when capability, privacy, and validation quality are sufficient for the requested work.
 
 The routing layer should treat local-first preference as a policy input, not as proof that every local model is acceptable for every task.
+The dedicated routing conventions now live in `docs/architecture/MODEL_REGISTRY_SCHEMA.md`.
 
 ### Ollama / Local Model Use
 
@@ -360,6 +364,12 @@ Model routing should consider:
 - Whether a second model or human review is required for higher-risk conclusions
 
 Validation-support models should generally be held to stricter evidence expectations than implementation-support models.
+
+### Relationship To The Runnable Skeleton
+
+Issue #81 introduced a minimal runnable local `models` table plus a human-triggered `test-ollama` connectivity check.
+
+Issue #85 does not turn that surface into autonomous runtime routing. Instead, it defines the documentation-first schema and routing rules that later human-triggered operator helpers or read-only inspection commands may follow.
 
 ## Queue Registry
 
@@ -649,6 +659,7 @@ Model routing should then select the best local or later-approved model that sat
 Validation-support models differ from implementation-support models because they are expected to produce review-quality evidence, skepticism, and risk detection rather than only draft generation.
 
 Privacy, cost, and performance should influence routing explicitly rather than being left to hidden preference.
+During M2, routing recommendations remain advisory or human-triggered only, with governance-sensitive actions explicitly blocked from autonomous selection.
 
 ## Human Approval Boundaries
 

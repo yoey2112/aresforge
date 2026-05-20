@@ -16,6 +16,8 @@ The goal is not a polished autonomous system. The goal is to make AresForge exec
 - test local Ollama connectivity
 - prepare Codex handoff files
 
+The canonical source-of-truth for model-record meaning and bounded local routing rules is now `docs/architecture/MODEL_REGISTRY_SCHEMA.md`.
+
 ## Implemented Structure
 
 The runnable skeleton introduces these repo areas:
@@ -80,6 +82,7 @@ The Ollama adapter is intentionally small:
 - graceful failure when Ollama is not running
 
 It is a connectivity and interface check, not a full orchestration runtime.
+It does not implement autonomous routing, policy-driven model selection, hosted fallback, or governance-sensitive task handling.
 
 ## Codex Boundary
 
