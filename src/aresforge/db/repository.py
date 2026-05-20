@@ -15,13 +15,246 @@ DEFAULT_PROJECT_ID = "project-aresforge"
 DEFAULT_AGENT_ID = "agent-local-operator"
 DEFAULT_MODEL_ID = "model-ollama-default"
 DEFAULT_AGENT_REGISTRY_VERSION = "m2-v1"
-DEFAULT_QUEUES = {
-    "queue-intake": ("intake", "New work waiting for classification."),
-    "queue-planning": ("planning", "Work being prepared for implementation."),
-    "queue-implementation": ("implementation", "Active implementation work."),
-    "queue-verification": ("verification", "Validation and review work."),
-    "queue-documentation": ("documentation", "Documentation and evidence closeout."),
-}
+QUEUE_SCHEMA_SOURCE_DOCUMENT = "docs/architecture/QUEUE_REGISTRY_SCHEMA.md"
+CANONICAL_QUEUE_IDS = (
+    "queue-intake",
+    "queue-planning",
+    "queue-triage",
+    "queue-implementation",
+    "queue-verification",
+    "queue-testing",
+    "queue-documentation",
+    "queue-closeout",
+    "queue-blocked",
+    "queue-corrective",
+)
+DEFAULT_QUEUES = (
+    {
+        "id": "queue-intake",
+        "name": "intake",
+        "purpose": "Capture new approved work before detailed planning or triage.",
+        "metadata": {
+            "lifecycle_stage_mapping": "planning",
+            "accepted_work_item_types": [
+                "github_issue",
+                "documentation_update",
+                "closeout_package",
+            ],
+            "allowed_next_queues": ["queue-planning", "queue-blocked"],
+            "human_approval_requirement": "human_review_required",
+            "local_operator_visibility_expectations": [
+                "visible issue reference",
+                "required docs",
+                "project",
+                "approval posture",
+            ],
+            "source_document": QUEUE_SCHEMA_SOURCE_DOCUMENT,
+        },
+    },
+    {
+        "id": "queue-planning",
+        "name": "planning",
+        "purpose": "Shape approved work into a bounded issue-scoped execution target.",
+        "metadata": {
+            "lifecycle_stage_mapping": "planning",
+            "accepted_work_item_types": ["github_issue", "documentation_update"],
+            "allowed_next_queues": ["queue-triage", "queue-blocked"],
+            "human_approval_requirement": "human_review_required",
+            "local_operator_visibility_expectations": [
+                "visible scope summary",
+                "dependency notes",
+                "required next queue",
+            ],
+            "source_document": QUEUE_SCHEMA_SOURCE_DOCUMENT,
+        },
+    },
+    {
+        "id": "queue-triage",
+        "name": "triage",
+        "purpose": "Convert the planning package into a bounded route and execution handoff.",
+        "metadata": {
+            "lifecycle_stage_mapping": "triage",
+            "accepted_work_item_types": ["github_issue", "correction_pass"],
+            "allowed_next_queues": ["queue-implementation", "queue-blocked"],
+            "human_approval_requirement": "human_review_required",
+            "local_operator_visibility_expectations": [
+                "visible planned route",
+                "next queue",
+                "blocked reason",
+                "approval posture",
+            ],
+            "source_document": QUEUE_SCHEMA_SOURCE_DOCUMENT,
+        },
+    },
+    {
+        "id": "queue-implementation",
+        "name": "implementation",
+        "purpose": "Hold issue-scoped repository work while implementation changes are being prepared.",
+        "metadata": {
+            "lifecycle_stage_mapping": "implementation",
+            "accepted_work_item_types": ["github_issue", "correction_pass"],
+            "allowed_next_queues": ["queue-verification", "queue-blocked"],
+            "human_approval_requirement": "human_review_required",
+            "local_operator_visibility_expectations": [
+                "visible queue placement",
+                "assigned role",
+                "changed files",
+                "current route status",
+            ],
+            "source_document": QUEUE_SCHEMA_SOURCE_DOCUMENT,
+        },
+    },
+    {
+        "id": "queue-verification",
+        "name": "verification",
+        "purpose": "Confirm that the implementation matches issue requirements and scope.",
+        "metadata": {
+            "lifecycle_stage_mapping": "verification",
+            "accepted_work_item_types": [
+                "github_issue",
+                "verification_pass",
+                "correction_pass",
+            ],
+            "allowed_next_queues": [
+                "queue-testing",
+                "queue-corrective",
+                "queue-blocked",
+            ],
+            "human_approval_requirement": "human_review_required",
+            "local_operator_visibility_expectations": [
+                "visible findings",
+                "pass/fail posture",
+                "correction target when failed",
+            ],
+            "source_document": QUEUE_SCHEMA_SOURCE_DOCUMENT,
+        },
+    },
+    {
+        "id": "queue-testing",
+        "name": "testing",
+        "purpose": "Record issue-appropriate tests, checks, skips, and residual-risk notes before documentation.",
+        "metadata": {
+            "lifecycle_stage_mapping": "testing",
+            "accepted_work_item_types": [
+                "github_issue",
+                "testing_pass",
+                "correction_pass",
+            ],
+            "allowed_next_queues": [
+                "queue-documentation",
+                "queue-corrective",
+                "queue-blocked",
+            ],
+            "human_approval_requirement": "human_review_required",
+            "local_operator_visibility_expectations": [
+                "visible commands or checks run",
+                "result posture",
+                "skipped-check reasons",
+            ],
+            "source_document": QUEUE_SCHEMA_SOURCE_DOCUMENT,
+        },
+    },
+    {
+        "id": "queue-documentation",
+        "name": "documentation",
+        "purpose": "Perform documentation-before-closeout review and update impacted source-of-truth documents.",
+        "metadata": {
+            "lifecycle_stage_mapping": "documentation",
+            "accepted_work_item_types": [
+                "github_issue",
+                "documentation_update",
+                "closeout_package",
+            ],
+            "allowed_next_queues": [
+                "queue-closeout",
+                "queue-corrective",
+                "queue-blocked",
+            ],
+            "human_approval_requirement": "human_review_required",
+            "local_operator_visibility_expectations": [
+                "visible touched docs",
+                "unresolved freshness findings",
+                "documentation gate posture",
+            ],
+            "source_document": QUEUE_SCHEMA_SOURCE_DOCUMENT,
+        },
+    },
+    {
+        "id": "queue-closeout",
+        "name": "closeout",
+        "purpose": "Confirm that all lifecycle gates passed and prepare final human-reviewed closeout readiness.",
+        "metadata": {
+            "lifecycle_stage_mapping": "closeout",
+            "accepted_work_item_types": ["github_issue", "closeout_package"],
+            "allowed_next_queues": ["queue-blocked"],
+            "human_approval_requirement": "human_review_required",
+            "local_operator_visibility_expectations": [
+                "visible gate checklist",
+                "final evidence references",
+                "final human action required",
+            ],
+            "source_document": QUEUE_SCHEMA_SOURCE_DOCUMENT,
+        },
+    },
+    {
+        "id": "queue-blocked",
+        "name": "blocked",
+        "purpose": "Represent work that cannot advance safely because approvals, prerequisites, or missing inputs prevent progress.",
+        "metadata": {
+            "lifecycle_stage_mapping": "blocked",
+            "accepted_work_item_types": ["all_canonical_work_item_types"],
+            "allowed_next_queues": [
+                "queue-intake",
+                "queue-planning",
+                "queue-triage",
+                "queue-implementation",
+                "queue-verification",
+                "queue-testing",
+                "queue-documentation",
+                "queue-closeout",
+                "queue-corrective",
+            ],
+            "human_approval_requirement": "human_review_required",
+            "local_operator_visibility_expectations": [
+                "visible blocked reason",
+                "resume condition",
+                "prior queue",
+                "human decision needed",
+            ],
+            "source_document": QUEUE_SCHEMA_SOURCE_DOCUMENT,
+        },
+    },
+    {
+        "id": "queue-corrective",
+        "name": "corrective",
+        "purpose": "Hold work that failed a lifecycle gate and needs a bounded corrective pass.",
+        "metadata": {
+            "lifecycle_stage_mapping": "corrective",
+            "accepted_work_item_types": [
+                "github_issue",
+                "correction_pass",
+                "verification_pass",
+                "testing_pass",
+                "documentation_update",
+            ],
+            "allowed_next_queues": [
+                "queue-implementation",
+                "queue-verification",
+                "queue-testing",
+                "queue-documentation",
+                "queue-blocked",
+            ],
+            "human_approval_requirement": "human_review_required",
+            "local_operator_visibility_expectations": [
+                "visible failed gate",
+                "targeted corrective queue",
+                "retry notes",
+                "unresolved blockers",
+            ],
+            "source_document": QUEUE_SCHEMA_SOURCE_DOCUMENT,
+        },
+    },
+)
 DEFAULT_AGENT_RECORDS = (
     {
         "id": "agent-planning-next-issue",
@@ -345,7 +578,7 @@ def bootstrap_reference_data(conn: Connection, config: AppConfig) -> None:
                 json.dumps({"default": True}),
             ),
         )
-        for queue_id, (name, purpose) in DEFAULT_QUEUES.items():
+        for record in DEFAULT_QUEUES:
             cur.execute(
                 """
                 INSERT INTO queues (id, name, status, purpose, metadata)
@@ -353,9 +586,16 @@ def bootstrap_reference_data(conn: Connection, config: AppConfig) -> None:
                 ON CONFLICT (id) DO UPDATE
                 SET status = EXCLUDED.status,
                     purpose = EXCLUDED.purpose,
+                    metadata = EXCLUDED.metadata,
                     updated_at = NOW()
                 """,
-                (queue_id, name, "active", purpose, "{}"),
+                (
+                    record["id"],
+                    record["name"],
+                    "active",
+                    record["purpose"],
+                    json.dumps(record["metadata"]),
+                ),
             )
         cur.execute(
             """

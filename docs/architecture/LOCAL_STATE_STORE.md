@@ -99,17 +99,22 @@ The current runnable state store does not yet implement full model-routing polic
 
 ### Queues
 
-Stores visible routing lanes. The initial bootstrap seeds a small set of practical lanes:
+Stores visible routing lanes. The local bootstrap seeds the canonical initial M2 queue set:
 
 - intake
 - planning
+- triage
 - implementation
 - verification
+- testing
 - documentation
+- closeout
+- blocked
+- corrective
 
 The canonical queue meaning, full M2 queue set, blocked or waiting handling, corrective-loop routing, and work-item state-transition rules now live in `docs/architecture/QUEUE_REGISTRY_SCHEMA.md`.
 
-The current seeded local queue rows should be treated as a conservative runnable subset of that canonical schema, not as the complete authoritative queue set.
+The current seeded local queue rows should be treated as a conservative runnable reflection of that canonical schema. Queue meaning still comes from the source-of-truth document, and additional queue fields still live in JSON metadata rather than first-class columns.
 
 ### Work Items
 
@@ -117,7 +122,7 @@ Stores local units of work with queue, optional agent, optional model, optional 
 
 The canonical work-item state meaning now lives in `docs/architecture/QUEUE_REGISTRY_SCHEMA.md`, including `work_item_type`, `lifecycle_state`, `route_status`, `current_queue`, evidence references, blocked or failure context, approval posture, and audit expectations.
 
-The current `work_items` table remains a practical M2 runtime layer that captures part of that meaning through `queue_id`, `status`, `route_status`, `agent_id`, `model_id`, `prompt_id`, and JSON `metadata`.
+The current `work_items` table remains a practical M2 runtime layer that captures part of that meaning through `queue_id`, `status`, `route_status`, `agent_id`, `model_id`, `prompt_id`, and JSON `metadata`. Current CLI defaults now use conservative canonical `route_status` values such as `queued` and `ready`.
 
 ### Prompts And Prompt Runs
 

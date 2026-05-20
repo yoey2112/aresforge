@@ -90,7 +90,7 @@ Current M2 corrective rule:
 
 Next substantive M2 direction:
 
-- Align later local queue seed data and work-item runtime fields with the canonical queue registry without expanding into hosted model use or autonomous GitHub control.
+- Enrich local work-item runtime interpretation and inspection on top of the canonical queue registry without expanding into hosted model use or autonomous GitHub control.
 - Extend the local operator with richer registry-aware inspection now that queue and work-item state meaning is formalized.
 
 ## Full Milestone Roadmap
@@ -191,7 +191,7 @@ Current M2 boundary:
 
 Next substantive M2 direction:
 
-- Next likely issue: align the seeded local queue set and work-item runtime interpretation with the canonical queue schema where human-directed implementation scope allows it
+- Next likely issue: enrich local work-item runtime interpretation and queue-aware inspection now that the seeded local queue set matches the canonical M2 queue IDs
 - Follow with richer registry-aware local operator inspection now that queue and work-item state meaning is in place
 
 ### M3 - Registry and Routing Deepening
@@ -457,7 +457,7 @@ The current M2 phase does not authorize the following:
 
 These are roadmap-driven recommendations only. They are not created issues.
 
-- Define queue registry and work item state transitions.
+- Align local queue seeds and work-item runtime fields with the canonical queue schema.
 - Extend the local operator with richer registry-aware inspection after queue and work-item state meaning is formalized.
 
 ## Maintenance Rules

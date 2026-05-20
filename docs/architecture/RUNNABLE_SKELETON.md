@@ -75,7 +75,7 @@ The current vertical slice is:
 
 That is enough to prove the local execution path without over-designing agents, routing intelligence, or background automation.
 
-The current runnable seed data intentionally remains narrower than the full canonical M2 queue schema. The local database currently exposes only a conservative queue subset while the documentation-defined queue registry already defines the broader lifecycle path, including triage, testing, closeout, blocked, and corrective lanes.
+The current runnable seed data now includes the full canonical initial M2 queue ID set. The local database still remains conservative in field richness, with broader queue and work-item semantics continuing to live in the documentation-defined queue registry and JSON metadata.
 
 ## Ollama Boundary
 

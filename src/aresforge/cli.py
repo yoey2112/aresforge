@@ -57,7 +57,7 @@ def build_parser() -> argparse.ArgumentParser:
     create_work.add_argument("--queue-id", required=True)
     create_work.add_argument("--status", default="queued")
     create_work.add_argument("--priority", default="normal")
-    create_work.add_argument("--route-status", default="planned")
+    create_work.add_argument("--route-status", default="queued")
     create_work.add_argument("--agent-id", default=DEFAULT_AGENT_ID)
     create_work.add_argument("--model-id", default=DEFAULT_MODEL_ID)
     create_work.add_argument("--prompt-id")
@@ -86,7 +86,7 @@ def build_parser() -> argparse.ArgumentParser:
     prompt_parser.add_argument("--queue-id", default="queue-planning")
     prompt_parser.add_argument("--agent-id", default=DEFAULT_AGENT_ID)
     prompt_parser.add_argument("--model-id", default=DEFAULT_MODEL_ID)
-    prompt_parser.add_argument("--route-status", default="planned")
+    prompt_parser.add_argument("--route-status", default="ready")
     prompt_parser.add_argument("--notes", default="")
     prompt_parser.add_argument("--store-db", action="store_true")
 
@@ -123,7 +123,7 @@ def build_parser() -> argparse.ArgumentParser:
     handoff_parser.add_argument("--queue-id", default="queue-implementation")
     handoff_parser.add_argument("--agent-id", default=DEFAULT_AGENT_ID)
     handoff_parser.add_argument("--model-id", default=DEFAULT_MODEL_ID)
-    handoff_parser.add_argument("--route-status", default="handoff-prepared")
+    handoff_parser.add_argument("--route-status", default="ready")
 
     return parser
 

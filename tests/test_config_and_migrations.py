@@ -2,6 +2,7 @@ from pathlib import Path
 
 from aresforge.config import AppConfig
 from aresforge.db.migrations import discover_migrations
+from aresforge.db.repository import CANONICAL_QUEUE_IDS, DEFAULT_QUEUES, QUEUE_SCHEMA_SOURCE_DOCUMENT
 
 
 def test_config_validation_and_directory_creation(tmp_path: Path) -> None:
@@ -32,3 +33,21 @@ def test_discover_migrations_reads_repo_sql_files() -> None:
     repo_root = Path(__file__).resolve().parents[1]
     migrations = discover_migrations(repo_root / "migrations")
     assert [migration.path.name for migration in migrations] == ["0001_initial_schema.sql"]
+
+
+def test_default_queue_seed_set_matches_canonical_m2_queue_ids() -> None:
+    assert {record["id"] for record in DEFAULT_QUEUES} == set(CANONICAL_QUEUE_IDS)
+
+
+def test_default_queue_seed_records_include_canonical_source_document_metadata() -> None:
+    for record in DEFAULT_QUEUES:
+        metadata = record["metadata"]
+        assert metadata["source_document"] == QUEUE_SCHEMA_SOURCE_DOCUMENT
+        assert metadata["human_approval_requirement"] == "human_review_required"
+
+
+def test_default_queue_allowed_next_queues_reference_only_canonical_queue_ids() -> None:
+    canonical_ids = set(CANONICAL_QUEUE_IDS)
+    for record in DEFAULT_QUEUES:
+        allowed_next_queues = record["metadata"]["allowed_next_queues"]
+        assert set(allowed_next_queues).issubset(canonical_ids)
