@@ -43,6 +43,7 @@ During M3, implementation remains human-triggered and human-reviewed. Agents may
 - Issue #129 starts M3 and adds a local-first read-only `project-state-summary` command surface with graceful degradation when local tools or network access are unavailable
 - Issue #131 extends M3 with `inspect-repo-governance`, a reusable read-only label and milestone governance inspection command for managed repositories with graceful degradation when `gh` or network access is unavailable
 - Issue #132 extends M3 with `inspect-repo-bootstrap-contract`, a reusable read-only managed repository bootstrap contract evaluation command that summarizes required, recommended, optional, and deferred setup areas with deterministic JSON and graceful degradation
+- Issue #133 extends M3 with `inspect-managed-repos`, a reusable read-only managed repository registry inspection command that summarizes multiple managed repositories with deterministic JSON and graceful degradation
 - Issue #101 was completed through PR #102 and added merged `main` support for read-only local model inspection without introducing model selection, routing, or GitHub-state-changing behavior
 - Issue #97 was completed through PR #98 and added merged `main` support for read-only local project inspection without changing routing, queue state, or GitHub state
 - Issue #99 was completed through PR #100 and added merged `main` support for a human-triggered PR lifecycle helper that keeps validation, staging, PR creation, PR verification, merge execution, post-merge verification, and source-of-truth scanning phase-gated and visible
@@ -61,6 +62,7 @@ Agents should use these documents as the current M3 canon:
 - `docs/architecture/MODEL_ROUTING_STRATEGY.md`
 - `docs/architecture/REPOSITORY_GOVERNANCE_CONTRACT.md`
 - `docs/architecture/MANAGED_REPOSITORY_BOOTSTRAP_CONTRACT.md`
+- `docs/architecture/MANAGED_REPOSITORY_REGISTRY.md`
 - `docs/architecture/QUEUE_REGISTRY_SCHEMA.md`
 - `docs/architecture/LOCAL_STATE_STORE.md`
 - `docs/architecture/RUNNABLE_SKELETON.md`
@@ -121,6 +123,7 @@ The local operator may currently support:
 - deterministic local-first read-only project state reporting via `project-state-summary`
 - deterministic reusable read-only repository governance inspection via `inspect-repo-governance`
 - deterministic reusable read-only managed repository bootstrap contract inspection via `inspect-repo-bootstrap-contract`
+- deterministic reusable read-only managed repository registry inspection via `inspect-managed-repos`
 - a human-triggered PR lifecycle helper that requires an explicit phase selection before validation, staging, PR creation, PR verification, merge execution, post-merge verification, or source-of-truth scanning
 - prompt, evidence, and Codex handoff artifact preparation, including opt-in local artifact discovery capture in evidence packages plus opt-in latest local review package capture in evidence and handoff outputs
 - opt-in local review package generation under `artifacts/local_reviews/generated/`

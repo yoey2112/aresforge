@@ -6,13 +6,13 @@ M3 - Registry And Routing Deepening
 
 ## Current Goal
 
-Continue M3 by defining a reusable managed repository bootstrap contract and adding read-only bootstrap contract inspection, while preserving local-first human-triggered boundaries and non-mutating defaults.
+Continue M3 by extending managed repository registry coverage so AresForge can represent multiple managed repositories through deterministic read-only inspection, while preserving local-first human-triggered boundaries and non-mutating defaults.
 
 ## Current Repository State
 
-- Current branch: `m3/managed-repo-bootstrap-contract`
-- Latest `main` commit: `cc7580d` (`M3: add reusable repository governance inspection (#131) (#137)`)
-- Latest runtime-affecting merged foundation commit: `cc7580d` (`M3: add reusable repository governance inspection (#131) (#137)`)
+- Current branch: `m3/managed-repo-registry-extension`
+- Latest `main` commit: `61c74f3` (`M3: define managed repository bootstrap contract (#139)`)
+- Latest runtime-affecting merged foundation commit: `61c74f3` (`M3: define managed repository bootstrap contract (#139)`)
 - Issue #105 was completed through PR #106 and is merged `main` behavior
 - Issue #107 was completed through PR #108 and is merged `main` behavior
 - Issue #109 was completed through PR #111 and is merged `main` behavior
@@ -39,6 +39,7 @@ Continue M3 by defining a reusable managed repository bootstrap contract and add
 - Issue #129 was completed through PR #130 and is merged `main` behavior
 - Issue #131 was completed through PR #137 and is merged `main` behavior
 - Issue #132 is in progress and adds a reusable managed repository bootstrap contract plus read-only `inspect-repo-bootstrap-contract` evaluation
+- Issue #133 is in progress and adds a reusable read-only managed repository registry extension plus deterministic `inspect-managed-repos` visibility for multiple managed repositories
 - Issue #95 was completed through PR #96 and is merged `main` behavior
 - Issue #97 was completed through PR #98 and is merged `main` behavior
 - Issue #75 remains the last routine reconciliation issue
@@ -101,6 +102,7 @@ The current human-triggered local operator foundation supports:
 - deterministic local-first read-only project state reporting through `project-state-summary`
 - deterministic reusable read-only repository governance inspection through `inspect-repo-governance`
 - deterministic reusable read-only managed repository bootstrap contract inspection through `inspect-repo-bootstrap-contract`
+- deterministic reusable read-only managed repository registry inspection through `inspect-managed-repos`
 - a human-triggered phase-based PR lifecycle helper for explicit validation, staging, commit and push, PR creation, PR verification, merge verification, post-merge verification, and source-of-truth scanning
 - prompt package, evidence package, and Codex handoff artifact preparation, including opt-in local artifact discovery capture in evidence packages plus opt-in latest local review package capture in evidence and handoff outputs
 - opt-in local review package generation under `artifacts/local_reviews/generated/`

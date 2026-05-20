@@ -16,6 +16,7 @@ The contract is inspected through:
 
 - `python -m aresforge inspect-repo-governance`
 - `python -m aresforge inspect-repo-bootstrap-contract`
+- `python -m aresforge inspect-managed-repos`
 
 This command is human-triggered, read-only, and local-first. It uses GitHub CLI read calls where available and degrades gracefully with explicit warnings when GitHub CLI or network access is unavailable.
 
@@ -119,5 +120,7 @@ This governance layer is intentionally conservative:
 ## Extension Point For Multi-Repository Management
 
 The current runtime inspects the repository configured by `ARESFORGE_GITHUB_OWNER` and `ARESFORGE_GITHUB_REPO`.
+
+M3 also exposes read-only managed repository registry visibility through `inspect-managed-repos`, which keeps the configured AresForge repository as the first/default managed repository and can include additional registered repository slugs without changing governance semantics.
 
 Future multi-repository expansion should keep the same contract shape and add project-scoped selection through registry-backed project identity (for example project ID to repository slug mapping) without changing safety boundaries or governance semantics.

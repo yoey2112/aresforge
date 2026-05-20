@@ -8,6 +8,8 @@ The first use case is AresForge managing itself. Later, the same schema should s
 
 During M2, this schema remains primarily documentation-driven architecture. The local runnable skeleton now exposes a narrow read-only `inspect-project` helper over the seeded `projects` table, but that helper is inspection-only and does not replace this document as the canonical source of meaning for project records.
 
+M3 extends this posture with read-only managed repository registry visibility through `inspect-managed-repos` and `docs/architecture/MANAGED_REPOSITORY_REGISTRY.md`, while keeping this project registry schema as the canonical meaning layer for project identity and authority boundaries.
+
 ## Relationship To Registry Architecture
 
 `docs/architecture/REGISTRY_AND_QUEUE_ARCHITECTURE.md` is the parent registry architecture for AresForge.

@@ -6,6 +6,8 @@ This document defines the M2 documentation-only architecture for AresForge proje
 
 Registries are needed because the existing M2 lifecycle foundation now describes how work should move, but it does not yet define the canonical records that future planning, routing, local operator workflows, local-first LLM selection, queue visibility, and multi-project support should read from.
 
+M3 now adds a minimal read-only managed repository registry extension in `docs/architecture/MANAGED_REPOSITORY_REGISTRY.md` plus `inspect-managed-repos`, which provides deterministic visibility into multiple managed repository records without introducing orchestration mutation behavior.
+
 This document is the architecture bridge between the current issue lifecycle pipeline and future orchestration work. It explains how registry definitions should support the local operator workflow, future prompt package generation, future evidence package generation, future queue routing, future local LLM routing, and future management of projects beyond AresForge itself.
 
 During M2, this architecture is documentation only. It does not implement scripts, commands, workflows, services, queue runners, model routers, dashboard code, registry storage, or autonomous behavior.
