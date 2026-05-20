@@ -6,14 +6,14 @@ M2 - Runnable Local Foundation
 
 ## Current Goal
 
-Continue the M2 runtime foundation by extending human-triggered local operator support with a phase-based PR lifecycle helper that reduces repetitive validation, PR verification, merge verification, and post-merge source-of-truth scanning without introducing autonomous repository or queue control.
+Continue the M2 runtime foundation by extending human-triggered local operator support, read-only registry inspection, and safer helper flows without introducing autonomous repository or queue control.
 
 ## Current Repository State
 
-- Current branch: `codex/issue-99-pr-lifecycle-helper`
-- Latest `main` commit: `daf8e89` (`Add read-only project inspection command (#98)`)
-- Latest runtime-affecting merged foundation commit: `daf8e89` (`Add read-only project inspection command (#98)`)
-- Issue #99 is the active working-branch implementation for a human-triggered PR lifecycle helper script at `scripts/Invoke-AresForgePrLifecycle.ps1`
+- Current branch: `main`
+- Latest `main` commit: `2b69712` (`Add human-triggered PR lifecycle helper (#100)`)
+- Latest runtime-affecting merged foundation commit: `2b69712` (`Add human-triggered PR lifecycle helper (#100)`)
+- Issue #99 was completed through PR #100 and is merged `main` behavior
 - Issue #92 and Issue #93 were completed through PR #94 and are merged `main` behavior
 - `validate-registries`, `inspect-queue --write-artifact`, `inspect-work-item --write-artifact`, and `list-models` are available on `main`
 - Issue #95 was completed through PR #96 and is merged `main` behavior
@@ -59,7 +59,7 @@ The current human-triggered local operator foundation supports:
 - deterministic read-only local project inspection through `inspect-project`
 - read-only queue and work-item inspection
 - read-only inspection report artifact generation through `inspect-queue --write-artifact` and `inspect-work-item --write-artifact`
-- a human-triggered phase-based PR lifecycle helper on the current working branch for explicit validation, staging, commit and push, PR creation, PR verification, merge verification, post-merge verification, and source-of-truth scanning
+- a human-triggered phase-based PR lifecycle helper for explicit validation, staging, commit and push, PR creation, PR verification, merge verification, post-merge verification, and source-of-truth scanning
 - prompt package, evidence package, and Codex handoff artifact preparation
 - bounded local Ollama connectivity and dry-run support
 
@@ -89,7 +89,7 @@ The current M2 implementation does not authorize:
 
 ## Next Recommended Direction
 
-- Complete and validate the current Issue #99 helper branch, then merge the human-triggered PR lifecycle helper into `main`
+- Use the merged human-triggered PR lifecycle helper to reduce repetitive PR validation, merge verification, and source-of-truth scanning work
 - Continue the M2 runtime foundation with richer read-only registry inspection views and safer human-triggered helper flows where useful
 - Extend local operator visibility while keeping queue transitions and GitHub-state-changing behavior tightly human-triggered and reviewable
 - Optionally perform local historical branch cleanup as separate human-directed repository hygiene work

@@ -44,7 +44,7 @@ PR #96 completed Issue #95 and extended the M2 operator foundation with a human-
 
 PR #98 completed Issue #97 and extended the merged `main` M2 operator foundation with a human-triggered, local-only, read-only `inspect-project` command that reads only from the local `projects` table, expands stored project metadata into visible JSON fields, and returns explicit found or `project_not_found` results without introducing routing, automation, or GitHub-state-changing behavior.
 
-Issue #99 is the current M2 working-branch extension. It adds a human-triggered PowerShell PR lifecycle helper that keeps validation, staging, commit and push, PR creation, PR verification, merge execution, post-merge verification, and source-of-truth scanning explicit and phase-gated rather than autonomous or hidden.
+PR #100 completed Issue #99 and extended the merged `main` M2 operator foundation with a human-triggered PowerShell PR lifecycle helper that keeps validation, staging, commit and push, PR creation, PR verification, merge execution, post-merge verification, and source-of-truth scanning explicit and phase-gated rather than autonomous or hidden.
 
 ## Planned Milestone Sequence
 

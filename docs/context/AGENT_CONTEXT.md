@@ -31,7 +31,7 @@ During M2, implementation remains human-triggered and human-reviewed. Agents may
 - Issue #92 and Issue #93 are completed through PR #94 and are merged `main` behavior
 - The docs-only correction at commit `42b02dd` fixed stale post-closeout wording on `main` without creating a new routine reconciliation issue
 - Issue #97 was completed through PR #98 and added merged `main` support for read-only local project inspection without changing routing, queue state, or GitHub state
-- Issue #99 is the active working-branch implementation for a human-triggered PR lifecycle helper that keeps validation, staging, PR creation, PR verification, merge execution, post-merge verification, and source-of-truth scanning phase-gated and visible
+- Issue #99 was completed through PR #100 and added merged `main` support for a human-triggered PR lifecycle helper that keeps validation, staging, PR creation, PR verification, merge execution, post-merge verification, and source-of-truth scanning phase-gated and visible
 
 ## Canonical Documents Agents Must Consult
 
