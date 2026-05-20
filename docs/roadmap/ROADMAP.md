@@ -39,11 +39,11 @@ Status: Completed enough to proceed to M2.
 
 M1 validated manual, human-reviewed GitHub operations across issue, PR, label, milestone, release/tag, workflow/artifact, branch/ruleset, and issue-state areas. Known limitations remain intentionally documented, especially for GitHub Projects v2 access, absent workflow/artifact data, absent branch protection/rulesets, and production release governance.
 
-### M2 - Documentation Automation / Documentation Agent Foundation
+### M2 - Documentation Automation / Runnable Local Foundation
 
 Status: Active.
 
-M2 is still documentation-only and design-first. It defines the documentation agent operating model, freshness checks, evidence packages, handoff templates, prompt package templates, PR and closeout evidence templates, the issue lifecycle pipeline, the documentation-before-closeout gate, and the local operator workflow model.
+M2 began as documentation-only and design-first, but Issue #81 pivots it into a runnable local foundation. M2 now includes the documentation agent operating model, freshness checks, evidence packages, handoff templates, prompt package templates, PR and closeout evidence templates, the issue lifecycle pipeline, the documentation-before-closeout gate, the local operator workflow model, and the first human-triggered runnable local operator skeleton.
 
 Current corrective closeout outcome:
 
@@ -54,10 +54,18 @@ Current completed M2 design deliverable:
 - Issue #77: Define project, agent, model, and queue registry architecture, completed and closed through PR #78.
 - `docs/architecture/REGISTRY_AND_QUEUE_ARCHITECTURE.md` remains the completed canonical M2 registry and queue architecture deliverable.
 
-Current active M2 design deliverable:
+Current completed M2 design deliverable:
 
-- Issue #79: Define project registry schema, active.
-- `docs/architecture/PROJECT_REGISTRY_SCHEMA.md` is the current canonical M2 project registry schema design deliverable.
+- Issue #79: Define project registry schema, completed and closed through PR #80.
+- `docs/architecture/PROJECT_REGISTRY_SCHEMA.md` is the canonical M2 project registry schema artifact.
+
+Current active M2 implementation pivot:
+
+- Issue #81: Build runnable local skeleton and automation foundation, active.
+- The Issue #81 runnable implementation is documented by:
+  - `docs/architecture/LOCAL_STATE_STORE.md`
+  - `docs/architecture/RUNNABLE_SKELETON.md`
+  - `docs/operator/LOCAL_OPERATOR_USAGE.md`
 
 Current M2 corrective rule:
 
@@ -65,10 +73,10 @@ Current M2 corrective rule:
 - Issue #75 should be the last routine reconciliation issue.
 - Separate related source-of-truth documentation update issues should not be created by default because that recreates the reconciliation loop.
 
-Next substantive M2 design direction:
+Next substantive M2 direction:
 
-- Complete the project registry schema so the registry architecture has a reusable self-project and external-project record model.
-- Next likely issue after Issue #79: Define agent registry schema and lifecycle states.
+- Validate and iterate on the first runnable local skeleton without expanding into autonomous GitHub control.
+- Next likely design/implementation issue after Issue #81: define agent registry schema and lifecycle states, then deepen queue/model routing against the runnable local foundation.
 
 ## Full Milestone Roadmap
 
@@ -123,13 +131,13 @@ Known limitations retained:
 - Branch protection and ruleset validation remains read-only and reflects current repo state
 - Production release governance is not yet authorized
 
-### M2 - Documentation Automation / Documentation Agent Foundation
+### M2 - Documentation Automation / Runnable Local Foundation
 
 Status: Active.
 
 Goal:
 
-Establish the documentation-first operating model that must exist before any broader AresForge automation is considered.
+Establish the documentation-first operating model and the first practical local runtime foundation that must exist before any broader AresForge automation is considered.
 
 Completed and active scope:
 
@@ -143,28 +151,33 @@ Completed and active scope:
 - Issue lifecycle pipeline
 - Documentation-before-closeout gate
 - Local operator workflow design
+- Project registry schema design completed via Issue #79 and merged PR #80
 - Registry and queue architecture design completed via Issue #77 and merged PR #78
-- Project registry schema design active via Issue #79
+- Runnable local operator skeleton active via Issue #81
+- PostgreSQL local state-store foundation
+- Repo-stored SQL migrations
+- Human-reviewable prompt/evidence/Codex handoff artifact generation
+- Minimal Ollama adapter and dry-run check
 - M2 reconciliation history through Issues #49, #57, #67, #69, #71, and closed Issue #75 via PR #76
 
 Current M2 boundary:
 
-- Documentation-only and design-only where implementation has not happened
+- Human-triggered local runtime implementation is now allowed where Issue #81 explicitly implements it
 - Human-reviewed controls remain mandatory
-- No runnable automation is authorized during current M2 work
+- No autonomous GitHub-state-changing behavior is authorized during current M2 work
 
-Next substantive M2 design direction:
+Next substantive M2 direction:
 
-- Complete `docs/architecture/PROJECT_REGISTRY_SCHEMA.md` as the current M2 design deliverable
+- Validate and extend the Issue #81 local runtime foundation carefully
 - Next likely issue: Define agent registry schema and lifecycle states
 
-### M3 - Registry and Routing Architecture
+### M3 - Registry and Routing Deepening
 
 Status: Planned. Design target only.
 
 Goal:
 
-Expand the documentation-defined registry architecture into more specific schemas, routing rules, and later implementation planning that let AresForge understand what work exists, who can do it, and how execution should be sequenced under human control without implying current runtime capability.
+Expand the documentation-defined registry architecture and the new runnable skeleton into more specific schemas, routing rules, and deeper implementation planning that let AresForge understand what work exists, who can do it, and how execution should be sequenced under human control.
 
 Planned scope:
 
@@ -180,27 +193,27 @@ Planned scope:
 
 Not yet implemented:
 
-- Runnable routing automation
+- Intelligent routing automation
 - Autonomous registry mutation
 - Autonomous issue dispatch
-- Registry storage
-- Queue execution
-- Model routing runtime
+- Rich registry storage beyond the initial local skeleton
+- Queue execution workers
+- Full model routing runtime
 
-### M4 - Local Operator MVP
+### M4 - Local Operator Expansion
 
 Status: Planned. Implementation target after design work.
 
 Goal:
 
-Create a human-triggered local operator layer that prepares implementation context, evidence, and safe helper flows without enabling autonomous repository-changing behavior.
+Expand the human-triggered local operator layer from the Issue #81 runnable skeleton into a broader helper surface for implementation context, evidence, and safe workflows without enabling autonomous repository-changing behavior.
 
 Planned scope:
 
-- Human-triggered local commands
-- Safe command wrappers
-- Prompt package generation
-- Evidence package generation
+- More complete local commands
+- Safer command wrappers
+- Richer prompt package generation
+- Richer evidence package generation
 - Worktree validation helpers
 - Read-only GitHub inspection helpers
 
@@ -305,7 +318,7 @@ Formalize how AresForge chooses among local and approved external models for pla
 
 Planned scope:
 
-- Ollama and local model registry
+- Ollama and local model registry deepening beyond the Issue #81 adapter
 - Model capability profiles
 - Task-to-model routing rules
 - Cost, privacy, and performance routing
@@ -399,7 +412,7 @@ These capabilities span multiple milestones and should be treated as long-term p
 
 The current M2 phase does not authorize the following:
 
-- No runnable automation in M2 unless a later issue explicitly authorizes it.
+- No autonomous GitHub-state-changing automation in M2 unless a later issue explicitly authorizes it.
 - No autonomous merge.
 - No autonomous issue closure.
 - No autonomous approval.
@@ -417,7 +430,7 @@ These are roadmap-driven recommendations only. They are not created issues.
 - Define agent registry schema and lifecycle states.
 - Define model registry and local LLM routing rules.
 - Define queue registry and work item state transitions.
-- Define local operator command design for registry inspection.
+- Extend the Issue #81 local operator with richer registry-aware inspection.
 
 ## Maintenance Rules
 

@@ -2,26 +2,26 @@
 
 ## Current Phase
 
-M2 - Documentation Agent Foundation
+M2 - Runnable Local Skeleton Pivot
 
 ## Current Goal
 
-Define the documentation-only project registry schema for Issue #79 so the completed registry and queue architecture has a reusable project-record design that can guide later agent registry, queue, and multi-project work while preserving documentation-before-closeout as the normal closeout path.
+Implement the first runnable local AresForge skeleton for Issue #81 so the repository moves from documentation-only architecture into a practical human-triggered local operator foundation with PostgreSQL-backed local state, repo-stored migrations, reviewable prompt/evidence/handoff artifacts, and a minimal Ollama integration boundary.
 
 ## Current Repository State
 
-- Latest documented `main` commit before Issue #79 work: `5f8f1af` (`Update docs after issue 77 closeout`).
-- Issue #79, `Define project registry schema`, is active.
-- Issue #77, `Define project, agent, model, and queue registry architecture`, is completed and closed through PR #78.
-- PR #78 is merged and the post-closeout documentation update is recorded on `main` at `5f8f1af`.
-- Issue #75, `Reconcile source-of-truth after issue 73 closeout`, is completed and closed through PR #76 as the corrective exception-path reconciliation issue.
-- Remaining open validation issue: #39, `validation: issue-38-state-lifecycle`, intentionally preserved as audit evidence.
+- Main branch baseline for the runnable pivot: `d04041c` (`Define project registry schema (#80)`).
+- Issue #81, `Build runnable local skeleton and automation foundation`, is the active implementation issue.
+- `docs/architecture/REGISTRY_AND_QUEUE_ARCHITECTURE.md` remains the canonical registry and queue architecture artifact.
+- `docs/architecture/PROJECT_REGISTRY_SCHEMA.md` remains the canonical project registry schema artifact.
+- Issue #75 remains the last routine reconciliation issue.
+- Remaining open protected validation issue: #39, `validation: issue-38-state-lifecycle`, intentionally preserved as audit evidence and not touched by Issue #81.
 
 ## Current Source of Truth
 
-GitHub and repository documentation are the temporary source of truth until the AresForge dashboard exists.
+GitHub, repository documentation, and the new local PostgreSQL/operator state together now form the practical operating picture for M2 implementation work.
 
-During M2 foundation work, explicit human decisions and repository documentation take priority over AI-generated summaries or inferred automation behavior.
+Repository documentation remains the authoritative source for roadmap, governance, architecture meaning, and automation boundaries. The new local database is an operational store for local runtime state, not a replacement for source-of-truth docs.
 
 ## Completed
 
@@ -315,47 +315,50 @@ During M2 foundation work, explicit human decisions and repository documentation
   - Latest `main` commit advanced to `1eb7efb`, `Define registry and queue architecture (#78)`.
   - Confirmed Issue #39 was not modified or closed.
   - Confirmed no scripts, runnable automation, workflows, commands, auto-merge, autonomous approval, autonomous issue closure, repository setting change, branch protection change, ruleset change, secret change, release change, tag change, or GitHub Project change was introduced.
+- Issue #79 completed and closed via PR #80:
+  - Defined the canonical project registry schema artifact at `docs/architecture/PROJECT_REGISTRY_SCHEMA.md`.
+  - Completed the documentation-only project-record schema that specialized the registry architecture.
+  - Latest `main` commit advanced to `d04041c`, `Define project registry schema (#80)`.
+  - Confirmed Issue #39 was not modified or closed.
+  - Confirmed no runnable automation, auto-merge, autonomous approval, autonomous issue closure, repository setting change, branch protection change, ruleset change, secret change, release change, tag change, or GitHub Project change was introduced.
 ## In Progress
 
 - `docs/architecture/ISSUE_LIFECYCLE_AGENT_PIPELINE.md` remains the completed canonical lifecycle pipeline design artifact.
-- `docs/architecture/REGISTRY_AND_QUEUE_ARCHITECTURE.md` remains the completed canonical registry and queue architecture design artifact from Issue #77 / PR #78.
-- Issue #79 is the current substantive M2 design work.
-- `docs/architecture/PROJECT_REGISTRY_SCHEMA.md` is the active M2 design deliverable for the project registry schema.
-- Future project-state-changing issues must update source-of-truth docs before PR merge and issue closeout.
-- At minimum, future project-state-changing issues must review and update when needed:
-  - `docs/context/BUILD_STATE.md`
-  - `docs/context/AGENT_CONTEXT.md`
-  - `docs/roadmap/ROADMAP.md`
-- If one of those three source-of-truth docs does not require changes for a future project-state-changing issue, the PR evidence or closeout evidence must explicitly explain why.
-- Issue #75 should be the last routine reconciliation issue.
-- Separate reconciliation or documentation-update issues are not the default closeout pattern because they recreate the reconciliation loop.
-- Stale, conflicting, or incomplete source-of-truth documentation discovered after closeout may still justify a reconciliation or documentation-update issue as the exception path only.
-- Preserve the explicit rule that Issue #39 remains intentionally open as M1 validation audit evidence unless a future human-directed issue explicitly changes its state.
+- `docs/architecture/REGISTRY_AND_QUEUE_ARCHITECTURE.md` remains the completed canonical registry and queue architecture artifact.
+- `docs/architecture/PROJECT_REGISTRY_SCHEMA.md` remains the completed canonical project registry schema artifact.
+- Issue #81 is the active runnable local skeleton implementation issue.
+- The repository now has an implementation pivot from documentation-only design into a human-triggered local operator foundation.
+- The new local state-store and operator usage docs are:
+  - `docs/architecture/LOCAL_STATE_STORE.md`
+  - `docs/architecture/RUNNABLE_SKELETON.md`
+  - `docs/operator/LOCAL_OPERATOR_USAGE.md`
+- Future project-state-changing issues must continue updating source-of-truth docs before PR merge and issue closeout.
+- Issue #75 remains the last routine reconciliation issue.
+- Separate reconciliation or documentation-update issues remain the exception path only.
+- Preserve the explicit rule that Issue #39 remains intentionally open as protected validation audit evidence unless a future human-directed issue explicitly changes its state.
 - Preserve the explicit rule that no related source-of-truth documentation-update issue should be created by default for future project-state-changing work.
 
 ## Next
 
-- Preserve Issue #39 as the only remaining open validation issue unless a future human-directed issue explicitly changes its state.
+- Preserve Issue #39 as the only remaining open protected validation issue unless a future human-directed issue explicitly changes its state.
+- Validate and iterate on the local operator CLI, migration flow, and local artifact outputs created by Issue #81.
 - Keep documentation freshness checks required before future documentation-sync work.
-- Use docs/agents/DOCUMENTATION_SYNC_HANDOFF_TEMPLATE.md for future documentation-sync handoffs.
-- Use docs/prompts/CODEX_PROMPT_PACKAGE_TEMPLATE.md for future reusable Codex prompt packages.
-- Use docs/agents/PR_EVIDENCE_PACKAGE_TEMPLATE.md for future reusable PR evidence packages.
-- Use docs/agents/CLOSEOUT_EVIDENCE_PACKAGE_TEMPLATE.md for future reusable closeout evidence packages.
-- Do not create another routine reconciliation issue after Issue #75. Future project-state-changing issues must update the main source-of-truth docs before PR merge and issue closeout.
-- Do not create related source-of-truth documentation update issues by default because that recreates the reconciliation loop.
+- Use the new runnable skeleton docs when extending the local operator:
+  - `docs/architecture/LOCAL_STATE_STORE.md`
+  - `docs/architecture/RUNNABLE_SKELETON.md`
+  - `docs/operator/LOCAL_OPERATOR_USAGE.md`
+- Keep Codex handoff generation as output-file preparation only until a later human-approved issue expands it.
+- Keep Ollama integration bounded to local test and support flows until a later issue explicitly authorizes richer routing or execution.
+- Do not create another routine reconciliation issue after Issue #75.
+- Do not create related source-of-truth documentation update issues by default.
 - Use `docs/architecture/ISSUE_LIFECYCLE_AGENT_PIPELINE.md` as the canonical lifecycle correction for documentation-before-closeout.
-- Use `docs/architecture/REGISTRY_AND_QUEUE_ARCHITECTURE.md` as the completed canonical registry and queue architecture design artifact.
-- Complete Issue #79 and use `docs/architecture/PROJECT_REGISTRY_SCHEMA.md` as the canonical project registry schema design artifact.
-- Use the completed project registry schema to drive the next likely substantive M2 issue: define agent registry schema and lifecycle states.
-- Keep documentation-sync evidence packages and handoff packages as review artifacts only.
-- Keep Codex prompt packages as review/input artifacts only.
-- Keep PR evidence packages as review artifacts only.
-- Keep closeout evidence packages as review artifacts only.
-- Keep local operator command names as future design targets only until a later issue explicitly implements them.
+- Use `docs/architecture/REGISTRY_AND_QUEUE_ARCHITECTURE.md` and `docs/architecture/PROJECT_REGISTRY_SCHEMA.md` as the architectural input for later agent, model, and queue evolution.
 - Review docs/planning/FUTURE_FEATURE_IDEAS.md at the beginning of each future milestone.
 
 ## Current Operating Constraint
 
-All current M2 foundation changes are manually guided and manually reviewed.
+All current M2 runnable-skeleton changes remain manually guided, human-triggered, and manually reviewed.
 
-No runnable automation, workflow, auto-merge, autonomous approval, destructive automation, autonomous issue closure, repository setting change, branch protection change, ruleset change, secret change, release change, tag change, or GitHub Project change is enabled during M2 foundation work.
+Human-triggered local automation is allowed for config validation, local migrations, local state inspection, local artifact generation, and local Ollama checks.
+
+No autonomous PR merge, autonomous approval, autonomous issue closure, autonomous GitHub-state-changing behavior, repository setting change, branch protection change, ruleset change, secret change, release change, tag change, or GitHub Project change is enabled by Issue #81.
