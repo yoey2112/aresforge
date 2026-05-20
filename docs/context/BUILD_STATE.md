@@ -2,17 +2,17 @@
 
 ## Current Phase
 
-M2 - Runnable Local Foundation
+M3 - Registry And Routing Deepening
 
 ## Current Goal
 
-Continue the M2 runtime foundation by extending human-triggered local operator support, read-only registry inspection, and safer helper flows without introducing autonomous repository or queue control.
+Start M3 by adding a local-first, read-only project state summary command and continue deepening registry and routing visibility without introducing autonomous repository, queue, or GitHub control.
 
 ## Current Repository State
 
-- Current branch: `m2/sprint-120-ready-issue-pipeline`
-- Latest `main` commit: `874b500` (`M2 sprint: QA-gated automatic PR merge and issue closeout (#125)`)
-- Latest runtime-affecting merged foundation commit: `874b500` (`M2 sprint: QA-gated automatic PR merge and issue closeout (#125)`)
+- Current branch: `m3/project-state-summary-command`
+- Latest `main` commit: `c4dd1bf` (`Reconcile retired issue 39 active doc wording`)
+- Latest runtime-affecting merged foundation commit: `c4dd1bf` (`Reconcile retired issue 39 active doc wording`)
 - Issue #105 was completed through PR #106 and is merged `main` behavior
 - Issue #107 was completed through PR #108 and is merged `main` behavior
 - Issue #109 was completed through PR #111 and is merged `main` behavior
@@ -31,11 +31,12 @@ Continue the M2 runtime foundation by extending human-triggered local operator s
 - `list-review-packages` and `inspect-review-package` are available on `main`
 - opt-in latest local review package capture for `record-evidence-package` and `prepare-codex-handoff` is available on `main`
 - Issue #112 was completed through PR #115 and is merged `main` behavior
-- Issue #114 was completed through PR pending merge and added the canonical model-routing and LLM escalation strategy documentation
+- Issue #114 added the canonical model-routing and LLM escalation strategy documentation
 - Issue #118 was completed through PR #124 and is merged `main` behavior
 - Issue #119 was completed through PR #125 and is merged `main` behavior
-- Issue #120 is in progress on the current branch and adds `run-ready-issue-pipeline` orchestration with explicit mode gating
-- Issue #127 is in progress on the current branch and adds read-only `run-ready-issue-batch --plan-only` plus `automation-readiness-report`, deterministic batch artifact generation, and optional local-only selected issue handoff package generation
+- Issue #120 is merged `main` behavior and provides `run-ready-issue-pipeline` orchestration with explicit mode gating
+- Issue #127 is merged `main` behavior and provides read-only `run-ready-issue-batch --plan-only` plus `automation-readiness-report`, deterministic batch artifact generation, and optional local-only selected issue handoff package generation
+- Issue #129 is in progress and adds `project-state-summary` for local-first, read-only project state visibility with graceful degradation
 - Issue #95 was completed through PR #96 and is merged `main` behavior
 - Issue #97 was completed through PR #98 and is merged `main` behavior
 - Issue #75 remains the last routine reconciliation issue
@@ -95,6 +96,7 @@ The current human-triggered local operator foundation supports:
 - deterministic reusable ready issue orchestration through `run-ready-issue-pipeline` with explicit plan-only, review-pr, and closeout-when-eligible modes
 - deterministic reusable read-only ready issue batch planning through `run-ready-issue-batch --plan-only` with deterministic JSON and Markdown artifact generation
 - deterministic read-only automation readiness dashboard reporting through `automation-readiness-report`
+- deterministic local-first read-only project state reporting through `project-state-summary`
 - a human-triggered phase-based PR lifecycle helper for explicit validation, staging, commit and push, PR creation, PR verification, merge verification, post-merge verification, and source-of-truth scanning
 - prompt package, evidence package, and Codex handoff artifact preparation, including opt-in local artifact discovery capture in evidence packages plus opt-in latest local review package capture in evidence and handoff outputs
 - opt-in local review package generation under `artifacts/local_reviews/generated/`
@@ -104,7 +106,7 @@ These capabilities are local-only helper surfaces. They are reviewable, non-auth
 
 ## Current Boundaries
 
-The current M2 implementation does allow:
+The current M3 implementation does allow:
 
 - human-triggered local commands
 - read-only registry-aware validation and inspection
@@ -124,7 +126,7 @@ The current M2 implementation does allow:
 - bounded local model inspection, listing, and Ollama dry-run checks
 - bounded local model inspection, listing, and Ollama dry-run checks without autonomous selection or routing
 
-The current M2 implementation does not authorize:
+The current M3 implementation does not authorize:
 
 - queue transitions performed autonomously
 - routing mutation or autonomous routing
@@ -137,10 +139,9 @@ The current M2 implementation does not authorize:
 
 ## Next Recommended Direction
 
-- Use the merged human-triggered PR lifecycle helper to reduce repetitive PR validation, merge verification, and source-of-truth scanning work
-- Continue the M2 runtime foundation with richer read-only registry inspection views and safer human-triggered helper flows where useful
-- Continue the M2 runtime foundation with deterministic local review orchestration, review package inspection, and auditable handoff or evidence capture that remain human-triggered and local-only
-- Prioritize broader read-only registry inspection summaries and safer helper flows while keeping them local-only and non-authoritative
+- Use `project-state-summary` as the first M3 local-first status checkpoint before planning or closeout work
+- Continue M3 registry and routing deepening through broader read-only summaries and safer helper flows
+- Continue deterministic local review orchestration, review package inspection, and auditable handoff or evidence capture that remain human-triggered and local-only
 - Extend local operator visibility while keeping queue transitions and GitHub-state-changing behavior tightly human-triggered and reviewable
 - Optionally perform local historical branch cleanup as separate human-directed repository hygiene work
 - Keep documentation freshness, documentation-before-closeout, and source-of-truth updates mandatory for future project-state-changing work

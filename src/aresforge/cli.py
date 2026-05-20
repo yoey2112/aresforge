@@ -58,6 +58,7 @@ from aresforge.operator.ready_issue_pipeline import (
     MODE_REVIEW_PR,
     run_ready_issue_pipeline,
 )
+from aresforge.operator.project_state_summary import project_state_summary
 from aresforge.operator.qa_closeout_pr import qa_closeout_pr
 from aresforge.operator.qa_pr_validation import qa_review_pr
 from aresforge.operator.service import (
@@ -213,6 +214,10 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser(
         "automation-readiness-report",
         help="Emit a read-only automation readiness dashboard summary.",
+    )
+    subparsers.add_parser(
+        "project-state-summary",
+        help="Emit a local-first read-only project state summary with graceful degradation.",
     )
     qa_review_parser = subparsers.add_parser(
         "qa-review-pr",
@@ -559,6 +564,10 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "automation-readiness-report":
         emit_json(automation_readiness_report(config))
+        return 0
+
+    if args.command == "project-state-summary":
+        emit_json(project_state_summary(config))
         return 0
 
     if args.command == "qa-review-pr":

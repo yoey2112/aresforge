@@ -63,6 +63,7 @@ Supported commands:
 - `run-ready-issue-pipeline`
 - `run-ready-issue-batch`
 - `automation-readiness-report`
+- `project-state-summary`
 - `inspect-project`
 - `inspect-model`
 - `inspect-queue`
@@ -109,6 +110,8 @@ The `run-ready-issue-pipeline` command is a reusable human-triggered orchestrati
 The `run-ready-issue-batch` command is a reusable human-triggered orchestration helper for all currently ready issues. In required `--plan-only` mode it reuses existing `list-ready-issues`, `inspect-ready-issue`, and `plan-ready-issue` logic for deterministic per-issue summaries, always excludes Issue #39, and writes local JSON plus Markdown batch artifacts under `artifacts/ready_issue_batches/generated/`. Optional local-only handoff package generation for Copilot or Codex selected issues is available through explicit `--write-selected-handoffs` mode.
 
 The `automation-readiness-report` command is a human-triggered read-only reporting helper. It summarizes current automation command surfaces, ready issue count, protected issue handling, required labels, closeout gates, mutation boundaries, local-only behavior, known blocked conditions, and recommended human workflow. It does not mutate GitHub state and does not authorize queue or routing mutation.
+
+The `project-state-summary` command is a human-triggered local-first read-only reporting helper. It summarizes local git branch and cleanliness, local and `origin/main` commit posture where available, open GitHub issues and PRs where available, source-of-truth document presence, latest generated artifacts from known artifact roots, and current milestone direction inferred from source-of-truth docs. It degrades gracefully with explicit warnings when `git`, `gh`, `origin/main`, or network access are unavailable. It does not mutate git state, files, GitHub state, labels, issues, PRs, milestones, or artifacts.
 
 The `qa-review-pr` command is a validation-only GitHub PR inspection helper. It reads PR metadata, detects linked issues and changed files, checks for validation evidence, and emits deterministic JSON with pass/fail/blocked decisions. It does not create PRs, merge PRs, close issues, comment on PRs, label issues, or mutate GitHub state.
 

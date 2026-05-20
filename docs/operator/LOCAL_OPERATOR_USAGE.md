@@ -176,6 +176,14 @@ python -m aresforge automation-readiness-report
 
 This command is human-triggered and read-only with respect to GitHub state. It summarizes available automation commands, ready issue count, protected issue handling, required labels, closeout gates, mutation boundaries, local-only behavior, known blocked conditions, and recommended human workflow. It does not create PRs, merge PRs, close issues, label issues, assign issues, or comment on issues.
 
+Summarize local-first project state without mutating repository or GitHub state:
+
+```powershell
+python -m aresforge project-state-summary
+```
+
+This command is read-only and safe to run repeatedly. It summarizes current branch, working-tree cleanliness, latest local commit, `origin/main` commit when available, HEAD parity with `origin/main` when available, open GitHub issues and PRs when available, source-of-truth docs, latest generated artifacts by known artifact roots, current milestone direction from source-of-truth docs, and a recommended next action. It degrades gracefully when `git`, `gh`, `origin/main`, or network access is unavailable by emitting partial data plus explicit warnings. It does not mutate GitHub state, git state, files, labels, issues, PRs, milestones, or artifacts.
+
 Run the bounded local review orchestration over the existing read-only operator surfaces:
 
 ```powershell
