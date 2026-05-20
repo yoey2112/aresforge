@@ -11,8 +11,9 @@ Continue the M2 runtime foundation by extending human-triggered local operator s
 ## Current Repository State
 
 - Current branch: `main`
-- Latest `main` commit: `1a00e01` (`Add read-only registry inspection summary command (#103) (#104)`)
-- Latest runtime-affecting merged foundation commit: `1a00e01` (`Add read-only registry inspection summary command (#103) (#104)`)
+- Latest `main` commit: `fff8df5` (`Add read-only artifact discovery command (#106)`)
+- Latest runtime-affecting merged foundation commit: `fff8df5` (`Add read-only artifact discovery command (#106)`)
+- Issue #105 was completed through PR #106 and is merged `main` behavior
 - Issue #103 was completed through PR #104 and is merged `main` behavior
 - Issue #101 was completed through PR #102 and is merged `main` behavior
 - Issue #99 was completed through PR #100 and is merged `main` behavior
