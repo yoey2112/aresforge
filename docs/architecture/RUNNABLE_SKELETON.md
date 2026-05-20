@@ -73,6 +73,8 @@ The `inspect-project` command is a read-only local inspection helper for one sto
 
 The current implementation layer also includes read-only inspection report artifact wiring for `inspect-queue --write-artifact` and `inspect-work-item --write-artifact`. Those options turn inspection payloads into human-reviewable Markdown and JSON artifacts under `artifacts/inspection_reports/generated/` while preserving the normal JSON command output. They remain local-only, human-triggered reporting helpers and do not change queue state, routing state, GitHub state, or protected Issue #39.
 
+The current M2 implementation layer also includes a human-triggered PowerShell helper at `scripts/Invoke-AresForgePrLifecycle.ps1`. That helper is intentionally phase-based and visible. It supports explicit working-branch validation, explicit staging and commit and push flow, explicit PR creation, explicit PR verification, explicit merge execution only when directly selected, explicit post-merge verification, and read-only source-of-truth scanning.
+
 ## Vertical Slice Achieved
 
 The current vertical slice is:
@@ -88,6 +90,7 @@ The current vertical slice is:
 9. record evidence metadata
 10. prepare a Codex handoff artifact
 11. optionally test a local Ollama model call
+12. optionally use the explicit PR lifecycle helper to reduce repetitive post-Codex review steps without hiding them
 
 That is enough to prove the local execution path without over-designing agents, routing intelligence, or background automation.
 
@@ -110,6 +113,8 @@ Codex integration is intentionally output-file generation only.
 
 The CLI can prepare a reviewable handoff artifact, but it does not invoke Codex autonomously and it does not grant GitHub or repository mutation authority.
 
+The PR lifecycle helper follows the same boundary. It can run explicit human-triggered local validation plus visible `git` and `gh` commands, but it does not select issues autonomously, invoke Codex, mutate routing, approve changes, close issues, or create hidden background behavior.
+
 ## Automation Boundary
 
 Issue #81 does not authorize:
@@ -123,5 +128,6 @@ Issue #81 does not authorize:
 - secret changes
 - release or tag changes
 - GitHub Project changes
+- any modification or closure of protected Issue #39
 
 The runnable skeleton is local-first and human-triggered by design.

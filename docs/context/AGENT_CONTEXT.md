@@ -31,6 +31,7 @@ During M2, implementation remains human-triggered and human-reviewed. Agents may
 - Issue #92 and Issue #93 are completed through PR #94 and are merged `main` behavior
 - The docs-only correction at commit `42b02dd` fixed stale post-closeout wording on `main` without creating a new routine reconciliation issue
 - Issue #97 was completed through PR #98 and added merged `main` support for read-only local project inspection without changing routing, queue state, or GitHub state
+- Issue #99 is the active working-branch implementation for a human-triggered PR lifecycle helper that keeps validation, staging, PR creation, PR verification, merge execution, post-merge verification, and source-of-truth scanning phase-gated and visible
 
 ## Canonical Documents Agents Must Consult
 
@@ -85,6 +86,7 @@ The local operator may currently support:
 - deterministic read-only local model listing
 - read-only queue and work-item inspection
 - read-only inspection report artifact generation
+- a human-triggered PR lifecycle helper that requires an explicit phase selection before validation, staging, PR creation, PR verification, merge execution, post-merge verification, or source-of-truth scanning
 - prompt, evidence, and Codex handoff artifact preparation
 - bounded local Ollama connectivity or dry-run checks
 - advisory, reviewable local model-selection support where the canonical model registry allows it
@@ -102,6 +104,7 @@ The current M2 foundation does not authorize:
 - autonomous GitHub-state-changing behavior
 - repo setting, branch protection, ruleset, workflow, secret, release, tag, or GitHub Project changes
 - hidden background workers, bots, daemons, or services that change project state
+- hidden background PR lifecycle execution
 - hosted external model use as default project behavior
 
 ## Protected Issue #39 Rule

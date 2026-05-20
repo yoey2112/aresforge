@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This guide explains how to run the first local AresForge operator introduced by Issue #81.
+This guide explains how to run the current local AresForge operator surfaces introduced during M2.
 
 ## Setup
 
@@ -195,6 +195,141 @@ python -m aresforge list-models
 
 The included Compose file maps PostgreSQL to host port `5433` by default so it does not collide with an existing local PostgreSQL on `5432`.
 
+## PR Lifecycle Helper
+
+Issue #99 adds a human-triggered PowerShell helper at `scripts/Invoke-AresForgePrLifecycle.ps1`.
+
+This helper is phase-based on purpose. It does not silently run the entire PR lifecycle. The human operator must explicitly choose the phase to run.
+
+Supported phases:
+
+- `ValidateWorkingBranch`
+- `StageCommitPush`
+- `CreatePr`
+- `VerifyPr`
+- `MergePr`
+- `PostMergeVerify`
+- `SourceTruthScan`
+
+The helper is a visible local wrapper around explicit `git`, `gh`, and local validation commands. It keeps branch state, validation output, PR state, merge readiness, and source-of-truth scan results visible to the human operator.
+
+It is allowed to:
+
+- run local validation commands
+- stage explicitly supplied files
+- create a commit from an explicit message
+- push an explicit branch
+- create a PR from an explicit body file
+- verify PR state and open PR or issue state
+- merge a PR only when the human explicitly runs the `MergePr` phase and the PR is `CLEAN`
+- scan active source-of-truth docs for stale branch, issue, PR, and commit wording
+
+It is not allowed to:
+
+- run hidden background behavior
+- choose issue scope autonomously
+- invoke Codex autonomously
+- transition queues
+- mutate routing
+- select models for governance-sensitive work
+- approve, merge, or close issues autonomously
+- call `gh issue close`
+- modify protected Issue #39
+- modify workflows, repo settings, branch protection, rulesets, secrets, releases, tags, or GitHub Projects
+
+Example read-only validation phase:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\Invoke-AresForgePrLifecycle.ps1 `
+  -Phase ValidateWorkingBranch
+```
+
+Example source-of-truth scan:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\Invoke-AresForgePrLifecycle.ps1 `
+  -Phase SourceTruthScan `
+  -IssueNumber 99 `
+  -BranchName codex/issue-99-pr-lifecycle-helper
+```
+
+Example stage, commit, and push flow:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\Invoke-AresForgePrLifecycle.ps1 `
+  -Phase StageCommitPush `
+  -BranchName codex/issue-99-pr-lifecycle-helper `
+  -CommitMessage "Add PR lifecycle helper (#99)" `
+  -FilesToStage scripts/Invoke-AresForgePrLifecycle.ps1 docs/operator/LOCAL_OPERATOR_USAGE.md
+```
+
+For `powershell -File` usage, prefer a staging-list file instead of multiple direct `-FilesToStage` values. This avoids fragile argument binding when many paths are supplied.
+
+Example recommended `StageCommitPush` flow with a temporary file list:
+
+```powershell
+@'
+scripts\Invoke-AresForgePrLifecycle.ps1
+docs\operator\LOCAL_OPERATOR_USAGE.md
+docs\architecture\RUNNABLE_SKELETON.md
+docs\context\BUILD_STATE.md
+docs\context\AGENT_CONTEXT.md
+docs\roadmap\ROADMAP.md
+'@ | Set-Content -LiteralPath .\.tmp_stage_files_issue_99.txt
+
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\Invoke-AresForgePrLifecycle.ps1 `
+  -Phase StageCommitPush `
+  -RepoPath "C:\Projects\aresforge" `
+  -BranchName "codex/issue-99-pr-lifecycle-helper" `
+  -CommitMessage "Add human-triggered PR lifecycle helper" `
+  -FilesToStagePath "C:\Projects\aresforge\.tmp_stage_files_issue_99.txt"
+```
+
+When `-FilesToStagePath` is supplied, the helper resolves the file to an absolute path, reads non-empty non-comment lines, de-duplicates entries while preserving order, and uses that effective list for `git add`. The temporary staging-list file itself is treated as an allowed local helper input and does not need `-AllowUntracked`.
+
+Example PR creation flow:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\Invoke-AresForgePrLifecycle.ps1 `
+  -Phase CreatePr `
+  -BranchName codex/issue-99-pr-lifecycle-helper `
+  -PrTitle "Add human-triggered PR lifecycle helper (#99)" `
+  -PrBodyPath .\artifacts\pr_body_issue_99.md
+```
+
+The helper resolves `PrBodyPath` to an absolute path before PR creation and uses `gh pr create --body-file` so multiline Markdown does not rely on fragile direct `--body` argument passing in Windows PowerShell.
+
+The `ValidateWorkingBranch` phase runs the standard M2 validation sequence:
+
+- `.\.venv\Scripts\python.exe -m pytest`
+- `.\.venv\Scripts\python.exe -m aresforge --help`
+- `.\.venv\Scripts\python.exe -m aresforge validate-config`
+- `.\.venv\Scripts\python.exe -m aresforge validate-registries`
+- `.\.venv\Scripts\python.exe -m aresforge migrate --plan`
+- optional `.\.venv\Scripts\python.exe -m aresforge migrate` when `-IncludeDatabaseValidation` is supplied
+- any explicit `-ExtraValidationCommand` values
+- `git diff --check`
+- `git diff --cached --check`
+- `git status --short --branch`
+
+The `StageCommitPush` phase refuses to run on `main`, confirms the current branch matches `-BranchName`, requires `-CommitMessage` plus at least one effective staging file from `-FilesToStage` or `-FilesToStagePath`, and refuses unexpected untracked files unless `-AllowUntracked` is supplied.
+
+The `MergePr` phase is intentionally narrow. It only runs when the human explicitly selects `-Phase MergePr`, it refuses PRs whose `mergeStateStatus` is not `CLEAN`, and it performs `gh pr merge --squash --delete-branch`. It does not close issues directly.
+
+The `SourceTruthScan` phase is read-only. It scans:
+
+- `docs/context/BUILD_STATE.md`
+- `docs/context/AGENT_CONTEXT.md`
+- `docs/roadmap/ROADMAP.md`
+
+It prints matches for the current branch, the supplied branch or issue or PR identifiers, and stale wording markers such as `current-branch`, `on the current branch`, `Latest main commit`, and `Latest runtime-affecting merged foundation commit`. It does not edit docs.
+
+Recommended script validation:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$null = [scriptblock]::Create((Get-Content -Raw 'C:\Projects\aresforge\scripts\Invoke-AresForgePrLifecycle.ps1')); 'parse-ok'"
+```
+
 ## Boundaries
 
 The local operator is allowed to:
@@ -204,10 +339,11 @@ The local operator is allowed to:
 - write local prompt/evidence/handoff artifacts
 - perform local Ollama test calls
 - inspect local project state
+- run the human-triggered PR lifecycle helper phases described above
 
 The local operator is not allowed to:
 
-- merge pull requests
+- merge pull requests autonomously
 - close issues
 - approve changes
 - change repository settings

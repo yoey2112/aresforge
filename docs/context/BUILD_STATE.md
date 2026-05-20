@@ -6,13 +6,14 @@ M2 - Runnable Local Foundation
 
 ## Current Goal
 
-Continue the M2 runtime foundation by extending human-triggered, local-first, read-only operator visibility on top of the runnable skeleton, registry schemas, and queue/work-item state model without introducing autonomous repository or queue control.
+Continue the M2 runtime foundation by extending human-triggered local operator support with a phase-based PR lifecycle helper that reduces repetitive validation, PR verification, merge verification, and post-merge source-of-truth scanning without introducing autonomous repository or queue control.
 
 ## Current Repository State
 
-- Current branch: `main`
+- Current branch: `codex/issue-99-pr-lifecycle-helper`
 - Latest `main` commit: `daf8e89` (`Add read-only project inspection command (#98)`)
 - Latest runtime-affecting merged foundation commit: `daf8e89` (`Add read-only project inspection command (#98)`)
+- Issue #99 is the active working-branch implementation for a human-triggered PR lifecycle helper script at `scripts/Invoke-AresForgePrLifecycle.ps1`
 - Issue #92 and Issue #93 were completed through PR #94 and are merged `main` behavior
 - `validate-registries`, `inspect-queue --write-artifact`, `inspect-work-item --write-artifact`, and `list-models` are available on `main`
 - Issue #95 was completed through PR #96 and is merged `main` behavior
@@ -58,6 +59,7 @@ The current human-triggered local operator foundation supports:
 - deterministic read-only local project inspection through `inspect-project`
 - read-only queue and work-item inspection
 - read-only inspection report artifact generation through `inspect-queue --write-artifact` and `inspect-work-item --write-artifact`
+- a human-triggered phase-based PR lifecycle helper on the current working branch for explicit validation, staging, commit and push, PR creation, PR verification, merge verification, post-merge verification, and source-of-truth scanning
 - prompt package, evidence package, and Codex handoff artifact preparation
 - bounded local Ollama connectivity and dry-run support
 
@@ -70,6 +72,7 @@ The current M2 implementation does allow:
 - human-triggered local commands
 - read-only registry-aware validation and inspection
 - read-only project inspection from local seeded project rows
+- visible human-triggered PR lifecycle helper phases selected one at a time
 - local artifact generation for review
 - bounded local model inspection, listing, and Ollama dry-run checks
 
@@ -78,15 +81,17 @@ The current M2 implementation does not authorize:
 - queue transitions performed autonomously
 - routing mutation or autonomous routing
 - autonomous approval, merge, or issue closure
-- GitHub-state-changing behavior
+- GitHub-state-changing behavior except when a human explicitly runs a matching visible PR lifecycle helper phase such as `CreatePr` or `MergePr`
 - repo setting, branch protection, ruleset, secret, release, tag, workflow, or GitHub Project changes
 - hosted external model use as part of the default runtime foundation
 - any modification to protected Issue #39
+- any hidden background PR lifecycle behavior
 
 ## Next Recommended Direction
 
-- Continue the M2 runtime foundation with richer read-only registry inspection views and project inspection follow-ons where useful
-- Extend local operator visibility while keeping queue transitions and GitHub-state-changing behavior out of scope
+- Complete and validate the current Issue #99 helper branch, then merge the human-triggered PR lifecycle helper into `main`
+- Continue the M2 runtime foundation with richer read-only registry inspection views and safer human-triggered helper flows where useful
+- Extend local operator visibility while keeping queue transitions and GitHub-state-changing behavior tightly human-triggered and reviewable
 - Optionally perform local historical branch cleanup as separate human-directed repository hygiene work
 - Keep documentation freshness, documentation-before-closeout, and source-of-truth updates mandatory for future project-state-changing work
 
