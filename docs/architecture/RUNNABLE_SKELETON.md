@@ -181,6 +181,6 @@ Issue #81 does not authorize:
 - secret changes
 - release or tag changes
 - GitHub Project changes
-- any modification or closure of protected Issue #39
+- unauthorized modification or closure of protected validation evidence
 
 The runnable skeleton is local-first and human-triggered by design.

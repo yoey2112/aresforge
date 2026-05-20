@@ -302,7 +302,7 @@ python -m aresforge inspect-work-item --work-item-id work-123 --write-artifact
 
 The current runtime can create and list work items against the seeded canonical M2 queue set. `inspect-work-item` is read-only and local-only. It emits JSON that combines the work item with queue metadata, optional agent/model references, and work-item metadata fields such as lifecycle state, approval state, blocked reason, failure reason, and retry or correction context when present. With `--write-artifact`, it still emits JSON and additionally includes `inspection_payload`, `markdown_path`, and `json_path` for a local report written under `artifacts/inspection_reports/generated/`.
 
-These inspection commands do not transition queues, mutate routing, approve anything, merge anything, close anything, or change GitHub state. Issue #39 remains protected and must not be modified or closed by this operator surface.
+These inspection commands do not transition queues, mutate routing, approve anything, merge anything, close anything, or change GitHub state. Issue #39 has been retired by explicit human direction. Historical validation evidence remains preserved in repository documentation.
 
 ## Prompt, Evidence, And Handoff Artifacts
 
@@ -432,7 +432,7 @@ It is not allowed to:
 - select models for governance-sensitive work
 - approve, merge, or close issues autonomously
 - call `gh issue close`
-- modify protected Issue #39
+- modify protected validation evidence without explicit human authorization
 - modify workflows, repo settings, branch protection, rulesets, secrets, releases, tags, or GitHub Projects
 
 Example read-only validation phase:
