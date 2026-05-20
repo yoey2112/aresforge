@@ -70,6 +70,7 @@ Supported commands:
 - `inspect-repo-bootstrap-contract`
 - `inspect-managed-repos`
 - `managed-repo-readiness-report`
+- `plan-repo-bootstrap`
 - `inspect-project`
 - `inspect-model`
 - `inspect-queue`
@@ -126,6 +127,8 @@ The `inspect-repo-bootstrap-contract` command is a human-triggered read-only man
 The `inspect-managed-repos` command is a human-triggered read-only managed repository registry helper. It always includes the configured AresForge repository as the first/default managed repository and can merge optional additional managed repository records from `config/managed_repositories.json` when present. It emits deterministic JSON for repository identity, local path posture, bootstrap and governance-derived status posture, documentation and artifact roots, and bounded automation capabilities. It degrades gracefully when local paths, `gh`, or network access are unavailable and does not mutate files, git state, labels, milestones, issues, PRs, branches, settings, workflows, or artifacts.
 
 The `managed-repo-readiness-report` command is a human-triggered read-only managed repository readiness helper. It reuses managed repository registry, governance, and bootstrap contract inspection outputs where practical to summarize whether each registered repository is ready for safe AresForge automation usage. It emits deterministic JSON with readiness levels (`ready`, `attention_needed`, `degraded`, `unavailable`, `disabled`, `archived`), local branch and working-tree posture where local paths are available, label and milestone readiness posture where available, issue and PR readiness signals where available, evidence and documentation baseline expectations, warnings, and recommended next action. It degrades gracefully when local paths, `gh`, `git`, or network access are unavailable and does not mutate files, git state, labels, milestones, issues, PRs, branches, settings, workflows, or artifacts.
+
+The `plan-repo-bootstrap` command is a human-triggered read-only managed repository bootstrap planning helper. It inspects registered managed repositories, reuses governance and bootstrap contract data where practical, and emits deterministic JSON setup plans with required, recommended, optional, and deferred actions plus future setup command placeholders. It explicitly confirms that no setup is performed and degrades gracefully when local paths, `gh`, `git`, network access, or registry data are unavailable.
 
 The `qa-review-pr` command is a validation-only GitHub PR inspection helper. It reads PR metadata, detects linked issues and changed files, checks for validation evidence, and emits deterministic JSON with pass/fail/blocked decisions. It does not create PRs, merge PRs, close issues, comment on PRs, label issues, or mutate GitHub state.
 

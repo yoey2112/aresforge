@@ -10,6 +10,7 @@ The goal is to let AresForge represent multiple managed repositories in a reusab
 
 - `python -m aresforge inspect-managed-repos`
 - `python -m aresforge managed-repo-readiness-report`
+- `python -m aresforge plan-repo-bootstrap`
 
 This command is human-triggered, read-only, deterministic JSON output, and safe to run repeatedly.
 
