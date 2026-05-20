@@ -11,11 +11,11 @@ Continue the M2 runtime foundation by extending human-triggered, local-first, re
 ## Current Repository State
 
 - Current branch: `main`
-- Latest `main` commit: `42b02dd` (`Update source-of-truth after PR 94 closeout`)
+- Latest `main` commit: `bce494c` (`Add read-only model listing command (#96)`)
 - Latest runtime-affecting merged foundation commit: `1f7b5fd` (`Add local registry validation and inspection report artifacts (#94)`)
 - Issue #92 and Issue #93 were completed through PR #94 and are merged `main` behavior
-- `validate-registries`, `inspect-queue --write-artifact`, and `inspect-work-item --write-artifact` are available on `main`
-- Issue #95 adds a branch-scoped `list-models` local operator command that emits deterministic JSON from seeded local model rows without calling Ollama
+- `validate-registries`, `inspect-queue --write-artifact`, `inspect-work-item --write-artifact`, and `list-models` are available on `main`
+- Issue #95 was completed through PR #96 and is merged `main` behavior
 - Issue #75 remains the last routine reconciliation issue
 - Issue #39, `validation: issue-38-state-lifecycle`, remains intentionally open protected audit evidence and must not be modified or closed except through a future human-directed issue
 
