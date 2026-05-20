@@ -52,6 +52,14 @@ python -m aresforge list-artifacts
 
 This command is read-only and local-only. It reads only from the configured artifact root when that directory already exists and emits deterministic JSON sorted by relative artifact path. It does not create missing artifact directories, mutate files, call the network, require PostgreSQL, call Ollama, transition queues, mutate routing, or change GitHub state.
 
+Inspect one generated local review artifact without requiring PostgreSQL:
+
+```powershell
+python -m aresforge inspect-artifact --artifact-path prompts/generated/example-prompt.md
+```
+
+This command is read-only and local-only. It reads only one existing file under the configured artifact root, rejects empty, unsafe, traversal, absolute, and out-of-root paths, and emits deterministic JSON with bounded metadata plus an optional preview for safe UTF-8 text artifacts. It does not create missing artifact directories, mutate files, call the network, require PostgreSQL, call Ollama, transition queues, mutate routing, or change GitHub state.
+
 ## Database Commands
 
 See pending migrations:
@@ -116,6 +124,8 @@ python -m aresforge inspect-queue --queue-id queue-implementation --write-artifa
 `inspect-registries` is read-only and local-only. It reads only repo-owned source documents and existing seeded registry-validation surfaces. It emits JSON shaped as `{"ok": <bool>, "inspection_mode": "local_repo_only", "summary": {...}, "registries": [...]}` and reports project, agent, model, queue, and work-item lifecycle inspection status in deterministic order. Missing files, empty files, malformed documents, and validation findings are surfaced explicitly instead of causing hidden mutation or fallback behavior.
 
 `list-artifacts` is read-only and local-only. It reads only from the configured artifact root when that directory already exists and emits JSON shaped as `{"ok": true, "inspection_mode": "local_artifact_root_only", "artifact_root": "...", "artifact_root_exists": <bool>, "artifact_count": <int>, "artifacts": [...]}`. Results are sorted deterministically by relative path. Known generated paths are labeled with inferred artifact type and a safe command-source hint when available. Missing or empty artifact roots are reported explicitly instead of causing directory creation or fallback behavior.
+
+`inspect-artifact` is read-only and local-only. It reads only one existing file under the configured artifact root and emits JSON shaped as `{"ok": true, "inspection_mode": "local_artifact_root_only", "artifact_root": "...", "artifact_root_exists": <bool>, "artifact": {...}}` when found. The artifact payload includes relative path, filename, byte size, modified timestamp, inferred artifact type, inferred command-source hint, extension, text-readability, and a bounded preview for safe UTF-8 text artifacts. Missing files, empty paths, unsafe traversal, and out-of-root paths are reported explicitly instead of causing fallback behavior.
 
 `inspect-queue` is read-only and local-only. It emits JSON that expands queue metadata into registry-aware fields such as lifecycle-stage mapping, accepted work-item types, allowed next queues, human approval requirements, local operator visibility expectations, and the source document path. With `--write-artifact`, it still emits JSON and additionally includes `inspection_payload`, `markdown_path`, and `json_path` for a local report written under `artifacts/inspection_reports/generated/`.
 
@@ -207,6 +217,7 @@ python -m aresforge validate-config
 python -m aresforge validate-registries
 python -m aresforge inspect-registries
 python -m aresforge list-artifacts
+python -m aresforge inspect-artifact --artifact-path prompts/generated/example-prompt.md
 python -m aresforge migrate --plan
 python -m aresforge list-models
 python -m aresforge inspect-model --model-id model-ollama-default

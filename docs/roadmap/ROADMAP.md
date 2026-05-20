@@ -52,6 +52,8 @@ PR #104 completed Issue #103 and extended the merged `main` M2 operator foundati
 
 PR #106 completed Issue #105 and extended the merged `main` M2 operator foundation with a human-triggered, local-only, read-only `list-artifacts` command that summarizes generated artifacts under the configured artifact root into deterministic JSON without creating missing directories, connecting to PostgreSQL, calling Ollama, mutating files, or changing queue, routing, or GitHub state.
 
+Issue #107 extends that same M2 operator direction with a small human-triggered, local-only, read-only `inspect-artifact` command that inspects exactly one generated artifact under the configured artifact root, rejects unsafe or out-of-root paths, and emits deterministic JSON with bounded preview metadata for safe text artifacts.
+
 ## Planned Milestone Sequence
 
 ### M3 - Registry And Routing Deepening
@@ -123,6 +125,7 @@ The current M2 phase does not authorize:
 - Continue the M2 runtime foundation with broader read-only registry inspection summaries and safer human-triggered helper flows
 - Extend local operator visibility with safer human-triggered helper commands while keeping queue transitions out of scope and GitHub-state-changing behavior tightly phase-gated
 - Continue improving local review-aid visibility, including deterministic summaries of generated artifacts that remain non-authoritative
+- Continue improving local review-aid visibility, including deterministic single-artifact inspection that remains non-authoritative
 - Keep broader registry-aware operator inspection human-triggered and non-authoritative
 - Optionally perform local historical branch cleanup as separate human-directed hygiene work
 

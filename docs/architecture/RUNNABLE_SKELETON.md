@@ -49,6 +49,7 @@ Supported commands:
 - `inspect-project-state`
 - `inspect-registries`
 - `list-artifacts`
+- `inspect-artifact`
 - `inspect-project`
 - `inspect-model`
 - `inspect-queue`
@@ -72,6 +73,8 @@ The `inspect-registries` command is a read-only local summary helper for repo-ow
 
 The `list-artifacts` command is a read-only local summary helper for generated review artifacts under the configured artifact root. It emits deterministic JSON sorted by relative artifact path, reports empty and missing artifact-root cases explicitly, and infers artifact category plus likely human-triggered source command where the generated path or filename makes that safe. It does not create missing directories, require PostgreSQL, call Ollama, mutate files, route work, or change GitHub state.
 
+The `inspect-artifact` command is a read-only local inspection helper for one generated review artifact under the configured artifact root. It accepts one safe relative path from `list-artifacts`, rejects empty, traversal, absolute, and out-of-root paths, and emits deterministic JSON with bounded preview metadata for safe UTF-8 text artifacts. It does not create missing directories, require PostgreSQL, call Ollama, mutate files, route work, or change GitHub state.
+
 The `inspect-queue` and `inspect-work-item` commands are read-only registry-aware inspection helpers. They expand local queue and work-item records into richer JSON views, but they do not transition queues, mutate routing, authorize autonomous routing, or authorize GitHub-state-changing behavior.
 
 The `list-models` command is a read-only local listing helper for seeded local model rows. It emits deterministic JSON, does not require Ollama to be running, and does not select a model, recommend a model, or route a task.
@@ -80,7 +83,7 @@ The `inspect-model` command is a read-only local inspection helper for one store
 
 The `inspect-project` command is a read-only local inspection helper for one stored project row. It reads only from the local `projects` table, expands stored JSON metadata into visible top-level fields such as autonomy posture and issue references, and returns explicit `ok` / `project_not_found` JSON without bootstrapping state, creating work items, routing work, or calling Ollama.
 
-The current implementation layer also includes read-only inspection report artifact wiring for `inspect-queue --write-artifact` and `inspect-work-item --write-artifact` plus read-only artifact discovery through `list-artifacts`. The write-artifact options turn inspection payloads into human-reviewable Markdown and JSON artifacts under `artifacts/inspection_reports/generated/` while preserving the normal JSON command output, and `list-artifacts` summarizes generated review artifacts without treating them as source of truth. These remain local-only, human-triggered helper surfaces and do not change queue state, routing state, GitHub state, or protected Issue #39.
+The current implementation layer also includes read-only inspection report artifact wiring for `inspect-queue --write-artifact` and `inspect-work-item --write-artifact` plus read-only artifact discovery through `list-artifacts` and read-only single-artifact inspection through `inspect-artifact`. The write-artifact options turn inspection payloads into human-reviewable Markdown and JSON artifacts under `artifacts/inspection_reports/generated/` while preserving the normal JSON command output, `list-artifacts` summarizes generated review artifacts without treating them as source of truth, and `inspect-artifact` inspects one generated artifact without executing or mutating it. These remain local-only, human-triggered helper surfaces and do not change queue state, routing state, GitHub state, or protected Issue #39.
 
 The current M2 implementation layer also includes a human-triggered PowerShell helper at `scripts/Invoke-AresForgePrLifecycle.ps1`. That helper is intentionally phase-based and visible. It supports explicit working-branch validation, explicit staging and commit and push flow, explicit PR creation, explicit PR verification, explicit merge execution only when directly selected, explicit post-merge verification, and read-only source-of-truth scanning.
 
