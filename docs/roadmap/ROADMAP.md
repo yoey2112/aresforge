@@ -96,11 +96,11 @@ Issue #138 reconciles source-of-truth documentation after completion of Issues #
 
 ### M4 - Local Operator Expansion
 
-Status: Active.
+Status: Implementation complete; parent closeout in progress.
 
 Issue #145 is the parent sprint issue for M4.
 
-Issue #146 reconciles source-of-truth and operator/governance documentation after human-triggered bootstrap setup confirmed required and optional platform labels plus canonical platform milestones.
+Issue #146 was completed through PR #150 and reconciles source-of-truth and operator/governance documentation after human-triggered bootstrap setup confirmed required and optional platform labels plus canonical platform milestones.
 
 Issue #146 records explicit legacy/project-specific milestone mapping guidance:
 
@@ -111,19 +111,28 @@ Issue #146 records explicit legacy/project-specific milestone mapping guidance:
 
 Issue #146 is docs-only posture reconciliation and does not implement setup mutation commands.
 
-Issue #148 hardens `qa-review-pr` validation evidence detection so explicit PR-body validation sections are recognized with strict command-plus-pass/result requirements and deterministic failure diagnostics.
+Issue #147 was completed through PR #153 and expands managed repository governance fixture coverage to a second fixture/demo managed repository while preserving read-only and human-gated mutation boundaries.
+
+Issue #148 was completed through PR #151 and hardens `qa-review-pr` validation evidence detection so explicit PR-body validation sections are recognized with strict heading plus command/check plus pass/result requirements and deterministic failure diagnostics.
 
 Issue #149 was completed through PR #152 and adds `validate-pr-end-to-end`, a deterministic read-only end-to-end PR validation orchestration command that composes `qa-review-pr` output plus operator validation-command guidance without GitHub mutation.
 
-Remaining open M4 workstreams are:
+All M4 implementation workstreams are complete:
 
-- Issue #147 to prove multi-repository governance behavior
+- #146 / PR #150 completed
+- #147 / PR #153 completed
+- #148 / PR #151 completed
+- #149 / PR #152 completed
+
+Remaining open M4 issue:
+
+- Issue #145 (parent sprint closeout)
 
 ## Planned Milestone Sequence
 
-### M5 - Documentation Sync MVP
+### M5 - Local Operator Quality And Safe Onboarding Contracts
 
-Create a more repeatable, human-triggered documentation-sync flow with freshness checks, source-of-truth suggestions, and evidence capture while keeping closeout human-reviewed.
+Focus on local operator execution quality, managed-repository onboarding design, and preparation of safe human-triggered setup and mutation contracts without enabling autonomous GitHub mutation.
 
 ### M6 - Agent Queue And Orchestration MVP
 
@@ -179,9 +188,9 @@ The current M4 phase does not authorize:
 
 ## Next Recommended Direction
 
-- Continue M4 local operator expansion while preserving read-only-by-default governance and explicit human mutation gates
-- Keep Issue #146 closed as docs-only bootstrap setup reconciliation with explicit milestone mapping guidance
-- Complete Issue #147 to prove multi-repository governance behavior without autonomous mutation
+- Merge parent closeout reconciliation for Issue #145 and treat M4 implementation sprint workstreams as complete
+- Keep M4 boundary posture explicit: setup and mutation remain human-triggered and gated, with no setup/mutation command surface implemented
+- Use M5 to improve local operator execution quality, managed-repo onboarding design, and safe human-triggered setup/mutation contracts without autonomous GitHub mutation
 - Extend local operator visibility with safer human-triggered helper commands while keeping queue transitions out of scope and GitHub-state-changing behavior tightly phase-gated
 - Continue improving local review-aid visibility, including deterministic summaries of generated artifacts that remain non-authoritative
 - Continue improving local review-aid visibility, including deterministic single-artifact inspection that remains non-authoritative
