@@ -6,11 +6,11 @@ M3 - Registry And Routing Deepening
 
 ## Current Goal
 
-Continue M3 by extending managed repository readiness visibility so AresForge can classify whether registered managed repositories are ready for safe automation under deterministic read-only inspection, while preserving local-first human-triggered boundaries and non-mutating defaults.
+Continue M3 by adding an end-to-end managed repository governance demo so AresForge can prove the full read-only governance flow (inspection to bootstrap plan) under deterministic output, while preserving local-first human-triggered boundaries and non-mutating defaults.
 
 ## Current Repository State
 
-- Current branch: `m3/managed-repo-registry-extension`
+- Current branch: `m3/managed-repo-governance-demo`
 - Latest `main` commit: `a80762d` (`M3: add managed repository registry extension (#140)`)
 - Latest runtime-affecting merged foundation commit: `a80762d` (`M3: add managed repository registry extension (#140)`)
 - Issue #105 was completed through PR #106 and is merged `main` behavior
@@ -41,7 +41,8 @@ Continue M3 by extending managed repository readiness visibility so AresForge ca
 - Issue #132 was completed through PR #139 and is merged `main` behavior
 - Issue #133 was completed through PR #140 and is merged `main` behavior
 - Issue #134 was completed through PR #141 and is merged `main` behavior
-- Issue #135 is in progress and adds a reusable read-only managed repository bootstrap planning command with deterministic plan output and no setup mutation
+- Issue #135 was completed through PR #142 and is merged `main` behavior
+- Issue #136 is in progress and adds a reusable end-to-end managed repository governance demo command with deterministic read-only output and no setup mutation
 - Issue #95 was completed through PR #96 and is merged `main` behavior
 - Issue #97 was completed through PR #98 and is merged `main` behavior
 - Issue #75 remains the last routine reconciliation issue
@@ -107,6 +108,7 @@ The current human-triggered local operator foundation supports:
 - deterministic reusable read-only managed repository registry inspection through `inspect-managed-repos`
 - deterministic reusable read-only managed repository readiness reporting through `managed-repo-readiness-report`
 - deterministic reusable read-only managed repository bootstrap planning through `plan-repo-bootstrap`
+- deterministic reusable read-only end-to-end managed repository governance demo through `demo-managed-repo-governance`
 - a human-triggered phase-based PR lifecycle helper for explicit validation, staging, commit and push, PR creation, PR verification, merge verification, post-merge verification, and source-of-truth scanning
 - prompt package, evidence package, and Codex handoff artifact preparation, including opt-in local artifact discovery capture in evidence packages plus opt-in latest local review package capture in evidence and handoff outputs
 - opt-in local review package generation under `artifacts/local_reviews/generated/`

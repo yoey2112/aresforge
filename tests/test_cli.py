@@ -42,6 +42,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-managed-repos",
         "managed-repo-readiness-report",
         "plan-repo-bootstrap",
+        "demo-managed-repo-governance",
         "qa-review-pr",
         "qa-closeout-pr",
         "inspect-review-package",
@@ -156,6 +157,8 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     assert readiness_args.command == "managed-repo-readiness-report"
     plan_bootstrap_args = parser.parse_args(["plan-repo-bootstrap"])
     assert plan_bootstrap_args.command == "plan-repo-bootstrap"
+    demo_governance_args = parser.parse_args(["demo-managed-repo-governance"])
+    assert demo_governance_args.command == "demo-managed-repo-governance"
     qa_review_args = parser.parse_args(["qa-review-pr", "--pr-number", "118"])
     assert qa_review_args.pr_number == 118
     qa_closeout_args = parser.parse_args(["qa-closeout-pr", "--pr-number", "119"])
@@ -365,6 +368,7 @@ def test_command_requires_directories_only_for_commands_that_write_artifacts() -
     assert command_requires_directories(parser.parse_args(["inspect-managed-repos"])) is False
     assert command_requires_directories(parser.parse_args(["managed-repo-readiness-report"])) is False
     assert command_requires_directories(parser.parse_args(["plan-repo-bootstrap"])) is False
+    assert command_requires_directories(parser.parse_args(["demo-managed-repo-governance"])) is False
 
 
 def test_validate_registries_command_emits_ok_json_and_zero_exit(
@@ -500,6 +504,41 @@ def test_cli_dispatches_project_state_summary(
 
     assert exit_code == 0
     assert payload == {"command": "project-state-summary", "ok": True}
+
+
+def test_cli_dispatches_demo_managed_repo_governance(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+) -> None:
+    config = AppConfig(
+        repo_root=tmp_path,
+        db_host="127.0.0.1",
+        db_port=5433,
+        db_name="aresforge",
+        db_user="aresforge",
+        db_password="aresforge",
+        ollama_base_url="http://127.0.0.1:11434",
+        ollama_model="qwen2.5:32b",
+        artifact_root=tmp_path / "artifacts",
+        prompts_dir=tmp_path / "artifacts" / "prompts" / "generated",
+        evidence_dir=tmp_path / "artifacts" / "evidence" / "generated",
+        codex_handoffs_dir=tmp_path / "artifacts" / "codex_handoffs" / "generated",
+        github_owner="yoey2112",
+        github_repo="aresforge",
+    )
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: config)
+    monkeypatch.setattr(
+        cli,
+        "demo_managed_repo_governance",
+        lambda _config: {"command": "demo-managed-repo-governance", "ok": True},
+    )
+
+    exit_code = cli.main(["demo-managed-repo-governance"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert payload == {"command": "demo-managed-repo-governance", "ok": True}
 
 
 def test_cli_dispatches_inspect_repo_governance(

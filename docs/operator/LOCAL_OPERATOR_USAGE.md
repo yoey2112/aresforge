@@ -224,6 +224,14 @@ python -m aresforge plan-repo-bootstrap
 
 This command is read-only and safe to run repeatedly. It inspects registered managed repositories, reuses governance and bootstrap/readiness signals where available, and emits deterministic JSON with human-reviewable required, recommended, optional, and deferred setup actions. The plan explicitly includes future setup command placeholders, warnings, and boundary confirmations while making clear that no setup is executed. It degrades gracefully when local paths, `gh`, `git`, network access, or registry data are unavailable and does not mutate files, git state, labels, milestones, issues, PRs, branches, workflows, settings, or artifacts.
 
+Run a deterministic read-only end-to-end managed repository governance demo:
+
+```powershell
+python -m aresforge demo-managed-repo-governance
+```
+
+This command is read-only and safe to run repeatedly. It composes `inspect-repo-governance`, `inspect-repo-bootstrap-contract`, `inspect-managed-repos`, `managed-repo-readiness-report`, and `plan-repo-bootstrap` into one deterministic end-to-end demo payload for the current configured managed repository context. It emits `demo_summary`, `demo_steps`, stack outputs, warnings, recommended next action, QA validation expectations, documentation expectations, and boundary confirmations. Attention-needed items are preserved (not hidden), and the command degrades gracefully when `gh`, `git`, network access, local path checks, or registry data are unavailable. It does not mutate files, git state, labels, milestones, issues, PRs, branches, workflows, settings, or artifacts.
+
 Run the bounded local review orchestration over the existing read-only operator surfaces:
 
 ```powershell
