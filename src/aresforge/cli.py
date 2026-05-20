@@ -32,7 +32,9 @@ from aresforge.db.repository import (
 from aresforge.integrations.ollama import test_generate
 from aresforge.operator.artifact_discovery import (
     discover_local_artifacts,
+    discover_local_evidence_packages,
     inspect_local_artifact,
+    inspect_local_evidence_package,
 )
 from aresforge.operator.inspection_reports import (
     render_queue_inspection_report,
@@ -78,11 +80,20 @@ def build_parser() -> argparse.ArgumentParser:
         "list-artifacts",
         help="Summarize generated local artifacts under the configured artifact root.",
     )
+    subparsers.add_parser(
+        "list-evidence-packages",
+        help="Summarize generated local evidence packages under the configured evidence root.",
+    )
     inspect_artifact_parser = subparsers.add_parser(
         "inspect-artifact",
         help="Inspect one generated local artifact under the configured artifact root.",
     )
     inspect_artifact_parser.add_argument("--artifact-path", required=True)
+    inspect_evidence_parser = subparsers.add_parser(
+        "inspect-evidence-package",
+        help="Inspect one generated local evidence package under the configured evidence root.",
+    )
+    inspect_evidence_parser.add_argument("--evidence-path", required=True)
     subparsers.add_parser("list-projects", help="List registered projects.")
     subparsers.add_parser("list-agents", help="List registered agent roles.")
     subparsers.add_parser("list-models", help="List registered local model records.")
@@ -163,6 +174,11 @@ def build_parser() -> argparse.ArgumentParser:
     evidence_parser.add_argument(
         "--automation-boundary-confirmation",
         default="No autonomous GitHub or repository state changes were performed.",
+    )
+    evidence_parser.add_argument(
+        "--include-artifact-discovery",
+        action="store_true",
+        help="Embed a deterministic local list-artifacts snapshot in the evidence package.",
     )
     evidence_parser.add_argument("--store-db", action="store_true")
 
@@ -284,8 +300,17 @@ def main(argv: list[str] | None = None) -> int:
         emit_json(discover_local_artifacts(config))
         return 0
 
+    if args.command == "list-evidence-packages":
+        emit_json(discover_local_evidence_packages(config))
+        return 0
+
     if args.command == "inspect-artifact":
         payload = inspect_local_artifact(config, args.artifact_path)
+        emit_json(payload)
+        return 0 if payload["ok"] else 1
+
+    if args.command == "inspect-evidence-package":
+        payload = inspect_local_evidence_package(config, args.evidence_path)
         emit_json(payload)
         return 0 if payload["ok"] else 1
 
@@ -415,6 +440,9 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.command == "record-evidence-package":
+        artifact_discovery = (
+            discover_local_artifacts(config) if args.include_artifact_discovery else None
+        )
         bundle = render_evidence_package(
             config=config,
             title=args.title,
@@ -424,6 +452,7 @@ def main(argv: list[str] | None = None) -> int:
             skipped_checks=args.skipped_checks,
             protected_issue_checks=args.protected_issue_checks,
             automation_boundary_confirmation=args.automation_boundary_confirmation,
+            artifact_discovery=artifact_discovery,
         )
         response = {
             "markdown_path": str(bundle.markdown_path),
