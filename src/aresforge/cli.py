@@ -39,7 +39,9 @@ from aresforge.operator.artifact_discovery import (
     inspect_local_review_package,
     latest_local_review_package_summary,
 )
+from aresforge.operator.agent_queue_planning import plan_agent_queue
 from aresforge.operator.automation_readiness_report import automation_readiness_report
+from aresforge.operator.batch_readiness_report import report_batch_readiness
 from aresforge.operator.inspection_reports import (
     render_queue_inspection_report,
     render_work_item_inspection_report,
@@ -221,6 +223,49 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser(
         "automation-readiness-report",
         help="Emit a read-only automation readiness dashboard summary.",
+    )
+    plan_agent_queue_parser = subparsers.add_parser(
+        "plan-agent-queue",
+        help="Generate a read-only queue-driven execution plan for eligible issues.",
+    )
+    plan_agent_queue_parser.add_argument(
+        "--issue-number",
+        type=int,
+        action="append",
+        default=[],
+        help="Optional issue number to include. May be provided multiple times.",
+    )
+    plan_agent_queue_parser.add_argument(
+        "--issues-file",
+        help="Optional JSON file with an `issues` array for deterministic local planning input.",
+    )
+    batch_readiness_parser = subparsers.add_parser(
+        "report-batch-readiness",
+        help="Generate a read-only multi-issue batch validation and closeout readiness summary.",
+    )
+    batch_readiness_parser.add_argument("--pr-number", type=int)
+    batch_readiness_parser.add_argument(
+        "--issue-number",
+        type=int,
+        action="append",
+        default=[],
+        help="Optional issue number to include. May be provided multiple times.",
+    )
+    batch_readiness_parser.add_argument(
+        "--issues-file",
+        help="Optional JSON file with an `issues` array for deterministic issue coverage input.",
+    )
+    batch_readiness_parser.add_argument(
+        "--changed-file",
+        action="append",
+        default=[],
+        help="Optional changed file path override. May be provided multiple times.",
+    )
+    batch_readiness_parser.add_argument(
+        "--validation",
+        action="append",
+        default=[],
+        help="Validation command evidence entry. May be provided multiple times.",
     )
     subparsers.add_parser(
         "project-state-summary",
@@ -600,6 +645,29 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "automation-readiness-report":
         emit_json(automation_readiness_report(config))
+        return 0
+
+    if args.command == "plan-agent-queue":
+        emit_json(
+            plan_agent_queue(
+                config,
+                issue_numbers=args.issue_number,
+                issues_file=args.issues_file,
+            )
+        )
+        return 0
+
+    if args.command == "report-batch-readiness":
+        emit_json(
+            report_batch_readiness(
+                config,
+                issue_numbers=args.issue_number,
+                issues_file=args.issues_file,
+                changed_files=args.changed_file,
+                validations=args.validation,
+                pr_number=args.pr_number,
+            )
+        )
         return 0
 
     if args.command == "project-state-summary":

@@ -299,14 +299,18 @@ def _execute_closeout_mutations(
     ]
     code, _stdout, stderr = _run_gh_command(close_args)
     if code != 0:
+        issue_state_after_failure = _fetch_issue_state(config, linked_issue_number)
+        recovered_issue_closed = issue_state_after_failure == "closed"
         return {
             "merge_performed": True,
             "closeout_comment_created": True,
-            "issue_closed": False,
+            "issue_closed": recovered_issue_closed,
             "error": {
                 "step": "close_issue",
                 "exit_code": code,
                 "stderr": stderr.strip(),
+                "issue_state_after_failure": issue_state_after_failure,
+                "recovered_issue_closed": recovered_issue_closed,
             },
         }
 
@@ -445,3 +449,28 @@ def _build_label_edit_command(
     for label in missing_labels:
         command += f' --add-label "{label}"'
     return command
+
+
+def _fetch_issue_state(config: AppConfig, issue_number: int) -> str | None:
+    args = [
+        "issue",
+        "view",
+        str(issue_number),
+        "--repo",
+        _repo_slug(config),
+        "--json",
+        "state",
+    ]
+    code, stdout, _stderr = _run_gh_command(args)
+    if code != 0:
+        return None
+    try:
+        payload = _parse_json_payload(stdout)
+    except ValueError:
+        return None
+    if not isinstance(payload, dict):
+        return None
+    state = payload.get("state")
+    if isinstance(state, str):
+        return state.lower()
+    return None

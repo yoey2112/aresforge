@@ -2,52 +2,28 @@
 
 ## Purpose
 
-Issue #81 established the runnable local skeleton. Subsequent milestones expanded it with read-only governance and closeout tooling.
+Describe the human-triggered local operator surface and M6 queue-planning additions.
 
 ## Operator Shape
 
-The local operator is exposed as `python -m aresforge`.
+Command entrypoint:
 
-Supported command groups:
+- `python -m aresforge`
 
-- local validation and inspection
-- ready-issue intake planning
-- PR QA review and gated closeout
-- project-state and governance reporting
-- managed-repo registry, readiness, and bootstrap planning
-- local artifact/evidence/handoff generation
+## M6 Additions
 
-## Managed Repository Contract Integration
+- `plan-agent-queue`: read-only issue intake mapping to queue/orchestration MVP state.
+- `report-batch-readiness`: read-only multi-issue validation and closeout readiness summary.
 
-The runnable stack includes a read-only managed-repository governance suite:
+## Existing Closeout Posture
 
-- `inspect-repo-governance`
-- `inspect-repo-bootstrap-contract`
-- `inspect-managed-repos`
-- `managed-repo-readiness-report`
-- `plan-repo-bootstrap`
-- `demo-managed-repo-governance`
-
-These commands provide deterministic inspection and planning outputs and do not perform setup mutation.
-
-## M5 Onboarding And Setup Design Posture
-
-M5 adds explicit documentation contracts for:
-
-- managed repository onboarding classification and metadata
-- readiness checks prior to setup consideration
-- trust and mutation boundaries
-- future gated setup command behavior requirements
-
-M5 does not implement a new setup/mutation command.
+- `qa-review-pr` remains read-only.
+- `qa-closeout-pr` remains dry-run default and execute-gated.
+- M6 adds clearer close-issue failure diagnostics and state re-check support.
 
 ## Automation Boundary
 
-The current runnable layer remains:
-
-- human-triggered
-- read-only-first
-- explicit-gate for existing execute-mode closeout behavior
-- non-autonomous for setup/mutation behavior
-
-No autonomous setup/mutation path is introduced.
+- Human-triggered only.
+- Read-only-first defaults.
+- No autonomous setup/mutation, merge, or closeout.
+- Issue #39 is excluded from mutation scope.

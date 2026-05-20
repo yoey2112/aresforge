@@ -475,3 +475,45 @@ def test_no_unrelated_github_mutation_targets(
         assert "119" in call
         assert "39" not in call
 
+
+def test_close_issue_graphql_failure_recovers_when_issue_already_closed(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    config = make_config(tmp_path)
+    _stub_qa_review(monkeypatch, _review_payload())
+
+    def fake_run(args: list[str]) -> tuple[int, str, str]:
+        if args[:2] == ["issue", "view"] and "--json" in args:
+            field = args[args.index("--json") + 1]
+            if field == "number,state,url,labels":
+                return (
+                    0,
+                    json.dumps(
+                        {
+                            "number": 119,
+                            "state": "OPEN",
+                            "url": "https://github.com/yoey2112/aresforge/issues/119",
+                            "labels": [
+                                {"name": "aresforge-ready"},
+                                {"name": "aresforge-automerge"},
+                            ],
+                        }
+                    ),
+                    "",
+                )
+            if field == "state":
+                return 0, json.dumps({"state": "CLOSED"}), ""
+        if args[:2] == ["issue", "close"]:
+            return 1, "", "GraphQL: closeIssue failed for unknown transient reason"
+        return 0, "", ""
+
+    monkeypatch.setattr(qa_closeout_pr, "_run_gh_command", fake_run)
+
+    payload = run_closeout(config, 119, execute=True)
+
+    assert payload["merge_performed"] is True
+    assert payload["closeout_comment_created"] is True
+    assert payload["issue_closed"] is True
+    assert payload["mutation_error"]["step"] == "close_issue"
+    assert payload["mutation_error"]["recovered_issue_closed"] is True
+
