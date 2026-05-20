@@ -202,6 +202,8 @@ No setup or mutation command surface is implemented as part of this contract in 
 
 For AresForge M4, label and canonical milestone setup was completed as human-triggered manual GitHub work before this documentation reconciliation.
 
+M5 extends `plan-repo-bootstrap` with exact human-reviewable setup command recommendations when required data is available, but those commands are still output-only and never executed by AresForge. Operators must manually review and run any GitHub mutation commands.
+
 ## Multi-Repository Extension Point
 
 Future multi-repository support should reuse this contract shape and add project-scoped profile selection through registry-backed project identity.
