@@ -62,8 +62,15 @@ _GATE_FIXES = {
     "merge_state_clean": "Resolve merge conflicts so the PR is cleanly mergeable.",
     "linked_issue_present": "Link the PR to an expected issue using closing keywords.",
     "protected_issue_untouched": "Remove any reference to protected Issue #39.",
-    "validation_evidence_present": "Provide a linked validation evidence package or review package.",
-    "required_tests_passed": "Record evidence that required tests or checks passed.",
+    "validation_evidence_present": (
+        "Provide validation evidence in the PR body with a recognized validation heading, "
+        "at least one concrete command/check, and at least one explicit pass/result signal; "
+        "or provide linked evidence/review package coverage."
+    ),
+    "required_tests_passed": (
+        "Record at least one concrete command/check and at least one explicit pass/result signal "
+        "in PR validation evidence."
+    ),
     "documentation_updated_when_required": "Update required documentation or explain why none is needed.",
     "forbidden_changes_absent": "Remove forbidden repository setting, release, or project changes.",
     "generated_conventions_respected": "Keep generated artifacts under artifacts/*/generated paths.",
@@ -83,6 +90,7 @@ def qa_review_pr(config: AppConfig, pr_number: int) -> dict[str, Any]:
     merge_state = pr_data.get("mergeStateStatus") if isinstance(pr_data, dict) else None
     base_branch = pr_data.get("baseRefName") if isinstance(pr_data, dict) else None
     head_branch = pr_data.get("headRefName") if isinstance(pr_data, dict) else None
+    pr_body = pr_data.get("body") if isinstance(pr_data, dict) else None
 
     changed_files = _extract_changed_files(pr_data)
     linked_issue_numbers = _extract_linked_issues(pr_data)
@@ -92,6 +100,7 @@ def qa_review_pr(config: AppConfig, pr_number: int) -> dict[str, Any]:
         config,
         linked_issue_number=linked_issue_number,
         pr_number=pr_number,
+        pr_body=pr_body if isinstance(pr_body, str) else "",
     )
 
     documentation_update_required = _documentation_update_required(changed_files)
@@ -140,6 +149,11 @@ def qa_review_pr(config: AppConfig, pr_number: int) -> dict[str, Any]:
         "validation_evidence_found": evidence_summary["validation_evidence_found"],
         "review_package_found": evidence_summary["review_package_found"],
         "evidence_package_found": evidence_summary["evidence_package_found"],
+        "validation_heading_found": evidence_summary["validation_heading_found"],
+        "validation_command_evidence_found": evidence_summary[
+            "validation_command_evidence_found"
+        ],
+        "validation_pass_signal_found": evidence_summary["validation_pass_signal_found"],
         "documentation_update_required": documentation_update_required,
         "documentation_update_detected": documentation_update_detected,
         "protected_issue_status": protected_issue_status,
@@ -241,6 +255,7 @@ def _find_validation_evidence(
     *,
     linked_issue_number: int | None,
     pr_number: int,
+    pr_body: str,
 ) -> dict[str, bool]:
     evidence_payload = discover_local_evidence_packages(config)
     review_payload = discover_local_review_packages(config)
@@ -251,6 +266,7 @@ def _find_validation_evidence(
     evidence_found = bool(evidence_packages)
     review_found = bool(review_packages)
     linked_evidence = False
+    body_evidence = _parse_pr_body_validation_evidence(pr_body)
 
     for payload, root_key, path_key in (
         (evidence_payload, "evidence_root", "evidence_path"),
@@ -273,14 +289,88 @@ def _find_validation_evidence(
             if _file_mentions_number(root_path / raw_path, linked_issue_number, pr_number):
                 linked_evidence = True
 
-    tests_passed = linked_evidence
+    validation_evidence_found = linked_evidence or body_evidence["tests_passed"]
+    tests_passed = validation_evidence_found
 
     return {
-        "validation_evidence_found": linked_evidence,
+        "validation_evidence_found": validation_evidence_found,
         "review_package_found": review_found,
         "evidence_package_found": evidence_found,
         "tests_passed": tests_passed,
+        "validation_heading_found": body_evidence["validation_heading_found"],
+        "validation_command_evidence_found": body_evidence[
+            "validation_command_evidence_found"
+        ],
+        "validation_pass_signal_found": body_evidence["validation_pass_signal_found"],
     }
+
+
+_VALIDATION_SECTION_HEADING_PATTERN = re.compile(
+    r"^\s{0,3}#{1,6}\s*(validation(?:\s+evidence)?|required\s+validation|required\s+tests|test\s+evidence)\s*$",
+    re.IGNORECASE,
+)
+_PR_HEADING_LINE_PATTERN = re.compile(r"^\s{0,3}#{1,6}\s+")
+_VALIDATION_COMMAND_PATTERNS = (
+    r"\bpython\s+-m\s+pytest\b",
+    r"\bpytest\b",
+    r"\bgit\s+diff\s+--check\b",
+    r"\bgit\s+status\s+--short\b",
+    r"\binspect-repo-governance\b",
+    r"\bmanaged-repo-readiness-report\b",
+    r"\bplan-repo-bootstrap\b",
+    r"\bdemo-managed-repo-governance\b",
+)
+_VALIDATION_PASS_PATTERNS = (
+    r"\bresult\s*:\s*passed\b",
+    r"\bpassed\s*:\s*\d+\s+passed\b",
+    r"\b\d+\s+passed\b",
+    r"\bpass(?:ed)?\b",
+)
+
+
+def _parse_pr_body_validation_evidence(pr_body: str) -> dict[str, bool]:
+    section = _extract_validation_section(pr_body)
+    if section is None:
+        return {
+            "validation_heading_found": False,
+            "validation_command_evidence_found": False,
+            "validation_pass_signal_found": False,
+            "tests_passed": False,
+        }
+
+    command_found = _contains_any_pattern(section, _VALIDATION_COMMAND_PATTERNS)
+    pass_found = _contains_any_pattern(section, _VALIDATION_PASS_PATTERNS)
+    tests_passed = command_found and pass_found
+    return {
+        "validation_heading_found": True,
+        "validation_command_evidence_found": command_found,
+        "validation_pass_signal_found": pass_found,
+        "tests_passed": tests_passed,
+    }
+
+
+def _extract_validation_section(pr_body: str) -> str | None:
+    if not pr_body.strip():
+        return None
+    lines = pr_body.splitlines()
+    for index, line in enumerate(lines):
+        if _VALIDATION_SECTION_HEADING_PATTERN.match(line):
+            section_lines: list[str] = []
+            for candidate in lines[index + 1 :]:
+                if _PR_HEADING_LINE_PATTERN.match(candidate):
+                    break
+                section_lines.append(candidate)
+            return "\n".join(section_lines)
+    return None
+
+
+def _contains_any_pattern(text: str, patterns: tuple[str, ...]) -> bool:
+    if not text.strip():
+        return False
+    for pattern in patterns:
+        if re.search(pattern, text, flags=re.IGNORECASE):
+            return True
+    return False
 
 
 def _path_mentions_number(path: str, issue_number: int | None, pr_number: int) -> bool:

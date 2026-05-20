@@ -111,9 +111,10 @@ Issue #146 records explicit legacy/project-specific milestone mapping guidance:
 
 Issue #146 is docs-only posture reconciliation and does not implement setup mutation commands.
 
-Next M4 workstreams after #146 are:
+Issue #148 hardens `qa-review-pr` validation evidence detection so explicit PR-body validation sections are recognized with strict command-plus-pass/result requirements and deterministic failure diagnostics.
 
-- Issue #148 to harden QA validation
+Remaining M4 workstreams after #148 are:
+
 - Issue #149 to add validate-pr end-to-end coverage
 - Issue #147 to prove multi-repository governance behavior
 
@@ -178,7 +179,7 @@ The current M4 phase does not authorize:
 ## Next Recommended Direction
 
 - Continue M4 local operator expansion while preserving read-only-by-default governance and explicit human mutation gates
-- Complete Issue #146 as docs-only bootstrap setup reconciliation with explicit milestone mapping guidance
+- Keep Issue #146 closed as docs-only bootstrap setup reconciliation with explicit milestone mapping guidance
 - Complete Issue #148 to harden QA validation posture
 - Complete Issue #149 to add validate-pr end-to-end coverage
 - Complete Issue #147 to prove multi-repository governance behavior without autonomous mutation

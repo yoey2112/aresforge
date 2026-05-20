@@ -171,6 +171,97 @@ def test_qa_review_pr_payload_is_deterministic_json(
     assert json.loads(json.dumps(payload)) == payload
 
 
+def test_qa_review_pr_accepts_pr_body_validation_evidence_without_local_packages(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    config = make_config(tmp_path)
+    body = """
+## Summary
+Docs-only reconciliation.
+
+## Validation evidence
+- python -m pytest
+- Result: passed
+- Passed: 194 passed
+- python -m aresforge inspect-repo-governance
+- python -m aresforge managed-repo-readiness-report
+- python -m aresforge plan-repo-bootstrap
+- python -m aresforge demo-managed-repo-governance
+"""
+    _stub_pr_view(monkeypatch, _pr_payload(number=150, body=body, closingIssuesReferences=[{"number": 146}]))
+
+    payload = qa_review_pr(config, 150)
+
+    assert payload["validation_evidence_found"] is True
+    assert payload["validation_heading_found"] is True
+    assert payload["validation_command_evidence_found"] is True
+    assert payload["validation_pass_signal_found"] is True
+    assert "validation_evidence_present" in payload["passed_gates"]
+    assert "required_tests_passed" in payload["passed_gates"]
+    assert "validation_evidence_present" not in payload["failed_gates"]
+    assert "required_tests_passed" not in payload["failed_gates"]
+
+
+def test_qa_review_pr_rejects_heading_without_command_evidence(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    config = make_config(tmp_path)
+    body = """
+## Validation evidence
+Result: passed
+"""
+    _stub_pr_view(monkeypatch, _pr_payload(body=body))
+
+    payload = qa_review_pr(config, 118)
+
+    assert payload["validation_heading_found"] is True
+    assert payload["validation_command_evidence_found"] is False
+    assert payload["validation_pass_signal_found"] is True
+    assert payload["validation_evidence_found"] is False
+    assert "validation_evidence_present" in payload["failed_gates"]
+    assert "required_tests_passed" in payload["failed_gates"]
+
+
+def test_qa_review_pr_rejects_command_without_pass_signal(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    config = make_config(tmp_path)
+    body = """
+## Required tests
+- python -m pytest
+"""
+    _stub_pr_view(monkeypatch, _pr_payload(body=body))
+
+    payload = qa_review_pr(config, 118)
+
+    assert payload["validation_heading_found"] is True
+    assert payload["validation_command_evidence_found"] is True
+    assert payload["validation_pass_signal_found"] is False
+    assert payload["validation_evidence_found"] is False
+    assert "validation_evidence_present" in payload["failed_gates"]
+    assert "required_tests_passed" in payload["failed_gates"]
+
+
+def test_qa_review_pr_rejects_vague_pass_claim_without_command(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    config = make_config(tmp_path)
+    body = """
+## Test evidence
+All tests are fine.
+"""
+    _stub_pr_view(monkeypatch, _pr_payload(body=body))
+
+    payload = qa_review_pr(config, 118)
+
+    assert payload["validation_heading_found"] is True
+    assert payload["validation_command_evidence_found"] is False
+    assert payload["validation_pass_signal_found"] is False
+    assert payload["validation_evidence_found"] is False
+    assert "validation_evidence_present" in payload["failed_gates"]
+    assert "required_tests_passed" in payload["failed_gates"]
+
+
 def test_qa_review_pr_uses_read_only_pr_view(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
