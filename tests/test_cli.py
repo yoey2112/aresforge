@@ -29,6 +29,8 @@ def test_cli_has_expected_commands() -> None:
         "list-review-packages",
         "run-local-review",
         "list-evidence-packages",
+        "list-ready-issues",
+        "inspect-ready-issue",
         "inspect-review-package",
         "inspect-artifact",
         "inspect-evidence-package",
@@ -105,6 +107,10 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     assert run_local_review_args.write_review_package is False
     list_evidence_args = parser.parse_args(["list-evidence-packages"])
     assert list_evidence_args.command == "list-evidence-packages"
+    list_ready_args = parser.parse_args(["list-ready-issues"])
+    assert list_ready_args.command == "list-ready-issues"
+    inspect_ready_args = parser.parse_args(["inspect-ready-issue", "--issue-number", "114"])
+    assert inspect_ready_args.issue_number == 114
     inspect_review_args = parser.parse_args(
         ["inspect-review-package", "--review-path", "20260520T120003Z-local-review.json"]
     )
@@ -158,6 +164,13 @@ def test_cli_inspect_review_package_requires_review_path() -> None:
 
     with pytest.raises(SystemExit):
         parser.parse_args(["inspect-review-package"])
+
+
+def test_cli_inspect_ready_issue_requires_issue_number() -> None:
+    parser = build_parser()
+
+    with pytest.raises(SystemExit):
+        parser.parse_args(["inspect-ready-issue"])
 
 
 def test_cli_inspect_evidence_package_requires_evidence_path() -> None:

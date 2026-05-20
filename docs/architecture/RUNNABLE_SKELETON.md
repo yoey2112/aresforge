@@ -57,6 +57,8 @@ Supported commands:
 - `run-local-review`
 - `list-evidence-packages`
 - `inspect-evidence-package`
+- `list-ready-issues`
+- `inspect-ready-issue`
 - `inspect-project`
 - `inspect-model`
 - `inspect-queue`
@@ -91,6 +93,10 @@ The `run-local-review` command is a human-triggered local orchestration helper t
 The `list-evidence-packages` command is a read-only local summary helper for generated evidence packages under the configured evidence root. It emits deterministic JSON sorted by relative evidence path, reports empty and missing evidence-root cases explicitly, and keeps evidence packages visible as review artifacts rather than source of truth. It does not create missing directories, require PostgreSQL, call Ollama, mutate files, route work, or change GitHub state.
 
 The `inspect-evidence-package` command is a read-only local inspection helper for one generated evidence package under the configured evidence root. It accepts one safe relative path from `list-evidence-packages`, rejects empty, traversal, absolute, and out-of-root paths, and emits deterministic JSON with bounded preview metadata for safe UTF-8 text artifacts. It does not create missing directories, require PostgreSQL, call Ollama, mutate files, route work, or change GitHub state.
+
+The `list-ready-issues` command is a read-only GitHub intake helper for manually labeled ready issues. It queries the configured GitHub repository for open issues labeled `aresforge-ready`, excludes Issue #39, emits deterministic JSON sorted by issue number, and records explicit automation boundary confirmations. It does not create or modify issues, labels, pull requests, or any GitHub state.
+
+The `inspect-ready-issue` command is a read-only GitHub intake helper for one manually labeled ready issue. It rejects Issue #39, requires the `aresforge-ready` label, emits deterministic JSON for the issue metadata and manual trigger confirmation, and does not create or modify issues, labels, pull requests, or any GitHub state.
 
 The `inspect-queue` and `inspect-work-item` commands are read-only registry-aware inspection helpers. They expand local queue and work-item records into richer JSON views, but they do not transition queues, mutate routing, authorize autonomous routing, or authorize GitHub-state-changing behavior.
 
