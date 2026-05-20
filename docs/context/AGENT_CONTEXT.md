@@ -48,14 +48,16 @@ During M4, implementation remains human-triggered and human-reviewed. Agents may
 - Issue #135 extends M3 with `plan-repo-bootstrap`, a reusable read-only managed repository bootstrap planning command that emits deterministic required, recommended, optional, and deferred setup actions without performing setup mutation
 - Issue #136 extends M3 with `demo-managed-repo-governance`, a reusable read-only end-to-end managed repository governance demo command that composes inspection, contract, registry, readiness, and bootstrap-plan outputs while preserving warnings and boundary confirmations
 - Issue #138 is completed through PR #144 and remains historical closeout context for M3 governance-stack source-of-truth reconciliation
-- Issue #145 is the active M4 parent sprint issue
+- Issue #145 is the M4 parent sprint closeout issue
 - Issue #146 is completed through PR #150 and is merged `main` behavior
 - Issue #148 is completed through PR #151 and is merged `main` behavior
 - Issue #149 is completed and merged `main` behavior through PR #152
-- Issue #147 is the active M4 workstream to prove multi-repository governance with a safe fixture/demo repository
+- Issue #147 is completed through PR #153 and is merged `main` behavior, proving multi-repository governance with a safe fixture/demo repository
 - Human-triggered bootstrap setup has already created required and optional platform labels plus canonical platform milestones
 - Remaining readiness `attention_needed` posture is legacy or project-specific milestone mapping documentation alignment only
 - No setup or mutation command surface has been implemented for bootstrap setup; GitHub mutation remains human-triggered and gated
+- `validate-pr-end-to-end` is available as a deterministic read-only orchestration command and does not mutate GitHub state
+- `qa-review-pr` enforces strict explicit PR-body validation evidence requirements when PR-body evidence is used (heading plus concrete command/check evidence plus pass/result signal)
 - Issue #101 was completed through PR #102 and added merged `main` support for read-only local model inspection without introducing model selection, routing, or GitHub-state-changing behavior
 - Issue #97 was completed through PR #98 and added merged `main` support for read-only local project inspection without changing routing, queue state, or GitHub state
 - Issue #99 was completed through PR #100 and added merged `main` support for a human-triggered PR lifecycle helper that keeps validation, staging, PR creation, PR verification, merge execution, post-merge verification, and source-of-truth scanning phase-gated and visible

@@ -6,13 +6,13 @@ M4 - Local Operator Expansion
 
 ## Current Goal
 
-Complete Issue #147 by expanding managed repository governance validation to include a second fixture/demo managed repository while preserving read-only and human-gated mutation boundaries.
+Complete parent sprint closeout Issue #145 by reconciling source-of-truth documentation after all M4 implementation workstreams landed on `main`.
 
 ## Current Repository State
 
 - Current branch: `main`
-- Latest `main` commit: `f3de8c8` (`M4: add end-to-end PR validation orchestration (#149) (#152)`)
-- Latest runtime-affecting merged foundation commit: `f3de8c8` (`M4: add end-to-end PR validation orchestration (#149) (#152)`)
+- Latest `main` commit before this closeout branch/PR: `b978332` (`M4: expand managed repository governance fixture coverage (#147) (#153)`)
+- Latest runtime-affecting merged foundation commit before this closeout branch/PR: `b978332` (`M4: expand managed repository governance fixture coverage (#147) (#153)`)
 - Issue #105 was completed through PR #106 and is merged `main` behavior
 - Issue #107 was completed through PR #108 and is merged `main` behavior
 - Issue #109 was completed through PR #111 and is merged `main` behavior
@@ -43,11 +43,12 @@ Complete Issue #147 by expanding managed repository governance validation to inc
 - Issue #134 was completed through PR #141 and is merged `main` behavior
 - Issue #135 was completed through PR #142 and is merged `main` behavior
 - Issue #136 was completed through PR #143 and is merged `main` behavior
-- M4 sprint has started under parent sprint Issue #145
+- M4 implementation sprint workstreams are complete under parent sprint Issue #145
 - Issue #146 is complete through PR #150 and is merged `main` behavior
 - Issue #148 is complete and merged `main` behavior through PR #151
 - Issue #149 is complete and merged `main` behavior through PR #152
-- Issue #147 is active and is the remaining M4 multi-repository governance fixture workstream under Issue #145
+- Issue #147 is complete through PR #153 and is merged `main` behavior
+- Issue #145 remains open as the parent sprint closeout issue
 - Human-triggered bootstrap setup has already been performed for labels and milestones using manual `gh`-driven operations outside AresForge runtime mutation surfaces
 - Required and optional platform labels are present: `aresforge-ready`, `aresforge-automerge`, `aresforge-blocked`, `aresforge-needs-evidence`, `aresforge-needs-docs`, `aresforge-closeout-ready`, `aresforge-managed`, and `aresforge-generated`
 - Canonical platform milestones are present: `M0 - Foundation`, `M1 - Validation`, `M2 - Local Automation Foundation`, `M3 - Registry And Routing Deepening`, and `M4 - Local Operator Expansion`
@@ -105,8 +106,9 @@ The current human-triggered local operator foundation supports:
 - deterministic read-only single evidence package inspection through `inspect-evidence-package`
 - deterministic human-triggered local review orchestration through `run-local-review`
 - deterministic decision-only ready issue routing through `plan-ready-issue`
-- deterministic QA PR validation-only inspection through `qa-review-pr`
+- deterministic QA PR validation-only inspection through `qa-review-pr`, including strict explicit PR-body validation evidence detection for heading, command/check evidence, and pass/result signals
 - deterministic QA-gated PR closeout through `qa-closeout-pr` with default dry-run/no-mutation and explicit execute mode
+- deterministic read-only end-to-end PR validation orchestration through `validate-pr-end-to-end`
 - deterministic reusable ready issue orchestration through `run-ready-issue-pipeline` with explicit plan-only, review-pr, and closeout-when-eligible modes
 - deterministic reusable read-only ready issue batch planning through `run-ready-issue-batch --plan-only` with deterministic JSON and Markdown artifact generation
 - deterministic read-only automation readiness dashboard reporting through `automation-readiness-report`
@@ -126,7 +128,7 @@ These capabilities are local-only helper surfaces. They are reviewable, non-auth
 
 ## Current Boundaries
 
-The current M3 implementation does allow:
+The current M4 implementation does allow:
 
 - human-triggered local commands
 - read-only registry-aware validation and inspection
@@ -151,7 +153,7 @@ The current M3 implementation does allow:
 - bounded local model inspection, listing, and Ollama dry-run checks
 - bounded local model inspection, listing, and Ollama dry-run checks without autonomous selection or routing
 
-The current M3 implementation does not authorize:
+The current M4 implementation does not authorize:
 
 - queue transitions performed autonomously
 - routing mutation or autonomous routing
@@ -165,16 +167,16 @@ The current M3 implementation does not authorize:
 
 ## Next Recommended Direction
 
-- Use `project-state-summary` as the first M3 local-first status checkpoint before planning or closeout work
-- Continue M3 registry and routing deepening through broader read-only summaries and safer helper flows
-- Continue M3 managed-repository readiness work with reusable bootstrap contract evaluation before any setup mutation
+- Use `project-state-summary` as the first M4 closeout and M5 planning status checkpoint
+- M4 implementation workstreams are complete; close parent sprint Issue #145 after this source-of-truth reconciliation is merged
+- Begin M5 planning around local operator execution quality, managed-repo onboarding design, and safe human-triggered setup/mutation contract preparation without autonomous GitHub mutation
 - Keep readiness posture explicit: labels and canonical platform milestones are now aligned through human-triggered setup, and remaining `attention_needed` posture is milestone mapping documentation alignment for legacy or project-specific milestones
 - Document and maintain legacy milestone mapping guidance:
   - `M0 - Self-Bootstrap Foundation` maps to `M0 - Foundation`
   - `M1 - GitHub Operations Validation` maps to `M1 - Validation`
   - `M2 - Documentation Automation` maps to `M2 - Local Automation Foundation`
   - `validation: issue-26-milestone-lifecycle` maps to `M1 - Validation`
-- Keep GitHub setup and mutation human-triggered and gated; no setup command surface is implemented
+- Keep GitHub setup and mutation human-triggered and gated; no setup or mutation command surface is implemented
 - Continue deterministic local review orchestration, review package inspection, and auditable handoff or evidence capture that remain human-triggered and local-only
 - Extend local operator visibility while keeping queue transitions and GitHub-state-changing behavior tightly human-triggered and reviewable
 - Optionally perform local historical branch cleanup as separate human-directed repository hygiene work
