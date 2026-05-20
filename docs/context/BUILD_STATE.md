@@ -132,7 +132,7 @@ The current M2 implementation does not authorize:
 - GitHub-state-changing behavior except when a human explicitly runs a matching visible PR lifecycle helper phase such as `CreatePr` or `MergePr`
 - repo setting, branch protection, ruleset, secret, release, tag, workflow, or GitHub Project changes
 - hosted external model use as part of the default runtime foundation
-- any modification to protected Issue #39
+- unauthorized modification of retired validation evidence
 - any hidden background PR lifecycle behavior
 
 ## Next Recommended Direction
