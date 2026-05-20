@@ -34,6 +34,8 @@ def test_cli_has_expected_commands() -> None:
         "inspect-ready-issue",
         "plan-ready-issue",
         "run-ready-issue-pipeline",
+        "run-ready-issue-batch",
+        "automation-readiness-report",
         "qa-review-pr",
         "qa-closeout-pr",
         "inspect-review-package",
@@ -128,6 +130,14 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     assert run_pipeline_plan_args.write_review_package is False
     assert run_pipeline_plan_args.write_evidence_package is False
     assert run_pipeline_plan_args.write_implementation_handoff is False
+    run_batch_plan_args = parser.parse_args(
+        ["run-ready-issue-batch", "--plan-only"]
+    )
+    assert run_batch_plan_args.plan_only is True
+    assert run_batch_plan_args.write_selected_handoffs is False
+    assert run_batch_plan_args.timestamp_override is None
+    readiness_report_args = parser.parse_args(["automation-readiness-report"])
+    assert readiness_report_args.command == "automation-readiness-report"
     qa_review_args = parser.parse_args(["qa-review-pr", "--pr-number", "118"])
     assert qa_review_args.pr_number == 118
     qa_closeout_args = parser.parse_args(["qa-closeout-pr", "--pr-number", "119"])
@@ -325,6 +335,13 @@ def test_command_requires_directories_only_for_commands_that_write_artifacts() -
         )
         is False
     )
+    assert (
+        command_requires_directories(
+            parser.parse_args(["run-ready-issue-batch", "--plan-only"])
+        )
+        is True
+    )
+    assert command_requires_directories(parser.parse_args(["automation-readiness-report"])) is False
 
 
 def test_validate_registries_command_emits_ok_json_and_zero_exit(

@@ -39,11 +39,13 @@ from aresforge.operator.artifact_discovery import (
     inspect_local_review_package,
     latest_local_review_package_summary,
 )
+from aresforge.operator.automation_readiness_report import automation_readiness_report
 from aresforge.operator.inspection_reports import (
     render_queue_inspection_report,
     render_work_item_inspection_report,
 )
 from aresforge.operator.local_review import LocalReviewOptions, run_local_review
+from aresforge.operator.ready_issue_batch import run_ready_issue_batch
 from aresforge.operator.registry_inspection import inspect_local_registries
 from aresforge.operator.ready_issue_intake import (
     inspect_ready_issue,
@@ -189,6 +191,28 @@ def build_parser() -> argparse.ArgumentParser:
         "--write-implementation-handoff",
         action="store_true",
         help="Optionally write a Codex handoff artifact for plan-only mode.",
+    )
+    ready_batch_parser = subparsers.add_parser(
+        "run-ready-issue-batch",
+        help="Run read-only batch planning for ready issues and write local batch artifacts.",
+    )
+    ready_batch_parser.add_argument(
+        "--plan-only",
+        action="store_true",
+        help="Required safety mode for this command.",
+    )
+    ready_batch_parser.add_argument(
+        "--write-selected-handoffs",
+        action="store_true",
+        help="Optionally write local handoff packages for Copilot/Codex-selected issues.",
+    )
+    ready_batch_parser.add_argument(
+        "--timestamp-override",
+        help="Optional artifact timestamp override for deterministic tests (YYYYMMDDTHHMMSSZ).",
+    )
+    subparsers.add_parser(
+        "automation-readiness-report",
+        help="Emit a read-only automation readiness dashboard summary.",
     )
     qa_review_parser = subparsers.add_parser(
         "qa-review-pr",
@@ -378,6 +402,8 @@ def command_requires_directories(args: argparse.Namespace) -> bool:
         return True
     if args.command == "run-local-review":
         return bool(getattr(args, "write_review_package", False))
+    if args.command == "run-ready-issue-batch":
+        return True
     if args.command in ("inspect-queue", "inspect-work-item"):
         return bool(getattr(args, "write_artifact", False))
     return False
@@ -510,6 +536,30 @@ def main(argv: list[str] | None = None) -> int:
         )
         emit_json(payload)
         return 0 if not payload["failed_gates"] else 1
+
+    if args.command == "run-ready-issue-batch":
+        if not bool(args.plan_only):
+            emit_json(
+                {
+                    "command": "run-ready-issue-batch",
+                    "ok": False,
+                    "error": "plan_only_required",
+                    "failed_gates": ["missing_plan_only_flag"],
+                }
+            )
+            return 1
+        payload = run_ready_issue_batch(
+            config,
+            plan_only=True,
+            write_selected_handoffs=bool(args.write_selected_handoffs),
+            timestamp_override=args.timestamp_override,
+        )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "automation-readiness-report":
+        emit_json(automation_readiness_report(config))
+        return 0
 
     if args.command == "qa-review-pr":
         emit_json(qa_review_pr(config, args.pr_number))

@@ -61,6 +61,8 @@ Supported commands:
 - `inspect-ready-issue`
 - `plan-ready-issue`
 - `run-ready-issue-pipeline`
+- `run-ready-issue-batch`
+- `automation-readiness-report`
 - `inspect-project`
 - `inspect-model`
 - `inspect-queue`
@@ -103,6 +105,10 @@ The `inspect-ready-issue` command is a read-only GitHub intake helper for one ma
 The `plan-ready-issue` command is a decision-only GitHub intake helper for one ready issue. It inspects the target issue, confirms the `aresforge-ready` trigger label, excludes Issue #39, and emits deterministic JSON describing the recommended handling agent and model tier. It does not run implementation, create PRs, merge PRs, close issues, comment on issues, label issues, or mutate GitHub state.
 
 The `run-ready-issue-pipeline` command is a reusable human-triggered orchestration helper for one ready issue. It composes existing `inspect-ready-issue`, `plan-ready-issue`, `qa-review-pr`, `qa-closeout-pr`, and `run-local-review` behavior into three explicit modes: `plan-only`, `review-pr`, and `closeout-when-eligible`. Default behavior is safe and non-mutating. Any GitHub mutation is permitted only through `qa-closeout-pr` behavior in explicit closeout execute mode after all required QA and label gates pass, including `aresforge-ready`, `aresforge-automerge`, and Issue #39 protection.
+
+The `run-ready-issue-batch` command is a reusable human-triggered orchestration helper for all currently ready issues. In required `--plan-only` mode it reuses existing `list-ready-issues`, `inspect-ready-issue`, and `plan-ready-issue` logic for deterministic per-issue summaries, always excludes Issue #39, and writes local JSON plus Markdown batch artifacts under `artifacts/ready_issue_batches/generated/`. Optional local-only handoff package generation for Copilot or Codex selected issues is available through explicit `--write-selected-handoffs` mode.
+
+The `automation-readiness-report` command is a human-triggered read-only reporting helper. It summarizes current automation command surfaces, ready issue count, protected issue handling, required labels, closeout gates, mutation boundaries, local-only behavior, known blocked conditions, and recommended human workflow. It does not mutate GitHub state and does not authorize queue or routing mutation.
 
 The `qa-review-pr` command is a validation-only GitHub PR inspection helper. It reads PR metadata, detects linked issues and changed files, checks for validation evidence, and emits deterministic JSON with pass/fail/blocked decisions. It does not create PRs, merge PRs, close issues, comment on PRs, label issues, or mutate GitHub state.
 

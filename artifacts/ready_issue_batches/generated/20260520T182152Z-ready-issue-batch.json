@@ -1,0 +1,22 @@
+{
+  "boundary_confirmations": [
+    "Batch planning is human-triggered and read-only with respect to GitHub state.",
+    "Issue #39 is always excluded and never targeted for mutation.",
+    "No background jobs, polling, or schedulers were used.",
+    "No paid/API model calls were initiated.",
+    "Any future closeout mutation remains gated through qa-closeout-pr execute mode."
+  ],
+  "command": "run-ready-issue-batch",
+  "excluded_issues": [],
+  "issues": [],
+  "mode": "plan-only",
+  "ok": true,
+  "protected_issue": 39,
+  "ready_issue_count": 0,
+  "repo": "yoey2112/aresforge",
+  "required_labels": [
+    "aresforge-ready",
+    "aresforge-automerge"
+  ],
+  "selected_handoffs": []
+}
