@@ -34,6 +34,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-ready-issue",
         "plan-ready-issue",
         "qa-review-pr",
+        "qa-closeout-pr",
         "inspect-review-package",
         "inspect-artifact",
         "inspect-evidence-package",
@@ -118,6 +119,10 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     assert plan_ready_args.issue_number == 114
     qa_review_args = parser.parse_args(["qa-review-pr", "--pr-number", "118"])
     assert qa_review_args.pr_number == 118
+    qa_closeout_args = parser.parse_args(["qa-closeout-pr", "--pr-number", "119"])
+    assert qa_closeout_args.pr_number == 119
+    assert qa_closeout_args.execute is False
+    assert qa_closeout_args.dry_run is False
     inspect_review_args = parser.parse_args(
         ["inspect-review-package", "--review-path", "20260520T120003Z-local-review.json"]
     )
@@ -192,6 +197,23 @@ def test_cli_qa_review_pr_requires_pr_number() -> None:
 
     with pytest.raises(SystemExit):
         parser.parse_args(["qa-review-pr"])
+
+
+def test_cli_qa_closeout_pr_requires_pr_number() -> None:
+    parser = build_parser()
+
+    with pytest.raises(SystemExit):
+        parser.parse_args(["qa-closeout-pr"])
+
+
+def test_cli_qa_closeout_pr_execute_flag_is_optional_and_explicit() -> None:
+    parser = build_parser()
+
+    dry_args = parser.parse_args(["qa-closeout-pr", "--pr-number", "119"])
+    assert dry_args.execute is False
+
+    execute_args = parser.parse_args(["qa-closeout-pr", "--pr-number", "119", "--execute"])
+    assert execute_args.execute is True
 
 
 def test_cli_inspect_evidence_package_requires_evidence_path() -> None:
@@ -270,6 +292,12 @@ def test_command_requires_directories_only_for_commands_that_write_artifacts() -
     assert (
         command_requires_directories(
             parser.parse_args(["qa-review-pr", "--pr-number", "118"])
+        )
+        is False
+    )
+    assert (
+        command_requires_directories(
+            parser.parse_args(["qa-closeout-pr", "--pr-number", "119"])
         )
         is False
     )
@@ -373,6 +401,48 @@ def test_cli_dispatches_qa_review_pr(
 
     assert exit_code == 0
     assert payload == {"ok": True}
+
+
+def test_cli_dispatches_qa_closeout_pr(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+) -> None:
+    config = AppConfig(
+        repo_root=tmp_path,
+        db_host="127.0.0.1",
+        db_port=5433,
+        db_name="aresforge",
+        db_user="aresforge",
+        db_password="aresforge",
+        ollama_base_url="http://127.0.0.1:11434",
+        ollama_model="qwen2.5:32b",
+        artifact_root=tmp_path / "artifacts",
+        prompts_dir=tmp_path / "artifacts" / "prompts" / "generated",
+        evidence_dir=tmp_path / "artifacts" / "evidence" / "generated",
+        codex_handoffs_dir=tmp_path / "artifacts" / "codex_handoffs" / "generated",
+        github_owner="yoey2112",
+        github_repo="aresforge",
+    )
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: config)
+    monkeypatch.setattr(
+        cli,
+        "qa_closeout_pr",
+        lambda _config, _pr_number, execute=False: {
+            "failed_gates": [] if execute else ["qa_decision_pass"],
+            "mode": "execute" if execute else "dry_run",
+        },
+    )
+
+    dry_exit_code = cli.main(["qa-closeout-pr", "--pr-number", "119"])
+    dry_payload = json.loads(capsys.readouterr().out)
+    assert dry_exit_code == 1
+    assert dry_payload["mode"] == "dry_run"
+
+    execute_exit_code = cli.main(["qa-closeout-pr", "--pr-number", "119", "--execute"])
+    execute_payload = json.loads(capsys.readouterr().out)
+    assert execute_exit_code == 0
+    assert execute_payload["mode"] == "execute"
 
 
 def test_inspect_project_preserves_json_shape_when_found(

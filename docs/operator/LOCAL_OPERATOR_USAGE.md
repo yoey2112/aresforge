@@ -124,6 +124,20 @@ python -m aresforge qa-review-pr --pr-number 118
 
 This command is validation-only and read-only. It inspects GitHub PR metadata, detects linked issues and changed files, checks for required validation evidence, and emits deterministic JSON with pass/fail/blocked decisions plus merge and closeout eligibility recommendations. It does not create PRs, merge PRs, close issues, comment on PRs, label issues, or mutate GitHub state.
 
+Run QA-gated PR closeout in default safe dry-run mode:
+
+```powershell
+python -m aresforge qa-closeout-pr --pr-number 119 --dry-run
+```
+
+Execute merge and linked issue closeout only when all gates pass:
+
+```powershell
+python -m aresforge qa-closeout-pr --pr-number 119 --execute
+```
+
+`qa-closeout-pr` defaults to dry-run/no-mutation behavior unless `--execute` is explicitly supplied. Execute mode is strongly gated: the PR must be open, non-draft, cleanly mergeable, linked to a non-protected issue, and pass `qa-review-pr` with merge and closeout eligibility. The linked issue must include both manual labels `aresforge-ready` and `aresforge-automerge`. If any gate fails, the command refuses merge and closeout and emits deterministic JSON for failed gates. Issue #39 remains protected and is never modified.
+
 Run the bounded local review orchestration over the existing read-only operator surfaces:
 
 ```powershell

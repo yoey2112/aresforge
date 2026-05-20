@@ -50,6 +50,7 @@ from aresforge.operator.ready_issue_intake import (
     list_ready_issues,
 )
 from aresforge.operator.ready_issue_planning import plan_ready_issue
+from aresforge.operator.qa_closeout_pr import qa_closeout_pr
 from aresforge.operator.qa_pr_validation import qa_review_pr
 from aresforge.operator.service import (
     render_codex_handoff,
@@ -146,6 +147,22 @@ def build_parser() -> argparse.ArgumentParser:
         help="Validate a pull request without mutating GitHub state.",
     )
     qa_review_parser.add_argument("--pr-number", type=int, required=True)
+    qa_closeout_parser = subparsers.add_parser(
+        "qa-closeout-pr",
+        help="Run QA-gated PR merge and linked issue closeout with dry-run default.",
+    )
+    qa_closeout_parser.add_argument("--pr-number", type=int, required=True)
+    closeout_mode = qa_closeout_parser.add_mutually_exclusive_group()
+    closeout_mode.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Validate all closeout gates without mutating GitHub state (default mode).",
+    )
+    closeout_mode.add_argument(
+        "--execute",
+        action="store_true",
+        help="Execute merge and issue closeout only when all gates pass.",
+    )
     inspect_review_parser = subparsers.add_parser(
         "inspect-review-package",
         help="Inspect one generated local review package under the configured review package root.",
@@ -418,6 +435,11 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "qa-review-pr":
         emit_json(qa_review_pr(config, args.pr_number))
         return 0
+
+    if args.command == "qa-closeout-pr":
+        payload = qa_closeout_pr(config, args.pr_number, execute=bool(args.execute))
+        emit_json(payload)
+        return 0 if not payload["failed_gates"] else 1
 
     if args.command == "inspect-review-package":
         payload = inspect_local_review_package(config, args.review_path)
