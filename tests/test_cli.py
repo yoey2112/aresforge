@@ -30,3 +30,28 @@ def test_parse_metadata_pairs() -> None:
         "issue": "81",
         "protected_issue": "39",
     }
+
+
+def test_cli_route_status_defaults_use_canonical_vocabulary() -> None:
+    parser = build_parser()
+
+    create_args = parser.parse_args(["create-work-item", "--title", "Test", "--queue-id", "queue-intake"])
+    assert create_args.route_status == "queued"
+
+    prompt_args = parser.parse_args(
+        ["generate-prompt-package", "--title", "Prompt", "--objective", "Objective"]
+    )
+    assert prompt_args.route_status == "ready"
+
+    handoff_args = parser.parse_args(
+        [
+            "prepare-codex-handoff",
+            "--title",
+            "Handoff",
+            "--summary",
+            "Summary",
+            "--requested-output",
+            "Output",
+        ]
+    )
+    assert handoff_args.route_status == "ready"

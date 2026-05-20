@@ -26,7 +26,7 @@ This schema does not replace that lifecycle design. It formalizes queue records 
 
 `docs/architecture/RUNNABLE_SKELETON.md` describes the current implemented local vertical slice.
 
-This queue schema aligns with that runnable skeleton, but it is broader than the initial seeded runtime subset. The current runtime may expose only a conservative subset of canonical queues until a later human-directed issue expands the seeded local queue records and operator commands.
+This queue schema aligns with that runnable skeleton. The current runtime may still lag the document in field richness, but the seeded local queue records now cover the canonical initial M2 queue IDs.
 
 ### Relationship To `docs/architecture/LOCAL_STATE_STORE.md`
 
@@ -151,13 +151,11 @@ Recommended conservative M2 values:
 - `queued`
 - `ready`
 - `in_progress`
-- `handoff_prepared`
 - `waiting_for_human`
 - `waiting_for_external_input`
 - `blocked`
 - `failed`
-- `returned_for_correction`
-- `complete`
+- `handed_off`
 
 ### `approval_state`
 
@@ -185,7 +183,7 @@ The canonical initial M2 queues are:
 - `queue-blocked`
 - `queue-corrective`
 
-The current runnable local skeleton may seed only a subset of these queues in the local database. During M2, that seeded subset should be treated as an implementation slice of this broader canonical queue schema, not as a conflicting authority source.
+The current runnable local skeleton seeds these canonical queue IDs in the local database. During M2, the seeded rows should still be treated as a conservative runtime reflection of this broader canonical queue schema rather than as a replacement for the document.
 
 ## Queue Records
 
@@ -601,7 +599,6 @@ It also does not authorize scripts, workflows, bots, services, background daemon
 
 The following questions remain intentionally open after this schema definition:
 
-- When should the seeded local queue set expand from the current runnable subset to the full canonical M2 set?
 - Which queue and work-item fields should remain in JSON metadata versus becoming first-class columns in a later migration?
 - How should future read-only operator helpers display queue history, blocked reasons, and corrective-loop depth?
 - Should route status and lifecycle state remain separate first-class concepts in future structured storage?

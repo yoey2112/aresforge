@@ -350,7 +350,7 @@ Repository documentation remains the authoritative source for roadmap, governanc
 - Issue #87 completed:
   - Defined the canonical M2 queue registry and work-item state transition artifact at `docs/architecture/QUEUE_REGISTRY_SCHEMA.md`.
   - Formalized queue identities, queue meaning, accepted work-item types, entry and exit criteria, allowed transitions, handoff evidence, blocked and waiting handling, corrective-loop routing, lifecycle-state mapping, and local operator visibility expectations.
-  - Aligned the registry architecture, local state-store, runnable skeleton, and local operator usage docs with the new queue and work-item state source of truth while preserving the current seeded runtime subset as a conservative implementation slice.
+  - Aligned the registry architecture, local state-store, runnable skeleton, and local operator usage docs with the new queue and work-item state source of truth while preserving the current runtime as a conservative implementation slice.
   - Confirmed documentation-before-closeout remains a mandatory gate.
   - Confirmed Issue #39 was not modified or closed.
   - Confirmed no code, migrations, tests, scripts, workflows, autonomous routing, autonomous approval, autonomous merge, autonomous issue closure, hosted model use, or GitHub-state-changing behavior was introduced.
@@ -383,7 +383,7 @@ Repository documentation remains the authoritative source for roadmap, governanc
 ## Next
 
 - Preserve Issue #39 as the only remaining open protected validation issue unless a future human-directed issue explicitly changes its state.
-- Use the new canonical queue schema to guide later local queue seed expansion, work-item state enrichment, and registry-aware operator inspection.
+- Use the new canonical queue schema to guide later work-item state enrichment and registry-aware operator inspection on top of the now-aligned local queue seed set.
 - Validate and iterate on the local operator CLI, migration flow, local artifact outputs, and registry seed or listing behavior created by Issues #81, #83, #85, and #87.
 - Keep documentation freshness checks required before future documentation-sync work.
 - Use the new runnable skeleton docs when extending the local operator:

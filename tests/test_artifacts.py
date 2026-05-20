@@ -45,7 +45,7 @@ def test_prompt_evidence_and_handoff_renderers(tmp_path: Path) -> None:
         agent_id="agent-local-operator",
         model_id="model-ollama-default",
         prompt_package=None,
-        route_status="planned",
+        route_status="ready",
     )
     prompt = render_prompt_package(
         config=config,

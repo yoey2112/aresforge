@@ -79,7 +79,7 @@ List work items:
 python -m aresforge list-work-items
 ```
 
-The current runtime can create and list work items against the seeded local queue subset. The broader canonical queue path for `triage`, `testing`, `closeout`, `blocked`, and `corrective` is documentation-defined in `docs/architecture/QUEUE_REGISTRY_SCHEMA.md` and may be added to local seeded state only through a later human-directed implementation issue.
+The current runtime can create and list work items against the seeded canonical M2 queue set. Queue-transition logic, blocked or failure handling, and fuller work-item state interpretation still remain documentation-defined in `docs/architecture/QUEUE_REGISTRY_SCHEMA.md` rather than autonomous runtime behavior.
 
 ## Prompt, Evidence, And Handoff Artifacts
 
