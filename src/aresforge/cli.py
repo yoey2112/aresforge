@@ -46,6 +46,7 @@ from aresforge.operator.inspection_reports import (
 )
 from aresforge.operator.local_review import LocalReviewOptions, run_local_review
 from aresforge.operator.managed_repo_readiness_report import managed_repo_readiness_report
+from aresforge.operator.managed_repo_governance_demo import demo_managed_repo_governance
 from aresforge.operator.managed_repo_registry import inspect_managed_repos
 from aresforge.operator.ready_issue_batch import run_ready_issue_batch
 from aresforge.operator.registry_inspection import inspect_local_registries
@@ -243,6 +244,10 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser(
         "plan-repo-bootstrap",
         help="Generate a read-only deterministic bootstrap setup plan for managed repositories.",
+    )
+    subparsers.add_parser(
+        "demo-managed-repo-governance",
+        help="Run a deterministic read-only end-to-end managed repository governance demo.",
     )
     qa_review_parser = subparsers.add_parser(
         "qa-review-pr",
@@ -613,6 +618,10 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "plan-repo-bootstrap":
         emit_json(plan_repo_bootstrap(config))
+        return 0
+
+    if args.command == "demo-managed-repo-governance":
+        emit_json(demo_managed_repo_governance(config))
         return 0
 
     if args.command == "qa-review-pr":

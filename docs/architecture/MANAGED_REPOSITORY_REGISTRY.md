@@ -11,6 +11,7 @@ The goal is to let AresForge represent multiple managed repositories in a reusab
 - `python -m aresforge inspect-managed-repos`
 - `python -m aresforge managed-repo-readiness-report`
 - `python -m aresforge plan-repo-bootstrap`
+- `python -m aresforge demo-managed-repo-governance`
 
 This command is human-triggered, read-only, deterministic JSON output, and safe to run repeatedly.
 
@@ -93,5 +94,6 @@ This M3 extension is intentionally minimal. It now provides a stable registry sh
 - managed repository readiness reporting
 - bootstrap plan generation
 - multi-repository governance demos
+- end-to-end managed repository governance demo reporting
 
 Future work may expand registry-backed selection and richer per-repository policies while preserving read-only defaults and explicit human-triggered mutation gates.
