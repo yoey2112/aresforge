@@ -2,170 +2,104 @@
 
 ## Purpose
 
-This file gives agents the minimum current operating context needed to work safely in AresForge without re-reading long closeout history.
-
-Detailed historical background for completed M0-M2 work lives in `docs/history/M0_M2_COMPLETED_WORK_SUMMARY.md`.
+This file gives agents the minimum current operating context needed to work safely in AresForge.
 
 ## Operating Model
 
 Agents must treat repository documentation as the source of truth for project meaning, governance, milestone state, lifecycle rules, and autonomy boundaries.
 
-During M4, implementation remains human-triggered and human-reviewed. Agents may help with documentation, code, migrations, local operator tooling, and evidence preparation, but they must not imply that current foundations authorize autonomous control.
+During M5 closeout, implementation remains human-triggered and human-reviewed. Agents may help with documentation, code, migrations, local operator tooling, and evidence preparation, but they must not imply autonomous control.
 
 ## Required Source-Of-Truth Behavior
 
-- Review `docs/context/BUILD_STATE.md`, `docs/context/AGENT_CONTEXT.md`, and `docs/roadmap/ROADMAP.md` for project-state-changing work
-- Update those source-of-truth docs before PR merge and issue closeout when the project state changes
-- If one of those docs does not need an update, explain why in PR evidence or closeout evidence
-- Preserve historical accuracy without leaving active docs cluttered with stale issue-by-issue detail
-- Treat Issue #75 as the last routine reconciliation issue
-- Do not create separate documentation-update or reconciliation issues by default; use that path only if stale source-of-truth wording is discovered after closeout
+- Review `docs/context/BUILD_STATE.md`, `docs/context/AGENT_CONTEXT.md`, and `docs/roadmap/ROADMAP.md` for project-state-changing work.
+- Update those docs before PR merge and issue closeout when project state changes.
+- If one source-of-truth doc is unchanged, explain why in PR evidence.
+- Treat Issue #75 as the last routine reconciliation issue.
+- Do not create routine reconciliation issues for normal sprint closeout.
 
-## Current M4 Rules
+## Current M5 Rules
 
-- Documentation-before-closeout is mandatory for project-state-changing work
-- The Documentation Agent remains a required pre-closeout gate
-- Human-reviewed controls remain mandatory
-- Evidence packages, prompt packages, handoff packages, PR evidence, and closeout evidence remain review artifacts only
-- Current local runtime foundations are local-first, human-triggered, read-only where possible, and non-authoritative
-- Issue #92 and Issue #93 are completed through PR #94 and are merged `main` behavior
-- The docs-only correction at commit `42b02dd` fixed stale post-closeout wording on `main` without creating a new routine reconciliation issue
-- Issue #103 was completed through PR #104 and added merged `main` support for read-only local registry inspection across project, agent, model, queue, and work-item lifecycle surfaces without introducing routing, queue mutation, file mutation, network calls, or GitHub-state-changing behavior
-- Issue #107 was completed through PR #108 and added merged `main` support for read-only single-artifact inspection without introducing file mutation, routing, queue mutation, network calls, or GitHub-state-changing behavior
-- Issue #109 was completed through PR #111 and added merged `main` support for read-only evidence package discovery, read-only single evidence-package inspection, and opt-in artifact discovery capture during evidence package recording without introducing routing, queue mutation, network calls, or GitHub-state-changing behavior
-- Issue #110 was completed through PR #113 and added merged `main` support for human-triggered `run-local-review` orchestration plus opt-in local review package generation without introducing routing, queue mutation, network calls, or GitHub-state-changing behavior
-- Issue #112 was completed through PR #115 and added merged `main` support for read-only `list-review-packages` and `inspect-review-package` visibility plus opt-in latest local review package capture during evidence and Codex handoff preparation without introducing routing, queue mutation, network calls, or GitHub-state-changing behavior
-- Issue #114 added the canonical model-routing and LLM escalation strategy documentation as a docs-only architecture artifact in `docs/architecture/MODEL_ROUTING_STRATEGY.md`
-- Issue #118 was completed through PR #124 and added merged `main` support for deterministic QA PR validation-only inspection via `qa-review-pr`
-- Issue #119 was completed through PR #125 and added merged `main` support for `qa-closeout-pr` with default dry-run/no-mutation behavior plus explicit execute gating
-- Issue #120 is merged `main` behavior and provides `run-ready-issue-pipeline` orchestration with explicit mode boundaries
-- Issue #127 is merged `main` behavior and provides read-only `run-ready-issue-batch --plan-only` plus `automation-readiness-report` command surfaces
-- Issue #129 starts M3 and adds a local-first read-only `project-state-summary` command surface with graceful degradation when local tools or network access are unavailable
-- Issue #131 extends M3 with `inspect-repo-governance`, a reusable read-only label and milestone governance inspection command for managed repositories with graceful degradation when `gh` or network access is unavailable
-- Issue #132 extends M3 with `inspect-repo-bootstrap-contract`, a reusable read-only managed repository bootstrap contract evaluation command that summarizes required, recommended, optional, and deferred setup areas with deterministic JSON and graceful degradation
-- Issue #133 extends M3 with `inspect-managed-repos`, a reusable read-only managed repository registry inspection command that summarizes multiple managed repositories with deterministic JSON and graceful degradation
-- Issue #134 extends M3 with `managed-repo-readiness-report`, a reusable read-only managed repository readiness command that classifies safe automation readiness levels per registered repository with deterministic JSON and graceful degradation
-- Issue #135 extends M3 with `plan-repo-bootstrap`, a reusable read-only managed repository bootstrap planning command that emits deterministic required, recommended, optional, and deferred setup actions without performing setup mutation
-- Issue #136 extends M3 with `demo-managed-repo-governance`, a reusable read-only end-to-end managed repository governance demo command that composes inspection, contract, registry, readiness, and bootstrap-plan outputs while preserving warnings and boundary confirmations
-- Issue #138 is completed through PR #144 and remains historical closeout context for M3 governance-stack source-of-truth reconciliation
-- Issue #145 is the M4 parent sprint closeout issue
-- Issue #146 is completed through PR #150 and is merged `main` behavior
-- Issue #148 is completed through PR #151 and is merged `main` behavior
-- Issue #149 is completed and merged `main` behavior through PR #152
-- Issue #147 is completed through PR #153 and is merged `main` behavior, proving multi-repository governance with a safe fixture/demo repository
-- Human-triggered bootstrap setup has already created required and optional platform labels plus canonical platform milestones
-- Remaining readiness `attention_needed` posture is legacy or project-specific milestone mapping documentation alignment only
-- No setup or mutation command surface has been implemented for bootstrap setup; GitHub mutation remains human-triggered and gated
-- `validate-pr-end-to-end` is available as a deterministic read-only orchestration command and does not mutate GitHub state
-- `qa-review-pr` enforces strict explicit PR-body validation evidence requirements when PR-body evidence is used (heading plus concrete command/check evidence plus pass/result signal)
-- Issue #101 was completed through PR #102 and added merged `main` support for read-only local model inspection without introducing model selection, routing, or GitHub-state-changing behavior
-- Issue #97 was completed through PR #98 and added merged `main` support for read-only local project inspection without changing routing, queue state, or GitHub state
-- Issue #99 was completed through PR #100 and added merged `main` support for a human-triggered PR lifecycle helper that keeps validation, staging, PR creation, PR verification, merge execution, post-merge verification, and source-of-truth scanning phase-gated and visible
+- Documentation-before-closeout is mandatory.
+- Human-reviewed controls remain mandatory.
+- Evidence artifacts remain review aids, not authority sources.
+- GitHub mutation remains human-triggered and gated.
+- No autonomous setup/mutation command is implemented.
+- Issue #39 remains retired historical validation evidence only.
+
+## M5 Workstream Status
+
+- Issue #158 / PR #161: complete.
+- Issue #156 / PR #162: complete.
+- Issue #157: complete in this consolidated branch (managed onboarding contract).
+- Issue #159: complete in this consolidated branch (gated setup contract design-only).
+- Issue #160: complete in this consolidated branch (source-of-truth reconciliation).
+- Issue #155: parent closeout completed by this consolidated branch.
+
+## Managed Repository Onboarding Contract Summary
+
+Managed repository classes:
+
+- Platform self-managed repo: AresForge itself, always first/default.
+- Fixture/demo repo: inspection-only validation record; non-production mutation scope.
+- Real managed repo: explicitly onboarded target with full metadata, readiness evidence, and human-triggered setup intent.
+
+Required real-managed onboarding metadata:
+
+- repository slug, project key, repo role, governance profile
+- default branch and local-path posture
+- documentation and artifact roots
+- allowed automation capabilities
+
+Required readiness checks are read-only:
+
+- inspect governance
+- inspect bootstrap contract
+- inspect managed repo registry
+- run managed repo readiness report
+- generate bootstrap plan
+
+## Setup Contract Posture Summary
+
+The setup command contract in M5 is design-only and not implemented as a new mutation command.
+
+Required future command properties:
+
+- dry-run behavior
+- explicit confirmation gates
+- audit evidence outputs
+- strict mutation scope boundaries
+- rollback/recovery notes
+- human-triggered execution model
+- no autonomous mutation
+- validation that detects unsafe behavior
 
 ## Canonical Documents Agents Must Consult
 
-Agents should use these documents as the current M3 canon:
-
-- `docs/agents/DOCUMENTATION_AGENTS.md`
-- `docs/agents/DOCUMENTATION_FRESHNESS_CHECKS.md`
-- `docs/architecture/ISSUE_LIFECYCLE_AGENT_PIPELINE.md`
-- `docs/architecture/REGISTRY_AND_QUEUE_ARCHITECTURE.md`
-- `docs/architecture/PROJECT_REGISTRY_SCHEMA.md`
-- `docs/architecture/AGENT_REGISTRY_SCHEMA.md`
-- `docs/architecture/MODEL_REGISTRY_SCHEMA.md`
-- `docs/architecture/MODEL_ROUTING_STRATEGY.md`
+- `docs/architecture/RUNNABLE_SKELETON.md`
 - `docs/architecture/REPOSITORY_GOVERNANCE_CONTRACT.md`
 - `docs/architecture/MANAGED_REPOSITORY_BOOTSTRAP_CONTRACT.md`
 - `docs/architecture/MANAGED_REPOSITORY_REGISTRY.md`
-- `docs/architecture/QUEUE_REGISTRY_SCHEMA.md`
-- `docs/architecture/LOCAL_STATE_STORE.md`
-- `docs/architecture/RUNNABLE_SKELETON.md`
 - `docs/operator/LOCAL_OPERATOR_USAGE.md`
-- `docs/agents/DOCUMENTATION_SYNC_EVIDENCE_PACKAGES.md`
-- `docs/agents/DOCUMENTATION_SYNC_HANDOFF_TEMPLATE.md`
-- `docs/prompts/CODEX_PROMPT_PACKAGE_TEMPLATE.md`
-- `docs/agents/PR_EVIDENCE_PACKAGE_TEMPLATE.md`
-- `docs/agents/CLOSEOUT_EVIDENCE_PACKAGE_TEMPLATE.md`
-- `docs/governance/PR_VALIDATION_MODEL.md`
-- `docs/learning/ERROR_PATTERNS.md`
-- `docs/planning/FUTURE_FEATURE_IDEAS.md`
-
-## Current Agent Roles
-
-The current lifecycle and operator roles are:
-
-- Planning / Next-Issue Agent
-- Triage / Routing Agent
-- Worker Agent
-- Verification Agent
-- Testing Agent
-- Debug Routing Agent
-- Documentation Agent
-- Final Closeout / Lifecycle Controller Agent
-- Local Operator
-
-## Human Owner Role
-
-The human owner remains CEO, final escalation authority, and the final approver for governance-sensitive decisions, closeout posture, and any future autonomy expansion.
+- `docs/context/BUILD_STATE.md`
+- `docs/context/AGENT_CONTEXT.md`
+- `docs/roadmap/ROADMAP.md`
 
 ## Current Allowed Local-Operator Behaviors
 
-The local operator may currently support:
-
-- config and registry validation
-- local database migrations
-- local state inspection
-- read-only local project inspection from the `projects` table
-- deterministic read-only local model listing
-- deterministic read-only local model inspection
-- deterministic read-only local registry and lifecycle source inspection from repo-owned schema documents
-- read-only queue and work-item inspection
-- read-only inspection report artifact generation
-- deterministic read-only generated artifact discovery
-- deterministic read-only single-artifact inspection
-- deterministic read-only local review package discovery
-- deterministic read-only single local review package inspection
-- deterministic read-only evidence package discovery
-- deterministic read-only single evidence package inspection
-- deterministic human-triggered local review orchestration across existing local operator checks
-- deterministic decision-only ready issue routing for automation intake
-- deterministic QA PR validation-only inspection via `qa-review-pr`
-- deterministic QA-gated PR closeout via `qa-closeout-pr` with default dry-run/no-mutation and explicit execute mode
-- deterministic reusable ready issue orchestration via `run-ready-issue-pipeline` with explicit plan-only, review-pr, and closeout-when-eligible modes
-- deterministic reusable read-only ready issue batch planning via `run-ready-issue-batch --plan-only`, including deterministic JSON and Markdown batch artifacts under `artifacts/ready_issue_batches/generated/`
-- deterministic read-only automation readiness dashboard reporting via `automation-readiness-report`
-- deterministic local-first read-only project state reporting via `project-state-summary`
-- deterministic reusable read-only repository governance inspection via `inspect-repo-governance`
-- deterministic reusable read-only managed repository bootstrap contract inspection via `inspect-repo-bootstrap-contract`
-- deterministic reusable read-only managed repository registry inspection via `inspect-managed-repos`
-- deterministic reusable read-only managed repository readiness reporting via `managed-repo-readiness-report`
-- deterministic reusable read-only managed repository bootstrap planning via `plan-repo-bootstrap`
-- deterministic reusable read-only managed repository governance demo reporting via `demo-managed-repo-governance`
-- current default managed repository readiness posture should be treated as `attention_needed` only for remaining legacy or project-specific milestone mapping documentation alignment; labels and canonical platform milestones are now present via human-triggered setup
-- a human-triggered PR lifecycle helper that requires an explicit phase selection before validation, staging, PR creation, PR verification, merge execution, post-merge verification, or source-of-truth scanning
-- prompt, evidence, and Codex handoff artifact preparation, including opt-in local artifact discovery capture in evidence packages plus opt-in latest local review package capture in evidence and handoff outputs
-- opt-in local review package generation under `artifacts/local_reviews/generated/`
-- bounded local Ollama connectivity or dry-run checks
-- bounded local model inspection visibility from seeded local model records
-- advisory, reviewable local model-selection support where the canonical model registry allows it
-
-PR #94 makes `validate-registries`, `inspect-queue --write-artifact`, and `inspect-work-item --write-artifact` merged `main` behavior. These remain local-only, human-triggered, read-only, and non-authoritative.
+- read-only inspection and validation commands
+- human-triggered dry-run or execute use of existing `qa-closeout-pr`
+- read-only managed-repo governance stack commands
+- read-only bootstrap planning output, including human-reviewable command recommendations
 
 ## Current Prohibited And Autonomy Boundaries
 
-The current M3 foundation does not authorize:
+- autonomous queue transitions or routing mutation
+- autonomous setup/mutation command execution
+- autonomous merge, closeout, or approval
+- hidden background mutation workflows
+- mutation of Issue #39 context
 
-- autonomous queue transitions
-- autonomous routing or routing mutation
-- autonomous model selection for governance-sensitive actions
-- autonomous approval, merge, or issue closure
-- autonomous GitHub-state-changing behavior
-- setup mutation commands for managed repository bootstrap areas
-- repo setting, branch protection, ruleset, workflow, secret, release, tag, or GitHub Project changes
-- hidden background workers, bots, daemons, or services that change project state
-- hidden background PR lifecycle execution
-- hosted external model use as default project behavior
+## Human Owner Role
 
-## Protected Issue #39 Rule
-
-Issue #39, `validation: issue-38-state-lifecycle`, is retired and closed by explicit human direction. It should be treated as historical validation evidence only, not as an active protected open issue.
+The human owner remains the final authority for governance-sensitive decisions, mutation approval, merge/closeout approval, and autonomy-boundary expansion.
