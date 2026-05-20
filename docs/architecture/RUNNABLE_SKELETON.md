@@ -51,6 +51,7 @@ Supported commands:
 - `inspect-work-item`
 - `list-projects`
 - `list-agents`
+- `list-models`
 - `list-queues`
 - `create-work-item`
 - `list-work-items`
@@ -65,6 +66,8 @@ The `validate-registries` command is a read-only local validation helper for see
 
 The `inspect-queue` and `inspect-work-item` commands are read-only registry-aware inspection helpers. They expand local queue and work-item records into richer JSON views, but they do not transition queues, mutate routing, authorize autonomous routing, or authorize GitHub-state-changing behavior.
 
+The `list-models` command is a read-only local listing helper for seeded local model rows. It emits deterministic JSON, does not require Ollama to be running, and does not select a model, recommend a model, or route a task.
+
 The current implementation layer also includes read-only inspection report artifact wiring for `inspect-queue --write-artifact` and `inspect-work-item --write-artifact`. Those options turn inspection payloads into human-reviewable Markdown and JSON artifacts under `artifacts/inspection_reports/generated/` while preserving the normal JSON command output. They remain local-only, human-triggered reporting helpers and do not change queue state, routing state, GitHub state, or protected Issue #39.
 
 ## Vertical Slice Achieved
@@ -75,7 +78,7 @@ The current vertical slice is:
 2. start PostgreSQL locally
 3. apply repo-stored migrations
 4. bootstrap minimal reference data
-5. inspect seeded project, agent, and queue records
+5. inspect seeded project, agent, queue, and model records
 6. inspect a specific queue or work item through registry-aware read-only views
 7. create a work item and assign a queue
 8. generate a prompt package

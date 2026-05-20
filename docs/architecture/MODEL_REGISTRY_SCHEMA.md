@@ -48,7 +48,7 @@ The local operator is the human-triggered CLI and review surface described by:
 - `docs/architecture/RUNNABLE_SKELETON.md`
 - `docs/architecture/LOCAL_STATE_STORE.md`
 
-During M2, the local operator may inspect or seed conservative model metadata, generate prompt and evidence artifacts that mention chosen model IDs, and test a configured local Ollama endpoint.
+During M2, the local operator may inspect or seed conservative model metadata, list seeded local model rows, generate prompt and evidence artifacts that mention chosen model IDs, and test a configured local Ollama endpoint.
 
 The local operator does not yet implement a full model-routing command, background selector, or autonomous dispatch loop. Any later operator extension must remain human-triggered and reviewable unless a future issue explicitly changes that rule.
 
@@ -475,5 +475,5 @@ The following questions remain intentionally open after Issue #85:
 - How should future evaluation data and benchmark evidence be stored?
 - How should model suitability for validation be measured without overstating confidence?
 - When, if ever, should external hosted providers be introduced, and under which credential and privacy controls?
-- Should the local operator eventually expose read-only `list-models` or `show-routing-policy` commands?
+- Should the local operator eventually expose a read-only `show-routing-policy` command?
 - How should model deprecation or replacement be surfaced in future operator and dashboard views?

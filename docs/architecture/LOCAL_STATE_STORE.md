@@ -97,6 +97,8 @@ During M2, this table is a conservative local reference layer only. The canonica
 
 The current runnable state store does not yet implement full model-routing policy storage, autonomous selection, background health workers, or hosted provider support.
 
+The local operator now also exposes read-only `list-models` output on top of these rows. That command emits deterministic JSON for stored model records and existing JSON metadata without calling Ollama, selecting a model, recommending a model, routing a task, or mutating model state.
+
 ### Queues
 
 Stores visible routing lanes. The local bootstrap seeds the canonical initial M2 queue set:

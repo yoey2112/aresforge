@@ -40,6 +40,8 @@ M2 established the documentation agent model, freshness checks, evidence templat
 
 PR #94 completed Issue #92 and Issue #93 and made `validate-registries`, `inspect-queue --write-artifact`, and `inspect-work-item --write-artifact` merged `main` behavior through commit `1f7b5fd`. Commit `42b02dd` then corrected stale source-of-truth wording on `main` after PR #94 closeout without creating a new routine reconciliation issue.
 
+Issue #95 extends that M2 operator foundation with a human-triggered, local-only, read-only `list-models` command that emits deterministic JSON from seeded local model records without calling Ollama or introducing routing behavior.
+
 ## Planned Milestone Sequence
 
 ### M3 - Registry And Routing Deepening
