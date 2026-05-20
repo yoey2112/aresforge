@@ -71,6 +71,12 @@ python -m aresforge list-models
 python -m aresforge list-queues
 ```
 
+Inspect one model with expanded registry-aware metadata:
+
+```powershell
+python -m aresforge inspect-model --model-id model-ollama-default
+```
+
 Inspect one queue with registry-aware metadata expansion:
 
 ```powershell
@@ -86,6 +92,8 @@ python -m aresforge inspect-queue --queue-id queue-implementation --write-artifa
 `list-agents` is read-only. It shows the seeded M2 agent-role records that align the local skeleton with the canonical schema in `docs/architecture/AGENT_REGISTRY_SCHEMA.md`.
 
 `list-models` is read-only and local-only. It emits deterministic JSON for seeded local `models` rows without calling Ollama, selecting a model, recommending a model, routing a task, or mutating local or GitHub state. It exposes stored row fields plus any existing model metadata already present in the local state store.
+
+`inspect-model` is read-only and local-only. It reads only from the local `models` table and existing seeded model registry metadata, emits deterministic JSON shaped as `{"ok": true, "model": {...}}` when found, and expands visible metadata fields such as `display_name`, `provider`, `runtime`, `execution_location`, `hosting_posture`, `approval_posture`, `allowed_task_classes`, `restricted_task_classes`, `governance_sensitive_task_posture`, `fallback_rules`, and `source_document`. If the requested model row is missing, it emits `{"ok": false, "error": "model_not_found", "model_id": "<requested id>"}` and returns exit code `1`.
 
 `inspect-project` is read-only and local-only. It reads only from the local `projects` table and emits JSON shaped as `{"ok": true, "project": {...}}` when found. It expands stored project metadata into visible top-level fields such as `autonomy_level`, `protected_issue`, `active_issue`, and `completed_issue`. If the requested project row is missing, it emits `{"ok": false, "error": "project_not_found", "project_id": "<requested id>"}` and returns exit code `1`.
 
@@ -178,6 +186,9 @@ python -m aresforge --help
 python -m aresforge validate-config
 python -m aresforge validate-registries
 python -m aresforge migrate --plan
+python -m aresforge list-models
+python -m aresforge inspect-model --model-id model-ollama-default
+python -m aresforge inspect-model --model-id missing-model-id
 python -m aresforge inspect-project --project-id project-aresforge
 git diff --check
 git diff --cached --check
@@ -191,6 +202,7 @@ python -m aresforge migrate
 python -m aresforge inspect-project-state
 python -m aresforge inspect-project --project-id project-aresforge
 python -m aresforge list-models
+python -m aresforge inspect-model --model-id model-ollama-default
 ```
 
 The included Compose file maps PostgreSQL to host port `5433` by default so it does not collide with an existing local PostgreSQL on `5432`.

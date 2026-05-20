@@ -84,11 +84,13 @@ The local operator may currently support:
 - local state inspection
 - read-only local project inspection from the `projects` table
 - deterministic read-only local model listing
+- deterministic read-only local model inspection
 - read-only queue and work-item inspection
 - read-only inspection report artifact generation
 - a human-triggered PR lifecycle helper that requires an explicit phase selection before validation, staging, PR creation, PR verification, merge execution, post-merge verification, or source-of-truth scanning
 - prompt, evidence, and Codex handoff artifact preparation
 - bounded local Ollama connectivity or dry-run checks
+- bounded local model inspection visibility from seeded local model records
 - advisory, reviewable local model-selection support where the canonical model registry allows it
 
 PR #94 makes `validate-registries`, `inspect-queue --write-artifact`, and `inspect-work-item --write-artifact` merged `main` behavior. These remain local-only, human-triggered, read-only, and non-authoritative.

@@ -14,6 +14,7 @@ from aresforge.db.repository import (
     DEFAULT_MODEL_ID,
     DEFAULT_PROJECT_ID,
     bootstrap_reference_data,
+    inspect_model,
     create_work_item,
     inspect_project,
     inspect_queue,
@@ -67,6 +68,10 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser("list-projects", help="List registered projects.")
     subparsers.add_parser("list-agents", help="List registered agent roles.")
     subparsers.add_parser("list-models", help="List registered local model records.")
+    inspect_model_parser = subparsers.add_parser(
+        "inspect-model", help="Inspect one local model record with expanded metadata."
+    )
+    inspect_model_parser.add_argument("--model-id", required=True)
     subparsers.add_parser("list-queues", help="List known queues.")
     inspect_queue_parser = subparsers.add_parser(
         "inspect-queue", help="Inspect one queue with registry-aware metadata interpretation."
@@ -250,6 +255,15 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "list-models":
         with connect(config) as conn:
             emit_json({"models": list_models(conn)})
+        return 0
+
+    if args.command == "inspect-model":
+        with connect(config) as conn:
+            model_record = inspect_model(conn, args.model_id)
+        if model_record is None:
+            emit_json({"ok": False, "error": "model_not_found", "model_id": args.model_id})
+            return 1
+        emit_json({"ok": True, "model": model_record})
         return 0
 
     if args.command == "list-queues":

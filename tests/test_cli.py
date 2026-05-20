@@ -19,6 +19,7 @@ def test_cli_has_expected_commands() -> None:
         "migrate",
         "inspect-project-state",
         "inspect-project",
+        "inspect-model",
         "inspect-queue",
         "inspect-work-item",
         "list-projects",
@@ -77,6 +78,9 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     inspect_project_args = parser.parse_args(["inspect-project", "--project-id", "project-aresforge"])
     assert inspect_project_args.project_id == "project-aresforge"
 
+    inspect_model_args = parser.parse_args(["inspect-model", "--model-id", "model-ollama-default"])
+    assert inspect_model_args.model_id == "model-ollama-default"
+
     inspect_queue_args = parser.parse_args(["inspect-queue", "--queue-id", "queue-implementation"])
     assert inspect_queue_args.queue_id == "queue-implementation"
     assert inspect_queue_args.write_artifact is False
@@ -93,6 +97,13 @@ def test_cli_inspect_project_requires_project_id() -> None:
 
     with pytest.raises(SystemExit):
         parser.parse_args(["inspect-project"])
+
+
+def test_cli_inspect_model_requires_model_id() -> None:
+    parser = build_parser()
+
+    with pytest.raises(SystemExit):
+        parser.parse_args(["inspect-model"])
 
 
 def test_cli_inspection_commands_accept_write_artifact_flag() -> None:
@@ -323,6 +334,104 @@ def test_list_models_is_read_only_dispatch(
 
     assert exit_code == 0
     assert payload == {"models": []}
+
+
+def test_inspect_model_preserves_json_shape_when_found(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    model_payload = {
+        "id": "model-ollama-default",
+        "name": "qwen2.5:32b",
+        "display_name": "Qwen 2.5 32B",
+        "provider": "ollama",
+        "runtime": "ollama_local",
+        "status": "configured",
+        "endpoint": "http://127.0.0.1:11434",
+        "local_endpoint": "http://127.0.0.1:11434",
+        "model_key": "ollama/qwen2.5:32b",
+        "execution_location": "local_machine",
+        "hosting_posture": "local_only",
+        "purpose": "Local drafting, documentation support, and bounded validation evidence review.",
+        "allowed_task_classes": [
+            "documentation_support",
+            "implementation_support",
+        ],
+        "default_routing_priority": "primary",
+        "fallback_rules": [
+            "If unavailable, try another approved local model for the same task class.",
+        ],
+        "approval_requirements": [
+            "Human review remains required for all output.",
+        ],
+        "approval_posture": "local_human_review_required",
+        "validation_suitability": "bounded_validation_support",
+        "evidence_expectations": ["record selected model key"],
+        "known_limitations": ["Must not be treated as approval authority."],
+        "restricted_task_classes": ["governance_decision", "merge_authority"],
+        "governance_sensitive_task_posture": "advisory_only_human_approval_required",
+        "source_document": "docs/architecture/MODEL_REGISTRY_SCHEMA.md",
+        "metadata": {"default": True},
+        "updated_at": "2026-05-20T00:00:00Z",
+    }
+
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(cli, "inspect_model", lambda _conn, _model_id: model_payload)
+
+    exit_code = cli.main(["inspect-model", "--model-id", "model-ollama-default"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert payload == {"ok": True, "model": model_payload}
+
+
+def test_inspect_model_returns_not_found_with_exit_code_one(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(cli, "inspect_model", lambda _conn, _model_id: None)
+
+    exit_code = cli.main(["inspect-model", "--model-id", "missing-model-id"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 1
+    assert payload == {
+        "ok": False,
+        "error": "model_not_found",
+        "model_id": "missing-model-id",
+    }
+
+
+def test_inspect_model_is_read_only_dispatch(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(cli, "inspect_model", lambda _conn, _model_id: {"id": _model_id})
+    monkeypatch.setattr(
+        cli,
+        "test_generate",
+        lambda *_args, **_kwargs: pytest.fail("inspect-model must not call Ollama"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "create_work_item",
+        lambda *_args, **_kwargs: pytest.fail("inspect-model must not create work items"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "build_route_plan",
+        lambda *_args, **_kwargs: pytest.fail("inspect-model must not route work"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "bootstrap_reference_data",
+        lambda *_args, **_kwargs: pytest.fail("inspect-model must not bootstrap state"),
+    )
+
+    exit_code = cli.main(["inspect-model", "--model-id", "model-ollama-default"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert payload == {"ok": True, "model": {"id": "model-ollama-default"}}
 
 
 def test_inspect_queue_write_artifact_renders_report_and_emits_paths(
