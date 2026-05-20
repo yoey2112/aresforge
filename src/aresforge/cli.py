@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+from dataclasses import asdict
 import json
 from pathlib import Path
 from typing import Any
@@ -26,12 +27,17 @@ from aresforge.db.repository import (
     WorkItemCreate,
 )
 from aresforge.integrations.ollama import test_generate
+from aresforge.operator.inspection_reports import (
+    render_queue_inspection_report,
+    render_work_item_inspection_report,
+)
 from aresforge.operator.service import (
     render_codex_handoff,
     render_evidence_package,
     render_prompt_package,
 )
 from aresforge.routing.routes import build_route_plan
+from aresforge.validation import validate_registry_seed_data
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -39,6 +45,10 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     subparsers.add_parser("validate-config", help="Validate local configuration and artifact paths.")
+    subparsers.add_parser(
+        "validate-registries",
+        help="Validate seeded queue and agent registry data without mutating local state.",
+    )
 
     migrate_parser = subparsers.add_parser("migrate", help="Apply PostgreSQL migrations.")
     migrate_parser.add_argument(
@@ -55,10 +65,20 @@ def build_parser() -> argparse.ArgumentParser:
         "inspect-queue", help="Inspect one queue with registry-aware metadata interpretation."
     )
     inspect_queue_parser.add_argument("--queue-id", required=True)
+    inspect_queue_parser.add_argument(
+        "--write-artifact",
+        action="store_true",
+        help="Write a local Markdown and JSON inspection report artifact while still emitting JSON.",
+    )
     inspect_work_item_parser = subparsers.add_parser(
         "inspect-work-item", help="Inspect one work item with registry-aware queue context."
     )
     inspect_work_item_parser.add_argument("--work-item-id", required=True)
+    inspect_work_item_parser.add_argument(
+        "--write-artifact",
+        action="store_true",
+        help="Write a local Markdown and JSON inspection report artifact while still emitting JSON.",
+    )
 
     create_work = subparsers.add_parser("create-work-item", help="Create a local work item.")
     create_work.add_argument("--title", required=True)
@@ -171,6 +191,16 @@ def main(argv: list[str] | None = None) -> int:
         emit_json(payload)
         return 0 if not errors else 1
 
+    if args.command == "validate-registries":
+        report = validate_registry_seed_data()
+        payload = {
+            "ok": report.ok,
+            "findings": [asdict(finding) for finding in report.findings],
+        }
+        emit_json(payload)
+        has_error = any(finding.severity == "error" for finding in report.findings)
+        return 1 if has_error else 0
+
     if args.command == "migrate":
         migrations_dir = config.repo_root / "migrations"
         if args.plan:
@@ -210,7 +240,16 @@ def main(argv: list[str] | None = None) -> int:
         if queue_record is None:
             emit_json({"ok": False, "error": "queue_not_found", "queue_id": args.queue_id})
             return 1
-        emit_json({"ok": True, "queue": queue_record})
+        response: dict[str, Any] = {"ok": True, "queue": queue_record}
+        if args.write_artifact:
+            bundle = render_queue_inspection_report(
+                config=config,
+                inspection_payload=queue_record,
+            )
+            response["inspection_payload"] = queue_record
+            response["markdown_path"] = str(bundle.markdown_path)
+            response["json_path"] = str(bundle.json_path)
+        emit_json(response)
         return 0
 
     if args.command == "create-work-item":
@@ -244,7 +283,16 @@ def main(argv: list[str] | None = None) -> int:
         if work_item is None:
             emit_json({"ok": False, "error": "work_item_not_found", "work_item_id": args.work_item_id})
             return 1
-        emit_json({"ok": True, "work_item": work_item})
+        response: dict[str, Any] = {"ok": True, "work_item": work_item}
+        if args.write_artifact:
+            bundle = render_work_item_inspection_report(
+                config=config,
+                inspection_payload=work_item,
+            )
+            response["inspection_payload"] = work_item
+            response["markdown_path"] = str(bundle.markdown_path)
+            response["json_path"] = str(bundle.json_path)
+        emit_json(response)
         return 0
 
     if args.command == "generate-prompt-package":

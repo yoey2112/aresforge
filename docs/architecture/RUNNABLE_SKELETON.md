@@ -44,6 +44,7 @@ The local operator is a Python CLI exposed as `python -m aresforge` or `aresforg
 Supported commands:
 
 - `validate-config`
+- `validate-registries`
 - `migrate`
 - `inspect-project-state`
 - `inspect-queue`
@@ -58,9 +59,13 @@ Supported commands:
 - `test-ollama`
 - `prepare-codex-handoff`
 
-These commands are human-triggered only.
+These commands are human-triggered only and operate as local-only helper surfaces.
 
-The `inspect-queue` and `inspect-work-item` commands are read-only registry-aware inspection helpers. They expand local queue and work-item records into richer JSON views, but they do not transition queues, mutate routing, or authorize GitHub-state-changing behavior.
+The `validate-registries` command is a read-only local validation helper for seeded agent and queue registry data. It emits structured findings without requiring queue transitions, autonomous routing, or GitHub-state-changing behavior.
+
+The `inspect-queue` and `inspect-work-item` commands are read-only registry-aware inspection helpers. They expand local queue and work-item records into richer JSON views, but they do not transition queues, mutate routing, authorize autonomous routing, or authorize GitHub-state-changing behavior.
+
+The current implementation layer also includes read-only inspection report artifact wiring for `inspect-queue --write-artifact` and `inspect-work-item --write-artifact`. Those options turn inspection payloads into human-reviewable Markdown and JSON artifacts under `artifacts/inspection_reports/generated/` while preserving the normal JSON command output. They remain local-only, human-triggered reporting helpers and do not change queue state, routing state, GitHub state, or protected Issue #39.
 
 ## Vertical Slice Achieved
 
