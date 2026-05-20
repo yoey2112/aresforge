@@ -2,186 +2,125 @@
 
 ## Current Phase
 
-M4 - Local Operator Expansion
+M5 - Local Operator Quality And Safe Onboarding Contracts
 
 ## Current Goal
 
-Complete parent sprint closeout Issue #145 by reconciling source-of-truth documentation after all M4 implementation workstreams landed on `main`.
+Complete consolidated M5 closeout in one PR by finishing managed repository onboarding contract definition, gated setup command contract design, and source-of-truth reconciliation.
 
 ## Current Repository State
 
-- Current branch: `main`
-- Latest `main` commit before this closeout branch/PR: `b978332` (`M4: expand managed repository governance fixture coverage (#147) (#153)`)
-- Latest runtime-affecting merged foundation commit before this closeout branch/PR: `b978332` (`M4: expand managed repository governance fixture coverage (#147) (#153)`)
-- Issue #105 was completed through PR #106 and is merged `main` behavior
-- Issue #107 was completed through PR #108 and is merged `main` behavior
-- Issue #109 was completed through PR #111 and is merged `main` behavior
-- Issue #103 was completed through PR #104 and is merged `main` behavior
-- Issue #101 was completed through PR #102 and is merged `main` behavior
-- Issue #99 was completed through PR #100 and is merged `main` behavior
-- Issue #92 and Issue #93 were completed through PR #94 and are merged `main` behavior
-- `validate-registries`, `inspect-queue --write-artifact`, `inspect-work-item --write-artifact`, and `list-models` are available on `main`
-- `inspect-model` is available on `main`
-- `inspect-registries` is available on `main`
-- `list-artifacts` is available on `main`
-- `inspect-artifact` is available on `main`
-- `run-local-review` with opt-in local review package generation is available on `main`
-- `list-evidence-packages` and `inspect-evidence-package` are available on `main`
-- opt-in artifact discovery capture for `record-evidence-package` is available on `main`
-- `list-review-packages` and `inspect-review-package` are available on `main`
-- opt-in latest local review package capture for `record-evidence-package` and `prepare-codex-handoff` is available on `main`
-- Issue #112 was completed through PR #115 and is merged `main` behavior
-- Issue #114 added the canonical model-routing and LLM escalation strategy documentation
-- Issue #118 was completed through PR #124 and is merged `main` behavior
-- Issue #119 was completed through PR #125 and is merged `main` behavior
-- Issue #120 is merged `main` behavior and provides `run-ready-issue-pipeline` orchestration with explicit mode gating
-- Issue #127 is merged `main` behavior and provides read-only `run-ready-issue-batch --plan-only` plus `automation-readiness-report`, deterministic batch artifact generation, and optional local-only selected issue handoff package generation
-- Issue #129 was completed through PR #130 and is merged `main` behavior
-- Issue #131 was completed through PR #137 and is merged `main` behavior
-- Issue #132 was completed through PR #139 and is merged `main` behavior
-- Issue #133 was completed through PR #140 and is merged `main` behavior
-- Issue #134 was completed through PR #141 and is merged `main` behavior
-- Issue #135 was completed through PR #142 and is merged `main` behavior
-- Issue #136 was completed through PR #143 and is merged `main` behavior
-- M4 implementation sprint workstreams are complete under parent sprint Issue #145
-- Issue #146 is complete through PR #150 and is merged `main` behavior
-- Issue #148 is complete and merged `main` behavior through PR #151
-- Issue #149 is complete and merged `main` behavior through PR #152
-- Issue #147 is complete through PR #153 and is merged `main` behavior
-- Issue #145 remains open as the parent sprint closeout issue
-- Human-triggered bootstrap setup has already been performed for labels and milestones using manual `gh`-driven operations outside AresForge runtime mutation surfaces
-- Required and optional platform labels are present: `aresforge-ready`, `aresforge-automerge`, `aresforge-blocked`, `aresforge-needs-evidence`, `aresforge-needs-docs`, `aresforge-closeout-ready`, `aresforge-managed`, and `aresforge-generated`
-- Canonical platform milestones are present: `M0 - Foundation`, `M1 - Validation`, `M2 - Local Automation Foundation`, `M3 - Registry And Routing Deepening`, and `M4 - Local Operator Expansion`
-- Issue #95 was completed through PR #96 and is merged `main` behavior
-- Issue #97 was completed through PR #98 and is merged `main` behavior
-- Issue #75 remains the last routine reconciliation issue
-- Issue #39, `validation: issue-38-state-lifecycle`, is retired and closed by explicit human direction and is now historical validation evidence only
+- Current branch: `m5/remaining-managed-onboarding-and-closeout`
+- Baseline `main` / `origin/main` commit before this branch: `b5a0196` (`Issue #156: improve PR closeout label-target guidance (#162)`)
+- M5 completed child workstreams before this branch:
+  - Issue #158 / PR #161
+  - Issue #156 / PR #162
+- Remaining M5 issues targeted by this branch:
+  - Issue #157: managed repository onboarding contract
+  - Issue #159: gated repository setup command contract (design-only)
+  - Issue #160: source-of-truth reconciliation
+  - Issue #155: M5 parent closeout
+- GitHub mutation remains human-triggered and gated.
+- No autonomous setup or mutation command surface is implemented.
+- Issue #39 remains retired historical validation evidence and is out of routine automation scope.
 
 ## Current Source Of Truth
 
-Repository documentation remains the authoritative source for roadmap state, governance meaning, architecture meaning, lifecycle gates, and autonomy boundaries.
+Repository documentation remains the source of truth for roadmap state, governance meaning, architecture meaning, lifecycle gates, and autonomy boundaries.
 
-GitHub issue and PR state plus the local PostgreSQL-backed runtime provide operational context, but they do not replace the source-of-truth role of the docs.
-
-The active source-of-truth entry points are:
+Primary source-of-truth entry points:
 
 - `docs/context/BUILD_STATE.md`
 - `docs/context/AGENT_CONTEXT.md`
 - `docs/roadmap/ROADMAP.md`
 
-Future project-state-changing work must review and update those documents when needed before PR merge and issue closeout. If one does not require changes, PR evidence or closeout evidence must explain why.
-
-## Latest Completed Work
-
-- PR #94 completed Issue #92 and Issue #93 and added merged `main` support for read-only registry validation plus inspection report artifact generation
-- Commit `42b02dd` corrected stale source-of-truth wording after PR #94 closeout directly on `main` without creating a new routine reconciliation issue
-- The canonical runnable M2 implementation foundation now consists of:
-  - `docs/architecture/LOCAL_STATE_STORE.md`
-  - `docs/architecture/RUNNABLE_SKELETON.md`
-  - `docs/operator/LOCAL_OPERATOR_USAGE.md`
-  - `docs/architecture/AGENT_REGISTRY_SCHEMA.md`
-  - `docs/architecture/MODEL_REGISTRY_SCHEMA.md`
-  - `docs/architecture/QUEUE_REGISTRY_SCHEMA.md`
-  - `docs/architecture/MODEL_ROUTING_STRATEGY.md`
-
-Older completed M0-M2 issue history now lives in `docs/history/M0_M2_COMPLETED_WORK_SUMMARY.md`.
+For project-state-changing work, these documents must be reviewed and updated before PR merge and issue closeout, or explicitly justified when unchanged.
 
 ## Current Implemented Local Operator Capabilities
 
-The current human-triggered local operator foundation supports:
+The current human-triggered local operator foundation includes:
 
 - local config and registry validation
-- database migration execution for the repo-stored local state layer
-- deterministic read-only local model listing through `list-models`
-- deterministic read-only local model inspection through `inspect-model`
-- deterministic read-only local project inspection through `inspect-project`
-- deterministic read-only local registry and lifecycle source inspection through `inspect-registries`
-- read-only queue and work-item inspection
-- read-only inspection report artifact generation through `inspect-queue --write-artifact` and `inspect-work-item --write-artifact`
-- deterministic read-only generated artifact discovery through `list-artifacts`
-- deterministic read-only single-artifact inspection through `inspect-artifact`
-- deterministic read-only local review package discovery through `list-review-packages`
-- deterministic read-only single local review package inspection through `inspect-review-package`
-- deterministic read-only evidence package discovery through `list-evidence-packages`
-- deterministic read-only single evidence package inspection through `inspect-evidence-package`
-- deterministic human-triggered local review orchestration through `run-local-review`
-- deterministic decision-only ready issue routing through `plan-ready-issue`
-- deterministic QA PR validation-only inspection through `qa-review-pr`, including strict explicit PR-body validation evidence detection for heading, command/check evidence, and pass/result signals
-- deterministic QA-gated PR closeout through `qa-closeout-pr` with default dry-run/no-mutation and explicit execute mode
-- deterministic read-only end-to-end PR validation orchestration through `validate-pr-end-to-end`
-- deterministic reusable ready issue orchestration through `run-ready-issue-pipeline` with explicit plan-only, review-pr, and closeout-when-eligible modes
-- deterministic reusable read-only ready issue batch planning through `run-ready-issue-batch --plan-only` with deterministic JSON and Markdown artifact generation
-- deterministic read-only automation readiness dashboard reporting through `automation-readiness-report`
-- deterministic local-first read-only project state reporting through `project-state-summary`
-- deterministic reusable read-only repository governance inspection through `inspect-repo-governance`
-- deterministic reusable read-only managed repository bootstrap contract inspection through `inspect-repo-bootstrap-contract`
-- deterministic reusable read-only managed repository registry inspection through `inspect-managed-repos`
-- deterministic reusable read-only managed repository readiness reporting through `managed-repo-readiness-report`
-- deterministic reusable read-only managed repository bootstrap planning through `plan-repo-bootstrap`
-- deterministic reusable read-only end-to-end managed repository governance demo through `demo-managed-repo-governance`
-- a human-triggered phase-based PR lifecycle helper for explicit validation, staging, commit and push, PR creation, PR verification, merge verification, post-merge verification, and source-of-truth scanning
-- prompt package, evidence package, and Codex handoff artifact preparation, including opt-in local artifact discovery capture in evidence packages plus opt-in latest local review package capture in evidence and handoff outputs
-- opt-in local review package generation under `artifacts/local_reviews/generated/`
-- bounded local Ollama connectivity and dry-run support
+- local migration planning and execution
+- read-only registry and lifecycle inspection
+- read-only artifact, review package, and evidence package inspection
+- deterministic human-triggered review orchestration
+- deterministic QA PR review and closeout gating with dry-run default
+- deterministic read-only project-state, governance, bootstrap contract, managed-repo registry, readiness, bootstrap-plan, and governance-demo reporting
+- deterministic read-only end-to-end PR validation orchestration
 
-These capabilities are local-only helper surfaces. They are reviewable, non-authoritative, and intended to support implementation and closeout work rather than replace human decision-making.
+These capabilities are local-first helper surfaces and do not replace human governance decisions.
+
+## Managed Repository Onboarding Posture (M5)
+
+A managed repository is a repository explicitly registered for AresForge governance inspection and readiness planning under documented boundaries.
+
+Repository classes:
+
+- Platform self-managed repository: the AresForge repository itself (`yoey2112/aresforge`), always first/default in managed registry views.
+- Fixture/demo repository: an inspection-only demo record used to validate multi-repository contract behavior safely; never treated as production mutation scope.
+- Real managed repository: an intentionally onboarded repository with documented ownership, governance profile, local-path posture, readiness evidence, and explicit human setup expectations.
+
+Required onboarding metadata for real managed repositories:
+
+- `repository_slug`
+- `project_key`
+- `repo_role`
+- `governance_profile`
+- `default_branch`
+- `local_path` posture
+- `documentation_roots`
+- `artifact_roots`
+- `allowed_automation_capabilities`
+
+Required readiness checks before setup mutation is considered:
+
+- `python -m aresforge inspect-repo-governance`
+- `python -m aresforge inspect-repo-bootstrap-contract`
+- `python -m aresforge inspect-managed-repos`
+- `python -m aresforge managed-repo-readiness-report`
+- `python -m aresforge plan-repo-bootstrap`
+
+Trust and mutation boundaries:
+
+- onboarding is documentation-first and read-only-first
+- setup/mutation remains human-triggered and explicit
+- no autonomous label/milestone/template/settings mutation
+- fixture/demo repositories are never used to justify production mutation
+
+## Setup Command Contract Posture (M5 Design-Only)
+
+M5 defines a future gated setup command contract and intentionally does not implement a new mutation command.
+
+Contract expectations:
+
+- dry-run-first behavior with explicit mutation intent previews
+- explicit operator confirmation for each target repository
+- audit evidence output that proves command path, target, and gates
+- strict mutation scope boundaries (only declared setup surfaces)
+- rollback and recovery notes for partial failures
+- no autonomous execution, polling, or background mutation
+- validation checks that fail when unsafe behavior or undeclared mutation appears
+
+Current implementation status remains design-only; setup/mutation execution stays manual via human-reviewed commands.
 
 ## Current Boundaries
 
-The current M4 implementation does allow:
+Allowed:
 
 - human-triggered local commands
-- read-only registry-aware validation and inspection
-- read-only inspection of repo-owned registry and lifecycle source documents
-- read-only project inspection from local seeded project rows
-- visible human-triggered PR lifecycle helper phases selected one at a time
-- local artifact generation for review
-- local artifact discovery for review
-- local single-artifact inspection for review
-- local review package discovery for review
-- local single review package inspection for review
-- local evidence package discovery for review
-- local single evidence package inspection for review
-- deterministic local review orchestration across existing local operator checks
-- local review package generation only when explicitly requested
-- opt-in latest local review package capture in handoff and evidence outputs
-- read-only repository governance inspection for reusable label and milestone contract visibility
-- read-only repository bootstrap contract inspection for reusable setup readiness visibility
-- read-only managed repository registry inspection where AresForge is represented as the first/default managed repository and additional fixture/demo repositories can be included read-only
-- read-only managed repository readiness reporting with explicit `attention_needed` posture when remaining legacy or project-specific milestone mapping alignment remains to be documented
-- read-only managed repository bootstrap planning that reports setup action placeholders without executing setup mutation
-- bounded local model inspection, listing, and Ollama dry-run checks
-- bounded local model inspection, listing, and Ollama dry-run checks without autonomous selection or routing
+- read-only governance and bootstrap planning surfaces
+- deterministic planning output and operator guidance
 
-The current M4 implementation does not authorize:
+Not authorized:
 
-- queue transitions performed autonomously
-- routing mutation or autonomous routing
+- autonomous queue or routing mutation
 - autonomous approval, merge, or issue closure
-- GitHub-state-changing behavior except when a human explicitly runs a matching visible PR lifecycle helper phase such as `CreatePr` or `MergePr`
-- setup mutation commands for labels, milestones, templates, rulesets, or settings as part of managed repository governance stack behavior
-- repo setting, branch protection, ruleset, secret, release, tag, workflow, or GitHub Project changes
-- hosted external model use as part of the default runtime foundation
-- unauthorized modification of retired validation evidence
-- any hidden background PR lifecycle behavior
+- autonomous GitHub setup/mutation behavior
+- hidden background lifecycle or setup mutation behavior
 
 ## Next Recommended Direction
 
-- Use `project-state-summary` as the first M4 closeout and M5 planning status checkpoint
-- M4 implementation workstreams are complete; close parent sprint Issue #145 after this source-of-truth reconciliation is merged
-- Begin M5 planning around local operator execution quality, managed-repo onboarding design, and safe human-triggered setup/mutation contract preparation without autonomous GitHub mutation
-- Keep readiness posture explicit: labels and canonical platform milestones are now aligned through human-triggered setup, and remaining `attention_needed` posture is milestone mapping documentation alignment for legacy or project-specific milestones
-- Document and maintain legacy milestone mapping guidance:
-  - `M0 - Self-Bootstrap Foundation` maps to `M0 - Foundation`
-  - `M1 - GitHub Operations Validation` maps to `M1 - Validation`
-  - `M2 - Documentation Automation` maps to `M2 - Local Automation Foundation`
-  - `validation: issue-26-milestone-lifecycle` maps to `M1 - Validation`
-- Keep GitHub setup and mutation human-triggered and gated; no setup or mutation command surface is implemented
-- Continue deterministic local review orchestration, review package inspection, and auditable handoff or evidence capture that remain human-triggered and local-only
-- Extend local operator visibility while keeping queue transitions and GitHub-state-changing behavior tightly human-triggered and reviewable
-- Optionally perform local historical branch cleanup as separate human-directed repository hygiene work
-- Keep documentation freshness, documentation-before-closeout, and source-of-truth updates mandatory for future project-state-changing work
-
-## History Reference
-
-For compact historical context about completed M0, M1, and M2 work, use `docs/history/M0_M2_COMPLETED_WORK_SUMMARY.md`. That history file preserves why major patterns, documents, and constraints exist, but it does not replace the active source-of-truth documents above.
+- Merge this consolidated M5 closeout PR to close Issues #157, #159, #160, and #155.
+- Keep setup and mutation human-triggered and gated while maturing evidence-rich operator workflows.
+- Use M6 to design visible queue-orchestration primitives that remain human-supervised and reversible.

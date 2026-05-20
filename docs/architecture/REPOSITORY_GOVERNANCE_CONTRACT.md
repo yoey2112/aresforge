@@ -2,17 +2,11 @@
 
 ## Purpose
 
-This document defines the reusable label and milestone governance contract for AresForge-managed repositories.
+This document defines reusable label and milestone governance expectations for AresForge-managed repositories.
 
-The contract is platform-level and is not specific to one repository. The current default managed repository is `yoey2112/aresforge`, but future managed repositories must be able to adopt this contract without changing command semantics.
-
-This document introduces read-only governance inspection behavior only. It does not authorize label creation, milestone creation, or any autonomous repository mutation.
-
-The broader managed repository setup contract now lives in `docs/architecture/MANAGED_REPOSITORY_BOOTSTRAP_CONTRACT.md`.
+The contract is inspection-first and does not itself authorize setup mutation.
 
 ## Command Surface
-
-The contract is inspected through:
 
 - `python -m aresforge inspect-repo-governance`
 - `python -m aresforge inspect-repo-bootstrap-contract`
@@ -21,25 +15,15 @@ The contract is inspected through:
 - `python -m aresforge plan-repo-bootstrap`
 - `python -m aresforge demo-managed-repo-governance`
 
-This command is human-triggered, read-only, and local-first. It uses GitHub CLI read calls where available and degrades gracefully with explicit warnings when GitHub CLI or network access is unavailable.
-
-`inspect-repo-governance` is focused on reusable labels and milestones.
-
-`inspect-repo-bootstrap-contract` is focused on broader repository bootstrap setup readiness across required, recommended, optional, and deferred setup areas.
+All are human-triggered and read-only with graceful degradation.
 
 ## Reusable Label Contract
 
 ### Platform-Required Labels
 
-Required minimum labels:
-
 - `aresforge-ready`
 
-`aresforge-ready` is the manual trigger label for ready issue intake.
-
 ### Platform-Optional Labels
-
-Known optional platform labels:
 
 - `aresforge-automerge`
 - `aresforge-blocked`
@@ -49,94 +33,40 @@ Known optional platform labels:
 - `aresforge-managed`
 - `aresforge-generated`
 
-Optional labels may be absent in newly managed repositories, but governance inspection should report visibility so operators can standardize posture over time.
-
 ### Automation Trigger Labels
-
-Automation-trigger labels are:
 
 - `aresforge-ready`
 - `aresforge-automerge`
 
-Interpretation rules:
-
-- `aresforge-ready` is a manual intake trigger only.
-- `aresforge-automerge` is a gated intent marker only.
-- `aresforge-automerge` does not grant autonomous merge permission.
-- Merge and issue closeout remain gated by existing QA checks and explicit human-triggered execute modes.
-
-### Project-Specific Label Extensions
-
-Managed repositories may add project-specific labels for local workflows.
-
-Extension rule:
-
-- Never remove or rename platform-required labels without updating platform governance.
-- Keep automation-trigger labels intact so reusable automation contracts remain stable.
-- Treat project-specific labels as additive metadata, not replacement governance.
+`aresforge-automerge` is an intent marker only and does not grant autonomous merge permission.
 
 ## Milestone Governance Contract
 
-### Canonical Platform Milestones
-
-Platform milestone naming convention:
+Canonical milestone names:
 
 - `M0 - Foundation`
 - `M1 - Validation`
 - `M2 - Local Automation Foundation`
 - `M3 - Registry And Routing Deepening`
 - `M4 - Local Operator Expansion`
+- `M5 - Local Operator Quality And Safe Onboarding Contracts`
 
-### Naming And Lifecycle Expectations
+Project-specific milestones are allowed but should map to canonical phases for traceability.
 
-- Platform milestones should use exact canonical naming for deterministic inspection.
-- Project-specific milestones are allowed and should map to one platform milestone phase for traceability.
-- Milestone state (open or closed) is informational for inspection and does not authorize mutation.
+## Setup And Mutation Boundary Posture
 
-Current AresForge mapping guidance for legacy or project-specific milestones:
-
-- `M0 - Self-Bootstrap Foundation` maps to `M0 - Foundation`
-- `M1 - GitHub Operations Validation` maps to `M1 - Validation`
-- `M2 - Documentation Automation` maps to `M2 - Local Automation Foundation`
-- `validation: issue-26-milestone-lifecycle` maps to `M1 - Validation`
-
-## Managed Repository Bootstrap Expectations
-
-Canonical bootstrap contract details are defined in `docs/architecture/MANAGED_REPOSITORY_BOOTSTRAP_CONTRACT.md`.
-
-Before automation is considered safe, a newly managed repository should satisfy:
-
-- Required labels are present.
-- Optional labels are reviewed and adopted where useful.
-- Platform milestone naming is present or intentionally mapped.
-- A visible default branch exists.
-- PRs and issues use explicit linking for QA and closeout checks.
-- Source-of-truth documentation expectations are documented.
-- Automation boundaries are explicit and human-gated.
-- Evidence package expectations are documented and repeatable.
-- Closeout expectations remain QA-gated and human-approved.
+- Governance inspection is read-only.
+- Managed-repository setup/mutation commands are not implemented here.
+- Any setup mutation remains human-triggered and explicitly gated.
+- No autonomous setup/mutation behavior is introduced by this contract.
 
 ## Safety Boundaries
 
-This governance layer is intentionally conservative:
+This governance layer does not authorize:
 
-- Local-first and human-triggered.
-- Read-only inspection first.
-- No autonomous mutation.
-- No scheduler, daemon, or polling loop.
-- No paid/API model usage by default behavior.
-- Issue #39 remains retired historical validation evidence only.
+- autonomous label or milestone mutation
+- autonomous merge/closeout
+- hidden background mutation workers
+- Issue #39 mutation
 
-Managed-repository setup or mutation commands are not implemented by this governance contract. Any future setup mutation remains a separate human-triggered concern outside this read-only inspection layer.
-
-For AresForge M4, required and optional platform labels plus canonical platform milestones were created through explicit human-triggered manual setup before documentation reconciliation. This contract remains read-only and does not introduce setup mutation commands.
-
-Issue #158 (M5) allows `plan-repo-bootstrap` to emit exact human-reviewable `gh` setup command recommendations for known missing canonical labels and milestones. Those commands remain recommendation output only and are never executed by AresForge.
-
-## Extension Point For Multi-Repository Management
-
-The current runtime inspects the repository configured by `ARESFORGE_GITHUB_OWNER` and `ARESFORGE_GITHUB_REPO`.
-
-M3 also exposes read-only managed repository registry visibility through `inspect-managed-repos`, which keeps the configured AresForge repository as the first/default managed repository and can include additional registered repository slugs without changing governance semantics.
-
-Future multi-repository expansion should keep the same contract shape and add project-scoped selection through registry-backed project identity (for example project ID to repository slug mapping) without changing safety boundaries or governance semantics.
+Human-triggered command recommendations emitted by planning surfaces are guidance only and are never auto-executed by AresForge.
