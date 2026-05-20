@@ -18,6 +18,8 @@ The goal is not a polished autonomous system. The goal is to make AresForge exec
 
 The canonical source-of-truth for model-record meaning and bounded local routing rules is now `docs/architecture/MODEL_REGISTRY_SCHEMA.md`.
 
+The canonical source-of-truth for the local-first model-routing and LLM escalation strategy is `docs/architecture/MODEL_ROUTING_STRATEGY.md`.
+
 The canonical source-of-truth for queue-record meaning, work-item state fields, transition rules, blocked handling, and corrective-loop routing is now `docs/architecture/QUEUE_REGISTRY_SCHEMA.md`.
 
 ## Implemented Structure

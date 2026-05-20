@@ -58,7 +58,9 @@ PR #111 completed Issue #109 and extended the merged `main` M2 operator foundati
 
 PR #113 completed Issue #110 and extended the merged `main` M2 operator foundation with human-triggered `run-local-review` orchestration plus opt-in local review package generation. These additions remain local-only, deterministic, auditable, and non-authoritative.
 
-Issue #112 extends that same M2 operator direction with branch-scoped support for read-only `list-review-packages` and `inspect-review-package` visibility plus opt-in latest local review package capture during evidence and Codex handoff preparation. This sprint remains local-only, deterministic, auditable, and non-authoritative.
+PR #115 completed Issue #112 and extended the merged `main` M2 operator foundation with read-only `list-review-packages` and `inspect-review-package` visibility plus opt-in latest local review package capture during evidence and Codex handoff preparation. These additions remain local-only, deterministic, auditable, and non-authoritative.
+
+Issue #114 added the canonical model-routing and LLM escalation strategy documentation as a docs-only architecture artifact in `docs/architecture/MODEL_ROUTING_STRATEGY.md`. This document defines the local-first principle, the four-tier escalation ladder, task routing guidance, cost and privacy guardrails, and Codex usage warnings without introducing runtime behavior or autonomous model selection.
 
 ## Planned Milestone Sequence
 
