@@ -42,7 +42,7 @@ PR #94 completed Issue #92 and Issue #93 and made `validate-registries`, `inspec
 
 PR #96 completed Issue #95 and extended the M2 operator foundation with a human-triggered, local-only, read-only `list-models` command that emits deterministic JSON from seeded local model records without calling Ollama or introducing routing behavior.
 
-Issue #97 extends the current branch M2 operator foundation with a human-triggered, local-only, read-only `inspect-project` command that reads only from the local `projects` table, expands stored project metadata into visible JSON fields, and returns explicit found or `project_not_found` results without introducing routing, automation, or GitHub-state-changing behavior.
+PR #98 completed Issue #97 and extended the merged `main` M2 operator foundation with a human-triggered, local-only, read-only `inspect-project` command that reads only from the local `projects` table, expands stored project metadata into visible JSON fields, and returns explicit found or `project_not_found` results without introducing routing, automation, or GitHub-state-changing behavior.
 
 ## Planned Milestone Sequence
 

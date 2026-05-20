@@ -10,13 +10,13 @@ Continue the M2 runtime foundation by extending human-triggered, local-first, re
 
 ## Current Repository State
 
-- Current branch: `codex/issue-97-inspect-project`
-- Latest `main` commit: `bce494c` (`Add read-only model listing command (#96)`)
-- Latest runtime-affecting merged foundation commit: `1f7b5fd` (`Add local registry validation and inspection report artifacts (#94)`)
+- Current branch: `main`
+- Latest `main` commit: `daf8e89` (`Add read-only project inspection command (#98)`)
+- Latest runtime-affecting merged foundation commit: `daf8e89` (`Add read-only project inspection command (#98)`)
 - Issue #92 and Issue #93 were completed through PR #94 and are merged `main` behavior
 - `validate-registries`, `inspect-queue --write-artifact`, `inspect-work-item --write-artifact`, and `list-models` are available on `main`
 - Issue #95 was completed through PR #96 and is merged `main` behavior
-- Issue #97 adds `inspect-project` on the current branch as a human-triggered, local-only, read-only project inspection command backed only by the local `projects` table
+- Issue #97 was completed through PR #98 and is merged `main` behavior
 - Issue #75 remains the last routine reconciliation issue
 - Issue #39, `validation: issue-38-state-lifecycle`, remains intentionally open protected audit evidence and must not be modified or closed except through a future human-directed issue
 
