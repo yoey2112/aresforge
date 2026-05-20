@@ -80,6 +80,8 @@ M3 starts with local-first, read-only project-state visibility and milestone-awa
 
 Issue #129 adds `project-state-summary`, a local-first read-only command that summarizes branch status, local-versus-origin commit posture where available, open GitHub issues and PRs where available, source-of-truth docs, latest generated artifacts, current milestone direction, and recommended next action with graceful degradation when `git`, `gh`, `origin/main`, or network access is unavailable.
 
+Issue #131 adds `inspect-repo-governance`, a reusable read-only command that inspects configured repository slug and default branch posture where available, evaluates platform-required and platform-optional labels, evaluates automation-trigger labels, checks canonical platform milestone naming, and summarizes issue and PR readiness signals with explicit warnings and recommended next action when `gh` or network access is unavailable.
+
 ## Planned Milestone Sequence
 
 ### M4 - Local Operator Expansion

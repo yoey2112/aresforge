@@ -22,6 +22,8 @@ The canonical source-of-truth for the local-first model-routing and LLM escalati
 
 The canonical source-of-truth for queue-record meaning, work-item state fields, transition rules, blocked handling, and corrective-loop routing is now `docs/architecture/QUEUE_REGISTRY_SCHEMA.md`.
 
+The canonical source-of-truth for reusable label and milestone governance across managed repositories is `docs/architecture/REPOSITORY_GOVERNANCE_CONTRACT.md`.
+
 ## Implemented Structure
 
 The runnable skeleton introduces these repo areas:
@@ -64,6 +66,7 @@ Supported commands:
 - `run-ready-issue-batch`
 - `automation-readiness-report`
 - `project-state-summary`
+- `inspect-repo-governance`
 - `inspect-project`
 - `inspect-model`
 - `inspect-queue`
@@ -112,6 +115,8 @@ The `run-ready-issue-batch` command is a reusable human-triggered orchestration 
 The `automation-readiness-report` command is a human-triggered read-only reporting helper. It summarizes current automation command surfaces, ready issue count, protected issue handling, required labels, closeout gates, mutation boundaries, local-only behavior, known blocked conditions, and recommended human workflow. It does not mutate GitHub state and does not authorize queue or routing mutation.
 
 The `project-state-summary` command is a human-triggered local-first read-only reporting helper. It summarizes local git branch and cleanliness, local and `origin/main` commit posture where available, open GitHub issues and PRs where available, source-of-truth document presence, latest generated artifacts from known artifact roots, and current milestone direction inferred from source-of-truth docs. It degrades gracefully with explicit warnings when `git`, `gh`, `origin/main`, or network access are unavailable. It does not mutate git state, files, GitHub state, labels, issues, PRs, milestones, or artifacts.
+
+The `inspect-repo-governance` command is a human-triggered read-only governance helper for the configured managed repository slug. It evaluates reusable platform-required labels, platform-optional labels, automation-trigger labels, canonical platform milestone naming, open issue readiness signals, and open PR readiness signals. It reports warnings plus recommended next action and degrades gracefully when `gh` or network access is unavailable. It does not create or modify labels, milestones, issues, PRs, branches, settings, workflows, or artifacts.
 
 The `qa-review-pr` command is a validation-only GitHub PR inspection helper. It reads PR metadata, detects linked issues and changed files, checks for validation evidence, and emits deterministic JSON with pass/fail/blocked decisions. It does not create PRs, merge PRs, close issues, comment on PRs, label issues, or mutate GitHub state.
 

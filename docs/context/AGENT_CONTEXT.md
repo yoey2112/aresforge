@@ -41,6 +41,7 @@ During M3, implementation remains human-triggered and human-reviewed. Agents may
 - Issue #120 is merged `main` behavior and provides `run-ready-issue-pipeline` orchestration with explicit mode boundaries
 - Issue #127 is merged `main` behavior and provides read-only `run-ready-issue-batch --plan-only` plus `automation-readiness-report` command surfaces
 - Issue #129 starts M3 and adds a local-first read-only `project-state-summary` command surface with graceful degradation when local tools or network access are unavailable
+- Issue #131 extends M3 with `inspect-repo-governance`, a reusable read-only label and milestone governance inspection command for managed repositories with graceful degradation when `gh` or network access is unavailable
 - Issue #101 was completed through PR #102 and added merged `main` support for read-only local model inspection without introducing model selection, routing, or GitHub-state-changing behavior
 - Issue #97 was completed through PR #98 and added merged `main` support for read-only local project inspection without changing routing, queue state, or GitHub state
 - Issue #99 was completed through PR #100 and added merged `main` support for a human-triggered PR lifecycle helper that keeps validation, staging, PR creation, PR verification, merge execution, post-merge verification, and source-of-truth scanning phase-gated and visible
@@ -57,6 +58,7 @@ Agents should use these documents as the current M3 canon:
 - `docs/architecture/AGENT_REGISTRY_SCHEMA.md`
 - `docs/architecture/MODEL_REGISTRY_SCHEMA.md`
 - `docs/architecture/MODEL_ROUTING_STRATEGY.md`
+- `docs/architecture/REPOSITORY_GOVERNANCE_CONTRACT.md`
 - `docs/architecture/QUEUE_REGISTRY_SCHEMA.md`
 - `docs/architecture/LOCAL_STATE_STORE.md`
 - `docs/architecture/RUNNABLE_SKELETON.md`
@@ -115,6 +117,7 @@ The local operator may currently support:
 - deterministic reusable read-only ready issue batch planning via `run-ready-issue-batch --plan-only`, including deterministic JSON and Markdown batch artifacts under `artifacts/ready_issue_batches/generated/`
 - deterministic read-only automation readiness dashboard reporting via `automation-readiness-report`
 - deterministic local-first read-only project state reporting via `project-state-summary`
+- deterministic reusable read-only repository governance inspection via `inspect-repo-governance`
 - a human-triggered PR lifecycle helper that requires an explicit phase selection before validation, staging, PR creation, PR verification, merge execution, post-merge verification, or source-of-truth scanning
 - prompt, evidence, and Codex handoff artifact preparation, including opt-in local artifact discovery capture in evidence packages plus opt-in latest local review package capture in evidence and handoff outputs
 - opt-in local review package generation under `artifacts/local_reviews/generated/`
