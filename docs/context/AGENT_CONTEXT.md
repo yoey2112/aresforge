@@ -37,7 +37,8 @@ During M2, implementation remains human-triggered and human-reviewed. Agents may
 - Issue #112 was completed through PR #115 and added merged `main` support for read-only `list-review-packages` and `inspect-review-package` visibility plus opt-in latest local review package capture during evidence and Codex handoff preparation without introducing routing, queue mutation, network calls, or GitHub-state-changing behavior
 - Issue #114 added the canonical model-routing and LLM escalation strategy documentation as a docs-only architecture artifact in `docs/architecture/MODEL_ROUTING_STRATEGY.md`
 - Issue #118 was completed through PR #124 and added merged `main` support for deterministic QA PR validation-only inspection via `qa-review-pr`
-- Issue #119 is in progress on the current branch and adds `qa-closeout-pr` with default dry-run/no-mutation behavior plus explicit execute gating
+- Issue #119 was completed through PR #125 and added merged `main` support for `qa-closeout-pr` with default dry-run/no-mutation behavior plus explicit execute gating
+- Issue #120 is in progress on the current branch and adds merged-candidate `run-ready-issue-pipeline` orchestration that composes intake, planning, QA review, and QA-gated closeout delegation with explicit mode boundaries
 - Issue #101 was completed through PR #102 and added merged `main` support for read-only local model inspection without introducing model selection, routing, or GitHub-state-changing behavior
 - Issue #97 was completed through PR #98 and added merged `main` support for read-only local project inspection without changing routing, queue state, or GitHub state
 - Issue #99 was completed through PR #100 and added merged `main` support for a human-triggered PR lifecycle helper that keeps validation, staging, PR creation, PR verification, merge execution, post-merge verification, and source-of-truth scanning phase-gated and visible
@@ -108,6 +109,7 @@ The local operator may currently support:
 - deterministic decision-only ready issue routing for automation intake
 - deterministic QA PR validation-only inspection via `qa-review-pr`
 - deterministic QA-gated PR closeout via `qa-closeout-pr` with default dry-run/no-mutation and explicit execute mode
+- deterministic reusable ready issue orchestration via `run-ready-issue-pipeline` with explicit plan-only, review-pr, and closeout-when-eligible modes
 - a human-triggered PR lifecycle helper that requires an explicit phase selection before validation, staging, PR creation, PR verification, merge execution, post-merge verification, or source-of-truth scanning
 - prompt, evidence, and Codex handoff artifact preparation, including opt-in local artifact discovery capture in evidence packages plus opt-in latest local review package capture in evidence and handoff outputs
 - opt-in local review package generation under `artifacts/local_reviews/generated/`

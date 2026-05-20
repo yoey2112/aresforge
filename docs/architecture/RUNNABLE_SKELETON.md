@@ -60,6 +60,7 @@ Supported commands:
 - `list-ready-issues`
 - `inspect-ready-issue`
 - `plan-ready-issue`
+- `run-ready-issue-pipeline`
 - `inspect-project`
 - `inspect-model`
 - `inspect-queue`
@@ -100,6 +101,8 @@ The `list-ready-issues` command is a read-only GitHub intake helper for manually
 The `inspect-ready-issue` command is a read-only GitHub intake helper for one manually labeled ready issue. It rejects Issue #39, requires the `aresforge-ready` label, emits deterministic JSON for the issue metadata and manual trigger confirmation, and does not create or modify issues, labels, pull requests, or any GitHub state.
 
 The `plan-ready-issue` command is a decision-only GitHub intake helper for one ready issue. It inspects the target issue, confirms the `aresforge-ready` trigger label, excludes Issue #39, and emits deterministic JSON describing the recommended handling agent and model tier. It does not run implementation, create PRs, merge PRs, close issues, comment on issues, label issues, or mutate GitHub state.
+
+The `run-ready-issue-pipeline` command is a reusable human-triggered orchestration helper for one ready issue. It composes existing `inspect-ready-issue`, `plan-ready-issue`, `qa-review-pr`, `qa-closeout-pr`, and `run-local-review` behavior into three explicit modes: `plan-only`, `review-pr`, and `closeout-when-eligible`. Default behavior is safe and non-mutating. Any GitHub mutation is permitted only through `qa-closeout-pr` behavior in explicit closeout execute mode after all required QA and label gates pass, including `aresforge-ready`, `aresforge-automerge`, and Issue #39 protection.
 
 The `qa-review-pr` command is a validation-only GitHub PR inspection helper. It reads PR metadata, detects linked issues and changed files, checks for validation evidence, and emits deterministic JSON with pass/fail/blocked decisions. It does not create PRs, merge PRs, close issues, comment on PRs, label issues, or mutate GitHub state.
 
