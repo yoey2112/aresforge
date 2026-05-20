@@ -40,6 +40,7 @@ from aresforge.operator.inspection_reports import (
     render_queue_inspection_report,
     render_work_item_inspection_report,
 )
+from aresforge.operator.local_review import LocalReviewOptions, run_local_review
 from aresforge.operator.registry_inspection import inspect_local_registries
 from aresforge.operator.service import (
     render_codex_handoff,
@@ -79,6 +80,35 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser(
         "list-artifacts",
         help="Summarize generated local artifacts under the configured artifact root.",
+    )
+    run_local_review_parser = subparsers.add_parser(
+        "run-local-review",
+        help="Run a bounded deterministic local review orchestration over existing operator checks.",
+    )
+    run_local_review_parser.add_argument("--project-id", default=DEFAULT_PROJECT_ID)
+    run_local_review_parser.add_argument("--model-id", default=DEFAULT_MODEL_ID)
+    run_local_review_parser.add_argument(
+        "--include-artifacts",
+        action="store_true",
+        help="Include a read-only list-artifacts summary in the local review.",
+    )
+    run_local_review_parser.add_argument(
+        "--artifact-path",
+        help="Inspect one explicit safe artifact path under the configured artifact root.",
+    )
+    run_local_review_parser.add_argument(
+        "--include-evidence-packages",
+        action="store_true",
+        help="Include a read-only list-evidence-packages summary in the local review.",
+    )
+    run_local_review_parser.add_argument(
+        "--evidence-path",
+        help="Inspect one explicit safe evidence path under the configured evidence root.",
+    )
+    run_local_review_parser.add_argument(
+        "--write-review-package",
+        action="store_true",
+        help="Write a local review package artifact while still emitting JSON.",
     )
     subparsers.add_parser(
         "list-evidence-packages",
@@ -234,6 +264,8 @@ def command_requires_directories(args: argparse.Namespace) -> bool:
         "prepare-codex-handoff",
     ):
         return True
+    if args.command == "run-local-review":
+        return bool(getattr(args, "write_review_package", False))
     if args.command in ("inspect-queue", "inspect-work-item"):
         return bool(getattr(args, "write_artifact", False))
     return False
@@ -299,6 +331,22 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "list-artifacts":
         emit_json(discover_local_artifacts(config))
         return 0
+
+    if args.command == "run-local-review":
+        payload = run_local_review(
+            config,
+            options=LocalReviewOptions(
+                project_id=args.project_id,
+                model_id=args.model_id,
+                include_artifacts=args.include_artifacts,
+                artifact_path=args.artifact_path,
+                include_evidence_packages=args.include_evidence_packages,
+                evidence_path=args.evidence_path,
+                write_review_package=args.write_review_package,
+            ),
+        )
+        emit_json(payload)
+        return 0 if payload["ok"] else 1
 
     if args.command == "list-evidence-packages":
         emit_json(discover_local_evidence_packages(config))

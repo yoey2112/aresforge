@@ -54,23 +54,26 @@ def test_discover_local_artifacts_handles_empty_artifact_root(tmp_path: Path) ->
 def test_discover_local_artifacts_summarizes_known_generated_artifacts(tmp_path: Path) -> None:
     config = make_config(tmp_path)
     queue_report = config.artifact_root / "inspection_reports" / "generated" / "queue-inspection-report-queue-implementation-implementation.json"
+    local_review = config.artifact_root / "local_reviews" / "generated" / "20260520T120003Z-local-review-project-aresforge.json"
     prompt_package = config.artifact_root / "prompts" / "generated" / "20260520T120000Z-issue-105-prompt.md"
     evidence_package = config.artifact_root / "evidence" / "generated" / "20260520T120001Z-issue-105-evidence.json"
     codex_handoff = config.artifact_root / "codex_handoffs" / "generated" / "20260520T120002Z-issue-105-handoff.md"
 
     queue_report.parent.mkdir(parents=True)
+    local_review.parent.mkdir(parents=True)
     prompt_package.parent.mkdir(parents=True)
     evidence_package.parent.mkdir(parents=True)
     codex_handoff.parent.mkdir(parents=True)
 
     queue_report.write_text("{}", encoding="utf-8")
+    local_review.write_text('{"ok": true}', encoding="utf-8")
     prompt_package.write_text("# Prompt", encoding="utf-8")
     evidence_package.write_text("{}", encoding="utf-8")
     codex_handoff.write_text("# Handoff", encoding="utf-8")
 
     payload = discover_local_artifacts(config)
 
-    assert payload["artifact_count"] == 4
+    assert payload["artifact_count"] == 5
     assert payload["artifacts"] == [
         {
             "artifact_path": "codex_handoffs/generated/20260520T120002Z-issue-105-handoff.md",
@@ -106,10 +109,21 @@ def test_discover_local_artifacts_summarizes_known_generated_artifacts(tmp_path:
             "text_preview": "{}",
         },
         {
+            "artifact_path": "local_reviews/generated/20260520T120003Z-local-review-project-aresforge.json",
+            "filename": "20260520T120003Z-local-review-project-aresforge.json",
+            "size_bytes": 12,
+            "modified_at": payload["artifacts"][3]["modified_at"],
+            "artifact_type": "local_review_package",
+            "command_source_hint": "run-local-review --write-review-package",
+            "extension": ".json",
+            "text_readable": True,
+            "text_preview": '{"ok": true}',
+        },
+        {
             "artifact_path": "prompts/generated/20260520T120000Z-issue-105-prompt.md",
             "filename": "20260520T120000Z-issue-105-prompt.md",
             "size_bytes": 8,
-            "modified_at": payload["artifacts"][3]["modified_at"],
+            "modified_at": payload["artifacts"][4]["modified_at"],
             "artifact_type": "prompt_package",
             "command_source_hint": "generate-prompt-package",
             "extension": ".md",

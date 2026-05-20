@@ -12,6 +12,7 @@ _CATEGORY_BY_PREFIX: tuple[tuple[Path, str], ...] = (
     (Path("evidence/generated"), "evidence_package"),
     (Path("codex_handoffs/generated"), "codex_handoff"),
     (Path("inspection_reports/generated"), "inspection_report"),
+    (Path("local_reviews/generated"), "local_review_package"),
 )
 _TEXT_PREVIEW_BYTE_LIMIT = 4096
 _TEXT_PREVIEW_CHAR_LIMIT = 400
@@ -52,6 +53,8 @@ def _command_source_hint(relative_path: Path, category: str | None) -> str | Non
         return "inspect-queue --write-artifact"
     if filename.startswith("work-item-inspection-report-"):
         return "inspect-work-item --write-artifact"
+    if category == "local_review_package" and "generated" in normalized_parts:
+        return "run-local-review --write-review-package"
     if category == "prompt_package" and "generated" in normalized_parts:
         return "generate-prompt-package"
     if category == "evidence_package" and "generated" in normalized_parts:
