@@ -11,6 +11,7 @@ from aresforge.operator.artifact_discovery import (
 )
 from aresforge.operator.ready_issue_intake import (
     PROTECTED_ISSUE_NUMBER,
+    _normalize_label_names,
     _parse_json_payload,
     _repo_slug,
     _run_gh_command,
@@ -18,7 +19,7 @@ from aresforge.operator.ready_issue_intake import (
 
 _PR_VIEW_FIELDS = (
     "number,title,state,isDraft,mergeStateStatus,baseRefName,headRefName,url,body,"
-    "files,closingIssuesReferences,mergeable"
+    "files,closingIssuesReferences,mergeable,labels"
 )
 
 _FORBIDDEN_FILE_PREFIXES = (
@@ -91,6 +92,7 @@ def qa_review_pr(config: AppConfig, pr_number: int) -> dict[str, Any]:
     base_branch = pr_data.get("baseRefName") if isinstance(pr_data, dict) else None
     head_branch = pr_data.get("headRefName") if isinstance(pr_data, dict) else None
     pr_body = pr_data.get("body") if isinstance(pr_data, dict) else None
+    pr_labels = _normalize_label_names(pr_data.get("labels")) if isinstance(pr_data, dict) else []
 
     changed_files = _extract_changed_files(pr_data)
     linked_issue_numbers = _extract_linked_issues(pr_data)
@@ -146,6 +148,7 @@ def qa_review_pr(config: AppConfig, pr_number: int) -> dict[str, Any]:
         "branch_name": head_branch,
         "base_branch": base_branch,
         "changed_files": changed_files,
+        "pr_labels": pr_labels,
         "validation_evidence_found": evidence_summary["validation_evidence_found"],
         "review_package_found": evidence_summary["review_package_found"],
         "evidence_package_found": evidence_summary["evidence_package_found"],

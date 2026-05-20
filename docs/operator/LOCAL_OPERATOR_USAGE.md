@@ -132,6 +132,8 @@ python -m aresforge validate-pr-end-to-end --pr-number 149
 
 Use `validate-pr-end-to-end` when you want one deterministic read-only operator checkpoint that wraps `qa-review-pr` output plus changed files, required validation commands, required fixes, and boundary confirmations. Use `qa-review-pr` when you only need focused QA gate inspection. Use `qa-closeout-pr` only after QA has passed and only in explicit human-triggered dry-run or execute modes.
 
+`validate-pr-end-to-end` now also includes a read-only `closeout_dry_run` payload from `qa-closeout-pr --dry-run` so operator guidance can identify closeout-readiness blockers (including linked issue required-label gaps) before any execute-mode action is considered.
+
 Validation evidence detection accepts either linked local evidence/review package coverage or explicit PR-body evidence under headings such as `Validation`, `Validation evidence`, `Required validation`, `Required tests`, or `Test evidence`.
 
 PR-body validation evidence is strict:
@@ -160,6 +162,64 @@ python -m aresforge qa-closeout-pr --pr-number 119 --execute
 ```
 
 `qa-closeout-pr` defaults to dry-run/no-mutation behavior unless `--execute` is explicitly supplied. Execute mode is strongly gated: the PR must be open, non-draft, cleanly mergeable, linked to a non-protected issue, and pass `qa-review-pr` with merge and closeout eligibility. The linked issue must include both manual labels `aresforge-ready` and `aresforge-automerge`. If any gate fails, the command refuses merge and closeout and emits deterministic JSON for failed gates. Issue #39 remains protected and is never modified.
+
+When required-label gates fail, `qa-closeout-pr` reports explicit target and label context:
+
+- `required_label_target` (current gate target is `linked_issue`)
+- `linked_issue_labels`
+- `pr_labels`
+- `missing_linked_issue_labels`
+- `missing_pr_labels`
+- `human_required_label_commands` (exact human-reviewable `gh` commands; never auto-executed)
+- `recommended_next_command`
+
+Observed M5 operator example for Issue #158 / PR #161:
+
+```powershell
+gh issue edit 158 --repo yoey2112/aresforge --add-label "aresforge-ready" --add-label "aresforge-automerge"
+```
+
+`qa-closeout-pr` may also include advisory PR label commands in `human_required_label_commands`, but closeout gating for required labels is on the linked issue target.
+
+## PR Closeout Checklist
+
+Use this concise operator sequence for one PR:
+
+1. Validate implementation and repository quality:
+
+```powershell
+python -m pytest
+git diff --check
+git diff --cached --check
+git status --short
+```
+
+2. Validate PR evidence and QA gates:
+
+```powershell
+python -m aresforge qa-review-pr --pr-number <PR_NUMBER>
+python -m aresforge validate-pr-end-to-end --pr-number <PR_NUMBER>
+```
+
+3. If required labels are missing, apply only the human-reviewable command(s) emitted by `human_required_label_commands` (typically `gh issue edit ... --add-label ...` for the linked issue).
+
+4. Re-run closeout readiness in dry-run mode:
+
+```powershell
+python -m aresforge qa-closeout-pr --pr-number <PR_NUMBER> --dry-run
+```
+
+5. After dry-run gates pass and human review is complete, execute closeout explicitly:
+
+```powershell
+python -m aresforge qa-closeout-pr --pr-number <PR_NUMBER> --execute
+```
+
+6. Run post-merge verification:
+
+```powershell
+python -m aresforge project-state-summary
+```
 
 Run the reusable ready issue automation pipeline in plan-only mode:
 
