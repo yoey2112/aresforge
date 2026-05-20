@@ -124,6 +124,14 @@ python -m aresforge qa-review-pr --pr-number 118
 
 This command is validation-only and read-only. It inspects GitHub PR metadata, detects linked issues and changed files, checks for required validation evidence, and emits deterministic JSON with pass/fail/blocked decisions plus merge and closeout eligibility recommendations. It does not create PRs, merge PRs, close issues, comment on PRs, label issues, or mutate GitHub state.
 
+Run end-to-end read-only PR validation orchestration:
+
+```powershell
+python -m aresforge validate-pr-end-to-end --pr-number 149
+```
+
+Use `validate-pr-end-to-end` when you want one deterministic read-only operator checkpoint that wraps `qa-review-pr` output plus changed files, required validation commands, required fixes, and boundary confirmations. Use `qa-review-pr` when you only need focused QA gate inspection. Use `qa-closeout-pr` only after QA has passed and only in explicit human-triggered dry-run or execute modes.
+
 Validation evidence detection accepts either linked local evidence/review package coverage or explicit PR-body evidence under headings such as `Validation`, `Validation evidence`, `Required validation`, `Required tests`, or `Test evidence`.
 
 PR-body validation evidence is strict:

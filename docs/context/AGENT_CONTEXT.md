@@ -50,8 +50,9 @@ During M4, implementation remains human-triggered and human-reviewed. Agents may
 - Issue #138 is completed through PR #144 and remains historical closeout context for M3 governance-stack source-of-truth reconciliation
 - Issue #145 is the active M4 parent sprint issue
 - Issue #146 is completed through PR #150 and is merged `main` behavior
-- Issue #148 is the active M4 QA validation-evidence hardening workstream
-- Remaining M4 workstreams after #148 are #149 (add validate-pr end-to-end) and #147 (prove multi-repo governance)
+- Issue #148 is completed through PR #151 and is merged `main` behavior
+- Issue #149 is the active M4 end-to-end PR validation orchestration workstream
+- Remaining M4 workstream after #149 is #147 (prove multi-repo governance)
 - Human-triggered bootstrap setup has already created required and optional platform labels plus canonical platform milestones
 - Remaining readiness `attention_needed` posture is legacy or project-specific milestone mapping documentation alignment only
 - No setup or mutation command surface has been implemented for bootstrap setup; GitHub mutation remains human-triggered and gated

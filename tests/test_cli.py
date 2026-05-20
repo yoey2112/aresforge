@@ -45,6 +45,7 @@ def test_cli_has_expected_commands() -> None:
         "demo-managed-repo-governance",
         "qa-review-pr",
         "qa-closeout-pr",
+        "validate-pr-end-to-end",
         "inspect-review-package",
         "inspect-artifact",
         "inspect-evidence-package",
@@ -165,6 +166,10 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     assert qa_closeout_args.pr_number == 119
     assert qa_closeout_args.execute is False
     assert qa_closeout_args.dry_run is False
+    validate_end_to_end_args = parser.parse_args(
+        ["validate-pr-end-to-end", "--pr-number", "149"]
+    )
+    assert validate_end_to_end_args.pr_number == 149
     inspect_review_args = parser.parse_args(
         ["inspect-review-package", "--review-path", "20260520T120003Z-local-review.json"]
     )
@@ -253,6 +258,13 @@ def test_cli_qa_closeout_pr_requires_pr_number() -> None:
 
     with pytest.raises(SystemExit):
         parser.parse_args(["qa-closeout-pr"])
+
+
+def test_cli_validate_pr_end_to_end_requires_pr_number() -> None:
+    parser = build_parser()
+
+    with pytest.raises(SystemExit):
+        parser.parse_args(["validate-pr-end-to-end"])
 
 
 def test_cli_qa_closeout_pr_execute_flag_is_optional_and_explicit() -> None:
@@ -347,6 +359,12 @@ def test_command_requires_directories_only_for_commands_that_write_artifacts() -
     assert (
         command_requires_directories(
             parser.parse_args(["qa-closeout-pr", "--pr-number", "119"])
+        )
+        is False
+    )
+    assert (
+        command_requires_directories(
+            parser.parse_args(["validate-pr-end-to-end", "--pr-number", "149"])
         )
         is False
     )
@@ -469,6 +487,83 @@ def test_cli_dispatches_qa_review_pr(
 
     assert exit_code == 0
     assert payload == {"ok": True}
+
+
+def test_cli_dispatches_validate_pr_end_to_end(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+) -> None:
+    config = AppConfig(
+        repo_root=tmp_path,
+        db_host="127.0.0.1",
+        db_port=5433,
+        db_name="aresforge",
+        db_user="aresforge",
+        db_password="aresforge",
+        ollama_base_url="http://127.0.0.1:11434",
+        ollama_model="qwen2.5:32b",
+        artifact_root=tmp_path / "artifacts",
+        prompts_dir=tmp_path / "artifacts" / "prompts" / "generated",
+        evidence_dir=tmp_path / "artifacts" / "evidence" / "generated",
+        codex_handoffs_dir=tmp_path / "artifacts" / "codex_handoffs" / "generated",
+        github_owner="yoey2112",
+        github_repo="aresforge",
+    )
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: config)
+    monkeypatch.setattr(
+        cli,
+        "validate_pr_end_to_end",
+        lambda _config, _pr_number: {"command": "validate-pr-end-to-end", "ok": True},
+    )
+
+    exit_code = cli.main(["validate-pr-end-to-end", "--pr-number", "149"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert payload == {"command": "validate-pr-end-to-end", "ok": True}
+
+
+def test_cli_validate_pr_end_to_end_does_not_call_mutation_paths(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+) -> None:
+    config = AppConfig(
+        repo_root=tmp_path,
+        db_host="127.0.0.1",
+        db_port=5433,
+        db_name="aresforge",
+        db_user="aresforge",
+        db_password="aresforge",
+        ollama_base_url="http://127.0.0.1:11434",
+        ollama_model="qwen2.5:32b",
+        artifact_root=tmp_path / "artifacts",
+        prompts_dir=tmp_path / "artifacts" / "prompts" / "generated",
+        evidence_dir=tmp_path / "artifacts" / "evidence" / "generated",
+        codex_handoffs_dir=tmp_path / "artifacts" / "codex_handoffs" / "generated",
+        github_owner="yoey2112",
+        github_repo="aresforge",
+    )
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: config)
+    monkeypatch.setattr(
+        cli,
+        "qa_closeout_pr",
+        lambda *_args, **_kwargs: pytest.fail(
+            "validate-pr-end-to-end must not call qa-closeout-pr mutation path"
+        ),
+    )
+    monkeypatch.setattr(
+        cli,
+        "validate_pr_end_to_end",
+        lambda _config, _pr_number: {"command": "validate-pr-end-to-end", "ok": False},
+    )
+
+    exit_code = cli.main(["validate-pr-end-to-end", "--pr-number", "149"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 1
+    assert payload == {"command": "validate-pr-end-to-end", "ok": False}
 
 
 def test_cli_dispatches_project_state_summary(

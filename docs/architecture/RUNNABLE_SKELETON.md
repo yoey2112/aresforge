@@ -64,6 +64,9 @@ Supported commands:
 - `plan-ready-issue`
 - `run-ready-issue-pipeline`
 - `run-ready-issue-batch`
+- `qa-review-pr`
+- `qa-closeout-pr`
+- `validate-pr-end-to-end`
 - `automation-readiness-report`
 - `project-state-summary`
 - `inspect-repo-governance`
@@ -136,6 +139,8 @@ The `demo-managed-repo-governance` command is a human-triggered read-only manage
 The `qa-review-pr` command is a validation-only GitHub PR inspection helper. It reads PR metadata, detects linked issues and changed files, checks for validation evidence, and emits deterministic JSON with pass/fail/blocked decisions. Validation evidence is accepted from linked local evidence/review package coverage or strict PR-body evidence sections (`Validation`, `Validation evidence`, `Required validation`, `Required tests`, `Test evidence`) that include at least one concrete command/check plus at least one explicit pass/result signal. It emits deterministic diagnostics (`validation_heading_found`, `validation_command_evidence_found`, `validation_pass_signal_found`) when validation evidence gates fail. It does not create PRs, merge PRs, close issues, comment on PRs, label issues, or mutate GitHub state.
 
 The `qa-closeout-pr` command is a human-triggered QA-gated closeout helper with dry-run as the default safety mode. In dry-run mode it performs no GitHub mutation and emits deterministic JSON describing pass/fail gate status. Execute mode is explicit (`--execute`) and allowed only when all closeout gates pass, including required manual labels (`aresforge-ready` and `aresforge-automerge`) on the linked issue, pass-level `qa-review-pr` decision, and Issue #39 protection checks. When fully eligible, execute mode may squash-merge the target PR, delete the remote branch through merge flow, comment on the linked issue, and close only that linked issue.
+
+The `validate-pr-end-to-end` command is a human-triggered read-only orchestration helper for one PR. It composes `qa-review-pr` output into a deterministic end-to-end validation summary that includes PR readiness posture, changed files, validation evidence diagnostics, documentation update detection, protected Issue #39 handling, forbidden file handling, required operator validation commands, required fixes, recommended next action, and explicit boundary confirmations. It does not merge, close, label, comment, push, create branches, or mutate GitHub state.
 
 The `inspect-queue` and `inspect-work-item` commands are read-only registry-aware inspection helpers. They expand local queue and work-item records into richer JSON views, but they do not transition queues, mutate routing, authorize autonomous routing, or authorize GitHub-state-changing behavior.
 
