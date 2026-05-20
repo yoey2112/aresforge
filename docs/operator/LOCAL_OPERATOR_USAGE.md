@@ -159,6 +159,23 @@ python -m aresforge run-ready-issue-pipeline --issue-number 120 --pr-number 128 
 
 `run-ready-issue-pipeline` is human-triggered orchestration. It reuses existing `inspect-ready-issue`, `plan-ready-issue`, `qa-review-pr`, `qa-closeout-pr`, and `run-local-review` components instead of duplicating lower-level logic. `plan-only` and `review-pr` modes are non-mutating with respect to GitHub state. `closeout-when-eligible` delegates closeout only through `qa-closeout-pr`, and mutation remains blocked unless execute mode is explicitly requested and all QA plus required label gates pass. The pipeline excludes Issue #39 and does not run background jobs or autonomous polling.
 
+Run deterministic read-only batch planning for all currently ready issues:
+
+```powershell
+python -m aresforge run-ready-issue-batch --plan-only
+python -m aresforge run-ready-issue-batch --plan-only --write-selected-handoffs
+```
+
+This command is human-triggered and read-only with respect to GitHub state. It reuses `list-ready-issues`, `inspect-ready-issue`, and `plan-ready-issue` for each candidate issue, always excludes protected Issue #39, and writes local JSON plus Markdown batch artifacts under `artifacts/ready_issue_batches/generated/`. It also supports optional local-only handoff generation for Copilot or Codex selected issues when `--write-selected-handoffs` is explicitly supplied.
+
+Run a read-only automation readiness dashboard summary:
+
+```powershell
+python -m aresforge automation-readiness-report
+```
+
+This command is human-triggered and read-only with respect to GitHub state. It summarizes available automation commands, ready issue count, protected issue handling, required labels, closeout gates, mutation boundaries, local-only behavior, known blocked conditions, and recommended human workflow. It does not create PRs, merge PRs, close issues, label issues, assign issues, or comment on issues.
+
 Run the bounded local review orchestration over the existing read-only operator surfaces:
 
 ```powershell

@@ -70,6 +70,8 @@ Issue #119 was completed through PR #125 and adds QA-gated PR closeout via `qa-c
 
 Issue #120 adds reusable ready issue orchestration via `run-ready-issue-pipeline`, with explicit plan-only, review-pr, and closeout-when-eligible modes that compose existing intake, planning, QA review, and QA-gated closeout behaviors while preserving non-mutating defaults.
 
+Issue #127 adds reusable read-only batch ready issue planning via `run-ready-issue-batch --plan-only` plus read-only `automation-readiness-report`, including deterministic local JSON and Markdown batch artifacts and optional local-only selected issue handoff package generation for Copilot or Codex selected issues.
+
 ## Planned Milestone Sequence
 
 ### M3 - Registry And Routing Deepening

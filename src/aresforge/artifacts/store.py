@@ -30,9 +30,10 @@ def write_markdown_json_bundle(
     title: str,
     markdown: str,
     payload: dict[str, Any],
+    timestamp_override: str | None = None,
 ) -> ArtifactBundle:
     base_dir.mkdir(parents=True, exist_ok=True)
-    stem = f"{_timestamp()}-{_slugify(title)}"
+    stem = f"{timestamp_override or _timestamp()}-{_slugify(title)}"
     markdown_path = base_dir / f"{stem}.md"
     json_path = base_dir / f"{stem}.json"
     markdown_path.write_text(markdown, encoding="utf-8")
