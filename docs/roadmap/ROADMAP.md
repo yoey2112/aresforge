@@ -64,6 +64,8 @@ Issue #114 added the canonical model-routing and LLM escalation strategy documen
 
 Issue #117 adds decision-only ready-issue routing via `plan-ready-issue`, providing deterministic agent and model tier recommendations without mutating GitHub state.
 
+Issue #118 adds validation-only QA PR inspection via `qa-review-pr`, providing deterministic pass/fail/blocked output without mutating GitHub state.
+
 ## Planned Milestone Sequence
 
 ### M3 - Registry And Routing Deepening

@@ -101,6 +101,8 @@ The `inspect-ready-issue` command is a read-only GitHub intake helper for one ma
 
 The `plan-ready-issue` command is a decision-only GitHub intake helper for one ready issue. It inspects the target issue, confirms the `aresforge-ready` trigger label, excludes Issue #39, and emits deterministic JSON describing the recommended handling agent and model tier. It does not run implementation, create PRs, merge PRs, close issues, comment on issues, label issues, or mutate GitHub state.
 
+The `qa-review-pr` command is a validation-only GitHub PR inspection helper. It reads PR metadata, detects linked issues and changed files, checks for validation evidence, and emits deterministic JSON with pass/fail/blocked decisions. It does not create PRs, merge PRs, close issues, comment on PRs, label issues, or mutate GitHub state.
+
 The `inspect-queue` and `inspect-work-item` commands are read-only registry-aware inspection helpers. They expand local queue and work-item records into richer JSON views, but they do not transition queues, mutate routing, authorize autonomous routing, or authorize GitHub-state-changing behavior.
 
 The `list-models` command is a read-only local listing helper for seeded local model rows. It emits deterministic JSON, does not require Ollama to be running, and does not select a model, recommend a model, or route a task.
