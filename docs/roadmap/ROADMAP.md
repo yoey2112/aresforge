@@ -62,6 +62,8 @@ PR #115 completed Issue #112 and extended the merged `main` M2 operator foundati
 
 Issue #114 added the canonical model-routing and LLM escalation strategy documentation as a docs-only architecture artifact in `docs/architecture/MODEL_ROUTING_STRATEGY.md`. This document defines the local-first principle, the four-tier escalation ladder, task routing guidance, cost and privacy guardrails, and Codex usage warnings without introducing runtime behavior or autonomous model selection.
 
+Issue #117 adds decision-only ready-issue routing via `plan-ready-issue`, providing deterministic agent and model tier recommendations without mutating GitHub state.
+
 ## Planned Milestone Sequence
 
 ### M3 - Registry And Routing Deepening

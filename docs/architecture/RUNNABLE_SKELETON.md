@@ -59,6 +59,7 @@ Supported commands:
 - `inspect-evidence-package`
 - `list-ready-issues`
 - `inspect-ready-issue`
+- `plan-ready-issue`
 - `inspect-project`
 - `inspect-model`
 - `inspect-queue`
@@ -97,6 +98,8 @@ The `inspect-evidence-package` command is a read-only local inspection helper fo
 The `list-ready-issues` command is a read-only GitHub intake helper for manually labeled ready issues. It queries the configured GitHub repository for open issues labeled `aresforge-ready`, excludes Issue #39, emits deterministic JSON sorted by issue number, and records explicit automation boundary confirmations. It does not create or modify issues, labels, pull requests, or any GitHub state.
 
 The `inspect-ready-issue` command is a read-only GitHub intake helper for one manually labeled ready issue. It rejects Issue #39, requires the `aresforge-ready` label, emits deterministic JSON for the issue metadata and manual trigger confirmation, and does not create or modify issues, labels, pull requests, or any GitHub state.
+
+The `plan-ready-issue` command is a decision-only GitHub intake helper for one ready issue. It inspects the target issue, confirms the `aresforge-ready` trigger label, excludes Issue #39, and emits deterministic JSON describing the recommended handling agent and model tier. It does not run implementation, create PRs, merge PRs, close issues, comment on issues, label issues, or mutate GitHub state.
 
 The `inspect-queue` and `inspect-work-item` commands are read-only registry-aware inspection helpers. They expand local queue and work-item records into richer JSON views, but they do not transition queues, mutate routing, authorize autonomous routing, or authorize GitHub-state-changing behavior.
 

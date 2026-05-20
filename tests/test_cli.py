@@ -31,6 +31,7 @@ def test_cli_has_expected_commands() -> None:
         "list-evidence-packages",
         "list-ready-issues",
         "inspect-ready-issue",
+        "plan-ready-issue",
         "inspect-review-package",
         "inspect-artifact",
         "inspect-evidence-package",
@@ -111,6 +112,8 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     assert list_ready_args.command == "list-ready-issues"
     inspect_ready_args = parser.parse_args(["inspect-ready-issue", "--issue-number", "114"])
     assert inspect_ready_args.issue_number == 114
+    plan_ready_args = parser.parse_args(["plan-ready-issue", "--issue-number", "114"])
+    assert plan_ready_args.issue_number == 114
     inspect_review_args = parser.parse_args(
         ["inspect-review-package", "--review-path", "20260520T120003Z-local-review.json"]
     )
@@ -171,6 +174,13 @@ def test_cli_inspect_ready_issue_requires_issue_number() -> None:
 
     with pytest.raises(SystemExit):
         parser.parse_args(["inspect-ready-issue"])
+
+
+def test_cli_plan_ready_issue_requires_issue_number() -> None:
+    parser = build_parser()
+
+    with pytest.raises(SystemExit):
+        parser.parse_args(["plan-ready-issue"])
 
 
 def test_cli_inspect_evidence_package_requires_evidence_path() -> None:
@@ -481,6 +491,63 @@ def test_inspect_registries_is_read_only_dispatch(
 
     assert exit_code == 0
     assert payload["ok"] is True
+
+
+def test_plan_ready_issue_dispatches_without_mutation(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    plan_payload = {
+        "issue_number": 114,
+        "issue_title": "Plan routing",
+        "issue_url": "https://github.com/example/114",
+        "labels": ["aresforge-ready"],
+        "automation_eligible": True,
+        "selected_primary_agent": "implementation-agent",
+        "selected_qa_agent": "qa-agent",
+        "selected_documentation_agent": "documentation-agent",
+        "selected_model_tier": "local",
+        "model_routing_reason": "Local-first default for routine scope.",
+        "lower_tiers_sufficient": True,
+        "codex_justified": False,
+        "paid_use_blocked": True,
+        "confidence": "medium",
+        "blocked": False,
+        "blocked_reason": None,
+        "recommended_next_command": "python -m aresforge list-ready-issues",
+    }
+
+    monkeypatch.setattr(cli, "plan_ready_issue", lambda _config, _issue_number: plan_payload)
+    monkeypatch.setattr(
+        cli,
+        "connect",
+        lambda *_args, **_kwargs: pytest.fail("plan-ready-issue must not connect to PostgreSQL"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "test_generate",
+        lambda *_args, **_kwargs: pytest.fail("plan-ready-issue must not call Ollama"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "create_work_item",
+        lambda *_args, **_kwargs: pytest.fail("plan-ready-issue must not create work items"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "build_route_plan",
+        lambda *_args, **_kwargs: pytest.fail("plan-ready-issue must not route work"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "bootstrap_reference_data",
+        lambda *_args, **_kwargs: pytest.fail("plan-ready-issue must not bootstrap state"),
+    )
+
+    exit_code = cli.main(["plan-ready-issue", "--issue-number", "114"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert payload == plan_payload
 
 
 def test_list_artifacts_emits_json_and_skips_directory_creation(

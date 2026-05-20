@@ -158,6 +158,36 @@ def list_ready_issues(config: AppConfig) -> dict[str, Any]:
 
 
 def inspect_ready_issue(config: AppConfig, issue_number: int) -> dict[str, Any]:
+    issue_payload = fetch_issue_details(config, issue_number)
+    if not issue_payload.get("ok"):
+        return issue_payload
+
+    issue = issue_payload["issue"]
+    labels = issue.get("labels", [])
+    if not _label_present(labels, READY_TRIGGER_LABEL):
+        return _error_payload(
+            config=config,
+            error="issue_not_ready",
+            details={"issue_number": issue_number, "labels": labels},
+        )
+
+    state = issue.get("state")
+    if isinstance(state, str) and state.upper() != "OPEN":
+        return _error_payload(
+            config=config,
+            error="issue_not_open",
+            details={"issue_number": issue_number, "state": state},
+        )
+
+    issue_payload["automation_trigger"] = {
+        "type": "manual_label",
+        "label": READY_TRIGGER_LABEL,
+        "active": True,
+    }
+    return issue_payload
+
+
+def fetch_issue_details(config: AppConfig, issue_number: int) -> dict[str, Any]:
     if issue_number == PROTECTED_ISSUE_NUMBER:
         return _error_payload(config=config, error="protected_issue")
 
@@ -191,21 +221,7 @@ def inspect_ready_issue(config: AppConfig, issue_number: int) -> dict[str, Any]:
         return _error_payload(config=config, error="issue_not_found")
 
     labels = _normalize_label_names(raw_issue.get("labels"))
-    if not _label_present(labels, READY_TRIGGER_LABEL):
-        return _error_payload(
-            config=config,
-            error="issue_not_ready",
-            details={"issue_number": issue_number, "labels": labels},
-        )
-
     state = raw_issue.get("state")
-    if isinstance(state, str) and state.upper() != "OPEN":
-        return _error_payload(
-            config=config,
-            error="issue_not_open",
-            details={"issue_number": issue_number, "state": state},
-        )
-
     author = raw_issue.get("author")
     author_login = author.get("login") if isinstance(author, dict) else None
 
@@ -232,11 +248,6 @@ def inspect_ready_issue(config: AppConfig, issue_number: int) -> dict[str, Any]:
         "repo": _repo_slug(config),
         "ready_label": READY_TRIGGER_LABEL,
         "protected_issue": PROTECTED_ISSUE_NUMBER,
-        "automation_trigger": {
-            "type": "manual_label",
-            "label": READY_TRIGGER_LABEL,
-            "active": True,
-        },
         "issue": {
             "number": raw_issue.get("number"),
             "title": raw_issue.get("title"),
