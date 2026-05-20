@@ -58,6 +58,8 @@ python -m aresforge list-queues
 
 `list-agents` is read-only. It shows the seeded M2 agent-role records that align the local skeleton with the canonical schema in `docs/architecture/AGENT_REGISTRY_SCHEMA.md`.
 
+The current CLI does not yet expose a dedicated `list-models` command. Model metadata is presently visible through `inspect-project-state`, the configured `.env` values, and the seeded local `models` table described in `docs/architecture/LOCAL_STATE_STORE.md`.
+
 ## Work Item Commands
 
 Create a work item:
@@ -115,6 +117,8 @@ python -m aresforge test-ollama
 
 If Ollama is not running, the command fails gracefully with a clear skip message. That is expected in environments where the local model service is not active.
 
+This command is a connectivity check only. Model approval posture, task-class boundaries, routing priority, fallback rules, and governance-sensitive restrictions are defined by `docs/architecture/MODEL_REGISTRY_SCHEMA.md`, not by endpoint reachability.
+
 ## Validation Commands
 
 Recommended local validation sequence:
@@ -159,3 +163,5 @@ The local operator is not allowed to:
 - create releases or tags
 - change GitHub Projects
 - invoke Codex autonomously
+
+The local operator also is not allowed to autonomously select models for governance-sensitive actions or silently fall through to hosted external model APIs.

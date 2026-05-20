@@ -28,6 +28,12 @@ This document does not replace that lifecycle design. Instead, it formalizes the
 
 This schema gives that context a more formal registry model. `AGENT_CONTEXT.md` explains operating rules and current-state expectations; this document explains the intended record structure for the roles those rules govern.
 
+### Relationship To `docs/architecture/MODEL_REGISTRY_SCHEMA.md`
+
+`docs/architecture/MODEL_REGISTRY_SCHEMA.md` is the canonical M2 source of truth for model-record meaning, bounded local routing rules, approval posture, and model-selection evidence expectations.
+
+This agent-registry schema defines role boundaries and approval boundaries. The model-registry schema defines which local model options may support those roles. Agent records must not imply model authority, and model records must not imply agent authority.
+
 ### Relationship To `.agent/AGENT_REGISTRY.md`
 
 `.agent/AGENT_REGISTRY.md` is the current repo-owned skill registry.
@@ -273,6 +279,7 @@ During M2:
 - model support is optional and bounded
 - the human owner remains the final authority over model-sensitive or governance-sensitive usage
 - no role may claim authority just because a model is configured
+- model suitability, routing priority, fallback rules, and local endpoint conventions should follow `docs/architecture/MODEL_REGISTRY_SCHEMA.md`
 
 ## Validation Rules
 

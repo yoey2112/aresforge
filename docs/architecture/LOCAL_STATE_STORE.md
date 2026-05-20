@@ -93,6 +93,10 @@ These rows are seed/reference data only during M2. They support inspection and f
 
 Stores local model configuration metadata. The initial bootstrap inserts one default Ollama-backed model row using the configured base URL and model name.
 
+During M2, this table is a conservative local reference layer only. The canonical source-of-truth meaning for model records, local endpoint conventions, allowed task classes, routing priority, fallback rules, and approval posture now lives in `docs/architecture/MODEL_REGISTRY_SCHEMA.md`.
+
+The current runnable state store does not yet implement full model-routing policy storage, autonomous selection, background health workers, or hosted provider support.
+
 ### Queues
 
 Stores visible routing lanes. The initial bootstrap seeds a small set of practical lanes:
@@ -144,6 +148,8 @@ Current commands:
 - applies pending SQL files in order
 - records applied versions
 - bootstraps the local reference project, default queues, local operator agent, and configured default Ollama model
+
+The bootstrap model row should be interpreted as local configuration metadata, not as proof that the configured model is approved for every task class.
 
 ## Design Boundaries
 
