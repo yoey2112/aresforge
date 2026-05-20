@@ -54,7 +54,9 @@ PR #106 completed Issue #105 and extended the merged `main` M2 operator foundati
 
 PR #108 completed Issue #107 and extended the merged `main` M2 operator foundation with a human-triggered, local-only, read-only `inspect-artifact` command that inspects exactly one generated artifact under the configured artifact root, rejects unsafe or out-of-root paths, and emits deterministic JSON with bounded preview metadata for safe text artifacts.
 
-Issue #109 extends that same M2 operator direction with branch-scoped support for read-only evidence package discovery and single-package inspection plus opt-in local artifact discovery capture during evidence package recording. This sprint remains local-only, human-triggered, deterministic, auditable, and non-authoritative.
+PR #111 completed Issue #109 and extended the merged `main` M2 operator foundation with human-triggered, local-only, read-only `list-evidence-packages` and `inspect-evidence-package` commands plus opt-in local artifact discovery capture during `record-evidence-package`. These additions remain deterministic, auditable, and non-authoritative.
+
+Issue #110 extends that same M2 operator direction with branch-scoped support for human-triggered `run-local-review` orchestration plus opt-in local review package generation. This sprint remains local-only, deterministic, auditable, and non-authoritative.
 
 ## Planned Milestone Sequence
 
@@ -129,6 +131,7 @@ The current M2 phase does not authorize:
 - Continue improving local review-aid visibility, including deterministic summaries of generated artifacts that remain non-authoritative
 - Continue improving local review-aid visibility, including deterministic single-artifact inspection that remains non-authoritative
 - Continue improving local review-aid visibility, including deterministic evidence package discovery and inspection that remain non-authoritative
+- Continue improving local review-aid visibility, including deterministic local review orchestration and optional review package generation that remain human-triggered and non-authoritative
 - Keep broader registry-aware operator inspection human-triggered and non-authoritative
 - Optionally perform local historical branch cleanup as separate human-directed hygiene work
 

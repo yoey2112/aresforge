@@ -26,6 +26,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-project",
         "inspect-registries",
         "list-artifacts",
+        "run-local-review",
         "list-evidence-packages",
         "inspect-artifact",
         "inspect-evidence-package",
@@ -91,6 +92,13 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     assert inspect_registries_args.command == "inspect-registries"
     list_artifacts_args = parser.parse_args(["list-artifacts"])
     assert list_artifacts_args.command == "list-artifacts"
+    run_local_review_args = parser.parse_args(["run-local-review"])
+    assert run_local_review_args.command == "run-local-review"
+    assert run_local_review_args.project_id == "project-aresforge"
+    assert run_local_review_args.model_id == "model-ollama-default"
+    assert run_local_review_args.include_artifacts is False
+    assert run_local_review_args.include_evidence_packages is False
+    assert run_local_review_args.write_review_package is False
     list_evidence_args = parser.parse_args(["list-evidence-packages"])
     assert list_evidence_args.command == "list-evidence-packages"
     inspect_artifact_args = parser.parse_args(
@@ -181,6 +189,13 @@ def test_command_requires_directories_only_for_commands_that_write_artifacts() -
         is True
     )
     assert command_requires_directories(parser.parse_args(["list-artifacts"])) is False
+    assert command_requires_directories(parser.parse_args(["run-local-review"])) is False
+    assert (
+        command_requires_directories(
+            parser.parse_args(["run-local-review", "--write-review-package"])
+        )
+        is True
+    )
     assert command_requires_directories(parser.parse_args(["list-evidence-packages"])) is False
     assert (
         command_requires_directories(
@@ -486,6 +501,66 @@ def test_list_artifacts_emits_json_and_skips_directory_creation(
     assert exit_code == 0
     assert ensure_calls == []
     assert payload == discovery_payload
+
+
+def test_run_local_review_dispatches_without_ollama_routing_or_mutation(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    review_payload = {
+        "ok": True,
+        "command": "run-local-review",
+        "status": "passed",
+        "requested_options": {
+            "project_id": "project-aresforge",
+            "model_id": "model-ollama-default",
+            "include_artifacts": False,
+            "artifact_path": None,
+            "include_evidence_packages": False,
+            "evidence_path": None,
+            "write_review_package": False,
+        },
+        "checks_run": [],
+        "checks_skipped": [],
+        "skip_reasons": {},
+        "artifact_summary": None,
+        "evidence_package_summary": None,
+        "boundary_confirmations": ["Issue #39 was not modified."],
+        "output_package_path": None,
+        "output_package_markdown_path": None,
+    }
+
+    monkeypatch.setattr(cli, "run_local_review", lambda _config, options: review_payload)
+    monkeypatch.setattr(
+        cli,
+        "test_generate",
+        lambda *_args, **_kwargs: pytest.fail("run-local-review must not call Ollama"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "create_work_item",
+        lambda *_args, **_kwargs: pytest.fail("run-local-review must not create work items"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "build_route_plan",
+        lambda *_args, **_kwargs: pytest.fail("run-local-review must not route work"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "bootstrap_reference_data",
+        lambda *_args, **_kwargs: pytest.fail("run-local-review must not bootstrap state"),
+    )
+    monkeypatch.setattr(
+        cli,
+        "render_evidence_package",
+        lambda *_args, **_kwargs: pytest.fail("run-local-review must not write evidence packages"),
+    )
+
+    exit_code = cli.main(["run-local-review"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert payload == review_payload
 
 
 def test_inspect_artifact_emits_json_and_skips_directory_creation(

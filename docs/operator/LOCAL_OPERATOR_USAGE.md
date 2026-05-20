@@ -76,6 +76,20 @@ python -m aresforge inspect-evidence-package --evidence-path 20260520T120001Z-is
 
 This command is read-only and local-only. It reads only one existing file under the configured evidence root, rejects empty, unsafe, traversal, absolute, and out-of-root paths, and emits deterministic JSON with bounded metadata plus an optional preview for safe UTF-8 text artifacts. It does not create missing evidence directories, mutate files, call the network, require PostgreSQL, call Ollama, transition queues, mutate routing, or change GitHub state.
 
+Run the bounded local review orchestration over the existing read-only operator surfaces:
+
+```powershell
+python -m aresforge run-local-review
+python -m aresforge run-local-review --project-id project-aresforge --model-id model-ollama-default
+python -m aresforge run-local-review --include-artifacts
+python -m aresforge run-local-review --include-evidence-packages
+python -m aresforge run-local-review --artifact-path prompts/generated/example-prompt.md
+python -m aresforge run-local-review --evidence-path 20260520T120001Z-issue-109-evidence.json
+python -m aresforge run-local-review --write-review-package
+```
+
+This command is human-triggered, local-only, and deterministic. It orchestrates existing local validation and inspection helpers in a fixed order, records executed checks plus skipped checks, and continues reporting later checks even when an earlier check fails. It does not call the network, mutate GitHub state, transition queues, mutate routing, or write any generated package unless `--write-review-package` is explicitly supplied.
+
 ## Database Commands
 
 See pending migrations:
@@ -146,6 +160,8 @@ python -m aresforge inspect-queue --queue-id queue-implementation --write-artifa
 `list-evidence-packages` is read-only and local-only. It reads only from the configured evidence root when that directory already exists and emits JSON shaped as `{"ok": true, "inspection_mode": "local_evidence_root_only", "evidence_root": "...", "evidence_root_exists": <bool>, "evidence_package_count": <int>, "evidence_packages": [...]}`. Results are sorted deterministically by relative evidence path. Evidence packages remain review artifacts only and must not be treated as source of truth.
 
 `inspect-evidence-package` is read-only and local-only. It reads only one existing file under the configured evidence root and emits JSON shaped as `{"ok": true, "inspection_mode": "local_evidence_root_only", "evidence_root": "...", "evidence_root_exists": <bool>, "evidence_package": {...}}` when found. The evidence-package payload includes relative path, filename, byte size, modified timestamp, extension, text-readability, and a bounded preview for safe UTF-8 text artifacts. Missing files, empty paths, unsafe traversal, and out-of-root paths are reported explicitly instead of causing fallback behavior.
+
+`run-local-review` is human-triggered and local-only. It emits deterministic JSON shaped around `command`, `requested_options`, `checks_run`, `checks_skipped`, `skip_reasons`, per-check pass/fail status, per-check errors, plus optional `artifact_summary`, optional `evidence_package_summary`, and opt-in review package output paths. The deterministic execution order is `validate-config`, `validate-registries`, `list-projects`, `list-agents`, `list-models`, `list-queues`, `inspect-project`, `inspect-model`, `inspect-registries`, optional `list-artifacts`, optional `inspect-artifact`, optional `list-evidence-packages`, and optional `inspect-evidence-package`. When `--write-review-package` is supplied, it writes Markdown and JSON review artifacts under `artifacts/local_reviews/generated/` while preserving normal JSON command output.
 
 `inspect-queue` is read-only and local-only. It emits JSON that expands queue metadata into registry-aware fields such as lifecycle-stage mapping, accepted work-item types, allowed next queues, human approval requirements, local operator visibility expectations, and the source document path. With `--write-artifact`, it still emits JSON and additionally includes `inspection_payload`, `markdown_path`, and `json_path` for a local report written under `artifacts/inspection_reports/generated/`.
 
@@ -241,6 +257,7 @@ python -m aresforge validate-registries
 python -m aresforge inspect-registries
 python -m aresforge list-artifacts
 python -m aresforge inspect-artifact --artifact-path prompts/generated/example-prompt.md
+python -m aresforge run-local-review --include-artifacts --include-evidence-packages
 python -m aresforge list-evidence-packages
 python -m aresforge inspect-evidence-package --evidence-path 20260520T120001Z-issue-109-evidence.json
 python -m aresforge migrate --plan

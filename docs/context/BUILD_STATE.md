@@ -10,11 +10,12 @@ Continue the M2 runtime foundation by extending human-triggered local operator s
 
 ## Current Repository State
 
-- Current branch: `m2/sprint-109-evidence-artifact-automation`
-- Latest `main` commit: `4049cd6` (`Add read-only generated artifact inspection command (#107) (#108)`)
-- Latest runtime-affecting merged foundation commit: `4049cd6` (`Add read-only generated artifact inspection command (#107) (#108)`)
+- Current branch: `m2/sprint-110-local-review-automation`
+- Latest `main` commit: `b6e774b` (`Add evidence package inspection and artifact discovery capture (#109) (#111)`)
+- Latest runtime-affecting merged foundation commit: `b6e774b` (`Add evidence package inspection and artifact discovery capture (#109) (#111)`)
 - Issue #105 was completed through PR #106 and is merged `main` behavior
 - Issue #107 was completed through PR #108 and is merged `main` behavior
+- Issue #109 was completed through PR #111 and is merged `main` behavior
 - Issue #103 was completed through PR #104 and is merged `main` behavior
 - Issue #101 was completed through PR #102 and is merged `main` behavior
 - Issue #99 was completed through PR #100 and is merged `main` behavior
@@ -24,8 +25,9 @@ Continue the M2 runtime foundation by extending human-triggered local operator s
 - `inspect-registries` is available on `main`
 - `list-artifacts` is available on `main`
 - `inspect-artifact` is available on `main`
-- `list-evidence-packages` and `inspect-evidence-package` are available on the current implementation branch as proposed M2 extensions pending review
-- opt-in artifact discovery capture for `record-evidence-package` is available on the current implementation branch as a proposed M2 extension pending review
+- `list-evidence-packages` and `inspect-evidence-package` are available on `main`
+- opt-in artifact discovery capture for `record-evidence-package` is available on `main`
+- `run-local-review` with opt-in local review package generation is available on the current implementation branch as a proposed M2 extension pending review
 - Issue #95 was completed through PR #96 and is merged `main` behavior
 - Issue #97 was completed through PR #98 and is merged `main` behavior
 - Issue #75 remains the last routine reconciliation issue
@@ -75,8 +77,10 @@ The current human-triggered local operator foundation supports:
 - deterministic read-only single-artifact inspection through `inspect-artifact`
 - deterministic read-only evidence package discovery through `list-evidence-packages`
 - deterministic read-only single evidence package inspection through `inspect-evidence-package`
+- deterministic human-triggered local review orchestration through `run-local-review`
 - a human-triggered phase-based PR lifecycle helper for explicit validation, staging, commit and push, PR creation, PR verification, merge verification, post-merge verification, and source-of-truth scanning
 - prompt package, evidence package, and Codex handoff artifact preparation, including opt-in local artifact discovery capture in evidence packages
+- opt-in local review package generation under `artifacts/local_reviews/generated/`
 - bounded local Ollama connectivity and dry-run support
 
 These capabilities are local-only helper surfaces. They are reviewable, non-authoritative, and intended to support implementation and closeout work rather than replace human decision-making.
@@ -95,6 +99,8 @@ The current M2 implementation does allow:
 - local single-artifact inspection for review
 - local evidence package discovery for review
 - local single evidence package inspection for review
+- deterministic local review orchestration across existing local operator checks
+- local review package generation only when explicitly requested
 - bounded local model inspection, listing, and Ollama dry-run checks
 - bounded local model inspection, listing, and Ollama dry-run checks without autonomous selection or routing
 
@@ -113,6 +119,7 @@ The current M2 implementation does not authorize:
 
 - Use the merged human-triggered PR lifecycle helper to reduce repetitive PR validation, merge verification, and source-of-truth scanning work
 - Continue the M2 runtime foundation with richer read-only registry inspection views and safer human-triggered helper flows where useful
+- Continue the M2 runtime foundation with deterministic local review orchestration that remains human-triggered, local-only, and auditable
 - Prioritize broader read-only registry inspection summaries and safer helper flows while keeping them local-only and non-authoritative
 - Extend local operator visibility while keeping queue transitions and GitHub-state-changing behavior tightly human-triggered and reviewable
 - Optionally perform local historical branch cleanup as separate human-directed repository hygiene work
