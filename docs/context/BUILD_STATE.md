@@ -2,17 +2,17 @@
 
 ## Current Phase
 
-M3 - Registry And Routing Deepening
+M4 - Local Operator Expansion
 
 ## Current Goal
 
-Close out Issue #138 by reconciling AresForge source-of-truth documentation after completing the M3 managed repository governance stack so architecture, operator usage, and milestone posture remain aligned, deterministic, and explicitly read-only by default.
+Complete Issue #146 by reconciling bootstrap setup outcomes in source-of-truth documentation after the human-triggered label and milestone setup, so governance posture and milestone-mapping expectations remain explicit, deterministic, and read-only by default.
 
 ## Current Repository State
 
-- Current branch: `m3/governance-stack-source-of-truth-reconciliation`
-- Latest `main` commit: `203ee84` (`M3: add managed repository governance demo (#143)`)
-- Latest runtime-affecting merged foundation commit: `203ee84` (`M3: add managed repository governance demo (#143)`)
+- Current branch: `m4/issue-146-bootstrap-setup-reconciliation`
+- Latest `main` commit: `8efb214` (`M3: reconcile governance stack source of truth (#138) (#144)`)
+- Latest runtime-affecting merged foundation commit: `8efb214` (`M3: reconcile governance stack source of truth (#138) (#144)`)
 - Issue #105 was completed through PR #106 and is merged `main` behavior
 - Issue #107 was completed through PR #108 and is merged `main` behavior
 - Issue #109 was completed through PR #111 and is merged `main` behavior
@@ -43,7 +43,12 @@ Close out Issue #138 by reconciling AresForge source-of-truth documentation afte
 - Issue #134 was completed through PR #141 and is merged `main` behavior
 - Issue #135 was completed through PR #142 and is merged `main` behavior
 - Issue #136 was completed through PR #143 and is merged `main` behavior
-- Issue #138 is active and is the M3 source-of-truth reconciliation closeout item for the completed managed repository governance stack
+- M4 sprint has started under parent sprint Issue #145
+- Issue #146 is active and is the bootstrap setup documentation reconciliation workstream under Issue #145
+- Next M4 workstreams after #146 are #148 (QA validation hardening), #149 (validate-pr end-to-end), and #147 (multi-repo governance proof)
+- Human-triggered bootstrap setup has already been performed for labels and milestones using manual `gh`-driven operations outside AresForge runtime mutation surfaces
+- Required and optional platform labels are present: `aresforge-ready`, `aresforge-automerge`, `aresforge-blocked`, `aresforge-needs-evidence`, `aresforge-needs-docs`, `aresforge-closeout-ready`, `aresforge-managed`, and `aresforge-generated`
+- Canonical platform milestones are present: `M0 - Foundation`, `M1 - Validation`, `M2 - Local Automation Foundation`, `M3 - Registry And Routing Deepening`, and `M4 - Local Operator Expansion`
 - Issue #95 was completed through PR #96 and is merged `main` behavior
 - Issue #97 was completed through PR #98 and is merged `main` behavior
 - Issue #75 remains the last routine reconciliation issue
@@ -139,7 +144,7 @@ The current M3 implementation does allow:
 - read-only repository governance inspection for reusable label and milestone contract visibility
 - read-only repository bootstrap contract inspection for reusable setup readiness visibility
 - read-only managed repository registry inspection where AresForge is represented as the first/default managed repository
-- read-only managed repository readiness reporting with explicit `attention_needed` posture when required or optional governance setup remains missing
+- read-only managed repository readiness reporting with explicit `attention_needed` posture when remaining legacy or project-specific milestone mapping alignment remains to be documented
 - read-only managed repository bootstrap planning that reports setup action placeholders without executing setup mutation
 - bounded local model inspection, listing, and Ollama dry-run checks
 - bounded local model inspection, listing, and Ollama dry-run checks without autonomous selection or routing
@@ -161,7 +166,13 @@ The current M3 implementation does not authorize:
 - Use `project-state-summary` as the first M3 local-first status checkpoint before planning or closeout work
 - Continue M3 registry and routing deepening through broader read-only summaries and safer helper flows
 - Continue M3 managed-repository readiness work with reusable bootstrap contract evaluation before any setup mutation
-- Keep readiness posture explicit: the default AresForge repository remains `attention_needed` until `aresforge-automerge`, optional platform-known labels, and canonical platform milestones are aligned and project-specific milestone mapping is documented
+- Keep readiness posture explicit: labels and canonical platform milestones are now aligned through human-triggered setup, and remaining `attention_needed` posture is milestone mapping documentation alignment for legacy or project-specific milestones
+- Document and maintain legacy milestone mapping guidance:
+  - `M0 - Self-Bootstrap Foundation` maps to `M0 - Foundation`
+  - `M1 - GitHub Operations Validation` maps to `M1 - Validation`
+  - `M2 - Documentation Automation` maps to `M2 - Local Automation Foundation`
+  - `validation: issue-26-milestone-lifecycle` maps to `M1 - Validation`
+- Keep GitHub setup and mutation human-triggered and gated; no setup command surface is implemented
 - Continue deterministic local review orchestration, review package inspection, and auditable handoff or evidence capture that remain human-triggered and local-only
 - Extend local operator visibility while keeping queue transitions and GitHub-state-changing behavior tightly human-triggered and reviewable
 - Optionally perform local historical branch cleanup as separate human-directed repository hygiene work

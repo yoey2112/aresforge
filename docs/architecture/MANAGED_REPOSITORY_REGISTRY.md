@@ -75,7 +75,14 @@ Each repository entry includes:
 
 Status values are derived from reusable read-only governance and bootstrap contract inspection surfaces. No setup mutation is performed.
 
-For the default AresForge managed repository, current readiness posture should be expected to remain `attention_needed` until `aresforge-automerge`, optional platform-known labels, canonical platform milestones, and project-specific milestone mapping documentation are aligned.
+For the default AresForge managed repository, labels and canonical platform milestones are now aligned through human-triggered manual setup. Current readiness posture may still report `attention_needed` while legacy or project-specific milestone mapping remains advisory and documentation-alignment-only.
+
+Current AresForge legacy milestone mapping guidance:
+
+- `M0 - Self-Bootstrap Foundation` maps to `M0 - Foundation`
+- `M1 - GitHub Operations Validation` maps to `M1 - Validation`
+- `M2 - Documentation Automation` maps to `M2 - Local Automation Foundation`
+- `validation: issue-26-milestone-lifecycle` maps to `M1 - Validation`
 
 ## Safety Boundaries
 

@@ -93,6 +93,13 @@ Platform milestone naming convention:
 - Project-specific milestones are allowed and should map to one platform milestone phase for traceability.
 - Milestone state (open or closed) is informational for inspection and does not authorize mutation.
 
+Current AresForge mapping guidance for legacy or project-specific milestones:
+
+- `M0 - Self-Bootstrap Foundation` maps to `M0 - Foundation`
+- `M1 - GitHub Operations Validation` maps to `M1 - Validation`
+- `M2 - Documentation Automation` maps to `M2 - Local Automation Foundation`
+- `validation: issue-26-milestone-lifecycle` maps to `M1 - Validation`
+
 ## Managed Repository Bootstrap Expectations
 
 Canonical bootstrap contract details are defined in `docs/architecture/MANAGED_REPOSITORY_BOOTSTRAP_CONTRACT.md`.
@@ -121,6 +128,8 @@ This governance layer is intentionally conservative:
 - Issue #39 remains retired historical validation evidence only.
 
 Managed-repository setup or mutation commands are not implemented by this governance contract. Any future setup mutation remains a separate human-triggered concern outside this read-only inspection layer.
+
+For AresForge M4, required and optional platform labels plus canonical platform milestones were created through explicit human-triggered manual setup before documentation reconciliation. This contract remains read-only and does not introduce setup mutation commands.
 
 ## Extension Point For Multi-Repository Management
 

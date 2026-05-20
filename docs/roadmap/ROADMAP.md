@@ -74,7 +74,7 @@ Issue #127 adds reusable read-only batch ready issue planning via `run-ready-iss
 
 ### M3 - Registry And Routing Deepening
 
-Status: Active.
+Status: Completed.
 
 M3 starts with local-first, read-only project-state visibility and milestone-aware operator guidance while preserving non-mutating defaults and explicit human review gates.
 
@@ -94,11 +94,30 @@ Issue #136 adds `demo-managed-repo-governance`, extending M3 with a deterministi
 
 Issue #138 reconciles source-of-truth documentation after completion of Issues #131 through #136 so roadmap, context, operator usage, and architecture documents remain mutually consistent without introducing new mutation behavior.
 
-## Planned Milestone Sequence
-
 ### M4 - Local Operator Expansion
 
-Expand the human-triggered local operator with richer read-only inspection, safer helper commands, and better review artifact support.
+Status: Active.
+
+Issue #145 is the parent sprint issue for M4.
+
+Issue #146 reconciles source-of-truth and operator/governance documentation after human-triggered bootstrap setup confirmed required and optional platform labels plus canonical platform milestones.
+
+Issue #146 records explicit legacy/project-specific milestone mapping guidance:
+
+- `M0 - Self-Bootstrap Foundation` maps to `M0 - Foundation`
+- `M1 - GitHub Operations Validation` maps to `M1 - Validation`
+- `M2 - Documentation Automation` maps to `M2 - Local Automation Foundation`
+- `validation: issue-26-milestone-lifecycle` maps to `M1 - Validation`
+
+Issue #146 is docs-only posture reconciliation and does not implement setup mutation commands.
+
+Next M4 workstreams after #146 are:
+
+- Issue #148 to harden QA validation
+- Issue #149 to add validate-pr end-to-end coverage
+- Issue #147 to prove multi-repository governance behavior
+
+## Planned Milestone Sequence
 
 ### M5 - Documentation Sync MVP
 
@@ -146,7 +165,7 @@ Long-term target: allow AresForge to plan, route, validate, document, and prepar
 
 ## Explicit Non-Goals For The Current Phase
 
-The current M3 phase does not authorize:
+The current M4 phase does not authorize:
 
 - autonomous queue transitions
 - autonomous routing
@@ -158,13 +177,11 @@ The current M3 phase does not authorize:
 
 ## Next Recommended Direction
 
-- Continue the M3 runtime foundation with broader read-only registry inspection summaries and safer human-triggered helper flows
-- Continue the M3 runtime foundation with reusable managed repository bootstrap readiness checks that remain read-only by default
-- Continue the M3 runtime foundation with reusable managed repository registry visibility that remains read-only by default and deterministic across multiple repository records
-- Continue the M3 runtime foundation with reusable managed repository readiness reporting that remains read-only by default and highlights missing automation-trigger labels and milestone posture
-- Continue the M3 runtime foundation with reusable managed repository bootstrap planning that remains read-only by default and prepares human-triggered setup actions without executing setup
-- Continue the M3 runtime foundation with reusable end-to-end managed repository governance demos that preserve attention-needed posture and explicit read-only boundary confirmations
-- Complete Issue #138 as the M3 source-of-truth reconciliation closeout after governance stack delivery
+- Continue M4 local operator expansion while preserving read-only-by-default governance and explicit human mutation gates
+- Complete Issue #146 as docs-only bootstrap setup reconciliation with explicit milestone mapping guidance
+- Complete Issue #148 to harden QA validation posture
+- Complete Issue #149 to add validate-pr end-to-end coverage
+- Complete Issue #147 to prove multi-repository governance behavior without autonomous mutation
 - Extend local operator visibility with safer human-triggered helper commands while keeping queue transitions out of scope and GitHub-state-changing behavior tightly phase-gated
 - Continue improving local review-aid visibility, including deterministic summaries of generated artifacts that remain non-authoritative
 - Continue improving local review-aid visibility, including deterministic single-artifact inspection that remains non-authoritative
