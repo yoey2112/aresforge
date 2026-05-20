@@ -208,6 +208,14 @@ python -m aresforge inspect-managed-repos
 
 This command is read-only and safe to run repeatedly. It always includes the current configured AresForge repository as the first default managed repository and can optionally merge additional entries from `config/managed_repositories.json`. It reports deterministic JSON for repository slug, local path posture, default branch, project key, repo role, governance profile, automation status, bootstrap status, documentation roots, artifact roots, allowed automation capabilities, disabled or archived posture, and warnings. It degrades gracefully when local paths, `gh`, or network access are unavailable and does not mutate files, git state, labels, milestones, issues, PRs, branches, workflows, settings, or artifacts.
 
+Summarize read-only managed repository readiness for safe automation usage:
+
+```powershell
+python -m aresforge managed-repo-readiness-report
+```
+
+This command is read-only and safe to run repeatedly. It inspects registered managed repositories and reports deterministic JSON for repository identity, local path posture, current branch where local, default branch where available, working tree cleanliness where local, governance profile status, bootstrap contract status, required and optional label posture, automation trigger label posture, milestone posture, documentation baseline status, open issue and PR readiness signals, evidence artifact expectations, allowed automation capabilities, warnings, readiness level, recommended next action, and boundary confirmations. It degrades gracefully when local paths, `gh`, `git`, or network access are unavailable and does not mutate files, git state, labels, milestones, issues, PRs, branches, workflows, settings, or artifacts.
+
 Run the bounded local review orchestration over the existing read-only operator surfaces:
 
 ```powershell

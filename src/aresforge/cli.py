@@ -45,6 +45,7 @@ from aresforge.operator.inspection_reports import (
     render_work_item_inspection_report,
 )
 from aresforge.operator.local_review import LocalReviewOptions, run_local_review
+from aresforge.operator.managed_repo_readiness_report import managed_repo_readiness_report
 from aresforge.operator.managed_repo_registry import inspect_managed_repos
 from aresforge.operator.ready_issue_batch import run_ready_issue_batch
 from aresforge.operator.registry_inspection import inspect_local_registries
@@ -233,6 +234,10 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser(
         "inspect-managed-repos",
         help="Inspect read-only managed repository registry posture across configured repositories.",
+    )
+    subparsers.add_parser(
+        "managed-repo-readiness-report",
+        help="Summarize read-only managed repository readiness for safe automation usage.",
     )
     qa_review_parser = subparsers.add_parser(
         "qa-review-pr",
@@ -595,6 +600,10 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "inspect-managed-repos":
         emit_json(inspect_managed_repos(config))
+        return 0
+
+    if args.command == "managed-repo-readiness-report":
+        emit_json(managed_repo_readiness_report(config))
         return 0
 
     if args.command == "qa-review-pr":

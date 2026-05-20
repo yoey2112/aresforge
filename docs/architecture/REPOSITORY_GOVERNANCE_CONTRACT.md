@@ -17,6 +17,7 @@ The contract is inspected through:
 - `python -m aresforge inspect-repo-governance`
 - `python -m aresforge inspect-repo-bootstrap-contract`
 - `python -m aresforge inspect-managed-repos`
+- `python -m aresforge managed-repo-readiness-report`
 
 This command is human-triggered, read-only, and local-first. It uses GitHub CLI read calls where available and degrades gracefully with explicit warnings when GitHub CLI or network access is unavailable.
 
