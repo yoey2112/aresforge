@@ -43,11 +43,18 @@ def qa_closeout_pr(config: AppConfig, pr_number: int, *, execute: bool = False) 
         linked_issue_number = None
 
     issue_payload = _fetch_issue_details(config, linked_issue_number)
-    label_names = issue_payload.get("label_names", [])
-    missing_required_labels = [
-        label for label in _REQUIRED_LABELS if not _label_present(label_names, label)
+    linked_issue_labels = issue_payload.get("label_names", [])
+    if not isinstance(linked_issue_labels, list):
+        linked_issue_labels = []
+    pr_labels = review_payload.get("pr_labels", [])
+    if not isinstance(pr_labels, list):
+        pr_labels = []
+
+    missing_linked_issue_labels = [
+        label for label in _REQUIRED_LABELS if not _label_present(linked_issue_labels, label)
     ]
-    required_labels_present = not missing_required_labels
+    missing_pr_labels = [label for label in _REQUIRED_LABELS if not _label_present(pr_labels, label)]
+    required_labels_present = not missing_linked_issue_labels
 
     gate_results = {
         "pr_exists": bool(review_payload.get("ok") is True),
@@ -99,9 +106,19 @@ def qa_closeout_pr(config: AppConfig, pr_number: int, *, execute: bool = False) 
             )
 
     recommended_next_command = _recommended_next_command(
+        config=config,
         pr_number=pr_number,
+        linked_issue_number=linked_issue_number,
         mode=mode,
         failed_gates=failed_gates,
+        missing_linked_issue_labels=missing_linked_issue_labels,
+    )
+    human_required_label_commands = _human_required_label_commands(
+        config=config,
+        pr_number=pr_number,
+        linked_issue_number=linked_issue_number,
+        missing_linked_issue_labels=missing_linked_issue_labels,
+        missing_pr_labels=missing_pr_labels,
     )
 
     payload: dict[str, Any] = {
@@ -109,8 +126,14 @@ def qa_closeout_pr(config: AppConfig, pr_number: int, *, execute: bool = False) 
         "mode": mode,
         "pr_number": pr_number,
         "linked_issue_number": linked_issue_number,
+        "required_label_target": "linked_issue",
+        "linked_issue_labels": linked_issue_labels,
+        "pr_labels": pr_labels,
         "required_labels_present": required_labels_present,
-        "missing_required_labels": missing_required_labels,
+        "missing_required_labels": missing_linked_issue_labels,
+        "missing_linked_issue_labels": missing_linked_issue_labels,
+        "missing_pr_labels": missing_pr_labels,
+        "human_required_label_commands": human_required_label_commands,
         "qa_decision": review_payload.get("qa_decision"),
         "merge_eligible": review_payload.get("merge_eligible") is True,
         "closeout_eligible": review_payload.get("closeout_eligible") is True,
@@ -332,7 +355,25 @@ def _to_repo_relative_path(config: AppConfig, path: Path) -> str:
         return str(path)
 
 
-def _recommended_next_command(*, pr_number: int, mode: str, failed_gates: list[str]) -> str:
+def _recommended_next_command(
+    *,
+    config: AppConfig,
+    pr_number: int,
+    linked_issue_number: int | None,
+    mode: str,
+    failed_gates: list[str],
+    missing_linked_issue_labels: list[str],
+) -> str:
+    if missing_linked_issue_labels:
+        linked_issue_label_command = _build_label_edit_command(
+            resource_type="issue",
+            number=linked_issue_number,
+            repo_slug=_repo_slug(config),
+            missing_labels=missing_linked_issue_labels,
+        )
+        if linked_issue_label_command is not None:
+            return linked_issue_label_command
+
     if mode == "dry_run":
         if failed_gates:
             return f"qa-review-pr --pr-number {pr_number}"
@@ -357,3 +398,50 @@ def _boundary_confirmations(mode: str) -> list[str]:
             "Execute mode only allows mutation after all QA and required-label gates pass.",
         )
     return boundaries
+
+
+def _human_required_label_commands(
+    *,
+    config: AppConfig,
+    pr_number: int,
+    linked_issue_number: int | None,
+    missing_linked_issue_labels: list[str],
+    missing_pr_labels: list[str],
+) -> list[str]:
+    commands: list[str] = []
+    repo_slug = _repo_slug(config)
+
+    linked_issue_command = _build_label_edit_command(
+        resource_type="issue",
+        number=linked_issue_number,
+        repo_slug=repo_slug,
+        missing_labels=missing_linked_issue_labels,
+    )
+    if linked_issue_command is not None:
+        commands.append(linked_issue_command)
+
+    pr_command = _build_label_edit_command(
+        resource_type="pr",
+        number=pr_number,
+        repo_slug=repo_slug,
+        missing_labels=missing_pr_labels,
+    )
+    if pr_command is not None:
+        commands.append(pr_command)
+
+    return commands
+
+
+def _build_label_edit_command(
+    *,
+    resource_type: str,
+    number: int | None,
+    repo_slug: str,
+    missing_labels: list[str],
+) -> str | None:
+    if number is None or not missing_labels:
+        return None
+    command = f"gh {resource_type} edit {number} --repo {repo_slug}"
+    for label in missing_labels:
+        command += f' --add-label "{label}"'
+    return command

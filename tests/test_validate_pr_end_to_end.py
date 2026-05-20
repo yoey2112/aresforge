@@ -44,6 +44,16 @@ def test_validate_pr_end_to_end_passes_when_qa_review_passes(
             "required_fixes": [],
         },
     )
+    monkeypatch.setattr(
+        module,
+        "qa_closeout_pr",
+        lambda _config, _pr, execute=False: {
+            "command": "qa-closeout-pr",
+            "mode": "dry_run",
+            "failed_gates": [],
+            "human_required_label_commands": [],
+        },
+    )
 
     payload = validate_pr_end_to_end(config, 149)
 
@@ -71,6 +81,16 @@ def test_validate_pr_end_to_end_fails_when_qa_review_fails(
             "required_fixes": ["Add explicit validation command and pass signal evidence."],
         },
     )
+    monkeypatch.setattr(
+        module,
+        "qa_closeout_pr",
+        lambda _config, _pr, execute=False: {
+            "command": "qa-closeout-pr",
+            "mode": "dry_run",
+            "failed_gates": [],
+            "human_required_label_commands": [],
+        },
+    )
 
     payload = validate_pr_end_to_end(config, 149)
 
@@ -96,6 +116,16 @@ def test_validate_pr_end_to_end_includes_boundary_confirmations_and_commands(
             "changed_files": [],
             "failed_gates": ["validation_evidence_present"],
             "required_fixes": ["Add validation evidence."],
+        },
+    )
+    monkeypatch.setattr(
+        module,
+        "qa_closeout_pr",
+        lambda _config, _pr, execute=False: {
+            "command": "qa-closeout-pr",
+            "mode": "dry_run",
+            "failed_gates": [],
+            "human_required_label_commands": [],
         },
     )
 
@@ -127,6 +157,16 @@ def test_validate_pr_end_to_end_does_not_call_mutation_paths(
     )
     monkeypatch.setattr(
         module,
+        "qa_closeout_pr",
+        lambda _config, _pr, execute=False: {
+            "command": "qa-closeout-pr",
+            "mode": "dry_run",
+            "failed_gates": [],
+            "human_required_label_commands": [],
+        },
+    )
+    monkeypatch.setattr(
+        module,
         "_recommended_next_action",
         lambda **kwargs: "ok",
     )
@@ -134,3 +174,46 @@ def test_validate_pr_end_to_end_does_not_call_mutation_paths(
     payload = validate_pr_end_to_end(config, 149)
 
     assert payload["ok"] is True
+
+
+def test_validate_pr_end_to_end_recommends_linked_issue_label_command_when_closeout_blocked(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    config = make_config(tmp_path)
+    monkeypatch.setattr(
+        module,
+        "qa_review_pr",
+        lambda _config, _pr: {
+            "repo": "yoey2112/aresforge",
+            "qa_decision": "pass",
+            "merge_eligible": True,
+            "closeout_eligible": True,
+            "changed_files": ["src/aresforge/operator/qa_closeout_pr.py"],
+            "failed_gates": [],
+            "required_fixes": [],
+        },
+    )
+    monkeypatch.setattr(
+        module,
+        "qa_closeout_pr",
+        lambda _config, _pr, execute=False: {
+            "command": "qa-closeout-pr",
+            "mode": "dry_run",
+            "failed_gates": ["required_labels_present"],
+            "human_required_label_commands": [
+                'gh issue edit 158 --repo yoey2112/aresforge --add-label "aresforge-ready" --add-label "aresforge-automerge"'
+            ],
+        },
+    )
+
+    payload = validate_pr_end_to_end(config, 161)
+
+    assert payload["ok"] is True
+    assert (
+        "Closeout readiness is blocked by missing linked issue labels."
+        in payload["recommended_next_action"]
+    )
+    assert (
+        'gh issue edit 158 --repo yoey2112/aresforge --add-label "aresforge-ready" --add-label "aresforge-automerge"'
+        in payload["recommended_next_action"]
+    )

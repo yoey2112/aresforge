@@ -37,6 +37,7 @@ def _review_payload(**overrides: object) -> dict[str, object]:
         "merge_eligible": True,
         "closeout_eligible": True,
         "changed_files": ["src/aresforge/cli.py", "docs/context/BUILD_STATE.md"],
+        "pr_labels": ["aresforge-ready", "aresforge-automerge"],
         "passed_gates": [
             "pr_exists",
             "pr_open",
@@ -146,6 +147,17 @@ def test_missing_aresforge_ready_blocks_closeout(
 
     assert "required_labels_present" in payload["failed_gates"]
     assert payload["missing_required_labels"] == ["aresforge-ready"]
+    assert payload["missing_linked_issue_labels"] == ["aresforge-ready"]
+    assert payload["missing_pr_labels"] == []
+    assert payload["required_label_target"] == "linked_issue"
+    assert payload["linked_issue_labels"] == ["aresforge-automerge"]
+    assert payload["pr_labels"] == ["aresforge-ready", "aresforge-automerge"]
+    assert payload["human_required_label_commands"] == [
+        'gh issue edit 119 --repo yoey2112/aresforge --add-label "aresforge-ready"'
+    ]
+    assert payload["recommended_next_command"] == (
+        'gh issue edit 119 --repo yoey2112/aresforge --add-label "aresforge-ready"'
+    )
     assert payload["mutation_attempted"] is False
 
 
@@ -176,7 +188,45 @@ def test_missing_aresforge_automerge_blocks_closeout(
 
     assert "required_labels_present" in payload["failed_gates"]
     assert payload["missing_required_labels"] == ["aresforge-automerge"]
+    assert payload["missing_linked_issue_labels"] == ["aresforge-automerge"]
+    assert payload["missing_pr_labels"] == []
+    assert payload["human_required_label_commands"] == [
+        'gh issue edit 119 --repo yoey2112/aresforge --add-label "aresforge-automerge"'
+    ]
     assert payload["mutation_attempted"] is False
+
+
+def test_missing_linked_issue_and_pr_labels_are_distinguished(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    config = make_config(tmp_path)
+    _stub_qa_review(monkeypatch, _review_payload(pr_labels=[]))
+
+    def fake_run(args: list[str]) -> tuple[int, str, str]:
+        if args[:2] == ["issue", "view"]:
+            return (
+                0,
+                json.dumps(
+                    {
+                        "number": 119,
+                        "labels": [],
+                        "url": "https://github.com/yoey2112/aresforge/issues/119",
+                    }
+                ),
+                "",
+            )
+        return 0, "", ""
+
+    monkeypatch.setattr(qa_closeout_pr, "_run_gh_command", fake_run)
+
+    payload = run_closeout(config, 119, execute=False)
+
+    assert payload["missing_linked_issue_labels"] == ["aresforge-ready", "aresforge-automerge"]
+    assert payload["missing_pr_labels"] == ["aresforge-ready", "aresforge-automerge"]
+    assert payload["human_required_label_commands"] == [
+        'gh issue edit 119 --repo yoey2112/aresforge --add-label "aresforge-ready" --add-label "aresforge-automerge"',
+        'gh pr edit 119 --repo yoey2112/aresforge --add-label "aresforge-ready" --add-label "aresforge-automerge"',
+    ]
 
 
 def test_qa_fail_blocks_closeout(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:

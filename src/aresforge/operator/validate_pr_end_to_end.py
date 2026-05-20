@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from aresforge.config import AppConfig
+from aresforge.operator.qa_closeout_pr import qa_closeout_pr
 from aresforge.operator.qa_pr_validation import qa_review_pr
 
 _REQUIRED_OPERATOR_VALIDATION_COMMANDS = (
@@ -16,6 +17,7 @@ _REQUIRED_OPERATOR_VALIDATION_COMMANDS = (
 
 def validate_pr_end_to_end(config: AppConfig, pr_number: int) -> dict[str, Any]:
     qa_review = qa_review_pr(config, pr_number)
+    closeout_dry_run = qa_closeout_pr(config, pr_number, execute=False)
     qa_decision = str(qa_review.get("qa_decision") or "").lower()
     end_to_end_decision = "pass" if qa_decision == "pass" else "fail"
     ok = end_to_end_decision == "pass"
@@ -39,6 +41,7 @@ def validate_pr_end_to_end(config: AppConfig, pr_number: int) -> dict[str, Any]:
         "repo": qa_review.get("repo"),
         "pr_number": pr_number,
         "qa_review": qa_review,
+        "closeout_dry_run": closeout_dry_run,
         "changed_files": changed_files,
         "required_operator_validation_commands": list(
             _REQUIRED_OPERATOR_VALIDATION_COMMANDS
@@ -51,13 +54,32 @@ def validate_pr_end_to_end(config: AppConfig, pr_number: int) -> dict[str, Any]:
             pr_number=pr_number,
             ok=ok,
             failed_gates=failed_gates,
+            closeout_dry_run=closeout_dry_run,
         ),
         "boundary_confirmations": _boundary_confirmations(),
     }
     return payload
 
 
-def _recommended_next_action(*, pr_number: int, ok: bool, failed_gates: list[str]) -> str:
+def _recommended_next_action(
+    *,
+    pr_number: int,
+    ok: bool,
+    failed_gates: list[str],
+    closeout_dry_run: dict[str, Any],
+) -> str:
+    closeout_failed_gates = closeout_dry_run.get("failed_gates")
+    if not isinstance(closeout_failed_gates, list):
+        closeout_failed_gates = []
+    if "required_labels_present" in closeout_failed_gates:
+        commands = closeout_dry_run.get("human_required_label_commands")
+        if isinstance(commands, list) and commands:
+            return (
+                "Closeout readiness is blocked by missing linked issue labels. "
+                f"Run: {commands[0]} then rerun "
+                f"python -m aresforge qa-closeout-pr --pr-number {pr_number} --dry-run."
+            )
+
     if ok:
         return (
             f"QA passed. Run required validation commands, then run "
