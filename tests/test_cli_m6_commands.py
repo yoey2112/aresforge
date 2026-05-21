@@ -102,13 +102,16 @@ def test_cli_dispatch_plan_batch_closeout(
     monkeypatch.setattr(
         cli,
         "plan_batch_closeout",
-        lambda _config, parent_issue: {
+        lambda _config, parent_issue, write_planning_snapshot=False, planning_state_path=None: {
             "command": "plan-batch-closeout",
             "ok": True,
             "parent_issue": parent_issue,
+            "write_planning_snapshot": write_planning_snapshot,
+            "planning_state_path": planning_state_path,
         },
     )
     exit_code = cli.main(["plan-batch-closeout", "--parent-issue", "172"])
     payload = json.loads(capsys.readouterr().out)
     assert exit_code == 0
     assert payload["parent_issue"] == 172
+    assert payload["write_planning_snapshot"] is False

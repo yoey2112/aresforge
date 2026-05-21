@@ -4,52 +4,37 @@
 
 - `python -m pytest`
 - `python -m aresforge inspect-repo-governance`
-- `python -m aresforge plan-agent-queue --help`
-- `python -m aresforge report-batch-readiness --help`
-- `python -m aresforge plan-batch-closeout --help`
-- `python -m aresforge generate-sprint-issue-script --help`
+- `python -m aresforge generate-sprint-issue-script --definition tests/fixtures/m8-sprint-definition.json`
+- `python -m aresforge inspect-planning-state`
+- `python -m aresforge compare-planning-state`
 - `git diff --check`
-
-## Governance-Aware Queue Planning
-
-Read-only intake/planning:
-
-- `python -m aresforge plan-agent-queue`
-- `python -m aresforge plan-agent-queue --issue-number 173 --issue-number 174`
-- `python -m aresforge plan-agent-queue --issues-file <path-to-json>`
-
-Outputs include normalized issue metadata, safe reference classification, readiness grouping, and persisted planning-state design metadata.
-
-## Batch Closeout Planning
-
-Read-only parent/child closeout planning:
-
-- `python -m aresforge plan-batch-closeout --parent-issue 182`
-
-Outputs include completed child issues, open/blocked children, protected exclusions, merged PR evidence detection, structured `evidence_report` data, and human-gated closeout guidance.
 
 ## Structured Sprint Issue Script Generation
 
-Read-only script generation from structured local definition:
-
 - `python -m aresforge generate-sprint-issue-script --definition <definition.json>`
-- `python -m aresforge generate-sprint-issue-script --definition <definition.json> --output <script.ps1>`
+- `python -m aresforge generate-sprint-issue-script --definition <definition.json> --write-planning-state`
 
-Outputs include validation diagnostics and a local PowerShell script artifact.
-The command does not call `gh issue create` and does not mutate GitHub.
+Default behavior is output-only. Planning-state writes are explicit and local-only.
 
-## Batch Readiness Reporting
+## Batch Closeout Planning
 
-Read-only multi-issue readiness summary:
+- `python -m aresforge plan-batch-closeout --parent-issue <number>`
+- `python -m aresforge plan-batch-closeout --parent-issue <number> --write-planning-snapshot`
 
-- `python -m aresforge report-batch-readiness --issue-number 173 --issue-number 174`
-- `python -m aresforge report-batch-readiness --pr-number 200 --validation "python -m pytest"`
+Default behavior remains read-only. Snapshot writes are explicit and local-only.
+
+## Planning State Inspection
+
+- `python -m aresforge inspect-planning-state`
+- `python -m aresforge compare-planning-state`
+
+Both commands are read-only and never create local planning-state files.
 
 ## Boundaries
 
 - Commands remain human-triggered.
-- Intake, queue planning, readiness reporting, and closeout planning remain read-only.
-- Sprint issue script generation remains output-only.
+- Planning-state writes are explicit and local-only.
 - No autonomous merge/closeout/setup/queue mutation.
+- No autonomous GitHub issue create/close/comment/label/milestone/release/tag.
+- Generated GitHub issue scripts remain human-executed.
 - Issue #39 remains protected historical evidence only.
-- Issue #179 remains complete and unchanged.

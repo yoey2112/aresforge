@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Describe the human-triggered local operator surface with M8 governance-aware planning, closeout evidence reporting, and structured sprint issue generation additions.
+Describe the human-triggered local operator surface with M9 local planning memory additions.
 
 ## Operator Shape
 
@@ -12,22 +12,17 @@ Command entrypoint:
 
 ## Current Additions
 
-- `plan-agent-queue`: read-only governance-aware intake and queue planning contract.
-- `report-batch-readiness`: read-only multi-issue validation and closeout readiness summary.
-- `plan-batch-closeout`: read-only parent/child closeout readiness planning with structured evidence reporting.
-- `generate-sprint-issue-script`: read-only/output-only local PowerShell sprint issue creation script generation from structured definition.
-
-## Existing Closeout Posture
-
-- `qa-review-pr` remains read-only.
-- `qa-closeout-pr` remains dry-run default and execute-gated.
-- `plan-batch-closeout` does not close issues, comment, or mutate GitHub state.
+- `plan-agent-queue`: read-only governance-aware intake and queue planning.
+- `report-batch-readiness`: read-only multi-issue validation summary.
+- `plan-batch-closeout`: read-only by default; optional explicit local snapshot write.
+- `generate-sprint-issue-script`: output-only by default; optional explicit local planning write.
+- `inspect-planning-state`: read-only local planning-state summary.
+- `compare-planning-state`: read-only local planning-state drift comparison.
 
 ## Automation Boundary
 
 - Human-triggered only.
-- Read-only-first defaults.
-- No autonomous setup/mutation, merge, or closeout.
-- No autonomous labels, milestones, comments, releases, or tags.
+- Read-only/output-only defaults.
+- Explicit local planning-state writes only when write flags are supplied.
+- No autonomous setup/mutation, merge, closeout, labels, milestones, comments, releases, or tags.
 - Issue #39 is excluded from active planning and mutation scope.
-- Issue #179 remains complete and unchanged.

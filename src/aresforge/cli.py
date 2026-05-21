@@ -44,6 +44,11 @@ from aresforge.operator.automation_readiness_report import automation_readiness_
 from aresforge.operator.batch_readiness_report import report_batch_readiness
 from aresforge.operator.batch_closeout_planner import plan_batch_closeout
 from aresforge.operator.sprint_issue_script_generator import generate_sprint_issue_script
+from aresforge.operator.planning_state import (
+    compare_planning_state,
+    inspect_planning_state,
+    resolve_planning_state_path,
+)
 from aresforge.operator.inspection_reports import (
     render_queue_inspection_report,
     render_work_item_inspection_report,
@@ -274,12 +279,46 @@ def build_parser() -> argparse.ArgumentParser:
         help="Generate a read-only parent/child issue closeout readiness plan.",
     )
     batch_closeout_parser.add_argument("--parent-issue", type=int, required=True)
+    batch_closeout_parser.add_argument(
+        "--write-planning-snapshot",
+        action="store_true",
+        help="Explicitly persist this closeout planning snapshot to local planning state.",
+    )
+    batch_closeout_parser.add_argument(
+        "--planning-state-path",
+        help="Optional local planning state path override (defaults to .aresforge/planning-state.json).",
+    )
     sprint_issue_script_parser = subparsers.add_parser(
         "generate-sprint-issue-script",
         help="Generate a read-only PowerShell sprint issue creation script from a local JSON definition.",
     )
     sprint_issue_script_parser.add_argument("--definition", required=True)
     sprint_issue_script_parser.add_argument("--output")
+    sprint_issue_script_parser.add_argument(
+        "--write-planning-state",
+        action="store_true",
+        help="Explicitly persist sprint planning metadata to local planning state.",
+    )
+    sprint_issue_script_parser.add_argument(
+        "--planning-state-path",
+        help="Optional local planning state path override (defaults to .aresforge/planning-state.json).",
+    )
+    inspect_planning_parser = subparsers.add_parser(
+        "inspect-planning-state",
+        help="Inspect local planning state without writing local files or mutating GitHub.",
+    )
+    inspect_planning_parser.add_argument(
+        "--planning-state-path",
+        help="Optional local planning state path override (defaults to .aresforge/planning-state.json).",
+    )
+    compare_planning_parser = subparsers.add_parser(
+        "compare-planning-state",
+        help="Compare local planning state for drift without writing local files or mutating GitHub.",
+    )
+    compare_planning_parser.add_argument(
+        "--planning-state-path",
+        help="Optional local planning state path override (defaults to .aresforge/planning-state.json).",
+    )
     subparsers.add_parser(
         "project-state-summary",
         help="Emit a local-first read-only project state summary with graceful degradation.",
@@ -684,7 +723,12 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.command == "plan-batch-closeout":
-        payload = plan_batch_closeout(config, parent_issue=args.parent_issue)
+        payload = plan_batch_closeout(
+            config,
+            parent_issue=args.parent_issue,
+            write_planning_snapshot=bool(args.write_planning_snapshot),
+            planning_state_path=args.planning_state_path,
+        )
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 
@@ -692,7 +736,22 @@ def main(argv: list[str] | None = None) -> int:
         payload = generate_sprint_issue_script(
             definition_path=args.definition,
             output_path=args.output,
+            write_planning_state=bool(args.write_planning_state),
+            planning_state_path=args.planning_state_path,
+            repo_root=config.repo_root,
         )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-planning-state":
+        path = resolve_planning_state_path(config=config, path_override=args.planning_state_path)
+        payload = inspect_planning_state(path=path)
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "compare-planning-state":
+        path = resolve_planning_state_path(config=config, path_override=args.planning_state_path)
+        payload = compare_planning_state(path=path)
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 

@@ -118,3 +118,43 @@ def test_cli_dispatch_generate_sprint_issue_script(monkeypatch, capsys, tmp_path
     assert exit_code == 0
     assert payload["ok"] is True
     assert payload["mutation_posture"] == "output_only_human_execution_required"
+
+
+def test_generate_sprint_issue_script_does_not_write_planning_state_by_default(tmp_path: Path) -> None:
+    definition = tmp_path / "m8-definition.json"
+    definition.write_text(json.dumps(_definition()), encoding="utf-8")
+    planning_state = tmp_path / ".aresforge" / "planning-state.json"
+
+    payload = generate_sprint_issue_script(definition_path=str(definition), output_path=str(tmp_path / "m8.ps1"))
+
+    assert payload["ok"] is True
+    assert not planning_state.exists()
+
+
+def test_generate_sprint_issue_script_can_write_planning_state_deterministically(tmp_path: Path) -> None:
+    definition = tmp_path / "m8-definition.json"
+    definition.write_text(json.dumps(_definition()), encoding="utf-8")
+    planning_state = tmp_path / "state" / "planning-state.json"
+
+    first = generate_sprint_issue_script(
+        definition_path=str(definition),
+        output_path=str(tmp_path / "m8.ps1"),
+        write_planning_state=True,
+        planning_state_path=str(planning_state),
+        repo_root=tmp_path,
+    )
+    first_content = planning_state.read_text(encoding="utf-8")
+
+    second = generate_sprint_issue_script(
+        definition_path=str(definition),
+        output_path=str(tmp_path / "m8.ps1"),
+        write_planning_state=True,
+        planning_state_path=str(planning_state),
+        repo_root=tmp_path,
+    )
+    second_content = planning_state.read_text(encoding="utf-8")
+
+    assert first["ok"] is True
+    assert second["ok"] is True
+    assert first_content == second_content
+    assert "\"sprint_plans\"" in first_content

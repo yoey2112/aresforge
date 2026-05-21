@@ -3,6 +3,7 @@
 import json
 from pathlib import Path
 from typing import Any
+from aresforge.operator.planning_state import persist_sprint_plan, resolve_planning_state_path
 
 REQUIRED_SAFETY_SNIPPETS = (
     "human-triggered",
@@ -11,7 +12,14 @@ REQUIRED_SAFETY_SNIPPETS = (
 )
 
 
-def generate_sprint_issue_script(*, definition_path: str, output_path: str | None = None) -> dict[str, Any]:
+def generate_sprint_issue_script(
+    *,
+    definition_path: str,
+    output_path: str | None = None,
+    write_planning_state: bool = False,
+    planning_state_path: str | None = None,
+    repo_root: Path | None = None,
+) -> dict[str, Any]:
     source = Path(definition_path)
     if not source.exists():
         return {
@@ -46,7 +54,7 @@ def generate_sprint_issue_script(*, definition_path: str, output_path: str | Non
     target = Path(output_path) if output_path else source.with_suffix(".ps1")
     target.write_text(script_text, encoding="utf-8")
 
-    return {
+    response = {
         "command": "generate-sprint-issue-script",
         "ok": True,
         "inspection_mode": "local_output_only",
@@ -59,6 +67,47 @@ def generate_sprint_issue_script(*, definition_path: str, output_path: str | Non
             "AresForge did not call gh issue create or mutate GitHub state.",
             "Human execution remains required for any GitHub mutation.",
         ],
+    }
+    if write_planning_state:
+        state_path = resolve_planning_state_path(
+            path_override=planning_state_path,
+            repo_root=repo_root,
+        )
+        response["planning_state_write"] = persist_sprint_plan(
+            path=state_path,
+            sprint_plan=_build_sprint_plan(source=source, payload=payload),
+            command_name="generate-sprint-issue-script",
+        )
+    return response
+
+
+def _build_sprint_plan(*, source: Path, payload: dict[str, Any]) -> dict[str, Any]:
+    parent = payload.get("parent") if isinstance(payload.get("parent"), dict) else {}
+    children = payload.get("children") if isinstance(payload.get("children"), list) else []
+    planned_children: list[dict[str, Any]] = []
+    relationships: list[dict[str, Any]] = []
+    for child in children:
+        if not isinstance(child, dict):
+            continue
+        planned_children.append({"title": child.get("title"), "number": child.get("number")})
+        relationships.append(
+            {
+                "relation": "parent_child",
+                "parent_issue_number": parent.get("number"),
+                "child_issue_number": child.get("number"),
+                "child_title": child.get("title"),
+            }
+        )
+    return {
+        "sprint_id": payload.get("sprint_id"),
+        "source": {
+            "definition_path": str(source),
+            "repo": payload.get("repo"),
+        },
+        "command": "generate-sprint-issue-script",
+        "parent_issue": {"number": parent.get("number"), "title": parent.get("title")},
+        "children": planned_children,
+        "relationships": relationships,
     }
 
 
