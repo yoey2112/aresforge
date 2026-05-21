@@ -1,20 +1,34 @@
 ﻿from __future__ import annotations
 
+import re
 import subprocess
 from typing import Any
 
 from aresforge.config import AppConfig
-from aresforge.operator.ready_issue_intake import (
-    PROTECTED_ISSUE_NUMBER,
-    fetch_issue_batch_for_planning,
-)
 from aresforge.operator.planning_state import persist_closeout_snapshot, resolve_planning_state_path
+from aresforge.operator.ready_issue_intake import PROTECTED_ISSUE_NUMBER, fetch_issue_batch_for_planning
 
 READY = "ready"
 PARTIALLY_READY = "partially_ready"
 BLOCKED = "blocked"
 INCOMPLETE = "incomplete"
 AMBIGUOUS = "ambiguous"
+DISCOVERY_SOURCE_PRIORITY = {
+    "corrected_child_index": 0,
+    "parent_comments": 1,
+    "parent_body": 2,
+    "child_body": 3,
+}
+_ISSUE_NUMBER_PATTERN = re.compile(r"#(?P<number>\d+)\b")
+_CORRECTION_HINT_PATTERN = re.compile(
+    r"\b(?:corrected|correction|updated|reposted|supersedes|replace|latest)\b",
+    re.IGNORECASE,
+)
+_CHILD_INDEX_HINT_PATTERN = re.compile(r"\bchild\s+issue\s+index\b", re.IGNORECASE)
+_PARENT_REF_LINE_PATTERN = re.compile(
+    r"\b(?:parent\s+issue|parent)\s*:\s*#(?P<number>\d+)\b|\b(?:part\s+of|child\s+of)\s+#(?P<number2>\d+)\b",
+    re.IGNORECASE,
+)
 
 
 def plan_batch_closeout(
@@ -39,16 +53,18 @@ def plan_batch_closeout(
         }
 
     parent = parent_issues[0]
-    child_candidates = _collect_child_issue_numbers(parent)
+    child_candidates, discovery_evidence = _collect_child_issue_numbers(parent)
 
     children_payload = fetch_issue_batch_for_planning(config, child_candidates)
     children = children_payload.get("issues") if isinstance(children_payload.get("issues"), list) else []
 
+    child_parent_matches = _collect_child_parent_references(children, parent.get("number"))
+    for number, evidence in child_parent_matches.items():
+        discovery_evidence.setdefault(number, []).append(evidence)
+
     excluded_issues: list[dict[str, Any]] = []
     if isinstance(children_payload.get("excluded_issues"), list):
-        excluded_issues.extend(
-            item for item in children_payload["excluded_issues"] if isinstance(item, dict)
-        )
+        excluded_issues.extend(item for item in children_payload["excluded_issues"] if isinstance(item, dict))
 
     child_evidence_report: list[dict[str, Any]] = []
     completed_children: list[dict[str, Any]] = []
@@ -100,6 +116,7 @@ def plan_batch_closeout(
     )
 
     parent_readiness = _classify_parent_readiness(parent, child_evidence_report)
+    flattened_discovery = _flatten_discovery_evidence(discovery_evidence)
 
     response = {
         "command": "plan-batch-closeout",
@@ -114,12 +131,15 @@ def plan_batch_closeout(
         },
         "child_issue_group": {
             "requested_child_issue_numbers": child_candidates,
+            "discovered_child_issue_numbers": child_candidates,
+            "discovery_evidence": flattened_discovery,
             "completed_children": completed_children,
             "open_or_blocked_children": open_or_blocked_children,
             "excluded_issues": excluded_issues,
         },
         "evidence_report": {
             "mutation_posture": "planning_only_no_close_or_comment",
+            "discovered_child_links": flattened_discovery,
             "child_issues": child_evidence_report,
         },
         "closeout_plan": {
@@ -333,8 +353,9 @@ def _classify_parent_readiness(parent: dict[str, Any], children: list[dict[str, 
     }
 
 
-def _collect_child_issue_numbers(parent_issue: dict[str, Any]) -> list[int]:
+def _collect_child_issue_numbers(parent_issue: dict[str, Any]) -> tuple[list[int], dict[int, list[dict[str, Any]]]]:
     numbers: set[int] = set()
+    evidence_by_child: dict[int, list[dict[str, Any]]] = {}
     references = parent_issue.get("reference_classification")
     if isinstance(references, dict):
         explicit = references.get("explicit_implementation_issue_numbers")
@@ -342,29 +363,211 @@ def _collect_child_issue_numbers(parent_issue: dict[str, Any]) -> list[int]:
             for item in explicit:
                 if isinstance(item, int):
                     numbers.add(item)
+                    evidence_by_child.setdefault(item, []).append(
+                        _discovery_entry("parent_body", "active", "reference_classification_explicit")
+                    )
         impl = references.get("implementation_issue_numbers")
         if isinstance(impl, list):
             for item in impl:
                 if isinstance(item, int):
                     numbers.add(item)
+                    evidence_by_child.setdefault(item, []).append(
+                        _discovery_entry("parent_body", "active", "reference_classification_implementation")
+                    )
 
     body = parent_issue.get("body")
     if isinstance(body, str):
-        for raw_line in body.splitlines():
-            line = raw_line.strip()
-            if "#" not in line:
+        _merge_text_discovery(
+            text=body,
+            source="parent_body",
+            parent_number=parent_issue.get("number"),
+            numbers=numbers,
+            evidence_by_child=evidence_by_child,
+            corrected=False,
+        )
+
+    comments = parent_issue.get("comments")
+    if isinstance(comments, list):
+        corrected_ids = _choose_corrected_child_index_comments(comments)
+        for idx, comment in enumerate(comments):
+            if not isinstance(comment, dict):
                 continue
-            if "- [" not in line and "child" not in line.lower() and "part of" not in line.lower():
+            comment_body = comment.get("body")
+            if not isinstance(comment_body, str):
                 continue
-            for token in line.split():
-                if token.startswith("#") and token[1:].rstrip(",.)").isdigit():
-                    numbers.add(int(token[1:].rstrip(",.)")))
+            comment_id = comment.get("id")
+            fallback_id = idx
+            marker = comment_id if isinstance(comment_id, int) else fallback_id
+            is_corrected = marker in corrected_ids
+            _merge_text_discovery(
+                text=comment_body,
+                source="corrected_child_index" if is_corrected else "parent_comments",
+                parent_number=parent_issue.get("number"),
+                numbers=numbers,
+                evidence_by_child=evidence_by_child,
+                corrected=is_corrected,
+            )
 
     numbers.discard(PROTECTED_ISSUE_NUMBER)
     parent_number = parent_issue.get("number")
     if isinstance(parent_number, int):
         numbers.discard(parent_number)
-    return sorted(numbers)
+        evidence_by_child.pop(parent_number, None)
+    return sorted(numbers), evidence_by_child
+
+
+def _collect_child_parent_references(children: list[dict[str, Any]], parent_number: Any) -> dict[int, dict[str, Any]]:
+    if not isinstance(parent_number, int):
+        return {}
+    matches: dict[int, dict[str, Any]] = {}
+    for issue in children:
+        if not isinstance(issue, dict):
+            continue
+        number = issue.get("number")
+        if not isinstance(number, int):
+            continue
+        body = issue.get("body")
+        if not isinstance(body, str):
+            continue
+        if _child_body_links_parent(body, parent_number):
+            matches[number] = _discovery_entry("child_body", "active", "child_body_parent_reference")
+    return matches
+
+
+def _child_body_links_parent(body: str, parent_number: int) -> bool:
+    for raw_line in body.splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        if re.search(rf"\bparent\s+issue\s*:\s*#{parent_number}\b", line, re.IGNORECASE):
+            return True
+        if re.search(rf"\bparent\s*:\s*#{parent_number}\b", line, re.IGNORECASE):
+            return True
+        if re.search(rf"\bpart\s+of\s+#{parent_number}\b", line, re.IGNORECASE):
+            return True
+        if re.search(rf"\bchild\s+of\s+#{parent_number}\b", line, re.IGNORECASE):
+            return True
+    return False
+
+
+def _merge_text_discovery(
+    *,
+    text: str,
+    source: str,
+    parent_number: Any,
+    numbers: set[int],
+    evidence_by_child: dict[int, list[dict[str, Any]]],
+    corrected: bool,
+) -> None:
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if "#" not in line:
+            continue
+        classification = _classify_line_for_discovery(line, source=source, parent_number=parent_number)
+        for match in _ISSUE_NUMBER_PATTERN.finditer(line):
+            number = int(match.group("number"))
+            if classification == "active":
+                numbers.add(number)
+                evidence_by_child.setdefault(number, []).append(
+                    _discovery_entry(
+                        source,
+                        classification,
+                        "corrected_child_index_line" if corrected else "active_child_reference_line",
+                    )
+                )
+            elif classification in {"historical", "safety", "protected"}:
+                evidence_by_child.setdefault(number, []).append(
+                    _discovery_entry(source, classification, "ignored_non_active_reference_line")
+                )
+
+
+def _classify_line_for_discovery(line: str, *, source: str, parent_number: Any) -> str:
+    lower = line.lower()
+    if "issue #39" in lower and ("protected" in lower or "historical" in lower or "do not modify" in lower):
+        return "protected"
+    if "historical" in lower or "retired" in lower:
+        return "historical"
+    if "do not modify" in lower or "must remain protected" in lower or "safety" in lower:
+        return "safety"
+    if source in {"parent_body", "parent_comments", "corrected_child_index"}:
+        if "- [" in line and _ISSUE_NUMBER_PATTERN.search(line):
+            return "active"
+        if _CHILD_INDEX_HINT_PATTERN.search(line):
+            return "active"
+        if re.search(r"\bchild(?:ren)?\b", line, re.IGNORECASE) and _ISSUE_NUMBER_PATTERN.search(line):
+            return "active"
+    if isinstance(parent_number, int) and _PARENT_REF_LINE_PATTERN.search(line):
+        if re.search(rf"#{parent_number}\b", line):
+            return "active"
+    return "incidental"
+
+
+def _choose_corrected_child_index_comments(comments: list[dict[str, Any]]) -> set[int]:
+    index_positions: list[tuple[int, int]] = []
+    for idx, comment in enumerate(comments):
+        if not isinstance(comment, dict):
+            continue
+        body = comment.get("body")
+        if not isinstance(body, str):
+            continue
+        if _CHILD_INDEX_HINT_PATTERN.search(body) or re.search(r"-\s*\[[ xX]\]\s*#\d+", body):
+            comment_id = comment.get("id")
+            marker = comment_id if isinstance(comment_id, int) else idx
+            index_positions.append((idx, marker))
+    if not index_positions:
+        return set()
+
+    explicit_corrections = [
+        item for item in index_positions if _CORRECTION_HINT_PATTERN.search(str(comments[item[0]].get("body") or ""))
+    ]
+    if explicit_corrections:
+        return {item[1] for item in explicit_corrections}
+
+    latest = max(index_positions, key=lambda item: item[0])
+    return {latest[1]}
+
+
+def _discovery_entry(source: str, classification: str, reason: str) -> dict[str, Any]:
+    return {"source": source, "classification": classification, "reason": reason}
+
+
+def _flatten_discovery_evidence(evidence_by_child: dict[int, list[dict[str, Any]]]) -> list[dict[str, Any]]:
+    flattened: list[dict[str, Any]] = []
+    for child in sorted(evidence_by_child):
+        evidence_items = evidence_by_child[child]
+        if not isinstance(evidence_items, list):
+            continue
+        chosen = sorted(
+            [item for item in evidence_items if isinstance(item, dict)],
+            key=lambda item: (
+                DISCOVERY_SOURCE_PRIORITY.get(str(item.get("source")), 999),
+                str(item.get("classification", "")),
+                str(item.get("reason", "")),
+            ),
+        )
+        for item in chosen:
+            flattened.append(
+                {
+                    "child_issue_number": child,
+                    "source": item.get("source"),
+                    "classification": item.get("classification"),
+                    "reason": item.get("reason"),
+                }
+            )
+    deduped: list[dict[str, Any]] = []
+    seen: set[tuple[Any, Any, Any, Any]] = set()
+    for item in flattened:
+        key = (
+            item.get("child_issue_number"),
+            item.get("source"),
+            item.get("classification"),
+            item.get("reason"),
+        )
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(item)
+    return deduped
 
 
 def current_branch(repo_root: str) -> str | None:

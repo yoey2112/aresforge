@@ -8,24 +8,29 @@ Status: Completed.
 
 ### M9 - Persist Local Planning State And Drift Inspection
 
+Status: Completed.
+
+### M10 - Closeout Child-Link Discovery And Evidence Resolution
+
 Status: In progress.
 
 Child issues:
 
-- #193 define persisted local planning state schema
-- #194 define local-only planning state storage and safety contract
-- #195 persist sprint planning state from structured sprint definitions
-- #198 persist closeout planning snapshots
-- #199 add read-only planning state inspection command
-- #196 add read-only planning state comparison command
-- #197 source-of-truth reconciliation
+- #202 define closeout child-link discovery contract
+- #203 parse parent issue body/comments for active child issue references
+- #204 parse child issue bodies for parent references
+- #205 harden active vs historical/safety/protected closeout link classification
+- #206 improve closeout evidence report with discovered child links
+- #208 add M9-style closeout planner regression tests
+- #207 source-of-truth reconciliation
 
 Planned outcomes:
 
-- Local-only planning memory at `.aresforge/planning-state.json`.
-- Explicit write-gated persistence from sprint generation and closeout planning commands.
-- Read-only inspect/compare commands for local drift checks.
-- No new GitHub mutation behavior.
+- `plan-batch-closeout` discovers child issues from parent body/comments and child parent-link evidence.
+- corrected/reposted child issue index comments are recognized.
+- evidence reports include discovered child-link source and classification.
+- historical/safety/protected references are excluded from active linkage.
+- read-only planning behavior remains unchanged.
 
 ## Standing Boundaries
 
