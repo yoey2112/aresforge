@@ -6,6 +6,14 @@ This template defines the canonical human-run pattern for creating sprint parent
 
 This is an operator standard, not autonomous automation.
 
+For structured local definition generation, use:
+
+- `python -m aresforge generate-sprint-issue-script --definition <definition.json>`
+
+Contract details are defined in:
+
+- `docs/architecture/STRUCTURED_SPRINT_ISSUE_DEFINITION_CONTRACT.md`
+
 ## Safety Boundary
 
 - Human-triggered only.

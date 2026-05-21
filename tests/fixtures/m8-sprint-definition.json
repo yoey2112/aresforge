@@ -1,0 +1,14 @@
+﻿{
+  "sprint_id": "M8",
+  "repo": "yoey2112/aresforge",
+  "parent": {
+    "title": "M8: Parent sprint issue",
+    "body": "## Safety Posture\n- human-triggered operations only\n- read-only planning by default\n- no autonomous mutation\n\n## Acceptance Criteria\n- Parent issue body is complete\n\n## Validation\n- python -m pytest"
+  },
+  "children": [
+    {
+      "title": "M8: Child sample",
+      "body": "Part of #{{PARENT_ISSUE_NUMBER}}\nImplements sprint contract sample.\n\n## Safety Posture\n- human-triggered issue creation only\n- read-only generation command\n- no autonomous setup or mutation\n\n## Acceptance Criteria\n- Child issue body is complete\n\n## Validation\n- python -m pytest"
+    }
+  ]
+}

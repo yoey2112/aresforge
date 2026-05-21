@@ -27,6 +27,16 @@ Read-only parent/child closeout planning:
 
 Outputs include completed child issues, open/blocked children, protected exclusions, merge-evidence signals, and human-gated closeout guidance.
 
+## M8 Structured Sprint Issue Script Generation
+
+Read-only script generation from structured local definition:
+
+- `python -m aresforge generate-sprint-issue-script --definition <definition.json>`
+- `python -m aresforge generate-sprint-issue-script --definition <definition.json> --output <script.ps1>`
+
+Outputs include validation diagnostics and a local PowerShell script artifact.
+The command does not call `gh issue create` and does not mutate GitHub.
+
 ## M7 Batch Readiness Reporting
 
 Read-only multi-issue readiness summary:
