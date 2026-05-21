@@ -43,6 +43,7 @@ def test_cli_has_expected_commands() -> None:
         "managed-repo-readiness-report",
         "plan-repo-bootstrap",
         "demo-managed-repo-governance",
+        "plan-batch-closeout",
         "qa-review-pr",
         "qa-closeout-pr",
         "validate-pr-end-to-end",
@@ -160,6 +161,9 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     assert plan_bootstrap_args.command == "plan-repo-bootstrap"
     demo_governance_args = parser.parse_args(["demo-managed-repo-governance"])
     assert demo_governance_args.command == "demo-managed-repo-governance"
+    plan_batch_closeout_args = parser.parse_args(["plan-batch-closeout", "--parent-issue", "172"])
+    assert plan_batch_closeout_args.command == "plan-batch-closeout"
+    assert plan_batch_closeout_args.parent_issue == 172
     qa_review_args = parser.parse_args(["qa-review-pr", "--pr-number", "118"])
     assert qa_review_args.pr_number == 118
     qa_closeout_args = parser.parse_args(["qa-closeout-pr", "--pr-number", "119"])
@@ -387,6 +391,12 @@ def test_command_requires_directories_only_for_commands_that_write_artifacts() -
     assert command_requires_directories(parser.parse_args(["managed-repo-readiness-report"])) is False
     assert command_requires_directories(parser.parse_args(["plan-repo-bootstrap"])) is False
     assert command_requires_directories(parser.parse_args(["demo-managed-repo-governance"])) is False
+    assert (
+        command_requires_directories(
+            parser.parse_args(["plan-batch-closeout", "--parent-issue", "172"])
+        )
+        is False
+    )
 
 
 def test_validate_registries_command_emits_ok_json_and_zero_exit(
@@ -809,6 +819,45 @@ def test_cli_dispatches_plan_repo_bootstrap(
 
     assert exit_code == 0
     assert payload == {"command": "plan-repo-bootstrap", "ok": True}
+
+
+def test_cli_dispatches_plan_batch_closeout(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+) -> None:
+    config = AppConfig(
+        repo_root=tmp_path,
+        db_host="127.0.0.1",
+        db_port=5433,
+        db_name="aresforge",
+        db_user="aresforge",
+        db_password="aresforge",
+        ollama_base_url="http://127.0.0.1:11434",
+        ollama_model="qwen2.5:32b",
+        artifact_root=tmp_path / "artifacts",
+        prompts_dir=tmp_path / "artifacts" / "prompts" / "generated",
+        evidence_dir=tmp_path / "artifacts" / "evidence" / "generated",
+        codex_handoffs_dir=tmp_path / "artifacts" / "codex_handoffs" / "generated",
+        github_owner="yoey2112",
+        github_repo="aresforge",
+    )
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: config)
+    monkeypatch.setattr(
+        cli,
+        "plan_batch_closeout",
+        lambda _config, parent_issue: {
+            "command": "plan-batch-closeout",
+            "ok": True,
+            "parent_issue": parent_issue,
+        },
+    )
+
+    exit_code = cli.main(["plan-batch-closeout", "--parent-issue", "172"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert payload == {"command": "plan-batch-closeout", "ok": True, "parent_issue": 172}
 
 
 def test_cli_dispatches_qa_closeout_pr(

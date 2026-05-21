@@ -1,4 +1,4 @@
-# Repository Governance Contract
+﻿# Repository Governance Contract
 
 ## Purpose
 
@@ -15,7 +15,7 @@ The contract is inspection-first and does not itself authorize setup mutation.
 - `python -m aresforge plan-repo-bootstrap`
 - `python -m aresforge demo-managed-repo-governance`
 
-All are human-triggered and read-only with graceful degradation.
+All are human-triggered and read-only with graceful degradation.\n- `python -m aresforge plan-batch-closeout --parent-issue <number>` (read-only closeout planning, no issue/PR mutation).
 
 ## Reusable Label Contract
 

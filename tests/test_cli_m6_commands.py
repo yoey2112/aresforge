@@ -30,6 +30,7 @@ def test_cli_help_includes_m6_commands() -> None:
     help_text = parser.format_help()
     assert "plan-agent-queue" in help_text
     assert "report-batch-readiness" in help_text
+    assert "plan-batch-closeout" in help_text
 
 
 def test_cli_dispatch_plan_agent_queue(
@@ -90,3 +91,24 @@ def test_cli_dispatch_report_batch_readiness(
     assert exit_code == 0
     assert payload["pr_number"] == 210
     assert payload["issue_numbers"] == [165]
+
+
+def test_cli_dispatch_plan_batch_closeout(
+    monkeypatch,
+    capsys,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: _config(tmp_path))
+    monkeypatch.setattr(
+        cli,
+        "plan_batch_closeout",
+        lambda _config, parent_issue: {
+            "command": "plan-batch-closeout",
+            "ok": True,
+            "parent_issue": parent_issue,
+        },
+    )
+    exit_code = cli.main(["plan-batch-closeout", "--parent-issue", "172"])
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["parent_issue"] == 172

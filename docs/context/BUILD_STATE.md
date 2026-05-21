@@ -1,26 +1,26 @@
-# AresForge Build State
+﻿# AresForge Build State
 
 ## Current Phase
 
-M6 - Agent Queue, Orchestration MVP, And Codex Batch Execution
+M7 - Governance-Aware Issue Intake And Closeout Planning
 
 ## Current Goal
 
-Deliver one coordinated M6 branch/PR that adds:
+Deliver one coordinated M7 branch that adds:
 
-- agent queue and orchestration MVP contract
-- sequential Codex batch workflow contract
-- queue-driven read-only intake/planning command
-- batch readiness read-only reporting command
-- closeout reliability hardening for close issue edge cases
-- source-of-truth reconciliation
+- governance-aware issue intake and queue planning contract
+- read-only GitHub issue intake adapter for planning surfaces
+- hardened PR-to-issue/body reference classification
+- persisted planning state design for queue workflows
+- read-only parent/child batch closeout planning
+- source-of-truth reconciliation for M7
 
 ## Current Repository State
 
-- Current branch target: `m6/agent-queue-orchestration-batch-execution`
-- Baseline `main` commit before M6 branch: `f9556c8`
-- Parent issue: #164
-- Child issues in scope: #165, #166, #169, #170, #167, #168
+- Current branch target: `m7/remaining-governance-aware-intake-sequence`
+- Parent issue: #172
+- Child issues completed in this sequence: #173, #174, #175, #178, #176, #177
+- Issue #179 is already complete and remains unchanged by this sequence.
 - Issue #39 remains retired historical validation evidence only.
 
 ## Current Source Of Truth
@@ -29,19 +29,20 @@ Deliver one coordinated M6 branch/PR that adds:
 - `docs/context/AGENT_CONTEXT.md`
 - `docs/roadmap/ROADMAP.md`
 
-## Current M6 Implemented Operator Additions
+## Current M7 Implemented Operator Additions
 
 - `python -m aresforge plan-agent-queue`
 - `python -m aresforge report-batch-readiness`
+- `python -m aresforge plan-batch-closeout --parent-issue <number>`
 
-Both surfaces are read-only, human-reviewable, and do not mutate GitHub state.
+All surfaces are read-only, human-reviewable, and do not mutate GitHub state.
 
 ## Boundaries
 
 Allowed:
 
 - human-triggered local commands
-- read-only queue planning and readiness reporting
+- read-only issue intake, planning, and closeout-readiness planning
 - explicit diagnostics and recovery signals
 
 Not authorized:
