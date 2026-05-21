@@ -28,6 +28,20 @@ Read-only multi-issue readiness summary:
 
 Outputs include issue coverage, changed-file awareness, validation evidence summary, unresolved gates, and explicit human closeout requirements.
 
+## Hardened Sprint Issue Creation Standard
+
+For parent/child sprint issue creation, operators must use:
+
+- `docs/operator/HARDENED_SPRINT_ISSUE_CREATION_TEMPLATE.md`
+
+Required gates:
+
+- Every declared child `BodyPath` must be written.
+- All declared body files must exist and be non-empty before GitHub mutation.
+- Created issue URLs must be non-blank and parse to issue numbers.
+- Parent issue updates are blocked until every expected child issue number is known.
+- Temporary local artifacts are retained until final verification passes.
+
 ## Closeout Reliability
 
 - `qa-closeout-pr` remains dry-run by default.
