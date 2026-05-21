@@ -2,17 +2,17 @@
 
 ## Current Phase
 
-M9 - Persist Local Planning State And Drift Inspection
+M10 - Closeout Child-Link Discovery And Evidence Resolution
 
 ## Current Goal
 
-Deliver explicit local-only planning memory with read-only inspection/comparison commands and no new GitHub mutation behavior.
+Improve closeout child-link discovery and evidence reporting so closeout planning can resolve child issues from parent/child linkage evidence while preserving read-only defaults.
 
 ## Current Repository State
 
-- Current branch target: `m9/local-planning-state`
-- Parent issue: #192
-- Child scope: #193, #194, #195, #198, #199, #196, #197
+- Current branch target: `m10/closeout-child-link-discovery`
+- Parent issue: #201
+- Child scope: #202, #203, #204, #205, #206, #208, #207
 - Issue #39 remains retired historical validation evidence only.
 
 ## Current Source Of Truth
@@ -27,6 +27,7 @@ Deliver explicit local-only planning memory with read-only inspection/comparison
 - `python -m aresforge plan-batch-closeout --parent-issue <number> [--write-planning-snapshot]`
 - `python -m aresforge inspect-planning-state`
 - `python -m aresforge compare-planning-state`
+- closeout child-link discovery from parent body/comments and child parent-reference evidence
 
 ## Boundaries
 

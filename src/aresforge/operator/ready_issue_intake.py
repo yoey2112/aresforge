@@ -14,6 +14,9 @@ PROTECTED_ISSUE_NUMBER = 39
 IMPLEMENTATION_REFERENCE_PATTERNS: tuple[re.Pattern[str], ...] = (
     re.compile(r"\b(?:closes|fixes|resolves|implements)\s+#(?P<number>\d+)\b", re.IGNORECASE),
     re.compile(r"\b(?:parent\s+issue|linked\s+issue)\s*:\s*#(?P<number>\d+)\b", re.IGNORECASE),
+    re.compile(r"\bpart\s+of\s+#(?P<number>\d+)\b", re.IGNORECASE),
+    re.compile(r"\bchild\s+of\s+#(?P<number>\d+)\b", re.IGNORECASE),
+    re.compile(r"\bparent\s*:\s*#(?P<number>\d+)\b", re.IGNORECASE),
 )
 
 SAFETY_REFERENCE_PATTERNS: tuple[re.Pattern[str], ...] = (
@@ -184,6 +187,7 @@ def normalize_issue_for_planning(raw_issue: dict[str, Any]) -> dict[str, Any]:
         }
 
     references = classify_issue_references(body)
+    comments = _normalize_issue_comments(raw_issue.get("comments"))
 
     issue_number = raw_issue.get("number")
     protected = issue_number == PROTECTED_ISSUE_NUMBER
@@ -197,6 +201,7 @@ def normalize_issue_for_planning(raw_issue: dict[str, Any]) -> dict[str, Any]:
         "milestone": milestone,
         "assignees": assignees,
         "body": body,
+        "comments": comments,
         "reference_classification": references,
         "detectable_parent_child_references": references["parent_child_references"],
         "merged_pr_evidence": _normalize_closed_by_pull_requests(
@@ -229,6 +234,32 @@ def _normalize_closed_by_pull_requests(raw_items: Any) -> list[dict[str, Any]]:
             }
         )
     normalized.sort(key=lambda entry: entry["number"])
+    return normalized
+
+
+def _normalize_issue_comments(raw_items: Any) -> list[dict[str, Any]]:
+    if not isinstance(raw_items, list):
+        return []
+    normalized: list[dict[str, Any]] = []
+    for item in raw_items:
+        if not isinstance(item, dict):
+            continue
+        body = item.get("body")
+        if not isinstance(body, str):
+            body = ""
+        author = item.get("author")
+        author_login = author.get("login") if isinstance(author, dict) else None
+        normalized.append(
+            {
+                "id": item.get("id"),
+                "url": item.get("url"),
+                "created_at": item.get("createdAt"),
+                "updated_at": item.get("updatedAt"),
+                "author": author_login,
+                "body": body,
+                "reference_classification": classify_issue_references(body),
+            }
+        )
     return normalized
 
 
@@ -353,7 +384,7 @@ def fetch_issue_details(config: AppConfig, issue_number: int) -> dict[str, Any]:
         "--json",
         (
             "number,title,state,url,labels,createdAt,updatedAt,author,assignees,milestone,body,"
-            "closedByPullRequestsReferences"
+            "closedByPullRequestsReferences,comments"
         ),
     ]
     code, stdout, stderr = _run_gh_command(args)
