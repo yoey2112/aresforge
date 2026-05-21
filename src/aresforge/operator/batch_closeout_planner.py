@@ -8,6 +8,7 @@ from aresforge.operator.ready_issue_intake import (
     PROTECTED_ISSUE_NUMBER,
     fetch_issue_batch_for_planning,
 )
+from aresforge.operator.planning_state import persist_closeout_snapshot, resolve_planning_state_path
 
 READY = "ready"
 PARTIALLY_READY = "partially_ready"
@@ -16,7 +17,13 @@ INCOMPLETE = "incomplete"
 AMBIGUOUS = "ambiguous"
 
 
-def plan_batch_closeout(config: AppConfig, *, parent_issue: int) -> dict[str, Any]:
+def plan_batch_closeout(
+    config: AppConfig,
+    *,
+    parent_issue: int,
+    write_planning_snapshot: bool = False,
+    planning_state_path: str | None = None,
+) -> dict[str, Any]:
     parent_payload = fetch_issue_batch_for_planning(config, [parent_issue])
     parent_issues = parent_payload.get("issues") if isinstance(parent_payload.get("issues"), list) else []
     if not parent_issues:
@@ -94,7 +101,7 @@ def plan_batch_closeout(config: AppConfig, *, parent_issue: int) -> dict[str, An
 
     parent_readiness = _classify_parent_readiness(parent, child_evidence_report)
 
-    return {
+    response = {
         "command": "plan-batch-closeout",
         "ok": True,
         "inspection_mode": "github_read_only",
@@ -127,6 +134,39 @@ def plan_batch_closeout(config: AppConfig, *, parent_issue: int) -> dict[str, An
             "Labels, milestones, PR state, and issue state were not mutated.",
             "Issue #39 remains protected historical evidence and is excluded from active closeout planning.",
         ],
+    }
+    if write_planning_snapshot:
+        state_path = resolve_planning_state_path(config=config, path_override=planning_state_path)
+        response["planning_state_write"] = persist_closeout_snapshot(
+            path=state_path,
+            snapshot=_build_closeout_snapshot(response),
+            command_name="plan-batch-closeout",
+        )
+    return response
+
+
+def _build_closeout_snapshot(payload: dict[str, Any]) -> dict[str, Any]:
+    parent_issue = payload.get("parent_issue", {})
+    number = parent_issue.get("number")
+    snapshot_id = f"parent-{number}" if isinstance(number, int) else "parent-unknown"
+    child_group = payload.get("child_issue_group", {})
+    completed = child_group.get("completed_children")
+    blocked = child_group.get("open_or_blocked_children")
+    observed_children: list[dict[str, Any]] = []
+    for item in (completed if isinstance(completed, list) else []):
+        if isinstance(item, dict):
+            observed_children.append({"number": item.get("number"), "title": item.get("title"), "state": item.get("state")})
+    for item in (blocked if isinstance(blocked, list) else []):
+        if isinstance(item, dict):
+            observed_children.append({"number": item.get("number"), "title": item.get("title"), "state": item.get("state")})
+    observed_children.sort(key=lambda entry: int(entry["number"]) if isinstance(entry.get("number"), int) else -1)
+    return {
+        "snapshot_id": snapshot_id,
+        "parent_issue": number,
+        "command": "plan-batch-closeout",
+        "closeout_plan": payload.get("closeout_plan"),
+        "evidence_report": payload.get("evidence_report"),
+        "observed_children": observed_children,
     }
 
 

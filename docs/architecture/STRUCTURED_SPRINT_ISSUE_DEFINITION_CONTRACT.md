@@ -74,6 +74,10 @@ Command:
 
 `python -m aresforge generate-sprint-issue-script --definition <definition.json>`
 
+Optional explicit local planning-state persistence:
+
+`python -m aresforge generate-sprint-issue-script --definition <definition.json> --write-planning-state`
+
 Optional output override:
 
 `python -m aresforge generate-sprint-issue-script --definition <definition.json> --output <script.ps1>`
@@ -81,6 +85,7 @@ Optional output override:
 Result:
 
 - Writes local `.ps1` script only.
+- Writes local planning state only when `--write-planning-state` is explicitly provided.
 - Emits JSON command result with `mutation_posture=output_only_human_execution_required`.
 - Performs no GitHub mutation.
 

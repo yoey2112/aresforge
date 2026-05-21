@@ -146,3 +146,73 @@ def test_plan_batch_closeout_fails_when_parent_missing(monkeypatch, tmp_path: Pa
     payload = batch_closeout_planner.plan_batch_closeout(config, parent_issue=172)
     assert payload["ok"] is False
     assert payload["error"] == "parent_issue_unavailable"
+
+
+def test_plan_batch_closeout_does_not_write_planning_state_by_default(monkeypatch, tmp_path: Path) -> None:
+    config = make_config(tmp_path)
+    parent_issue = {
+        "number": 200,
+        "title": "Parent",
+        "state": "OPEN",
+        "url": "https://example.test/200",
+        "body": "- [ ] #201",
+        "reference_classification": {"implementation_issue_numbers": [201]},
+    }
+    child = {
+        "number": 201,
+        "title": "Child",
+        "state": "OPEN",
+        "url": "https://example.test/201",
+        "labels": [],
+        "body": "## Validation\n- python -m pytest",
+        "reference_classification": {"implementation_issue_numbers": [200]},
+    }
+
+    def fake_fetch(_config, numbers):
+        if numbers == [200]:
+            return {"issues": [parent_issue], "excluded_issues": [], "warnings": []}
+        return {"issues": [child], "excluded_issues": [], "warnings": []}
+
+    monkeypatch.setattr(batch_closeout_planner, "fetch_issue_batch_for_planning", fake_fetch)
+    payload = batch_closeout_planner.plan_batch_closeout(config, parent_issue=200)
+    assert payload["ok"] is True
+    assert not (tmp_path / ".aresforge" / "planning-state.json").exists()
+
+
+def test_plan_batch_closeout_can_write_planning_snapshot(monkeypatch, tmp_path: Path) -> None:
+    config = make_config(tmp_path)
+    parent_issue = {
+        "number": 210,
+        "title": "Parent",
+        "state": "OPEN",
+        "url": "https://example.test/210",
+        "body": "- [ ] #211",
+        "reference_classification": {"implementation_issue_numbers": [211]},
+    }
+    child = {
+        "number": 211,
+        "title": "Child",
+        "state": "OPEN",
+        "url": "https://example.test/211",
+        "labels": [],
+        "body": "## Validation\n- python -m pytest",
+        "reference_classification": {"implementation_issue_numbers": [210]},
+    }
+
+    def fake_fetch(_config, numbers):
+        if numbers == [210]:
+            return {"issues": [parent_issue], "excluded_issues": [], "warnings": []}
+        return {"issues": [child], "excluded_issues": [], "warnings": []}
+
+    monkeypatch.setattr(batch_closeout_planner, "fetch_issue_batch_for_planning", fake_fetch)
+    state_path = tmp_path / "state" / "planning-state.json"
+    payload = batch_closeout_planner.plan_batch_closeout(
+        config,
+        parent_issue=210,
+        write_planning_snapshot=True,
+        planning_state_path=str(state_path),
+    )
+    assert payload["ok"] is True
+    assert state_path.exists()
+    content = state_path.read_text(encoding="utf-8")
+    assert "\"closeout_snapshots\"" in content

@@ -2,19 +2,17 @@
 
 ## Current Phase
 
-M8 - Source-Of-Truth Reconciliation
+M9 - Persist Local Planning State And Drift Inspection
 
 ## Current Goal
 
-Reconcile source-of-truth documentation after merged M8 implementation so current behavior, commands, contracts, and safety boundaries are accurately reflected.
+Deliver explicit local-only planning memory with read-only inspection/comparison commands and no new GitHub mutation behavior.
 
 ## Current Repository State
 
-- Current branch target: `m8/source-of-truth-reconciliation`
-- Parent issue: #182
-- M8 implementation issues #183 through #188 were completed in merged PR #190.
-- Reconciliation issue for this branch: #189.
-- Issue #179 remains complete and unchanged.
+- Current branch target: `m9/local-planning-state`
+- Parent issue: #192
+- Child scope: #193, #194, #195, #198, #199, #196, #197
 - Issue #39 remains retired historical validation evidence only.
 
 ## Current Source Of Truth
@@ -25,26 +23,22 @@ Reconcile source-of-truth documentation after merged M8 implementation so curren
 
 ## Current Implemented Operator Additions
 
-- `python -m aresforge plan-agent-queue`
-- `python -m aresforge report-batch-readiness`
-- `python -m aresforge plan-batch-closeout --parent-issue <number>`
-- `python -m aresforge generate-sprint-issue-script --definition <file>`
-
-All commands are human-triggered. Planning/reporting/generation defaults remain read-only or output-only unless a human explicitly executes separate mutation commands.
+- `python -m aresforge generate-sprint-issue-script --definition <file> [--write-planning-state]`
+- `python -m aresforge plan-batch-closeout --parent-issue <number> [--write-planning-snapshot]`
+- `python -m aresforge inspect-planning-state`
+- `python -m aresforge compare-planning-state`
 
 ## Boundaries
 
 Allowed:
 
 - human-triggered local commands
-- read-only issue intake, planning, readiness, and closeout-readiness planning
-- output-only local sprint script generation from structured definition
-- explicit diagnostics and recovery signals
+- explicit local-only planning-state writes
+- read-only planning inspection/comparison
+- output-only generated sprint issue scripts requiring human execution
 
 Not authorized:
 
-- autonomous queue mutation
+- autonomous GitHub mutation (create/close/comment/label/milestone/merge/release/tag)
 - autonomous setup/mutation behavior
-- autonomous merge, closeout, issue closure, or label mutation
-- autonomous milestone assignment, comments, releases, or tags
 - mutation of Issue #39
