@@ -459,11 +459,23 @@ def _merge_text_discovery(
     evidence_by_child: dict[int, list[dict[str, Any]]],
     corrected: bool,
 ) -> None:
+    in_child_index_section = False
     for raw_line in text.splitlines():
         line = raw_line.strip()
+        if line.startswith("## "):
+            in_child_index_section = bool(_CHILD_INDEX_HINT_PATTERN.search(line))
+            continue
         if "#" not in line:
             continue
-        classification = _classify_line_for_discovery(line, source=source, parent_number=parent_number)
+        if _CHILD_INDEX_HINT_PATTERN.search(line):
+            in_child_index_section = True
+            continue
+        classification = _classify_line_for_discovery(
+            line,
+            source=source,
+            parent_number=parent_number,
+            in_child_index_section=in_child_index_section,
+        )
         for match in _ISSUE_NUMBER_PATTERN.finditer(line):
             number = int(match.group("number"))
             if classification == "active":
@@ -481,21 +493,35 @@ def _merge_text_discovery(
                 )
 
 
-def _classify_line_for_discovery(line: str, *, source: str, parent_number: Any) -> str:
+def _classify_line_for_discovery(
+    line: str, *, source: str, parent_number: Any, in_child_index_section: bool
+) -> str:
     lower = line.lower()
-    if "issue #39" in lower and ("protected" in lower or "historical" in lower or "do not modify" in lower):
+    if "#39" in lower and (
+        "protected" in lower
+        or "historical" in lower
+        or "do not modify" in lower
+        or "safety" in lower
+        or "validation evidence only" in lower
+    ):
         return "protected"
-    if "historical" in lower or "retired" in lower:
-        return "historical"
-    if "do not modify" in lower or "must remain protected" in lower or "safety" in lower:
-        return "safety"
+
     if source in {"parent_body", "parent_comments", "corrected_child_index"}:
         if "- [" in line and _ISSUE_NUMBER_PATTERN.search(line):
+            return "active"
+        if re.search(r"^\s*-\s+#\d+\b", line):
+            return "active"
+        if in_child_index_section and re.search(r"^\s*-\s+.*#\d+\b", line):
             return "active"
         if _CHILD_INDEX_HINT_PATTERN.search(line):
             return "active"
         if re.search(r"\bchild(?:ren)?\b", line, re.IGNORECASE) and _ISSUE_NUMBER_PATTERN.search(line):
             return "active"
+
+    if "historical" in lower or "retired" in lower:
+        return "historical"
+    if "do not modify" in lower or "must remain protected" in lower or "safety" in lower:
+        return "safety"
     if isinstance(parent_number, int) and _PARENT_REF_LINE_PATTERN.search(line):
         if re.search(rf"#{parent_number}\b", line):
             return "active"

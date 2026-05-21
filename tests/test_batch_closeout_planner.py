@@ -314,3 +314,67 @@ def test_plan_batch_closeout_ignores_historical_and_protected_references(monkeyp
     assert payload["child_issue_group"]["requested_child_issue_numbers"] == [202]
     assert not any(item["child_issue_number"] == 39 and item["classification"] == "active" for item in payload["evidence_report"]["discovered_child_links"])
     assert any(item["classification"] in {"protected", "safety", "historical"} for item in payload["evidence_report"]["discovered_child_links"])
+
+
+def test_plan_batch_closeout_treats_parent_child_index_entries_as_active_even_with_historical_words(
+    monkeypatch, tmp_path: Path
+) -> None:
+    config = make_config(tmp_path)
+    parent_issue = {
+        "number": 201,
+        "title": "M10 parent",
+        "state": "OPEN",
+        "url": "https://example.test/201",
+        "body": (
+            "## Child issue index\n"
+            "- #202 Define closeout child-link discovery contract\n"
+            "- #203 Parse parent issue body and comments for active child issue references\n"
+            "- #204 Parse child issue bodies for parent references\n"
+            "- #205 Harden active-vs-historical reference classification for closeout links\n"
+            "- #206 Improve evidence report with discovered child issues\n"
+            "- #208 Add M9-style closeout planner regression tests\n"
+            "- #207 Reconcile source-of-truth documentation\n"
+            "- Historical validation evidence only: #39\n"
+        ),
+        "reference_classification": {"implementation_issue_numbers": []},
+    }
+
+    children = []
+    for number in [202, 203, 204, 205, 206, 207, 208]:
+        children.append(
+            {
+                "number": number,
+                "title": f"M10 child {number}",
+                "state": "OPEN",
+                "url": f"https://example.test/{number}",
+                "labels": [],
+                "body": "Parent issue: #201\n## Validation\n- python -m pytest",
+                "reference_classification": {
+                    "implementation_issue_numbers": [201],
+                    "explicit_implementation_issue_numbers": [201],
+                },
+                "merged_pr_evidence": [],
+            }
+        )
+
+    def fake_fetch(_config, numbers):
+        if numbers == [201]:
+            return {"issues": [parent_issue], "excluded_issues": [], "warnings": []}
+        if numbers == [202, 203, 204, 205, 206, 207, 208]:
+            return {"issues": children, "excluded_issues": [], "warnings": []}
+        raise AssertionError(f"unexpected numbers: {numbers}")
+
+    monkeypatch.setattr(batch_closeout_planner, "fetch_issue_batch_for_planning", fake_fetch)
+    payload = batch_closeout_planner.plan_batch_closeout(config, parent_issue=201)
+
+    assert payload["child_issue_group"]["requested_child_issue_numbers"] == [202, 203, 204, 205, 206, 207, 208]
+    assert payload["child_issue_group"]["discovered_child_issue_numbers"] == [202, 203, 204, 205, 206, 207, 208]
+    active_links = [
+        item["child_issue_number"]
+        for item in payload["evidence_report"]["discovered_child_links"]
+        if item["classification"] == "active"
+    ]
+    assert 205 in active_links
+    assert 207 in active_links
+    assert 208 in active_links
+    assert not any(item["child_issue_number"] == 39 and item["classification"] == "active" for item in payload["evidence_report"]["discovered_child_links"])
