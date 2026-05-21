@@ -14,6 +14,11 @@ Define a read-only M11 comparison between persisted local planning state and liv
 
 `inspect-closeout-planning-drift` emits deterministic JSON including:
 
+- `command`
+- `ok`
+- `inspection_mode`
+- `state_exists`
+- `planning_state_path`
 - `parent_issue`
 - `planned_child_issues`
 - `discovered_child_issues`
@@ -45,6 +50,13 @@ Define a read-only M11 comparison between persisted local planning state and liv
   - not-applicable evidence (currently empty when no explicit N/A conditions are proven).
 - Must not mark work ready when drift or unresolved child state prevents reliable closeout confidence.
 
+## `planning_state_missing` Behavior
+
+- Missing planning state is a non-mutating inspection result (`ok: true`, `state_exists: false`) rather than a write/recovery path.
+- Comparison groups are empty and readiness is blocked (`readiness_ok: false`).
+- `evidence_summary.status` is `planning_state_missing` and `missing_evidence` includes `planning_state_missing`.
+- Warning text is returned for operator visibility.
+
 ## Protected/Historical Handling
 
 - Protected historical/safety references are excluded from active planned/discovered child groups.
@@ -56,6 +68,12 @@ Define a read-only M11 comparison between persisted local planning state and liv
 - Command is read-only by default and by design.
 - No planning-state writes.
 - No GitHub mutation (no create/close/comment/label/milestone/merge/release/tag actions).
+
+## What The Command Does Not Do
+
+- Does not perform any automatic issue-state reconciliation.
+- Does not mutate planning state to repair drift.
+- Does not replace human-gated closeout decisions.
 
 ## Known Limitations
 

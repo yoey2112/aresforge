@@ -1,18 +1,19 @@
-﻿# AresForge Build State
+# AresForge Build State
 
 ## Current Phase
 
-M10 - Closeout Child-Link Discovery And Evidence Resolution
+M11 - Planning-State Closeout Drift Inspection And Reconciliation
 
 ## Current Goal
 
-Improve closeout child-link discovery and evidence reporting so closeout planning can resolve child issues from parent/child linkage evidence while preserving read-only defaults.
+Complete operator documentation and source-of-truth reconciliation for closeout planning drift inspection while preserving read-only safety boundaries.
 
 ## Current Repository State
 
-- Current branch target: `m10/closeout-child-link-discovery`
-- Parent issue: #201
-- Child scope: #202, #203, #204, #205, #206, #208, #207
+- Current branch target: `m11/source-of-truth-reconciliation`
+- Parent issue: #210
+- Implemented child scope (merged): #211, #212, #213, #214, #217
+- Documentation/reconciliation scope (this pass): #215, #216
 - Issue #39 remains retired historical validation evidence only.
 
 ## Current Source Of Truth
@@ -27,7 +28,10 @@ Improve closeout child-link discovery and evidence reporting so closeout plannin
 - `python -m aresforge plan-batch-closeout --parent-issue <number> [--write-planning-snapshot]`
 - `python -m aresforge inspect-planning-state`
 - `python -m aresforge compare-planning-state`
+- `python -m aresforge inspect-closeout-planning-drift --parent-issue <number>`
 - closeout child-link discovery from parent body/comments and child parent-reference evidence
+- read-only planning-state vs live closeout child discovery drift grouping
+- closeout evidence summary drift blocking signals including `planning_state_missing`
 
 ## Boundaries
 
@@ -43,3 +47,7 @@ Not authorized:
 - autonomous GitHub mutation (create/close/comment/label/milestone/merge/release/tag)
 - autonomous setup/mutation behavior
 - mutation of Issue #39
+
+## Recommended Follow-Up After M11 Closeout
+
+- Add a dedicated milestone item to remove recurring protected historical issue references from active governance/operator paths while preserving historical validation evidence.
