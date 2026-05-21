@@ -1,4 +1,4 @@
-# Batch Ready Issue Operations
+﻿# Batch Ready Issue Operations
 
 ## Purpose
 
@@ -62,7 +62,7 @@ Per ready issue, batch planning records:
 
 Batch planning and readiness reporting must:
 
-- always exclude protected Issue #39
+- always exclude protected the protected historical reference
 - never mutate GitHub issue or PR state
 - never run background jobs, polling loops, or schedulers
 - never call paid/API remote LLM providers as default behavior
@@ -75,3 +75,4 @@ Batch planning and readiness reporting must:
 3. For selected issues, run per-issue `run-ready-issue-pipeline --plan-only` and then `--review-pr`.
 4. Use `qa-closeout-pr --dry-run` first for closeout candidates.
 5. Use `qa-closeout-pr --execute` only after all QA and required-label gates pass.
+

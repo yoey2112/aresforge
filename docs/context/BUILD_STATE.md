@@ -1,4 +1,4 @@
-# AresForge Build State
+﻿# AresForge Build State
 
 ## Current Phase
 
@@ -14,7 +14,7 @@ Complete operator documentation and source-of-truth reconciliation for closeout 
 - Parent issue: #210
 - Implemented child scope (merged): #211, #212, #213, #214, #217
 - Documentation/reconciliation scope (this pass): #215, #216
-- Issue #39 remains retired historical validation evidence only.
+- the protected historical reference remains retired historical validation evidence only.
 
 ## Current Source Of Truth
 
@@ -46,8 +46,9 @@ Not authorized:
 
 - autonomous GitHub mutation (create/close/comment/label/milestone/merge/release/tag)
 - autonomous setup/mutation behavior
-- mutation of Issue #39
+- mutation of the protected historical reference
 
 ## Recommended Follow-Up After M11 Closeout
 
 - Add a dedicated milestone item to remove recurring protected historical issue references from active governance/operator paths while preserving historical validation evidence.
+

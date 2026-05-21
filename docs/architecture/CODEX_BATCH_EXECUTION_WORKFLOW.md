@@ -1,4 +1,4 @@
-# Codex CLI Sequential Batch Runner Workflow (M6)
+﻿# Codex CLI Sequential Batch Runner Workflow (M6)
 
 ## Purpose
 
@@ -13,7 +13,7 @@ Define a safe, human-supervised method for processing multiple child issues on o
 
 2. Selection
 - Use read-only intake/planning to select eligible child issues.
-- Exclude protected historical issue #39.
+- Exclude protected historical the protected historical reference.
 
 3. Sequencing
 - Execute ready items in deterministic order.
@@ -43,3 +43,4 @@ Define a safe, human-supervised method for processing multiple child issues on o
 - Read-only planning and reporting defaults.
 - Human-triggered mutation only.
 - No autonomous merge/closeout.
+

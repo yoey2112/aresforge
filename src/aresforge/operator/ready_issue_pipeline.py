@@ -161,7 +161,7 @@ def run_ready_issue_pipeline(
             validations_run=validations_run,
             skipped_checks=[],
             protected_issue_checks=[
-                "Issue #39 remains protected and excluded from pipeline mutation targets."
+                "Protected historical references remain protected and excluded from pipeline mutation targets."
             ],
             automation_boundary_confirmation=(
                 "Pipeline is human-triggered, does not poll in background, and allows GitHub "
@@ -228,7 +228,7 @@ def _next_recommended_action(
     execute_closeout: bool,
 ) -> str:
     if "protected_issue_blocked" in failed_gates:
-        return "Issue #39 is protected. Select a different issue number."
+        return "That issue is protected historical evidence. Select a different issue number."
     if "missing_ready_label" in failed_gates:
         return "Add the aresforge-ready label, then rerun plan-only mode."
     if "missing_pr_number" in failed_gates:
@@ -262,7 +262,7 @@ def _boundary_confirmations(*, mode: str, execute_closeout: bool) -> list[str]:
     return [
         "Human-triggered orchestration only.",
         "No background jobs, schedulers, or autonomous polling were performed.",
-        "Issue #39 is always excluded from pipeline automation.",
+        "Protected historical references are always excluded from pipeline automation.",
         "Plan-only and review-pr modes do not perform GitHub mutation.",
         (
             "Closeout behavior delegates only through qa-closeout-pr with explicit "

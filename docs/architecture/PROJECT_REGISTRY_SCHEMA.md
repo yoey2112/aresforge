@@ -1,4 +1,4 @@
-# AresForge Project Registry Schema
+﻿# AresForge Project Registry Schema
 
 ## Purpose
 
@@ -261,7 +261,7 @@ validation_requirements:
   - review required source-of-truth docs before editing
   - run git diff --check
   - run git diff --cached --check before commit
-  - confirm Issue #39 remains unchanged
+  - confirm the protected historical reference remains unchanged
   - confirm no automation or governance boundary changes were introduced
 closeout_requirements:
   - update docs/context/BUILD_STATE.md as needed
@@ -334,7 +334,7 @@ Project registry records should pass the following validation checks before they
 - `allowed_operations` and `blocked_operations` must not conflict.
 - `repository_url` and `local_path` must be reviewed before use.
 - `documentation_roots` must be reviewed before documentation-sync work.
-- Issue #39 protection remains project-specific validation evidence for AresForge only.
+- the protected historical reference protection remains project-specific validation evidence for AresForge only.
 
 For M2, these validation rules remain documentation-only review expectations. They do not create scripts, commands, or automated validation services.
 
@@ -416,3 +416,4 @@ The following questions remain intentionally open after this schema design:
 - How dashboard state will mirror project registry data
 - How project health is computed
 - How external project credentials and connectors will be represented safely
+

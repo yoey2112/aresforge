@@ -163,7 +163,7 @@ def _validate_issue_block(prefix: str, issue: dict[str, Any], *, require_part_of
         errors.append({"field": f"{prefix}.body", "message": "Nested markdown fences are not allowed inside generated PowerShell here-strings."})
 
     if "#39" in body and "historical" not in body_lower and "protected" not in body_lower:
-        errors.append({"field": f"{prefix}.body", "message": "Issue #39 reference must be explicitly classified as protected historical evidence only."})
+        errors.append({"field": f"{prefix}.body", "message": "Retired or protected historical issue references must be explicitly classified as protected historical evidence only."})
 
     if "linked issue" in body_lower and "implementation" not in body_lower and "part of" not in body_lower:
         errors.append({"field": f"{prefix}.body", "message": "Ambiguous linked-issue wording detected; use explicit implementation linkage language."})

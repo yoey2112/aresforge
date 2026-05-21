@@ -350,7 +350,7 @@ def run_local_review(
             "No network calls were performed by this command surface.",
             "No GitHub mutation was performed by this command surface.",
             "No queue, registry, work-item, or artifact mutation was performed unless --write-review-package was explicitly requested.",
-            "Issue #39 was not modified.",
+            "Protected historical references were not modified.",
         ],
         "output_package_path": None,
         "output_package_markdown_path": None,

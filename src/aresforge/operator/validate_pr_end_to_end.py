@@ -102,5 +102,5 @@ def _boundary_confirmations() -> list[str]:
         "No autonomous GitHub mutation introduced.",
         "qa-review-pr remains read-only.",
         "qa-closeout-pr remains human-triggered and gated.",
-        "Issue #39 remains retired historical validation evidence only.",
+        "Retired historical validation evidence remains protected historical evidence only.",
     ]

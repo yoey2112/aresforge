@@ -98,7 +98,7 @@ def _boundary_confirmations() -> list[str]:
         "No GitHub mutation was performed by this command surface.",
         "No PR creation or closeout automation was performed.",
         "No background polling or scheduled behavior was performed.",
-        "Issue #39 was not modified.",
+        "Protected historical reference handling remained read-only.",
     ]
 
 

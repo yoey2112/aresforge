@@ -97,7 +97,7 @@ def test_validate_sprint_definition_reports_actionable_failures() -> None:
     messages = "\n".join(item["message"] for item in errors)
     assert "Missing required '## Safety Posture' section." in messages
     assert "Nested markdown fences are not allowed" in messages
-    assert "Issue #39 reference must be explicitly classified" in messages
+    assert "Retired or protected historical issue references must be explicitly classified" in messages
 
 
 def test_cli_dispatch_generate_sprint_issue_script(monkeypatch, capsys, tmp_path: Path) -> None:

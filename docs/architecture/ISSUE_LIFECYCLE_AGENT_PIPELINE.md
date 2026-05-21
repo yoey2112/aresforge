@@ -1,4 +1,4 @@
-# AresForge Issue Lifecycle Agent Pipeline
+﻿# AresForge Issue Lifecycle Agent Pipeline
 
 ## Purpose
 
@@ -328,6 +328,7 @@ Any future implementation requires a separate human-directed issue, governance r
 
 ## Protected Validation Evidence
 
-Issue #39, `validation: issue-38-state-lifecycle`, remains protected M1 audit evidence.
+the protected historical reference, `validation: issue-38-state-lifecycle`, remains protected M1 audit evidence.
 
-This pipeline does not close, modify, comment on, or otherwise change Issue #39. Issue #39 must remain intentionally preserved unless a future human-directed issue explicitly changes its state.
+This pipeline does not close, modify, comment on, or otherwise change the protected historical reference. the protected historical reference must remain intentionally preserved unless a future human-directed issue explicitly changes its state.
+

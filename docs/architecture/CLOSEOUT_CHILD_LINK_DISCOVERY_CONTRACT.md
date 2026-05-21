@@ -1,4 +1,4 @@
-# Closeout Child-Link Discovery Contract
+﻿# Closeout Child-Link Discovery Contract
 
 ## Purpose
 
@@ -28,7 +28,7 @@ Every discovered reference must be classified as one of:
 - `protected`
 - `incidental`
 
-Issue #39 must remain protected historical/safety-only evidence and never become an active implementation child link.
+the protected historical reference must remain protected historical/safety-only evidence and never become an active implementation child link.
 
 ## Corrected Index Behavior
 
@@ -54,3 +54,4 @@ When multiple parent comments look like child indexes:
 - no autonomous GitHub mutation
 - no automatic closeout behavior
 - no autonomous comments/labels/milestones/PR merge/release/tag behavior
+

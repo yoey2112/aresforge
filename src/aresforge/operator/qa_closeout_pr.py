@@ -343,7 +343,7 @@ def _write_final_closeout_evidence(
             f"qa-closeout-pr --pr-number {pr_number} --execute",
         ],
         skipped_checks=[],
-        protected_issue_checks=["Issue #39 confirmed untouched and not linked."],
+        protected_issue_checks=["Protected historical references confirmed untouched and not linked."],
         automation_boundary_confirmation=(
             "GitHub mutation was executed only for the target PR and linked issue after all QA and "
             "label gates passed with explicit execute mode."
@@ -391,7 +391,7 @@ def _recommended_next_command(
 def _boundary_confirmations(mode: str) -> list[str]:
     boundaries = [
         "Human-triggered command. No background polling or scheduled behavior.",
-        "Issue #39 was not modified.",
+        "Protected historical references were not modified.",
         "No unrelated PR, issue, repository settings, release, tag, milestone, or GitHub Project mutation was performed.",
     ]
     if mode == "dry_run":

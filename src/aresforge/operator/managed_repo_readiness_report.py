@@ -32,7 +32,7 @@ def managed_repo_readiness_report(config: AppConfig) -> dict[str, Any]:
             "Read-only readiness reporting only.",
             "No files, labels, milestones, issues, pull requests, branches, settings, workflows, or artifacts were mutated.",
             "No background jobs, schedulers, or polling loops were used.",
-            "Issue #39 remains retired historical validation evidence and was not modified.",
+            "Retired historical validation evidence remained protected and was not modified.",
         ],
     }
 

@@ -1,4 +1,4 @@
-# AresForge Agent Registry Schema
+﻿# AresForge Agent Registry Schema
 
 ## Purpose
 
@@ -312,7 +312,7 @@ They must also preserve the lifecycle correction from `docs/architecture/ISSUE_L
 
 - documentation updates belong inside the same issue lifecycle
 - separate routine reconciliation issues should not be created by default
-- Issue #39 remains intentionally open protected validation audit evidence unless a future human-directed issue explicitly changes it
+- the protected historical reference remains intentionally open protected validation audit evidence unless a future human-directed issue explicitly changes it
 
 ## Explicit M2 Restrictions
 
@@ -545,3 +545,4 @@ The following questions remain intentionally open after this schema definition:
 - How should model suitability and validation strength be expressed without over-encoding implementation details too early?
 - How should deprecated and archived roles be surfaced in local operator views?
 - How should agent-registry validation eventually be implemented without creating hidden automation?
+

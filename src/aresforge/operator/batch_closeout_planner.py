@@ -152,7 +152,7 @@ def plan_batch_closeout(
         "warnings": [
             "This command is read-only and does not close or comment on issues.",
             "Labels, milestones, PR state, and issue state were not mutated.",
-            "Issue #39 remains protected historical evidence and is excluded from active closeout planning.",
+            "Protected historical references remain excluded from active closeout planning.",
         ],
     }
     if write_planning_snapshot:

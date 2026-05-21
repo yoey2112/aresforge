@@ -125,7 +125,7 @@ def run_ready_issue_batch(
         "required_labels": [READY_TRIGGER_LABEL, BATCH_AUTOMERGE_LABEL],
         "boundary_confirmations": [
             "Batch planning is human-triggered and read-only with respect to GitHub state.",
-            "Issue #39 is always excluded and never targeted for mutation.",
+            "Protected historical references are always excluded and never targeted for mutation.",
             "No background jobs, polling, or schedulers were used.",
             "No paid/API model calls were initiated.",
             "Any future closeout mutation remains gated through qa-closeout-pr execute mode.",
@@ -192,7 +192,7 @@ def _render_batch_markdown(payload: dict[str, Any]) -> str:
             "",
             "## Automation Boundary",
             "- Read-only planning only; no GitHub mutation performed.",
-            "- Issue #39 excluded from all batch planning operations.",
+            "- Protected historical references excluded from all batch planning operations.",
             "- Closeout mutation remains gated through qa-closeout-pr execute mode only.",
         ]
     )

@@ -1,4 +1,4 @@
-# Local Operator Usage
+﻿# Local Operator Usage
 
 ## Core Validation Bundle
 
@@ -81,4 +81,5 @@ What this command does not do:
 - No autonomous merge/closeout/setup/queue mutation.
 - No autonomous GitHub issue create/close/comment/label/milestone/release/tag.
 - Generated GitHub issue scripts remain human-executed.
-- Issue #39 remains protected historical evidence only.
+- the protected historical reference remains protected historical evidence only.
+

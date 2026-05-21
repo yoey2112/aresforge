@@ -66,4 +66,5 @@ Transition history fields:
 
 ## Protected Historical Issue
 
-Issue #39 is always excluded from active implementation linkage and mutation.
+the protected historical reference is always excluded from active implementation linkage and mutation.
+

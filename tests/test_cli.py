@@ -1316,7 +1316,7 @@ def test_run_local_review_dispatches_without_ollama_routing_or_mutation(
         "skip_reasons": {},
         "artifact_summary": None,
         "evidence_package_summary": None,
-        "boundary_confirmations": ["Issue #39 was not modified."],
+        "boundary_confirmations": ["Protected historical references were not modified by this command."],
         "output_package_path": None,
         "output_package_markdown_path": None,
     }

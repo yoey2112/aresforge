@@ -42,7 +42,7 @@ def automation_readiness_report(config: AppConfig) -> dict[str, Any]:
         "closeout_gates": [
             "qa-review-pr decision must pass",
             "linked issue must include aresforge-ready and aresforge-automerge labels",
-            "linked issue must not be protected Issue #39",
+            "linked issue must not be a protected historical reference",
             "execute mode must be explicit through qa-closeout-pr --execute",
         ],
         "mutation_boundaries": [
@@ -72,7 +72,7 @@ def automation_readiness_report(config: AppConfig) -> dict[str, Any]:
             "Use qa-closeout-pr --execute only after all gates pass and human approval is explicit.",
         ],
         "boundary_confirmations": [
-            "Issue #39 remains protected and excluded.",
+            "Protected historical references remain excluded.",
             "No GitHub mutation was performed by this report command.",
             "No background jobs or polling were performed.",
         ],

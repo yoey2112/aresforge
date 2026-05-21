@@ -118,7 +118,7 @@ def inspect_repo_governance(config: AppConfig) -> dict[str, Any]:
             "Read-only governance inspection only.",
             "No labels, milestones, issues, pull requests, branches, settings, or workflows were mutated.",
             "No background jobs, schedulers, or polling loops were used.",
-            "Issue #39 remains retired historical validation evidence and was not modified.",
+            "Retired historical validation evidence remains protected and was not modified.",
         ],
     }
 
