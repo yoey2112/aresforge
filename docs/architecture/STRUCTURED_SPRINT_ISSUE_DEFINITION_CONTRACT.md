@@ -10,7 +10,7 @@ Define the local structured contract used by `generate-sprint-issue-script` to p
 - Human-triggered and human-executed GitHub mutation only.
 - AresForge command generation does not call `gh issue create`.
 - No autonomous setup, closeout, merge, comments, labels, milestones, releases, or tags.
-- Protected historical Issue #39 remains safety-only and must not be treated as active implementation linkage.
+- Protected historical the protected historical reference remains safety-only and must not be treated as active implementation linkage.
 
 ## Definition Format
 
@@ -64,7 +64,7 @@ Validation fails with actionable messages when it detects:
 - missing acceptance criteria
 - missing validation section
 - nested markdown fences in body text
-- risky Issue #39 references not marked protected historical
+- risky the protected historical reference references not marked protected historical
 - ambiguous linked-issue wording that is not explicit implementation linkage
 - missing read-only and human-gated mutation boundary language
 
@@ -96,7 +96,7 @@ The generated script is an operator artifact.
 Operator responsibilities:
 
 - review generated parent/child bodies
-- confirm protected historical wording for Issue #39 remains safety-only
+- confirm protected historical wording for the protected historical reference remains safety-only
 - execute script manually when approved
 - verify GitHub results manually
 
@@ -116,3 +116,4 @@ Operator responsibilities:
     }
   ]
 }`
+

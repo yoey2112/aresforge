@@ -109,7 +109,7 @@ def demo_managed_repo_governance(config: AppConfig) -> dict[str, Any]:
             "No labels, milestones, issues, pull requests, branches, settings, workflows, artifacts, files, or git state were mutated.",
             "No background jobs, schedulers, daemons, or polling loops were used.",
             "No autonomous GitHub mutation was performed.",
-            "Issue #39 remains retired historical validation evidence and was not modified.",
+            "Retired historical validation evidence remained protected and was not modified.",
         ],
     }
 

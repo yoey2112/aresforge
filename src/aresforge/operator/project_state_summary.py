@@ -61,7 +61,7 @@ def project_state_summary(config: AppConfig) -> dict[str, Any]:
             "Read-only local-first summary only.",
             "No git, file, GitHub issue, PR, label, milestone, or artifact mutation was performed.",
             "No background jobs, polling, or schedulers were used.",
-            "Issue #39 remains historical retired validation evidence and is not modified.",
+            "Retired historical validation evidence remains protected and is not modified.",
         ],
     }
 

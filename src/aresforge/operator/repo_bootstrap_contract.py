@@ -437,13 +437,17 @@ def _evaluate_protected_historical_evidence(governance: dict[str, Any]) -> dict[
     boundary_confirmations = governance.get("boundary_confirmations")
     protected = False
     if isinstance(boundary_confirmations, list):
-        protected = any("Issue #39" in str(item) for item in boundary_confirmations)
+        protected = any(
+            "protected historical" in str(item).lower()
+            or "retired historical validation evidence" in str(item).lower()
+            for item in boundary_confirmations
+        )
     return _status_payload(
         area="protected_historical_evidence_handling",
         requirement_level="required",
         status="satisfied" if protected else "attention_needed",
         summary=(
-            "Protected historical evidence handling is explicitly confirmed for Issue #39."
+            "Protected historical evidence handling is explicitly confirmed."
             if protected
             else "Protected historical evidence handling confirmation was not found in governance output."
         ),

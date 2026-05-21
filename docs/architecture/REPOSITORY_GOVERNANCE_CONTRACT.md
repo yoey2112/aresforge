@@ -67,6 +67,7 @@ This governance layer does not authorize:
 - autonomous label or milestone mutation
 - autonomous merge/closeout
 - hidden background mutation workers
-- Issue #39 mutation
+- the protected historical reference mutation
 
 Human-triggered command recommendations emitted by planning surfaces are guidance only and are never auto-executed by AresForge.
+

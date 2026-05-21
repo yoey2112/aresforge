@@ -62,7 +62,7 @@ _GATE_FIXES = {
     "pr_not_draft": "Mark the PR ready for review before QA validation.",
     "merge_state_clean": "Resolve merge conflicts so the PR is cleanly mergeable.",
     "linked_issue_present": "Link the PR to an expected issue using closing keywords.",
-    "protected_issue_untouched": "Remove any reference to protected Issue #39.",
+    "protected_issue_untouched": "Remove any active implementation linkage to protected historical references.",
     "validation_evidence_present": (
         "Provide validation evidence in the PR body with a recognized validation heading, "
         "at least one concrete command/check, and at least one explicit pass/result signal; "
@@ -483,5 +483,5 @@ def _boundary_confirmations() -> list[str]:
         "No GitHub mutation was performed by this command surface.",
         "No merge, closeout, labeling, or commenting was performed.",
         "No background polling or scheduled behavior was performed.",
-        "Issue #39 was not modified.",
+        "Protected historical references were not modified by this command.",
     ]

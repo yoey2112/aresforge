@@ -1,4 +1,4 @@
-# Hardened Sprint Issue Creation Template
+﻿# Hardened Sprint Issue Creation Template
 
 ## Purpose
 
@@ -22,7 +22,7 @@ Contract details are defined in:
 - No automatic milestone assignment.
 - No automatic issue closeout.
 - No automatic PR merge.
-- Issue #39 remains retired historical validation evidence only and must not be used as active scope.
+- the protected historical reference remains retired historical validation evidence only and must not be used as active scope.
 
 ## Required Contract
 
@@ -178,7 +178,7 @@ Write-Host "Sprint issue creation completed with hardened gates."
 
 ## Operator Checklist
 
-1. Confirm protected scope exclusions, including Issue #39.
+1. Confirm protected scope exclusions, including the protected historical reference.
 2. Build the full issue definition array first.
 3. Write all body files.
 4. Run body-file preflight validation.
@@ -194,4 +194,5 @@ Write-Host "Sprint issue creation completed with hardened gates."
 - If issue URL parsing fails or returns blank, stop immediately; do not continue child creation or parent update.
 - If child counts mismatch expected definitions, stop immediately and block parent update.
 - If final verification fails, preserve local artifacts for operator inspection and rerun only after correction.
+
 

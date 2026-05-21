@@ -43,7 +43,7 @@ def report_batch_readiness(
     warnings = [
         "Closeout, merge, labels, and issue state changes remain human-triggered.",
         "This report is read-only and does not mutate GitHub or repository state.",
-        "Issue #39 remains protected historical evidence and must stay untouched.",
+        "Protected historical references remain protected and must stay untouched.",
     ]
 
     return {

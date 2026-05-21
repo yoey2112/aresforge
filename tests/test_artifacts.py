@@ -81,7 +81,7 @@ def test_prompt_evidence_and_handoff_renderers(tmp_path: Path) -> None:
         files_changed=["src/aresforge/cli.py"],
         validations_run=["python -m pytest"],
         skipped_checks=["Ollama not running"],
-        protected_issue_checks=["Issue #39 left unchanged."],
+        protected_issue_checks=["Protected historical reference left unchanged."],
         automation_boundary_confirmation="No autonomous GitHub actions were used.",
         artifact_discovery={"ok": True, "artifact_count": 1, "artifacts": []},
         latest_review_package={"selected_review_path": "20260520T120003Z-local-review.json"},

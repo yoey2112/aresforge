@@ -1,4 +1,4 @@
-# Runnable Skeleton
+﻿# Runnable Skeleton
 
 ## Purpose
 
@@ -31,8 +31,9 @@ Command entrypoint:
 - Read-only/output-only defaults.
 - Explicit local planning-state writes only when write flags are supplied.
 - No autonomous setup/mutation, merge, closeout, labels, milestones, comments, releases, or tags.
-- Issue #39 is excluded from active planning and mutation scope.
+- the protected historical reference is excluded from active planning and mutation scope.
 
 ## Recommended Post-M11 Follow-Up
 
 - reduce recurring protected historical issue references in active governance/operator paths while retaining historical validation evidence requirements.
+

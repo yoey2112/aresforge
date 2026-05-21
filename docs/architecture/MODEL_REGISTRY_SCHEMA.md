@@ -1,4 +1,4 @@
-# AresForge Model Registry Schema
+﻿# AresForge Model Registry Schema
 
 ## Purpose
 
@@ -372,7 +372,7 @@ They must also preserve the documentation-before-closeout rule:
 
 - update source-of-truth docs inside the same issue lifecycle
 - do not create a separate routine reconciliation issue by default
-- preserve Issue #39 as intentionally open protected validation audit evidence unless a future human-directed issue explicitly changes it
+- preserve the protected historical reference as intentionally open protected validation audit evidence unless a future human-directed issue explicitly changes it
 
 ## Explicit M2 Restrictions
 
@@ -477,3 +477,4 @@ The following questions remain intentionally open after Issue #85:
 - When, if ever, should external hosted providers be introduced, and under which credential and privacy controls?
 - Should the local operator eventually expose a read-only `show-routing-policy` command?
 - How should model deprecation or replacement be surfaced in future operator and dashboard views?
+

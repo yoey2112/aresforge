@@ -72,7 +72,7 @@ def test_inspect_repo_bootstrap_contract_summarizes_required_and_recommended_are
             "warnings": [],
             "boundary_confirmations": [
                 "Read-only governance inspection only.",
-                "Issue #39 remains retired historical validation evidence and was not modified.",
+                "Retired historical validation evidence remains protected and was not modified.",
             ],
         },
     )

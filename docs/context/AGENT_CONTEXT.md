@@ -1,4 +1,4 @@
-# AresForge Agent Context
+﻿# AresForge Agent Context
 
 ## Purpose
 
@@ -39,8 +39,9 @@ Provide the minimum current operating context for safe M11 documentation reconci
 - autonomous setup/mutation behavior
 - autonomous merge/closeout/labeling/milestone assignment
 - autonomous comments/releases/tags
-- Issue #39 mutation
+- the protected historical reference mutation
 
 ## Recommended Follow-Up After M11 Closeout
 
 - Remove recurring protected historical issue references from active governance/operator paths while keeping required historical evidence behavior.
+
