@@ -746,3 +746,19 @@ The following decisions remain intentionally unresolved after this issue:
 - How queue history and handoff audit data should be stored
 - How registry versioning and migration should work if structured storage is later introduced
 - How local-only and external-approved model adapters should share capability metadata
+
+## M6 Addendum
+
+M6 introduces read-only queue intake and orchestration planning plus read-only batch readiness reporting in the runnable CLI:
+
+- `python -m aresforge plan-agent-queue`
+- `python -m aresforge report-batch-readiness`
+
+These commands consume issue metadata, classify queue readiness (`ready`, `attention_needed`, `blocked`), suggest execution ordering and batch groups, and summarize closeout readiness gates for one branch/PR sequence.
+
+They do not mutate queue state, GitHub state, labels, issues, pull requests, or repository settings.
+
+Contract details are documented in:
+
+- `docs/architecture/AGENT_QUEUE_ORCHESTRATION_CONTRACT.md`
+- `docs/architecture/CODEX_BATCH_EXECUTION_WORKFLOW.md`

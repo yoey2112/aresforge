@@ -1,0 +1,19 @@
+{
+  "issues": [
+    {
+      "number": 165,
+      "title": "M6: Define agent queue and orchestration MVP contract",
+      "labels": ["aresforge-ready", "aresforge-automerge"]
+    },
+    {
+      "number": 166,
+      "title": "M6: Design Codex CLI sequential batch runner workflow",
+      "labels": ["aresforge-ready", "aresforge-needs-docs"]
+    },
+    {
+      "number": 169,
+      "title": "M6: Implement queue-driven issue intake and execution planning",
+      "labels": ["aresforge-blocked"]
+    }
+  ]
+}
