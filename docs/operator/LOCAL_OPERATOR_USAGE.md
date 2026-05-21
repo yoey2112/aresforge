@@ -7,6 +7,7 @@
 - `python -m aresforge generate-sprint-issue-script --definition tests/fixtures/m8-sprint-definition.json`
 - `python -m aresforge inspect-planning-state`
 - `python -m aresforge compare-planning-state`
+- `python -m aresforge inspect-closeout-planning-drift --parent-issue <number>`
 - `git diff --check`
 
 ## Structured Sprint Issue Script Generation

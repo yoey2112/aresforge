@@ -100,3 +100,22 @@ def test_cli_dispatch_inspect_and_compare_planning_state(monkeypatch, capsys, tm
     compare_payload = json.loads(capsys.readouterr().out)
     assert compare_exit == 0
     assert compare_payload["ok"] is True
+
+
+def test_cli_dispatch_inspect_closeout_planning_drift(monkeypatch, capsys, tmp_path: Path) -> None:
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: _config(tmp_path))
+    monkeypatch.setattr(
+        cli,
+        "inspect_closeout_planning_drift",
+        lambda _config, parent_issue, planning_state_path: {
+            "command": "inspect-closeout-planning-drift",
+            "ok": True,
+            "parent_issue": parent_issue,
+            "planning_state_path": planning_state_path,
+        },
+    )
+    exit_code = cli.main(["inspect-closeout-planning-drift", "--parent-issue", "210"])
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["command"] == "inspect-closeout-planning-drift"
+    assert payload["parent_issue"] == 210

@@ -31,6 +31,7 @@ def test_cli_help_includes_m6_commands() -> None:
     assert "plan-agent-queue" in help_text
     assert "report-batch-readiness" in help_text
     assert "plan-batch-closeout" in help_text
+    assert "inspect-closeout-planning-drift" in help_text
 
 
 def test_cli_dispatch_plan_agent_queue(
@@ -115,3 +116,25 @@ def test_cli_dispatch_plan_batch_closeout(
     assert exit_code == 0
     assert payload["parent_issue"] == 172
     assert payload["write_planning_snapshot"] is False
+
+
+def test_cli_dispatch_inspect_closeout_planning_drift(
+    monkeypatch,
+    capsys,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: _config(tmp_path))
+    monkeypatch.setattr(
+        cli,
+        "inspect_closeout_planning_drift",
+        lambda _config, parent_issue, planning_state_path: {
+            "command": "inspect-closeout-planning-drift",
+            "ok": True,
+            "parent_issue": parent_issue,
+            "planning_state_path": planning_state_path,
+        },
+    )
+    exit_code = cli.main(["inspect-closeout-planning-drift", "--parent-issue", "210"])
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["parent_issue"] == 210
