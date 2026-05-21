@@ -91,6 +91,21 @@ Human approval is required before:
 
 The local operator workflow may prepare a recommended next action, but the human owner or human-directed implementation prompt must approve execution.
 
+## Hardened Sprint Issue Creation Template Standard
+
+When preparing or executing parent/child sprint issue creation, operators should follow `docs/operator/HARDENED_SPRINT_ISSUE_CREATION_TEMPLATE.md` as the canonical pattern.
+
+That standard requires:
+
+- issue definition array completeness before mutation
+- deterministic body-file generation per declared issue
+- preflight body-file existence and non-empty validation
+- create-result URL validation and number parse validation
+- parent-update gating on complete child-number resolution
+- final verification before temporary artifact cleanup
+
+This remains human-triggered and does not authorize autonomous issue creation, labeling, milestone assignment, closeout, merge, or repository mutation.
+
 ## Allowed Operations
 
 The local operator workflow may be designed to support these non-autonomous operations:
