@@ -43,7 +43,7 @@ $ErrorActionPreference = "Stop"
 
 $Repo = "yoey2112/aresforge"
 $ParentIssueNumber = 172
-$SprintId = "M7"
+$SprintId = "M8"
 $TempRoot = Join-Path $PWD ".tmp/sprint-issue-create-$SprintId"
 $BodiesRoot = Join-Path $TempRoot "bodies"
 
@@ -82,8 +82,8 @@ New-Item -ItemType Directory -Path $BodiesRoot -Force | Out-Null
 $IssueDefinitions = @(
     [pscustomobject]@{
         Key = "dashboard-shell"
-        Title = "M7: Dashboard shell and route scaffolding"
-        BodyPath = Join-Path $BodiesRoot "m7-dashboard-shell.md"
+        Title = "M8: Dashboard shell and route scaffolding"
+        BodyPath = Join-Path $BodiesRoot "m8-dashboard-shell.md"
         Body = @"
 ## Summary
 - Implement the dashboard shell and route scaffolding.
@@ -99,8 +99,8 @@ $IssueDefinitions = @(
     },
     [pscustomobject]@{
         Key = "dashboard-data-contract"
-        Title = "M7: Dashboard data contract and read-only surface"
-        BodyPath = Join-Path $BodiesRoot "m7-dashboard-data-contract.md"
+        Title = "M8: Dashboard data contract and read-only surface"
+        BodyPath = Join-Path $BodiesRoot "m8-dashboard-data-contract.md"
         Body = @"
 ## Summary
 - Define dashboard data contract and read-only data surface.
@@ -194,3 +194,4 @@ Write-Host "Sprint issue creation completed with hardened gates."
 - If issue URL parsing fails or returns blank, stop immediately; do not continue child creation or parent update.
 - If child counts mismatch expected definitions, stop immediately and block parent update.
 - If final verification fails, preserve local artifacts for operator inspection and rerun only after correction.
+

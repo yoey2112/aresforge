@@ -2,25 +2,19 @@
 
 ## Current Phase
 
-M7 - Governance-Aware Issue Intake And Closeout Planning
+M8 - Source-Of-Truth Reconciliation
 
 ## Current Goal
 
-Deliver one coordinated M7 branch that adds:
-
-- governance-aware issue intake and queue planning contract
-- read-only GitHub issue intake adapter for planning surfaces
-- hardened PR-to-issue/body reference classification
-- persisted planning state design for queue workflows
-- read-only parent/child batch closeout planning
-- source-of-truth reconciliation for M7
+Reconcile source-of-truth documentation after merged M8 implementation so current behavior, commands, contracts, and safety boundaries are accurately reflected.
 
 ## Current Repository State
 
-- Current branch target: `m7/remaining-governance-aware-intake-sequence`
-- Parent issue: #172
-- Child issues completed in this sequence: #173, #174, #175, #178, #176, #177
-- Issue #179 is already complete and remains unchanged by this sequence.
+- Current branch target: `m8/source-of-truth-reconciliation`
+- Parent issue: #182
+- M8 implementation issues #183 through #188 were completed in merged PR #190.
+- Reconciliation issue for this branch: #189.
+- Issue #179 remains complete and unchanged.
 - Issue #39 remains retired historical validation evidence only.
 
 ## Current Source Of Truth
@@ -29,20 +23,22 @@ Deliver one coordinated M7 branch that adds:
 - `docs/context/AGENT_CONTEXT.md`
 - `docs/roadmap/ROADMAP.md`
 
-## Current M7 Implemented Operator Additions
+## Current Implemented Operator Additions
 
 - `python -m aresforge plan-agent-queue`
 - `python -m aresforge report-batch-readiness`
 - `python -m aresforge plan-batch-closeout --parent-issue <number>`
+- `python -m aresforge generate-sprint-issue-script --definition <file>`
 
-All surfaces are read-only, human-reviewable, and do not mutate GitHub state.
+All commands are human-triggered. Planning/reporting/generation defaults remain read-only or output-only unless a human explicitly executes separate mutation commands.
 
 ## Boundaries
 
 Allowed:
 
 - human-triggered local commands
-- read-only issue intake, planning, and closeout-readiness planning
+- read-only issue intake, planning, readiness, and closeout-readiness planning
+- output-only local sprint script generation from structured definition
 - explicit diagnostics and recovery signals
 
 Not authorized:
@@ -50,4 +46,5 @@ Not authorized:
 - autonomous queue mutation
 - autonomous setup/mutation behavior
 - autonomous merge, closeout, issue closure, or label mutation
+- autonomous milestone assignment, comments, releases, or tags
 - mutation of Issue #39

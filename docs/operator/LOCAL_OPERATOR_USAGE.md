@@ -7,9 +7,10 @@
 - `python -m aresforge plan-agent-queue --help`
 - `python -m aresforge report-batch-readiness --help`
 - `python -m aresforge plan-batch-closeout --help`
+- `python -m aresforge generate-sprint-issue-script --help`
 - `git diff --check`
 
-## M7 Governance-Aware Queue Planning
+## Governance-Aware Queue Planning
 
 Read-only intake/planning:
 
@@ -19,15 +20,15 @@ Read-only intake/planning:
 
 Outputs include normalized issue metadata, safe reference classification, readiness grouping, and persisted planning-state design metadata.
 
-## M7 Batch Closeout Planning
+## Batch Closeout Planning
 
 Read-only parent/child closeout planning:
 
-- `python -m aresforge plan-batch-closeout --parent-issue 172`
+- `python -m aresforge plan-batch-closeout --parent-issue 182`
 
-Outputs include completed child issues, open/blocked children, protected exclusions, merge-evidence signals, and human-gated closeout guidance.
+Outputs include completed child issues, open/blocked children, protected exclusions, merged PR evidence detection, structured `evidence_report` data, and human-gated closeout guidance.
 
-## M8 Structured Sprint Issue Script Generation
+## Structured Sprint Issue Script Generation
 
 Read-only script generation from structured local definition:
 
@@ -37,7 +38,7 @@ Read-only script generation from structured local definition:
 Outputs include validation diagnostics and a local PowerShell script artifact.
 The command does not call `gh issue create` and does not mutate GitHub.
 
-## M7 Batch Readiness Reporting
+## Batch Readiness Reporting
 
 Read-only multi-issue readiness summary:
 
@@ -47,7 +48,8 @@ Read-only multi-issue readiness summary:
 ## Boundaries
 
 - Commands remain human-triggered.
-- Intake, queue planning, and closeout planning remain read-only.
+- Intake, queue planning, readiness reporting, and closeout planning remain read-only.
+- Sprint issue script generation remains output-only.
 - No autonomous merge/closeout/setup/queue mutation.
 - Issue #39 remains protected historical evidence only.
 - Issue #179 remains complete and unchanged.
