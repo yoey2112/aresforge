@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Describe the human-triggered local operator surface with M7 governance-aware intake and closeout planning additions.
+Describe the human-triggered local operator surface with M8 governance-aware planning, closeout evidence reporting, and structured sprint issue generation additions.
 
 ## Operator Shape
 
@@ -10,12 +10,12 @@ Command entrypoint:
 
 - `python -m aresforge`
 
-## M7 Additions
+## Current Additions
 
 - `plan-agent-queue`: read-only governance-aware intake and queue planning contract.
 - `report-batch-readiness`: read-only multi-issue validation and closeout readiness summary.
-- `plan-batch-closeout`: read-only parent/child closeout readiness planning.
-- `generate-sprint-issue-script`: read-only local PowerShell sprint issue creation script generation from structured definition.
+- `plan-batch-closeout`: read-only parent/child closeout readiness planning with structured evidence reporting.
+- `generate-sprint-issue-script`: read-only/output-only local PowerShell sprint issue creation script generation from structured definition.
 
 ## Existing Closeout Posture
 
@@ -28,5 +28,6 @@ Command entrypoint:
 - Human-triggered only.
 - Read-only-first defaults.
 - No autonomous setup/mutation, merge, or closeout.
+- No autonomous labels, milestones, comments, releases, or tags.
 - Issue #39 is excluded from active planning and mutation scope.
 - Issue #179 remains complete and unchanged.

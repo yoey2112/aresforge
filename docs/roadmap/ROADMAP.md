@@ -8,7 +8,7 @@ Status: Completed.
 
 ### M7 - Governance-Aware Intake And Closeout Planning
 
-Status: Implemented in branch sequence, pending human merge/closeout.
+Status: Completed.
 
 Child issues:
 
@@ -27,7 +27,30 @@ Outcomes delivered:
 - Read-only parent/child closeout planning via `plan-batch-closeout`.
 - Reconciled architecture/operator/context documentation for M7.
 
-### M8+
+### M8 - Hardened Sprint Planning And Closeout Evidence Workflows
+
+Status: Implementation complete (#183-#188 via merged PR #190); source-of-truth reconciliation in progress (#189).
+
+Child issues:
+
+- #183 improve closeout planner merged PR evidence handling
+- #184 harden readiness classification
+- #185 structured `evidence_report` output for `plan-batch-closeout`
+- #186 structured sprint issue definition contract documentation
+- #187 read-only/output-only sprint issue generation command
+- #188 generated issue body safety validation
+- #189 source-of-truth reconciliation
+
+Outcomes delivered:
+
+- Improved closeout planner merged PR evidence handling.
+- Hardened readiness classification.
+- Structured `evidence_report` output for `plan-batch-closeout`.
+- Structured sprint issue definition contract documentation.
+- New read-only/output-only command: `python -m aresforge generate-sprint-issue-script --definition <file>`.
+- Generated issue body safety validation for safety posture, linkage clarity, and mutation-boundary language.
+
+### M9+
 
 Remain as previously planned: dashboard maturity, multi-project support, routing deepening, and controlled governance evolution.
 
@@ -36,5 +59,6 @@ Remain as previously planned: dashboard maturity, multi-project support, routing
 - No autonomous setup/mutation behavior.
 - No autonomous queue mutation.
 - No autonomous merge/issue closure.
+- No autonomous labels, milestones, comments, releases, or tags.
 - Issue #39 remains retired historical validation evidence only.
 - Issue #179 remains complete and unchanged.
