@@ -15,6 +15,7 @@ Command entrypoint:
 - `plan-agent-queue`: read-only governance-aware intake and queue planning contract.
 - `report-batch-readiness`: read-only multi-issue validation and closeout readiness summary.
 - `plan-batch-closeout`: read-only parent/child closeout readiness planning.
+- `generate-sprint-issue-script`: read-only local PowerShell sprint issue creation script generation from structured definition.
 
 ## Existing Closeout Posture
 

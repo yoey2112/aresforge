@@ -25,6 +25,10 @@ SAFETY_REFERENCE_PATTERNS: tuple[re.Pattern[str], ...] = (
 )
 
 GENERIC_REFERENCE_PATTERN = re.compile(r"#(?P<number>\d+)\b")
+EXPLICIT_IMPLEMENTATION_LINE_PATTERN = re.compile(
+    r"^\s*(?:[-*]\s*)?(?:part\s+of|implements|linked\s+issue|parent\s+issue|closes|fixes|resolves)\b",
+    re.IGNORECASE,
+)
 
 
 def _run_gh_command(args: list[str]) -> tuple[int, str, str]:
@@ -99,6 +103,8 @@ def classify_issue_references(body: str | None) -> dict[str, Any]:
     text = body or ""
     safety_numbers: set[int] = set()
     implementation_numbers: set[int] = set()
+    explicit_implementation_numbers: set[int] = set()
+    incidental_reference_numbers: set[int] = set()
 
     for pattern in SAFETY_REFERENCE_PATTERNS:
         for match in pattern.finditer(text):
@@ -112,8 +118,21 @@ def classify_issue_references(body: str | None) -> dict[str, Any]:
 
     for match in GENERIC_REFERENCE_PATTERN.finditer(text):
         number = int(match.group("number"))
+        if number not in implementation_numbers and number not in safety_numbers:
+            incidental_reference_numbers.add(number)
         if number == PROTECTED_ISSUE_NUMBER and number not in implementation_numbers:
             safety_numbers.add(number)
+
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not line or not EXPLICIT_IMPLEMENTATION_LINE_PATTERN.search(line):
+            continue
+        for match in GENERIC_REFERENCE_PATTERN.finditer(line):
+            number = int(match.group("number"))
+            if number not in safety_numbers:
+                explicit_implementation_numbers.add(number)
+                implementation_numbers.add(number)
+            incidental_reference_numbers.discard(number)
 
     protected_in_impl = PROTECTED_ISSUE_NUMBER in implementation_numbers
     if PROTECTED_ISSUE_NUMBER in safety_numbers and protected_in_impl:
@@ -134,6 +153,8 @@ def classify_issue_references(body: str | None) -> dict[str, Any]:
 
     return {
         "implementation_issue_numbers": sorted(implementation_numbers),
+        "explicit_implementation_issue_numbers": sorted(explicit_implementation_numbers),
+        "incidental_reference_issue_numbers": sorted(incidental_reference_numbers),
         "safety_or_historical_issue_numbers": sorted(safety_numbers),
         "protected_issue_excluded_from_implementation": PROTECTED_ISSUE_NUMBER in safety_numbers,
         "contains_protected_issue_implementation_link": protected_in_impl,
@@ -178,8 +199,37 @@ def normalize_issue_for_planning(raw_issue: dict[str, Any]) -> dict[str, Any]:
         "body": body,
         "reference_classification": references,
         "detectable_parent_child_references": references["parent_child_references"],
+        "merged_pr_evidence": _normalize_closed_by_pull_requests(
+            raw_issue.get("closedByPullRequestsReferences")
+        ),
         "is_protected_issue": protected,
     }
+
+
+def _normalize_closed_by_pull_requests(raw_items: Any) -> list[dict[str, Any]]:
+    if not isinstance(raw_items, list):
+        return []
+    normalized: list[dict[str, Any]] = []
+    for item in raw_items:
+        if not isinstance(item, dict):
+            continue
+        merged = item.get("mergedAt")
+        if not isinstance(merged, str) or not merged.strip():
+            continue
+        number = item.get("number")
+        if not isinstance(number, int):
+            continue
+        normalized.append(
+            {
+                "number": number,
+                "url": item.get("url"),
+                "title": item.get("title"),
+                "state": item.get("state"),
+                "merged_at": merged,
+            }
+        )
+    normalized.sort(key=lambda entry: entry["number"])
+    return normalized
 
 
 def list_ready_issues(config: AppConfig) -> dict[str, Any]:
@@ -301,7 +351,10 @@ def fetch_issue_details(config: AppConfig, issue_number: int) -> dict[str, Any]:
         "--repo",
         _repo_slug(config),
         "--json",
-        "number,title,state,url,labels,createdAt,updatedAt,author,assignees,milestone,body",
+        (
+            "number,title,state,url,labels,createdAt,updatedAt,author,assignees,milestone,body,"
+            "closedByPullRequestsReferences"
+        ),
     ]
     code, stdout, stderr = _run_gh_command(args)
     if code != 0:

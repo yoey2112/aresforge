@@ -1,4 +1,4 @@
-import json
+﻿import json
 from pathlib import Path
 
 import pytest
@@ -190,6 +190,18 @@ def test_classify_issue_references_excludes_protected_safety_reference() -> None
     assert payload["safety_or_historical_issue_numbers"] == [39]
     assert payload["protected_issue_excluded_from_implementation"] is True
     assert payload["parent_child_references"]["parent_issue_numbers"] == [172]
+    assert payload["explicit_implementation_issue_numbers"] == [172, 173]
+
+
+def test_classify_issue_references_tracks_explicit_vs_incidental_links() -> None:
+    body = (
+        "Implementation notes mention #188 for context only.\n"
+        "Part of #182\n"
+        "Linked issue: #183\n"
+    )
+    payload = classify_issue_references(body)
+    assert payload["explicit_implementation_issue_numbers"] == [182, 183]
+    assert payload["incidental_reference_issue_numbers"] == [188]
 
 
 def test_normalize_issue_for_planning_handles_missing_partial_metadata() -> None:

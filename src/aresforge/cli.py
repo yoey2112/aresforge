@@ -43,6 +43,7 @@ from aresforge.operator.agent_queue_planning import plan_agent_queue
 from aresforge.operator.automation_readiness_report import automation_readiness_report
 from aresforge.operator.batch_readiness_report import report_batch_readiness
 from aresforge.operator.batch_closeout_planner import plan_batch_closeout
+from aresforge.operator.sprint_issue_script_generator import generate_sprint_issue_script
 from aresforge.operator.inspection_reports import (
     render_queue_inspection_report,
     render_work_item_inspection_report,
@@ -273,6 +274,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Generate a read-only parent/child issue closeout readiness plan.",
     )
     batch_closeout_parser.add_argument("--parent-issue", type=int, required=True)
+    sprint_issue_script_parser = subparsers.add_parser(
+        "generate-sprint-issue-script",
+        help="Generate a read-only PowerShell sprint issue creation script from a local JSON definition.",
+    )
+    sprint_issue_script_parser.add_argument("--definition", required=True)
+    sprint_issue_script_parser.add_argument("--output")
     subparsers.add_parser(
         "project-state-summary",
         help="Emit a local-first read-only project state summary with graceful degradation.",
@@ -678,6 +685,14 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "plan-batch-closeout":
         payload = plan_batch_closeout(config, parent_issue=args.parent_issue)
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "generate-sprint-issue-script":
+        payload = generate_sprint_issue_script(
+            definition_path=args.definition,
+            output_path=args.output,
+        )
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 
