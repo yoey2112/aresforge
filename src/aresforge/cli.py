@@ -43,6 +43,7 @@ from aresforge.operator.agent_queue_planning import plan_agent_queue
 from aresforge.operator.automation_readiness_report import automation_readiness_report
 from aresforge.operator.batch_readiness_report import report_batch_readiness
 from aresforge.operator.batch_closeout_planner import plan_batch_closeout
+from aresforge.operator.closeout_planning_drift import inspect_closeout_planning_drift
 from aresforge.operator.sprint_issue_script_generator import generate_sprint_issue_script
 from aresforge.operator.planning_state import (
     compare_planning_state,
@@ -316,6 +317,15 @@ def build_parser() -> argparse.ArgumentParser:
         help="Compare local planning state for drift without writing local files or mutating GitHub.",
     )
     compare_planning_parser.add_argument(
+        "--planning-state-path",
+        help="Optional local planning state path override (defaults to .aresforge/planning-state.json).",
+    )
+    closeout_planning_drift_parser = subparsers.add_parser(
+        "inspect-closeout-planning-drift",
+        help="Compare planned child issues against live closeout discovery without mutating local or GitHub state.",
+    )
+    closeout_planning_drift_parser.add_argument("--parent-issue", type=int, required=True)
+    closeout_planning_drift_parser.add_argument(
         "--planning-state-path",
         help="Optional local planning state path override (defaults to .aresforge/planning-state.json).",
     )
@@ -752,6 +762,16 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "compare-planning-state":
         path = resolve_planning_state_path(config=config, path_override=args.planning_state_path)
         payload = compare_planning_state(path=path)
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-closeout-planning-drift":
+        path = resolve_planning_state_path(config=config, path_override=args.planning_state_path)
+        payload = inspect_closeout_planning_drift(
+            config,
+            parent_issue=args.parent_issue,
+            planning_state_path=str(path),
+        )
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 

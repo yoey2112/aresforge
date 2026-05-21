@@ -18,6 +18,7 @@ Command entrypoint:
 - `generate-sprint-issue-script`: output-only by default; optional explicit local planning write.
 - `inspect-planning-state`: read-only local planning-state summary.
 - `compare-planning-state`: read-only local planning-state drift comparison.
+- `inspect-closeout-planning-drift`: read-only planning-state vs live closeout child discovery comparison.
 
 ## Automation Boundary
 

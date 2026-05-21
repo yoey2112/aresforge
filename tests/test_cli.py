@@ -44,6 +44,7 @@ def test_cli_has_expected_commands() -> None:
         "plan-repo-bootstrap",
         "demo-managed-repo-governance",
         "plan-batch-closeout",
+        "inspect-closeout-planning-drift",
         "qa-review-pr",
         "qa-closeout-pr",
         "validate-pr-end-to-end",
@@ -164,6 +165,11 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     plan_batch_closeout_args = parser.parse_args(["plan-batch-closeout", "--parent-issue", "172"])
     assert plan_batch_closeout_args.command == "plan-batch-closeout"
     assert plan_batch_closeout_args.parent_issue == 172
+    inspect_closeout_planning_drift_args = parser.parse_args(
+        ["inspect-closeout-planning-drift", "--parent-issue", "172"]
+    )
+    assert inspect_closeout_planning_drift_args.command == "inspect-closeout-planning-drift"
+    assert inspect_closeout_planning_drift_args.parent_issue == 172
     qa_review_args = parser.parse_args(["qa-review-pr", "--pr-number", "118"])
     assert qa_review_args.pr_number == 118
     qa_closeout_args = parser.parse_args(["qa-closeout-pr", "--pr-number", "119"])
@@ -394,6 +400,12 @@ def test_command_requires_directories_only_for_commands_that_write_artifacts() -
     assert (
         command_requires_directories(
             parser.parse_args(["plan-batch-closeout", "--parent-issue", "172"])
+        )
+        is False
+    )
+    assert (
+        command_requires_directories(
+            parser.parse_args(["inspect-closeout-planning-drift", "--parent-issue", "172"])
         )
         is False
     )
