@@ -1,6 +1,7 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import json
+import re
 import subprocess
 from typing import Any
 
@@ -9,6 +10,21 @@ from aresforge.config import AppConfig
 
 READY_TRIGGER_LABEL = "aresforge-ready"
 PROTECTED_ISSUE_NUMBER = 39
+
+IMPLEMENTATION_REFERENCE_PATTERNS: tuple[re.Pattern[str], ...] = (
+    re.compile(r"\b(?:closes|fixes|resolves|implements)\s+#(?P<number>\d+)\b", re.IGNORECASE),
+    re.compile(r"\b(?:parent\s+issue|linked\s+issue)\s*:\s*#(?P<number>\d+)\b", re.IGNORECASE),
+)
+
+SAFETY_REFERENCE_PATTERNS: tuple[re.Pattern[str], ...] = (
+    re.compile(r"\bdo\s+not\s+modify\s+issue\s+#(?P<number>\d+)\b", re.IGNORECASE),
+    re.compile(r"\bissue\s+#(?P<number>\d+)\s+remains\s+protected\b", re.IGNORECASE),
+    re.compile(r"\bdoes\s+not\s+close\s+issue\s+#(?P<number>\d+)\b", re.IGNORECASE),
+    re.compile(r"\bhistorical\s+validation\s+evidence\s+only\s*:\s*#(?P<number>\d+)\b", re.IGNORECASE),
+    re.compile(r"\bprotected\s+issue\s*:\s*#(?P<number>\d+)\b", re.IGNORECASE),
+)
+
+GENERIC_REFERENCE_PATTERN = re.compile(r"#(?P<number>\d+)\b")
 
 
 def _run_gh_command(args: list[str]) -> tuple[int, str, str]:
@@ -77,6 +93,93 @@ def _boundary_confirmations() -> list[str]:
         "No background polling or scheduled behavior was performed.",
         "Issue #39 was not modified.",
     ]
+
+
+def classify_issue_references(body: str | None) -> dict[str, Any]:
+    text = body or ""
+    safety_numbers: set[int] = set()
+    implementation_numbers: set[int] = set()
+
+    for pattern in SAFETY_REFERENCE_PATTERNS:
+        for match in pattern.finditer(text):
+            safety_numbers.add(int(match.group("number")))
+
+    for pattern in IMPLEMENTATION_REFERENCE_PATTERNS:
+        for match in pattern.finditer(text):
+            number = int(match.group("number"))
+            if number not in safety_numbers:
+                implementation_numbers.add(number)
+
+    for match in GENERIC_REFERENCE_PATTERN.finditer(text):
+        number = int(match.group("number"))
+        if number == PROTECTED_ISSUE_NUMBER and number not in implementation_numbers:
+            safety_numbers.add(number)
+
+    protected_in_impl = PROTECTED_ISSUE_NUMBER in implementation_numbers
+    if PROTECTED_ISSUE_NUMBER in safety_numbers and protected_in_impl:
+        implementation_numbers.discard(PROTECTED_ISSUE_NUMBER)
+
+    parent_child = {
+        "parent_issue_numbers": sorted(
+            number
+            for number in implementation_numbers
+            if re.search(rf"\bparent\s+issue\s*:\s*#{number}\b", text, re.IGNORECASE)
+        ),
+        "linked_issue_numbers": sorted(
+            number
+            for number in implementation_numbers
+            if re.search(rf"\blinked\s+issue\s*:\s*#{number}\b", text, re.IGNORECASE)
+        ),
+    }
+
+    return {
+        "implementation_issue_numbers": sorted(implementation_numbers),
+        "safety_or_historical_issue_numbers": sorted(safety_numbers),
+        "protected_issue_excluded_from_implementation": PROTECTED_ISSUE_NUMBER in safety_numbers,
+        "contains_protected_issue_implementation_link": protected_in_impl,
+        "parent_child_references": parent_child,
+    }
+
+
+def normalize_issue_for_planning(raw_issue: dict[str, Any]) -> dict[str, Any]:
+    labels = _normalize_label_names(raw_issue.get("labels"))
+    body = raw_issue.get("body") if isinstance(raw_issue.get("body"), str) else ""
+
+    assignees_raw = raw_issue.get("assignees")
+    assignees: list[str] = []
+    if isinstance(assignees_raw, list):
+        for entry in assignees_raw:
+            if isinstance(entry, dict) and isinstance(entry.get("login"), str):
+                assignees.append(entry["login"])
+    assignees = sorted(set(assignees), key=lambda login: (login.lower(), login))
+
+    milestone_raw = raw_issue.get("milestone")
+    milestone: dict[str, Any] | None = None
+    if isinstance(milestone_raw, dict):
+        milestone = {
+            "number": milestone_raw.get("number"),
+            "title": milestone_raw.get("title"),
+            "url": milestone_raw.get("url"),
+        }
+
+    references = classify_issue_references(body)
+
+    issue_number = raw_issue.get("number")
+    protected = issue_number == PROTECTED_ISSUE_NUMBER
+
+    return {
+        "number": issue_number,
+        "title": raw_issue.get("title"),
+        "state": raw_issue.get("state"),
+        "url": raw_issue.get("url"),
+        "labels": labels,
+        "milestone": milestone,
+        "assignees": assignees,
+        "body": body,
+        "reference_classification": references,
+        "detectable_parent_child_references": references["parent_child_references"],
+        "is_protected_issue": protected,
+    }
 
 
 def list_ready_issues(config: AppConfig) -> dict[str, Any]:
@@ -220,27 +323,14 @@ def fetch_issue_details(config: AppConfig, issue_number: int) -> dict[str, Any]:
     if not isinstance(raw_issue, dict):
         return _error_payload(config=config, error="issue_not_found")
 
-    labels = _normalize_label_names(raw_issue.get("labels"))
-    state = raw_issue.get("state")
-    author = raw_issue.get("author")
-    author_login = author.get("login") if isinstance(author, dict) else None
-
-    assignees_raw = raw_issue.get("assignees")
-    assignees: list[str] = []
-    if isinstance(assignees_raw, list):
-        for entry in assignees_raw:
-            if isinstance(entry, dict) and isinstance(entry.get("login"), str):
-                assignees.append(entry["login"])
-    assignees = sorted(set(assignees), key=lambda login: (login.lower(), login))
-
-    milestone_raw = raw_issue.get("milestone")
-    milestone: dict[str, Any] | None = None
-    if isinstance(milestone_raw, dict):
-        milestone = {
-            "number": milestone_raw.get("number"),
-            "title": milestone_raw.get("title"),
-            "url": milestone_raw.get("url"),
-        }
+    normalized = normalize_issue_for_planning(raw_issue)
+    normalized["author"] = (
+        raw_issue.get("author", {}).get("login")
+        if isinstance(raw_issue.get("author"), dict)
+        else None
+    )
+    normalized["created_at"] = raw_issue.get("createdAt")
+    normalized["updated_at"] = raw_issue.get("updatedAt")
 
     return {
         "ok": True,
@@ -248,18 +338,42 @@ def fetch_issue_details(config: AppConfig, issue_number: int) -> dict[str, Any]:
         "repo": _repo_slug(config),
         "ready_label": READY_TRIGGER_LABEL,
         "protected_issue": PROTECTED_ISSUE_NUMBER,
-        "issue": {
-            "number": raw_issue.get("number"),
-            "title": raw_issue.get("title"),
-            "state": state,
-            "url": raw_issue.get("url"),
-            "labels": labels,
-            "author": author_login,
-            "assignees": assignees,
-            "milestone": milestone,
-            "created_at": raw_issue.get("createdAt"),
-            "updated_at": raw_issue.get("updatedAt"),
-            "body": raw_issue.get("body"),
-        },
+        "issue": normalized,
+        "boundary_confirmations": _boundary_confirmations(),
+    }
+
+
+def fetch_issue_batch_for_planning(config: AppConfig, issue_numbers: list[int]) -> dict[str, Any]:
+    normalized_numbers = sorted(set(number for number in issue_numbers if isinstance(number, int)))
+    issues: list[dict[str, Any]] = []
+    excluded: list[dict[str, Any]] = []
+    warnings: list[dict[str, Any]] = []
+
+    for number in normalized_numbers:
+        if number == PROTECTED_ISSUE_NUMBER:
+            excluded.append({"number": number, "reason": "protected_issue"})
+            continue
+        details = fetch_issue_details(config, number)
+        if not details.get("ok"):
+            warnings.append(
+                {
+                    "issue_number": number,
+                    "error": details.get("error", "unknown_error"),
+                    "details": details.get("details"),
+                }
+            )
+            continue
+        issue = details.get("issue")
+        if isinstance(issue, dict):
+            issues.append(issue)
+
+    return {
+        "ok": True,
+        "inspection_mode": "github_read_only",
+        "repo": _repo_slug(config),
+        "requested_issue_numbers": normalized_numbers,
+        "issues": issues,
+        "excluded_issues": excluded,
+        "warnings": warnings,
         "boundary_confirmations": _boundary_confirmations(),
     }

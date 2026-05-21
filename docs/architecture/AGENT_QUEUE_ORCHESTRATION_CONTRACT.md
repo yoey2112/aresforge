@@ -1,8 +1,8 @@
-# Agent Queue And Orchestration MVP Contract (M6)
+﻿# Agent Queue And Orchestration Contract (M7)
 
 ## Purpose
 
-Define a human-supervised queue contract for issue intake and execution planning without autonomous mutation.
+Define a human-supervised governance-aware intake and queue planning contract without autonomous mutation.
 
 ## Queue Item Identity And Required Fields
 
@@ -20,33 +20,42 @@ Each queue item is derived from one issue and includes:
 - `attention_reasons`
 - `recommended_next_step`
 - `batch_group`
+- `planning_state`
 
-## Issue-To-Queue Mapping
+## Governance-Aware Intake Boundary
 
-- Missing `aresforge-ready` or explicit blocked markers route to `queue-blocked`.
-- Ready but attention-needed items route to planning-level follow-up.
-- Fully ready items route to implementation planning.
+Planning intake is split into explicit stages:
 
-## Lifecycle And Readiness
+- Issue discovery: read-only issue listing/view or deterministic local issue file.
+- Issue classification: normalize metadata and classify implementation references vs safety/historical references.
+- Queue planning: map each issue to readiness and execution guidance.
+- Persisted planning state design: expose state + transition-history design fields for inspection/reporting only.
+- Batch closeout planning: read-only parent/child readiness checks.
+- Closeout execution: explicitly out of scope and human-gated.
 
-- Ready: safe to include in the active branch sequence with human review.
-- Attention-needed: requires explicit pre-work clarification/evidence/docs before implementation.
-- Blocked: must not advance until blockers are resolved.
+## Persisted Planning State Design
 
-## Planning Inputs And Outputs
+State vocabulary:
 
-Inputs:
+- `queued`
+- `planned`
+- `ready`
+- `blocked`
+- `in_progress`
+- `review_pending`
+- `closeout_ready`
+- `closed`
+- `skipped`
 
-- issue identity/title/labels
-- protected issue exclusion policy
-- queue/readiness classification rules
+Transition history fields:
 
-Outputs:
-
-- queue item list
-- readiness classification
-- recommended execution order
-- suggested batch groups
+- `work_item_identifier`
+- `previous_state`
+- `new_state`
+- `timestamp`
+- `reason`
+- `actor_or_command_source`
+- `read_only_evidence_references`
 
 ## Orchestration Boundaries
 
@@ -55,12 +64,6 @@ Outputs:
 - No background scheduler/poller.
 - Human review gates are mandatory before implementation/validation/closeout transitions.
 
-## Human Review Gates
-
-- Scope confirmation before work starts.
-- Validation evidence confirmation before closeout readiness.
-- Documentation reconciliation before final closeout.
-
 ## Protected Historical Issue
 
-Issue #39 is always excluded from queue execution and mutation.
+Issue #39 is always excluded from active implementation linkage and mutation.

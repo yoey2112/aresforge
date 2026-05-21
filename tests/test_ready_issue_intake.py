@@ -8,6 +8,9 @@ from aresforge.operator import ready_issue_intake
 from aresforge.operator.ready_issue_intake import (
     PROTECTED_ISSUE_NUMBER,
     READY_TRIGGER_LABEL,
+    classify_issue_references,
+    fetch_issue_batch_for_planning,
+    normalize_issue_for_planning,
 )
 
 
@@ -172,3 +175,69 @@ def test_inspect_ready_issue_returns_issue_details(
     assert payload["issue"]["assignees"] == ["octocat", "yoey2112"]
     assert payload["issue"]["milestone"]["number"] == 2
     assert json.loads(json.dumps(payload)) == payload
+
+
+def test_classify_issue_references_excludes_protected_safety_reference() -> None:
+    body = (
+        "Implements #173\n"
+        "Parent issue: #172\n"
+        "Do not modify Issue #39.\n"
+        "Historical validation evidence only: #39.\n"
+    )
+    payload = classify_issue_references(body)
+
+    assert payload["implementation_issue_numbers"] == [172, 173]
+    assert payload["safety_or_historical_issue_numbers"] == [39]
+    assert payload["protected_issue_excluded_from_implementation"] is True
+    assert payload["parent_child_references"]["parent_issue_numbers"] == [172]
+
+
+def test_normalize_issue_for_planning_handles_missing_partial_metadata() -> None:
+    payload = normalize_issue_for_planning(
+        {
+            "number": 174,
+            "title": "Intake adapter",
+            "state": "OPEN",
+            "labels": None,
+            "assignees": [{}],
+            "milestone": None,
+            "body": "Linked issue: #175",
+        }
+    )
+
+    assert payload["number"] == 174
+    assert payload["labels"] == []
+    assert payload["assignees"] == []
+    assert payload["milestone"] is None
+    assert payload["reference_classification"]["implementation_issue_numbers"] == [175]
+
+
+def test_fetch_issue_batch_for_planning_excludes_protected_issue(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    config = make_config(tmp_path)
+    raw_issue = {
+        "number": 174,
+        "title": "Intake adapter",
+        "state": "OPEN",
+        "url": "https://github.com/example/174",
+        "labels": [{"name": READY_TRIGGER_LABEL}],
+        "createdAt": "2026-05-20T00:00:00Z",
+        "updatedAt": "2026-05-20T01:00:00Z",
+        "author": {"login": "yoey2112"},
+        "assignees": [],
+        "milestone": None,
+        "body": "Implements #173",
+    }
+
+    def fake_run(args: list[str]) -> tuple[int, str, str]:
+        if args[:2] == ["issue", "view"] and args[2] == "174":
+            return 0, json.dumps(raw_issue), ""
+        return 1, "", "unexpected"
+
+    monkeypatch.setattr(ready_issue_intake, "_run_gh_command", fake_run)
+    payload = fetch_issue_batch_for_planning(config, [39, 174])
+
+    assert payload["ok"] is True
+    assert payload["excluded_issues"] == [{"number": 39, "reason": "protected_issue"}]
+    assert [item["number"] for item in payload["issues"]] == [174]

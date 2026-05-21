@@ -59,9 +59,15 @@ def test_plan_agent_queue_from_local_issues_file(tmp_path: Path) -> None:
 
     assert payload["ok"] is True
     assert payload["input_mode"] == "issues_file"
+    assert payload["queue_contract_version"] == "m7-governance-aware-intake"
     assert payload["excluded_issues"] == [{"number": 39, "reason": "protected_issue"}]
     assert [item["issue_number"] for item in payload["queue_items"]] == [165, 166, 169]
     assert payload["queue_items"][0]["readiness"] == "ready"
+    assert payload["queue_items"][0]["planning_state"] == "ready"
     assert payload["queue_items"][1]["readiness"] == "attention_needed"
+    assert payload["queue_items"][1]["planning_state"] == "planned"
     assert payload["queue_items"][2]["readiness"] == "blocked"
+    assert payload["queue_items"][2]["planning_state"] == "blocked"
+    assert payload["persisted_planning_state_design"]["mutation_posture"] == "read_only_design_only"
+    assert payload["persisted_planning_state_design"]["states"][0] == "queued"
     assert json.loads(json.dumps(payload)) == payload

@@ -42,6 +42,7 @@ from aresforge.operator.artifact_discovery import (
 from aresforge.operator.agent_queue_planning import plan_agent_queue
 from aresforge.operator.automation_readiness_report import automation_readiness_report
 from aresforge.operator.batch_readiness_report import report_batch_readiness
+from aresforge.operator.batch_closeout_planner import plan_batch_closeout
 from aresforge.operator.inspection_reports import (
     render_queue_inspection_report,
     render_work_item_inspection_report,
@@ -267,6 +268,11 @@ def build_parser() -> argparse.ArgumentParser:
         default=[],
         help="Validation command evidence entry. May be provided multiple times.",
     )
+    batch_closeout_parser = subparsers.add_parser(
+        "plan-batch-closeout",
+        help="Generate a read-only parent/child issue closeout readiness plan.",
+    )
+    batch_closeout_parser.add_argument("--parent-issue", type=int, required=True)
     subparsers.add_parser(
         "project-state-summary",
         help="Emit a local-first read-only project state summary with graceful degradation.",
@@ -669,6 +675,11 @@ def main(argv: list[str] | None = None) -> int:
             )
         )
         return 0
+
+    if args.command == "plan-batch-closeout":
+        payload = plan_batch_closeout(config, parent_issue=args.parent_issue)
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
 
     if args.command == "project-state-summary":
         emit_json(project_state_summary(config))
