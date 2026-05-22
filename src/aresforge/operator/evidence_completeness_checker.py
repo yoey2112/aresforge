@@ -155,10 +155,14 @@ def _classify_issue(issue: dict[str, Any]) -> tuple[str, list[str]]:
 
     merged_prs = issue.get("merged_pr_evidence") if isinstance(issue.get("merged_pr_evidence"), list) else []
     explicit_mapping = _has_explicit_mapping(issue)
+    mapping_conflict = _has_conflicting_evidence_mapping(issue)
     historical = _has_historical_or_protected(issue)
     lineage_refs = (issue.get("reference_classification") or {}).get("implementation_issue_numbers")
     if not isinstance(lineage_refs, list) or not lineage_refs:
         return STATE_BLOCKED, ["missing_issue_lineage_references"]
+
+    if mapping_conflict:
+        return STATE_BLOCKED, ["conflicting_or_ambiguous_structured_evidence_mapping"]
 
     if merged_prs and explicit_mapping:
         reasons.extend(["merged_pr_evidence_present", "explicit_issue_mapping_present"])
@@ -181,8 +185,22 @@ def _has_explicit_mapping(issue: dict[str, Any]) -> bool:
     body = issue.get("body")
     if isinstance(body, str) and _MAPPING_PATTERN.search(body):
         return True
+    mapping = issue.get("evidence_mapping_analysis")
+    if isinstance(mapping, dict) and bool(mapping.get("issue_specific_mapping_detected")):
+        return True
     refs = (issue.get("reference_classification") or {}).get("explicit_implementation_issue_numbers")
     return isinstance(refs, list) and len(refs) > 0
+
+
+def _has_conflicting_evidence_mapping(issue: dict[str, Any]) -> bool:
+    mapping = issue.get("evidence_mapping_analysis")
+    if not isinstance(mapping, dict):
+        return False
+    return bool(
+        mapping.get("conflicting_structured_blocks_detected")
+        or mapping.get("duplicate_structured_blocks_detected")
+        or (mapping.get("malformed_structured_blocks_detected") or 0) > 0
+    )
 
 
 def _has_historical_or_protected(issue: dict[str, Any]) -> bool:

@@ -349,6 +349,19 @@ def _render_template(
         "- Confirm this evidence mapping comment is posted before running any issue-close command.",
         "- Confirm no prior milestones or protected historical issues were mutated.",
         "- Confirm exactly one target issue is closed when closeout is executed.",
+        "",
+        "Optional structured evidence map (preferred when posting):",
+        "ARESFORGE_EVIDENCE_MAP_START",
+        f"Issue: #{target_issue}",
+        "Evidence Type: child-closeout",
+        "Implemented By: PR #<pr_number>",
+        "Merged Commit: <commit_hash>",
+        "Validation:",
+        "- git diff --check: pass",
+        "- python -m pytest: pass",
+        "- python -m aresforge inspect-repo-governance: pass",
+        "Closeout Ready: true",
+        "ARESFORGE_EVIDENCE_MAP_END",
     ]
     return "\n".join(lines) + "\n"
 

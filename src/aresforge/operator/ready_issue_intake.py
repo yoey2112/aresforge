@@ -6,6 +6,7 @@ import subprocess
 from typing import Any
 
 from aresforge.config import AppConfig
+from aresforge.operator.evidence_mapping_parser import parse_issue_evidence_mapping
 
 
 READY_TRIGGER_LABEL = "aresforge-ready"
@@ -188,8 +189,18 @@ def normalize_issue_for_planning(raw_issue: dict[str, Any]) -> dict[str, Any]:
 
     references = classify_issue_references(body)
     comments = _normalize_issue_comments(raw_issue.get("comments"))
-
+    base_pr_evidence = _normalize_closed_by_pull_requests(raw_issue.get("closedByPullRequestsReferences"))
     issue_number = raw_issue.get("number")
+    evidence_mapping_analysis = parse_issue_evidence_mapping(
+        issue_number=issue_number if isinstance(issue_number, int) else -1,
+        issue_body=body,
+        comments=comments,
+    )
+    merged_pr_evidence = _merge_pr_evidence_with_mapping(
+        base_pr_evidence=base_pr_evidence,
+        mapped_pr_evidence=evidence_mapping_analysis.get("derived_pr_evidence"),
+    )
+
     protected = issue_number == PROTECTED_ISSUE_NUMBER
 
     return {
@@ -204,11 +215,34 @@ def normalize_issue_for_planning(raw_issue: dict[str, Any]) -> dict[str, Any]:
         "comments": comments,
         "reference_classification": references,
         "detectable_parent_child_references": references["parent_child_references"],
-        "merged_pr_evidence": _normalize_closed_by_pull_requests(
-            raw_issue.get("closedByPullRequestsReferences")
-        ),
+        "merged_pr_evidence": merged_pr_evidence,
+        "evidence_mapping_analysis": evidence_mapping_analysis,
         "is_protected_issue": protected,
     }
+
+
+def _merge_pr_evidence_with_mapping(*, base_pr_evidence: list[dict[str, Any]], mapped_pr_evidence: Any) -> list[dict[str, Any]]:
+    merged: dict[int, dict[str, Any]] = {}
+    for item in base_pr_evidence:
+        number = item.get("number")
+        if isinstance(number, int):
+            merged[number] = item
+    if isinstance(mapped_pr_evidence, list):
+        for item in mapped_pr_evidence:
+            if not isinstance(item, dict):
+                continue
+            number = item.get("number")
+            if not isinstance(number, int):
+                continue
+            existing = merged.get(number, {})
+            merged[number] = {
+                "number": number,
+                "url": existing.get("url") or item.get("url"),
+                "title": existing.get("title") or item.get("title"),
+                "state": existing.get("state") or item.get("state") or "MERGED",
+                "merged_at": existing.get("merged_at") or item.get("merged_at"),
+            }
+    return [merged[number] for number in sorted(merged)]
 
 
 def _normalize_closed_by_pull_requests(raw_items: Any) -> list[dict[str, Any]]:

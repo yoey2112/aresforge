@@ -224,6 +224,30 @@ def test_normalize_issue_for_planning_handles_missing_partial_metadata() -> None
     assert payload["reference_classification"]["implementation_issue_numbers"] == [175]
 
 
+def test_normalize_issue_for_planning_includes_structured_evidence_mapping() -> None:
+    payload = normalize_issue_for_planning(
+        {
+            "number": 299,
+            "title": "Schema mapping",
+            "state": "OPEN",
+            "labels": [],
+            "assignees": [],
+            "milestone": None,
+            "body": (
+                "ARESFORGE_EVIDENCE_MAP_START\n"
+                "Issue: #299\n"
+                "Implemented By: PR #306\n"
+                "Merged Commit: abcdef1234567\n"
+                "ARESFORGE_EVIDENCE_MAP_END\n"
+            ),
+            "comments": [],
+            "closedByPullRequestsReferences": [],
+        }
+    )
+    assert payload["evidence_mapping_analysis"]["issue_specific_mapping_detected"] is True
+    assert payload["merged_pr_evidence"][0]["number"] == 306
+
+
 def test_fetch_issue_batch_for_planning_excludes_protected_issue(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:

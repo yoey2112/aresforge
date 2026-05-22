@@ -207,3 +207,24 @@ def test_milestone_checker_implemented(monkeypatch, tmp_path: Path) -> None:
     assert payload["status_counts"]["ready"] == 1
     assert payload["status_counts"]["not_ready"] == 1
 
+
+def test_conflicting_structured_mapping_is_blocked(monkeypatch, tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    monkeypatch.setattr(
+        evidence_completeness_checker,
+        "fetch_issue_details",
+        lambda _config, _issue_number: {
+            "ok": True,
+            "issue": {
+                **_issue(299, impl_refs=[294], explicit_refs=[]),
+                "evidence_mapping_analysis": {
+                    "conflicting_structured_blocks_detected": True,
+                    "duplicate_structured_blocks_detected": False,
+                    "malformed_structured_blocks_detected": 0,
+                },
+            },
+        },
+    )
+    payload = evidence_completeness_checker.check_issue_evidence_readiness(config, issue_number=299)
+    assert payload["classification"] == "blocked"
+
