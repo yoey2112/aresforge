@@ -20,6 +20,9 @@ Command entrypoint:
 - `check-issue-evidence-readiness`: read-only issue evidence completeness classification.
 - `check-milestone-evidence-readiness`: read-only milestone-level evidence readiness summary.
 - `plan-milestone-final-reconciliation`: planning-only milestone final reconciliation readiness planner.
+- `generate-evidence-comment-template`: read-only issue-specific evidence template generator.
+- `generate-child-closeout-script`: read-only target-issue closeout script generator.
+- `inspect-parent-closeout-readiness`: read-only parent closeout readiness report with child lineage/accounted signals.
 - Existing planning/validation/reporting commands remain available and compatible.
 
 ## M16 Capability Contract Alignment
@@ -47,8 +50,9 @@ Command entrypoint:
 - No automatic PR merge.
 - No background jobs, polling loops, or schedulers.
 - Evidence package generation for all run outcomes.
-- For M17 milestone planning surfaces: no issue closure, no PR creation, no issue comments, and no mutation of M16 issues.
-- For M18 milestone dashboard surface: read-only aggregation only; no issue closure, PR creation, comments, or broad mutation.
+- For milestone planning and inspection surfaces: no issue closure, no PR creation, no issue comments, and no cross-milestone mutation.
+- For M18 dashboard and parent-closeout-readiness surfaces: read-only aggregation only; no issue closure, PR creation, comments, or broad mutation.
+- Script/template generators are output-only and require explicit human execution for any mutation.
 - Parent issue remains open until child issues are closed/accounted and final reconciliation is merged/accounted.
 
 ## Validation Bundle
@@ -69,4 +73,4 @@ Command entrypoint:
 2. Add richer run inspection summaries and filtered views.
 3. Add explicit no-op local-write step typing when no file mutation occurs.
 4. Add optional branch-write integration tests in a disposable local fixture repository.
-5. Extend M17 milestone orchestration beyond inspection only after explicit contract-gated approval paths.
+5. Continue hardening milestone evidence/accounted signals and parent closeout readiness guardrails.
