@@ -45,6 +45,7 @@ from aresforge.operator.batch_readiness_report import report_batch_readiness
 from aresforge.operator.batch_closeout_planner import plan_batch_closeout
 from aresforge.operator.closeout_planning_drift import inspect_closeout_planning_drift
 from aresforge.operator.sprint_issue_script_generator import generate_sprint_issue_script
+from aresforge.operator.sprint_issue_planner import plan_sprint_issues
 from aresforge.operator.planning_state import (
     compare_planning_state,
     inspect_planning_state,
@@ -304,6 +305,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--planning-state-path",
         help="Optional local planning state path override (defaults to .aresforge/planning-state.json).",
     )
+    sprint_issue_plan_parser = subparsers.add_parser(
+        "plan-sprint-issues",
+        help="Render a read-only, human-gated sprint issue creation plan from a local JSON definition.",
+    )
+    sprint_issue_plan_parser.add_argument("--definition", required=True)
     inspect_planning_parser = subparsers.add_parser(
         "inspect-planning-state",
         help="Inspect local planning state without writing local files or mutating GitHub.",
@@ -750,6 +756,11 @@ def main(argv: list[str] | None = None) -> int:
             planning_state_path=args.planning_state_path,
             repo_root=config.repo_root,
         )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "plan-sprint-issues":
+        payload = plan_sprint_issues(definition_path=args.definition)
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 
