@@ -6,13 +6,16 @@ M17 Self-managed milestone orchestration after controlled autonomous execution
 
 ## Current Goal
 
-Deliver M17 issue #270 contract authority, #271 read-only milestone inspection, #272 planning-only milestone execution queue guidance, and #273/#274 evidence completeness plus duplicate/no-op reuse planning without introducing new mutation surfaces.
+Deliver M17 issue #270 contract authority, #271 read-only milestone inspection, #272 planning-only milestone execution queue guidance, #273/#274 evidence completeness plus duplicate/no-op reuse planning, #275 final reconciliation planning, and #276 source-of-truth reconciliation on active PR #277 without introducing new mutation surfaces.
 
 ## Current Repository State
 
 - M16 baseline commit: `1c5cacd` (`M16 final source-of-truth reconciliation (#268)`)
 - M17 parent issue: `#269`
-- Current M17 implementation scope: `#270`, `#271`, `#272`, `#273`, and `#274`
+- Active M17 implementation PR: `#277` (`m17/270-271-contract-and-inspector` -> `main`)
+- Current M17 implementation scope on branch/PR: `#270`, `#271`, `#272`, `#273`, `#274`, `#275`, and `#276`
+- Issue closure status for M17 scope: all child issues currently open pending merge/evidence mapping
+- Parent #269 status expectation: remains open until all children are closed/accounted for
 - Governance inspection: `ok: true`
 - Known non-blocking warning: `milestone_naming_status.naming_ok: false`
 
@@ -44,8 +47,15 @@ Deliver M17 issue #270 contract authority, #271 read-only milestone inspection, 
 - `python -m aresforge plan-milestone-execution-queue --parent-issue <parent>` read-only milestone execution queue planner
 - `python -m aresforge check-issue-evidence-readiness --issue <issue>` read-only issue evidence completeness checker
 - `python -m aresforge check-milestone-evidence-readiness --parent-issue <parent>` read-only milestone evidence readiness checker
+- `python -m aresforge plan-milestone-final-reconciliation --parent-issue <parent>` planning-only milestone final reconciliation planner
+- Explicit safety posture preserved:
+  - no bulk closeout
+  - no implicit mutation
+  - no closeout without explicit evidence mapping
+  - no parent closeout before children are closed/accounted for
+  - no mutation of M16 issues
 
-## Validation Baseline For Current M17 Scope (#270/#271/#272/#273/#274)
+## Validation Baseline For Current M17 Scope (#270/#271/#272/#273/#274/#275/#276)
 
 - `git diff --check`
 - `python -m pytest`
@@ -54,6 +64,7 @@ Deliver M17 issue #270 contract authority, #271 read-only milestone inspection, 
 - `python -m aresforge plan-milestone-execution-queue --parent-issue 269`
 - `python -m aresforge check-issue-evidence-readiness --issue 270`
 - `python -m aresforge check-milestone-evidence-readiness --parent-issue 269`
+- `python -m aresforge plan-milestone-final-reconciliation --parent-issue 269`
 
 ## Boundaries
 

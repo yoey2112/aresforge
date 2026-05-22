@@ -18,6 +18,7 @@ Command entrypoint:
 - `plan-milestone-execution-queue`: read-only, planning-only milestone child execution queue planner.
 - `check-issue-evidence-readiness`: read-only issue evidence completeness classification.
 - `check-milestone-evidence-readiness`: read-only milestone-level evidence readiness summary.
+- `plan-milestone-final-reconciliation`: planning-only milestone final reconciliation readiness planner.
 - Existing planning/validation/reporting commands remain available and compatible.
 
 ## M16 Capability Contract Alignment
@@ -45,6 +46,8 @@ Command entrypoint:
 - No automatic PR merge.
 - No background jobs, polling loops, or schedulers.
 - Evidence package generation for all run outcomes.
+- For M17 milestone planning surfaces: no issue closure, no PR creation, no issue comments, and no mutation of M16 issues.
+- Parent issue remains open until child issues are closed/accounted and final reconciliation is merged/accounted.
 
 ## Validation Bundle
 

@@ -89,6 +89,13 @@ Current implementation scope:
 - #272 add guarded per-issue execution queue planner
 - #273 add evidence completeness checker for issue closeout readiness
 - #274 add duplicate/no-op PR prevention and reuse planner hardening
+- #275 add milestone-level final reconciliation planner
+- #276 reconcile source-of-truth docs for M17
+
+Active implementation PR:
+
+- #277 M17 implementation branch PR covering #270 through #276 (open, not merged)
+- No M17 issues are closed by PR #277 itself; closeout remains evidence-gated after merge
 
 Current M17 outcomes:
 
@@ -101,6 +108,8 @@ Current M17 outcomes:
   - `python -m aresforge check-issue-evidence-readiness --issue <issue>`
 - `check-milestone-evidence-readiness` command:
   - `python -m aresforge check-milestone-evidence-readiness --parent-issue <parent>`
+- `plan-milestone-final-reconciliation` command:
+  - `python -m aresforge plan-milestone-final-reconciliation --parent-issue <parent>`
 - Read-only milestone parent/child inspection with:
   - parent summary
   - child discovery from detectable references
@@ -119,8 +128,14 @@ Current M17 outcomes:
   - `new_pr_needed` reuse/prevention guidance
   - explicit mutation disabled safety fields
   - no issue closure, PR creation, or issue comments
+- Planning-only milestone final reconciliation readiness with:
+  - implementation child accounting before reconciliation readiness
+  - final reconciliation issue sequencing check (must remain last)
+  - docs-only expectation and no generated evidence artifact churn expectation
+  - explicit non-mutation output fields (`close_issues: false`, `create_pr: false`, `comment_on_issue: false`, `mutation_allowed: false`)
+  - parent remains open until final reconciliation is merged/accounted
 
-M17 #270/#271/#272/#273/#274 validation bundle:
+M17 #270/#271/#272/#273/#274/#275/#276 validation bundle:
 
 - `git diff --check`
 - `python -m pytest`
@@ -129,4 +144,5 @@ M17 #270/#271/#272/#273/#274 validation bundle:
 - `python -m aresforge plan-milestone-execution-queue --parent-issue 269`
 - `python -m aresforge check-issue-evidence-readiness --issue 270`
 - `python -m aresforge check-milestone-evidence-readiness --parent-issue 269`
+- `python -m aresforge plan-milestone-final-reconciliation --parent-issue 269`
 - Governance and closeout remain explicitly human-triggered and auditable.

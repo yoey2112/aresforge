@@ -7,10 +7,12 @@ Provide minimum operating context for safe M17 milestone contract, read-only ins
 ## Current Operating Model
 
 - Documentation remains source of truth.
+- Active implementation branch/PR for current M17 delivery: `m17/270-271-contract-and-inspector` / `#277`.
 - `run-autonomous-cycle` is human-triggered and mode-gated.
 - `inspect-milestone-state` is human-triggered and strictly read-only.
 - `plan-milestone-execution-queue` is human-triggered and strictly planning-only.
 - `check-issue-evidence-readiness` and `check-milestone-evidence-readiness` are human-triggered and strictly read-only.
+- `plan-milestone-final-reconciliation` is human-triggered and strictly planning-only.
 - Defaults remain safe and read-only.
 - Every run and step is persisted in `autonomous_runs`/`run_steps`.
 - Every run emits evidence artifacts.
@@ -38,6 +40,7 @@ Provide minimum operating context for safe M17 milestone contract, read-only ins
 - `python -m aresforge plan-milestone-execution-queue --parent-issue <parent>`
 - `python -m aresforge check-issue-evidence-readiness --issue <issue>`
 - `python -m aresforge check-milestone-evidence-readiness --parent-issue <parent>`
+- `python -m aresforge plan-milestone-final-reconciliation --parent-issue <parent>`
 - `python -m aresforge inspect-repo-governance`
 
 ## M16 Capability Snapshot
@@ -53,6 +56,8 @@ Provide minimum operating context for safe M17 milestone contract, read-only ins
 - Read-only milestone state inspection with parent/child summary, lineage hints, and evidence hints.
 - Planning-only milestone execution queue guidance with explicit non-execution safety gates.
 - Evidence completeness and duplicate/no-op reuse recommendation checks with mutation disabled.
+- Planning-only milestone final reconciliation readiness planner with explicit non-mutation outputs (`close_issues: false`, `create_pr: false`, `comment_on_issue: false`, `mutation_allowed: false`).
+- M17 #276 docs reconciliation is included on PR #277, but issue closure must wait until PR merge and evidence mapping.
 
 ## Prohibited Behaviors
 
@@ -66,6 +71,8 @@ Provide minimum operating context for safe M17 milestone contract, read-only ins
 - milestone inspection command that mutates GitHub state
 - milestone queue planner that executes issue work or mutates GitHub state
 - evidence readiness checker that closes issues, creates PRs, comments, or mutates GitHub state
+- final reconciliation planner that closes issues, creates PRs, comments, or mutates GitHub state
+- mutation of M16 issues from M17 planning/reconciliation flows
 
 ## Validation Snapshot
 
@@ -76,6 +83,7 @@ Provide minimum operating context for safe M17 milestone contract, read-only ins
 - `python -m aresforge plan-milestone-execution-queue --parent-issue <parent>`
 - `python -m aresforge check-issue-evidence-readiness --issue <issue>`
 - `python -m aresforge check-milestone-evidence-readiness --parent-issue <parent>`
+- `python -m aresforge plan-milestone-final-reconciliation --parent-issue <parent>`
 
 ## Governance Note
 

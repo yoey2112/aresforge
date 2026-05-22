@@ -37,6 +37,7 @@ def test_cli_help_includes_m6_commands() -> None:
     assert "plan-milestone-execution-queue" in help_text
     assert "check-issue-evidence-readiness" in help_text
     assert "check-milestone-evidence-readiness" in help_text
+    assert "plan-milestone-final-reconciliation" in help_text
 
 
 def test_cli_dispatch_plan_agent_queue(
@@ -243,3 +244,28 @@ def test_cli_dispatch_check_milestone_evidence_readiness(
     payload = json.loads(capsys.readouterr().out)
     assert exit_code == 0
     assert payload["command"] == "check-milestone-evidence-readiness"
+
+
+def test_cli_dispatch_plan_milestone_final_reconciliation(
+    monkeypatch,
+    capsys,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: _config(tmp_path))
+    monkeypatch.setattr(
+        cli,
+        "plan_milestone_final_reconciliation",
+        lambda _config, parent_issue: {
+            "command": "plan-milestone-final-reconciliation",
+            "ok": True,
+            "read_only": True,
+            "parent_issue": {"issue_number": parent_issue},
+            "mutation_allowed": False,
+        },
+    )
+    exit_code = cli.main(["plan-milestone-final-reconciliation", "--parent-issue", "269"])
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["command"] == "plan-milestone-final-reconciliation"
+    assert payload["read_only"] is True
+    assert payload["mutation_allowed"] is False

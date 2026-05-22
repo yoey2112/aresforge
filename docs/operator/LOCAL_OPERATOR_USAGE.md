@@ -1,6 +1,6 @@
 # Local Operator Usage
 
-## Core Validation Bundle (M17 for #270/#271/#272/#273/#274)
+## Core Validation Bundle (M17 for #270/#271/#272/#273/#274/#275/#276)
 
 - `git diff --check`
 - `python -m pytest`
@@ -9,6 +9,7 @@
 - `python -m aresforge plan-milestone-execution-queue --parent-issue <parent>`
 - `python -m aresforge check-issue-evidence-readiness --issue <issue>`
 - `python -m aresforge check-milestone-evidence-readiness --parent-issue <parent>`
+- `python -m aresforge plan-milestone-final-reconciliation --parent-issue <parent>`
 
 ## Milestone Inspection (M17 #271)
 
@@ -59,6 +60,32 @@ Behavior:
 
 - read-only/planning-only evidence completeness classification
 - duplicate/no-op PR prevention via evidence reuse recommendation
+- never closes issues
+- never creates PRs
+- never comments on issues
+- never mutates GitHub state
+
+## Milestone Final Reconciliation Planning (M17 #275)
+
+Commands:
+
+- `python -m aresforge plan-milestone-final-reconciliation --parent-issue <parent>`
+
+Behavior:
+
+- planning-only milestone final reconciliation readiness check
+- inspects parent/child milestone state via read-only command surfaces
+- verifies implementation children are closed or evidence-accounted before reconciliation
+- confirms final reconciliation issue should be last
+- surfaces likely source-of-truth docs requiring updates
+- confirms docs-only expectation for final reconciliation
+- confirms no generated evidence artifact changes are expected
+- emits explicit non-mutation gates:
+  - close issues false
+  - create PR false
+  - comment on issue false
+  - mutation allowed false
+  - operator review required true
 - never closes issues
 - never creates PRs
 - never comments on issues
