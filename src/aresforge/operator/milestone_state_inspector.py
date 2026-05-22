@@ -13,6 +13,7 @@ from aresforge.operator.ready_issue_intake import (
 COMMAND_NAME = "inspect-milestone-state"
 
 _CHILD_LINE_PATTERN = re.compile(r"^\s*(?:[-*]\s*)?#(?P<number>\d+)\b", re.IGNORECASE)
+_CHILD_INLINE_PATTERN = re.compile(r"\(#(?P<number>\d+)\)")
 _MILESTONE_NAME_PATTERN = re.compile(r"^M\d+\b")
 
 
@@ -141,11 +142,14 @@ def _discover_child_issue_numbers(*, parent_issue: int, parent_payload: dict[str
     if isinstance(body, str):
         for line in body.splitlines():
             match = _CHILD_LINE_PATTERN.search(line)
-            if not match:
-                continue
-            number = int(match.group("number"))
-            if number != parent_issue and number != PROTECTED_ISSUE_NUMBER:
-                discovered.add(number)
+            if match:
+                number = int(match.group("number"))
+                if number != parent_issue and number != PROTECTED_ISSUE_NUMBER:
+                    discovered.add(number)
+            for inline in _CHILD_INLINE_PATTERN.finditer(line):
+                number = int(inline.group("number"))
+                if number != parent_issue and number != PROTECTED_ISSUE_NUMBER:
+                    discovered.add(number)
 
     comments = parent_payload.get("comments")
     if isinstance(comments, list):

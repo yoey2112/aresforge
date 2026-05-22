@@ -173,3 +173,45 @@ def test_dashboard_fails_when_dependency_command_fails(monkeypatch, tmp_path: Pa
     assert payload["error"] == "dashboard_dependency_failed"
     assert payload["failures"][0]["command"] == "inspect-milestone-state"
     assert payload["safety_gates"]["mutation_allowed"] is False
+
+
+def test_dashboard_includes_sequential_state_and_mismatch_flags(monkeypatch, tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    state_path = tmp_path / ".aresforge" / "sequential-run-state.json"
+    state_path.parent.mkdir(parents=True, exist_ok=True)
+    state_path.write_text(
+        '{"schema_version":"1.0","records":[{"parent_issue":309,"current_child_issue":315,"completed_children":[310,311]}]}',
+        encoding="utf-8",
+    )
+
+    monkeypatch.setattr(
+        milestone_dashboard,
+        "inspect_milestone_state",
+        lambda _config, parent_issue: {
+            "ok": True,
+            "parent_issue": {"issue_number": parent_issue, "state": "OPEN", "title": "parent"},
+            "child_issues": [{"issue_number": 314, "state": "OPEN", "title": "child"}],
+            "warnings": [],
+            "boundary_confirmations": [],
+        },
+    )
+    monkeypatch.setattr(
+        milestone_dashboard,
+        "plan_milestone_execution_queue",
+        lambda _config, parent_issue: {"ok": True, "recommended_order": [], "blocked_items": [], "signals": {}, "required_operator_actions": [], "safety_gates": {}, "boundary_confirmations": []},
+    )
+    monkeypatch.setattr(
+        milestone_dashboard,
+        "check_milestone_evidence_readiness",
+        lambda _config, parent_issue: {"ok": True, "status_counts": {}, "milestone_closeout_readiness": {}, "issues": [], "boundary_confirmations": []},
+    )
+    monkeypatch.setattr(
+        milestone_dashboard,
+        "plan_milestone_final_reconciliation",
+        lambda _config, parent_issue: {"ok": True, "final_reconciliation_issue": None, "implementation_children": [], "unaccounted_children": [], "ready_for_final_reconciliation": False, "parent_should_remain_open": True, "docs_only_expected": True, "required_operator_actions": [], "boundary_confirmations": []},
+    )
+
+    payload = milestone_dashboard.inspect_milestone_dashboard(config, parent_issue=309)
+    assert payload["ok"] is True
+    assert payload["sequential_run_state"]["record_for_parent_found"] is True
+    assert payload["truth_and_mismatch"]["mismatch_flags"]
