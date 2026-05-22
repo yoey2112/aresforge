@@ -421,6 +421,14 @@ def test_passing_execute_performs_expected_mutations_only(
         ["issue", "close"],
     ]
     assert [call[:2] for call in calls] == expected_steps
+    issue_comment_calls = [call for call in calls if call[:2] == ["issue", "comment"]]
+    assert len(issue_comment_calls) == 1
+    comment_call = issue_comment_calls[0]
+    assert "--body" in comment_call
+    comment_body = comment_call[comment_call.index("--body") + 1]
+    assert "Documentation reconciliation evidence:" in comment_body
+    assert "- Status: <updated | reviewed_current | not_applicable>" in comment_body
+    assert "Missing documentation reconciliation evidence can keep parent closeout planning incomplete." in comment_body
 
 
 def test_payload_is_deterministic_json(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:

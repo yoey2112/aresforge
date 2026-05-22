@@ -2,9 +2,9 @@
 
 ## Purpose
 
-Provide the minimum current operating context for safe M13 closeout evidence recognition and operator usage.
+Provide the minimum current operating context for safe post-M14 operator usage and source-of-truth reconciliation.
 
-## M13 Operating Model
+## Current Operating Model
 
 - Documentation remains source of truth.
 - Local planning memory is optional, explicit-write, and local-only.
@@ -13,8 +13,10 @@ Provide the minimum current operating context for safe M13 closeout evidence rec
 - Sprint issue creation planning is deterministic, read-only by default, and emits human-gated mutation output only.
 - Implementation progress remains gated by human-run post-creation verification pass/fail output.
 - Closeout planning recognizes deterministic human-gated closeout evidence in issue comments without mutation.
+- Historical parent-body references are classified as historical/non-active evidence context, not active child work.
+- Merged PR references used in closeout comments are classified as evidence, not active child work.
 
-## Canonical M13 Documents
+## Canonical Documents
 
 - `docs/architecture/SPRINT_ISSUE_CREATION_PLANNING_CONTRACT.md`
 - `docs/architecture/CLOSEOUT_EVIDENCE_RECOGNITION_CONTRACT.md`
@@ -23,7 +25,7 @@ Provide the minimum current operating context for safe M13 closeout evidence rec
 - `docs/context/BUILD_STATE.md`
 - `docs/roadmap/ROADMAP.md`
 
-## M13 Commands
+## Current Commands
 
 - `python -m aresforge generate-sprint-issue-script --definition <file> [--write-planning-state]`
 - `python -m aresforge plan-batch-closeout --parent-issue <number> [--write-planning-snapshot]`
@@ -32,9 +34,11 @@ Provide the minimum current operating context for safe M13 closeout evidence rec
 - `python -m aresforge inspect-closeout-planning-drift --parent-issue <number>`
 - `python -m aresforge plan-sprint-issues --definition <path>`
 
-## M13 Delivery Status
+## Delivery Status
 
-- Current scope: closeout evidence recognition contract, parser updates, regression fixtures, and source-of-truth reconciliation.
+- M13 complete; closeout evidence recognition contract and parser coverage delivered via merged PR #242.
+- M14 cleanup complete via merged PR #244 (issue #243) and PR #246 (issue #245).
+- Baseline state: `main` at `dde2683`, no open issues, no open PRs, governance inspection `ok true`.
 
 ## Prohibited Behaviors
 
@@ -46,6 +50,14 @@ Provide the minimum current operating context for safe M13 closeout evidence rec
 - automatic issue closeout
 - automatic PR merge
 
-## Remaining Closeout Expectation
+## Validation Snapshot
 
-- Verify parent #222 closeout planning reports recognized manual evidence for merged PR, validation, and documentation reconciliation categories.
+- `python -m pytest` -> `258 passed`
+- `python -m aresforge inspect-repo-governance` -> `ok true`
+- `python -m aresforge plan-batch-closeout --parent-issue 222` -> `ready`
+- `python -m aresforge plan-batch-closeout --parent-issue 233` -> discovered/requested children `#234` through `#241` only; historical references remain historical; PR references are evidence
+
+## Historical Closeout Note
+
+- Parent #233 may remain incomplete for some older M13 closeout comments missing documentation reconciliation evidence.
+- This reflects historical closeout-comment quality evidence, not a current child discovery blocker.

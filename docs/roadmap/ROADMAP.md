@@ -84,7 +84,7 @@ Remaining closeout expectation:
 
 ### M13 - Closeout Evidence Recognition For Human-Gated Manual Closeout
 
-Status: In progress.
+Status: Completed.
 
 Parent issue:
 
@@ -101,12 +101,58 @@ Child issues:
 - #239 document improved closeout evidence recognition workflow
 - #240 reconcile source-of-truth documentation after implementation
 
-Target outcomes:
+Implementation status:
+
+- #234, #235, #236, #241, #237, #238 implemented by merged PR #242.
+- #239 documented operator workflow updates in merged PR #242 scope.
+- #240 source-of-truth reconciliation completed in this direct-to-main reconciliation pass.
+
+Delivered outcomes:
 
 - `plan-batch-closeout` recognizes merged PR, validation, and documentation reconciliation evidence from human-gated closeout comments.
 - Closed child issues with recognized evidence are not incorrectly classified as incomplete.
 - Missing evidence remains explicit when truly absent.
 - Read-only defaults and human-gated mutation boundaries remain unchanged.
+- Contract exists at `docs/architecture/CLOSEOUT_EVIDENCE_RECOGNITION_CONTRACT.md`.
+
+### M14 - Closeout Classification Cleanup For Historical And Merged PR References
+
+Status: Completed.
+
+Parent issues:
+
+- #243 fix historical parent-body issue references misclassified as active children
+- #245 fix merged PR references misclassified as active children
+
+Implementation status:
+
+- #243 implemented by merged PR #244.
+- #245 implemented by merged PR #246.
+
+Delivered outcomes:
+
+- Historical M12 references `#223` through `#229` in parent `#233` are classified as historical/non-active.
+- PR references `#230`, `#231`, `#232`, and `#242` are classified as closeout evidence, not active children.
+- `plan-batch-closeout --parent-issue 233` focuses active child discovery on `#234` through `#241`.
+- Parent `#233` incomplete outcomes can still reflect older missing documentation reconciliation evidence in closeout comments; this is historical evidence quality, not a child discovery blocker.
+
+Validation snapshot:
+
+- `python -m pytest` -> `258 passed`
+- `python -m aresforge inspect-repo-governance` -> `ok true`
+- `python -m aresforge plan-batch-closeout --parent-issue 222` -> `ready`
+- `python -m aresforge plan-batch-closeout --parent-issue 233` -> active requested/discovered children `#234` through `#241`; historical and PR evidence classified correctly
+
+Current clean baseline:
+
+- `main` at commit `dde2683`
+- no open issues
+- no open pull requests
+
+Recommended next work:
+
+1. Closeout comment template hardening to prevent missing documentation reconciliation evidence in future closeouts.
+2. Next feature milestone planning from the clean baseline.
 
 ## Standing Boundaries
 

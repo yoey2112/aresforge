@@ -34,6 +34,18 @@ _GATE_ORDER = (
 )
 
 
+def _build_closeout_comment_body(pr_number: int) -> str:
+    return (
+        f"AresForge qa-closeout-pr completed for PR #{pr_number}.\n"
+        "All QA and label gates passed before execute-mode closeout.\n"
+        "Documentation reconciliation evidence:\n"
+        "- Status: <updated | reviewed_current | not_applicable>\n"
+        "- Files reviewed/updated: <list files or N/A>\n"
+        "- Rationale: <required when status is reviewed_current or not_applicable>\n"
+        "Missing documentation reconciliation evidence can keep parent closeout planning incomplete."
+    )
+
+
 def qa_closeout_pr(config: AppConfig, pr_number: int, *, execute: bool = False) -> dict[str, Any]:
     mode = "execute" if execute else "dry_run"
     review_payload = qa_review_pr(config, pr_number)
@@ -262,10 +274,7 @@ def _execute_closeout_mutations(
             },
         }
 
-    comment_body = (
-        f"AresForge qa-closeout-pr completed for PR #{pr_number}. "
-        "All QA and label gates passed before execute-mode closeout."
-    )
+    comment_body = _build_closeout_comment_body(pr_number)
     comment_args = [
         "issue",
         "comment",

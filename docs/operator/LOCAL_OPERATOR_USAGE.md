@@ -113,6 +113,26 @@ M13 closeout evidence recognition:
   - documentation reconciliation lines, including source-of-truth reconciliation and updated source-of-truth document references
 - Evidence recognition remains deterministic and read-only.
 - Closeout mutation remains human-gated and is not performed by this command.
+- Qualifying merged PR references are classification evidence, not active children.
+- Historical parent-body issue references used for historical context are non-active and excluded from active child discovery.
+
+Closeout comment template guidance:
+
+- Closeout comments should include a `Documentation reconciliation evidence` section.
+- Required documentation status line (choose one):
+  - `updated` with specific files (for example source-of-truth docs when changed),
+  - `reviewed_current` when docs were reviewed and already current,
+  - `not_applicable` with rationale.
+- Missing documentation reconciliation evidence can keep parent closeout planning incomplete even if implementation PRs are merged.
+- Keep closeout execution human-gated; do not introduce autonomous GitHub mutation.
+
+M14 closeout classification cleanup baseline:
+
+- issue #243 resolved by merged PR #244: historical parent-body issue references are not treated as active children.
+- issue #245 resolved by merged PR #246: merged PR references are treated as evidence, not active children.
+- parent #233 historical references #223 through #229 remain historical/non-active.
+- PR references #230, #231, #232, and #242 are recognized as evidence.
+- active requested/discovered child range for parent #233 remains #234 through #241.
 
 ## Planning State Inspection
 
@@ -172,3 +192,4 @@ What this command does not do:
 - No autonomous GitHub issue create/close/comment/label/milestone/release/tag.
 - Generated GitHub issue scripts remain human-executed.
 - The protected historical reference remains protected historical evidence only.
+- GitHub mutation remains human-gated and copy/paste-driven.
