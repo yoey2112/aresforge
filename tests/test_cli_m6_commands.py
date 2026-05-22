@@ -39,6 +39,7 @@ def test_cli_help_includes_m6_commands() -> None:
     assert "check-milestone-evidence-readiness" in help_text
     assert "plan-milestone-final-reconciliation" in help_text
     assert "inspect-milestone-dashboard" in help_text
+    assert "inspect-child-execution-gates" in help_text
     assert "inspect-sequential-run-state" in help_text
     assert "generate-child-closeout-script" in help_text
     assert "generate-evidence-comment-template" in help_text
@@ -349,6 +350,31 @@ def test_cli_dispatch_inspect_sequential_run_state(
     assert payload["command"] == "inspect-sequential-run-state"
     assert payload["parent_issue"] == 309
     assert payload["local_write"]["performed"] is True
+
+
+def test_cli_dispatch_inspect_child_execution_gates(
+    monkeypatch,
+    capsys,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: _config(tmp_path))
+    monkeypatch.setattr(
+        cli,
+        "inspect_child_execution_gates",
+        lambda _config, issue_number, parent_issue: {
+            "command": "inspect-child-execution-gates",
+            "ok": True,
+            "issue": {"number": issue_number},
+            "parent_issue": parent_issue,
+            "gate_status": {"blocked": False},
+        },
+    )
+    exit_code = cli.main(["inspect-child-execution-gates", "--issue", "312", "--parent-issue", "309"])
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["command"] == "inspect-child-execution-gates"
+    assert payload["issue"]["number"] == 312
+    assert payload["parent_issue"] == 309
 
 
 def test_cli_dispatch_generate_evidence_comment_template(

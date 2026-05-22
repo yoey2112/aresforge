@@ -47,6 +47,7 @@ from aresforge.operator.closeout_planning_drift import inspect_closeout_planning
 from aresforge.operator.sprint_issue_script_generator import generate_sprint_issue_script
 from aresforge.operator.child_closeout_script_generator import generate_child_closeout_script
 from aresforge.operator.evidence_comment_template_generator import generate_evidence_comment_template
+from aresforge.operator.child_execution_gates import inspect_child_execution_gates
 from aresforge.operator.self_managed_issue_script_generator import generate_self_managed_issue_script
 from aresforge.operator.sprint_issue_planner import plan_sprint_issues
 from aresforge.operator.planning_state import (
@@ -460,6 +461,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Inspect parent closeout readiness with explicit child lineage in read-only mode.",
     )
     parent_closeout_readiness_parser.add_argument("--parent-issue", type=int, required=True)
+    child_execution_gates_parser = subparsers.add_parser(
+        "inspect-child-execution-gates",
+        help="Inspect start/PR/merge/close gates for one child issue in read-only mode.",
+    )
+    child_execution_gates_parser.add_argument("--issue", type=int, required=True)
+    child_execution_gates_parser.add_argument("--parent-issue", type=int)
     inspect_planning_parser = subparsers.add_parser(
         "inspect-planning-state",
         help="Inspect local planning state without writing local files or mutating GitHub.",
@@ -1025,6 +1032,15 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "inspect-parent-closeout-readiness":
         payload = inspect_parent_closeout_readiness(config, parent_issue=args.parent_issue)
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-child-execution-gates":
+        payload = inspect_child_execution_gates(
+            config,
+            issue_number=args.issue,
+            parent_issue=args.parent_issue,
+        )
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 
