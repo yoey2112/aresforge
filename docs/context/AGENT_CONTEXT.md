@@ -2,12 +2,13 @@
 
 ## Purpose
 
-Provide minimum operating context for safe M16 controlled autonomous execution with explicit mode gates and audit evidence.
+Provide minimum operating context for safe M17 milestone contract and read-only milestone inspection delivery.
 
 ## Current Operating Model
 
 - Documentation remains source of truth.
 - `run-autonomous-cycle` is human-triggered and mode-gated.
+- `inspect-milestone-state` is human-triggered and strictly read-only.
 - Defaults remain safe and read-only.
 - Every run and step is persisted in `autonomous_runs`/`run_steps`.
 - Every run emits evidence artifacts.
@@ -21,6 +22,7 @@ Provide minimum operating context for safe M16 controlled autonomous execution w
 - `docs/operator/LOCAL_OPERATOR_USAGE.md`
 - `docs/context/BUILD_STATE.md`
 - `docs/roadmap/ROADMAP.md`
+- `docs/architecture/MILESTONE_EXECUTION_PLAN_CONTRACT.md`
 
 ## Current Commands
 
@@ -30,6 +32,7 @@ Provide minimum operating context for safe M16 controlled autonomous execution w
 - `python -m aresforge run-autonomous-cycle --mode push-pr --parent-issue <parent> --target-issue <child> --branch-name <branch> --commit-message <message> --pr-title <title>`
 - `python -m aresforge run-autonomous-cycle --mode closeout-eligible --parent-issue <parent> --target-issue <child> --branch-name <branch> --commit-message <message> --pr-title <title>`
 - `python -m aresforge inspect-autonomous-run --run-id <id>`
+- `python -m aresforge inspect-milestone-state --parent-issue <parent>`
 - `python -m aresforge inspect-repo-governance`
 
 ## M16 Capability Snapshot
@@ -42,6 +45,7 @@ Provide minimum operating context for safe M16 controlled autonomous execution w
 - Closeout gating and issue-closure path implemented for `closeout-eligible` only.
 - Run inspection/reporting implemented via `inspect-autonomous-run`.
 - Evidence package generation implemented for all run outcomes.
+- Read-only milestone state inspection with parent/child summary, lineage hints, and evidence hints.
 
 ## Prohibited Behaviors
 
@@ -52,15 +56,16 @@ Provide minimum operating context for safe M16 controlled autonomous execution w
 - issue closure outside explicit `closeout-eligible`
 - automatic PR merge
 - background jobs, polling loops, schedulers, or hidden workers
+- milestone inspection command that mutates GitHub state
 
 ## Validation Snapshot
 
 - `git diff --check`
 - `python -m pytest`
 - `python -m aresforge inspect-repo-governance`
-- `run-autonomous-cycle` dry-run/local-write success checks
-- `run-autonomous-cycle` higher-mode fail-closed checks
-- `inspect-autonomous-run` DB evidence inspection
+- `python -m pytest`
+- `python -m aresforge inspect-repo-governance`
+- `python -m aresforge inspect-milestone-state --parent-issue <parent>`
 
 ## Governance Note
 

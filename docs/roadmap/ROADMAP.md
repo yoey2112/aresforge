@@ -73,4 +73,38 @@ M16 validation command bundle:
 - No autonomous queue workers.
 - No automatic PR merge.
 - No unattended background execution.
+
+### M17 - Self-managed milestone orchestration after controlled autonomous execution
+
+Status: In progress.
+
+Parent issue:
+
+- #269 M17 self-managed milestone orchestration after controlled autonomous execution
+
+Current implementation scope:
+
+- #270 define milestone execution plan contract
+- #271 add read-only milestone state inspector
+
+Current M17 outcomes:
+
+- Contract authority at `docs/architecture/MILESTONE_EXECUTION_PLAN_CONTRACT.md`.
+- `inspect-milestone-state` command:
+  - `python -m aresforge inspect-milestone-state --parent-issue <parent>`
+- Read-only milestone parent/child inspection with:
+  - parent summary
+  - child discovery from detectable references
+  - child state summaries
+  - merged PR evidence hints
+  - missing lineage hints
+  - milestone naming/assignment warnings
+  - explicit read-only boundary confirmations
+
+M17 #270/#271 validation bundle:
+
+- `git diff --check`
+- `python -m pytest`
+- `python -m aresforge inspect-repo-governance`
+- `python -m aresforge inspect-milestone-state --parent-issue 269`
 - Governance and closeout remain explicitly human-triggered and auditable.

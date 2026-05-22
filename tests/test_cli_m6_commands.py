@@ -33,6 +33,7 @@ def test_cli_help_includes_m6_commands() -> None:
     assert "plan-batch-closeout" in help_text
     assert "plan-sprint-issues" in help_text
     assert "inspect-closeout-planning-drift" in help_text
+    assert "inspect-milestone-state" in help_text
 
 
 def test_cli_dispatch_plan_agent_queue(
@@ -139,3 +140,27 @@ def test_cli_dispatch_inspect_closeout_planning_drift(
     payload = json.loads(capsys.readouterr().out)
     assert exit_code == 0
     assert payload["parent_issue"] == 210
+
+
+def test_cli_dispatch_inspect_milestone_state(
+    monkeypatch,
+    capsys,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: _config(tmp_path))
+    monkeypatch.setattr(
+        cli,
+        "inspect_milestone_state",
+        lambda _config, parent_issue: {
+            "command": "inspect-milestone-state",
+            "ok": True,
+            "read_only": True,
+            "parent_issue": {"issue_number": parent_issue},
+        },
+    )
+    exit_code = cli.main(["inspect-milestone-state", "--parent-issue", "269"])
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["command"] == "inspect-milestone-state"
+    assert payload["read_only"] is True
+    assert payload["parent_issue"]["issue_number"] == 269

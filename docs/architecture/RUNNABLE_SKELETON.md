@@ -14,6 +14,7 @@ Command entrypoint:
 
 - `run-autonomous-cycle`: explicit controlled execution loop with mode-gated mutation boundaries.
 - `inspect-autonomous-run`: inspect DB-backed run lifecycle and step history.
+- `inspect-milestone-state`: read-only milestone parent/child issue state inspection.
 - Existing planning/validation/reporting commands remain available and compatible.
 
 ## M16 Capability Contract Alignment
@@ -60,3 +61,4 @@ Command entrypoint:
 2. Add richer run inspection summaries and filtered views.
 3. Add explicit no-op local-write step typing when no file mutation occurs.
 4. Add optional branch-write integration tests in a disposable local fixture repository.
+5. Extend M17 milestone orchestration beyond inspection only after explicit contract-gated approval paths.

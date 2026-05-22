@@ -1,13 +1,27 @@
 # Local Operator Usage
 
-## Core Validation Bundle (M16)
+## Core Validation Bundle (M17 for #270/#271)
 
 - `git diff --check`
 - `python -m pytest`
 - `python -m aresforge inspect-repo-governance`
-- `python -m aresforge run-autonomous-cycle --mode dry-run --parent-issue <parent> --target-issue <target> --validation-command "python -m aresforge inspect-repo-governance"`
-- `python -m aresforge run-autonomous-cycle --mode local-write --parent-issue <parent> --target-issue <target> --validation-command "python -m aresforge inspect-repo-governance"`
-- `python -m aresforge inspect-autonomous-run --run-id <id>`
+- `python -m aresforge inspect-milestone-state --parent-issue <parent>`
+
+## Milestone Inspection (M17 #271)
+
+Commands:
+
+- `python -m aresforge inspect-milestone-state --parent-issue <parent>`
+
+Behavior:
+
+- read-only issue and milestone state inspection
+- parent/child discovery from detectable references
+- child state, lineage, and merged PR evidence hints summary
+- no issue closure
+- no PR creation
+- no comments
+- no GitHub edits
 
 ## Controlled Autonomous Execution (M16)
 
