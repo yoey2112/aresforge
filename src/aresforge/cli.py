@@ -45,6 +45,7 @@ from aresforge.operator.batch_readiness_report import report_batch_readiness
 from aresforge.operator.batch_closeout_planner import plan_batch_closeout
 from aresforge.operator.closeout_planning_drift import inspect_closeout_planning_drift
 from aresforge.operator.sprint_issue_script_generator import generate_sprint_issue_script
+from aresforge.operator.child_closeout_script_generator import generate_child_closeout_script
 from aresforge.operator.self_managed_issue_script_generator import generate_self_managed_issue_script
 from aresforge.operator.sprint_issue_planner import plan_sprint_issues
 from aresforge.operator.planning_state import (
@@ -370,6 +371,11 @@ def build_parser() -> argparse.ArgumentParser:
             "full-auto",
         ],
     )
+    child_closeout_script_parser = subparsers.add_parser(
+        "generate-child-closeout-script",
+        help="Generate read-only, operator-reviewed PowerShell closeout commands for one child issue.",
+    )
+    child_closeout_script_parser.add_argument("--issue", type=int, required=True)
     autonomous_cycle_parser = subparsers.add_parser(
         "run-autonomous-cycle",
         help="Run controlled autonomous execution with explicit safety-gated modes.",
@@ -919,6 +925,11 @@ def main(argv: list[str] | None = None) -> int:
                 target_issue=args.target_issue,
                 conn=None,
             )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "generate-child-closeout-script":
+        payload = generate_child_closeout_script(config, issue_number=args.issue)
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 

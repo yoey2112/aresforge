@@ -47,6 +47,7 @@ def test_cli_has_expected_commands() -> None:
         "plan-sprint-issues",
         "plan-self-managed-milestone",
         "generate-self-managed-issue-script",
+        "generate-child-closeout-script",
         "run-autonomous-cycle",
         "inspect-autonomous-run",
         "inspect-milestone-state",
@@ -189,6 +190,11 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     assert generate_self_managed_script_args.mode == "read-only"
     assert generate_self_managed_script_args.run_id is None
     assert generate_self_managed_script_args.target_issue is None
+    generate_child_closeout_script_args = parser.parse_args(
+        ["generate-child-closeout-script", "--issue", "296"]
+    )
+    assert generate_child_closeout_script_args.command == "generate-child-closeout-script"
+    assert generate_child_closeout_script_args.issue == 296
     autonomous_cycle_args = parser.parse_args(
         [
             "run-autonomous-cycle",

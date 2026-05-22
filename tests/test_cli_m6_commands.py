@@ -39,6 +39,7 @@ def test_cli_help_includes_m6_commands() -> None:
     assert "check-milestone-evidence-readiness" in help_text
     assert "plan-milestone-final-reconciliation" in help_text
     assert "inspect-milestone-dashboard" in help_text
+    assert "generate-child-closeout-script" in help_text
 
 
 def test_cli_dispatch_plan_agent_queue(
@@ -296,3 +297,28 @@ def test_cli_dispatch_inspect_milestone_dashboard(
     assert payload["command"] == "inspect-milestone-dashboard"
     assert payload["read_only"] is True
     assert payload["dashboard"]["recommended_next_child_issue"]["issue_number"] == 295
+
+
+def test_cli_dispatch_generate_child_closeout_script(
+    monkeypatch,
+    capsys,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: _config(tmp_path))
+    monkeypatch.setattr(
+        cli,
+        "generate_child_closeout_script",
+        lambda _config, issue_number: {
+            "command": "generate-child-closeout-script",
+            "ok": True,
+            "read_only": True,
+            "target_issue": issue_number,
+            "script": "Write-Host 'review'\n",
+        },
+    )
+    exit_code = cli.main(["generate-child-closeout-script", "--issue", "296"])
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["command"] == "generate-child-closeout-script"
+    assert payload["read_only"] is True
+    assert payload["target_issue"] == 296
