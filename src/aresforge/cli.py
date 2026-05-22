@@ -98,6 +98,7 @@ from aresforge.operator.sequential_run_state import (
     inspect_sequential_run_state,
     resolve_sequential_run_state_path,
 )
+from aresforge.operator.sequential_recovery_planner import plan_sequential_run_recovery
 from aresforge.operator.project_state_summary import project_state_summary
 from aresforge.operator.self_managed_milestone_planner import plan_self_managed_milestone
 from aresforge.operator.repo_bootstrap_contract import inspect_repo_bootstrap_contract
@@ -496,6 +497,15 @@ def build_parser() -> argparse.ArgumentParser:
         "--write-local-state",
         action="store_true",
         help="Explicitly persist the generated sequential run-state snapshot locally.",
+    )
+    plan_sequential_recovery_parser = subparsers.add_parser(
+        "plan-sequential-run-recovery",
+        help="Plan read-only recovery actions from persisted sequential run-state plus current repo/GitHub posture.",
+    )
+    plan_sequential_recovery_parser.add_argument("--parent-issue", type=int, required=True)
+    plan_sequential_recovery_parser.add_argument(
+        "--sequential-run-state-path",
+        help="Optional local sequential run-state path override (defaults to .aresforge/sequential-run-state.json).",
     )
     closeout_planning_drift_parser = subparsers.add_parser(
         "inspect-closeout-planning-drift",
@@ -1064,6 +1074,12 @@ def main(argv: list[str] | None = None) -> int:
             state_path=path,
             write_local_state=bool(args.write_local_state),
         )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "plan-sequential-run-recovery":
+        path = resolve_sequential_run_state_path(config=config, path_override=args.sequential_run_state_path)
+        payload = plan_sequential_run_recovery(config, parent_issue=args.parent_issue, state_path=path)
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 

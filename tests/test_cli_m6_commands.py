@@ -41,6 +41,7 @@ def test_cli_help_includes_m6_commands() -> None:
     assert "inspect-milestone-dashboard" in help_text
     assert "inspect-child-execution-gates" in help_text
     assert "inspect-sequential-run-state" in help_text
+    assert "plan-sequential-run-recovery" in help_text
     assert "generate-child-closeout-script" in help_text
     assert "generate-evidence-comment-template" in help_text
 
@@ -374,6 +375,29 @@ def test_cli_dispatch_inspect_child_execution_gates(
     assert exit_code == 0
     assert payload["command"] == "inspect-child-execution-gates"
     assert payload["issue"]["number"] == 312
+    assert payload["parent_issue"] == 309
+
+
+def test_cli_dispatch_plan_sequential_run_recovery(
+    monkeypatch,
+    capsys,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: _config(tmp_path))
+    monkeypatch.setattr(
+        cli,
+        "plan_sequential_run_recovery",
+        lambda _config, parent_issue, state_path: {
+            "command": "plan-sequential-run-recovery",
+            "ok": True,
+            "parent_issue": parent_issue,
+            "sequential_run_state_path": str(state_path),
+        },
+    )
+    exit_code = cli.main(["plan-sequential-run-recovery", "--parent-issue", "309"])
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["command"] == "plan-sequential-run-recovery"
     assert payload["parent_issue"] == 309
 
 
