@@ -34,7 +34,7 @@ Higher-permission modes require explicit inputs and fail closed when missing:
 
 - `branch-write`: requires `--branch-name` and `--commit-message`
 - `push-pr`: requires branch-write inputs plus `--pr-title`
-- `closeout-eligible`: requires push-pr inputs plus validation/issue-PR linkage pass
+- `closeout-eligible`: requires push-pr inputs plus validation pass, issue-PR linkage (`pr_number` + `pr_url`), and merged-PR evidence pass
 
 ## Evidence And Audit
 

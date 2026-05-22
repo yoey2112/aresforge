@@ -33,7 +33,7 @@ M16 defines a controlled, human-triggered autonomous execution loop that can pro
 - Common gates: required source-of-truth docs present, validation commands defined.
 - Branch-write gates: explicit `branch_name`, explicit `commit_message`.
 - Push-pr gates: branch-write gates plus explicit PR metadata.
-- Closeout-eligible gates: successful validation, mapped issue/PR linkage, explicit target issue.
+- Closeout-eligible gates: successful validation, mapped issue/PR linkage (`pr_number` + `pr_url`), merged PR evidence, explicit target issue.
 
 ## Evidence Requirements
 - Every run generates an evidence package.

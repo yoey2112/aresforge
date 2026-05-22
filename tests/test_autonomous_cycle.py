@@ -243,3 +243,162 @@ def test_create_pr_treats_existing_pr_detection_as_success(monkeypatch, tmp_path
     assert payload["existing_pr_detected"] is True
     assert payload["pr_number"] == 266
     assert payload["pr_url"] == "https://github.com/yoey2112/aresforge/pull/266"
+
+
+def test_closeout_eligible_fails_closed_when_pr_not_merged(monkeypatch, tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_docs(config.repo_root)
+    monkeypatch.setattr(autonomous_cycle, "_upsert_run", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(autonomous_cycle, "_persist_step_results", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(
+        autonomous_cycle,
+        "_write_evidence",
+        lambda *_args, **_kwargs: {"markdown_path": "m.md", "json_path": "m.json"},
+    )
+    monkeypatch.setattr(
+        autonomous_cycle,
+        "_run_validations",
+        lambda *_args, **_kwargs: [{"command": "python -m pytest", "ok": True, "exit_code": 0}],
+    )
+    monkeypatch.setattr(
+        autonomous_cycle,
+        "_ensure_branch",
+        lambda *_args, **_kwargs: {"ok": True, "branch": "codex/m16-262"},
+    )
+    monkeypatch.setattr(
+        autonomous_cycle,
+        "_create_commit",
+        lambda *_args, **_kwargs: {"ok": True, "commit_hash": "abc123"},
+    )
+    monkeypatch.setattr(
+        autonomous_cycle,
+        "_push_branch",
+        lambda *_args, **_kwargs: {"ok": True},
+    )
+    monkeypatch.setattr(
+        autonomous_cycle,
+        "_create_pr",
+        lambda *_args, **_kwargs: {
+            "ok": True,
+            "pr_number": 266,
+            "pr_url": "https://github.com/yoey2112/aresforge/pull/266",
+        },
+    )
+    monkeypatch.setattr(
+        autonomous_cycle,
+        "_inspect_pr_merge_state",
+        lambda *_args, **_kwargs: {
+            "ok": True,
+            "pr_number": 266,
+            "pr_url": "https://github.com/yoey2112/aresforge/pull/266",
+            "state": "OPEN",
+            "merged_at": None,
+            "merged": False,
+        },
+    )
+    close_called = {"called": False}
+
+    def _close_issue(*_args, **_kwargs):
+        close_called["called"] = True
+        return {"ok": True}
+
+    monkeypatch.setattr(autonomous_cycle, "_close_issue", _close_issue)
+
+    payload = autonomous_cycle.run_autonomous_cycle(
+        config,
+        conn=_DummyConn(),
+        mode=autonomous_cycle.MODE_CLOSEOUT_ELIGIBLE,
+        parent_issue=258,
+        target_issue=262,
+        branch_name="codex/m16-262",
+        commit_message="m16 closeout",
+        pr_title="m16 pr",
+        validation_commands=["python -m pytest"],
+    )
+
+    assert payload["ok"] is False
+    assert payload["error"] == "closeout_gate_failed"
+    assert close_called["called"] is False
+    close_gate = next(
+        item for item in payload["run_steps"] if item["step_type"] == "evaluate_closeout_eligibility"
+    )
+    assert "pr_not_merged" in close_gate["outputs"]["failed_gates"]
+
+
+def test_closeout_eligible_closes_only_target_issue_when_pr_merged(monkeypatch, tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_docs(config.repo_root)
+    monkeypatch.setattr(autonomous_cycle, "_upsert_run", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(autonomous_cycle, "_persist_step_results", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(
+        autonomous_cycle,
+        "_write_evidence",
+        lambda *_args, **_kwargs: {"markdown_path": "m.md", "json_path": "m.json"},
+    )
+    monkeypatch.setattr(
+        autonomous_cycle,
+        "_run_validations",
+        lambda *_args, **_kwargs: [{"command": "python -m pytest", "ok": True, "exit_code": 0}],
+    )
+    monkeypatch.setattr(
+        autonomous_cycle,
+        "_ensure_branch",
+        lambda *_args, **_kwargs: {"ok": True, "branch": "codex/m16-262"},
+    )
+    monkeypatch.setattr(
+        autonomous_cycle,
+        "_create_commit",
+        lambda *_args, **_kwargs: {"ok": True, "commit_hash": "abc123"},
+    )
+    monkeypatch.setattr(
+        autonomous_cycle,
+        "_push_branch",
+        lambda *_args, **_kwargs: {"ok": True},
+    )
+    monkeypatch.setattr(
+        autonomous_cycle,
+        "_create_pr",
+        lambda *_args, **_kwargs: {
+            "ok": True,
+            "pr_number": 266,
+            "pr_url": "https://github.com/yoey2112/aresforge/pull/266",
+        },
+    )
+    monkeypatch.setattr(
+        autonomous_cycle,
+        "_inspect_pr_merge_state",
+        lambda *_args, **_kwargs: {
+            "ok": True,
+            "pr_number": 266,
+            "pr_url": "https://github.com/yoey2112/aresforge/pull/266",
+            "state": "MERGED",
+            "merged_at": "2026-05-22T00:00:00Z",
+            "merged": True,
+        },
+    )
+    closed_issue = {"issue": None}
+
+    def _close_issue(*, repo_slug: str, issue_number: int, cwd: Path):
+        _ = repo_slug
+        _ = cwd
+        closed_issue["issue"] = issue_number
+        return {"ok": True, "stdout": "closed", "stderr": ""}
+
+    monkeypatch.setattr(autonomous_cycle, "_close_issue", _close_issue)
+
+    payload = autonomous_cycle.run_autonomous_cycle(
+        config,
+        conn=_DummyConn(),
+        mode=autonomous_cycle.MODE_CLOSEOUT_ELIGIBLE,
+        parent_issue=258,
+        target_issue=262,
+        branch_name="codex/m16-262",
+        commit_message="m16 closeout",
+        pr_title="m16 pr",
+        validation_commands=["python -m pytest"],
+    )
+
+    assert payload["ok"] is True
+    assert closed_issue["issue"] == 262
+    merge_step = next(item for item in payload["run_steps"] if item["step_type"] == "inspect_pr_merge_state")
+    assert merge_step["outputs"]["merged"] is True

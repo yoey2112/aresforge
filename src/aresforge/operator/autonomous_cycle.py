@@ -208,6 +208,25 @@ def run_autonomous_cycle(
             return _finalize_failed_run(conn, config, run, step_results, "pr_create_failed")
 
     if mode == MODE_CLOSEOUT_ELIGIBLE:
+        pr_merge_state = _inspect_pr_merge_state(
+            repo_slug=f"{config.github_owner}/{config.github_repo}",
+            pr_number=run.get("pr_number"),
+            pr_url=run.get("pr_url"),
+            cwd=config.repo_root,
+        )
+        run["pr_merged"] = bool(pr_merge_state.get("merged"))
+        step_results.append(
+            _step(
+                "inspect_pr_merge_state",
+                "passed" if pr_merge_state["ok"] else "failed",
+                {"pr_number": run.get("pr_number"), "pr_url": run.get("pr_url")},
+                pr_merge_state,
+                failure_reason=None if pr_merge_state["ok"] else "pr_merge_state_inspection_failed",
+            )
+        )
+        if not pr_merge_state["ok"]:
+            return _finalize_failed_run(conn, config, run, step_results, "pr_merge_state_inspection_failed")
+
         closeout_gate = _evaluate_closeout_gate(run=run)
         step_results.append(
             _step(
@@ -372,6 +391,8 @@ def _evaluate_closeout_gate(*, run: dict[str, Any]) -> dict[str, Any]:
         failed.append("pr_linkage_missing")
     if not run.get("pr_url"):
         failed.append("pr_url_missing")
+    if run.get("pr_merged") is not True:
+        failed.append("pr_not_merged")
     if not run.get("target_issue"):
         failed.append("target_issue_missing")
     return {"ok": not failed, "failed_gates": failed}
@@ -529,6 +550,68 @@ def _create_pr(
         "existing_pr_detected": existing_pr_detected,
         "pr_number": pr_number,
         "pr_url": pr_url,
+        "stdout": result.stdout.strip(),
+        "stderr": result.stderr.strip(),
+    }
+
+
+def _inspect_pr_merge_state(
+    *, repo_slug: str, pr_number: int | None, pr_url: str | None, cwd: Path
+) -> dict[str, Any]:
+    if not pr_number or not pr_url:
+        return {
+            "ok": False,
+            "error": "pr_linkage_missing",
+            "pr_number": pr_number,
+            "pr_url": pr_url,
+        }
+    result = subprocess.run(
+        [
+            "gh",
+            "pr",
+            "view",
+            str(pr_number),
+            "--repo",
+            repo_slug,
+            "--json",
+            "number,url,state,mergedAt,isDraft",
+        ],
+        cwd=cwd,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        return {
+            "ok": False,
+            "error": "pr_view_failed",
+            "pr_number": pr_number,
+            "pr_url": pr_url,
+            "stdout": result.stdout.strip(),
+            "stderr": result.stderr.strip(),
+        }
+    try:
+        payload = json.loads(result.stdout)
+    except json.JSONDecodeError:
+        return {
+            "ok": False,
+            "error": "pr_view_invalid_json",
+            "pr_number": pr_number,
+            "pr_url": pr_url,
+            "stdout": result.stdout.strip(),
+            "stderr": result.stderr.strip(),
+        }
+
+    merged_at = payload.get("mergedAt")
+    merged = isinstance(merged_at, str) and bool(merged_at.strip())
+    return {
+        "ok": True,
+        "pr_number": payload.get("number") if isinstance(payload, dict) else pr_number,
+        "pr_url": payload.get("url") if isinstance(payload, dict) else pr_url,
+        "state": payload.get("state") if isinstance(payload, dict) else None,
+        "is_draft": payload.get("isDraft") if isinstance(payload, dict) else None,
+        "merged_at": merged_at if isinstance(merged_at, str) else None,
+        "merged": merged,
         "stdout": result.stdout.strip(),
         "stderr": result.stderr.strip(),
     }
