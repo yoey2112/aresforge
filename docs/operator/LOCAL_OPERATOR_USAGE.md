@@ -6,6 +6,7 @@
 - `python -m pytest`
 - `python -m aresforge inspect-repo-governance`
 - `python -m aresforge inspect-milestone-state --parent-issue <parent>`
+- `python -m aresforge inspect-milestone-dashboard --parent-issue <parent>`
 - `python -m aresforge plan-milestone-execution-queue --parent-issue <parent>`
 - `python -m aresforge check-issue-evidence-readiness --issue <issue>`
 - `python -m aresforge check-milestone-evidence-readiness --parent-issue <parent>`
@@ -48,6 +49,23 @@ Behavior:
 - no PR creation
 - no comments
 - no GitHub edits
+
+## Unified Milestone Dashboard (M18 #295)
+
+Commands:
+
+- `python -m aresforge inspect-milestone-dashboard --parent-issue <parent>`
+
+Behavior:
+
+- read-only consolidated dashboard built from milestone inspection, queue planning, evidence readiness, and final reconciliation planning outputs
+- reports parent state, child issue state summary, accounted/unaccounted child signals, and deterministic queue recommendation
+- surfaces evidence readiness status counts, final reconciliation readiness, and operator-required next actions
+- preserves non-mutation safety gates and boundary confirmations
+- never closes issues
+- never creates PRs
+- never comments on issues
+- never mutates GitHub state
 
 ## Evidence Readiness Checking (M17 #273/#274)
 

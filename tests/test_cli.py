@@ -54,6 +54,7 @@ def test_cli_has_expected_commands() -> None:
         "check-issue-evidence-readiness",
         "check-milestone-evidence-readiness",
         "plan-milestone-final-reconciliation",
+        "inspect-milestone-dashboard",
         "inspect-closeout-planning-drift",
         "qa-review-pr",
         "qa-closeout-pr",
@@ -233,6 +234,11 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     )
     assert plan_final_reconciliation_args.command == "plan-milestone-final-reconciliation"
     assert plan_final_reconciliation_args.parent_issue == 269
+    inspect_milestone_dashboard_args = parser.parse_args(
+        ["inspect-milestone-dashboard", "--parent-issue", "269"]
+    )
+    assert inspect_milestone_dashboard_args.command == "inspect-milestone-dashboard"
+    assert inspect_milestone_dashboard_args.parent_issue == 269
     inspect_closeout_planning_drift_args = parser.parse_args(
         ["inspect-closeout-planning-drift", "--parent-issue", "172"]
     )
