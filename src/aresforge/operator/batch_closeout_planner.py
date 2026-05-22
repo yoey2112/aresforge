@@ -573,8 +573,14 @@ def _merge_text_discovery(
             in_child_index_section=in_child_index_section,
             in_historical_section=in_historical_section,
         )
+        pr_reference_numbers = {int(match.group("number")) for match in _PR_REFERENCE_PATTERN.finditer(line)}
         for match in _ISSUE_NUMBER_PATTERN.finditer(line):
             number = int(match.group("number"))
+            if number in pr_reference_numbers:
+                evidence_by_child.setdefault(number, []).append(
+                    _discovery_entry(source, "evidence", "pull_request_reference_evidence_line")
+                )
+                continue
             if classification == "active":
                 numbers.add(number)
                 evidence_by_child.setdefault(number, []).append(
