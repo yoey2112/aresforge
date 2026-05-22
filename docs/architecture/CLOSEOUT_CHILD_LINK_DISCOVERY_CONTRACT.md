@@ -30,6 +30,9 @@ Every discovered reference must be classified as one of:
 
 the protected historical reference must remain protected historical/safety-only evidence and never become an active implementation child link.
 
+Historical/background parent-body references must not become active child links solely because issue numbers are present in narrative prose.
+Headings such as `Background`, `Observed behavior`, `Historical context`, `Prior milestone`, `Evidence from previous milestone`, `Regression evidence`, and `Closed prior issues` are treated as historical/background context unless the same child appears in an active child index entry or explicit child-parent linkage.
+
 ## Corrected Index Behavior
 
 When multiple parent comments look like child indexes:
