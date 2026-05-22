@@ -33,6 +33,11 @@ Command entrypoint:
 - Qualifying merged PR references are classified as closeout evidence, not active children.
 - Active child discovery remains constrained to real child issue references tied to the current parent scope.
 
+## M15 Planning Contract Authority
+
+- Milestone self-managed planning contract authority: `docs/architecture/SELF_MANAGED_MILESTONE_PLANNING_CONTRACT.md`.
+- Planned follow-on implementation surfaces for milestone planning and issue script generation remain future work and are not implemented in this baseline.
+
 ## Automation Boundary
 
 - Human-triggered only.

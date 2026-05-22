@@ -192,3 +192,8 @@ What this command does not do:
 - Generated GitHub issue scripts remain human-executed.
 - The protected historical reference remains protected historical evidence only.
 - GitHub mutation remains human-gated and copy/paste-driven.
+
+## M15 Contract Reference
+
+- Self-managed milestone planning contract authority: `docs/architecture/SELF_MANAGED_MILESTONE_PLANNING_CONTRACT.md`.
+- Any future milestone planning or issue script generation additions must default to read-only planning output and remain human-gated for GitHub mutation.
