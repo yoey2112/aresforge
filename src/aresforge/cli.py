@@ -99,6 +99,7 @@ from aresforge.operator.sequential_run_state import (
     resolve_sequential_run_state_path,
 )
 from aresforge.operator.sequential_recovery_planner import plan_sequential_run_recovery
+from aresforge.operator.sequential_handoff_package import generate_sequential_handoff_package
 from aresforge.operator.project_state_summary import project_state_summary
 from aresforge.operator.self_managed_milestone_planner import plan_self_managed_milestone
 from aresforge.operator.repo_bootstrap_contract import inspect_repo_bootstrap_contract
@@ -506,6 +507,17 @@ def build_parser() -> argparse.ArgumentParser:
     plan_sequential_recovery_parser.add_argument(
         "--sequential-run-state-path",
         help="Optional local sequential run-state path override (defaults to .aresforge/sequential-run-state.json).",
+    )
+    sequential_handoff_parser = subparsers.add_parser(
+        "generate-sequential-handoff-package",
+        help="Generate a structured sequential execution handoff/evidence package with read-only default.",
+    )
+    sequential_handoff_parser.add_argument("--parent-issue", type=int, required=True)
+    sequential_handoff_parser.add_argument("--issue", type=int, help="Optional single child issue scope.")
+    sequential_handoff_parser.add_argument(
+        "--write-package",
+        action="store_true",
+        help="Explicitly write local markdown/json package artifacts under evidence_dir.",
     )
     closeout_planning_drift_parser = subparsers.add_parser(
         "inspect-closeout-planning-drift",
@@ -1080,6 +1092,16 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "plan-sequential-run-recovery":
         path = resolve_sequential_run_state_path(config=config, path_override=args.sequential_run_state_path)
         payload = plan_sequential_run_recovery(config, parent_issue=args.parent_issue, state_path=path)
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "generate-sequential-handoff-package":
+        payload = generate_sequential_handoff_package(
+            config,
+            parent_issue=args.parent_issue,
+            child_issue=args.issue,
+            write_package=bool(args.write_package),
+        )
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 

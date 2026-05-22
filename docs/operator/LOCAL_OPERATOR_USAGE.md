@@ -143,6 +143,25 @@ Behavior:
 - never comments on issues
 - never mutates GitHub state
 
+## Sequential Evidence/Handoff Package (M19 #314)
+
+Commands:
+
+- `python -m aresforge generate-sequential-handoff-package --parent-issue <parent>`
+- `python -m aresforge generate-sequential-handoff-package --parent-issue <parent> --issue <child>`
+- `python -m aresforge generate-sequential-handoff-package --parent-issue <parent> --write-package`
+
+Behavior:
+
+- generates structured per-child and per-milestone handoff/evidence package output
+- includes child issue, branch, commit, PR, merge/main hash, validations, evidence URL if known, final child state, dashboard status, and next child recommendation
+- read-only by default
+- local artifact writing is opt-in using `--write-package`
+- never closes issues
+- never creates PRs
+- never comments on issues
+- never mutates GitHub state
+
 ## Evidence Readiness Checking (M17/#274 and M18/#299 enhancements)
 
 Commands:

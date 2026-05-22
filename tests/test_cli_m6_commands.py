@@ -42,6 +42,7 @@ def test_cli_help_includes_m6_commands() -> None:
     assert "inspect-child-execution-gates" in help_text
     assert "inspect-sequential-run-state" in help_text
     assert "plan-sequential-run-recovery" in help_text
+    assert "generate-sequential-handoff-package" in help_text
     assert "generate-child-closeout-script" in help_text
     assert "generate-evidence-comment-template" in help_text
 
@@ -399,6 +400,34 @@ def test_cli_dispatch_plan_sequential_run_recovery(
     assert exit_code == 0
     assert payload["command"] == "plan-sequential-run-recovery"
     assert payload["parent_issue"] == 309
+
+
+def test_cli_dispatch_generate_sequential_handoff_package(
+    monkeypatch,
+    capsys,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: _config(tmp_path))
+    monkeypatch.setattr(
+        cli,
+        "generate_sequential_handoff_package",
+        lambda _config, parent_issue, child_issue, write_package: {
+            "command": "generate-sequential-handoff-package",
+            "ok": True,
+            "parent_issue": parent_issue,
+            "child_issue": child_issue,
+            "read_only": not write_package,
+        },
+    )
+    exit_code = cli.main(
+        ["generate-sequential-handoff-package", "--parent-issue", "309", "--issue", "314", "--write-package"]
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["command"] == "generate-sequential-handoff-package"
+    assert payload["parent_issue"] == 309
+    assert payload["child_issue"] == 314
+    assert payload["read_only"] is False
 
 
 def test_cli_dispatch_generate_evidence_comment_template(
