@@ -2,20 +2,24 @@
 
 ## Current Phase
 
-M17 Self-managed milestone orchestration after controlled autonomous execution
+M18 milestone execution automation ergonomics and operator-driven closeout workflows
 
 ## Current Goal
 
-Deliver M17 issue #270 contract authority, #271 read-only milestone inspection, #272 planning-only milestone execution queue guidance, #273/#274 evidence completeness plus duplicate/no-op reuse planning, #275 final reconciliation planning, and #276 source-of-truth reconciliation on active PR #277 without introducing new mutation surfaces.
+Complete M18 final source-of-truth reconciliation issue #301 after implementation children #295/#296/#297/#298/#299/#300 were merged and closed with issue-specific evidence mapping.
 
 ## Current Repository State
 
-- M16 baseline commit: `1c5cacd` (`M16 final source-of-truth reconciliation (#268)`)
-- M17 parent issue: `#269`
-- Active M17 implementation PR: `#277` (`m17/270-271-contract-and-inspector` -> `main`)
-- Current M17 implementation scope on branch/PR: `#270`, `#271`, `#272`, `#273`, `#274`, `#275`, and `#276`
-- Issue closure status for M17 scope: all child issues currently open pending merge/evidence mapping
-- Parent #269 status expectation: remains open until all children are closed/accounted for
+- M18 parent issue: `#294` (open, expected to remain open until #301 closeout is complete and reviewed)
+- M18 child issue status:
+  - `#295` CLOSED via PR `#302`
+  - `#296` CLOSED via PR `#303`
+  - `#297` CLOSED via PR `#304`
+  - `#298` CLOSED via PR `#305`
+  - `#299` CLOSED via PR `#306`
+  - `#300` CLOSED via PR `#307`
+  - `#301` OPEN (final reconciliation only, processed last)
+- Current main HEAD before #301 implementation: `b3dfc65` (`Merge pull request #307`)
 - Governance inspection: `ok: true`
 - Known non-blocking warning: `milestone_naming_status.naming_ok: false`
 
@@ -29,7 +33,7 @@ Deliver M17 issue #270 contract authority, #271 read-only milestone inspection, 
 - `docs/architecture/CONTROLLED_AUTONOMOUS_GITHUB_EXECUTION_CONTRACT.md`
 - `docs/architecture/MILESTONE_EXECUTION_PLAN_CONTRACT.md`
 
-## M16/M17 Capability Snapshot
+## M18 Capability Snapshot
 
 - Contract authority: `docs/architecture/CONTROLLED_AUTONOMOUS_GITHUB_EXECUTION_CONTRACT.md`
 - `python -m aresforge run-autonomous-cycle`
@@ -48,6 +52,11 @@ Deliver M17 issue #270 contract authority, #271 read-only milestone inspection, 
 - `python -m aresforge check-issue-evidence-readiness --issue <issue>` read-only issue evidence completeness checker
 - `python -m aresforge check-milestone-evidence-readiness --parent-issue <parent>` read-only milestone evidence readiness checker
 - `python -m aresforge plan-milestone-final-reconciliation --parent-issue <parent>` planning-only milestone final reconciliation planner
+- `python -m aresforge inspect-milestone-dashboard --parent-issue <parent>` unified read-only milestone dashboard
+- `python -m aresforge generate-child-closeout-script --issue <issue>` read-only operator script generator
+- `python -m aresforge generate-evidence-comment-template --issue <issue>` read-only issue-specific evidence template generator
+- `python -m aresforge inspect-parent-closeout-readiness --parent-issue <parent>` read-only parent closeout readiness report
+- schema-driven evidence mapping support with structured marker parsing and legacy compatibility fallback
 - Explicit safety posture preserved:
   - no bulk closeout
   - no implicit mutation
@@ -55,16 +64,18 @@ Deliver M17 issue #270 contract authority, #271 read-only milestone inspection, 
   - no parent closeout before children are closed/accounted for
   - no mutation of M16 issues
 
-## Validation Baseline For Current M17 Scope (#270/#271/#272/#273/#274/#275/#276)
+## Validation Baseline For Current M18 Scope (#295/#296/#297/#298/#299/#300/#301)
 
 - `git diff --check`
 - `python -m pytest`
 - `python -m aresforge inspect-repo-governance`
-- `python -m aresforge inspect-milestone-state --parent-issue 269`
-- `python -m aresforge plan-milestone-execution-queue --parent-issue 269`
-- `python -m aresforge check-issue-evidence-readiness --issue 270`
-- `python -m aresforge check-milestone-evidence-readiness --parent-issue 269`
-- `python -m aresforge plan-milestone-final-reconciliation --parent-issue 269`
+- `python -m aresforge inspect-milestone-state --parent-issue 294`
+- `python -m aresforge inspect-milestone-dashboard --parent-issue 294`
+- `python -m aresforge plan-milestone-execution-queue --parent-issue 294`
+- `python -m aresforge check-issue-evidence-readiness --issue 301`
+- `python -m aresforge check-milestone-evidence-readiness --parent-issue 294`
+- `python -m aresforge plan-milestone-final-reconciliation --parent-issue 294`
+- `python -m aresforge inspect-parent-closeout-readiness --parent-issue 294`
 
 ## Boundaries
 
@@ -84,3 +95,4 @@ Not authorized:
 - issue closure outside explicit `closeout-eligible`
 - automatic PR merge
 - background jobs, polling loops, schedulers, or unattended execution
+- parent closeout before all child issues are closed/accounted and final reconciliation is complete

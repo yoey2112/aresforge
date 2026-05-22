@@ -74,75 +74,49 @@ M16 validation command bundle:
 - No automatic PR merge.
 - No unattended background execution.
 
-### M17 - Self-managed milestone orchestration after controlled autonomous execution
+### M18 - Milestone execution automation ergonomics and operator-driven closeout workflows
 
-Status: In progress.
+Status: Final reconciliation in progress (`#301` only).
 
 Parent issue:
 
-- #269 M17 self-managed milestone orchestration after controlled autonomous execution
+- #294 M18 milestone execution automation ergonomics and operator-driven closeout workflows (open)
 
-Current implementation scope:
+Implementation children:
 
-- #270 define milestone execution plan contract
-- #271 add read-only milestone state inspector
-- #272 add guarded per-issue execution queue planner
-- #273 add evidence completeness checker for issue closeout readiness
-- #274 add duplicate/no-op PR prevention and reuse planner hardening
-- #275 add milestone-level final reconciliation planner
-- #276 reconcile source-of-truth docs for M17
+- #295 CLOSED via PR #302
+- #296 CLOSED via PR #303
+- #297 CLOSED via PR #304
+- #298 CLOSED via PR #305
+- #299 CLOSED via PR #306
+- #300 CLOSED via PR #307
+- #301 OPEN (final source-of-truth reconciliation, must be processed last)
 
-Active implementation PR:
+Delivered M18 command outcomes:
 
-- #277 M17 implementation branch PR covering #270 through #276 (open, not merged)
-- No M17 issues are closed by PR #277 itself; closeout remains evidence-gated after merge
+- `inspect-milestone-dashboard`
+- `generate-child-closeout-script`
+- `generate-evidence-comment-template`
+- `inspect-parent-closeout-readiness`
+- schema-driven evidence mapping support with structured marker parsing and legacy compatibility
 
-Current M17 outcomes:
+M18 safety posture:
 
-- Contract authority at `docs/architecture/MILESTONE_EXECUTION_PLAN_CONTRACT.md`.
-- `inspect-milestone-state` command:
-  - `python -m aresforge inspect-milestone-state --parent-issue <parent>`
-- `plan-milestone-execution-queue` command:
-  - `python -m aresforge plan-milestone-execution-queue --parent-issue <parent>`
-- `check-issue-evidence-readiness` command:
-  - `python -m aresforge check-issue-evidence-readiness --issue <issue>`
-- `check-milestone-evidence-readiness` command:
-  - `python -m aresforge check-milestone-evidence-readiness --parent-issue <parent>`
-- `plan-milestone-final-reconciliation` command:
-  - `python -m aresforge plan-milestone-final-reconciliation --parent-issue <parent>`
-- Read-only milestone parent/child inspection with:
-  - parent summary
-  - child discovery from detectable references
-  - child state summaries
-  - merged PR evidence hints
-  - missing lineage hints
-  - milestone naming/assignment warnings
-  - explicit read-only boundary confirmations
-- Planning-only milestone execution queue guidance with:
-  - deterministic per-issue order
-  - final reconciliation issue last when detected
-  - blockers and missing lineage/evidence signals
-  - explicit non-execution safety gates (`execution_enabled: false`)
-- Read-only evidence readiness and duplicate/no-op reuse planning with:
-  - issue-level readiness classification (`ready`, `not_ready`, `ambiguous`, `blocked`, `already_closed`)
-  - `new_pr_needed` reuse/prevention guidance
-  - explicit mutation disabled safety fields
-  - no issue closure, PR creation, or issue comments
-- Planning-only milestone final reconciliation readiness with:
-  - implementation child accounting before reconciliation readiness
-  - final reconciliation issue sequencing check (must remain last)
-  - docs-only expectation and no generated evidence artifact churn expectation
-  - explicit non-mutation output fields (`close_issues: false`, `create_pr: false`, `comment_on_issue: false`, `mutation_allowed: false`)
-  - parent remains open until final reconciliation is merged/accounted
+- read-only inspection/planning commands do not mutate GitHub state
+- template/script generators are output-only and require explicit human execution for mutation
+- child issues are executed one-by-one with issue-specific evidence mapping
+- no bulk issue closure
+- parent remains open until final reconciliation is merged/accounted and reviewed
 
-M17 #270/#271/#272/#273/#274/#275/#276 validation bundle:
+M18 validation bundle:
 
 - `git diff --check`
 - `python -m pytest`
 - `python -m aresforge inspect-repo-governance`
-- `python -m aresforge inspect-milestone-state --parent-issue 269`
-- `python -m aresforge plan-milestone-execution-queue --parent-issue 269`
-- `python -m aresforge check-issue-evidence-readiness --issue 270`
-- `python -m aresforge check-milestone-evidence-readiness --parent-issue 269`
-- `python -m aresforge plan-milestone-final-reconciliation --parent-issue 269`
-- Governance and closeout remain explicitly human-triggered and auditable.
+- `python -m aresforge inspect-milestone-state --parent-issue 294`
+- `python -m aresforge inspect-milestone-dashboard --parent-issue 294`
+- `python -m aresforge plan-milestone-execution-queue --parent-issue 294`
+- `python -m aresforge check-issue-evidence-readiness --issue <issue>`
+- `python -m aresforge check-milestone-evidence-readiness --parent-issue 294`
+- `python -m aresforge plan-milestone-final-reconciliation --parent-issue 294`
+- `python -m aresforge inspect-parent-closeout-readiness --parent-issue 294`
