@@ -47,6 +47,8 @@ def test_cli_has_expected_commands() -> None:
         "plan-sprint-issues",
         "plan-self-managed-milestone",
         "generate-self-managed-issue-script",
+        "run-autonomous-cycle",
+        "inspect-autonomous-run",
         "inspect-closeout-planning-drift",
         "qa-review-pr",
         "qa-closeout-pr",
@@ -181,6 +183,26 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     assert generate_self_managed_script_args.mode == "read-only"
     assert generate_self_managed_script_args.run_id is None
     assert generate_self_managed_script_args.target_issue is None
+    autonomous_cycle_args = parser.parse_args(
+        [
+            "run-autonomous-cycle",
+            "--mode",
+            "dry-run",
+            "--parent-issue",
+            "258",
+            "--target-issue",
+            "259",
+        ]
+    )
+    assert autonomous_cycle_args.mode == "dry-run"
+    assert autonomous_cycle_args.parent_issue == 258
+    assert autonomous_cycle_args.target_issue == 259
+    assert autonomous_cycle_args.validation_command == []
+    assert autonomous_cycle_args.allow_empty_commit is False
+    inspect_autonomous_run_args = parser.parse_args(
+        ["inspect-autonomous-run", "--run-id", "run-m16-259-abc123"]
+    )
+    assert inspect_autonomous_run_args.run_id == "run-m16-259-abc123"
     inspect_closeout_planning_drift_args = parser.parse_args(
         ["inspect-closeout-planning-drift", "--parent-issue", "172"]
     )
