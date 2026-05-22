@@ -91,6 +91,7 @@ from aresforge.operator.evidence_completeness_checker import (
     check_milestone_evidence_readiness,
 )
 from aresforge.operator.milestone_dashboard import inspect_milestone_dashboard
+from aresforge.operator.parent_closeout_readiness import inspect_parent_closeout_readiness
 from aresforge.operator.milestone_reconciliation_planner import plan_milestone_final_reconciliation
 from aresforge.operator.project_state_summary import project_state_summary
 from aresforge.operator.self_managed_milestone_planner import plan_self_managed_milestone
@@ -450,6 +451,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Inspect a unified read-only milestone execution dashboard.",
     )
     milestone_dashboard_parser.add_argument("--parent-issue", type=int, required=True)
+    parent_closeout_readiness_parser = subparsers.add_parser(
+        "inspect-parent-closeout-readiness",
+        help="Inspect parent closeout readiness with explicit child lineage in read-only mode.",
+    )
+    parent_closeout_readiness_parser.add_argument("--parent-issue", type=int, required=True)
     inspect_planning_parser = subparsers.add_parser(
         "inspect-planning-state",
         help="Inspect local planning state without writing local files or mutating GitHub.",
@@ -996,6 +1002,11 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "inspect-milestone-dashboard":
         payload = inspect_milestone_dashboard(config, parent_issue=args.parent_issue)
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-parent-closeout-readiness":
+        payload = inspect_parent_closeout_readiness(config, parent_issue=args.parent_issue)
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 
