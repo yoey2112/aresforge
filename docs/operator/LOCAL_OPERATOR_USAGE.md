@@ -116,6 +116,16 @@ M13 closeout evidence recognition:
 - Qualifying merged PR references are classification evidence, not active children.
 - Historical parent-body issue references used for historical context are non-active and excluded from active child discovery.
 
+Closeout comment template guidance:
+
+- Closeout comments should include a `Documentation reconciliation evidence` section.
+- Required documentation status line (choose one):
+  - `updated` with specific files (for example source-of-truth docs when changed),
+  - `reviewed_current` when docs were reviewed and already current,
+  - `not_applicable` with rationale.
+- Missing documentation reconciliation evidence can keep parent closeout planning incomplete even if implementation PRs are merged.
+- Keep closeout execution human-gated; do not introduce autonomous GitHub mutation.
+
 M14 closeout classification cleanup baseline:
 
 - issue #243 resolved by merged PR #244: historical parent-body issue references are not treated as active children.

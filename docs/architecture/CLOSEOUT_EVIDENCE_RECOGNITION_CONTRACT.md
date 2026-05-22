@@ -37,6 +37,15 @@ Recognized documentation reconciliation evidence:
   - `AGENT_CONTEXT.md`
   - `ROADMAP.md`
 
+Canonical closeout comment guidance requirement:
+
+- Closeout comments should include an explicit `Documentation reconciliation evidence` section.
+- The section should state exactly one documentation status:
+  - `updated` (with specific files updated),
+  - `reviewed_current` (reviewed and already current),
+  - `not_applicable` (with rationale).
+- Missing documentation reconciliation evidence may keep parent closeout readiness incomplete even when implementation PR evidence is present.
+
 Historical reference classification rule:
 
 - historical issue references in parent body/comment narrative context are classified as historical/non-active unless they are explicit active child links for the current parent scope
