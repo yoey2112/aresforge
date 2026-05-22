@@ -83,6 +83,56 @@ def test_inspect_milestone_state_discovers_children_and_reports_read_only(monkey
     assert "No issues were closed." in payload["boundary_confirmations"]
 
 
+def test_inspect_milestone_state_discovers_checklist_inline_children(monkeypatch, tmp_path: Path) -> None:
+    config = _config(tmp_path)
+
+    parent = {
+        "number": 309,
+        "state": "OPEN",
+        "title": "M19 parent",
+        "url": "https://example.test/issues/309",
+        "milestone": {"title": "M19"},
+        "body": "- [ ] Define contract (#310)\n- [ ] Reconciliation (#317)",
+        "comments": [],
+        "reference_classification": {"implementation_issue_numbers": []},
+        "merged_pr_evidence": [],
+    }
+    child_310 = {
+        "number": 310,
+        "state": "CLOSED",
+        "title": "contract",
+        "url": "https://example.test/issues/310",
+        "milestone": {"title": "M19"},
+        "body": "Parent issue: #309",
+        "comments": [],
+        "reference_classification": {"implementation_issue_numbers": [309]},
+        "merged_pr_evidence": [],
+    }
+    child_317 = {
+        "number": 317,
+        "state": "OPEN",
+        "title": "reconciliation",
+        "url": "https://example.test/issues/317",
+        "milestone": {"title": "M19"},
+        "body": "Parent issue: #309",
+        "comments": [],
+        "reference_classification": {"implementation_issue_numbers": [309]},
+        "merged_pr_evidence": [],
+    }
+
+    def _fetch(_config: AppConfig, issue_number: int) -> dict:
+        mapping = {309: parent, 310: child_310, 317: child_317}
+        issue = mapping.get(issue_number)
+        if issue is None:
+            return {"ok": False, "error": "not_found"}
+        return {"ok": True, "issue": issue}
+
+    monkeypatch.setattr(milestone_state_inspector, "fetch_issue_details", _fetch)
+    payload = milestone_state_inspector.inspect_milestone_state(config, parent_issue=309)
+    assert payload["ok"] is True
+    assert payload["child_discovery"]["discovered_child_issue_numbers"] == [310, 317]
+
+
 def test_inspect_milestone_state_bubbles_parent_lookup_error(monkeypatch, tmp_path: Path) -> None:
     config = _config(tmp_path)
     monkeypatch.setattr(

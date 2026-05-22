@@ -108,6 +108,12 @@ Behavior:
 - never comments on issues
 - never mutates GitHub state
 
+M19 #315 extension:
+
+- dashboard now surfaces local sequential run-state when available
+- output explicitly separates GitHub issue truth from local sequential run-state
+- mismatch flags are raised when local sequential run-state and GitHub child discovery diverge
+
 ## Sequential Run-State Inspection (M19 #311)
 
 Commands:

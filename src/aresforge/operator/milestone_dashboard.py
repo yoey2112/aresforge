@@ -7,6 +7,7 @@ from aresforge.operator.evidence_completeness_checker import check_milestone_evi
 from aresforge.operator.milestone_execution_queue_planner import plan_milestone_execution_queue
 from aresforge.operator.milestone_reconciliation_planner import plan_milestone_final_reconciliation
 from aresforge.operator.milestone_state_inspector import inspect_milestone_state
+from aresforge.operator.sequential_run_state import resolve_sequential_run_state_path
 
 COMMAND_NAME = "inspect-milestone-dashboard"
 _ACCOUNTED_CLASSIFICATIONS = {"ready", "already_closed"}
@@ -57,6 +58,10 @@ def inspect_milestone_dashboard(config: AppConfig, *, parent_issue: int) -> dict
         evidence_readiness=evidence_readiness,
         final_reconciliation=final_reconciliation,
     )
+    sequential_state = _load_sequential_run_state(config=config, parent_issue=parent_issue)
+    mismatch_flags = _sequential_truth_mismatch(child_states=child_states, sequential_state=sequential_state)
+    if mismatch_flags:
+        warnings.extend(mismatch_flags)
     required_operator_actions = _collect_required_operator_actions(
         execution_queue=execution_queue,
         evidence_readiness=evidence_readiness,
@@ -107,6 +112,12 @@ def inspect_milestone_dashboard(config: AppConfig, *, parent_issue: int) -> dict
             "ready_for_final_reconciliation": final_reconciliation.get("ready_for_final_reconciliation"),
             "parent_should_remain_open": final_reconciliation.get("parent_should_remain_open"),
             "docs_only_expected": final_reconciliation.get("docs_only_expected"),
+        },
+        "sequential_run_state": sequential_state,
+        "truth_and_mismatch": {
+            "github_issue_truth_source": "inspect-milestone-state",
+            "local_sequential_run_state_source": sequential_state.get("path"),
+            "mismatch_flags": mismatch_flags,
         },
         "warnings": warnings,
         "required_operator_actions": required_operator_actions,
@@ -372,3 +383,69 @@ def _boundaries() -> list[str]:
         "Dashboard is read-only and performs no GitHub mutation.",
         "No issues were closed, no PRs were created, and no comments were added.",
     ]
+
+
+def _load_sequential_run_state(*, config: AppConfig, parent_issue: int) -> dict[str, Any]:
+    path = resolve_sequential_run_state_path(config=config)
+    if not path.exists():
+        return {"available": False, "path": str(path), "record_for_parent_found": False}
+    try:
+        import json
+
+        payload = json.loads(path.read_text(encoding="utf-8-sig"))
+    except Exception:
+        return {
+            "available": False,
+            "path": str(path),
+            "record_for_parent_found": False,
+            "error": "invalid_local_sequential_run_state",
+        }
+    if not isinstance(payload, dict):
+        return {
+            "available": False,
+            "path": str(path),
+            "record_for_parent_found": False,
+            "error": "invalid_local_sequential_run_state",
+        }
+    records = payload.get("records")
+    if not isinstance(records, list):
+        return {
+            "available": False,
+            "path": str(path),
+            "record_for_parent_found": False,
+            "error": "invalid_local_sequential_run_state",
+        }
+    selected = next(
+        (item for item in records if isinstance(item, dict) and item.get("parent_issue") == parent_issue),
+        None,
+    )
+    if not isinstance(selected, dict):
+        return {"available": True, "path": str(path), "record_for_parent_found": False}
+    return {
+        "available": True,
+        "path": str(path),
+        "record_for_parent_found": True,
+        "parent_issue": selected.get("parent_issue"),
+        "current_child_issue": selected.get("current_child_issue"),
+        "completed_children": selected.get("completed_children"),
+        "failed_step": selected.get("failed_step"),
+        "next_recommended_action": selected.get("next_recommended_action"),
+    }
+
+
+def _sequential_truth_mismatch(*, child_states: list[dict[str, Any]], sequential_state: dict[str, Any]) -> list[str]:
+    mismatches: list[str] = []
+    completed = sequential_state.get("completed_children")
+    discovered = {item.get("issue_number") for item in child_states if isinstance(item.get("issue_number"), int)}
+    if isinstance(completed, list):
+        completed_numbers = {number for number in completed if isinstance(number, int)}
+        missing_from_discovery = sorted(completed_numbers - discovered)
+        if missing_from_discovery:
+            mismatches.append(
+                "Sequential run-state completed children not visible in GitHub child discovery: "
+                + ", ".join(str(number) for number in missing_from_discovery)
+            )
+    current_child = sequential_state.get("current_child_issue")
+    if isinstance(current_child, int) and discovered and current_child not in discovered:
+        mismatches.append(f"Sequential run-state current child #{current_child} is not present in GitHub child discovery.")
+    return mismatches
