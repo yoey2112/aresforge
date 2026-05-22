@@ -20,6 +20,7 @@ Provide the minimum current operating context for safe post-M14 operator usage a
 
 - `docs/architecture/SPRINT_ISSUE_CREATION_PLANNING_CONTRACT.md`
 - `docs/architecture/CLOSEOUT_EVIDENCE_RECOGNITION_CONTRACT.md`
+- `docs/architecture/SELF_MANAGED_MILESTONE_PLANNING_CONTRACT.md`
 - `docs/architecture/RUNNABLE_SKELETON.md`
 - `docs/operator/LOCAL_OPERATOR_USAGE.md`
 - `docs/context/BUILD_STATE.md`
