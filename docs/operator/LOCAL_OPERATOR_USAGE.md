@@ -12,6 +12,7 @@
 - `python -m aresforge check-milestone-evidence-readiness --parent-issue <parent>`
 - `python -m aresforge plan-milestone-final-reconciliation --parent-issue <parent>`
 - `python -m aresforge inspect-parent-closeout-readiness --parent-issue <parent>`
+- `python -m aresforge inspect-sequential-run-state --parent-issue <parent>`
 
 ## End-to-End Child Execution Pattern (M18)
 
@@ -84,6 +85,24 @@ Behavior:
 - reports parent state, child issue state summary, accounted/unaccounted child signals, and deterministic queue recommendation
 - surfaces evidence readiness status counts, final reconciliation readiness, and operator-required next actions
 - preserves non-mutation safety gates and boundary confirmations
+- never closes issues
+- never creates PRs
+- never comments on issues
+- never mutates GitHub state
+
+## Sequential Run-State Inspection (M19 #311)
+
+Commands:
+
+- `python -m aresforge inspect-sequential-run-state --parent-issue <parent>`
+- `python -m aresforge inspect-sequential-run-state --parent-issue <parent> --write-local-state`
+
+Behavior:
+
+- builds a local sequential run-state snapshot from read-only milestone inspection, queue planning, and evidence readiness commands
+- captures parent issue, current child recommendation, completed children, failed-step signal, PR/evidence summary, and next recommended action
+- defaults to read-only mode without writing local files
+- optional local persistence writes only to `.aresforge/sequential-run-state.json`
 - never closes issues
 - never creates PRs
 - never comments on issues

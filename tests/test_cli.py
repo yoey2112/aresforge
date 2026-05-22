@@ -58,6 +58,7 @@ def test_cli_has_expected_commands() -> None:
         "plan-milestone-final-reconciliation",
         "inspect-milestone-dashboard",
         "inspect-parent-closeout-readiness",
+        "inspect-sequential-run-state",
         "inspect-closeout-planning-drift",
         "qa-review-pr",
         "qa-closeout-pr",
@@ -262,6 +263,12 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     )
     assert inspect_closeout_planning_drift_args.command == "inspect-closeout-planning-drift"
     assert inspect_closeout_planning_drift_args.parent_issue == 172
+    inspect_sequential_run_state_args = parser.parse_args(
+        ["inspect-sequential-run-state", "--parent-issue", "309"]
+    )
+    assert inspect_sequential_run_state_args.command == "inspect-sequential-run-state"
+    assert inspect_sequential_run_state_args.parent_issue == 309
+    assert inspect_sequential_run_state_args.write_local_state is False
     qa_review_args = parser.parse_args(["qa-review-pr", "--pr-number", "118"])
     assert qa_review_args.pr_number == 118
     qa_closeout_args = parser.parse_args(["qa-closeout-pr", "--pr-number", "119"])
