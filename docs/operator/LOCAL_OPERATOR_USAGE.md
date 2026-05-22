@@ -168,6 +168,75 @@ Behavior:
 - never comments on issues
 - never mutates GitHub state
 
+## End-to-End Sequential Operator Workflow (M19 #316)
+
+Recommended child order for M19:
+
+1. #310
+2. #311
+3. #312
+4. #313
+5. #314
+6. #315
+7. #316
+8. #317 (final reconciliation only; keep last)
+
+Per-child one-at-a-time loop:
+
+1. Sync clean main:
+   - `git checkout main`
+   - `git fetch origin`
+   - `git pull --ff-only origin main`
+   - `git status --short` (must be empty)
+2. Create one dedicated child branch (example: `m19/<issue>-short-slug`).
+3. Implement only the target child scope.
+4. Run validation bundle:
+   - `git diff --check`
+   - `python -m pytest`
+   - `python -m aresforge inspect-repo-governance`
+   - `python -m aresforge inspect-milestone-dashboard --parent-issue <parent>`
+   - `python -m aresforge inspect-milestone-state --parent-issue <parent>`
+   - `python -m aresforge check-milestone-evidence-readiness --parent-issue <parent>`
+5. Commit with issue reference and push branch.
+6. Open one PR for one child issue.
+7. Merge the PR only after readiness checks pass.
+8. Sync clean main and rerun validation bundle.
+9. Generate child evidence package:
+   - `python -m aresforge generate-sequential-handoff-package --parent-issue <parent> --issue <child>`
+10. Post issue-specific evidence comment scoped only to that child issue.
+11. Close only the target child issue.
+12. Re-run dashboard/readiness commands before starting next child.
+
+Recovery and resume examples:
+
+- Resume local status snapshot:
+  - `python -m aresforge inspect-sequential-run-state --parent-issue <parent>`
+- Persist local snapshot for handoff:
+  - `python -m aresforge inspect-sequential-run-state --parent-issue <parent> --write-local-state`
+- Generate recovery plan after interruption/failure:
+  - `python -m aresforge plan-sequential-run-recovery --parent-issue <parent>`
+- If blocked, stop progression, do not close current issue, and do not advance to next child until recovery action is resolved.
+
+Evidence and closeout guidance:
+
+- Every child must have:
+  - one branch
+  - one PR
+  - one validation cycle on branch and on main after merge
+  - one issue-specific evidence comment
+  - one targeted closeout
+- Evidence comments should include child issue number, branch, commit, PR URL, merge/main hash, files changed, validation results, safety notes, dashboard/readiness summary, and a statement that evidence applies only to that child.
+- Never use bulk closeout commands.
+- Never close parent until all children are closed/accounted for and final reconciliation is complete.
+
+Safety boundaries:
+
+- No autonomous broad mutation.
+- No bulk issue closure.
+- No parent closure before child sequence completion and explicit readiness proof.
+- Prior milestone mutation is out of scope unless explicitly required for M19 documentation references.
+- Local sequential run-state remains advisory and must not override GitHub issue truth.
+
 ## Evidence Readiness Checking (M17/#274 and M18/#299 enhancements)
 
 Commands:

@@ -228,6 +228,25 @@ Documentation-sync evidence packages provide the review structure for operator-p
 
 The reusable handoff template at `docs/agents/DOCUMENTATION_SYNC_HANDOFF_TEMPLATE.md` may be used to format operator-prepared documentation-sync handoff content, but it remains a manual review artifact scaffold and not an implemented local operator command.
 
+## M19 Sequential Milestone Execution Pattern
+
+For milestones using the sequential operator-approved model, child issues are executed one at a time from clean synced `main`, each with its own branch, PR, validation, issue-specific evidence comment, and targeted closeout.
+
+The required sequence is:
+
+1. Start from clean synced `main`.
+2. Create one child-specific branch.
+3. Implement only that child scope.
+4. Validate branch.
+5. Open and merge one child-specific PR.
+6. Re-sync and validate `main`.
+7. Post issue-specific evidence comment.
+8. Close only that target child.
+9. Re-check dashboard/readiness before next child.
+10. Keep final reconciliation child last.
+
+Resume/recovery planning remains read-only by default and uses local sequential run-state as advisory context. GitHub issue state remains source of truth for milestone status and closeout decisions.
+
 ## Relationship To M3 Agent Workflow Orchestration
 
 The local operator workflow prepares for M3 by defining the evidence packages and approval gates that future agent workflow orchestration must preserve.
