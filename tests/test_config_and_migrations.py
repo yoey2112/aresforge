@@ -41,7 +41,10 @@ def test_config_validation_and_directory_creation(tmp_path: Path) -> None:
 def test_discover_migrations_reads_repo_sql_files() -> None:
     repo_root = Path(__file__).resolve().parents[1]
     migrations = discover_migrations(repo_root / "migrations")
-    assert [migration.path.name for migration in migrations] == ["0001_initial_schema.sql"]
+    assert [migration.path.name for migration in migrations] == [
+        "0001_initial_schema.sql",
+        "0002_m15_autonomous_run_queue.sql",
+    ]
 
 
 def test_default_queue_seed_set_matches_canonical_m2_queue_ids() -> None:

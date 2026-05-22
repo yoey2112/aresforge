@@ -73,6 +73,7 @@ from aresforge.operator.ready_issue_pipeline import (
     run_ready_issue_pipeline,
 )
 from aresforge.operator.project_state_summary import project_state_summary
+from aresforge.operator.self_managed_milestone_planner import plan_self_managed_milestone
 from aresforge.operator.repo_bootstrap_contract import inspect_repo_bootstrap_contract
 from aresforge.operator.repo_bootstrap_plan import plan_repo_bootstrap
 from aresforge.operator.repo_governance import inspect_repo_governance
@@ -310,6 +311,22 @@ def build_parser() -> argparse.ArgumentParser:
         help="Render a read-only, human-gated sprint issue creation plan from a local JSON definition.",
     )
     sprint_issue_plan_parser.add_argument("--definition", required=True)
+    self_managed_milestone_parser = subparsers.add_parser(
+        "plan-self-managed-milestone",
+        help="Plan deterministic self-managed milestone sequencing with read-only default and local-write run queue initialization.",
+    )
+    self_managed_milestone_parser.add_argument(
+        "--mode",
+        default="read-only",
+        choices=[
+            "read-only",
+            "local-write",
+            "branch-write",
+            "pr-write",
+            "closeout-write",
+            "full-auto",
+        ],
+    )
     inspect_planning_parser = subparsers.add_parser(
         "inspect-planning-state",
         help="Inspect local planning state without writing local files or mutating GitHub.",
@@ -761,6 +778,15 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "plan-sprint-issues":
         payload = plan_sprint_issues(definition_path=args.definition)
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "plan-self-managed-milestone":
+        if args.mode == "local-write":
+            with connect(config) as conn:
+                payload = plan_self_managed_milestone(config, mode=args.mode, conn=conn)
+        else:
+            payload = plan_self_managed_milestone(config, mode=args.mode)
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 

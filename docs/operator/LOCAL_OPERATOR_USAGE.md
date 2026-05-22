@@ -5,6 +5,8 @@
 - `python -m pytest`
 - `python -m aresforge inspect-repo-governance`
 - `python -m aresforge plan-sprint-issues --definition tests/fixtures/m12-sprint-definition.json`
+- `python -m aresforge plan-self-managed-milestone`
+- `python -m aresforge plan-self-managed-milestone --mode local-write`
 - `python -m aresforge generate-sprint-issue-script --definition tests/fixtures/m8-sprint-definition.json`
 - `python -m aresforge inspect-planning-state`
 - `python -m aresforge compare-planning-state`
@@ -197,3 +199,22 @@ What this command does not do:
 
 - Self-managed milestone planning contract authority: `docs/architecture/SELF_MANAGED_MILESTONE_PLANNING_CONTRACT.md`.
 - Any future milestone planning or issue script generation additions must default to read-only planning output and remain human-gated for GitHub mutation.
+
+## Self-Managed Milestone Planner (M15)
+
+- `python -m aresforge plan-self-managed-milestone`
+- `python -m aresforge plan-self-managed-milestone --mode local-write`
+
+Default mode is read-only.
+
+Mode behavior:
+
+- `read-only`: reads local source-of-truth docs, performs read-only GitHub inspection where available, emits deterministic plan JSON, and writes a local evidence artifact package.
+- `local-write`: includes all read-only behavior plus local DB persistence for `autonomous_runs` and ordered `run_steps`.
+- `branch-write`, `pr-write`, `closeout-write`, `full-auto`: intentionally not implemented in M15 and fail safely without mutation.
+
+Safety boundaries:
+
+- No GitHub mutation is performed in any mode.
+- No labels, milestones, issues, PRs, branches, workflows, or settings are created or modified.
+- Local DB state mutation is allowed only in `local-write`.
