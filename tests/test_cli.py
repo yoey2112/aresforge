@@ -48,6 +48,7 @@ def test_cli_has_expected_commands() -> None:
         "plan-self-managed-milestone",
         "generate-self-managed-issue-script",
         "generate-child-closeout-script",
+        "generate-evidence-comment-template",
         "run-autonomous-cycle",
         "inspect-autonomous-run",
         "inspect-milestone-state",
@@ -195,6 +196,11 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     )
     assert generate_child_closeout_script_args.command == "generate-child-closeout-script"
     assert generate_child_closeout_script_args.issue == 296
+    generate_evidence_comment_template_args = parser.parse_args(
+        ["generate-evidence-comment-template", "--issue", "297"]
+    )
+    assert generate_evidence_comment_template_args.command == "generate-evidence-comment-template"
+    assert generate_evidence_comment_template_args.issue == 297
     autonomous_cycle_args = parser.parse_args(
         [
             "run-autonomous-cycle",
