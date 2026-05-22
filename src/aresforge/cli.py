@@ -93,6 +93,10 @@ from aresforge.operator.evidence_completeness_checker import (
 from aresforge.operator.milestone_dashboard import inspect_milestone_dashboard
 from aresforge.operator.parent_closeout_readiness import inspect_parent_closeout_readiness
 from aresforge.operator.milestone_reconciliation_planner import plan_milestone_final_reconciliation
+from aresforge.operator.sequential_run_state import (
+    inspect_sequential_run_state,
+    resolve_sequential_run_state_path,
+)
 from aresforge.operator.project_state_summary import project_state_summary
 from aresforge.operator.self_managed_milestone_planner import plan_self_managed_milestone
 from aresforge.operator.repo_bootstrap_contract import inspect_repo_bootstrap_contract
@@ -471,6 +475,20 @@ def build_parser() -> argparse.ArgumentParser:
     compare_planning_parser.add_argument(
         "--planning-state-path",
         help="Optional local planning state path override (defaults to .aresforge/planning-state.json).",
+    )
+    inspect_sequential_run_state_parser = subparsers.add_parser(
+        "inspect-sequential-run-state",
+        help="Inspect sequential milestone run-state with read-only default and optional local state persistence.",
+    )
+    inspect_sequential_run_state_parser.add_argument("--parent-issue", type=int, required=True)
+    inspect_sequential_run_state_parser.add_argument(
+        "--sequential-run-state-path",
+        help="Optional local sequential run-state path override (defaults to .aresforge/sequential-run-state.json).",
+    )
+    inspect_sequential_run_state_parser.add_argument(
+        "--write-local-state",
+        action="store_true",
+        help="Explicitly persist the generated sequential run-state snapshot locally.",
     )
     closeout_planning_drift_parser = subparsers.add_parser(
         "inspect-closeout-planning-drift",
@@ -1019,6 +1037,17 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "compare-planning-state":
         path = resolve_planning_state_path(config=config, path_override=args.planning_state_path)
         payload = compare_planning_state(path=path)
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-sequential-run-state":
+        path = resolve_sequential_run_state_path(config=config, path_override=args.sequential_run_state_path)
+        payload = inspect_sequential_run_state(
+            config,
+            parent_issue=args.parent_issue,
+            state_path=path,
+            write_local_state=bool(args.write_local_state),
+        )
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 

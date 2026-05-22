@@ -39,6 +39,7 @@ def test_cli_help_includes_m6_commands() -> None:
     assert "check-milestone-evidence-readiness" in help_text
     assert "plan-milestone-final-reconciliation" in help_text
     assert "inspect-milestone-dashboard" in help_text
+    assert "inspect-sequential-run-state" in help_text
     assert "generate-child-closeout-script" in help_text
     assert "generate-evidence-comment-template" in help_text
 
@@ -323,6 +324,31 @@ def test_cli_dispatch_generate_child_closeout_script(
     assert payload["command"] == "generate-child-closeout-script"
     assert payload["read_only"] is True
     assert payload["target_issue"] == 296
+
+
+def test_cli_dispatch_inspect_sequential_run_state(
+    monkeypatch,
+    capsys,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: _config(tmp_path))
+    monkeypatch.setattr(
+        cli,
+        "inspect_sequential_run_state",
+        lambda _config, parent_issue, state_path, write_local_state: {
+            "command": "inspect-sequential-run-state",
+            "ok": True,
+            "parent_issue": parent_issue,
+            "sequential_run_state_path": str(state_path),
+            "local_write": {"performed": write_local_state},
+        },
+    )
+    exit_code = cli.main(["inspect-sequential-run-state", "--parent-issue", "309", "--write-local-state"])
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["command"] == "inspect-sequential-run-state"
+    assert payload["parent_issue"] == 309
+    assert payload["local_write"]["performed"] is True
 
 
 def test_cli_dispatch_generate_evidence_comment_template(
