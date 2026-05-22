@@ -24,6 +24,7 @@ Child issues:
 - #315 CLOSED via PR #323
 - #316 CLOSED via PR #324
 - #317 OPEN (final source-of-truth reconciliation, must be processed last)
+- Final reconciliation PR: #325
 
 Delivered M19 outcomes:
 

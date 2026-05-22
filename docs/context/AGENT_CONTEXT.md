@@ -51,6 +51,7 @@ Provide minimum operating context for safe M19 sequential milestone execution wi
 - Milestone dashboard/readiness integration with sequential state and mismatch flags implemented.
 - End-to-end sequential operator workflow documentation implemented.
 - M19 final reconciliation in progress via `#317` (docs-only scope).
+- M19 PR sequence: `#318` through `#325` (`#325` is the final reconciliation PR).
 
 ## Prohibited Behaviors
 

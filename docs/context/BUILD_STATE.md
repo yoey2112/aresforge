@@ -20,6 +20,7 @@ Complete M19 final source-of-truth reconciliation issue #317 after implementatio
   - `#315` CLOSED via PR `#323`
   - `#316` CLOSED via PR `#324`
   - `#317` OPEN (final reconciliation only, processed last)
+- M19 PR sequence: `#318`, `#319`, `#320`, `#321`, `#322`, `#323`, `#324`, `#325` (final reconciliation PR)
 - Current main HEAD before #317 implementation: `93a8c1942e3d98260223dfe91e6820e669f9e6a6` (`Merge pull request #324`)
 - Governance inspection: `ok: true`
 - Known non-blocking warning: `milestone_naming_status.naming_ok: false`
