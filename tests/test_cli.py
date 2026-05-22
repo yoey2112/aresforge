@@ -46,6 +46,7 @@ def test_cli_has_expected_commands() -> None:
         "plan-batch-closeout",
         "plan-sprint-issues",
         "plan-self-managed-milestone",
+        "generate-self-managed-issue-script",
         "inspect-closeout-planning-drift",
         "qa-review-pr",
         "qa-closeout-pr",
@@ -175,6 +176,11 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     plan_self_managed_args = parser.parse_args(["plan-self-managed-milestone"])
     assert plan_self_managed_args.command == "plan-self-managed-milestone"
     assert plan_self_managed_args.mode == "read-only"
+    generate_self_managed_script_args = parser.parse_args(["generate-self-managed-issue-script"])
+    assert generate_self_managed_script_args.command == "generate-self-managed-issue-script"
+    assert generate_self_managed_script_args.mode == "read-only"
+    assert generate_self_managed_script_args.run_id is None
+    assert generate_self_managed_script_args.target_issue is None
     inspect_closeout_planning_drift_args = parser.parse_args(
         ["inspect-closeout-planning-drift", "--parent-issue", "172"]
     )

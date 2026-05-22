@@ -7,6 +7,7 @@
 - `python -m aresforge plan-sprint-issues --definition tests/fixtures/m12-sprint-definition.json`
 - `python -m aresforge plan-self-managed-milestone`
 - `python -m aresforge plan-self-managed-milestone --mode local-write`
+- `python -m aresforge generate-self-managed-issue-script`
 - `python -m aresforge generate-sprint-issue-script --definition tests/fixtures/m8-sprint-definition.json`
 - `python -m aresforge inspect-planning-state`
 - `python -m aresforge compare-planning-state`
@@ -213,8 +214,29 @@ Mode behavior:
 - `local-write`: includes all read-only behavior plus local DB persistence for `autonomous_runs` and ordered `run_steps`.
 - `branch-write`, `pr-write`, `closeout-write`, `full-auto`: intentionally not implemented in M15 and fail safely without mutation.
 
+Queue advancement behavior:
+
+- Active target issue is derived from current ready-issue inspection signal.
+- A previously targeted closed issue is not retained as the active target when a newer ready issue exists.
+- If no ready issue exists, planner output reports no active target and recommends a human-gated readiness advancement step.
+
 Safety boundaries:
 
 - No GitHub mutation is performed in any mode.
 - No labels, milestones, issues, PRs, branches, workflows, or settings are created or modified.
 - Local DB state mutation is allowed only in `local-write`.
+
+## Self-Managed Issue Script Generation (M15)
+
+- `python -m aresforge generate-self-managed-issue-script`
+- `python -m aresforge generate-self-managed-issue-script --run-id <id>`
+- `python -m aresforge generate-self-managed-issue-script --target-issue <number>`
+- `python -m aresforge generate-self-managed-issue-script --mode read-only`
+
+Behavior:
+
+- Generates deterministic text-only copy/paste PowerShell guidance from DB-backed run queue state when available.
+- Falls back to derived read-only plan state when no run record is provided/available.
+- Keeps GitHub mutation human-gated; Python does not execute `gh` mutations.
+- Avoids nested markdown fences inside PowerShell here-string bodies.
+- Never closes issues or merges PRs automatically.

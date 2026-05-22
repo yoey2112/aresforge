@@ -45,6 +45,7 @@ from aresforge.operator.batch_readiness_report import report_batch_readiness
 from aresforge.operator.batch_closeout_planner import plan_batch_closeout
 from aresforge.operator.closeout_planning_drift import inspect_closeout_planning_drift
 from aresforge.operator.sprint_issue_script_generator import generate_sprint_issue_script
+from aresforge.operator.self_managed_issue_script_generator import generate_self_managed_issue_script
 from aresforge.operator.sprint_issue_planner import plan_sprint_issues
 from aresforge.operator.planning_state import (
     compare_planning_state,
@@ -316,6 +317,31 @@ def build_parser() -> argparse.ArgumentParser:
         help="Plan deterministic self-managed milestone sequencing with read-only default and local-write run queue initialization.",
     )
     self_managed_milestone_parser.add_argument(
+        "--mode",
+        default="read-only",
+        choices=[
+            "read-only",
+            "local-write",
+            "branch-write",
+            "pr-write",
+            "closeout-write",
+            "full-auto",
+        ],
+    )
+    self_managed_issue_script_parser = subparsers.add_parser(
+        "generate-self-managed-issue-script",
+        help="Generate human-gated PowerShell issue guidance from self-managed milestone run queue state.",
+    )
+    self_managed_issue_script_parser.add_argument(
+        "--run-id",
+        help="Optional autonomous run identifier to use as the script source.",
+    )
+    self_managed_issue_script_parser.add_argument(
+        "--target-issue",
+        type=int,
+        help="Optional explicit target issue override.",
+    )
+    self_managed_issue_script_parser.add_argument(
         "--mode",
         default="read-only",
         choices=[
@@ -787,6 +813,27 @@ def main(argv: list[str] | None = None) -> int:
                 payload = plan_self_managed_milestone(config, mode=args.mode, conn=conn)
         else:
             payload = plan_self_managed_milestone(config, mode=args.mode)
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "generate-self-managed-issue-script":
+        if args.run_id is not None:
+            with connect(config) as conn:
+                payload = generate_self_managed_issue_script(
+                    config,
+                    mode=args.mode,
+                    run_id=args.run_id,
+                    target_issue=args.target_issue,
+                    conn=conn,
+                )
+        else:
+            payload = generate_self_managed_issue_script(
+                config,
+                mode=args.mode,
+                run_id=None,
+                target_issue=args.target_issue,
+                conn=None,
+            )
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 

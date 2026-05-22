@@ -12,7 +12,7 @@ from psycopg import Connection
 from aresforge.artifacts.store import ArtifactBundle, write_markdown_json_bundle
 from aresforge.config import AppConfig
 from aresforge.operator.project_state_summary import project_state_summary
-from aresforge.operator.ready_issue_intake import list_ready_issues
+from aresforge.operator.ready_issue_intake import fetch_issue_details, list_ready_issues
 from aresforge.operator.repo_governance import inspect_repo_governance
 
 COMMAND_NAME = "plan-self-managed-milestone"
@@ -66,9 +66,24 @@ def plan_self_managed_milestone(
     ready_issues = list_ready_issues(config)
     readiness = project_state_summary(config)
 
-    sequence = _deterministic_sequence()
+    previous_run = _load_latest_autonomous_run(conn) if conn is not None else None
+    previous_target_issue = (
+        previous_run.get("target_issue")
+        if isinstance(previous_run, dict) and isinstance(previous_run.get("target_issue"), int)
+        else None
+    )
+    closed_previous_target = _closed_previous_target(
+        config=config,
+        previous_target_issue=previous_target_issue,
+        ready_issues=ready_issues,
+    )
+
+    sequence = _deterministic_sequence(
+        ready_issues=ready_issues,
+        closed_issue_numbers=closed_previous_target,
+    )
     parent_issue = 249
-    target_issue = 251
+    target_issue = _derive_active_target_issue(sequence=sequence, ready_issues=ready_issues)
     selected_agent = "model-routing-agent"
     model_tier = "copilot"
     validation_expectations = [
@@ -79,7 +94,8 @@ def plan_self_managed_milestone(
     ]
     next_recommended_command = "python -m aresforge plan-self-managed-milestone --mode local-write"
     now = datetime.now(UTC).replace(microsecond=0).isoformat()
-    run_id = f"run-m15-{target_issue}-{uuid4().hex[:10]}"
+    run_suffix = target_issue if target_issue is not None else "none"
+    run_id = f"run-m15-{run_suffix}-{uuid4().hex[:10]}"
     steps = _build_run_steps(
         docs=docs,
         governance=governance,
@@ -89,6 +105,9 @@ def plan_self_managed_milestone(
         parent_issue=parent_issue,
     )
 
+    no_target_warning = (
+        "No active ready issue is currently available; review dependencies and run a human-gated readiness advancement."
+    )
     payload: dict[str, Any] = {
         "command": COMMAND_NAME,
         "ok": True,
@@ -112,6 +131,8 @@ def plan_self_managed_milestone(
         "planning": {
             "parent_issue": parent_issue,
             "target_issue": target_issue,
+            "previous_target_issue": previous_target_issue,
+            "closed_previous_target_issues": sorted(closed_previous_target),
             "selected_agent": selected_agent,
             "model_tier": model_tier,
             "safety_mode": mode,
@@ -143,13 +164,14 @@ def plan_self_managed_milestone(
             "validation_status": "pending",
             "qa_status": "pending",
             "closeout_status": "pending",
-            "next_issue_candidate": 252,
+            "next_issue_candidate": _derive_next_issue_candidate(sequence=sequence, active_target=target_issue),
         },
         "run_steps": steps,
         "warnings": [
             "No GitHub mutation was performed.",
             "Unsupported higher-permission modes remain fail-safe and unimplemented.",
             "Issue script generation scope (#252) and source-of-truth reconciliation scope (#253) are not implemented here.",
+            *( [no_target_warning] if target_issue is None else [] ),
         ],
         "boundary_confirmations": [
             "Read-only GitHub inspection only (where available).",
@@ -164,7 +186,7 @@ def plan_self_managed_milestone(
         "json_path": str(artifact_bundle.json_path),
     }
 
-    if mode == "local-write":
+    if mode == "local-write" and target_issue is not None:
         assert conn is not None
         _persist_autonomous_run(
             conn,
@@ -174,7 +196,7 @@ def plan_self_managed_milestone(
             next_recommended_command=next_recommended_command,
             metadata={
                 "command": COMMAND_NAME,
-                "target_issue_title": sequence[1].title,
+                "target_issue_title": _issue_title(sequence=sequence, issue_number=target_issue),
                 "dependency_order": [item.issue_number for item in sequence],
                 "parent_issue": parent_issue,
                 "target_issue": target_issue,
@@ -186,6 +208,14 @@ def plan_self_managed_milestone(
             "tables": ["autonomous_runs", "run_steps"],
             "run_id": run_id,
             "run_step_count": len(steps),
+        }
+    elif mode == "local-write":
+        payload["db_write"] = {
+            "ok": False,
+            "error": "no_active_target_issue",
+            "tables": [],
+            "run_id": run_id,
+            "run_step_count": 0,
         }
 
     return payload
@@ -206,37 +236,130 @@ def _unsupported_mode_payload(*, mode: str, reason: str) -> dict[str, Any]:
     }
 
 
-def _deterministic_sequence() -> tuple[SequencedIssue, ...]:
-    return (
-        SequencedIssue(
-            issue_number=250,
-            title="M15: define self-managed milestone planning contract",
-            role="contract",
-            status="completed_dependency",
-            depends_on=(),
-        ),
-        SequencedIssue(
-            issue_number=251,
-            title="M15: add database-backed self-managed milestone planner and run queue initializer",
-            role="implementation",
-            status="ready",
-            depends_on=(250,),
-        ),
-        SequencedIssue(
-            issue_number=252,
-            title="M15: add issue script generator for self-managed milestone plan",
-            role="follow_on",
-            status="blocked",
-            depends_on=(251,),
-        ),
-        SequencedIssue(
-            issue_number=253,
-            title="M15: reconcile source-of-truth docs for self-managed milestone planning",
-            role="reconciliation",
-            status="blocked",
-            depends_on=(251, 252),
-        ),
-    )
+def _deterministic_sequence(
+    *,
+    ready_issues: dict[str, Any],
+    closed_issue_numbers: set[int],
+) -> tuple[SequencedIssue, ...]:
+    issue_map = {
+        250: ("M15: define self-managed milestone planning contract", "contract", ()),
+        251: ("M15: add database-backed self-managed milestone planner and run queue initializer", "implementation", (250,)),
+        252: ("M15: add issue script generator for self-managed milestone plan", "follow_on", (251,)),
+        253: ("M15: reconcile source-of-truth docs for self-managed milestone planning", "reconciliation", (251, 252)),
+    }
+    ready_numbers = _ready_issue_numbers(ready_issues)
+    sequence: list[SequencedIssue] = []
+    completed: set[int] = {250}
+    completed.update(closed_issue_numbers)
+    for issue_number in (250, 251, 252, 253):
+        title, role, depends_on = issue_map[issue_number]
+        if issue_number in completed:
+            status = "completed_dependency"
+        elif issue_number in ready_numbers:
+            status = "ready"
+        elif all(dep in completed for dep in depends_on):
+            status = "blocked_waiting_readiness_label"
+        else:
+            status = "blocked"
+        sequence.append(
+            SequencedIssue(
+                issue_number=issue_number,
+                title=title,
+                role=role,
+                status=status,
+                depends_on=depends_on,
+            )
+        )
+        if status == "completed_dependency":
+            completed.add(issue_number)
+    return tuple(sequence)
+
+
+def _ready_issue_numbers(ready_issues: dict[str, Any]) -> set[int]:
+    issues = ready_issues.get("issues")
+    if not isinstance(issues, list):
+        return set()
+    numbers: set[int] = set()
+    for item in issues:
+        if isinstance(item, dict) and isinstance(item.get("number"), int):
+            numbers.add(item["number"])
+    return numbers
+
+
+def _derive_active_target_issue(
+    *,
+    sequence: tuple[SequencedIssue, ...],
+    ready_issues: dict[str, Any],
+) -> int | None:
+    ready_numbers = _ready_issue_numbers(ready_issues)
+    ordered = [item.issue_number for item in sequence if item.issue_number in ready_numbers]
+    return ordered[-1] if ordered else None
+
+
+def _derive_next_issue_candidate(
+    *,
+    sequence: tuple[SequencedIssue, ...],
+    active_target: int | None,
+) -> int | None:
+    if active_target is None:
+        return next((item.issue_number for item in sequence if item.status == "blocked"), None)
+    for item in sequence:
+        if item.issue_number > active_target:
+            return item.issue_number
+    return None
+
+
+def _closed_previous_target(
+    *,
+    config: AppConfig,
+    previous_target_issue: int | None,
+    ready_issues: dict[str, Any],
+) -> set[int]:
+    if previous_target_issue is None:
+        return set()
+    if previous_target_issue in _ready_issue_numbers(ready_issues):
+        return set()
+    details = fetch_issue_details(config, previous_target_issue)
+    issue = details.get("issue") if isinstance(details, dict) else None
+    state = issue.get("state") if isinstance(issue, dict) else None
+    if isinstance(state, str) and state.upper() == "CLOSED":
+        return {previous_target_issue}
+    return set()
+
+
+def _issue_title(*, sequence: tuple[SequencedIssue, ...], issue_number: int | None) -> str | None:
+    if issue_number is None:
+        return None
+    for item in sequence:
+        if item.issue_number == issue_number:
+            return item.title
+    return None
+
+
+def _load_latest_autonomous_run(conn: Connection) -> dict[str, Any] | None:
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT run_id, parent_issue, target_issue, status, created_at
+            FROM autonomous_runs
+            WHERE project_id = %s
+            ORDER BY created_at DESC
+            LIMIT 1
+            """,
+            ("project-aresforge",),
+        )
+        row = cur.fetchone()
+    if not row:
+        return None
+    def _value(index: int, key: str) -> Any:
+        return row[key] if isinstance(row, dict) else row[index]
+    return {
+        "run_id": _value(0, "run_id"),
+        "parent_issue": _value(1, "parent_issue"),
+        "target_issue": _value(2, "target_issue"),
+        "status": _value(3, "status"),
+        "created_at": _value(4, "created_at"),
+    }
 
 
 def _read_source_of_truth_docs(repo_root: Path) -> dict[str, Any]:
@@ -308,7 +431,10 @@ def _build_run_steps(
             },
             "outputs": {
                 "queued_step_count": 3,
-                "next_issue_candidate": 252,
+                "next_issue_candidate": _derive_next_issue_candidate(
+                    sequence=sequence,
+                    active_target=target_issue,
+                ),
             },
             "started_at": None,
             "completed_at": None,
