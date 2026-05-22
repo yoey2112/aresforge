@@ -104,6 +104,16 @@ Default behavior is output-only. Planning-state writes are explicit and local-on
 
 Default behavior remains read-only. Snapshot writes are explicit and local-only.
 
+M13 closeout evidence recognition:
+
+- `plan-batch-closeout` recognizes human-gated closeout evidence from issue bodies and issue comments.
+- Recognized comment evidence includes:
+  - merged PR references such as `PR #<number>`
+  - validation pass lines such as `python -m ... -> ok true` or `... passed`
+  - documentation reconciliation lines, including source-of-truth reconciliation and updated source-of-truth document references
+- Evidence recognition remains deterministic and read-only.
+- Closeout mutation remains human-gated and is not performed by this command.
+
 ## Planning State Inspection
 
 - `python -m aresforge inspect-planning-state`
