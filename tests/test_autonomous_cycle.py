@@ -131,7 +131,11 @@ def test_push_pr_mode_records_pr_step(monkeypatch, tmp_path: Path) -> None:
     monkeypatch.setattr(
         autonomous_cycle,
         "_create_pr",
-        lambda *_args, **_kwargs: {"ok": True, "pr_number": 401},
+        lambda *_args, **_kwargs: {
+            "ok": True,
+            "pr_number": 401,
+            "pr_url": "https://github.com/yoey2112/aresforge/pull/401",
+        },
     )
 
     payload = autonomous_cycle.run_autonomous_cycle(
@@ -151,3 +155,50 @@ def test_push_pr_mode_records_pr_step(monkeypatch, tmp_path: Path) -> None:
     assert "git_push_branch" in steps
     assert "gh_pr_create" in steps
     assert payload["run"]["pr_number"] == 401
+    assert payload["run"]["pr_url"] == "https://github.com/yoey2112/aresforge/pull/401"
+    pr_step = next(item for item in payload["run_steps"] if item["step_type"] == "gh_pr_create")
+    assert pr_step["outputs"]["pr_url"] == "https://github.com/yoey2112/aresforge/pull/401"
+
+
+def test_closeout_gate_requires_pr_url() -> None:
+    gate = autonomous_cycle._evaluate_closeout_gate(
+        run={"validation_status": "passed", "target_issue": 263, "pr_number": 266}
+    )
+
+    assert gate["ok"] is False
+    assert "pr_url_missing" in gate["failed_gates"]
+
+
+def test_create_pr_extracts_number_and_url_from_create_stdout(monkeypatch, tmp_path: Path) -> None:
+    class _Result:
+        def __init__(self, returncode: int, stdout: str, stderr: str = "") -> None:
+            self.returncode = returncode
+            self.stdout = stdout
+            self.stderr = stderr
+
+    calls = {"count": 0}
+
+    def _fake_run(*_args, **_kwargs):
+        calls["count"] += 1
+        if calls["count"] == 1:
+            return _Result(
+                0,
+                "https://github.com/yoey2112/aresforge/pull/266\n",
+                "",
+            )
+        return _Result(1, "", "view unavailable")
+
+    monkeypatch.setattr(autonomous_cycle.subprocess, "run", _fake_run)
+
+    payload = autonomous_cycle._create_pr(
+        repo_slug="yoey2112/aresforge",
+        title="t",
+        body="b",
+        base="main",
+        head="codex/m16-262",
+        cwd=tmp_path,
+    )
+
+    assert payload["ok"] is True
+    assert payload["pr_number"] == 266
+    assert payload["pr_url"] == "https://github.com/yoey2112/aresforge/pull/266"

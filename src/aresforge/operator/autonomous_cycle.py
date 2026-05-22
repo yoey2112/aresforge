@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 import json
 from pathlib import Path
+import re
 import subprocess
 from typing import Any
 from uuid import uuid4
@@ -80,6 +81,7 @@ def run_autonomous_cycle(
         "branch_name": branch_name,
         "commit_hash": None,
         "pr_number": None,
+        "pr_url": None,
         "validation_status": "pending",
         "qa_status": "pending",
         "closeout_status": "pending",
@@ -191,6 +193,7 @@ def run_autonomous_cycle(
             cwd=config.repo_root,
         )
         run["pr_number"] = pr.get("pr_number")
+        run["pr_url"] = pr.get("pr_url")
         run["qa_status"] = "pending_review"
         step_results.append(
             _step(
@@ -260,7 +263,7 @@ def inspect_autonomous_run(conn: Connection, *, run_id: str) -> dict[str, Any]:
         cur.execute(
             """
             SELECT run_id, parent_issue, target_issue, current_step, status,
-                   selected_agent, model_tier, branch_name, commit_hash, pr_number,
+                   selected_agent, model_tier, branch_name, commit_hash, pr_number, pr_url,
                    validation_status, qa_status, closeout_status, safety_mode,
                    validation_expectations, next_recommended_command, metadata,
                    created_at, updated_at
@@ -367,6 +370,8 @@ def _evaluate_closeout_gate(*, run: dict[str, Any]) -> dict[str, Any]:
         failed.append("validation_not_passed")
     if not run.get("pr_number"):
         failed.append("pr_linkage_missing")
+    if not run.get("pr_url"):
+        failed.append("pr_url_missing")
     if not run.get("target_issue"):
         failed.append("target_issue_missing")
     return {"ok": not failed, "failed_gates": failed}
@@ -491,9 +496,12 @@ def _create_pr(
         check=False,
     )
     pr_number = None
+    pr_url = _extract_pr_url(result.stdout)
+    if pr_url is not None:
+        pr_number = _extract_pr_number_from_url(pr_url)
     if result.returncode == 0:
         view = subprocess.run(
-            ["gh", "pr", "view", "--repo", repo_slug, "--json", "number,url"],
+            ["gh", "pr", "view", "--repo", repo_slug, "--json", "number,url", "--head", head],
             cwd=cwd,
             capture_output=True,
             text=True,
@@ -502,16 +510,38 @@ def _create_pr(
         if view.returncode == 0:
             try:
                 payload = json.loads(view.stdout)
-                if isinstance(payload, dict) and isinstance(payload.get("number"), int):
-                    pr_number = payload["number"]
+                if isinstance(payload, dict):
+                    if isinstance(payload.get("number"), int):
+                        pr_number = payload["number"]
+                    if isinstance(payload.get("url"), str) and payload["url"].strip():
+                        pr_url = payload["url"].strip()
+                        if pr_number is None:
+                            pr_number = _extract_pr_number_from_url(pr_url)
             except json.JSONDecodeError:
-                pr_number = None
+                pass
     return {
         "ok": result.returncode == 0,
         "pr_number": pr_number,
+        "pr_url": pr_url,
         "stdout": result.stdout.strip(),
         "stderr": result.stderr.strip(),
     }
+
+
+def _extract_pr_url(stdout: str) -> str | None:
+    if not stdout:
+        return None
+    match = re.search(r"https://github\.com/\S+/pull/\d+", stdout)
+    if not match:
+        return None
+    return match.group(0).rstrip(").,")
+
+
+def _extract_pr_number_from_url(pr_url: str) -> int | None:
+    match = re.search(r"/pull/(\d+)$", pr_url)
+    if not match:
+        return None
+    return int(match.group(1))
 
 
 def _close_issue(*, repo_slug: str, issue_number: int, cwd: Path) -> dict[str, Any]:
@@ -599,12 +629,12 @@ def _upsert_run(conn: Connection, run: dict[str, Any]) -> None:
             """
             INSERT INTO autonomous_runs (
                 run_id, project_id, parent_issue, target_issue, current_step, status,
-                selected_agent, model_tier, branch_name, commit_hash, pr_number,
+                selected_agent, model_tier, branch_name, commit_hash, pr_number, pr_url,
                 validation_status, qa_status, closeout_status, next_issue_candidate,
                 safety_mode, validation_expectations, next_recommended_command, metadata
             ) VALUES (
                 %(run_id)s, %(project_id)s, %(parent_issue)s, %(target_issue)s, %(current_step)s, %(status)s,
-                %(selected_agent)s, %(model_tier)s, %(branch_name)s, %(commit_hash)s, %(pr_number)s,
+                %(selected_agent)s, %(model_tier)s, %(branch_name)s, %(commit_hash)s, %(pr_number)s, %(pr_url)s,
                 %(validation_status)s, %(qa_status)s, %(closeout_status)s, %(next_issue_candidate)s,
                 %(safety_mode)s, %(validation_expectations)s::jsonb, %(next_recommended_command)s, %(metadata)s::jsonb
             )
@@ -614,6 +644,7 @@ def _upsert_run(conn: Connection, run: dict[str, Any]) -> None:
                 branch_name = EXCLUDED.branch_name,
                 commit_hash = EXCLUDED.commit_hash,
                 pr_number = EXCLUDED.pr_number,
+                pr_url = EXCLUDED.pr_url,
                 validation_status = EXCLUDED.validation_status,
                 qa_status = EXCLUDED.qa_status,
                 closeout_status = EXCLUDED.closeout_status,

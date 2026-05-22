@@ -1,0 +1,2 @@
+ALTER TABLE autonomous_runs
+    ADD COLUMN IF NOT EXISTS pr_url TEXT;
