@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Describe the implemented human-triggered local operator surface after M15 self-managed milestone planning and run queue/script generation delivery.
+Describe the implemented human-triggered operator surface after M16 controlled autonomous execution loop delivery.
 
 ## Operator Shape
 
@@ -12,57 +12,51 @@ Command entrypoint:
 
 ## Current Additions
 
-- `plan-agent-queue`: read-only governance-aware intake and queue planning.
-- `report-batch-readiness`: read-only multi-issue validation summary.
-- `plan-batch-closeout`: read-only by default; optional explicit local snapshot write.
-- `generate-sprint-issue-script`: output-only by default; optional explicit local planning write.
-- `plan-sprint-issues`: read-only deterministic sprint issue planning with human-gated script output.
-- `plan-self-managed-milestone`: read-only deterministic milestone planning by default; `local-write` persists local DB run queue state.
-- `generate-self-managed-issue-script`: read-only deterministic script generation from derived planning or DB-backed run queue state.
-- `inspect-planning-state`: read-only local planning-state summary.
-- `compare-planning-state`: read-only local planning-state drift comparison.
-- `inspect-closeout-planning-drift`: read-only planning-state versus live closeout child discovery comparison.
+- `run-autonomous-cycle`: explicit controlled execution loop with mode-gated mutation boundaries.
+- `inspect-autonomous-run`: inspect DB-backed run lifecycle and step history.
+- Existing planning/validation/reporting commands remain available and compatible.
 
-## M15 Capability Contract Alignment
+## M16 Capability Contract Alignment
 
-- Contract authority: `docs/architecture/SELF_MANAGED_MILESTONE_PLANNING_CONTRACT.md`.
-- Implemented M15 subset:
-  - `plan-self-managed-milestone` (read-only)
-  - `plan-self-managed-milestone --mode local-write` (local DB write)
-  - DB-backed `autonomous_runs` and `run_steps`
-  - queue advancement/current-ready target derivation
-  - `generate-self-managed-issue-script`
-  - derived read-only script generation
-  - DB-backed script generation using `--run-id`
-- Not implemented in M15:
-  - autonomous/higher-permission execution modes (`branch-write`, `pr-write`, `closeout-write`, `full-auto`)
-  - autonomous GitHub mutation paths
+- Contract authority: `docs/architecture/CONTROLLED_AUTONOMOUS_GITHUB_EXECUTION_CONTRACT.md`.
+- Implemented mode set:
+  - `dry-run`
+  - `local-write`
+  - `branch-write`
+  - `push-pr`
+  - `closeout-eligible`
+- Implemented execution boundaries:
+  - branch creation/commit only in `branch-write` or higher
+  - push/PR only in `push-pr` or higher
+  - issue closeout only in `closeout-eligible`
+- Implemented persistence:
+  - `autonomous_runs` for run lifecycle state
+  - `run_steps` for ordered mutation/evaluation evidence
 
 ## Automation Boundary
 
 - Human-triggered only.
-- Read-only/output-only defaults.
-- Explicit local DB writes only in `local-write` mode.
-- No autonomous GitHub mutation.
-- No automatic issue closure.
+- Read-only-safe defaults.
+- Fail-closed gates for higher-permission modes.
 - No automatic PR merge.
-- No automatic branch creation.
 - No background jobs, polling loops, or schedulers.
-- Generated mutation scripts are copy/paste output requiring human review and manual execution.
+- Evidence package generation for all run outcomes.
 
 ## Validation Bundle
 
 - `git diff --check`
 - `python -m pytest`
 - `python -m aresforge inspect-repo-governance`
-- `python -m aresforge plan-self-managed-milestone`
-- `python -m aresforge plan-self-managed-milestone --mode local-write`
-- `python -m aresforge generate-self-managed-issue-script`
+- `python -m aresforge run-autonomous-cycle --mode dry-run --parent-issue <parent> --target-issue <target> --validation-command "python -m aresforge inspect-repo-governance"`
+- `python -m aresforge run-autonomous-cycle --mode local-write --parent-issue <parent> --target-issue <target> --validation-command "python -m aresforge inspect-repo-governance"`
+- `python -m aresforge run-autonomous-cycle --mode branch-write --parent-issue <parent> --target-issue <target> --validation-command "python -m aresforge inspect-repo-governance"` (fail-closed check without branch/commit inputs)
+- `python -m aresforge run-autonomous-cycle --mode push-pr --parent-issue <parent> --target-issue <target> --validation-command "python -m aresforge inspect-repo-governance"` (fail-closed check without branch/commit/PR inputs)
+- `python -m aresforge run-autonomous-cycle --mode closeout-eligible --parent-issue <parent> --target-issue <target> --validation-command "python -m aresforge inspect-repo-governance"` (fail-closed check without branch/commit/PR inputs)
+- `python -m aresforge inspect-autonomous-run --run-id <id>`
 
 ## Follow-Up Candidates
 
-1. Milestone naming/mapping cleanup (non-blocking warning).
-2. Next autonomy milestone toward local autonomous execution preparations.
-3. Generalized sequencing beyond M15 bounded sequence.
-4. Source-of-truth reconciliation automation.
-5. Controlled PR-write mode in a future milestone.
+1. Tighten closeout gates with stricter PR-to-issue linkage inspection using deterministic GitHub evidence checks.
+2. Add richer run inspection summaries and filtered views.
+3. Add explicit no-op local-write step typing when no file mutation occurs.
+4. Add optional branch-write integration tests in a disposable local fixture repository.

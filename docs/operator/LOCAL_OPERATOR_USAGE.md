@@ -1,71 +1,65 @@
 # Local Operator Usage
 
-## Core Validation Bundle (Final M15 State)
+## Core Validation Bundle (M16)
 
 - `git diff --check`
 - `python -m pytest`
 - `python -m aresforge inspect-repo-governance`
-- `python -m aresforge plan-self-managed-milestone`
-- `python -m aresforge plan-self-managed-milestone --mode local-write`
-- `python -m aresforge generate-self-managed-issue-script`
-- `git status --short`
-- `git diff --name-only`
+- `python -m aresforge run-autonomous-cycle --mode dry-run --parent-issue <parent> --target-issue <target> --validation-command "python -m aresforge inspect-repo-governance"`
+- `python -m aresforge run-autonomous-cycle --mode local-write --parent-issue <parent> --target-issue <target> --validation-command "python -m aresforge inspect-repo-governance"`
+- `python -m aresforge inspect-autonomous-run --run-id <id>`
 
-## Self-Managed Milestone Planner (M15)
+## Controlled Autonomous Execution (M16)
 
 Commands:
 
-- `python -m aresforge plan-self-managed-milestone`
-- `python -m aresforge plan-self-managed-milestone --mode local-write`
+- `python -m aresforge run-autonomous-cycle --mode dry-run --parent-issue <parent> --target-issue <target>`
+- `python -m aresforge run-autonomous-cycle --mode local-write --parent-issue <parent> --target-issue <target>`
+- `python -m aresforge run-autonomous-cycle --mode branch-write --parent-issue <parent> --target-issue <target> --branch-name <branch> --commit-message <message>`
+- `python -m aresforge run-autonomous-cycle --mode push-pr --parent-issue <parent> --target-issue <target> --branch-name <branch> --commit-message <message> --pr-title <title>`
+- `python -m aresforge run-autonomous-cycle --mode closeout-eligible --parent-issue <parent> --target-issue <target> --branch-name <branch> --commit-message <message> --pr-title <title>`
+- `python -m aresforge inspect-autonomous-run --run-id <id>`
 
 Mode behavior:
 
-- `read-only`: inspects source-of-truth docs plus read-only governance/readiness signals and emits deterministic planning output and evidence artifacts.
-- `local-write`: includes all read-only behavior plus local DB writes to `autonomous_runs` and `run_steps`.
-- `branch-write`, `pr-write`, `closeout-write`, `full-auto`: intentionally unimplemented and fail safe.
+- `dry-run`: read-only plan and validation path; no repository or GitHub mutation.
+- `local-write`: local lifecycle progression with evidence generation; no GitHub mutation.
+- `branch-write`: enables branch and commit mutation only after gate pass.
+- `push-pr`: enables branch/commit plus push and PR creation after gate pass.
+- `closeout-eligible`: enables push-pr path plus controlled issue closure after closeout gates pass.
 
-Queue advancement/current-ready targeting:
+## Fail-Closed Gate Design
 
-- Active target issue is derived from current ready-issue state.
-- Previously targeted closed issues are not retained when a newer ready issue exists.
-- If no ready issue exists, output reports no active target and recommends human-gated readiness advancement.
+Higher-permission modes require explicit inputs and fail closed when missing:
 
-## Self-Managed Issue Script Generation (M15)
+- `branch-write`: requires `--branch-name` and `--commit-message`
+- `push-pr`: requires branch-write inputs plus `--pr-title`
+- `closeout-eligible`: requires push-pr inputs plus validation pass, issue-PR linkage (`pr_number` + `pr_url`), and merged-PR evidence pass
 
-Commands:
+## Evidence And Audit
 
-- `python -m aresforge generate-self-managed-issue-script`
-- `python -m aresforge generate-self-managed-issue-script --run-id <id>`
-- `python -m aresforge generate-self-managed-issue-script --target-issue <number>`
-
-Behavior:
-
-- Generates deterministic text-only copy/paste PowerShell guidance.
-- Uses DB-backed run queue state when run records are available (including `--run-id`).
-- Falls back to derived read-only planning state when no run record is available.
-- Keeps mutation human-gated; Python command does not execute GitHub mutation.
+- Every run writes evidence artifacts under `artifacts/evidence/generated`.
+- Every mutation/evaluation step is recorded in DB-backed `run_steps`.
+- Run lifecycle state is recorded in `autonomous_runs`.
+- Failed runs still produce evidence and persisted step history.
 
 ## Human-Gated Mutation Boundaries
 
 Allowed:
 
-- human-triggered local command execution
-- explicit local DB writes in `local-write` mode
-- manual, reviewed execution of generated scripts
-- human-reviewed branch and PR workflows
+- human-triggered command execution
+- explicit mode-scoped mutation
+- evidence-backed run inspection
 
 Not authorized:
 
-- autonomous GitHub mutation
-- automatic issue closure
+- mutation in `dry-run`
+- GitHub mutation in `local-write` or `branch-write`
+- push/PR outside explicit higher-permission modes
+- issue closure outside explicit `closeout-eligible`
 - automatic PR merge
-- automatic branch creation
 - background jobs, polling loops, or schedulers
 
 ## Governance Note
 
-- `inspect-repo-governance` may continue to report project-specific milestone naming/mapping warnings (`milestone_naming_status.naming_ok: false`); this remains non-blocking for current M15 workflow.
-
-## M15 Closeout Readiness Note
-
-- Parent issue `#249` can be prepared for human-gated closeout after issue `#253` merges.
+- `inspect-repo-governance` milestone naming warning may remain non-blocking (`milestone_naming_status.naming_ok: false`).

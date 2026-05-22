@@ -73,6 +73,15 @@ from aresforge.operator.ready_issue_pipeline import (
     MODE_REVIEW_PR,
     run_ready_issue_pipeline,
 )
+from aresforge.operator.autonomous_cycle import (
+    MODE_BRANCH_WRITE as AUTONOMOUS_MODE_BRANCH_WRITE,
+    MODE_CLOSEOUT_ELIGIBLE as AUTONOMOUS_MODE_CLOSEOUT_ELIGIBLE,
+    MODE_DRY_RUN as AUTONOMOUS_MODE_DRY_RUN,
+    MODE_LOCAL_WRITE as AUTONOMOUS_MODE_LOCAL_WRITE,
+    MODE_PUSH_PR as AUTONOMOUS_MODE_PUSH_PR,
+    inspect_autonomous_run,
+    run_autonomous_cycle,
+)
 from aresforge.operator.project_state_summary import project_state_summary
 from aresforge.operator.self_managed_milestone_planner import plan_self_managed_milestone
 from aresforge.operator.repo_bootstrap_contract import inspect_repo_bootstrap_contract
@@ -353,6 +362,44 @@ def build_parser() -> argparse.ArgumentParser:
             "full-auto",
         ],
     )
+    autonomous_cycle_parser = subparsers.add_parser(
+        "run-autonomous-cycle",
+        help="Run controlled autonomous execution with explicit safety-gated modes.",
+    )
+    autonomous_cycle_parser.add_argument(
+        "--mode",
+        required=True,
+        choices=[
+            AUTONOMOUS_MODE_DRY_RUN,
+            AUTONOMOUS_MODE_LOCAL_WRITE,
+            AUTONOMOUS_MODE_BRANCH_WRITE,
+            AUTONOMOUS_MODE_PUSH_PR,
+            AUTONOMOUS_MODE_CLOSEOUT_ELIGIBLE,
+        ],
+    )
+    autonomous_cycle_parser.add_argument("--parent-issue", type=int, required=True)
+    autonomous_cycle_parser.add_argument("--target-issue", type=int, required=True)
+    autonomous_cycle_parser.add_argument("--title")
+    autonomous_cycle_parser.add_argument("--branch-name")
+    autonomous_cycle_parser.add_argument("--commit-message")
+    autonomous_cycle_parser.add_argument("--pr-title")
+    autonomous_cycle_parser.add_argument("--pr-body")
+    autonomous_cycle_parser.add_argument(
+        "--validation-command",
+        action="append",
+        default=[],
+        help="Validation command for gate/evidence tracking. May be provided multiple times.",
+    )
+    autonomous_cycle_parser.add_argument(
+        "--allow-empty-commit",
+        action="store_true",
+        help="Allow an empty commit in branch-write or higher modes.",
+    )
+    inspect_autonomous_run_parser = subparsers.add_parser(
+        "inspect-autonomous-run",
+        help="Inspect one DB-backed autonomous run and recorded steps.",
+    )
+    inspect_autonomous_run_parser.add_argument("--run-id", required=True)
     inspect_planning_parser = subparsers.add_parser(
         "inspect-planning-state",
         help="Inspect local planning state without writing local files or mutating GitHub.",
@@ -834,6 +881,31 @@ def main(argv: list[str] | None = None) -> int:
                 target_issue=args.target_issue,
                 conn=None,
             )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "run-autonomous-cycle":
+        with connect(config) as conn:
+            payload = run_autonomous_cycle(
+                config,
+                conn=conn,
+                mode=args.mode,
+                parent_issue=args.parent_issue,
+                target_issue=args.target_issue,
+                title=args.title,
+                branch_name=args.branch_name,
+                commit_message=args.commit_message,
+                pr_title=args.pr_title,
+                pr_body=args.pr_body,
+                validation_commands=args.validation_command,
+                allow_empty_commit=bool(args.allow_empty_commit),
+            )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-autonomous-run":
+        with connect(config) as conn:
+            payload = inspect_autonomous_run(conn, run_id=args.run_id)
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 

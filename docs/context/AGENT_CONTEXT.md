@@ -2,73 +2,66 @@
 
 ## Purpose
 
-Provide minimum operating context for safe M15 self-managed milestone planning and documentation reconciliation.
+Provide minimum operating context for safe M16 controlled autonomous execution with explicit mode gates and audit evidence.
 
 ## Current Operating Model
 
 - Documentation remains source of truth.
-- `plan-self-managed-milestone` defaults to read-only planning output.
-- `plan-self-managed-milestone --mode local-write` is local DB write only.
-- `generate-self-managed-issue-script` is text/script output only.
-- Human authority remains final for all GitHub mutation.
-- No autonomous queue workers or background execution.
+- `run-autonomous-cycle` is human-triggered and mode-gated.
+- Defaults remain safe and read-only.
+- Every run and step is persisted in `autonomous_runs`/`run_steps`.
+- Every run emits evidence artifacts.
+- No unattended/background execution.
 
 ## Canonical Documents
 
-- `docs/architecture/SELF_MANAGED_MILESTONE_PLANNING_CONTRACT.md`
+- `docs/architecture/CONTROLLED_AUTONOMOUS_GITHUB_EXECUTION_CONTRACT.md`
 - `docs/architecture/RUNNABLE_SKELETON.md`
 - `docs/architecture/REPOSITORY_GOVERNANCE_CONTRACT.md`
-- `docs/architecture/CLOSEOUT_EVIDENCE_RECOGNITION_CONTRACT.md`
 - `docs/operator/LOCAL_OPERATOR_USAGE.md`
 - `docs/context/BUILD_STATE.md`
 - `docs/roadmap/ROADMAP.md`
 
 ## Current Commands
 
-- `python -m aresforge plan-self-managed-milestone`
-- `python -m aresforge plan-self-managed-milestone --mode local-write`
-- `python -m aresforge generate-self-managed-issue-script`
-- `python -m aresforge generate-self-managed-issue-script --run-id <id>`
-- `python -m aresforge generate-self-managed-issue-script --target-issue <number>`
+- `python -m aresforge run-autonomous-cycle --mode dry-run --parent-issue <parent> --target-issue <child>`
+- `python -m aresforge run-autonomous-cycle --mode local-write --parent-issue <parent> --target-issue <child>`
+- `python -m aresforge run-autonomous-cycle --mode branch-write --parent-issue <parent> --target-issue <child> --branch-name <branch> --commit-message <message>`
+- `python -m aresforge run-autonomous-cycle --mode push-pr --parent-issue <parent> --target-issue <child> --branch-name <branch> --commit-message <message> --pr-title <title>`
+- `python -m aresforge run-autonomous-cycle --mode closeout-eligible --parent-issue <parent> --target-issue <child> --branch-name <branch> --commit-message <message> --pr-title <title>`
+- `python -m aresforge inspect-autonomous-run --run-id <id>`
 - `python -m aresforge inspect-repo-governance`
 
-## M15 Capability Snapshot
+## M16 Capability Snapshot
 
-- Self-managed milestone planning contract implemented and active.
-- Read-only planning mode implemented.
-- Local-write planning mode implemented.
-- DB-backed `autonomous_runs`/`run_steps` persistence implemented.
-- Queue advancement/current-ready target selection implemented.
-- Self-managed issue script generation command implemented.
-- Derived read-only script generation implemented.
-- DB-backed script generation by `--run-id` implemented.
+- Controlled autonomous execution contract implemented.
+- Explicit modes implemented: `dry-run`, `local-write`, `branch-write`, `push-pr`, `closeout-eligible`.
+- Fail-closed safety gates implemented for higher-permission modes.
+- Branch/commit steps implemented for `branch-write` and above.
+- Push/PR steps implemented for `push-pr` and above.
+- Closeout gating and issue-closure path implemented for `closeout-eligible` only.
+- Run inspection/reporting implemented via `inspect-autonomous-run`.
+- Evidence package generation implemented for all run outcomes.
 
 ## Prohibited Behaviors
 
-- autonomous GitHub mutation
-- automatic issue closure
+- autonomous mutation without explicit command invocation
+- mutation in `dry-run`
+- GitHub mutation in `local-write` or `branch-write`
+- push/PR outside explicit `push-pr` / `closeout-eligible`
+- issue closure outside explicit `closeout-eligible`
 - automatic PR merge
-- automatic branch creation
-- autonomous comments/labels/milestones/releases/tags
 - background jobs, polling loops, schedulers, or hidden workers
 
-## Validation Snapshot For Final M15 State
+## Validation Snapshot
 
 - `git diff --check`
 - `python -m pytest`
 - `python -m aresforge inspect-repo-governance`
-- `python -m aresforge plan-self-managed-milestone`
-- `python -m aresforge plan-self-managed-milestone --mode local-write`
-- `python -m aresforge generate-self-managed-issue-script`
+- `run-autonomous-cycle` dry-run/local-write success checks
+- `run-autonomous-cycle` higher-mode fail-closed checks
+- `inspect-autonomous-run` DB evidence inspection
 
-## Known Follow-Up Candidates
+## Governance Note
 
-1. Milestone naming/mapping cleanup remains non-blocking.
-2. Next autonomy milestone should target local autonomous execution path preparation.
-3. Future generalized sequencing beyond M15's bounded sequence.
-4. Future source-of-truth reconciliation automation.
-5. Future controlled PR-write mode, out of M15 scope.
-
-## Parent Closeout Readiness
-
-- Parent `#249` can be prepared for human-gated closeout after issue `#253` merges.
+- Project-specific milestone naming/mapping warning remains non-blocking (`milestone_naming_status.naming_ok: false`).

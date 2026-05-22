@@ -44,6 +44,7 @@ def test_discover_migrations_reads_repo_sql_files() -> None:
     assert [migration.path.name for migration in migrations] == [
         "0001_initial_schema.sql",
         "0002_m15_autonomous_run_queue.sql",
+        "0003_m16_autonomous_run_pr_linkage.sql",
     ]
 
 
