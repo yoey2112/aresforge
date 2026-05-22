@@ -7,6 +7,7 @@ Provide minimum operating context for safe M18 milestone execution, including re
 ## Current Operating Model
 
 - Documentation remains source of truth.
+- Active milestone context: M18 parent `#294` open, children `#295-#300` closed/accounted, final reconciliation `#301` open and processed last.
 - `run-autonomous-cycle` is human-triggered and mode-gated.
 - `inspect-milestone-state` is human-triggered and strictly read-only.
 - `plan-milestone-execution-queue` is human-triggered and strictly planning-only.
@@ -69,6 +70,14 @@ Provide minimum operating context for safe M18 milestone execution, including re
 - Schema-driven evidence mapping detection implemented with malformed/duplicate/conflict safeguards and legacy compatibility.
 - Parent closeout readiness inspection implemented with explicit lineage/accounted checks and blocked reasons.
 - Final reconciliation remains docs-focused and must be sequenced last.
+- M18 implementation/PR lineage:
+  - `#295` / PR `#302`
+  - `#296` / PR `#303`
+  - `#297` / PR `#304`
+  - `#298` / PR `#305`
+  - `#299` / PR `#306`
+  - `#300` / PR `#307`
+  - `#301` / PR pending (final reconciliation)
 
 ## Prohibited Behaviors
 
