@@ -26,7 +26,7 @@ Mode behavior:
 - `local-write`: local lifecycle progression with evidence generation; no GitHub mutation.
 - `branch-write`: enables branch and commit mutation only after gate pass.
 - `push-pr`: enables branch/commit plus push and PR creation after gate pass.
-- `closeout-eligible`: enables push-pr path plus controlled issue closure after closeout gates pass.
+- `closeout-eligible`: performs closeout gating against explicit PR evidence and may close only the target issue after gates pass.
 
 ## Fail-Closed Gate Design
 
@@ -34,7 +34,7 @@ Higher-permission modes require explicit inputs and fail closed when missing:
 
 - `branch-write`: requires `--branch-name` and `--commit-message`
 - `push-pr`: requires branch-write inputs plus `--pr-title`
-- `closeout-eligible`: requires push-pr inputs plus validation pass, issue-PR linkage (`pr_number` + `pr_url`), and merged-PR evidence pass
+- `closeout-eligible`: requires explicit PR binding (`--pr-number` or `--pr-url`), validation pass, target-issue linkage evidence, and merged-PR evidence pass
 
 ## Evidence And Audit
 

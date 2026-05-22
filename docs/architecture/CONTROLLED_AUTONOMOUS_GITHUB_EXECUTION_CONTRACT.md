@@ -12,7 +12,7 @@ M16 defines a controlled, human-triggered autonomous execution loop that can pro
 - `local-write`: Local run/evidence lifecycle progression only. No GitHub mutation.
 - `branch-write`: Allows local branch and commit mutation only.
 - `push-pr`: Allows branch-write capabilities plus push and PR creation.
-- `closeout-eligible`: Allows push-pr capabilities plus issue closure after explicit closeout gates pass.
+- `closeout-eligible`: Performs explicit closeout gating and may close only the targeted issue after gates pass.
 
 ## Required Safety Guarantees
 - Read-only-safe defaults.
@@ -33,7 +33,7 @@ M16 defines a controlled, human-triggered autonomous execution loop that can pro
 - Common gates: required source-of-truth docs present, validation commands defined.
 - Branch-write gates: explicit `branch_name`, explicit `commit_message`.
 - Push-pr gates: branch-write gates plus explicit PR metadata.
-- Closeout-eligible gates: successful validation, mapped issue/PR linkage (`pr_number` + `pr_url`), merged PR evidence, explicit target issue.
+- Closeout-eligible gates: successful validation, explicit bound PR linkage (`pr_number`/`pr_url`) for target evidence, merged PR evidence, PR-to-target-issue linkage evidence, explicit target issue.
 
 ## Evidence Requirements
 - Every run generates an evidence package.

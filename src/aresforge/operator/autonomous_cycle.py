@@ -56,6 +56,8 @@ def run_autonomous_cycle(
     commit_message: str | None = None,
     pr_title: str | None = None,
     pr_body: str | None = None,
+    pr_number: int | None = None,
+    pr_url: str | None = None,
     validation_commands: list[str] | None = None,
     allow_empty_commit: bool = False,
 ) -> dict[str, Any]:
@@ -80,8 +82,8 @@ def run_autonomous_cycle(
         "model_tier": "human-gated",
         "branch_name": branch_name,
         "commit_hash": None,
-        "pr_number": None,
-        "pr_url": None,
+        "pr_number": pr_number,
+        "pr_url": pr_url,
         "validation_status": "pending",
         "qa_status": "pending",
         "closeout_status": "pending",
@@ -106,6 +108,8 @@ def run_autonomous_cycle(
         branch_name=branch_name,
         commit_message=commit_message,
         pr_title=pr_title,
+        pr_number=pr_number,
+        pr_url=pr_url,
         validation_commands=run["validation_expectations"],
     )
     step_results.append(
@@ -136,7 +140,7 @@ def run_autonomous_cycle(
         if not validation_ok and mode in (MODE_PUSH_PR, MODE_CLOSEOUT_ELIGIBLE):
             return _finalize_failed_run(conn, config, run, step_results, "validation_failed")
 
-    if mode in (MODE_BRANCH_WRITE, MODE_PUSH_PR, MODE_CLOSEOUT_ELIGIBLE):
+    if mode in (MODE_BRANCH_WRITE, MODE_PUSH_PR):
         created_branch = _ensure_branch(branch_name or f"codex/m16-issue-{target_issue}", cwd=config.repo_root)
         run["branch_name"] = created_branch["branch"]
         step_results.append(
@@ -169,7 +173,7 @@ def run_autonomous_cycle(
         if not committed["ok"]:
             return _finalize_failed_run(conn, config, run, step_results, "commit_create_failed")
 
-    if mode in (MODE_PUSH_PR, MODE_CLOSEOUT_ELIGIBLE):
+    if mode == MODE_PUSH_PR:
         pushed = _push_branch(run["branch_name"], cwd=config.repo_root)
         step_results.append(
             _step(
@@ -208,13 +212,36 @@ def run_autonomous_cycle(
             return _finalize_failed_run(conn, config, run, step_results, "pr_create_failed")
 
     if mode == MODE_CLOSEOUT_ELIGIBLE:
-        pr_merge_state = _inspect_pr_merge_state(
+        bound_pr = _resolve_closeout_pr_binding(
             repo_slug=f"{config.github_owner}/{config.github_repo}",
+            target_issue=target_issue,
             pr_number=run.get("pr_number"),
             pr_url=run.get("pr_url"),
             cwd=config.repo_root,
         )
+        run["pr_number"] = bound_pr.get("pr_number")
+        run["pr_url"] = bound_pr.get("pr_url")
+        step_results.append(
+            _step(
+                "bind_closeout_pr",
+                "passed" if bound_pr["ok"] else "failed",
+                {"pr_number": pr_number, "pr_url": pr_url},
+                bound_pr,
+                failure_reason=None if bound_pr["ok"] else "closeout_pr_binding_failed",
+            )
+        )
+        if not bound_pr["ok"]:
+            return _finalize_failed_run(conn, config, run, step_results, "closeout_pr_binding_failed")
+
+        pr_merge_state = _inspect_pr_merge_state(
+            repo_slug=f"{config.github_owner}/{config.github_repo}",
+            pr_number=run.get("pr_number"),
+            pr_url=run.get("pr_url"),
+            target_issue=target_issue,
+            cwd=config.repo_root,
+        )
         run["pr_merged"] = bool(pr_merge_state.get("merged"))
+        run["pr_links_target_issue"] = bool(pr_merge_state.get("links_target_issue"))
         step_results.append(
             _step(
                 "inspect_pr_merge_state",
@@ -350,6 +377,8 @@ def _evaluate_gates(
     branch_name: str | None,
     commit_message: str | None,
     pr_title: str | None,
+    pr_number: int | None,
+    pr_url: str | None,
     validation_commands: list[str],
 ) -> dict[str, Any]:
     failed: list[str] = []
@@ -365,15 +394,18 @@ def _evaluate_gates(
     if not validation_commands:
         failed.append("validation_commands_missing")
 
-    if mode in (MODE_BRANCH_WRITE, MODE_PUSH_PR, MODE_CLOSEOUT_ELIGIBLE):
+    if mode in (MODE_BRANCH_WRITE, MODE_PUSH_PR):
         if not branch_name:
             failed.append("branch_name_required")
         if not commit_message:
             failed.append("commit_message_required")
 
-    if mode in (MODE_PUSH_PR, MODE_CLOSEOUT_ELIGIBLE):
+    if mode == MODE_PUSH_PR:
         if not pr_title:
             failed.append("pr_title_required")
+    if mode == MODE_CLOSEOUT_ELIGIBLE:
+        if not pr_number and not pr_url:
+            failed.append("closeout_pr_binding_required")
 
     return {
         "ok": not failed,
@@ -393,6 +425,8 @@ def _evaluate_closeout_gate(*, run: dict[str, Any]) -> dict[str, Any]:
         failed.append("pr_url_missing")
     if run.get("pr_merged") is not True:
         failed.append("pr_not_merged")
+    if run.get("pr_links_target_issue") is not True:
+        failed.append("pr_target_link_missing")
     if not run.get("target_issue"):
         failed.append("target_issue_missing")
     return {"ok": not failed, "failed_gates": failed}
@@ -556,7 +590,12 @@ def _create_pr(
 
 
 def _inspect_pr_merge_state(
-    *, repo_slug: str, pr_number: int | None, pr_url: str | None, cwd: Path
+    *,
+    repo_slug: str,
+    pr_number: int | None,
+    pr_url: str | None,
+    target_issue: int,
+    cwd: Path,
 ) -> dict[str, Any]:
     if not pr_number or not pr_url:
         return {
@@ -574,7 +613,7 @@ def _inspect_pr_merge_state(
             "--repo",
             repo_slug,
             "--json",
-            "number,url,state,mergedAt,isDraft",
+            "number,url,state,mergedAt,isDraft,body,closingIssuesReferences",
         ],
         cwd=cwd,
         capture_output=True,
@@ -604,6 +643,13 @@ def _inspect_pr_merge_state(
 
     merged_at = payload.get("mergedAt")
     merged = isinstance(merged_at, str) and bool(merged_at.strip())
+    body = payload.get("body") if isinstance(payload, dict) else None
+    closing_refs = payload.get("closingIssuesReferences") if isinstance(payload, dict) else None
+    links_target_issue = _pr_links_target_issue(
+        target_issue=target_issue,
+        body=body if isinstance(body, str) else None,
+        closing_issues_references=closing_refs if isinstance(closing_refs, list) else None,
+    )
     return {
         "ok": True,
         "pr_number": payload.get("number") if isinstance(payload, dict) else pr_number,
@@ -612,9 +658,108 @@ def _inspect_pr_merge_state(
         "is_draft": payload.get("isDraft") if isinstance(payload, dict) else None,
         "merged_at": merged_at if isinstance(merged_at, str) else None,
         "merged": merged,
+        "links_target_issue": links_target_issue,
         "stdout": result.stdout.strip(),
         "stderr": result.stderr.strip(),
     }
+
+
+def _resolve_closeout_pr_binding(
+    *,
+    repo_slug: str,
+    target_issue: int,
+    pr_number: int | None,
+    pr_url: str | None,
+    cwd: Path,
+) -> dict[str, Any]:
+    if not pr_number and not pr_url:
+        return {"ok": False, "error": "closeout_pr_binding_required"}
+
+    resolved_pr_number = pr_number
+    resolved_pr_url = pr_url
+    if resolved_pr_number is None and isinstance(resolved_pr_url, str):
+        resolved_pr_number = _extract_pr_number_from_url(resolved_pr_url)
+
+    if resolved_pr_number is None:
+        return {
+            "ok": False,
+            "error": "pr_number_unresolvable",
+            "pr_number": pr_number,
+            "pr_url": pr_url,
+        }
+
+    view = subprocess.run(
+        [
+            "gh",
+            "pr",
+            "view",
+            str(resolved_pr_number),
+            "--repo",
+            repo_slug,
+            "--json",
+            "number,url,body,closingIssuesReferences",
+        ],
+        cwd=cwd,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if view.returncode != 0:
+        return {
+            "ok": False,
+            "error": "closeout_pr_view_failed",
+            "pr_number": resolved_pr_number,
+            "pr_url": resolved_pr_url,
+            "stdout": view.stdout.strip(),
+            "stderr": view.stderr.strip(),
+        }
+    try:
+        payload = json.loads(view.stdout)
+    except json.JSONDecodeError:
+        return {
+            "ok": False,
+            "error": "closeout_pr_view_invalid_json",
+            "pr_number": resolved_pr_number,
+            "pr_url": resolved_pr_url,
+            "stdout": view.stdout.strip(),
+            "stderr": view.stderr.strip(),
+        }
+    if isinstance(payload, dict):
+        if isinstance(payload.get("number"), int):
+            resolved_pr_number = payload["number"]
+        if isinstance(payload.get("url"), str) and payload["url"].strip():
+            resolved_pr_url = payload["url"].strip()
+
+    body = payload.get("body") if isinstance(payload, dict) else None
+    closing_refs = payload.get("closingIssuesReferences") if isinstance(payload, dict) else None
+    links_target_issue = _pr_links_target_issue(
+        target_issue=target_issue,
+        body=body if isinstance(body, str) else None,
+        closing_issues_references=closing_refs if isinstance(closing_refs, list) else None,
+    )
+    return {
+        "ok": True,
+        "pr_number": resolved_pr_number,
+        "pr_url": resolved_pr_url,
+        "links_target_issue": links_target_issue,
+        "stdout": view.stdout.strip(),
+        "stderr": view.stderr.strip(),
+    }
+
+
+def _pr_links_target_issue(
+    *, target_issue: int, body: str | None, closing_issues_references: list[Any] | None
+) -> bool:
+    if isinstance(body, str):
+        issue_ref_pattern = re.compile(rf"(^|[^\w])#{target_issue}([^\w]|$)")
+        repo_issue_ref_pattern = re.compile(rf"/issues/{target_issue}([^\d]|$)")
+        if issue_ref_pattern.search(body) or repo_issue_ref_pattern.search(body):
+            return True
+    if isinstance(closing_issues_references, list):
+        for item in closing_issues_references:
+            if isinstance(item, dict) and item.get("number") == target_issue:
+                return True
+    return False
 
 
 def _extract_pr_url(stdout: str) -> str | None:

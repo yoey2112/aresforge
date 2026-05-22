@@ -384,6 +384,8 @@ def build_parser() -> argparse.ArgumentParser:
     autonomous_cycle_parser.add_argument("--commit-message")
     autonomous_cycle_parser.add_argument("--pr-title")
     autonomous_cycle_parser.add_argument("--pr-body")
+    autonomous_cycle_parser.add_argument("--pr-number", type=int)
+    autonomous_cycle_parser.add_argument("--pr-url")
     autonomous_cycle_parser.add_argument(
         "--validation-command",
         action="append",
@@ -897,6 +899,8 @@ def main(argv: list[str] | None = None) -> int:
                 commit_message=args.commit_message,
                 pr_title=args.pr_title,
                 pr_body=args.pr_body,
+                pr_number=args.pr_number,
+                pr_url=args.pr_url,
                 validation_commands=args.validation_command,
                 allow_empty_commit=bool(args.allow_empty_commit),
             )

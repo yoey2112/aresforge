@@ -199,6 +199,25 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     assert autonomous_cycle_args.target_issue == 259
     assert autonomous_cycle_args.validation_command == []
     assert autonomous_cycle_args.allow_empty_commit is False
+    assert autonomous_cycle_args.pr_number is None
+    assert autonomous_cycle_args.pr_url is None
+    autonomous_cycle_bound_pr_args = parser.parse_args(
+        [
+            "run-autonomous-cycle",
+            "--mode",
+            "closeout-eligible",
+            "--parent-issue",
+            "258",
+            "--target-issue",
+            "262",
+            "--pr-number",
+            "266",
+            "--pr-url",
+            "https://github.com/yoey2112/aresforge/pull/266",
+        ]
+    )
+    assert autonomous_cycle_bound_pr_args.pr_number == 266
+    assert autonomous_cycle_bound_pr_args.pr_url == "https://github.com/yoey2112/aresforge/pull/266"
     inspect_autonomous_run_args = parser.parse_args(
         ["inspect-autonomous-run", "--run-id", "run-m16-259-abc123"]
     )
