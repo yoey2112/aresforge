@@ -73,6 +73,24 @@ Behavior:
 - no comments
 - no GitHub edits
 
+## Per-Child Execution Gate Inspection (M19 #312)
+
+Commands:
+
+- `python -m aresforge inspect-child-execution-gates --issue <issue> --parent-issue <parent>`
+
+Behavior:
+
+- read-only gate inspection for one child issue
+- evaluates start/PR/merge/close safety posture for the target child
+- checks local cleanliness and branch naming posture
+- checks open PR presence and merged PR evidence/readiness posture
+- reports blockers and deterministic next recommended action
+- never closes issues
+- never creates PRs
+- never comments on issues
+- never mutates GitHub state
+
 ## Unified Milestone Dashboard (M18 #295)
 
 Commands:
