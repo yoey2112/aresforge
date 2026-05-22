@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Describe the human-triggered local operator surface with M12 human-gated sprint issue creation planning integrated.
+Describe the human-triggered local operator surface with M13 closeout evidence recognition integrated.
 
 ## Operator Shape
 
@@ -21,11 +21,11 @@ Command entrypoint:
 - `compare-planning-state`: read-only local planning-state drift comparison.
 - `inspect-closeout-planning-drift`: read-only planning-state vs live closeout child discovery comparison with explicit drift groups and readiness blocking signals.
 
-## M12 Documentation Reconciliation State
+## M13 Closeout Evidence Recognition State
 
-- M12 planner contract, model/rendering, copy/paste-safe PowerShell output, CLI wiring, and regression coverage were delivered in merged integration PR #230.
-- M12 operator workflow documentation for `plan-sprint-issues` was delivered in merged PR #231.
-- Current #228 scope is source-of-truth reconciliation only.
+- `plan-batch-closeout` now recognizes deterministic human-gated closeout evidence from issue comments in addition to issue bodies.
+- Recognized categories include merged PR references, validation command pass signals, and documentation reconciliation evidence.
+- Contract: `docs/architecture/CLOSEOUT_EVIDENCE_RECOGNITION_CONTRACT.md`.
 
 ## Automation Boundary
 

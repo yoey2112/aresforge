@@ -42,7 +42,7 @@ Delivered outcomes:
 
 ### M12 - Human-Gated Sprint Issue Creation Planner And Reconciliation
 
-Status: In progress (final source-of-truth reconciliation pass).
+Status: Completed.
 
 Parent issue:
 
@@ -80,7 +80,33 @@ Required validation baseline after M12 doc reconciliation:
 
 Remaining closeout expectation:
 
-- After #228 merges, run QA/closeout planning for M12 parent #222 and child issues #223, #224, #225, #226, #229, #227, #228.
+- Run QA/closeout planning for M12 parent #222 and child issues #223, #224, #225, #226, #229, #227, #228.
+
+### M13 - Closeout Evidence Recognition For Human-Gated Manual Closeout
+
+Status: In progress.
+
+Parent issue:
+
+- #233 M13: Improve closeout evidence recognition
+
+Child issues:
+
+- #234 define human-gated closeout evidence recognition contract
+- #235 parse closeout comments for merged PR evidence
+- #236 parse closeout comments for validation evidence
+- #241 parse closeout comments for documentation reconciliation evidence
+- #237 update batch closeout readiness classification for recognized evidence
+- #238 add deterministic regression fixtures for M12-style manual closeout comments
+- #239 document improved closeout evidence recognition workflow
+- #240 reconcile source-of-truth documentation after implementation
+
+Target outcomes:
+
+- `plan-batch-closeout` recognizes merged PR, validation, and documentation reconciliation evidence from human-gated closeout comments.
+- Closed child issues with recognized evidence are not incorrectly classified as incomplete.
+- Missing evidence remains explicit when truly absent.
+- Read-only defaults and human-gated mutation boundaries remain unchanged.
 
 ## Standing Boundaries
 

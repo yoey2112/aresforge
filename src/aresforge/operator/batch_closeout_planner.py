@@ -29,6 +29,17 @@ _PARENT_REF_LINE_PATTERN = re.compile(
     r"\b(?:parent\s+issue|parent)\s*:\s*#(?P<number>\d+)\b|\b(?:part\s+of|child\s+of)\s+#(?P<number2>\d+)\b",
     re.IGNORECASE,
 )
+_PR_REFERENCE_PATTERN = re.compile(r"\b(?:pr|pull request)\s*#(?P<number>\d+)\b", re.IGNORECASE)
+_VALIDATION_COMMAND_HINT_PATTERN = re.compile(r"\bpython\s+-m\b", re.IGNORECASE)
+_VALIDATION_RESULT_HINT_PATTERN = re.compile(r"\b(?:passed|ok\s+true|success|succeeded)\b", re.IGNORECASE)
+_DOC_RECONCILIATION_HINT_PATTERN = re.compile(
+    r"\b(?:source-of-truth|documentation)\s+reconciliation\b|\bupdated\s+(?:build_state|agent_context|roadmap)\.md\b",
+    re.IGNORECASE,
+)
+_SAFETY_POSTURE_HINT_PATTERN = re.compile(
+    r"\b(?:human-gated|read-only|no autonomous|no github mutation|human review required)\b",
+    re.IGNORECASE,
+)
 
 
 def plan_batch_closeout(
@@ -210,9 +221,13 @@ def _build_child_evidence_item(issue: dict[str, Any]) -> dict[str, Any]:
     merged_pr_evidence = issue.get("merged_pr_evidence")
     if not isinstance(merged_pr_evidence, list):
         merged_pr_evidence = []
+    comment_evidence = _extract_closeout_comment_evidence(issue.get("comments"))
 
-    validation_evidence = _extract_section_commands(issue.get("body"), "Validation")
-    docs_evidence = _extract_section_commands(issue.get("body"), "Documentation")
+    body_validation_evidence = _extract_section_commands(issue.get("body"), "Validation")
+    body_docs_evidence = _extract_section_commands(issue.get("body"), "Documentation")
+    validation_evidence = sorted(set(body_validation_evidence + comment_evidence["validation_evidence"]))
+    docs_evidence = sorted(set(body_docs_evidence + comment_evidence["documentation_reconciliation_evidence"]))
+    combined_pr_evidence = _merge_pr_evidence(merged_pr_evidence, comment_evidence["merged_pr_evidence"])
 
     missing: list[str] = []
     signals: list[str] = []
@@ -230,7 +245,7 @@ def _build_child_evidence_item(issue: dict[str, Any]) -> dict[str, Any]:
     else:
         missing.append("implementation_linkage_missing")
 
-    if merged_pr_evidence:
+    if combined_pr_evidence:
         signals.append("merged_pr_evidence_detected")
     else:
         missing.append("merged_pr_evidence_missing")
@@ -244,6 +259,8 @@ def _build_child_evidence_item(issue: dict[str, Any]) -> dict[str, Any]:
         signals.append("documentation_reconciliation_evidence_detected")
     else:
         missing.append("documentation_reconciliation_evidence_missing")
+    if comment_evidence["safety_posture_evidence"]:
+        signals.append("closeout_safety_posture_evidence_detected")
 
     protected_misuse = bool(refs.get("contains_protected_issue_implementation_link"))
     if protected_misuse:
@@ -265,11 +282,12 @@ def _build_child_evidence_item(issue: dict[str, Any]) -> dict[str, Any]:
         "title": issue.get("title"),
         "url": issue.get("url"),
         "current_issue_state": state,
-        "merged_pr_evidence": merged_pr_evidence,
+        "merged_pr_evidence": combined_pr_evidence,
         "validation_or_documentation_evidence": {
             "validation": validation_evidence,
             "documentation_reconciliation": docs_evidence,
         },
+        "closeout_comment_evidence": comment_evidence,
         "reference_classification": {
             "implementation_issue_numbers": impl_links,
             "explicit_implementation_issue_numbers": explicit_links,
@@ -279,6 +297,80 @@ def _build_child_evidence_item(issue: dict[str, Any]) -> dict[str, Any]:
         "readiness_classification": classification,
         "readiness_signals": sorted(set(signals)),
         "human_closeout_required": True,
+    }
+
+
+def _merge_pr_evidence(issue_prs: list[dict[str, Any]], comment_prs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    combined: list[dict[str, Any]] = []
+    for item in issue_prs + comment_prs:
+        if not isinstance(item, dict):
+            continue
+        number = item.get("number")
+        if not isinstance(number, int):
+            continue
+        combined.append(item)
+    deduped_by_number: dict[int, dict[str, Any]] = {}
+    for entry in combined:
+        number = entry["number"]
+        existing = deduped_by_number.get(number)
+        if existing is None:
+            deduped_by_number[number] = entry
+            continue
+        if str(existing.get("source", "")) != "issue_closed_by_pull_request" and str(entry.get("source", "")) == "issue_closed_by_pull_request":
+            deduped_by_number[number] = entry
+    return [deduped_by_number[number] for number in sorted(deduped_by_number)]
+
+
+def _extract_closeout_comment_evidence(raw_comments: Any) -> dict[str, Any]:
+    comments = raw_comments if isinstance(raw_comments, list) else []
+    merged_prs: list[dict[str, Any]] = []
+    validation: list[str] = []
+    docs: list[str] = []
+    safety: list[str] = []
+    inspected_comments = 0
+    evidence_comments = 0
+    for comment in comments:
+        if not isinstance(comment, dict):
+            continue
+        body = comment.get("body")
+        if not isinstance(body, str) or not body.strip():
+            continue
+        inspected_comments += 1
+        comment_has_evidence = False
+        for raw_line in body.splitlines():
+            line = raw_line.strip()
+            if not line:
+                continue
+            for match in _PR_REFERENCE_PATTERN.finditer(line):
+                number = int(match.group("number"))
+                merged_prs.append(
+                    {
+                        "number": number,
+                        "title": line,
+                        "source": "closeout_comment_reference",
+                        "merged_at": None,
+                    }
+                )
+                comment_has_evidence = True
+            if _VALIDATION_COMMAND_HINT_PATTERN.search(line) and _VALIDATION_RESULT_HINT_PATTERN.search(line):
+                validation.append(line)
+                comment_has_evidence = True
+            if _DOC_RECONCILIATION_HINT_PATTERN.search(line):
+                docs.append(line)
+                comment_has_evidence = True
+            if _SAFETY_POSTURE_HINT_PATTERN.search(line):
+                safety.append(line)
+                comment_has_evidence = True
+        if comment_has_evidence:
+            evidence_comments += 1
+
+    return {
+        "inspected_comment_count": inspected_comments,
+        "evidence_comment_count": evidence_comments,
+        "merged_pr_evidence": _merge_pr_evidence([], merged_prs),
+        "validation_evidence": sorted(set(validation)),
+        "documentation_reconciliation_evidence": sorted(set(docs)),
+        "safety_posture_evidence": sorted(set(safety)),
     }
 
 

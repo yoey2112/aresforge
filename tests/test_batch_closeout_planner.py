@@ -1,7 +1,11 @@
-﻿from pathlib import Path
-
+import json
+from pathlib import Path
 from aresforge.config import AppConfig
 from aresforge.operator import batch_closeout_planner
+
+def _load_fixture(repo_root: Path, name: str) -> dict:
+    return json.loads((repo_root / 'tests' / 'fixtures' / name).read_text(encoding='utf-8'))
+
 
 
 def make_config(tmp_path: Path) -> AppConfig:
@@ -378,3 +382,38 @@ def test_plan_batch_closeout_treats_parent_child_index_entries_as_active_even_wi
     assert 207 in active_links
     assert 208 in active_links
     assert not any(item["child_issue_number"] == 39 and item["classification"] == "active" for item in payload["evidence_report"]["discovered_child_links"])
+
+
+
+def test_plan_batch_closeout_recognizes_m12_style_manual_closeout_comment_evidence(
+    monkeypatch, tmp_path: Path
+) -> None:
+    config = make_config(tmp_path)
+    fixture = _load_fixture(Path(__file__).resolve().parents[1], "m12-manual-closeout-comments.json")
+    parent_issue = fixture["parent_issue"]
+    children = fixture["children"]
+    requested_children = [int(item["number"]) for item in children]
+
+    def fake_fetch(_config, numbers):
+        if numbers == [222]:
+            return {"issues": [parent_issue], "excluded_issues": [], "warnings": []}
+        if numbers == requested_children:
+            return {"issues": children, "excluded_issues": [], "warnings": []}
+        raise AssertionError(f"unexpected numbers: {numbers}")
+
+    monkeypatch.setattr(batch_closeout_planner, "fetch_issue_batch_for_planning", fake_fetch)
+    payload = batch_closeout_planner.plan_batch_closeout(config, parent_issue=222)
+
+    assert payload["ok"] is True
+    assert payload["closeout_plan"]["readiness"] == "ready"
+    assert payload["closeout_plan"]["missing_evidence"] == []
+    for child in payload["evidence_report"]["child_issues"]:
+        assert child["readiness_classification"] == "ready"
+        assert "merged_pr_evidence_missing" not in child["missing_evidence"]
+        assert "validation_evidence_missing" not in child["missing_evidence"]
+        assert "documentation_reconciliation_evidence_missing" not in child["missing_evidence"]
+        assert child["closeout_comment_evidence"]["evidence_comment_count"] >= 1
+        assert child["closeout_comment_evidence"]["validation_evidence"]
+        assert child["closeout_comment_evidence"]["documentation_reconciliation_evidence"]
+        assert child["merged_pr_evidence"]
+

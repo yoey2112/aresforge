@@ -2,9 +2,9 @@
 
 ## Purpose
 
-Provide the minimum current operating context for safe M12 source-of-truth reconciliation and operator usage.
+Provide the minimum current operating context for safe M13 closeout evidence recognition and operator usage.
 
-## M12 Operating Model
+## M13 Operating Model
 
 - Documentation remains source of truth.
 - Local planning memory is optional, explicit-write, and local-only.
@@ -12,16 +12,18 @@ Provide the minimum current operating context for safe M12 source-of-truth recon
 - Human authority remains final for all GitHub mutation.
 - Sprint issue creation planning is deterministic, read-only by default, and emits human-gated mutation output only.
 - Implementation progress remains gated by human-run post-creation verification pass/fail output.
+- Closeout planning recognizes deterministic human-gated closeout evidence in issue comments without mutation.
 
-## Canonical M12 Documents
+## Canonical M13 Documents
 
 - `docs/architecture/SPRINT_ISSUE_CREATION_PLANNING_CONTRACT.md`
+- `docs/architecture/CLOSEOUT_EVIDENCE_RECOGNITION_CONTRACT.md`
 - `docs/architecture/RUNNABLE_SKELETON.md`
 - `docs/operator/LOCAL_OPERATOR_USAGE.md`
 - `docs/context/BUILD_STATE.md`
 - `docs/roadmap/ROADMAP.md`
 
-## M12 Commands
+## M13 Commands
 
 - `python -m aresforge generate-sprint-issue-script --definition <file> [--write-planning-state]`
 - `python -m aresforge plan-batch-closeout --parent-issue <number> [--write-planning-snapshot]`
@@ -30,11 +32,9 @@ Provide the minimum current operating context for safe M12 source-of-truth recon
 - `python -m aresforge inspect-closeout-planning-drift --parent-issue <number>`
 - `python -m aresforge plan-sprint-issues --definition <path>`
 
-## M12 Delivery Status
+## M13 Delivery Status
 
-- M12 core planner implementation delivered in merged PR #230: #223, #224, #225, #226, #229.
-- M12 operator workflow documentation delivered in merged PR #231: #227.
-- Current scope is source-of-truth reconciliation: #228.
+- Current scope: closeout evidence recognition contract, parser updates, regression fixtures, and source-of-truth reconciliation.
 
 ## Prohibited Behaviors
 
@@ -48,4 +48,4 @@ Provide the minimum current operating context for safe M12 source-of-truth recon
 
 ## Remaining Closeout Expectation
 
-- After #228 merges, run QA/closeout planning for M12 parent #222 and child issues #223, #224, #225, #226, #229, #227, #228.
+- Verify parent #222 closeout planning reports recognized manual evidence for merged PR, validation, and documentation reconciliation categories.

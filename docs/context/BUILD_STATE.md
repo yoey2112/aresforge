@@ -2,19 +2,17 @@
 
 ## Current Phase
 
-M12 - Source-Of-Truth Reconciliation After Sprint Issue Planner Delivery
+M13 - Closeout Evidence Recognition
 
 ## Current Goal
 
-Reconcile source-of-truth documentation to the finalized M12 implementation and operator workflow state while preserving read-only and human-gated safety boundaries.
+Improve batch closeout readiness classification by recognizing human-gated closeout evidence in issue comments while preserving read-only and human-gated safety boundaries.
 
 ## Current Repository State
 
-- Current branch target: `m12/source-of-truth-reconciliation`
-- Parent issue: #222
-- Core implementation delivered (merged PR #230): #223, #224, #225, #226, #229
-- Operator documentation delivered (merged PR #231): #227
-- Documentation/reconciliation scope (this pass): #228
+- Current branch target: `m13/closeout-evidence-recognition`
+- Parent issue: #233
+- M13 child scope: #234, #235, #236, #241, #237, #238, #239, #240
 
 ## Current Source Of Truth
 
@@ -35,19 +33,18 @@ Reconcile source-of-truth documentation to the finalized M12 implementation and 
 - closeout evidence summary drift blocking signals including `planning_state_missing`
 - deterministic sprint issue planning output with human-gated PowerShell issue creation and verification guidance
 
-## M12 Canonical Additions
+## M13 Canonical Additions
 
-- Architecture contract: `docs/architecture/SPRINT_ISSUE_CREATION_PLANNING_CONTRACT.md`
-- Planner module: `src/aresforge/operator/sprint_issue_planner.py`
-- Regression coverage: `tests/test_sprint_issue_planner.py`
-- Definition fixture: `tests/fixtures/m12-sprint-definition.json`
-- Observed verification-failure fixture: `tests/fixtures/m12-verification-failure-observed.json`
+- Architecture contract: `docs/architecture/CLOSEOUT_EVIDENCE_RECOGNITION_CONTRACT.md`
+- Planner updates: `src/aresforge/operator/batch_closeout_planner.py`
+- Regression coverage: `tests/test_batch_closeout_planner.py`
+- Deterministic fixture: `tests/fixtures/m12-manual-closeout-comments.json`
 
 ## Validation Baseline
 
-- `python -m pytest` -> `255 passed`
-- `python -m aresforge inspect-repo-governance` -> `ok true`
-- `python -m aresforge plan-sprint-issues --definition tests/fixtures/m12-sprint-definition.json` -> `ok true`
+- `python -m pytest`
+- `python -m aresforge inspect-repo-governance`
+- `python -m aresforge plan-batch-closeout --parent-issue 222`
 
 ## Boundaries
 
@@ -69,4 +66,4 @@ Not authorized:
 
 ## Remaining Closeout Expectation
 
-- After #228 merges, run QA/closeout planning for M12 parent #222 and child issues #223, #224, #225, #226, #229, #227, #228.
+- After M13 implementation merges, run closeout planning for parent #222 and verify manual closeout evidence remains recognized.

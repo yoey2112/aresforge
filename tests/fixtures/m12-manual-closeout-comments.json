@@ -1,0 +1,141 @@
+{
+  "parent_issue": {
+    "number": 222,
+    "title": "M12 parent",
+    "state": "CLOSED",
+    "url": "https://example.test/222",
+    "body": "## Child issue index\n- [x] #223\n- [x] #224\n- [x] #225\n- [x] #226\n- [x] #227\n- [x] #228\n- [x] #229\n## Documentation\n- Source-of-truth reconciliation completed.",
+    "reference_classification": {
+      "implementation_issue_numbers": [223, 224, 225, 226, 227, 228, 229],
+      "explicit_implementation_issue_numbers": [223, 224, 225, 226, 227, 228, 229]
+    }
+  },
+  "children": [
+    {
+      "number": 223,
+      "title": "M12 child 223",
+      "state": "CLOSED",
+      "url": "https://example.test/223",
+      "labels": ["aresforge-ready"],
+      "body": "Part of #222",
+      "reference_classification": {
+        "implementation_issue_numbers": [222],
+        "explicit_implementation_issue_numbers": [222]
+      },
+      "comments": [
+        {
+          "id": 1,
+          "body": "Human-gated closeout evidence\nPR #230: M12 core human-gated sprint issue planner\npython -m pytest -> 255 passed\nsource-of-truth reconciliation\nupdated BUILD_STATE.md\nupdated AGENT_CONTEXT.md\nupdated ROADMAP.md\nread-only and no GitHub mutation"
+        }
+      ]
+    },
+    {
+      "number": 224,
+      "title": "M12 child 224",
+      "state": "CLOSED",
+      "url": "https://example.test/224",
+      "labels": ["aresforge-ready"],
+      "body": "Part of #222",
+      "reference_classification": {
+        "implementation_issue_numbers": [222],
+        "explicit_implementation_issue_numbers": [222]
+      },
+      "comments": [
+        {
+          "id": 1,
+          "body": "Human-gated closeout evidence\nPR #230: M12 core human-gated sprint issue planner\npython -m aresforge inspect-repo-governance -> ok true\ndocumentation reconciliation\nupdated BUILD_STATE.md\nread-only posture"
+        }
+      ]
+    },
+    {
+      "number": 225,
+      "title": "M12 child 225",
+      "state": "CLOSED",
+      "url": "https://example.test/225",
+      "labels": ["aresforge-ready"],
+      "body": "Part of #222",
+      "reference_classification": {
+        "implementation_issue_numbers": [222],
+        "explicit_implementation_issue_numbers": [222]
+      },
+      "comments": [
+        {
+          "id": 1,
+          "body": "Human-gated closeout evidence\nPR #230: M12 core human-gated sprint issue planner\npython -m aresforge plan-sprint-issues --definition tests/fixtures/m12-sprint-definition.json -> ok true\nsource-of-truth reconciliation\nupdated AGENT_CONTEXT.md\nhuman review required"
+        }
+      ]
+    },
+    {
+      "number": 226,
+      "title": "M12 child 226",
+      "state": "CLOSED",
+      "url": "https://example.test/226",
+      "labels": ["aresforge-ready"],
+      "body": "Part of #222",
+      "reference_classification": {
+        "implementation_issue_numbers": [222],
+        "explicit_implementation_issue_numbers": [222]
+      },
+      "comments": [
+        {
+          "id": 1,
+          "body": "Human-gated closeout evidence\nPR #230: M12 core human-gated sprint issue planner\npython -m pytest -> 255 passed\ndocumentation reconciliation\nupdated ROADMAP.md\nno autonomous mutation"
+        }
+      ]
+    },
+    {
+      "number": 227,
+      "title": "M12 child 227",
+      "state": "CLOSED",
+      "url": "https://example.test/227",
+      "labels": ["aresforge-ready"],
+      "body": "Part of #222",
+      "reference_classification": {
+        "implementation_issue_numbers": [222],
+        "explicit_implementation_issue_numbers": [222]
+      },
+      "comments": [
+        {
+          "id": 1,
+          "body": "Human-gated closeout evidence\nPR #231: M12 operator workflow documentation\npython -m pytest -> 255 passed\nsource-of-truth reconciliation\nupdated BUILD_STATE.md\nhuman-gated mutation only"
+        }
+      ]
+    },
+    {
+      "number": 228,
+      "title": "M12 child 228",
+      "state": "CLOSED",
+      "url": "https://example.test/228",
+      "labels": ["aresforge-ready"],
+      "body": "Part of #222",
+      "reference_classification": {
+        "implementation_issue_numbers": [222],
+        "explicit_implementation_issue_numbers": [222]
+      },
+      "comments": [
+        {
+          "id": 1,
+          "body": "Human-gated closeout evidence\nPR #232: M12 source-of-truth reconciliation\npython -m pytest -> 255 passed\ndocumentation reconciliation\nupdated AGENT_CONTEXT.md\nread-only and human review required"
+        }
+      ]
+    },
+    {
+      "number": 229,
+      "title": "M12 child 229",
+      "state": "CLOSED",
+      "url": "https://example.test/229",
+      "labels": ["aresforge-ready"],
+      "body": "Part of #222",
+      "reference_classification": {
+        "implementation_issue_numbers": [222],
+        "explicit_implementation_issue_numbers": [222]
+      },
+      "comments": [
+        {
+          "id": 1,
+          "body": "Human-gated closeout evidence\nPR #230: M12 core human-gated sprint issue planner\npython -m pytest -> 255 passed\nsource-of-truth reconciliation\nupdated ROADMAP.md\nno GitHub mutation"
+        }
+      ]
+    }
+  ]
+}
