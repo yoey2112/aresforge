@@ -38,6 +38,7 @@ def test_cli_help_includes_m6_commands() -> None:
     assert "check-issue-evidence-readiness" in help_text
     assert "check-milestone-evidence-readiness" in help_text
     assert "plan-milestone-final-reconciliation" in help_text
+    assert "inspect-milestone-dashboard" in help_text
 
 
 def test_cli_dispatch_plan_agent_queue(
@@ -269,3 +270,29 @@ def test_cli_dispatch_plan_milestone_final_reconciliation(
     assert payload["command"] == "plan-milestone-final-reconciliation"
     assert payload["read_only"] is True
     assert payload["mutation_allowed"] is False
+
+
+def test_cli_dispatch_inspect_milestone_dashboard(
+    monkeypatch,
+    capsys,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: _config(tmp_path))
+    monkeypatch.setattr(
+        cli,
+        "inspect_milestone_dashboard",
+        lambda _config, parent_issue: {
+            "command": "inspect-milestone-dashboard",
+            "ok": True,
+            "read_only": True,
+            "parent_issue": {"issue_number": parent_issue},
+            "dashboard": {"recommended_next_child_issue": {"issue_number": 295}},
+            "safety_gates": {"mutation_allowed": False},
+        },
+    )
+    exit_code = cli.main(["inspect-milestone-dashboard", "--parent-issue", "294"])
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["command"] == "inspect-milestone-dashboard"
+    assert payload["read_only"] is True
+    assert payload["dashboard"]["recommended_next_child_issue"]["issue_number"] == 295

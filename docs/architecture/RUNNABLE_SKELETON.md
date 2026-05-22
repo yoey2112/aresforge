@@ -15,6 +15,7 @@ Command entrypoint:
 - `run-autonomous-cycle`: explicit controlled execution loop with mode-gated mutation boundaries.
 - `inspect-autonomous-run`: inspect DB-backed run lifecycle and step history.
 - `inspect-milestone-state`: read-only milestone parent/child issue state inspection.
+- `inspect-milestone-dashboard`: unified read-only milestone execution dashboard across inspection/planning/readiness signals.
 - `plan-milestone-execution-queue`: read-only, planning-only milestone child execution queue planner.
 - `check-issue-evidence-readiness`: read-only issue evidence completeness classification.
 - `check-milestone-evidence-readiness`: read-only milestone-level evidence readiness summary.
@@ -47,6 +48,7 @@ Command entrypoint:
 - No background jobs, polling loops, or schedulers.
 - Evidence package generation for all run outcomes.
 - For M17 milestone planning surfaces: no issue closure, no PR creation, no issue comments, and no mutation of M16 issues.
+- For M18 milestone dashboard surface: read-only aggregation only; no issue closure, PR creation, comments, or broad mutation.
 - Parent issue remains open until child issues are closed/accounted and final reconciliation is merged/accounted.
 
 ## Validation Bundle
