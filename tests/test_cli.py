@@ -61,6 +61,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-child-execution-gates",
         "inspect-sequential-run-state",
         "plan-sequential-run-recovery",
+        "generate-sequential-handoff-package",
         "inspect-closeout-planning-drift",
         "qa-review-pr",
         "qa-closeout-pr",
@@ -282,6 +283,12 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     )
     assert plan_sequential_run_recovery_args.command == "plan-sequential-run-recovery"
     assert plan_sequential_run_recovery_args.parent_issue == 309
+    generate_sequential_handoff_args = parser.parse_args(
+        ["generate-sequential-handoff-package", "--parent-issue", "309", "--issue", "314"]
+    )
+    assert generate_sequential_handoff_args.command == "generate-sequential-handoff-package"
+    assert generate_sequential_handoff_args.parent_issue == 309
+    assert generate_sequential_handoff_args.issue == 314
     qa_review_args = parser.parse_args(["qa-review-pr", "--pr-number", "118"])
     assert qa_review_args.pr_number == 118
     qa_closeout_args = parser.parse_args(["qa-closeout-pr", "--pr-number", "119"])
