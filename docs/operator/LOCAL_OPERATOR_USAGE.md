@@ -126,6 +126,23 @@ Behavior:
 - never comments on issues
 - never mutates GitHub state
 
+## Sequential Recovery Planning (M19 #313)
+
+Commands:
+
+- `python -m aresforge plan-sequential-run-recovery --parent-issue <parent>`
+
+Behavior:
+
+- reads persisted sequential run-state and compares against current dashboard and child gate inspection signals
+- reports recovery states for failed validation, failed PR creation, unmerged PR, merged PR with missing evidence, closed child, stale branch, dirty tree, and dashboard mismatch
+- returns deterministic next recommended action
+- read-only/planning only by default
+- never closes issues
+- never creates PRs
+- never comments on issues
+- never mutates GitHub state
+
 ## Evidence Readiness Checking (M17/#274 and M18/#299 enhancements)
 
 Commands:

@@ -60,6 +60,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-parent-closeout-readiness",
         "inspect-child-execution-gates",
         "inspect-sequential-run-state",
+        "plan-sequential-run-recovery",
         "inspect-closeout-planning-drift",
         "qa-review-pr",
         "qa-closeout-pr",
@@ -276,6 +277,11 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     assert inspect_sequential_run_state_args.command == "inspect-sequential-run-state"
     assert inspect_sequential_run_state_args.parent_issue == 309
     assert inspect_sequential_run_state_args.write_local_state is False
+    plan_sequential_run_recovery_args = parser.parse_args(
+        ["plan-sequential-run-recovery", "--parent-issue", "309"]
+    )
+    assert plan_sequential_run_recovery_args.command == "plan-sequential-run-recovery"
+    assert plan_sequential_run_recovery_args.parent_issue == 309
     qa_review_args = parser.parse_args(["qa-review-pr", "--pr-number", "118"])
     assert qa_review_args.pr_number == 118
     qa_closeout_args = parser.parse_args(["qa-closeout-pr", "--pr-number", "119"])
