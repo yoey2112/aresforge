@@ -487,3 +487,76 @@ def test_plan_batch_closeout_does_not_activate_historical_parent_body_references
     }
     assert {223, 224, 225, 226, 227, 228, 229}.issubset(historical)
 
+
+def test_plan_batch_closeout_treats_parent_comment_pr_references_as_evidence_not_active_children(
+    monkeypatch, tmp_path: Path
+) -> None:
+    config = make_config(tmp_path)
+    parent_issue = {
+        "number": 233,
+        "title": "M13 parent",
+        "state": "OPEN",
+        "url": "https://example.test/233",
+        "body": (
+            "## Background\n"
+            "Historical context from prior milestone: #223 #224 #225 #226 #227 #228 #229\n"
+            "## Child issue index\n"
+            "- [x] #234\n"
+            "- [x] #235\n"
+        ),
+        "reference_classification": {
+            "implementation_issue_numbers": [223, 224, 225, 226, 227, 228, 229, 234, 235],
+            "explicit_implementation_issue_numbers": [234, 235],
+        },
+        "comments": [
+            {
+                "id": 1,
+                "body": (
+                    "Corrected child issue index:\n"
+                    "- [x] #234\n- [x] #235\n- [x] #236\n- [x] #237\n- [x] #238\n- [x] #239\n- [x] #240\n- [x] #241\n"
+                    "Merged closeout evidence reference: PR #242"
+                ),
+            }
+        ],
+    }
+    children = []
+    for number in [234, 235, 236, 237, 238, 239, 240, 241]:
+        children.append(
+            {
+                "number": number,
+                "title": f"M13 child {number}",
+                "state": "CLOSED",
+                "url": f"https://example.test/{number}",
+                "labels": [],
+                "body": "Parent issue: #233\n## Validation\n- python -m pytest\n## Documentation\n- source-of-truth reconciliation",
+                "reference_classification": {
+                    "implementation_issue_numbers": [233],
+                    "explicit_implementation_issue_numbers": [233],
+                },
+                "merged_pr_evidence": [{"number": 300 + number, "merged_at": "2026-05-21T00:00:00Z"}],
+            }
+        )
+
+    def fake_fetch(_config, numbers):
+        if numbers == [233]:
+            return {"issues": [parent_issue], "excluded_issues": [], "warnings": []}
+        if numbers == [234, 235, 236, 237, 238, 239, 240, 241]:
+            return {"issues": children, "excluded_issues": [], "warnings": []}
+        raise AssertionError(f"unexpected numbers: {numbers}")
+
+    monkeypatch.setattr(batch_closeout_planner, "fetch_issue_batch_for_planning", fake_fetch)
+    payload = batch_closeout_planner.plan_batch_closeout(config, parent_issue=233)
+
+    assert payload["child_issue_group"]["requested_child_issue_numbers"] == [234, 235, 236, 237, 238, 239, 240, 241]
+    assert payload["child_issue_group"]["discovered_child_issue_numbers"] == [234, 235, 236, 237, 238, 239, 240, 241]
+    assert 242 not in payload["child_issue_group"]["requested_child_issue_numbers"]
+    assert 242 not in payload["child_issue_group"]["discovered_child_issue_numbers"]
+
+    by_child = {
+        item["child_issue_number"]: item
+        for item in payload["evidence_report"]["discovered_child_links"]
+        if isinstance(item.get("child_issue_number"), int)
+    }
+    assert by_child[242]["classification"] == "evidence"
+    assert by_child[242]["reason"] == "pull_request_reference_evidence_line"
+
