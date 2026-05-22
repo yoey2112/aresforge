@@ -2,20 +2,23 @@
 
 ## Current Phase
 
-Post-M14 Documentation Reconciliation Baseline
+Post-M15 Source-of-Truth Reconciliation
 
 ## Current Goal
 
-Maintain source-of-truth alignment after completed M13/M14 closeout evidence classification work while preserving local-first, read-only-by-default, human-gated mutation boundaries.
+Keep source-of-truth documentation aligned with implemented M15 self-managed milestone planning while preserving local-first, human-gated mutation boundaries.
 
 ## Current Repository State
 
-- Clean baseline branch: `main`
-- Baseline commit: `dde2683`
-- Latest commit message: `M14: treat merged PR references as closeout evidence (#246)`
-- Open issues: none
+- Baseline branch: `main`
+- Baseline commit: `d0c3dfa`
+- Latest commit message: `M15: generate self-managed issue scripts from run queue (#256)`
+- Parent issue: `#249`
+- Completed dependencies: `#250`, `#251`, `#252`
+- Ready implementation issue: `#253`
 - Open pull requests: none
 - Governance inspection: `ok: true`
+- Known non-blocking warning: `milestone_naming_status.naming_ok: false` (project-specific milestone naming/mapping warning)
 
 ## Current Source Of Truth
 
@@ -23,64 +26,52 @@ Maintain source-of-truth alignment after completed M13/M14 closeout evidence cla
 - `docs/context/AGENT_CONTEXT.md`
 - `docs/roadmap/ROADMAP.md`
 
-## Current Implemented Operator Additions
+## Final M15 Implemented Capabilities
 
-- `python -m aresforge generate-sprint-issue-script --definition <file> [--write-planning-state]`
-- `python -m aresforge plan-batch-closeout --parent-issue <number> [--write-planning-snapshot]`
-- `python -m aresforge inspect-planning-state`
-- `python -m aresforge compare-planning-state`
-- `python -m aresforge inspect-closeout-planning-drift --parent-issue <number>`
-- `python -m aresforge plan-sprint-issues --definition <path>`
-- closeout child-link discovery from parent body/comments and child parent-reference evidence
-- read-only planning-state vs live closeout child discovery drift grouping
-- closeout evidence summary drift blocking signals including `planning_state_missing`
-- deterministic sprint issue planning output with human-gated PowerShell issue creation and verification guidance
-- closeout evidence classification that treats qualifying merged PR references as evidence, not active child work
-- historical parent-body issue references classified as historical/non-active evidence context
+- Contract authority: `docs/architecture/SELF_MANAGED_MILESTONE_PLANNING_CONTRACT.md`
+- `python -m aresforge plan-self-managed-milestone`
+- `python -m aresforge plan-self-managed-milestone --mode local-write`
+- DB-backed persistence for `autonomous_runs` and `run_steps` in local-write mode
+- Queue advancement/current-ready targeting for active issue selection
+- `python -m aresforge generate-self-managed-issue-script`
+- Derived read-only script generation when no DB run is provided
+- DB-backed script generation via `--run-id <id>` when run queue records exist
 
-## M13/M14 Canonical Additions And Closeout
+## Validation Baseline For Final M15 State
 
-- Architecture contract: `docs/architecture/CLOSEOUT_EVIDENCE_RECOGNITION_CONTRACT.md`
-- Planner updates: `src/aresforge/operator/batch_closeout_planner.py`
-- Regression coverage: `tests/test_batch_closeout_planner.py`
-- Deterministic fixture: `tests/fixtures/m12-manual-closeout-comments.json`
-- M13 implementation PR merged: #242
-- M14 historical parent-body reference classification fix merged: PR #244 (issue #243)
-- M14 merged PR reference classification fix merged: PR #246 (issue #245)
-- Parent #233 historical references #223 through #229 are classified as historical/non-active
-- PR references #230, #231, #232, and #242 are classified as closeout evidence, not active children
-
-## Validation Baseline
-
-- `python -m pytest` -> `258 passed`
-- `python -m aresforge inspect-repo-governance` -> `ok true`
-- `python -m aresforge plan-batch-closeout --parent-issue 222` -> `ready`
-- `python -m aresforge plan-batch-closeout --parent-issue 233` -> requested/discovered child issue numbers are `#234` through `#241` only; historical references remain historical; PR references are evidence
+- `git diff --check`
+- `python -m pytest`
+- `python -m aresforge inspect-repo-governance`
+- `python -m aresforge plan-self-managed-milestone`
+- `python -m aresforge plan-self-managed-milestone --mode local-write`
+- `python -m aresforge generate-self-managed-issue-script`
 
 ## Boundaries
 
 Allowed:
 
 - human-triggered local commands
-- explicit local-only planning-state writes
-- read-only planning inspection/comparison
-- output-only generated sprint issue scripts requiring human execution
-- read-only sprint issue planning output with human-gated mutation script generation
+- read-only planning and script generation output
+- explicit local DB writes in `local-write` mode only
+- generated text/script output for human review and manual execution
+- human-reviewed branch/PR creation and updates
 
 Not authorized:
 
-- autonomous GitHub mutation (create/close/comment/label/milestone/merge/release/tag)
-- autonomous setup/mutation behavior
-- autonomous issue creation from planner output
-- automatic issue closeout
+- autonomous GitHub mutation
+- automatic issue closure
 - automatic PR merge
+- automatic branch creation
+- background jobs, polling loops, or schedulers
 
-## Historical Closeout Note
+## Known Follow-Up Candidates
 
-- Parent #233 can still report incomplete where older M13 child closeout comments lack documentation reconciliation evidence.
-- This is historical closeout-comment quality evidence and is not a current child discovery blocker.
+1. Milestone naming/mapping cleanup (non-blocking governance warning remains).
+2. Next autonomy milestone toward local autonomous execution modes (likely branch-write or run-cycle preparation).
+3. Generalized sequencing beyond the bounded M15 issue sequence.
+4. Source-of-truth reconciliation automation.
+5. Controlled PR-write mode (not part of M15).
 
-## Recommended Next Work
+## Parent Closeout Note
 
-1. Closeout comment template hardening to prevent future missing documentation reconciliation evidence.
-2. Next feature milestone planning from the clean `main` baseline.
+- Parent issue `#249` can be prepared for human-gated closeout after `#253` merges.

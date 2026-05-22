@@ -2,63 +2,73 @@
 
 ## Purpose
 
-Provide the minimum current operating context for safe post-M14 operator usage and source-of-truth reconciliation.
+Provide minimum operating context for safe M15 self-managed milestone planning and documentation reconciliation.
 
 ## Current Operating Model
 
 - Documentation remains source of truth.
-- Local planning memory is optional, explicit-write, and local-only.
-- Default command behavior remains read-only/output-only.
+- `plan-self-managed-milestone` defaults to read-only planning output.
+- `plan-self-managed-milestone --mode local-write` is local DB write only.
+- `generate-self-managed-issue-script` is text/script output only.
 - Human authority remains final for all GitHub mutation.
-- Sprint issue creation planning is deterministic, read-only by default, and emits human-gated mutation output only.
-- Implementation progress remains gated by human-run post-creation verification pass/fail output.
-- Closeout planning recognizes deterministic human-gated closeout evidence in issue comments without mutation.
-- Historical parent-body references are classified as historical/non-active evidence context, not active child work.
-- Merged PR references used in closeout comments are classified as evidence, not active child work.
+- No autonomous queue workers or background execution.
 
 ## Canonical Documents
 
-- `docs/architecture/SPRINT_ISSUE_CREATION_PLANNING_CONTRACT.md`
-- `docs/architecture/CLOSEOUT_EVIDENCE_RECOGNITION_CONTRACT.md`
 - `docs/architecture/SELF_MANAGED_MILESTONE_PLANNING_CONTRACT.md`
 - `docs/architecture/RUNNABLE_SKELETON.md`
+- `docs/architecture/REPOSITORY_GOVERNANCE_CONTRACT.md`
+- `docs/architecture/CLOSEOUT_EVIDENCE_RECOGNITION_CONTRACT.md`
 - `docs/operator/LOCAL_OPERATOR_USAGE.md`
 - `docs/context/BUILD_STATE.md`
 - `docs/roadmap/ROADMAP.md`
 
 ## Current Commands
 
-- `python -m aresforge generate-sprint-issue-script --definition <file> [--write-planning-state]`
-- `python -m aresforge plan-batch-closeout --parent-issue <number> [--write-planning-snapshot]`
-- `python -m aresforge inspect-planning-state`
-- `python -m aresforge compare-planning-state`
-- `python -m aresforge inspect-closeout-planning-drift --parent-issue <number>`
-- `python -m aresforge plan-sprint-issues --definition <path>`
+- `python -m aresforge plan-self-managed-milestone`
+- `python -m aresforge plan-self-managed-milestone --mode local-write`
+- `python -m aresforge generate-self-managed-issue-script`
+- `python -m aresforge generate-self-managed-issue-script --run-id <id>`
+- `python -m aresforge generate-self-managed-issue-script --target-issue <number>`
+- `python -m aresforge inspect-repo-governance`
 
-## Delivery Status
+## M15 Capability Snapshot
 
-- M13 complete; closeout evidence recognition contract and parser coverage delivered via merged PR #242.
-- M14 cleanup complete via merged PR #244 (issue #243) and PR #246 (issue #245).
-- Baseline state: `main` at `dde2683`, no open issues, no open PRs, governance inspection `ok true`.
+- Self-managed milestone planning contract implemented and active.
+- Read-only planning mode implemented.
+- Local-write planning mode implemented.
+- DB-backed `autonomous_runs`/`run_steps` persistence implemented.
+- Queue advancement/current-ready target selection implemented.
+- Self-managed issue script generation command implemented.
+- Derived read-only script generation implemented.
+- DB-backed script generation by `--run-id` implemented.
 
 ## Prohibited Behaviors
 
-- autonomous queue transitions
-- autonomous setup/mutation behavior
-- autonomous issue creation from planner output
-- autonomous merge/closeout/labeling/milestone assignment
-- autonomous comments/releases/tags
-- automatic issue closeout
+- autonomous GitHub mutation
+- automatic issue closure
 - automatic PR merge
+- automatic branch creation
+- autonomous comments/labels/milestones/releases/tags
+- background jobs, polling loops, schedulers, or hidden workers
 
-## Validation Snapshot
+## Validation Snapshot For Final M15 State
 
-- `python -m pytest` -> `258 passed`
-- `python -m aresforge inspect-repo-governance` -> `ok true`
-- `python -m aresforge plan-batch-closeout --parent-issue 222` -> `ready`
-- `python -m aresforge plan-batch-closeout --parent-issue 233` -> discovered/requested children `#234` through `#241` only; historical references remain historical; PR references are evidence
+- `git diff --check`
+- `python -m pytest`
+- `python -m aresforge inspect-repo-governance`
+- `python -m aresforge plan-self-managed-milestone`
+- `python -m aresforge plan-self-managed-milestone --mode local-write`
+- `python -m aresforge generate-self-managed-issue-script`
 
-## Historical Closeout Note
+## Known Follow-Up Candidates
 
-- Parent #233 may remain incomplete for some older M13 closeout comments missing documentation reconciliation evidence.
-- This reflects historical closeout-comment quality evidence, not a current child discovery blocker.
+1. Milestone naming/mapping cleanup remains non-blocking.
+2. Next autonomy milestone should target local autonomous execution path preparation.
+3. Future generalized sequencing beyond M15's bounded sequence.
+4. Future source-of-truth reconciliation automation.
+5. Future controlled PR-write mode, out of M15 scope.
+
+## Parent Closeout Readiness
+
+- Parent `#249` can be prepared for human-gated closeout after issue `#253` merges.
