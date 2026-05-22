@@ -2,17 +2,20 @@
 
 ## Current Phase
 
-M13 - Closeout Evidence Recognition
+Post-M14 Documentation Reconciliation Baseline
 
 ## Current Goal
 
-Improve batch closeout readiness classification by recognizing human-gated closeout evidence in issue comments while preserving read-only and human-gated safety boundaries.
+Maintain source-of-truth alignment after completed M13/M14 closeout evidence classification work while preserving local-first, read-only-by-default, human-gated mutation boundaries.
 
 ## Current Repository State
 
-- Current branch target: `m13/closeout-evidence-recognition`
-- Parent issue: #233
-- M13 child scope: #234, #235, #236, #241, #237, #238, #239, #240
+- Clean baseline branch: `main`
+- Baseline commit: `dde2683`
+- Latest commit message: `M14: treat merged PR references as closeout evidence (#246)`
+- Open issues: none
+- Open pull requests: none
+- Governance inspection: `ok: true`
 
 ## Current Source Of Truth
 
@@ -32,19 +35,27 @@ Improve batch closeout readiness classification by recognizing human-gated close
 - read-only planning-state vs live closeout child discovery drift grouping
 - closeout evidence summary drift blocking signals including `planning_state_missing`
 - deterministic sprint issue planning output with human-gated PowerShell issue creation and verification guidance
+- closeout evidence classification that treats qualifying merged PR references as evidence, not active child work
+- historical parent-body issue references classified as historical/non-active evidence context
 
-## M13 Canonical Additions
+## M13/M14 Canonical Additions And Closeout
 
 - Architecture contract: `docs/architecture/CLOSEOUT_EVIDENCE_RECOGNITION_CONTRACT.md`
 - Planner updates: `src/aresforge/operator/batch_closeout_planner.py`
 - Regression coverage: `tests/test_batch_closeout_planner.py`
 - Deterministic fixture: `tests/fixtures/m12-manual-closeout-comments.json`
+- M13 implementation PR merged: #242
+- M14 historical parent-body reference classification fix merged: PR #244 (issue #243)
+- M14 merged PR reference classification fix merged: PR #246 (issue #245)
+- Parent #233 historical references #223 through #229 are classified as historical/non-active
+- PR references #230, #231, #232, and #242 are classified as closeout evidence, not active children
 
 ## Validation Baseline
 
-- `python -m pytest`
-- `python -m aresforge inspect-repo-governance`
-- `python -m aresforge plan-batch-closeout --parent-issue 222`
+- `python -m pytest` -> `258 passed`
+- `python -m aresforge inspect-repo-governance` -> `ok true`
+- `python -m aresforge plan-batch-closeout --parent-issue 222` -> `ready`
+- `python -m aresforge plan-batch-closeout --parent-issue 233` -> requested/discovered child issue numbers are `#234` through `#241` only; historical references remain historical; PR references are evidence
 
 ## Boundaries
 
@@ -64,6 +75,12 @@ Not authorized:
 - automatic issue closeout
 - automatic PR merge
 
-## Remaining Closeout Expectation
+## Historical Closeout Note
 
-- After M13 implementation merges, run closeout planning for parent #222 and verify manual closeout evidence remains recognized.
+- Parent #233 can still report incomplete where older M13 child closeout comments lack documentation reconciliation evidence.
+- This is historical closeout-comment quality evidence and is not a current child discovery blocker.
+
+## Recommended Next Work
+
+1. Closeout comment template hardening to prevent future missing documentation reconciliation evidence.
+2. Next feature milestone planning from the clean `main` baseline.

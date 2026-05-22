@@ -7,6 +7,7 @@ Define deterministic, read-only recognition rules for human-gated closeout evide
 ## Scope
 
 This contract applies to parent/child closeout planning evidence classification only. It does not authorize GitHub mutation.
+It also defines non-active classification behavior for historical references and merged PR references that are evidence-only.
 
 ## Evidence Categories
 
@@ -14,6 +15,10 @@ Recognized merged PR evidence:
 
 - issue-native merged PR references from read-only GitHub issue metadata
 - closeout comment lines containing `PR #<number>` or `Pull Request #<number>`
+
+Merged PR classification rule:
+
+- qualifying merged PR references are evidence-only and must not be classified as active child work
 
 Recognized validation evidence:
 
@@ -32,6 +37,10 @@ Recognized documentation reconciliation evidence:
   - `AGENT_CONTEXT.md`
   - `ROADMAP.md`
 
+Historical reference classification rule:
+
+- historical issue references in parent body/comment narrative context are classified as historical/non-active unless they are explicit active child links for the current parent scope
+
 Recognized safety posture evidence:
 
 - closeout comment lines describing human-gated/read-only/no-autonomous-mutation posture
@@ -41,6 +50,7 @@ Recognized safety posture evidence:
 - Closed child issues with recognized merged PR, validation, and documentation reconciliation evidence are eligible for `ready` classification when other gates pass.
 - Missing evidence remains explicit when required evidence cannot be recognized.
 - Parent readiness remains conservative and human-gated.
+- Parent incomplete status caused by missing historical closeout-comment documentation evidence should be reported as evidence quality context, not as an active child discovery blocker.
 
 ## Determinism And Boundaries
 
