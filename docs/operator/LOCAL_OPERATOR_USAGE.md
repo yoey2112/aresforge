@@ -125,7 +125,6 @@ Closeout comment template guidance:
   - `not_applicable` with rationale.
 - Missing documentation reconciliation evidence can keep parent closeout planning incomplete even if implementation PRs are merged.
 - Keep closeout execution human-gated; do not introduce autonomous GitHub mutation.
-
 M14 closeout classification cleanup baseline:
 
 - issue #243 resolved by merged PR #244: historical parent-body issue references are not treated as active children.
