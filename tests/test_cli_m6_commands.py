@@ -40,6 +40,7 @@ def test_cli_help_includes_m6_commands() -> None:
     assert "plan-milestone-final-reconciliation" in help_text
     assert "inspect-milestone-dashboard" in help_text
     assert "generate-child-closeout-script" in help_text
+    assert "generate-evidence-comment-template" in help_text
 
 
 def test_cli_dispatch_plan_agent_queue(
@@ -322,3 +323,28 @@ def test_cli_dispatch_generate_child_closeout_script(
     assert payload["command"] == "generate-child-closeout-script"
     assert payload["read_only"] is True
     assert payload["target_issue"] == 296
+
+
+def test_cli_dispatch_generate_evidence_comment_template(
+    monkeypatch,
+    capsys,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: _config(tmp_path))
+    monkeypatch.setattr(
+        cli,
+        "generate_evidence_comment_template",
+        lambda _config, issue_number: {
+            "command": "generate-evidence-comment-template",
+            "ok": True,
+            "read_only": True,
+            "target_issue": {"number": issue_number},
+            "template": "### Issue-Specific Evidence Mapping\n",
+        },
+    )
+    exit_code = cli.main(["generate-evidence-comment-template", "--issue", "297"])
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["command"] == "generate-evidence-comment-template"
+    assert payload["read_only"] is True
+    assert payload["target_issue"]["number"] == 297

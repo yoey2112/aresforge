@@ -46,6 +46,7 @@ from aresforge.operator.batch_closeout_planner import plan_batch_closeout
 from aresforge.operator.closeout_planning_drift import inspect_closeout_planning_drift
 from aresforge.operator.sprint_issue_script_generator import generate_sprint_issue_script
 from aresforge.operator.child_closeout_script_generator import generate_child_closeout_script
+from aresforge.operator.evidence_comment_template_generator import generate_evidence_comment_template
 from aresforge.operator.self_managed_issue_script_generator import generate_self_managed_issue_script
 from aresforge.operator.sprint_issue_planner import plan_sprint_issues
 from aresforge.operator.planning_state import (
@@ -376,6 +377,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Generate read-only, operator-reviewed PowerShell closeout commands for one child issue.",
     )
     child_closeout_script_parser.add_argument("--issue", type=int, required=True)
+    evidence_comment_template_parser = subparsers.add_parser(
+        "generate-evidence-comment-template",
+        help="Generate a read-only issue-specific evidence comment template for operator review.",
+    )
+    evidence_comment_template_parser.add_argument("--issue", type=int, required=True)
     autonomous_cycle_parser = subparsers.add_parser(
         "run-autonomous-cycle",
         help="Run controlled autonomous execution with explicit safety-gated modes.",
@@ -930,6 +936,11 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "generate-child-closeout-script":
         payload = generate_child_closeout_script(config, issue_number=args.issue)
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "generate-evidence-comment-template":
+        payload = generate_evidence_comment_template(config, issue_number=args.issue)
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 
