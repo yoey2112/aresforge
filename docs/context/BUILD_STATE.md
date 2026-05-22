@@ -6,13 +6,13 @@ M17 Self-managed milestone orchestration after controlled autonomous execution
 
 ## Current Goal
 
-Deliver M17 issue #270 contract authority and #271 read-only milestone inspection without introducing new mutation surfaces.
+Deliver M17 issue #270 contract authority, #271 read-only milestone inspection, and #272 planning-only milestone execution queue guidance without introducing new mutation surfaces.
 
 ## Current Repository State
 
 - M16 baseline commit: `1c5cacd` (`M16 final source-of-truth reconciliation (#268)`)
 - M17 parent issue: `#269`
-- Current M17 implementation scope: `#270` and `#271`
+- Current M17 implementation scope: `#270`, `#271`, and `#272`
 - Governance inspection: `ok: true`
 - Known non-blocking warning: `milestone_naming_status.naming_ok: false`
 
@@ -41,13 +41,15 @@ Deliver M17 issue #270 contract authority and #271 read-only milestone inspectio
 - Explicit fail-closed gate evaluation before higher-permission mutation
 - Step-level mutation/evaluation evidence with run-level evidence artifact generation
 - `python -m aresforge inspect-milestone-state --parent-issue <parent>` read-only milestone state inspector
+- `python -m aresforge plan-milestone-execution-queue --parent-issue <parent>` read-only milestone execution queue planner
 
-## Validation Baseline For Current M17 Scope (#270/#271)
+## Validation Baseline For Current M17 Scope (#270/#271/#272)
 
 - `git diff --check`
 - `python -m pytest`
 - `python -m aresforge inspect-repo-governance`
 - `python -m aresforge inspect-milestone-state --parent-issue 269`
+- `python -m aresforge plan-milestone-execution-queue --parent-issue 269`
 
 ## Boundaries
 

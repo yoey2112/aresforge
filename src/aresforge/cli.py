@@ -83,6 +83,7 @@ from aresforge.operator.autonomous_cycle import (
     run_autonomous_cycle,
 )
 from aresforge.operator.milestone_state_inspector import inspect_milestone_state
+from aresforge.operator.milestone_execution_queue_planner import plan_milestone_execution_queue
 from aresforge.operator.project_state_summary import project_state_summary
 from aresforge.operator.self_managed_milestone_planner import plan_self_managed_milestone
 from aresforge.operator.repo_bootstrap_contract import inspect_repo_bootstrap_contract
@@ -406,6 +407,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Inspect milestone parent/child issue state in read-only mode.",
     )
     inspect_milestone_state_parser.add_argument("--parent-issue", type=int, required=True)
+    milestone_queue_parser = subparsers.add_parser(
+        "plan-milestone-execution-queue",
+        help="Plan milestone child issue execution order in read-only mode.",
+    )
+    milestone_queue_parser.add_argument("--parent-issue", type=int, required=True)
     inspect_planning_parser = subparsers.add_parser(
         "inspect-planning-state",
         help="Inspect local planning state without writing local files or mutating GitHub.",
@@ -917,6 +923,11 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "inspect-milestone-state":
         payload = inspect_milestone_state(config, parent_issue=args.parent_issue)
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "plan-milestone-execution-queue":
+        payload = plan_milestone_execution_queue(config, parent_issue=args.parent_issue)
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 

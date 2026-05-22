@@ -1,11 +1,12 @@
 # Local Operator Usage
 
-## Core Validation Bundle (M17 for #270/#271)
+## Core Validation Bundle (M17 for #270/#271/#272)
 
 - `git diff --check`
 - `python -m pytest`
 - `python -m aresforge inspect-repo-governance`
 - `python -m aresforge inspect-milestone-state --parent-issue <parent>`
+- `python -m aresforge plan-milestone-execution-queue --parent-issue <parent>`
 
 ## Milestone Inspection (M17 #271)
 
@@ -18,6 +19,28 @@ Behavior:
 - read-only issue and milestone state inspection
 - parent/child discovery from detectable references
 - child state, lineage, and merged PR evidence hints summary
+- no issue closure
+- no PR creation
+- no comments
+- no GitHub edits
+
+## Milestone Queue Planning (M17 #272)
+
+Commands:
+
+- `python -m aresforge plan-milestone-execution-queue --parent-issue <parent>`
+
+Behavior:
+
+- planning-only milestone child execution ordering
+- deterministic child sequencing with final reconciliation issue last when detected
+- blocker and missing lineage surfacing
+- missing merged PR evidence signal surfacing
+- explicit safety gates:
+  - execution enabled false
+  - close issues false
+  - bulk closeout allowed false
+  - operator review required true
 - no issue closure
 - no PR creation
 - no comments

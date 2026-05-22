@@ -86,12 +86,15 @@ Current implementation scope:
 
 - #270 define milestone execution plan contract
 - #271 add read-only milestone state inspector
+- #272 add guarded per-issue execution queue planner
 
 Current M17 outcomes:
 
 - Contract authority at `docs/architecture/MILESTONE_EXECUTION_PLAN_CONTRACT.md`.
 - `inspect-milestone-state` command:
   - `python -m aresforge inspect-milestone-state --parent-issue <parent>`
+- `plan-milestone-execution-queue` command:
+  - `python -m aresforge plan-milestone-execution-queue --parent-issue <parent>`
 - Read-only milestone parent/child inspection with:
   - parent summary
   - child discovery from detectable references
@@ -100,11 +103,17 @@ Current M17 outcomes:
   - missing lineage hints
   - milestone naming/assignment warnings
   - explicit read-only boundary confirmations
+- Planning-only milestone execution queue guidance with:
+  - deterministic per-issue order
+  - final reconciliation issue last when detected
+  - blockers and missing lineage/evidence signals
+  - explicit non-execution safety gates (`execution_enabled: false`)
 
-M17 #270/#271 validation bundle:
+M17 #270/#271/#272 validation bundle:
 
 - `git diff --check`
 - `python -m pytest`
 - `python -m aresforge inspect-repo-governance`
 - `python -m aresforge inspect-milestone-state --parent-issue 269`
+- `python -m aresforge plan-milestone-execution-queue --parent-issue 269`
 - Governance and closeout remain explicitly human-triggered and auditable.

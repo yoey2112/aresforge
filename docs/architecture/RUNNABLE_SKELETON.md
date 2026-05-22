@@ -15,6 +15,7 @@ Command entrypoint:
 - `run-autonomous-cycle`: explicit controlled execution loop with mode-gated mutation boundaries.
 - `inspect-autonomous-run`: inspect DB-backed run lifecycle and step history.
 - `inspect-milestone-state`: read-only milestone parent/child issue state inspection.
+- `plan-milestone-execution-queue`: read-only, planning-only milestone child execution queue planner.
 - Existing planning/validation/reporting commands remain available and compatible.
 
 ## M16 Capability Contract Alignment

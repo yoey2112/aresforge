@@ -34,6 +34,7 @@ Define the M17 contract for milestone-level orchestration planning and read-only
 - Planning commands:
   - may compute deterministic plans and safety warnings
   - may emit local-only artifacts where already established by existing command contracts
+  - must declare non-execution posture (`execution_enabled: false`) for queue planning outputs
 - Guarded execution recommendations:
   - must be explicit and human-triggered
   - must preserve fail-closed behavior for missing gates
@@ -70,6 +71,8 @@ Define the M17 contract for milestone-level orchestration planning and read-only
 - No implicit GitHub mutation.
 - No closeout mutation from inspection commands.
 - No issue closure, PR creation, comment creation, or edit operations from milestone inspection.
+- No issue execution, closure, PR creation, or comments from milestone queue planning commands.
+- Bulk closeout recommendations are not authorized.
 
 ## Duplicate/No-Op PR Handling
 
@@ -81,13 +84,14 @@ Define the M17 contract for milestone-level orchestration planning and read-only
 - Reconcile child-level evidence first.
 - Reconcile parent milestone state second.
 - Reconcile source-of-truth docs last.
+- When a final reconciliation issue is detectable in child set (for M17 this is `#276`), it must be placed last in recommended execution order.
 
 ## Validation Expectations
 
 - Validation must run in Codex before reporting completion.
 - Required validation bundle for this phase:
   - `git diff --check`
-  - `python -m pytest`
-  - `python -m aresforge inspect-repo-governance`
-  - `python -m aresforge inspect-milestone-state --parent-issue <parent>`
-
+- `python -m pytest`
+- `python -m aresforge inspect-repo-governance`
+- `python -m aresforge inspect-milestone-state --parent-issue <parent>`
+- `python -m aresforge plan-milestone-execution-queue --parent-issue <parent>`
