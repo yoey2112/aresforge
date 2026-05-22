@@ -44,6 +44,7 @@ def test_cli_has_expected_commands() -> None:
         "plan-repo-bootstrap",
         "demo-managed-repo-governance",
         "plan-batch-closeout",
+        "plan-sprint-issues",
         "inspect-closeout-planning-drift",
         "qa-review-pr",
         "qa-closeout-pr",
@@ -165,6 +166,11 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     plan_batch_closeout_args = parser.parse_args(["plan-batch-closeout", "--parent-issue", "172"])
     assert plan_batch_closeout_args.command == "plan-batch-closeout"
     assert plan_batch_closeout_args.parent_issue == 172
+    plan_sprint_issues_args = parser.parse_args(
+        ["plan-sprint-issues", "--definition", "tests/fixtures/m12-sprint-definition.json"]
+    )
+    assert plan_sprint_issues_args.command == "plan-sprint-issues"
+    assert plan_sprint_issues_args.definition == "tests/fixtures/m12-sprint-definition.json"
     inspect_closeout_planning_drift_args = parser.parse_args(
         ["inspect-closeout-planning-drift", "--parent-issue", "172"]
     )
@@ -400,6 +406,12 @@ def test_command_requires_directories_only_for_commands_that_write_artifacts() -
     assert (
         command_requires_directories(
             parser.parse_args(["plan-batch-closeout", "--parent-issue", "172"])
+        )
+        is False
+    )
+    assert (
+        command_requires_directories(
+            parser.parse_args(["plan-sprint-issues", "--definition", "tests/fixtures/m12-sprint-definition.json"])
         )
         is False
     )

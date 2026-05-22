@@ -1,0 +1,38 @@
+﻿{
+  "sprint_id": "M12",
+  "repo": "yoey2112/aresforge",
+  "parent": {
+    "title": "M12: Add human-gated sprint issue creation planner",
+    "body": "## Safety Posture\n- human-triggered operations only\n- read-only planning by default\n- no autonomous mutation\n\n## Acceptance Criteria\n- Parent issue captures M12 core scope\n\n## Validation\n- python -m pytest"
+  },
+  "children": [
+    {
+      "title": "M12: Define human-gated sprint issue creation planning contract",
+      "body": "Part of #{{PARENT_ISSUE_NUMBER}}\nDefine architecture contract for read-only planning and human-gated mutation execution.\n\n## Safety Posture\n- human-triggered issue creation only\n- read-only planning command\n- no autonomous GitHub mutation\n\n## Acceptance Criteria\n- Contract defines planner inputs, outputs, and safety boundaries\n\n## Validation\n- python -m pytest"
+    },
+    {
+      "title": "M12: Add sprint issue creation plan model and renderer",
+      "body": "Part of #{{PARENT_ISSUE_NUMBER}}\nImplement deterministic plan normalization and rendering model.\n\n## Safety Posture\n- human-triggered issue creation only\n- read-only planning command\n- no autonomous GitHub mutation\n\n## Acceptance Criteria\n- Plan model renders parent/child issue bodies deterministically\n\n## Validation\n- python -m pytest"
+    },
+    {
+      "title": "M12: Generate copy-paste-safe PowerShell issue creation blocks",
+      "body": "Part of #{{PARENT_ISSUE_NUMBER}}\nRender copy/paste-safe PowerShell here-strings without nested markdown fences.\n\n## Safety Posture\n- human-triggered issue creation only\n- read-only planning command\n- no autonomous GitHub mutation\n\n## Acceptance Criteria\n- Generated script includes parent create and child create phases\n\n## Validation\n- python -m pytest"
+    },
+    {
+      "title": "M12: Add read-only CLI command for sprint issue creation planning",
+      "body": "Part of #{{PARENT_ISSUE_NUMBER}}\nWire plan-sprint-issues command with output-only posture.\n\n## Safety Posture\n- human-triggered issue creation only\n- read-only planning command\n- no autonomous GitHub mutation\n\n## Acceptance Criteria\n- CLI emits JSON and does not mutate GitHub\n\n## Validation\n- python -m pytest"
+    },
+    {
+      "title": "M12: Add regression fixtures for generated sprint issue scripts",
+      "body": "Part of #{{PARENT_ISSUE_NUMBER}}\nAdd regression fixtures covering missing child and corrupted body verification failure.\n\n## Safety Posture\n- human-triggered issue creation only\n- read-only planning command\n- no autonomous GitHub mutation\n\n## Acceptance Criteria\n- Failure fixtures produce clear verification fail report\n\n## Validation\n- python -m pytest"
+    },
+    {
+      "title": "M12: Document operator workflow for human-gated sprint issue creation",
+      "body": "Part of #{{PARENT_ISSUE_NUMBER}}\nReserve operator workflow documentation for follow-up issue #227.\n\n## Safety Posture\n- human-triggered issue creation only\n- read-only planning command\n- no autonomous GitHub mutation\n\n## Acceptance Criteria\n- Documentation follow-up scope is explicitly deferred\n\n## Validation\n- python -m pytest"
+    },
+    {
+      "title": "M12: Reconcile source-of-truth documentation after implementation",
+      "body": "Part of #{{PARENT_ISSUE_NUMBER}}\nReserve source-of-truth reconciliation for follow-up issue #228.\n\n## Safety Posture\n- human-triggered issue creation only\n- read-only planning command\n- no autonomous GitHub mutation\n\n## Acceptance Criteria\n- Reconciliation follow-up scope is explicitly deferred\n\n## Validation\n- python -m pytest"
+    }
+  ]
+}

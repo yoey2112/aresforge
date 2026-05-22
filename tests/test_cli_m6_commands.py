@@ -31,6 +31,7 @@ def test_cli_help_includes_m6_commands() -> None:
     assert "plan-agent-queue" in help_text
     assert "report-batch-readiness" in help_text
     assert "plan-batch-closeout" in help_text
+    assert "plan-sprint-issues" in help_text
     assert "inspect-closeout-planning-drift" in help_text
 
 

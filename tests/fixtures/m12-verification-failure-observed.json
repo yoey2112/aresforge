@@ -1,0 +1,21 @@
+﻿{
+  "actual_parent_title": "M12: Add human-gated sprint issue creation planner",
+  "actual_child_titles": [
+    "M12: Define human-gated sprint issue creation planning contract",
+    "M12: Add sprint issue creation plan model and renderer",
+    "M12: Generate copy-paste-safe PowerShell issue creation blocks",
+    "M12: Add read-only CLI command for sprint issue creation planning",
+    "M12: Document operator workflow for human-gated sprint issue creation",
+    "M12: Reconcile source-of-truth documentation after implementation"
+  ],
+  "parent_body_after_update": "## Child Implementation Index\n- [ ] M12: Define human-gated sprint issue creation planning contract (issue #223)\n- [ ] M12: Add sprint issue creation plan model and renderer (issue #224)\n- [ ] M12: Generate copy-paste-safe PowerShell issue creation blocks (issue #225)\n- [ ] M12: Add read-only CLI command for sprint issue creation planning (issue #226)",
+  "body_by_child_title": {
+    "M12: Define human-gated sprint issue creation planning contract": "Part of #222\n## Safety Posture\n- human-triggered issue creation only\n- read-only planning command\n- no autonomous GitHub mutation\n## Acceptance Criteria\n- contract\n## Validation\n- python -m pytest",
+    "M12: Add sprint issue creation plan model and renderer": "Part of #222\n## Safety Posture\n- human-triggered issue creation only\n- read-only planning command\n- no autonomous GitHub mutation\n## Acceptance Criteria\n- renderer\n## Validation\n- python -m pytest",
+    "M12: Generate copy-paste-safe PowerShell issue creation blocks": "Part of #222\n## Safety Posture\n- human-triggered issue creation only\n- read-only planning command\n- no autonomous GitHub mutation\n## Acceptance Criteria\n- script\n## Validation\n- python -m pytest",
+    "M12: Add read-only CLI command for sprint issue creation planning": "Part of #222\n## Safety Posture\n- human-triggered issue creation only\n- read-only planning command\n- no autonomous GitHub mutation\n## Acceptance Criteria\n- cli\n## Validation\n- python -m pytest",
+    "M12: Add regression fixtures for generated sprint issue scripts": "Part of #222\n## Safety Posture\n- human-triggered issue creation only\n- read-only planning command",
+    "M12: Document operator workflow for human-gated sprint issue creation": "Part of #222\n## Safety Posture\n- human-triggered issue creation only\n- read-only planning command\n- no autonomous GitHub mutation\n## Acceptance Criteria\n- doc workflow\n## Validation\n- python -m pytest",
+    "M12: Reconcile source-of-truth documentation after implementation": "Part of #222\n## Safety Posture\n- human-triggered issue creation only\n- read-only planning command\n- no autonomous GitHub mutation\n## Acceptance Criteria\n- reconciliation\n## Validation\n- python -m pytest"
+  }
+}
