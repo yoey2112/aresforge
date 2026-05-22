@@ -1,6 +1,6 @@
 # Local Operator Usage
 
-## Core Validation Bundle (M17 for #270/#271/#272/#273/#274/#275/#276)
+## M18 Core Validation Bundle
 
 - `git diff --check`
 - `python -m pytest`
@@ -11,8 +11,30 @@
 - `python -m aresforge check-issue-evidence-readiness --issue <issue>`
 - `python -m aresforge check-milestone-evidence-readiness --parent-issue <parent>`
 - `python -m aresforge plan-milestone-final-reconciliation --parent-issue <parent>`
+- `python -m aresforge inspect-parent-closeout-readiness --parent-issue <parent>`
 
-## Milestone Inspection (M17 #271)
+## End-to-End Child Execution Pattern (M18)
+
+1. Sync clean `main`.
+2. Implement one child issue only on one issue-specific branch.
+3. Run the validation bundle.
+4. Open one PR for that child issue.
+5. Merge PR.
+6. Sync clean `main` again.
+7. Re-run validation bundle.
+8. Generate and post issue-specific evidence mapping comment.
+9. Close only the target child issue.
+10. Re-run milestone dashboard and queue checks.
+11. Move to next recommended child issue.
+
+Rules:
+
+- never bulk-close issues
+- never close parent before child sequence is complete
+- keep final reconciliation issue last
+- mutation remains human-triggered and review-gated
+
+## Read-Only Milestone Inspection
 
 Commands:
 
@@ -28,7 +50,7 @@ Behavior:
 - no comments
 - no GitHub edits
 
-## Milestone Queue Planning (M17 #272)
+## Read-Only Milestone Queue Planning
 
 Commands:
 
@@ -67,7 +89,7 @@ Behavior:
 - never comments on issues
 - never mutates GitHub state
 
-## Evidence Readiness Checking (M17 #273/#274)
+## Evidence Readiness Checking (M17/#274 and M18/#299 enhancements)
 
 Commands:
 
@@ -78,12 +100,29 @@ Behavior:
 
 - read-only/planning-only evidence completeness classification
 - duplicate/no-op PR prevention via evidence reuse recommendation
+- schema-driven structured evidence block support with safe malformed/duplicate/conflict handling
 - never closes issues
 - never creates PRs
 - never comments on issues
 - never mutates GitHub state
 
-## Milestone Final Reconciliation Planning (M17 #275)
+## Parent Closeout Readiness (M18 #298)
+
+Commands:
+
+- `python -m aresforge inspect-parent-closeout-readiness --parent-issue <parent>`
+
+Behavior:
+
+- read-only parent closeout readiness report with explicit child lineage
+- reports child state, evidence mapping status, individual closure/accounted signals
+- reports blocked reasons, required operator actions, and safety gates
+- never closes parent or children
+- never creates PRs
+- never comments on issues
+- never mutates GitHub state
+
+## Milestone Final Reconciliation Planning
 
 Commands:
 
@@ -108,6 +147,21 @@ Behavior:
 - never creates PRs
 - never comments on issues
 - never mutates GitHub state
+
+## Script/Template Generation Commands (Read-Only Generators)
+
+Commands:
+
+- `python -m aresforge generate-evidence-comment-template --issue <issue>`
+- `python -m aresforge generate-child-closeout-script --issue <issue>`
+
+Behavior:
+
+- generate operator-reviewed text/script artifacts only
+- do not post comments automatically
+- do not close issues automatically
+- do not create PRs/branches automatically
+- keep PowerShell output fence-safe for operator copy/review
 
 ## Controlled Autonomous Execution (M16)
 
