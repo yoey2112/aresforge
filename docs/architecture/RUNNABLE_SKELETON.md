@@ -23,9 +23,9 @@ Command entrypoint:
 
 ## M12 Documentation Reconciliation State
 
-- M12 planner contract, model/rendering, copy/paste-safe PowerShell output, CLI wiring, and regression coverage were delivered in merged integration work.
-- Current pass documents the operator workflow for human-gated issue creation planning (`plan-sprint-issues`).
-- Final source-of-truth reconciliation remains deferred to dedicated follow-up scope.
+- M12 planner contract, model/rendering, copy/paste-safe PowerShell output, CLI wiring, and regression coverage were delivered in merged integration PR #230.
+- M12 operator workflow documentation for `plan-sprint-issues` was delivered in merged PR #231.
+- Current #228 scope is source-of-truth reconciliation only.
 
 ## Automation Boundary
 
@@ -35,7 +35,3 @@ Command entrypoint:
 - No autonomous setup/mutation, merge, closeout, labels, milestones, comments, releases, or tags.
 - Generated mutation scripts are copy/paste output only and require human review/execution.
 - Verification/repair guidance is text-only and human-gated.
-
-## Recommended Post-M12 Follow-Up
-
-- Complete source-of-truth reconciliation for M12 documentation alignment in the dedicated follow-up scope.

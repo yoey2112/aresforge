@@ -1,20 +1,20 @@
-﻿# AresForge Build State
+# AresForge Build State
 
 ## Current Phase
 
-M11 - Planning-State Closeout Drift Inspection And Reconciliation
+M12 - Source-Of-Truth Reconciliation After Sprint Issue Planner Delivery
 
 ## Current Goal
 
-Complete operator documentation and source-of-truth reconciliation for closeout planning drift inspection while preserving read-only safety boundaries.
+Reconcile source-of-truth documentation to the finalized M12 implementation and operator workflow state while preserving read-only and human-gated safety boundaries.
 
 ## Current Repository State
 
-- Current branch target: `m11/source-of-truth-reconciliation`
-- Parent issue: #210
-- Implemented child scope (merged): #211, #212, #213, #214, #217
-- Documentation/reconciliation scope (this pass): #215, #216
-- the protected historical reference remains retired historical validation evidence only.
+- Current branch target: `m12/source-of-truth-reconciliation`
+- Parent issue: #222
+- Core implementation delivered (merged PR #230): #223, #224, #225, #226, #229
+- Operator documentation delivered (merged PR #231): #227
+- Documentation/reconciliation scope (this pass): #228
 
 ## Current Source Of Truth
 
@@ -29,9 +29,25 @@ Complete operator documentation and source-of-truth reconciliation for closeout 
 - `python -m aresforge inspect-planning-state`
 - `python -m aresforge compare-planning-state`
 - `python -m aresforge inspect-closeout-planning-drift --parent-issue <number>`
+- `python -m aresforge plan-sprint-issues --definition <path>`
 - closeout child-link discovery from parent body/comments and child parent-reference evidence
 - read-only planning-state vs live closeout child discovery drift grouping
 - closeout evidence summary drift blocking signals including `planning_state_missing`
+- deterministic sprint issue planning output with human-gated PowerShell issue creation and verification guidance
+
+## M12 Canonical Additions
+
+- Architecture contract: `docs/architecture/SPRINT_ISSUE_CREATION_PLANNING_CONTRACT.md`
+- Planner module: `src/aresforge/operator/sprint_issue_planner.py`
+- Regression coverage: `tests/test_sprint_issue_planner.py`
+- Definition fixture: `tests/fixtures/m12-sprint-definition.json`
+- Observed verification-failure fixture: `tests/fixtures/m12-verification-failure-observed.json`
+
+## Validation Baseline
+
+- `python -m pytest` -> `255 passed`
+- `python -m aresforge inspect-repo-governance` -> `ok true`
+- `python -m aresforge plan-sprint-issues --definition tests/fixtures/m12-sprint-definition.json` -> `ok true`
 
 ## Boundaries
 
@@ -41,14 +57,16 @@ Allowed:
 - explicit local-only planning-state writes
 - read-only planning inspection/comparison
 - output-only generated sprint issue scripts requiring human execution
+- read-only sprint issue planning output with human-gated mutation script generation
 
 Not authorized:
 
 - autonomous GitHub mutation (create/close/comment/label/milestone/merge/release/tag)
 - autonomous setup/mutation behavior
-- mutation of the protected historical reference
+- autonomous issue creation from planner output
+- automatic issue closeout
+- automatic PR merge
 
-## Recommended Follow-Up After M11 Closeout
+## Remaining Closeout Expectation
 
-- Add a dedicated milestone item to remove recurring protected historical issue references from active governance/operator paths while preserving historical validation evidence.
-
+- After #228 merges, run QA/closeout planning for M12 parent #222 and child issues #223, #224, #225, #226, #229, #227, #228.
