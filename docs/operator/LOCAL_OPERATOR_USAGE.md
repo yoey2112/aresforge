@@ -1,14 +1,94 @@
-﻿# Local Operator Usage
+# Local Operator Usage
 
 ## Core Validation Bundle
 
 - `python -m pytest`
 - `python -m aresforge inspect-repo-governance`
+- `python -m aresforge plan-sprint-issues --definition tests/fixtures/m12-sprint-definition.json`
 - `python -m aresforge generate-sprint-issue-script --definition tests/fixtures/m8-sprint-definition.json`
 - `python -m aresforge inspect-planning-state`
 - `python -m aresforge compare-planning-state`
 - `python -m aresforge inspect-closeout-planning-drift --parent-issue <number>`
 - `git diff --check`
+
+## Human-Gated Sprint Issue Creation Planning (M12)
+
+Purpose:
+
+- Generate a deterministic, read-only sprint issue creation plan from a local definition file.
+- Produce human-reviewable parent/child issue bodies and a copy/paste PowerShell mutation script.
+- Gate implementation progress on post-creation verification pass/fail output.
+
+Command:
+
+- `python -m aresforge plan-sprint-issues --definition <path>`
+
+Required local input:
+
+- A local JSON definition file passed to `--definition`.
+- Required root fields: `sprint_id`, `repo`, `parent`, `children`.
+- Parent and child bodies must include `## Safety Posture`, `## Acceptance Criteria`, and `## Validation`.
+- Child bodies must include `Part of #{{PARENT_ISSUE_NUMBER}}`.
+- Nested markdown fences (``` ) are rejected to keep generated PowerShell here-strings copy/paste-safe.
+
+Read-only default behavior:
+
+- `plan-sprint-issues` is inspection/output-only and does not execute `gh`.
+- AresForge does not create issues by default.
+- AresForge does not close issues, merge PRs, or perform automatic closeout.
+
+Generated output posture:
+
+- `inspection_mode` is `read_only_generated_plan`.
+- `mutation_posture` is `human_gated_output_only`.
+- Generated mutation commands are copy/paste output for human review and execution only.
+- Repair guidance is text-only and human-gated.
+
+Operator workflow:
+
+1. Run `python -m aresforge plan-sprint-issues --definition <path>`.
+2. Review `rendered.parent_issue_body` for scope and safety-boundary text.
+3. Review each entry in `rendered.child_issue_bodies` for parent linkage (`Part of #{{PARENT_ISSUE_NUMBER}}`), required sections, and safety-boundary text.
+4. Review `rendered.powershell_issue_creation_block` line-by-line before any execution.
+5. Copy/paste and run the generated PowerShell block manually if the plan is approved.
+6. Run the generated post-creation verification section from the output (`rendered.final_post_creation_verification_block`) to compare expected plan versus live issue state.
+7. Continue implementation only if verification reports pass.
+
+Manual execution of generated issue creation:
+
+- Use the generated `powershell_issue_creation_block` as-is after review.
+- Run it manually in a PowerShell session with `gh` authenticated for the target repo.
+- Live GitHub inspection occurs only when the human operator runs generated commands.
+
+Post-creation verification usage:
+
+- Verify expected parent title vs actual parent title.
+- Verify expected child count vs actual child count.
+- Verify missing expected child titles and unexpected child titles.
+- Verify parent child-index completeness.
+- Verify required body sections and safety-boundary text presence.
+- Treat pass/fail as a gate for implementation start.
+
+If verification fails:
+
+- Do not continue implementation.
+- Review the mismatch report and reconcile parent/child state.
+- Use generated repair guidance as human-gated text instructions.
+- Re-run verification manually until it passes.
+
+Why verification is required:
+
+- Observed M12 failure coverage (see `tests/fixtures/m12-verification-failure-observed.json`) showed realistic mismatch modes:
+  - missing expected child issues,
+  - incomplete parent child index,
+  - and child safety/body-section drift.
+- Because those failure modes can silently break implementation tracking, implementation should not proceed until verification passes.
+
+Relationship to AresForge safety boundaries:
+
+- Planner output can include mutation commands, but command generation itself remains read-only.
+- Mutation authority remains with the human operator, not AresForge.
+- No autonomous GitHub mutation is performed (create/close/comment/label/milestone/merge/release/tag).
 
 ## Structured Sprint Issue Script Generation
 
@@ -81,5 +161,4 @@ What this command does not do:
 - No autonomous merge/closeout/setup/queue mutation.
 - No autonomous GitHub issue create/close/comment/label/milestone/release/tag.
 - Generated GitHub issue scripts remain human-executed.
-- the protected historical reference remains protected historical evidence only.
-
+- The protected historical reference remains protected historical evidence only.
