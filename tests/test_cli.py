@@ -51,6 +51,8 @@ def test_cli_has_expected_commands() -> None:
         "inspect-autonomous-run",
         "inspect-milestone-state",
         "plan-milestone-execution-queue",
+        "check-issue-evidence-readiness",
+        "check-milestone-evidence-readiness",
         "inspect-closeout-planning-drift",
         "qa-review-pr",
         "qa-closeout-pr",
@@ -215,6 +217,16 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     )
     assert plan_milestone_execution_queue_args.command == "plan-milestone-execution-queue"
     assert plan_milestone_execution_queue_args.parent_issue == 269
+    check_issue_evidence_args = parser.parse_args(
+        ["check-issue-evidence-readiness", "--issue", "270"]
+    )
+    assert check_issue_evidence_args.command == "check-issue-evidence-readiness"
+    assert check_issue_evidence_args.issue == 270
+    check_milestone_evidence_args = parser.parse_args(
+        ["check-milestone-evidence-readiness", "--parent-issue", "269"]
+    )
+    assert check_milestone_evidence_args.command == "check-milestone-evidence-readiness"
+    assert check_milestone_evidence_args.parent_issue == 269
     inspect_closeout_planning_drift_args = parser.parse_args(
         ["inspect-closeout-planning-drift", "--parent-issue", "172"]
     )

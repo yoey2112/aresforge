@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Provide minimum operating context for safe M17 milestone contract, read-only milestone inspection, and planning-only queue guidance delivery.
+Provide minimum operating context for safe M17 milestone contract, read-only inspection, planning-only queue guidance, and read-only evidence readiness assessment.
 
 ## Current Operating Model
 
@@ -10,6 +10,7 @@ Provide minimum operating context for safe M17 milestone contract, read-only mil
 - `run-autonomous-cycle` is human-triggered and mode-gated.
 - `inspect-milestone-state` is human-triggered and strictly read-only.
 - `plan-milestone-execution-queue` is human-triggered and strictly planning-only.
+- `check-issue-evidence-readiness` and `check-milestone-evidence-readiness` are human-triggered and strictly read-only.
 - Defaults remain safe and read-only.
 - Every run and step is persisted in `autonomous_runs`/`run_steps`.
 - Every run emits evidence artifacts.
@@ -35,6 +36,8 @@ Provide minimum operating context for safe M17 milestone contract, read-only mil
 - `python -m aresforge inspect-autonomous-run --run-id <id>`
 - `python -m aresforge inspect-milestone-state --parent-issue <parent>`
 - `python -m aresforge plan-milestone-execution-queue --parent-issue <parent>`
+- `python -m aresforge check-issue-evidence-readiness --issue <issue>`
+- `python -m aresforge check-milestone-evidence-readiness --parent-issue <parent>`
 - `python -m aresforge inspect-repo-governance`
 
 ## M16 Capability Snapshot
@@ -49,6 +52,7 @@ Provide minimum operating context for safe M17 milestone contract, read-only mil
 - Evidence package generation implemented for all run outcomes.
 - Read-only milestone state inspection with parent/child summary, lineage hints, and evidence hints.
 - Planning-only milestone execution queue guidance with explicit non-execution safety gates.
+- Evidence completeness and duplicate/no-op reuse recommendation checks with mutation disabled.
 
 ## Prohibited Behaviors
 
@@ -61,6 +65,7 @@ Provide minimum operating context for safe M17 milestone contract, read-only mil
 - background jobs, polling loops, schedulers, or hidden workers
 - milestone inspection command that mutates GitHub state
 - milestone queue planner that executes issue work or mutates GitHub state
+- evidence readiness checker that closes issues, creates PRs, comments, or mutates GitHub state
 
 ## Validation Snapshot
 
@@ -69,6 +74,8 @@ Provide minimum operating context for safe M17 milestone contract, read-only mil
 - `python -m aresforge inspect-repo-governance`
 - `python -m aresforge inspect-milestone-state --parent-issue <parent>`
 - `python -m aresforge plan-milestone-execution-queue --parent-issue <parent>`
+- `python -m aresforge check-issue-evidence-readiness --issue <issue>`
+- `python -m aresforge check-milestone-evidence-readiness --parent-issue <parent>`
 
 ## Governance Note
 

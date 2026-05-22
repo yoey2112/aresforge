@@ -35,6 +35,7 @@ Define the M17 contract for milestone-level orchestration planning and read-only
   - may compute deterministic plans and safety warnings
   - may emit local-only artifacts where already established by existing command contracts
   - must declare non-execution posture (`execution_enabled: false`) for queue planning outputs
+  - evidence readiness checkers must declare mutation disabled and operator review required
 - Guarded execution recommendations:
   - must be explicit and human-triggered
   - must preserve fail-closed behavior for missing gates
@@ -78,6 +79,7 @@ Define the M17 contract for milestone-level orchestration planning and read-only
 
 - Duplicate/no-op PR outcomes must be explicitly recorded when they occur in future execution phases.
 - Duplicate/no-op handling never authorizes skipping evidence mapping or issue-specific closeout checks.
+- Duplicate/no-op prevention in planning/checking commands must recommend evidence reuse and avoid proposing duplicate implementation PRs when valid merged evidence exists.
 
 ## Final Reconciliation Sequencing
 
@@ -95,3 +97,5 @@ Define the M17 contract for milestone-level orchestration planning and read-only
 - `python -m aresforge inspect-repo-governance`
 - `python -m aresforge inspect-milestone-state --parent-issue <parent>`
 - `python -m aresforge plan-milestone-execution-queue --parent-issue <parent>`
+- `python -m aresforge check-issue-evidence-readiness --issue <issue>`
+- `python -m aresforge check-milestone-evidence-readiness --parent-issue <parent>`

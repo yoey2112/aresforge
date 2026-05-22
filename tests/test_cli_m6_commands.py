@@ -35,6 +35,8 @@ def test_cli_help_includes_m6_commands() -> None:
     assert "inspect-closeout-planning-drift" in help_text
     assert "inspect-milestone-state" in help_text
     assert "plan-milestone-execution-queue" in help_text
+    assert "check-issue-evidence-readiness" in help_text
+    assert "check-milestone-evidence-readiness" in help_text
 
 
 def test_cli_dispatch_plan_agent_queue(
@@ -195,3 +197,49 @@ def test_cli_dispatch_plan_milestone_execution_queue(
     assert payload["command"] == "plan-milestone-execution-queue"
     assert payload["read_only"] is True
     assert payload["safety_gates"]["execution_enabled"] is False
+
+
+def test_cli_dispatch_check_issue_evidence_readiness(
+    monkeypatch,
+    capsys,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: _config(tmp_path))
+    monkeypatch.setattr(
+        cli,
+        "check_issue_evidence_readiness",
+        lambda _config, issue_number: {
+            "command": "check-issue-evidence-readiness",
+            "ok": True,
+            "read_only": True,
+            "issue": {"number": issue_number},
+            "safety": {"mutation_allowed": False},
+        },
+    )
+    exit_code = cli.main(["check-issue-evidence-readiness", "--issue", "270"])
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["command"] == "check-issue-evidence-readiness"
+    assert payload["read_only"] is True
+
+
+def test_cli_dispatch_check_milestone_evidence_readiness(
+    monkeypatch,
+    capsys,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: _config(tmp_path))
+    monkeypatch.setattr(
+        cli,
+        "check_milestone_evidence_readiness",
+        lambda _config, parent_issue: {
+            "command": "check-milestone-evidence-readiness",
+            "ok": True,
+            "read_only": True,
+            "parent_issue": {"issue_number": parent_issue},
+        },
+    )
+    exit_code = cli.main(["check-milestone-evidence-readiness", "--parent-issue", "269"])
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["command"] == "check-milestone-evidence-readiness"

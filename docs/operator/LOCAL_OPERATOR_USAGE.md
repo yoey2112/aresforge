@@ -1,12 +1,14 @@
 # Local Operator Usage
 
-## Core Validation Bundle (M17 for #270/#271/#272)
+## Core Validation Bundle (M17 for #270/#271/#272/#273/#274)
 
 - `git diff --check`
 - `python -m pytest`
 - `python -m aresforge inspect-repo-governance`
 - `python -m aresforge inspect-milestone-state --parent-issue <parent>`
 - `python -m aresforge plan-milestone-execution-queue --parent-issue <parent>`
+- `python -m aresforge check-issue-evidence-readiness --issue <issue>`
+- `python -m aresforge check-milestone-evidence-readiness --parent-issue <parent>`
 
 ## Milestone Inspection (M17 #271)
 
@@ -45,6 +47,22 @@ Behavior:
 - no PR creation
 - no comments
 - no GitHub edits
+
+## Evidence Readiness Checking (M17 #273/#274)
+
+Commands:
+
+- `python -m aresforge check-issue-evidence-readiness --issue <issue>`
+- `python -m aresforge check-milestone-evidence-readiness --parent-issue <parent>`
+
+Behavior:
+
+- read-only/planning-only evidence completeness classification
+- duplicate/no-op PR prevention via evidence reuse recommendation
+- never closes issues
+- never creates PRs
+- never comments on issues
+- never mutates GitHub state
 
 ## Controlled Autonomous Execution (M16)
 

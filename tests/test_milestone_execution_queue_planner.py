@@ -39,6 +39,11 @@ def test_planner_orders_children_and_enforces_reconciliation_last(monkeypatch, t
             ],
         },
     )
+    monkeypatch.setattr(
+        milestone_execution_queue_planner,
+        "check_issue_evidence_readiness",
+        lambda _config, issue_number: {"ok": True, "classification": "ready", "duplicate_noop_planning": {"duplicate_pr_risk": False}},
+    )
 
     payload = milestone_execution_queue_planner.plan_milestone_execution_queue(config, parent_issue=269)
     assert payload["ok"] is True
@@ -56,6 +61,11 @@ def test_planner_disables_execution_and_closeout_paths(monkeypatch, tmp_path: Pa
             "parent_issue": {"issue_number": parent_issue, "state": "OPEN"},
             "child_issues": [{"issue_number": 272, "title": "queue planner", "state": "OPEN", "lineage_detected": True, "merged_pr_count": 0}],
         },
+    )
+    monkeypatch.setattr(
+        milestone_execution_queue_planner,
+        "check_issue_evidence_readiness",
+        lambda _config, issue_number: {"ok": True, "classification": "not_ready", "duplicate_noop_planning": {"duplicate_pr_risk": False}},
     )
 
     payload = milestone_execution_queue_planner.plan_milestone_execution_queue(config, parent_issue=269)
@@ -78,6 +88,11 @@ def test_planner_surfaces_lineage_blockers(monkeypatch, tmp_path: Path) -> None:
             "child_issues": [{"issue_number": 272, "title": "queue planner", "state": "OPEN", "lineage_detected": False, "merged_pr_count": 0}],
         },
     )
+    monkeypatch.setattr(
+        milestone_execution_queue_planner,
+        "check_issue_evidence_readiness",
+        lambda _config, issue_number: {"ok": True, "classification": "blocked", "duplicate_noop_planning": {"duplicate_pr_risk": False}},
+    )
     payload = milestone_execution_queue_planner.plan_milestone_execution_queue(config, parent_issue=269)
     assert payload["signals"]["missing_parent_child_lineage"] == [272]
     assert any(item["type"] == "missing_parent_child_lineage" for item in payload["blocked_items"])
@@ -97,6 +112,11 @@ def test_planner_parent_not_eligible_before_children_closed(monkeypatch, tmp_pat
             ],
         },
     )
+    monkeypatch.setattr(
+        milestone_execution_queue_planner,
+        "check_issue_evidence_readiness",
+        lambda _config, issue_number: {"ok": True, "classification": "ready", "duplicate_noop_planning": {"duplicate_pr_risk": False}},
+    )
     payload = milestone_execution_queue_planner.plan_milestone_execution_queue(config, parent_issue=269)
     assert payload["safety_gates"]["parent_closeout_allowed"] is False
 
@@ -112,3 +132,29 @@ def test_planner_fails_cleanly_when_inspection_fails(monkeypatch, tmp_path: Path
     assert payload["ok"] is False
     assert payload["execution_enabled"] is False
 
+
+def test_planner_uses_evidence_checker_duplicate_risk(monkeypatch, tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    monkeypatch.setattr(
+        milestone_execution_queue_planner,
+        "inspect_milestone_state",
+        lambda _config, parent_issue: {
+            "ok": True,
+            "parent_issue": {"issue_number": parent_issue, "state": "OPEN"},
+            "child_issues": [{"issue_number": 274, "title": "duplicate/no-op", "state": "OPEN", "lineage_detected": True, "merged_pr_count": 0}],
+        },
+    )
+    monkeypatch.setattr(
+        milestone_execution_queue_planner,
+        "check_issue_evidence_readiness",
+        lambda _config, issue_number: {
+            "ok": True,
+            "classification": "ready",
+            "duplicate_noop_planning": {
+                "duplicate_pr_risk": True,
+                "recommendation": "reuse_existing_pr_evidence",
+            },
+        },
+    )
+    payload = milestone_execution_queue_planner.plan_milestone_execution_queue(config, parent_issue=269)
+    assert payload["signals"]["duplicate_or_noop_pr_risks"][0]["risk"] == "evidence_checker_duplicate_or_noop_risk"

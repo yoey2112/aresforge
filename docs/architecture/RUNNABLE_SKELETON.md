@@ -16,6 +16,8 @@ Command entrypoint:
 - `inspect-autonomous-run`: inspect DB-backed run lifecycle and step history.
 - `inspect-milestone-state`: read-only milestone parent/child issue state inspection.
 - `plan-milestone-execution-queue`: read-only, planning-only milestone child execution queue planner.
+- `check-issue-evidence-readiness`: read-only issue evidence completeness classification.
+- `check-milestone-evidence-readiness`: read-only milestone-level evidence readiness summary.
 - Existing planning/validation/reporting commands remain available and compatible.
 
 ## M16 Capability Contract Alignment

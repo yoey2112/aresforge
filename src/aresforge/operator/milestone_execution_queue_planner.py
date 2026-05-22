@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from aresforge.config import AppConfig
+from aresforge.operator.evidence_completeness_checker import check_issue_evidence_readiness
 from aresforge.operator.milestone_state_inspector import inspect_milestone_state
 
 COMMAND_NAME = "plan-milestone-execution-queue"
@@ -31,8 +32,9 @@ def plan_milestone_execution_queue(config: AppConfig, *, parent_issue: int) -> d
     recommended_order = _recommend_order(normalized_children)
     blockers = _collect_blockers(parent_issue=parent_issue, parent=parent, child_issues=normalized_children)
     missing_lineage = _collect_missing_lineage(normalized_children)
-    missing_evidence = _collect_missing_evidence(normalized_children)
-    duplicate_noop_pr_risks = _collect_duplicate_noop_risks(normalized_children)
+    issue_evidence_readiness = _collect_issue_evidence_readiness(config, normalized_children)
+    missing_evidence = _collect_missing_evidence(normalized_children, issue_evidence_readiness)
+    duplicate_noop_pr_risks = _collect_duplicate_noop_risks(normalized_children, issue_evidence_readiness)
     parent_eligible_for_close = _parent_eligible_for_close(parent, normalized_children)
 
     required_operator_actions = [
@@ -66,6 +68,7 @@ def plan_milestone_execution_queue(config: AppConfig, *, parent_issue: int) -> d
             "duplicate_or_noop_pr_risks": duplicate_noop_pr_risks,
             "final_reconciliation_last_enforced": any(item.get("is_final_reconciliation") for item in recommended_order),
         },
+        "evidence_readiness": issue_evidence_readiness,
         "required_operator_actions": required_operator_actions,
         "boundary_confirmations": _boundaries(),
     }
@@ -149,11 +152,24 @@ def _collect_missing_lineage(child_issues: list[dict[str, Any]]) -> list[int]:
     return sorted(missing)
 
 
-def _collect_missing_evidence(child_issues: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def _collect_missing_evidence(
+    child_issues: list[dict[str, Any]], readiness_map: dict[int, dict[str, Any]]
+) -> list[dict[str, Any]]:
     missing: list[dict[str, Any]] = []
     for item in child_issues:
         issue_number = item.get("issue_number")
         if not isinstance(issue_number, int):
+            continue
+        readiness = readiness_map.get(issue_number, {})
+        classification = readiness.get("classification")
+        if classification in ("not_ready", "ambiguous", "blocked"):
+            missing.append(
+                {
+                    "issue_number": issue_number,
+                    "reason": "issue_evidence_not_closeout_ready",
+                    "classification": classification,
+                }
+            )
             continue
         merged_pr_count = item.get("merged_pr_count")
         if not isinstance(merged_pr_count, int) or merged_pr_count <= 0:
@@ -166,12 +182,25 @@ def _collect_missing_evidence(child_issues: list[dict[str, Any]]) -> list[dict[s
     return missing
 
 
-def _collect_duplicate_noop_risks(child_issues: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def _collect_duplicate_noop_risks(
+    child_issues: list[dict[str, Any]], readiness_map: dict[int, dict[str, Any]]
+) -> list[dict[str, Any]]:
     risks: list[dict[str, Any]] = []
     for item in child_issues:
         issue_number = item.get("issue_number")
         title = item.get("title")
         if not isinstance(issue_number, int):
+            continue
+        readiness = readiness_map.get(issue_number, {})
+        duplicate_planning = readiness.get("duplicate_noop_planning")
+        if isinstance(duplicate_planning, dict) and duplicate_planning.get("duplicate_pr_risk") is True:
+            risks.append(
+                {
+                    "issue_number": issue_number,
+                    "risk": "evidence_checker_duplicate_or_noop_risk",
+                    "recommendation": duplicate_planning.get("recommendation"),
+                }
+            )
             continue
         text = title.lower() if isinstance(title, str) else ""
         if "duplicate" in text or "no-op" in text or "noop" in text:
@@ -182,6 +211,23 @@ def _collect_duplicate_noop_risks(child_issues: list[dict[str, Any]]) -> list[di
                 }
             )
     return risks
+
+
+def _collect_issue_evidence_readiness(
+    config: AppConfig, child_issues: list[dict[str, Any]]
+) -> dict[int, dict[str, Any]]:
+    readiness: dict[int, dict[str, Any]] = {}
+    for item in child_issues:
+        issue_number = item.get("issue_number")
+        if not isinstance(issue_number, int):
+            continue
+        result = check_issue_evidence_readiness(config, issue_number=issue_number)
+        readiness[issue_number] = {
+            "ok": bool(result.get("ok")),
+            "classification": result.get("classification"),
+            "duplicate_noop_planning": result.get("duplicate_noop_planning"),
+        }
+    return readiness
 
 
 def _parent_eligible_for_close(parent: Any, child_issues: list[dict[str, Any]]) -> bool:

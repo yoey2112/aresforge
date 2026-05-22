@@ -87,6 +87,8 @@ Current implementation scope:
 - #270 define milestone execution plan contract
 - #271 add read-only milestone state inspector
 - #272 add guarded per-issue execution queue planner
+- #273 add evidence completeness checker for issue closeout readiness
+- #274 add duplicate/no-op PR prevention and reuse planner hardening
 
 Current M17 outcomes:
 
@@ -95,6 +97,10 @@ Current M17 outcomes:
   - `python -m aresforge inspect-milestone-state --parent-issue <parent>`
 - `plan-milestone-execution-queue` command:
   - `python -m aresforge plan-milestone-execution-queue --parent-issue <parent>`
+- `check-issue-evidence-readiness` command:
+  - `python -m aresforge check-issue-evidence-readiness --issue <issue>`
+- `check-milestone-evidence-readiness` command:
+  - `python -m aresforge check-milestone-evidence-readiness --parent-issue <parent>`
 - Read-only milestone parent/child inspection with:
   - parent summary
   - child discovery from detectable references
@@ -108,12 +114,19 @@ Current M17 outcomes:
   - final reconciliation issue last when detected
   - blockers and missing lineage/evidence signals
   - explicit non-execution safety gates (`execution_enabled: false`)
+- Read-only evidence readiness and duplicate/no-op reuse planning with:
+  - issue-level readiness classification (`ready`, `not_ready`, `ambiguous`, `blocked`, `already_closed`)
+  - `new_pr_needed` reuse/prevention guidance
+  - explicit mutation disabled safety fields
+  - no issue closure, PR creation, or issue comments
 
-M17 #270/#271/#272 validation bundle:
+M17 #270/#271/#272/#273/#274 validation bundle:
 
 - `git diff --check`
 - `python -m pytest`
 - `python -m aresforge inspect-repo-governance`
 - `python -m aresforge inspect-milestone-state --parent-issue 269`
 - `python -m aresforge plan-milestone-execution-queue --parent-issue 269`
+- `python -m aresforge check-issue-evidence-readiness --issue 270`
+- `python -m aresforge check-milestone-evidence-readiness --parent-issue 269`
 - Governance and closeout remain explicitly human-triggered and auditable.
