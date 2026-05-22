@@ -8,7 +8,7 @@ Status: Completed.
 
 ### M16 - Controlled Autonomous GitHub Execution Loop
 
-Status: In progress (aggressive implementation path).
+Status: Completed.
 
 Parent issue:
 
@@ -23,6 +23,14 @@ Child issues:
 - #263 add issue closeout eligibility and controlled closure mode
 - #264 add autonomous run inspection and evidence reporting
 - #265 reconcile source-of-truth docs for controlled autonomous GitHub execution
+
+Final closeout record:
+
+- Parent issue #258 is closed.
+- Child issues #259 through #265 are closed.
+- PR #266 is merged implementation evidence.
+- PR #267 was duplicate/no-op and is closed.
+- Child issue closure was executed per issue with explicit evidence mapping comments.
 
 Delivered M16 outcomes (current branch):
 

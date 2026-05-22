@@ -10,11 +10,12 @@ Deliver a full, safety-gated autonomous execution loop with explicit mode bounda
 
 ## Current Repository State
 
-- Active branch: `codex/m16-controlled-autonomous-loop`
-- Baseline main commit from handoff: `4ab8b23`
-- Parent issue: `#258`
-- M16 child issues: `#259` through `#265`
+- Active branch for final M16 implementation evidence: `codex/m16-261-real-success-path`
+- Parent issue: `#258` (closed)
+- M16 child issues: `#259` through `#265` (closed)
 - Open pull requests: none
+- M16 implementation evidence PR: `#266` (merged)
+- Duplicate/no-op PR record: `#267` (closed)
 - Governance inspection: `ok: true`
 - Known non-blocking warning: `milestone_naming_status.naming_ok: false`
 
