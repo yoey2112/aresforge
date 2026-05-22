@@ -17,6 +17,7 @@ Command entrypoint:
 - `plan-batch-closeout`: read-only by default; optional explicit local snapshot write.
 - `generate-sprint-issue-script`: output-only by default; optional explicit local planning write.
 - `plan-sprint-issues`: read-only deterministic sprint issue creation planning output with human-gated mutation script generation.
+- `plan-self-managed-milestone`: read-only deterministic milestone plan by default; optional `local-write` mode persists local DB autonomous run queue state and ordered run steps.
 - `inspect-planning-state`: read-only local planning-state summary.
 - `compare-planning-state`: read-only local planning-state drift comparison.
 - `inspect-closeout-planning-drift`: read-only planning-state vs live closeout child discovery comparison with explicit drift groups and readiness blocking signals.
@@ -37,6 +38,8 @@ Command entrypoint:
 
 - Milestone self-managed planning contract authority: `docs/architecture/SELF_MANAGED_MILESTONE_PLANNING_CONTRACT.md`.
 - Planned follow-on implementation surfaces for milestone planning and issue script generation remain future work and are not implemented in this baseline.
+  - Implemented subset: `plan-self-managed-milestone` with read-only default and local-write local DB persistence only.
+  - Not implemented: higher-permission execution modes (`branch-write`, `pr-write`, `closeout-write`, `full-auto`) and issue script generation follow-on scope.
 
 ## Automation Boundary
 

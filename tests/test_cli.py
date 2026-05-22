@@ -45,6 +45,7 @@ def test_cli_has_expected_commands() -> None:
         "demo-managed-repo-governance",
         "plan-batch-closeout",
         "plan-sprint-issues",
+        "plan-self-managed-milestone",
         "inspect-closeout-planning-drift",
         "qa-review-pr",
         "qa-closeout-pr",
@@ -171,6 +172,9 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     )
     assert plan_sprint_issues_args.command == "plan-sprint-issues"
     assert plan_sprint_issues_args.definition == "tests/fixtures/m12-sprint-definition.json"
+    plan_self_managed_args = parser.parse_args(["plan-self-managed-milestone"])
+    assert plan_self_managed_args.command == "plan-self-managed-milestone"
+    assert plan_self_managed_args.mode == "read-only"
     inspect_closeout_planning_drift_args = parser.parse_args(
         ["inspect-closeout-planning-drift", "--parent-issue", "172"]
     )
@@ -412,6 +416,12 @@ def test_command_requires_directories_only_for_commands_that_write_artifacts() -
     assert (
         command_requires_directories(
             parser.parse_args(["plan-sprint-issues", "--definition", "tests/fixtures/m12-sprint-definition.json"])
+        )
+        is False
+    )
+    assert (
+        command_requires_directories(
+            parser.parse_args(["plan-self-managed-milestone", "--mode", "local-write"])
         )
         is False
     )
