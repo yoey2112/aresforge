@@ -202,3 +202,44 @@ def test_create_pr_extracts_number_and_url_from_create_stdout(monkeypatch, tmp_p
     assert payload["ok"] is True
     assert payload["pr_number"] == 266
     assert payload["pr_url"] == "https://github.com/yoey2112/aresforge/pull/266"
+
+
+def test_create_pr_treats_existing_pr_detection_as_success(monkeypatch, tmp_path: Path) -> None:
+    class _Result:
+        def __init__(self, returncode: int, stdout: str, stderr: str = "") -> None:
+            self.returncode = returncode
+            self.stdout = stdout
+            self.stderr = stderr
+
+    calls = {"count": 0}
+
+    def _fake_run(*_args, **_kwargs):
+        calls["count"] += 1
+        if calls["count"] == 1:
+            return _Result(
+                1,
+                "",
+                'a pull request for branch "codex/m16-261-real-success-path" into branch "main" already exists:\n'
+                "https://github.com/yoey2112/aresforge/pull/266",
+            )
+        return _Result(
+            0,
+            '{"number":266,"url":"https://github.com/yoey2112/aresforge/pull/266"}',
+            "",
+        )
+
+    monkeypatch.setattr(autonomous_cycle.subprocess, "run", _fake_run)
+
+    payload = autonomous_cycle._create_pr(
+        repo_slug="yoey2112/aresforge",
+        title="t",
+        body="b",
+        base="main",
+        head="codex/m16-262",
+        cwd=tmp_path,
+    )
+
+    assert payload["ok"] is True
+    assert payload["existing_pr_detected"] is True
+    assert payload["pr_number"] == 266
+    assert payload["pr_url"] == "https://github.com/yoey2112/aresforge/pull/266"

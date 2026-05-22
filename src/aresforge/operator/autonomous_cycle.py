@@ -496,10 +496,15 @@ def _create_pr(
         check=False,
     )
     pr_number = None
-    pr_url = _extract_pr_url(result.stdout)
+    pr_url = _extract_pr_url(result.stdout) or _extract_pr_url(result.stderr)
     if pr_url is not None:
         pr_number = _extract_pr_number_from_url(pr_url)
-    if result.returncode == 0:
+
+    existing_pr_detected = (
+        result.returncode != 0 and "already exists" in (result.stderr or "").lower() and pr_url is not None
+    )
+
+    if result.returncode == 0 or existing_pr_detected:
         view = subprocess.run(
             ["gh", "pr", "view", "--repo", repo_slug, "--json", "number,url", "--head", head],
             cwd=cwd,
@@ -520,7 +525,8 @@ def _create_pr(
             except json.JSONDecodeError:
                 pass
     return {
-        "ok": result.returncode == 0,
+        "ok": result.returncode == 0 or existing_pr_detected,
+        "existing_pr_detected": existing_pr_detected,
         "pr_number": pr_number,
         "pr_url": pr_url,
         "stdout": result.stdout.strip(),
