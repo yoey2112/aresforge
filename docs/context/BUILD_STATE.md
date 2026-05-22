@@ -2,24 +2,25 @@
 
 ## Current Phase
 
-M18 milestone execution automation ergonomics and operator-driven closeout workflows
+M19 sequential operator execution engine and recovery planning final reconciliation
 
 ## Current Goal
 
-Complete M18 final source-of-truth reconciliation issue #301 after implementation children #295/#296/#297/#298/#299/#300 were merged and closed with issue-specific evidence mapping.
+Complete M19 final source-of-truth reconciliation issue #317 after implementation/documentation children #310 through #316 were merged and closed with issue-specific evidence comments.
 
 ## Current Repository State
 
-- M18 parent issue: `#294` (open, expected to remain open until #301 closeout is complete and reviewed)
-- M18 child issue status:
-  - `#295` CLOSED via PR `#302`
-  - `#296` CLOSED via PR `#303`
-  - `#297` CLOSED via PR `#304`
-  - `#298` CLOSED via PR `#305`
-  - `#299` CLOSED via PR `#306`
-  - `#300` CLOSED via PR `#307`
-  - `#301` OPEN (final reconciliation only, processed last)
-- Current main HEAD before #301 implementation: `b3dfc65` (`Merge pull request #307`)
+- M19 parent issue: `#309` (OPEN and intentionally left open pending explicit operator parent-closeout instruction)
+- M19 child issue status:
+  - `#310` CLOSED via PR `#318`
+  - `#311` CLOSED via PR `#319`
+  - `#312` CLOSED via PR `#320`
+  - `#313` CLOSED via PR `#321`
+  - `#314` CLOSED via PR `#322`
+  - `#315` CLOSED via PR `#323`
+  - `#316` CLOSED via PR `#324`
+  - `#317` OPEN (final reconciliation only, processed last)
+- Current main HEAD before #317 implementation: `93a8c1942e3d98260223dfe91e6820e669f9e6a6` (`Merge pull request #324`)
 - Governance inspection: `ok: true`
 - Known non-blocking warning: `milestone_naming_status.naming_ok: false`
 
@@ -29,53 +30,30 @@ Complete M18 final source-of-truth reconciliation issue #301 after implementatio
 - `docs/context/AGENT_CONTEXT.md`
 - `docs/roadmap/ROADMAP.md`
 - `docs/operator/LOCAL_OPERATOR_USAGE.md`
-- `docs/architecture/RUNNABLE_SKELETON.md`
-- `docs/architecture/CONTROLLED_AUTONOMOUS_GITHUB_EXECUTION_CONTRACT.md`
-- `docs/architecture/MILESTONE_EXECUTION_PLAN_CONTRACT.md`
+- `docs/architecture/LOCAL_OPERATOR_WORKFLOW.md`
+- `docs/architecture/SEQUENTIAL_MILESTONE_EXECUTION_CONTRACT.md`
 
-## M18 Capability Snapshot
+## M19 Capability Snapshot
 
-- Contract authority: `docs/architecture/CONTROLLED_AUTONOMOUS_GITHUB_EXECUTION_CONTRACT.md`
-- `python -m aresforge run-autonomous-cycle`
-- `python -m aresforge inspect-autonomous-run`
-- Supported autonomous execution modes:
-  - `dry-run`
-  - `local-write`
-  - `branch-write`
-  - `push-pr`
-  - `closeout-eligible`
-- DB-backed lifecycle persistence in `autonomous_runs` and `run_steps`
-- Explicit fail-closed gate evaluation before higher-permission mutation
-- Step-level mutation/evaluation evidence with run-level evidence artifact generation
-- `python -m aresforge inspect-milestone-state --parent-issue <parent>` read-only milestone state inspector
-- `python -m aresforge plan-milestone-execution-queue --parent-issue <parent>` read-only milestone execution queue planner
-- `python -m aresforge check-issue-evidence-readiness --issue <issue>` read-only issue evidence completeness checker
-- `python -m aresforge check-milestone-evidence-readiness --parent-issue <parent>` read-only milestone evidence readiness checker
-- `python -m aresforge plan-milestone-final-reconciliation --parent-issue <parent>` planning-only milestone final reconciliation planner
-- `python -m aresforge inspect-milestone-dashboard --parent-issue <parent>` unified read-only milestone dashboard
-- `python -m aresforge generate-child-closeout-script --issue <issue>` read-only operator script generator
-- `python -m aresforge generate-evidence-comment-template --issue <issue>` read-only issue-specific evidence template generator
-- `python -m aresforge inspect-parent-closeout-readiness --parent-issue <parent>` read-only parent closeout readiness report
-- schema-driven evidence mapping support with structured marker parsing and legacy compatibility fallback
-- Explicit safety posture preserved:
-  - no bulk closeout
-  - no implicit mutation
-  - no closeout without explicit evidence mapping
-  - no parent closeout before children are closed/accounted for
-  - no mutation of M16 issues
+- `python -m aresforge inspect-sequential-run-state --parent-issue <parent>`
+- `python -m aresforge inspect-child-execution-gates --issue <issue> --parent-issue <parent>`
+- `python -m aresforge plan-sequential-run-recovery --parent-issue <parent>`
+- `python -m aresforge generate-sequential-handoff-package --parent-issue <parent>`
+- `python -m aresforge inspect-milestone-dashboard --parent-issue <parent>` now includes:
+  - local sequential run-state summary when available
+  - explicit GitHub truth vs local run-state mismatch flags
+- Milestone child discovery now supports checklist inline references such as `(#315)` in parent issue text.
+- End-to-end sequential operator workflow documentation now includes one-child-at-a-time loop, recovery/resume examples, handoff package usage, safety boundaries, and targeted closeout guidance.
 
-## Validation Baseline For Current M18 Scope (#295/#296/#297/#298/#299/#300/#301)
+## Validation Baseline For Current M19 Scope (#310-#317)
 
 - `git diff --check`
 - `python -m pytest`
 - `python -m aresforge inspect-repo-governance`
-- `python -m aresforge inspect-milestone-state --parent-issue 294`
-- `python -m aresforge inspect-milestone-dashboard --parent-issue 294`
-- `python -m aresforge plan-milestone-execution-queue --parent-issue 294`
-- `python -m aresforge check-issue-evidence-readiness --issue 301`
-- `python -m aresforge check-milestone-evidence-readiness --parent-issue 294`
-- `python -m aresforge plan-milestone-final-reconciliation --parent-issue 294`
-- `python -m aresforge inspect-parent-closeout-readiness --parent-issue 294`
+- `python -m aresforge inspect-milestone-dashboard --parent-issue 309`
+- `python -m aresforge inspect-milestone-state --parent-issue 309`
+- `python -m aresforge check-milestone-evidence-readiness --parent-issue 309`
+- `python -m aresforge inspect-parent-closeout-readiness --parent-issue 309`
 
 ## Boundaries
 
@@ -83,16 +61,14 @@ Allowed:
 
 - human-triggered command execution
 - read-only defaults
-- explicit mode-gated local and GitHub mutation
-- DB run/step tracking for every autonomous run
-- evidence artifact generation for every run
+- explicit issue-scoped mutation per child
+- one child issue branch/PR/evidence/closeout at a time
+- final reconciliation last and docs-focused
 
 Not authorized:
 
-- mutation in `dry-run`
-- GitHub mutation in `local-write` or `branch-write`
-- push/PR creation outside explicit `push-pr`/`closeout-eligible`
-- issue closure outside explicit `closeout-eligible`
-- automatic PR merge
+- autonomous broad mutation
+- bulk issue closure
+- parent closure before all children are closed/accounted and readiness is proven
+- prior milestone mutation unless explicitly required for M19 documentation references
 - background jobs, polling loops, schedulers, or unattended execution
-- parent closeout before all child issues are closed/accounted and final reconciliation is complete
