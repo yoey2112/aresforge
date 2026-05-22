@@ -25,6 +25,14 @@ _CORRECTION_HINT_PATTERN = re.compile(
     re.IGNORECASE,
 )
 _CHILD_INDEX_HINT_PATTERN = re.compile(r"\bchild\s+issue\s+index\b", re.IGNORECASE)
+_HISTORICAL_CONTEXT_HEADING_PATTERN = re.compile(
+    r"\b(?:background|observed behavior|historical context|prior milestone|evidence from previous milestone|regression evidence|closed prior issues)\b",
+    re.IGNORECASE,
+)
+_HISTORICAL_CONTEXT_LINE_PATTERN = re.compile(
+    r"\b(?:background|historical|prior milestone|previous milestone|regression evidence|closed prior issues)\b",
+    re.IGNORECASE,
+)
 _PARENT_REF_LINE_PATTERN = re.compile(
     r"\b(?:parent\s+issue|parent)\s*:\s*#(?P<number>\d+)\b|\b(?:part\s+of|child\s+of)\s+#(?P<number2>\d+)\b",
     re.IGNORECASE,
@@ -458,14 +466,6 @@ def _collect_child_issue_numbers(parent_issue: dict[str, Any]) -> tuple[list[int
                     evidence_by_child.setdefault(item, []).append(
                         _discovery_entry("parent_body", "active", "reference_classification_explicit")
                     )
-        impl = references.get("implementation_issue_numbers")
-        if isinstance(impl, list):
-            for item in impl:
-                if isinstance(item, int):
-                    numbers.add(item)
-                    evidence_by_child.setdefault(item, []).append(
-                        _discovery_entry("parent_body", "active", "reference_classification_implementation")
-                    )
 
     body = parent_issue.get("body")
     if isinstance(body, str):
@@ -552,21 +552,26 @@ def _merge_text_discovery(
     corrected: bool,
 ) -> None:
     in_child_index_section = False
+    in_historical_section = False
     for raw_line in text.splitlines():
         line = raw_line.strip()
         if line.startswith("## "):
-            in_child_index_section = bool(_CHILD_INDEX_HINT_PATTERN.search(line))
+            heading = line[3:].strip()
+            in_child_index_section = bool(_CHILD_INDEX_HINT_PATTERN.search(heading))
+            in_historical_section = bool(_HISTORICAL_CONTEXT_HEADING_PATTERN.search(heading))
             continue
         if "#" not in line:
             continue
         if _CHILD_INDEX_HINT_PATTERN.search(line):
             in_child_index_section = True
+            in_historical_section = False
             continue
         classification = _classify_line_for_discovery(
             line,
             source=source,
             parent_number=parent_number,
             in_child_index_section=in_child_index_section,
+            in_historical_section=in_historical_section,
         )
         for match in _ISSUE_NUMBER_PATTERN.finditer(line):
             number = int(match.group("number"))
@@ -586,7 +591,7 @@ def _merge_text_discovery(
 
 
 def _classify_line_for_discovery(
-    line: str, *, source: str, parent_number: Any, in_child_index_section: bool
+    line: str, *, source: str, parent_number: Any, in_child_index_section: bool, in_historical_section: bool
 ) -> str:
     lower = line.lower()
     if "#39" in lower and (
@@ -607,11 +612,16 @@ def _classify_line_for_discovery(
             return "active"
         if _CHILD_INDEX_HINT_PATTERN.search(line):
             return "active"
-        if re.search(r"\bchild(?:ren)?\b", line, re.IGNORECASE) and _ISSUE_NUMBER_PATTERN.search(line):
-            return "active"
+    if in_historical_section and _ISSUE_NUMBER_PATTERN.search(line):
+        return "historical"
 
     if "historical" in lower or "retired" in lower:
         return "historical"
+    if _HISTORICAL_CONTEXT_LINE_PATTERN.search(line) and _ISSUE_NUMBER_PATTERN.search(line):
+        return "historical"
+    if source in {"parent_body", "parent_comments", "corrected_child_index"}:
+        if re.search(r"\bchild(?:ren)?\b", line, re.IGNORECASE) and _ISSUE_NUMBER_PATTERN.search(line):
+            return "active"
     if "do not modify" in lower or "must remain protected" in lower or "safety" in lower:
         return "safety"
     if isinstance(parent_number, int) and _PARENT_REF_LINE_PATTERN.search(line):
