@@ -2,12 +2,17 @@
 
 ## Purpose
 
-Provide minimum operating context for safe M16 controlled autonomous execution with explicit mode gates and audit evidence.
+Provide minimum operating context for safe M17 milestone contract, read-only inspection, planning-only queue guidance, and read-only evidence readiness assessment.
 
 ## Current Operating Model
 
 - Documentation remains source of truth.
+- Active implementation branch/PR for current M17 delivery: `m17/270-271-contract-and-inspector` / `#277`.
 - `run-autonomous-cycle` is human-triggered and mode-gated.
+- `inspect-milestone-state` is human-triggered and strictly read-only.
+- `plan-milestone-execution-queue` is human-triggered and strictly planning-only.
+- `check-issue-evidence-readiness` and `check-milestone-evidence-readiness` are human-triggered and strictly read-only.
+- `plan-milestone-final-reconciliation` is human-triggered and strictly planning-only.
 - Defaults remain safe and read-only.
 - Every run and step is persisted in `autonomous_runs`/`run_steps`.
 - Every run emits evidence artifacts.
@@ -21,6 +26,7 @@ Provide minimum operating context for safe M16 controlled autonomous execution w
 - `docs/operator/LOCAL_OPERATOR_USAGE.md`
 - `docs/context/BUILD_STATE.md`
 - `docs/roadmap/ROADMAP.md`
+- `docs/architecture/MILESTONE_EXECUTION_PLAN_CONTRACT.md`
 
 ## Current Commands
 
@@ -30,6 +36,11 @@ Provide minimum operating context for safe M16 controlled autonomous execution w
 - `python -m aresforge run-autonomous-cycle --mode push-pr --parent-issue <parent> --target-issue <child> --branch-name <branch> --commit-message <message> --pr-title <title>`
 - `python -m aresforge run-autonomous-cycle --mode closeout-eligible --parent-issue <parent> --target-issue <child> --branch-name <branch> --commit-message <message> --pr-title <title>`
 - `python -m aresforge inspect-autonomous-run --run-id <id>`
+- `python -m aresforge inspect-milestone-state --parent-issue <parent>`
+- `python -m aresforge plan-milestone-execution-queue --parent-issue <parent>`
+- `python -m aresforge check-issue-evidence-readiness --issue <issue>`
+- `python -m aresforge check-milestone-evidence-readiness --parent-issue <parent>`
+- `python -m aresforge plan-milestone-final-reconciliation --parent-issue <parent>`
 - `python -m aresforge inspect-repo-governance`
 
 ## M16 Capability Snapshot
@@ -42,6 +53,11 @@ Provide minimum operating context for safe M16 controlled autonomous execution w
 - Closeout gating and issue-closure path implemented for `closeout-eligible` only.
 - Run inspection/reporting implemented via `inspect-autonomous-run`.
 - Evidence package generation implemented for all run outcomes.
+- Read-only milestone state inspection with parent/child summary, lineage hints, and evidence hints.
+- Planning-only milestone execution queue guidance with explicit non-execution safety gates.
+- Evidence completeness and duplicate/no-op reuse recommendation checks with mutation disabled.
+- Planning-only milestone final reconciliation readiness planner with explicit non-mutation outputs (`close_issues: false`, `create_pr: false`, `comment_on_issue: false`, `mutation_allowed: false`).
+- M17 #276 docs reconciliation is included on PR #277, but issue closure must wait until PR merge and evidence mapping.
 
 ## Prohibited Behaviors
 
@@ -52,15 +68,22 @@ Provide minimum operating context for safe M16 controlled autonomous execution w
 - issue closure outside explicit `closeout-eligible`
 - automatic PR merge
 - background jobs, polling loops, schedulers, or hidden workers
+- milestone inspection command that mutates GitHub state
+- milestone queue planner that executes issue work or mutates GitHub state
+- evidence readiness checker that closes issues, creates PRs, comments, or mutates GitHub state
+- final reconciliation planner that closes issues, creates PRs, comments, or mutates GitHub state
+- mutation of M16 issues from M17 planning/reconciliation flows
 
 ## Validation Snapshot
 
 - `git diff --check`
 - `python -m pytest`
 - `python -m aresforge inspect-repo-governance`
-- `run-autonomous-cycle` dry-run/local-write success checks
-- `run-autonomous-cycle` higher-mode fail-closed checks
-- `inspect-autonomous-run` DB evidence inspection
+- `python -m aresforge inspect-milestone-state --parent-issue <parent>`
+- `python -m aresforge plan-milestone-execution-queue --parent-issue <parent>`
+- `python -m aresforge check-issue-evidence-readiness --issue <issue>`
+- `python -m aresforge check-milestone-evidence-readiness --parent-issue <parent>`
+- `python -m aresforge plan-milestone-final-reconciliation --parent-issue <parent>`
 
 ## Governance Note
 

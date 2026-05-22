@@ -33,6 +33,11 @@ def test_cli_help_includes_m6_commands() -> None:
     assert "plan-batch-closeout" in help_text
     assert "plan-sprint-issues" in help_text
     assert "inspect-closeout-planning-drift" in help_text
+    assert "inspect-milestone-state" in help_text
+    assert "plan-milestone-execution-queue" in help_text
+    assert "check-issue-evidence-readiness" in help_text
+    assert "check-milestone-evidence-readiness" in help_text
+    assert "plan-milestone-final-reconciliation" in help_text
 
 
 def test_cli_dispatch_plan_agent_queue(
@@ -139,3 +144,128 @@ def test_cli_dispatch_inspect_closeout_planning_drift(
     payload = json.loads(capsys.readouterr().out)
     assert exit_code == 0
     assert payload["parent_issue"] == 210
+
+
+def test_cli_dispatch_inspect_milestone_state(
+    monkeypatch,
+    capsys,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: _config(tmp_path))
+    monkeypatch.setattr(
+        cli,
+        "inspect_milestone_state",
+        lambda _config, parent_issue: {
+            "command": "inspect-milestone-state",
+            "ok": True,
+            "read_only": True,
+            "parent_issue": {"issue_number": parent_issue},
+        },
+    )
+    exit_code = cli.main(["inspect-milestone-state", "--parent-issue", "269"])
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["command"] == "inspect-milestone-state"
+    assert payload["read_only"] is True
+    assert payload["parent_issue"]["issue_number"] == 269
+
+
+def test_cli_dispatch_plan_milestone_execution_queue(
+    monkeypatch,
+    capsys,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: _config(tmp_path))
+    monkeypatch.setattr(
+        cli,
+        "plan_milestone_execution_queue",
+        lambda _config, parent_issue: {
+            "command": "plan-milestone-execution-queue",
+            "ok": True,
+            "read_only": True,
+            "parent_issue": {"issue_number": parent_issue},
+            "safety_gates": {
+                "execution_enabled": False,
+                "close_issues": False,
+                "bulk_closeout_allowed": False,
+                "operator_review_required": True,
+            },
+        },
+    )
+    exit_code = cli.main(["plan-milestone-execution-queue", "--parent-issue", "269"])
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["command"] == "plan-milestone-execution-queue"
+    assert payload["read_only"] is True
+    assert payload["safety_gates"]["execution_enabled"] is False
+
+
+def test_cli_dispatch_check_issue_evidence_readiness(
+    monkeypatch,
+    capsys,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: _config(tmp_path))
+    monkeypatch.setattr(
+        cli,
+        "check_issue_evidence_readiness",
+        lambda _config, issue_number: {
+            "command": "check-issue-evidence-readiness",
+            "ok": True,
+            "read_only": True,
+            "issue": {"number": issue_number},
+            "safety": {"mutation_allowed": False},
+        },
+    )
+    exit_code = cli.main(["check-issue-evidence-readiness", "--issue", "270"])
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["command"] == "check-issue-evidence-readiness"
+    assert payload["read_only"] is True
+
+
+def test_cli_dispatch_check_milestone_evidence_readiness(
+    monkeypatch,
+    capsys,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: _config(tmp_path))
+    monkeypatch.setattr(
+        cli,
+        "check_milestone_evidence_readiness",
+        lambda _config, parent_issue: {
+            "command": "check-milestone-evidence-readiness",
+            "ok": True,
+            "read_only": True,
+            "parent_issue": {"issue_number": parent_issue},
+        },
+    )
+    exit_code = cli.main(["check-milestone-evidence-readiness", "--parent-issue", "269"])
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["command"] == "check-milestone-evidence-readiness"
+
+
+def test_cli_dispatch_plan_milestone_final_reconciliation(
+    monkeypatch,
+    capsys,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: _config(tmp_path))
+    monkeypatch.setattr(
+        cli,
+        "plan_milestone_final_reconciliation",
+        lambda _config, parent_issue: {
+            "command": "plan-milestone-final-reconciliation",
+            "ok": True,
+            "read_only": True,
+            "parent_issue": {"issue_number": parent_issue},
+            "mutation_allowed": False,
+        },
+    )
+    exit_code = cli.main(["plan-milestone-final-reconciliation", "--parent-issue", "269"])
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["command"] == "plan-milestone-final-reconciliation"
+    assert payload["read_only"] is True
+    assert payload["mutation_allowed"] is False

@@ -1,13 +1,95 @@
 # Local Operator Usage
 
-## Core Validation Bundle (M16)
+## Core Validation Bundle (M17 for #270/#271/#272/#273/#274/#275/#276)
 
 - `git diff --check`
 - `python -m pytest`
 - `python -m aresforge inspect-repo-governance`
-- `python -m aresforge run-autonomous-cycle --mode dry-run --parent-issue <parent> --target-issue <target> --validation-command "python -m aresforge inspect-repo-governance"`
-- `python -m aresforge run-autonomous-cycle --mode local-write --parent-issue <parent> --target-issue <target> --validation-command "python -m aresforge inspect-repo-governance"`
-- `python -m aresforge inspect-autonomous-run --run-id <id>`
+- `python -m aresforge inspect-milestone-state --parent-issue <parent>`
+- `python -m aresforge plan-milestone-execution-queue --parent-issue <parent>`
+- `python -m aresforge check-issue-evidence-readiness --issue <issue>`
+- `python -m aresforge check-milestone-evidence-readiness --parent-issue <parent>`
+- `python -m aresforge plan-milestone-final-reconciliation --parent-issue <parent>`
+
+## Milestone Inspection (M17 #271)
+
+Commands:
+
+- `python -m aresforge inspect-milestone-state --parent-issue <parent>`
+
+Behavior:
+
+- read-only issue and milestone state inspection
+- parent/child discovery from detectable references
+- child state, lineage, and merged PR evidence hints summary
+- no issue closure
+- no PR creation
+- no comments
+- no GitHub edits
+
+## Milestone Queue Planning (M17 #272)
+
+Commands:
+
+- `python -m aresforge plan-milestone-execution-queue --parent-issue <parent>`
+
+Behavior:
+
+- planning-only milestone child execution ordering
+- deterministic child sequencing with final reconciliation issue last when detected
+- blocker and missing lineage surfacing
+- missing merged PR evidence signal surfacing
+- explicit safety gates:
+  - execution enabled false
+  - close issues false
+  - bulk closeout allowed false
+  - operator review required true
+- no issue closure
+- no PR creation
+- no comments
+- no GitHub edits
+
+## Evidence Readiness Checking (M17 #273/#274)
+
+Commands:
+
+- `python -m aresforge check-issue-evidence-readiness --issue <issue>`
+- `python -m aresforge check-milestone-evidence-readiness --parent-issue <parent>`
+
+Behavior:
+
+- read-only/planning-only evidence completeness classification
+- duplicate/no-op PR prevention via evidence reuse recommendation
+- never closes issues
+- never creates PRs
+- never comments on issues
+- never mutates GitHub state
+
+## Milestone Final Reconciliation Planning (M17 #275)
+
+Commands:
+
+- `python -m aresforge plan-milestone-final-reconciliation --parent-issue <parent>`
+
+Behavior:
+
+- planning-only milestone final reconciliation readiness check
+- inspects parent/child milestone state via read-only command surfaces
+- verifies implementation children are closed or evidence-accounted before reconciliation
+- confirms final reconciliation issue should be last
+- surfaces likely source-of-truth docs requiring updates
+- confirms docs-only expectation for final reconciliation
+- confirms no generated evidence artifact changes are expected
+- emits explicit non-mutation gates:
+  - close issues false
+  - create PR false
+  - comment on issue false
+  - mutation allowed false
+  - operator review required true
+- never closes issues
+- never creates PRs
+- never comments on issues
+- never mutates GitHub state
 
 ## Controlled Autonomous Execution (M16)
 

@@ -49,6 +49,11 @@ def test_cli_has_expected_commands() -> None:
         "generate-self-managed-issue-script",
         "run-autonomous-cycle",
         "inspect-autonomous-run",
+        "inspect-milestone-state",
+        "plan-milestone-execution-queue",
+        "check-issue-evidence-readiness",
+        "check-milestone-evidence-readiness",
+        "plan-milestone-final-reconciliation",
         "inspect-closeout-planning-drift",
         "qa-review-pr",
         "qa-closeout-pr",
@@ -203,6 +208,31 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
         ["inspect-autonomous-run", "--run-id", "run-m16-259-abc123"]
     )
     assert inspect_autonomous_run_args.run_id == "run-m16-259-abc123"
+    inspect_milestone_state_args = parser.parse_args(
+        ["inspect-milestone-state", "--parent-issue", "269"]
+    )
+    assert inspect_milestone_state_args.command == "inspect-milestone-state"
+    assert inspect_milestone_state_args.parent_issue == 269
+    plan_milestone_execution_queue_args = parser.parse_args(
+        ["plan-milestone-execution-queue", "--parent-issue", "269"]
+    )
+    assert plan_milestone_execution_queue_args.command == "plan-milestone-execution-queue"
+    assert plan_milestone_execution_queue_args.parent_issue == 269
+    check_issue_evidence_args = parser.parse_args(
+        ["check-issue-evidence-readiness", "--issue", "270"]
+    )
+    assert check_issue_evidence_args.command == "check-issue-evidence-readiness"
+    assert check_issue_evidence_args.issue == 270
+    check_milestone_evidence_args = parser.parse_args(
+        ["check-milestone-evidence-readiness", "--parent-issue", "269"]
+    )
+    assert check_milestone_evidence_args.command == "check-milestone-evidence-readiness"
+    assert check_milestone_evidence_args.parent_issue == 269
+    plan_final_reconciliation_args = parser.parse_args(
+        ["plan-milestone-final-reconciliation", "--parent-issue", "269"]
+    )
+    assert plan_final_reconciliation_args.command == "plan-milestone-final-reconciliation"
+    assert plan_final_reconciliation_args.parent_issue == 269
     inspect_closeout_planning_drift_args = parser.parse_args(
         ["inspect-closeout-planning-drift", "--parent-issue", "172"]
     )
