@@ -12,7 +12,10 @@ from aresforge.operator.ready_issue_intake import (
 
 COMMAND_NAME = "inspect-milestone-state"
 
-_CHILD_LINE_PATTERN = re.compile(r"^\s*(?:[-*]\s*)?#(?P<number>\d+)\b", re.IGNORECASE)
+_CHILD_LINE_PATTERN = re.compile(
+    r"^\s*(?:[-*]\s*)?(?:\[[ xX]\]\s*)?#(?P<number>\d+)\b",
+    re.IGNORECASE,
+)
 _CHILD_INLINE_PATTERN = re.compile(r"\(#(?P<number>\d+)\)")
 _MILESTONE_NAME_PATTERN = re.compile(r"^M\d+\b")
 
