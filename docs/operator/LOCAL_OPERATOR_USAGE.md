@@ -138,6 +138,20 @@ M20 workflow example:
 
 1. Plan mutation intent:
    - `python -m aresforge plan-github-mutation --mutation-type issue_comment --planned-action "post child evidence" --target-issue <child>`
+
+## M21 Self-Managed Milestone Execution Contract (Child #346)
+
+Command:
+
+- `python -m aresforge inspect-self-managed-milestone-execution-contract`
+
+Behavior:
+
+- read-only contract inspection
+- defines required inputs/outputs for parent-driven sequential child execution
+- documents dry-run default and explicit operator-approval mutation boundary
+- documents targeted mutation boundary (single issue comment, single issue close, single PR body update)
+- documents parent closeout readiness boundary
 2. Review dry-run output, required approvals, and blocked reasons.
 3. Execute targeted issue comment only when explicitly approved:
    - `python -m aresforge execute-github-issue-comment --issue <child> --comment-body "<evidence>" --execute --approval-marker <marker>`

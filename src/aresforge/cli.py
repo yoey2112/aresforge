@@ -102,6 +102,9 @@ from aresforge.operator.sequential_recovery_planner import plan_sequential_run_r
 from aresforge.operator.sequential_handoff_package import generate_sequential_handoff_package
 from aresforge.operator.project_state_summary import project_state_summary
 from aresforge.operator.self_managed_milestone_planner import plan_self_managed_milestone
+from aresforge.operator.self_managed_milestone_execution_contract import (
+    inspect_self_managed_milestone_execution_contract,
+)
 from aresforge.operator.repo_bootstrap_contract import inspect_repo_bootstrap_contract
 from aresforge.operator.repo_bootstrap_plan import plan_repo_bootstrap
 from aresforge.operator.repo_governance import inspect_repo_governance
@@ -362,6 +365,10 @@ def build_parser() -> argparse.ArgumentParser:
             "closeout-write",
             "full-auto",
         ],
+    )
+    subparsers.add_parser(
+        "inspect-self-managed-milestone-execution-contract",
+        help="Inspect the read-only M21 self-managed milestone execution contract.",
     )
     self_managed_issue_script_parser = subparsers.add_parser(
         "generate-self-managed-issue-script",
@@ -1054,6 +1061,11 @@ def main(argv: list[str] | None = None) -> int:
                 payload = plan_self_managed_milestone(config, mode=args.mode, conn=conn)
         else:
             payload = plan_self_managed_milestone(config, mode=args.mode)
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-self-managed-milestone-execution-contract":
+        payload = inspect_self_managed_milestone_execution_contract(config)
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 

@@ -32,6 +32,7 @@ def test_cli_help_includes_m6_commands() -> None:
     assert "report-batch-readiness" in help_text
     assert "plan-batch-closeout" in help_text
     assert "plan-sprint-issues" in help_text
+    assert "inspect-self-managed-milestone-execution-contract" in help_text
     assert "inspect-closeout-planning-drift" in help_text
     assert "inspect-milestone-state" in help_text
     assert "plan-milestone-execution-queue" in help_text
@@ -453,3 +454,26 @@ def test_cli_dispatch_generate_evidence_comment_template(
     assert payload["command"] == "generate-evidence-comment-template"
     assert payload["read_only"] is True
     assert payload["target_issue"]["number"] == 297
+
+
+def test_cli_dispatch_inspect_self_managed_milestone_execution_contract(
+    monkeypatch,
+    capsys,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: _config(tmp_path))
+    monkeypatch.setattr(
+        cli,
+        "inspect_self_managed_milestone_execution_contract",
+        lambda _config: {
+            "command": "inspect-self-managed-milestone-execution-contract",
+            "ok": True,
+            "read_only": True,
+            "contract_version": "m21.v1",
+        },
+    )
+    exit_code = cli.main(["inspect-self-managed-milestone-execution-contract"])
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["command"] == "inspect-self-managed-milestone-execution-contract"
+    assert payload["read_only"] is True

@@ -46,6 +46,7 @@ def test_cli_has_expected_commands() -> None:
         "plan-batch-closeout",
         "plan-sprint-issues",
         "plan-self-managed-milestone",
+        "inspect-self-managed-milestone-execution-contract",
         "generate-self-managed-issue-script",
         "generate-child-closeout-script",
         "generate-evidence-comment-template",
@@ -196,6 +197,8 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     plan_self_managed_args = parser.parse_args(["plan-self-managed-milestone"])
     assert plan_self_managed_args.command == "plan-self-managed-milestone"
     assert plan_self_managed_args.mode == "read-only"
+    inspect_contract_args = parser.parse_args(["inspect-self-managed-milestone-execution-contract"])
+    assert inspect_contract_args.command == "inspect-self-managed-milestone-execution-contract"
     generate_self_managed_script_args = parser.parse_args(["generate-self-managed-issue-script"])
     assert generate_self_managed_script_args.command == "generate-self-managed-issue-script"
     assert generate_self_managed_script_args.mode == "read-only"
