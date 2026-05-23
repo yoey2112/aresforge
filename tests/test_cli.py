@@ -38,6 +38,7 @@ def test_cli_has_expected_commands() -> None:
         "automation-readiness-report",
         "project-state-summary",
         "inspect-repo-governance",
+        "inspect-evidence-bundle-automation-contract",
         "inspect-repo-bootstrap-contract",
         "inspect-managed-repos",
         "managed-repo-readiness-report",
@@ -180,6 +181,8 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     assert project_state_summary_args.command == "project-state-summary"
     governance_args = parser.parse_args(["inspect-repo-governance"])
     assert governance_args.command == "inspect-repo-governance"
+    evidence_contract_args = parser.parse_args(["inspect-evidence-bundle-automation-contract"])
+    assert evidence_contract_args.command == "inspect-evidence-bundle-automation-contract"
     bootstrap_contract_args = parser.parse_args(["inspect-repo-bootstrap-contract"])
     assert bootstrap_contract_args.command == "inspect-repo-bootstrap-contract"
     managed_repos_args = parser.parse_args(["inspect-managed-repos"])
