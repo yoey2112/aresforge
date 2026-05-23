@@ -133,6 +133,71 @@ def test_inspect_milestone_state_discovers_checklist_inline_children(monkeypatch
     assert payload["child_discovery"]["discovered_child_issue_numbers"] == [310, 317]
 
 
+def test_inspect_milestone_state_discovers_checkbox_prefixed_issue_lines(monkeypatch, tmp_path: Path) -> None:
+    config = _config(tmp_path)
+
+    parent = {
+        "number": 326,
+        "state": "OPEN",
+        "title": "M20 parent",
+        "url": "https://example.test/issues/326",
+        "milestone": {"title": "M20"},
+        "body": (
+            "- [ ] #327 contract\n"
+            "- [ ] #328 planner\n"
+            "- [ ] #329 comments\n"
+            "- [ ] #330 closeout\n"
+            "- [ ] #331 pr helper\n"
+            "- [ ] #332 audit\n"
+            "- [ ] #333 docs\n"
+            "- [ ] #334 source-of-truth reconciliation"
+        ),
+        "comments": [],
+        "reference_classification": {"implementation_issue_numbers": []},
+        "merged_pr_evidence": [],
+    }
+
+    def _child(issue_number: int, title: str) -> dict:
+        return {
+            "number": issue_number,
+            "state": "CLOSED",
+            "title": title,
+            "url": f"https://example.test/issues/{issue_number}",
+            "milestone": {"title": "M20"},
+            "body": "Parent issue: #326",
+            "comments": [],
+            "reference_classification": {"implementation_issue_numbers": [326]},
+            "merged_pr_evidence": [{"number": issue_number + 8, "merged_at": "2026-05-23T00:00:00Z"}],
+        }
+
+    children = {
+        327: _child(327, "contract"),
+        328: _child(328, "planner"),
+        329: _child(329, "comments"),
+        330: _child(330, "closeout"),
+        331: _child(331, "pr helper"),
+        332: _child(332, "audit"),
+        333: _child(333, "docs"),
+        334: _child(334, "source-of-truth reconciliation"),
+    }
+
+    def _fetch(_config: AppConfig, issue_number: int) -> dict:
+        if issue_number == 326:
+            return {"ok": True, "issue": parent}
+        issue = children.get(issue_number)
+        if issue is None:
+            return {"ok": False, "error": "not_found"}
+        return {"ok": True, "issue": issue}
+
+    monkeypatch.setattr(milestone_state_inspector, "fetch_issue_details", _fetch)
+    payload = milestone_state_inspector.inspect_milestone_state(config, parent_issue=326)
+
+    assert payload["ok"] is True
+    assert payload["child_discovery"]["discovered_child_issue_numbers"] == [327, 328, 329, 330, 331, 332, 333, 334]
+    assert payload["summary"]["open_child_issue_count"] == 0
+    assert payload["summary"]["closed_child_issue_count"] == 8
+
+
 def test_inspect_milestone_state_bubbles_parent_lookup_error(monkeypatch, tmp_path: Path) -> None:
     config = _config(tmp_path)
     monkeypatch.setattr(

@@ -158,3 +158,68 @@ def test_parent_closeout_readiness_dependency_failure(monkeypatch, tmp_path: Pat
     assert payload["ok"] is False
     assert payload["error"] == "parent_closeout_readiness_dependency_failed"
     assert payload["failures"][0]["command"] == "inspect-milestone-state"
+
+
+def test_parent_closeout_readiness_m20_children_closed_and_reconciliation_complete(
+    monkeypatch, tmp_path: Path
+) -> None:
+    config = _config(tmp_path)
+
+    child_issues = []
+    for issue_number in range(327, 335):
+        child_issues.append(
+            {
+                "issue_number": issue_number,
+                "state": "CLOSED",
+                "title": "source-of-truth reconciliation" if issue_number == 334 else f"child-{issue_number}",
+                "lineage_detected": True,
+                "lineage_sources": ["explicit_parent_issue_line"],
+            }
+        )
+
+    monkeypatch.setattr(
+        parent_closeout_readiness,
+        "inspect_milestone_state",
+        lambda _config, parent_issue: {
+            "ok": True,
+            "parent_issue": {"issue_number": parent_issue, "state": "OPEN", "title": "M20 parent"},
+            "child_issues": child_issues,
+            "boundary_confirmations": ["read_only: true"],
+        },
+    )
+    monkeypatch.setattr(
+        parent_closeout_readiness,
+        "check_milestone_evidence_readiness",
+        lambda _config, parent_issue: {
+            "ok": True,
+            "milestone_closeout_readiness": {"closeout_ready": True},
+            "issues": [
+                {
+                    "issue": {"number": issue_number},
+                    "classification": "already_closed",
+                    "evidence_signals": {"explicit_issue_evidence_mapping": True},
+                }
+                for issue_number in range(327, 335)
+            ],
+            "boundary_confirmations": ["mutation_allowed: false"],
+        },
+    )
+    monkeypatch.setattr(
+        parent_closeout_readiness,
+        "plan_milestone_final_reconciliation",
+        lambda _config, parent_issue: {
+            "ok": True,
+            "ready_for_final_reconciliation": True,
+            "parent_should_remain_open": False,
+            "final_reconciliation_issue": {"issue_number": 334, "state": "CLOSED"},
+            "required_operator_actions": [],
+            "boundary_confirmations": ["close_issues: false"],
+        },
+    )
+
+    payload = parent_closeout_readiness.inspect_parent_closeout_readiness(config, parent_issue=326)
+    assert payload["ok"] is True
+    assert payload["closeout_readiness"]["parent_closeout_ready"] is True
+    assert payload["lineage_signals"]["discovered_child_issue_numbers"] == [327, 328, 329, 330, 331, 332, 333, 334]
+    assert payload["lineage_signals"]["child_issue_count"] == 8
+    assert payload["blocked_reasons"] == []
