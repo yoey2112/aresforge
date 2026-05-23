@@ -112,6 +112,9 @@ from aresforge.operator.self_managed_milestone_execution_contract import (
 from aresforge.operator.self_managed_milestone_handoff import (
     generate_self_managed_milestone_handoff,
 )
+from aresforge.operator.self_managed_milestone_simulation import (
+    simulate_self_managed_milestone_execution,
+)
 from aresforge.operator.repo_bootstrap_contract import inspect_repo_bootstrap_contract
 from aresforge.operator.repo_bootstrap_plan import plan_repo_bootstrap
 from aresforge.operator.repo_governance import inspect_repo_governance
@@ -377,6 +380,11 @@ def build_parser() -> argparse.ArgumentParser:
         "inspect-self-managed-milestone-execution-contract",
         help="Inspect the read-only M21 self-managed milestone execution contract.",
     )
+    self_managed_simulation_parser = subparsers.add_parser(
+        "simulate-self-managed-milestone-execution",
+        help="Run a read-only dry-run simulation of M21 self-managed milestone execution.",
+    )
+    self_managed_simulation_parser.add_argument("--parent-issue", type=int, required=True)
     self_managed_handoff_parser = subparsers.add_parser(
         "generate-self-managed-milestone-handoff",
         help="Generate deterministic read-only M21 recovery/handoff package after a completed child.",
@@ -1112,6 +1120,11 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "inspect-self-managed-milestone-execution-contract":
         payload = inspect_self_managed_milestone_execution_contract(config)
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "simulate-self-managed-milestone-execution":
+        payload = simulate_self_managed_milestone_execution(config, parent_issue=args.parent_issue)
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 
