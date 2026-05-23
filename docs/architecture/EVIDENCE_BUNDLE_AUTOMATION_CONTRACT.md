@@ -21,6 +21,35 @@ Define deterministic, reusable evidence bundle generation for child closeout, pa
 - Output must be deterministic and fixture-testable.
 - Output must include explicit safety notes and warnings where applicable.
 
+## Command Surfaces
+
+- `python -m aresforge inspect-evidence-bundle-automation-contract`
+- `python -m aresforge generate-child-closeout-evidence-bundle --parent-issue <parent> --child-issue <child>`
+- `python -m aresforge generate-parent-closeout-evidence-bundle --parent-issue <parent>`
+- `python -m aresforge generate-pr-evidence-bundle --issue <issue> --pr <pr>`
+- `python -m aresforge simulate-evidence-bundle-generation --parent-issue <parent>`
+
+## Validation Summary Normalization
+
+- Validation states are normalized to one of: `pass`, `fail`, `warning`, `unknown`.
+- Normalized labels currently include:
+	- `git diff --check`
+	- `python -m pytest`
+	- `python -m aresforge inspect-repo-governance`
+	- `python -m aresforge inspect-milestone-dashboard`
+	- `python -m aresforge inspect-milestone-state`
+	- `python -m aresforge check-milestone-evidence-readiness`
+	- `python -m aresforge inspect-parent-closeout-readiness`
+- Bundle generators must consume normalized summary lines rather than command-specific freeform output.
+
+## Simulation Coverage
+
+- Dry-run simulation must cover multi-child sequencing and keep final reconciliation last.
+- Simulation must include child evidence bundle generation coverage.
+- Simulation must include parent blocked-state and ready-state fixture coverage.
+- Simulation must include PR evidence body generation guidance coverage.
+- Simulation must preserve no-mutation defaults.
+
 ## Mutation Boundary
 
 - Generation commands produce text packages and guidance only unless an explicit execution mode is provided and intentionally invoked.
