@@ -35,6 +35,23 @@ Rules:
 - keep final reconciliation issue last
 - mutation remains human-triggered and review-gated
 
+## M20 Mutation Intent Planning (Child #328)
+
+Command:
+
+- `python -m aresforge plan-github-mutation --mutation-type <issue_comment|issue_close|pr_body_update|audit_log_write> --planned-action "<action>" [--target-issue <issue>] [--target-pr <pr>] [--approval-marker <marker>]`
+
+Behavior:
+
+- planning-only and dry-run by default
+- validates one explicit mutation type and one explicit target shape
+- blocks unsafe target/type combinations
+- emits required approvals, safety checks, blocked reasons, dry-run summary, and audit metadata preview
+- never closes issues
+- never creates PRs
+- never comments on issues
+- never mutates GitHub state
+
 ## Read-Only Milestone Inspection
 
 Commands:

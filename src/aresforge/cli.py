@@ -105,6 +105,7 @@ from aresforge.operator.self_managed_milestone_planner import plan_self_managed_
 from aresforge.operator.repo_bootstrap_contract import inspect_repo_bootstrap_contract
 from aresforge.operator.repo_bootstrap_plan import plan_repo_bootstrap
 from aresforge.operator.repo_governance import inspect_repo_governance
+from aresforge.operator.github_mutation_planner import plan_github_mutation
 from aresforge.operator.qa_closeout_pr import qa_closeout_pr
 from aresforge.operator.qa_pr_validation import qa_review_pr
 from aresforge.operator.validate_pr_end_to_end import validate_pr_end_to_end
@@ -527,6 +528,26 @@ def build_parser() -> argparse.ArgumentParser:
     closeout_planning_drift_parser.add_argument(
         "--planning-state-path",
         help="Optional local planning state path override (defaults to .aresforge/planning-state.json).",
+    )
+    github_mutation_plan_parser = subparsers.add_parser(
+        "plan-github-mutation",
+        help="Plan one explicit GitHub mutation intent in dry-run mode without executing mutation.",
+    )
+    github_mutation_plan_parser.add_argument(
+        "--mutation-type",
+        required=True,
+        choices=["issue_comment", "issue_close", "pr_body_update", "audit_log_write"],
+    )
+    github_mutation_plan_parser.add_argument(
+        "--planned-action",
+        required=True,
+        help="Human-readable action description for this mutation intent.",
+    )
+    github_mutation_plan_parser.add_argument("--target-issue", type=int)
+    github_mutation_plan_parser.add_argument("--target-pr", type=int)
+    github_mutation_plan_parser.add_argument(
+        "--approval-marker",
+        help="Optional operator approval marker captured in audit metadata preview.",
     )
     subparsers.add_parser(
         "project-state-summary",
@@ -1111,6 +1132,17 @@ def main(argv: list[str] | None = None) -> int:
             config,
             parent_issue=args.parent_issue,
             planning_state_path=str(path),
+        )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "plan-github-mutation":
+        payload = plan_github_mutation(
+            mutation_type=args.mutation_type,
+            planned_action=args.planned_action,
+            target_issue=args.target_issue,
+            target_pr=args.target_pr,
+            approval_marker=args.approval_marker,
         )
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
