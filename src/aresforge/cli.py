@@ -52,6 +52,7 @@ from aresforge.operator.child_closeout_evidence_bundle import (
 from aresforge.operator.parent_closeout_evidence_bundle import (
     generate_parent_closeout_evidence_bundle,
 )
+from aresforge.operator.pr_evidence_bundle import generate_pr_evidence_bundle
 from aresforge.operator.evidence_comment_template_generator import generate_evidence_comment_template
 from aresforge.operator.child_execution_gates import inspect_child_execution_gates
 from aresforge.operator.self_managed_issue_script_generator import generate_self_managed_issue_script
@@ -446,6 +447,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Generate read-only parent closeout evidence bundle text and targeted closeout guidance.",
     )
     parent_closeout_bundle_parser.add_argument("--parent-issue", type=int, required=True)
+    pr_evidence_bundle_parser = subparsers.add_parser(
+        "generate-pr-evidence-bundle",
+        help="Generate read-only deterministic PR evidence body text and targeted update guidance.",
+    )
+    pr_evidence_bundle_parser.add_argument("--issue", type=int, required=True)
+    pr_evidence_bundle_parser.add_argument("--pr", type=int, required=True)
     evidence_comment_template_parser = subparsers.add_parser(
         "generate-evidence-comment-template",
         help="Generate a read-only issue-specific evidence comment template for operator review.",
@@ -1205,6 +1212,15 @@ def main(argv: list[str] | None = None) -> int:
         payload = generate_parent_closeout_evidence_bundle(
             config,
             parent_issue=args.parent_issue,
+        )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "generate-pr-evidence-bundle":
+        payload = generate_pr_evidence_bundle(
+            config,
+            issue_number=args.issue,
+            pr_number=args.pr,
         )
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
