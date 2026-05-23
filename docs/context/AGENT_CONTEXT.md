@@ -39,6 +39,7 @@ Provide minimum operating context for safe M22 evidence bundle automation execut
 - `#377` -> child `#368`
 - `#378` -> child `#369`
 - `#379` -> child `#370`
+- `#380` -> child `#371`
 
 ## Prohibited Behaviors
 

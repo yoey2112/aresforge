@@ -76,7 +76,7 @@ Child issues:
 - `#368` CLOSED via PR `#377`
 - `#369` CLOSED via PR `#378`
 - `#370` CLOSED via PR `#379`
-- `#371` OPEN (final source-of-truth reconciliation; must be processed last)
+- `#371` OPEN via PR `#380` (final source-of-truth reconciliation; must be processed last)
 
 Delivered M22 outcomes:
 

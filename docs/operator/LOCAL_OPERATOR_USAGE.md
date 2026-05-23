@@ -13,7 +13,7 @@ M22 issue/PR mapping status:
 - child `#368` CLOSED via PR `#377`
 - child `#369` CLOSED via PR `#378`
 - child `#370` CLOSED via PR `#379`
-- child `#371` final reconciliation, processed last
+- child `#371` OPEN via PR `#380` (final reconciliation, processed last)
 
 Command inventory:
 

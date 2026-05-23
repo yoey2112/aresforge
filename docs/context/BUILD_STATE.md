@@ -20,7 +20,7 @@ Complete M22 source-of-truth reconciliation child issue `#371`, then run parent 
   - `#368` CLOSED via PR `#377`
   - `#369` CLOSED via PR `#378`
   - `#370` CLOSED via PR `#379`
-  - `#371` OPEN (final source-of-truth reconciliation; sequenced last)
+  - `#371` OPEN via PR `#380` (final source-of-truth reconciliation; sequenced last)
 - Current main HEAD before `#371` implementation: `01a0086ceef9f86f36688f8e6f8f4137bc2d73a9`.
 
 ## M22 Command Surface
