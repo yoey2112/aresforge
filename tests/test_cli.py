@@ -58,6 +58,7 @@ def test_cli_has_expected_commands() -> None:
         "generate-child-evidence-marker-template",
         "generate-parent-closeout-evidence-bundle",
         "generate-pr-evidence-bundle",
+        "generate-pr-evidence-marker-template",
         "simulate-evidence-bundle-generation",
         "generate-evidence-comment-template",
         "run-autonomous-cycle",
@@ -288,6 +289,18 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     assert generate_pr_evidence_bundle_args.command == "generate-pr-evidence-bundle"
     assert generate_pr_evidence_bundle_args.issue == 367
     assert generate_pr_evidence_bundle_args.pr == 376
+    generate_pr_marker_template_args = parser.parse_args(
+        [
+            "generate-pr-evidence-marker-template",
+            "--issue",
+            "404",
+            "--pr",
+            "414",
+        ]
+    )
+    assert generate_pr_marker_template_args.command == "generate-pr-evidence-marker-template"
+    assert generate_pr_marker_template_args.issue == 404
+    assert generate_pr_marker_template_args.pr == 414
     simulate_evidence_bundle_args = parser.parse_args(
         [
             "simulate-evidence-bundle-generation",
@@ -1653,6 +1666,53 @@ def test_cli_dispatches_generate_pr_evidence_bundle(
         "read_only": True,
         "issue": 367,
         "pr": 376,
+    }
+
+
+def test_cli_dispatches_generate_pr_evidence_marker_template(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+) -> None:
+    config = AppConfig(
+        repo_root=tmp_path,
+        db_host="127.0.0.1",
+        db_port=5433,
+        db_name="aresforge",
+        db_user="aresforge",
+        db_password="aresforge",
+        ollama_base_url="http://127.0.0.1:11434",
+        ollama_model="qwen2.5:32b",
+        artifact_root=tmp_path / "artifacts",
+        prompts_dir=tmp_path / "artifacts" / "prompts" / "generated",
+        evidence_dir=tmp_path / "artifacts" / "evidence" / "generated",
+        codex_handoffs_dir=tmp_path / "artifacts" / "codex_handoffs" / "generated",
+        github_owner="yoey2112",
+        github_repo="aresforge",
+    )
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: config)
+    monkeypatch.setattr(
+        cli,
+        "generate_pr_evidence_marker_template",
+        lambda _config, issue_number, pr_number: {
+            "command": "generate-pr-evidence-marker-template",
+            "ok": True,
+            "read_only": True,
+            "issue": issue_number,
+            "pr": pr_number,
+        },
+    )
+
+    exit_code = cli.main(["generate-pr-evidence-marker-template", "--issue", "404", "--pr", "414"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert payload == {
+        "command": "generate-pr-evidence-marker-template",
+        "ok": True,
+        "read_only": True,
+        "issue": 404,
+        "pr": 414,
     }
 
 

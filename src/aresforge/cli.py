@@ -54,6 +54,7 @@ from aresforge.operator.parent_closeout_evidence_bundle import (
     generate_parent_closeout_evidence_bundle,
 )
 from aresforge.operator.pr_evidence_bundle import generate_pr_evidence_bundle
+from aresforge.operator.pr_evidence_marker_template import generate_pr_evidence_marker_template
 from aresforge.operator.evidence_bundle_simulation import simulate_evidence_bundle_generation
 from aresforge.operator.evidence_comment_template_generator import generate_evidence_comment_template
 from aresforge.operator.child_execution_gates import inspect_child_execution_gates
@@ -472,6 +473,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     pr_evidence_bundle_parser.add_argument("--issue", type=int, required=True)
     pr_evidence_bundle_parser.add_argument("--pr", type=int, required=True)
+    pr_marker_template_parser = subparsers.add_parser(
+        "generate-pr-evidence-marker-template",
+        help="Generate read-only canonical PR evidence marker template text.",
+    )
+    pr_marker_template_parser.add_argument("--issue", type=int, required=True)
+    pr_marker_template_parser.add_argument("--pr", type=int, required=True)
     evidence_bundle_simulation_parser = subparsers.add_parser(
         "simulate-evidence-bundle-generation",
         help="Run read-only dry-run simulation for milestone evidence bundle generation flows.",
@@ -1284,6 +1291,15 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "generate-pr-evidence-bundle":
         payload = generate_pr_evidence_bundle(
+            config,
+            issue_number=args.issue,
+            pr_number=args.pr,
+        )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "generate-pr-evidence-marker-template":
+        payload = generate_pr_evidence_marker_template(
             config,
             issue_number=args.issue,
             pr_number=args.pr,
