@@ -102,6 +102,7 @@ from aresforge.operator.evidence_completeness_checker import (
 from aresforge.operator.milestone_dashboard import inspect_milestone_dashboard
 from aresforge.operator.parent_closeout_readiness import inspect_parent_closeout_readiness
 from aresforge.operator.parent_child_linkage_preflight import inspect_parent_child_linkage_preflight
+from aresforge.operator.child_evidence_marker_preflight import inspect_child_evidence_marker_preflight
 from aresforge.operator.milestone_reconciliation_planner import plan_milestone_final_reconciliation
 from aresforge.operator.sequential_run_state import (
     inspect_sequential_run_state,
@@ -546,6 +547,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Inspect parent-child lineage detectability in read-only preflight mode.",
     )
     parent_child_linkage_preflight_parser.add_argument("--parent-issue", type=int, required=True)
+    child_evidence_marker_preflight_parser = subparsers.add_parser(
+        "inspect-child-evidence-marker-preflight",
+        help="Inspect child evidence marker completeness in read-only preflight mode.",
+    )
+    child_evidence_marker_preflight_parser.add_argument("--parent-issue", type=int, required=True)
     child_execution_gates_parser = subparsers.add_parser(
         "inspect-child-execution-gates",
         help="Inspect start/PR/merge/close gates for one child issue in read-only mode.",
@@ -1319,6 +1325,11 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "inspect-parent-child-linkage-preflight":
         payload = inspect_parent_child_linkage_preflight(config, parent_issue=args.parent_issue)
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-child-evidence-marker-preflight":
+        payload = inspect_child_evidence_marker_preflight(config, parent_issue=args.parent_issue)
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 
