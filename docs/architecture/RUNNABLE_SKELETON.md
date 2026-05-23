@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Describe the implemented human-triggered operator surface through M22 evidence bundle and documentation automation.
+Describe the implemented human-triggered operator surface through M23 milestone lineage/evidence mapping preflight orchestration.
 
 ## Operator Shape
 
@@ -10,7 +10,7 @@ Command entrypoint:
 
 - `python -m aresforge`
 
-## Current Additions (M22 Included)
+## Current Additions (M23 Included)
 
 - `inspect-evidence-bundle-automation-contract`
 - `generate-child-closeout-evidence-bundle`
@@ -29,6 +29,21 @@ Command entrypoint:
 - `check-issue-evidence-readiness`
 - `check-milestone-evidence-readiness`
 - `inspect-parent-closeout-readiness`
+
+- `inspect-milestone-closeout-preflight-contract`
+- `inspect-parent-child-linkage-preflight`
+- `inspect-child-evidence-marker-preflight`
+- `inspect-pr-mapping-preflight`
+- `generate-closeout-preflight-repair-guidance`
+- `inspect-milestone-closeout-preflight`
+
+## M23 Capability Contract Alignment
+
+- Contract authority: `docs/architecture/MILESTONE_CLOSEOUT_PREFLIGHT_CONTRACT.md`.
+- Parent-child lineage detection, child evidence markers, and PR mapping checks are read-only by default.
+- Repair guidance output is copy/paste-safe text only and does not execute mutation.
+- Orchestration command (`inspect-milestone-closeout-preflight`) provides one deterministic readiness report.
+- Parent closeout remains readiness-gated and separate from preflight command execution.
 
 ## M22 Capability Contract Alignment
 
@@ -56,26 +71,26 @@ Command entrypoint:
 - no background jobs, polling loops, or schedulers
 - parent issue remains open until children are closed/accounted and parent readiness checks pass
 
-## Current Validation Bundle (M22)
+## Current Validation Bundle (M23)
 
 - `git diff --check`
 - `python -m pytest`
 - `python -m aresforge inspect-repo-governance`
-- `python -m aresforge inspect-milestone-dashboard --parent-issue 362`
-- `python -m aresforge inspect-milestone-state --parent-issue 362`
-- `python -m aresforge check-milestone-evidence-readiness --parent-issue 362`
-- `python -m aresforge inspect-parent-closeout-readiness --parent-issue 362`
-- `python -m aresforge generate-parent-closeout-evidence-bundle --parent-issue 362`
-- `python -m aresforge simulate-evidence-bundle-generation --parent-issue 362`
+- `python -m aresforge inspect-milestone-dashboard --parent-issue 381`
+- `python -m aresforge inspect-milestone-state --parent-issue 381`
+- `python -m aresforge check-milestone-evidence-readiness --parent-issue 381`
+- `python -m aresforge inspect-parent-closeout-readiness --parent-issue 381`
+- `python -m aresforge inspect-milestone-closeout-preflight --parent-issue 381`
+- `python -m aresforge generate-parent-closeout-evidence-bundle --parent-issue 381`
 
 ## Known Limitations
 
 - Parent closeout execution remains manually triggered and intentionally conservative.
 - Governance milestone naming warning remains non-blocking and unresolved.
-- Issue milestone assignment gaps are surfaced as warnings but do not block M22 child execution.
+- Issue milestone assignment gaps are surfaced as warnings but do not block M23 child execution.
 
-## Follow-Up Candidates (M23)
+## Follow-Up Candidates (M24)
 
-1. Add stricter parent-child discovery diagnostics and operator remediation hints.
-2. Add optional strict simulation mode requiring discovered children.
-3. Add closeout audit export command for operator-reviewed archival.
+1. Add canonical child evidence marker templates to reduce parsing ambiguity.
+2. Add stronger linked/merged PR extraction to reduce mapping ambiguity warnings.
+3. Add baseline snapshot comparison for closeout preflight drift.

@@ -54,17 +54,13 @@ M21 standard validation bundle:
 - `python -m aresforge inspect-self-managed-milestone-execution-contract`
 - `python -m aresforge simulate-self-managed-milestone-execution --parent-issue 345`
 
-### M22 Candidate Themes
-
-Replaced by active M22 implementation milestone.
-
 ### M22 - Evidence Bundle And Documentation Automation
 
-Status: Final reconciliation in progress (`#371` only).
+Status: Completed.
 
 Parent issue:
 
-- `#362` M22 evidence bundle and documentation automation (OPEN)
+- `#362` CLOSED
 
 Child issues:
 
@@ -76,7 +72,7 @@ Child issues:
 - `#368` CLOSED via PR `#377`
 - `#369` CLOSED via PR `#378`
 - `#370` CLOSED via PR `#379`
-- `#371` OPEN via PR `#380` (final source-of-truth reconciliation; must be processed last)
+- `#371` CLOSED via PR `#380`
 
 Delivered M22 outcomes:
 
@@ -109,11 +105,62 @@ M22 standard validation bundle:
 - `python -m aresforge inspect-parent-closeout-readiness --parent-issue 362`
 - `python -m aresforge generate-parent-closeout-evidence-bundle --parent-issue 362`
 
-### M23 Candidate Themes
+### M23 - Milestone Lineage And Evidence Mapping Preflight
 
-1. Child discovery strictness and lineage diagnostics for parent evidence bundle generation.
-2. Optional advisory milestone assignment remediation reporting.
-3. Parent closeout execution package with explicit audit export controls.
+Status: Final reconciliation in progress (`#390` only).
+
+Parent issue:
+
+- `#381` M23 milestone lineage and evidence mapping preflight (OPEN)
+
+Child issues:
+
+- `#382` CLOSED via PR `#391`
+- `#383` CLOSED via PR `#392`
+- `#384` CLOSED via PR `#393`
+- `#385` CLOSED via PR `#394`
+- `#386` CLOSED via PR `#395`
+- `#387` CLOSED via PR `#396`
+- `#388` CLOSED via PR `#397`
+- `#389` CLOSED via PR `#398`
+- `#390` OPEN (final source-of-truth reconciliation; must be processed last)
+
+Delivered M23 outcomes:
+
+- `inspect-milestone-closeout-preflight-contract`
+- `inspect-parent-child-linkage-preflight`
+- `inspect-child-evidence-marker-preflight`
+- `inspect-pr-mapping-preflight`
+- `generate-closeout-preflight-repair-guidance`
+- `inspect-milestone-closeout-preflight`
+- operator documentation updates for preflight sequencing and state interpretation
+
+M23 safety posture:
+
+- no autonomous broad mutation
+- no bulk closure
+- no parent closeout before all children are closed/accounted for
+- mutation execution defaults to dry-run/planning unless explicitly approved
+- repair guidance remains copy/paste text only and does not execute mutation
+- final reconciliation kept last and docs-focused
+- prior milestones are not mutated
+
+M23 standard validation bundle:
+
+- `git diff --check`
+- `python -m pytest`
+- `python -m aresforge inspect-repo-governance`
+- `python -m aresforge inspect-milestone-dashboard --parent-issue 381`
+- `python -m aresforge inspect-milestone-state --parent-issue 381`
+- `python -m aresforge check-milestone-evidence-readiness --parent-issue 381`
+- `python -m aresforge inspect-parent-closeout-readiness --parent-issue 381`
+- `python -m aresforge inspect-milestone-closeout-preflight --parent-issue 381`
+
+### M24 Candidate Themes
+
+1. Canonical structured child evidence marker templates for deterministic parsing.
+2. Stronger child-to-PR mapping extraction in milestone state inspection.
+3. Historical snapshot diffing for closeout preflight drift detection.
 
 ## Standing Boundaries
 
