@@ -40,6 +40,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-repo-governance",
         "inspect-evidence-bundle-automation-contract",
         "inspect-milestone-closeout-preflight-contract",
+        "inspect-canonical-evidence-marker-contract",
         "inspect-repo-bootstrap-contract",
         "inspect-managed-repos",
         "managed-repo-readiness-report",
@@ -195,6 +196,8 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     assert evidence_contract_args.command == "inspect-evidence-bundle-automation-contract"
     milestone_preflight_contract_args = parser.parse_args(["inspect-milestone-closeout-preflight-contract"])
     assert milestone_preflight_contract_args.command == "inspect-milestone-closeout-preflight-contract"
+    canonical_marker_contract_args = parser.parse_args(["inspect-canonical-evidence-marker-contract"])
+    assert canonical_marker_contract_args.command == "inspect-canonical-evidence-marker-contract"
     bootstrap_contract_args = parser.parse_args(["inspect-repo-bootstrap-contract"])
     assert bootstrap_contract_args.command == "inspect-repo-bootstrap-contract"
     managed_repos_args = parser.parse_args(["inspect-managed-repos"])
@@ -707,6 +710,7 @@ def test_command_requires_directories_only_for_commands_that_write_artifacts() -
     assert command_requires_directories(parser.parse_args(["automation-readiness-report"])) is False
     assert command_requires_directories(parser.parse_args(["inspect-repo-governance"])) is False
     assert command_requires_directories(parser.parse_args(["inspect-milestone-closeout-preflight-contract"])) is False
+    assert command_requires_directories(parser.parse_args(["inspect-canonical-evidence-marker-contract"])) is False
     assert command_requires_directories(parser.parse_args(["inspect-repo-bootstrap-contract"])) is False
     assert command_requires_directories(parser.parse_args(["inspect-managed-repos"])) is False
     assert command_requires_directories(parser.parse_args(["managed-repo-readiness-report"])) is False
@@ -1303,6 +1307,41 @@ def test_cli_dispatches_inspect_milestone_closeout_preflight_contract(
 
     assert exit_code == 0
     assert payload == {"command": "inspect-milestone-closeout-preflight-contract", "ok": True}
+
+
+def test_cli_dispatches_inspect_canonical_evidence_marker_contract(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+) -> None:
+    config = AppConfig(
+        repo_root=tmp_path,
+        db_host="127.0.0.1",
+        db_port=5433,
+        db_name="aresforge",
+        db_user="aresforge",
+        db_password="aresforge",
+        ollama_base_url="http://127.0.0.1:11434",
+        ollama_model="qwen2.5:32b",
+        artifact_root=tmp_path / "artifacts",
+        prompts_dir=tmp_path / "artifacts" / "prompts" / "generated",
+        evidence_dir=tmp_path / "artifacts" / "evidence" / "generated",
+        codex_handoffs_dir=tmp_path / "artifacts" / "codex_handoffs" / "generated",
+        github_owner="yoey2112",
+        github_repo="aresforge",
+    )
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: config)
+    monkeypatch.setattr(
+        cli,
+        "inspect_canonical_evidence_marker_contract",
+        lambda _config: {"command": "inspect-canonical-evidence-marker-contract", "ok": True},
+    )
+
+    exit_code = cli.main(["inspect-canonical-evidence-marker-contract"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert payload == {"command": "inspect-canonical-evidence-marker-contract", "ok": True}
 
 
 def test_cli_dispatches_inspect_managed_repos(
