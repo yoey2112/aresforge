@@ -71,6 +71,24 @@ Behavior:
 - does not close issues
 - no bulk comment mutation path
 
+## M20 Targeted Issue Close Execution (Child #330)
+
+Commands:
+
+- `python -m aresforge execute-github-issue-close --issue-target <issue> --parent-issue <parent>`
+- `python -m aresforge execute-github-issue-close --issue-target <issue> --parent-issue <parent> --execute --approval-marker <marker>`
+
+Behavior:
+
+- dry-run by default
+- accepts only one plain-digit issue target (`--issue-target 330`)
+- rejects lists/ranges/composite targets (`330,331`, `330-334`)
+- child close requires child issue evidence readiness
+- parent close requires parent closeout readiness true
+- execution requires explicit `--execute` and `--approval-marker`
+- emits audit-ready result payload
+- no bulk closure path
+
 ## Read-Only Milestone Inspection
 
 Commands:

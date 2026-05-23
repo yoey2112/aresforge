@@ -110,6 +110,7 @@ from aresforge.operator.github_issue_comment_executor import (
     execute_github_issue_comment,
     load_comment_body,
 )
+from aresforge.operator.github_issue_close_executor import execute_github_issue_close
 from aresforge.operator.qa_closeout_pr import qa_closeout_pr
 from aresforge.operator.qa_pr_validation import qa_review_pr
 from aresforge.operator.validate_pr_end_to_end import validate_pr_end_to_end
@@ -575,6 +576,25 @@ def build_parser() -> argparse.ArgumentParser:
         "--execute",
         action="store_true",
         help="Execute comment mutation. Without this flag, command runs in dry-run mode only.",
+    )
+    issue_close_executor_parser = subparsers.add_parser(
+        "execute-github-issue-close",
+        help="Run targeted issue close mutation with dry-run default and readiness/approval gates.",
+    )
+    issue_close_executor_parser.add_argument(
+        "--issue-target",
+        required=True,
+        help="Single issue number target as plain digits. Lists/ranges are not allowed.",
+    )
+    issue_close_executor_parser.add_argument("--parent-issue", type=int)
+    issue_close_executor_parser.add_argument(
+        "--approval-marker",
+        help="Required for execute mode. Captured in audit-ready output.",
+    )
+    issue_close_executor_parser.add_argument(
+        "--execute",
+        action="store_true",
+        help="Execute issue close mutation. Without this flag, command runs in dry-run mode only.",
     )
     subparsers.add_parser(
         "project-state-summary",
@@ -1183,6 +1203,17 @@ def main(argv: list[str] | None = None) -> int:
             execute=bool(args.execute),
             parent_issue=args.parent_issue,
             allow_parent_target=bool(args.allow_parent_target),
+            approval_marker=args.approval_marker,
+        )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "execute-github-issue-close":
+        payload = execute_github_issue_close(
+            config,
+            issue_target=args.issue_target,
+            parent_issue=args.parent_issue,
+            execute=bool(args.execute),
             approval_marker=args.approval_marker,
         )
         emit_json(payload)
