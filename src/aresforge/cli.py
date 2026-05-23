@@ -100,6 +100,7 @@ from aresforge.operator.sequential_run_state import (
 )
 from aresforge.operator.sequential_recovery_planner import plan_sequential_run_recovery
 from aresforge.operator.sequential_handoff_package import generate_sequential_handoff_package
+from aresforge.operator.sequential_child_closeout_flow import run_sequential_child_closeout_flow
 from aresforge.operator.project_state_summary import project_state_summary
 from aresforge.operator.self_managed_milestone_planner import plan_self_managed_milestone
 from aresforge.operator.self_managed_milestone_execution_contract import (
@@ -533,6 +534,26 @@ def build_parser() -> argparse.ArgumentParser:
         "--write-package",
         action="store_true",
         help="Explicitly write local markdown/json package artifacts under evidence_dir.",
+    )
+    sequential_child_closeout_flow_parser = subparsers.add_parser(
+        "run-sequential-child-closeout-flow",
+        help="Plan dry-run default targeted child evidence comment plus child closeout with optional approved execution.",
+    )
+    sequential_child_closeout_flow_parser.add_argument("--parent-issue", type=int, required=True)
+    sequential_child_closeout_flow_parser.add_argument("--child-issue", type=int, required=True)
+    sequential_child_closeout_flow_parser.add_argument(
+        "--comment-body",
+        required=True,
+        help="Evidence comment body to post to the target child issue when executing.",
+    )
+    sequential_child_closeout_flow_parser.add_argument(
+        "--execute",
+        action="store_true",
+        help="Execute targeted mutation steps. Without this flag, command runs in dry-run mode only.",
+    )
+    sequential_child_closeout_flow_parser.add_argument(
+        "--approval-marker",
+        help="Required for execute mode. Captured in audit-ready output.",
     )
     closeout_planning_drift_parser = subparsers.add_parser(
         "inspect-closeout-planning-drift",
@@ -1204,6 +1225,18 @@ def main(argv: list[str] | None = None) -> int:
             parent_issue=args.parent_issue,
             child_issue=args.issue,
             write_package=bool(args.write_package),
+        )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "run-sequential-child-closeout-flow":
+        payload = run_sequential_child_closeout_flow(
+            config,
+            parent_issue=args.parent_issue,
+            child_issue=args.child_issue,
+            comment_body=args.comment_body,
+            execute=bool(args.execute),
+            approval_marker=args.approval_marker,
         )
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1

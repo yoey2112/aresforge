@@ -44,6 +44,7 @@ def test_cli_help_includes_m6_commands() -> None:
     assert "inspect-sequential-run-state" in help_text
     assert "plan-sequential-run-recovery" in help_text
     assert "generate-sequential-handoff-package" in help_text
+    assert "run-sequential-child-closeout-flow" in help_text
     assert "generate-child-closeout-script" in help_text
     assert "generate-evidence-comment-template" in help_text
 
@@ -429,6 +430,42 @@ def test_cli_dispatch_generate_sequential_handoff_package(
     assert payload["parent_issue"] == 309
     assert payload["child_issue"] == 314
     assert payload["read_only"] is False
+
+
+def test_cli_dispatch_run_sequential_child_closeout_flow(
+    monkeypatch,
+    capsys,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: _config(tmp_path))
+    monkeypatch.setattr(
+        cli,
+        "run_sequential_child_closeout_flow",
+        lambda _config, parent_issue, child_issue, comment_body, execute, approval_marker: {
+            "command": "run-sequential-child-closeout-flow",
+            "ok": True,
+            "mode": "dry_run" if not execute else "execute",
+            "parent_issue": parent_issue,
+            "target_child_issue": child_issue,
+            "comment_body": comment_body,
+            "approval_marker": approval_marker,
+        },
+    )
+    exit_code = cli.main(
+        [
+            "run-sequential-child-closeout-flow",
+            "--parent-issue",
+            "345",
+            "--child-issue",
+            "348",
+            "--comment-body",
+            "evidence",
+        ]
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["command"] == "run-sequential-child-closeout-flow"
+    assert payload["mode"] == "dry_run"
 
 
 def test_cli_dispatch_generate_evidence_comment_template(
