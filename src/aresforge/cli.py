@@ -106,6 +106,10 @@ from aresforge.operator.repo_bootstrap_contract import inspect_repo_bootstrap_co
 from aresforge.operator.repo_bootstrap_plan import plan_repo_bootstrap
 from aresforge.operator.repo_governance import inspect_repo_governance
 from aresforge.operator.github_mutation_planner import plan_github_mutation
+from aresforge.operator.github_issue_comment_executor import (
+    execute_github_issue_comment,
+    load_comment_body,
+)
 from aresforge.operator.qa_closeout_pr import qa_closeout_pr
 from aresforge.operator.qa_pr_validation import qa_review_pr
 from aresforge.operator.validate_pr_end_to_end import validate_pr_end_to_end
@@ -548,6 +552,29 @@ def build_parser() -> argparse.ArgumentParser:
     github_mutation_plan_parser.add_argument(
         "--approval-marker",
         help="Optional operator approval marker captured in audit metadata preview.",
+    )
+    issue_comment_executor_parser = subparsers.add_parser(
+        "execute-github-issue-comment",
+        help="Run targeted issue comment mutation with dry-run default and explicit execution approval gate.",
+    )
+    issue_comment_executor_parser.add_argument("--issue", type=int, required=True)
+    comment_body_group = issue_comment_executor_parser.add_mutually_exclusive_group(required=True)
+    comment_body_group.add_argument("--comment-body")
+    comment_body_group.add_argument("--comment-file")
+    issue_comment_executor_parser.add_argument("--parent-issue", type=int)
+    issue_comment_executor_parser.add_argument(
+        "--allow-parent-target",
+        action="store_true",
+        help="Explicitly permit targeting the parent issue number when --parent-issue matches --issue.",
+    )
+    issue_comment_executor_parser.add_argument(
+        "--approval-marker",
+        help="Required for execute mode. Captured in audit-ready output.",
+    )
+    issue_comment_executor_parser.add_argument(
+        "--execute",
+        action="store_true",
+        help="Execute comment mutation. Without this flag, command runs in dry-run mode only.",
     )
     subparsers.add_parser(
         "project-state-summary",
@@ -1142,6 +1169,20 @@ def main(argv: list[str] | None = None) -> int:
             planned_action=args.planned_action,
             target_issue=args.target_issue,
             target_pr=args.target_pr,
+            approval_marker=args.approval_marker,
+        )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "execute-github-issue-comment":
+        body = load_comment_body(inline_body=args.comment_body, body_file=args.comment_file)
+        payload = execute_github_issue_comment(
+            config,
+            issue_number=args.issue,
+            comment_body=body,
+            execute=bool(args.execute),
+            parent_issue=args.parent_issue,
+            allow_parent_target=bool(args.allow_parent_target),
             approval_marker=args.approval_marker,
         )
         emit_json(payload)

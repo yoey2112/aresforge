@@ -52,6 +52,25 @@ Behavior:
 - never comments on issues
 - never mutates GitHub state
 
+## M20 Targeted Issue Comment Execution (Child #329)
+
+Commands:
+
+- `python -m aresforge execute-github-issue-comment --issue <issue> --comment-body "<body>"`
+- `python -m aresforge execute-github-issue-comment --issue <issue> --comment-file <path>`
+- `python -m aresforge execute-github-issue-comment --issue <issue> --comment-body "<body>" --execute --approval-marker <marker>`
+
+Behavior:
+
+- dry-run by default
+- requires explicit issue target
+- requires non-empty comment body
+- execution requires explicit `--execute` plus `--approval-marker`
+- blocks parent target when `--parent-issue` matches `--issue` unless `--allow-parent-target` is supplied
+- emits audit-ready result payload
+- does not close issues
+- no bulk comment mutation path
+
 ## Read-Only Milestone Inspection
 
 Commands:
