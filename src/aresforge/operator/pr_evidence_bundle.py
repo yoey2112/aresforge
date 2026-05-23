@@ -6,6 +6,7 @@ from typing import Any
 from aresforge.config import AppConfig
 from aresforge.operator.evidence_bundle import EvidenceBundleInput, render_evidence_bundle_text
 from aresforge.operator.ready_issue_intake import _repo_slug, _run_gh_command, fetch_issue_details
+from aresforge.operator.validation_summary import ValidationEntryInput, build_validation_summary
 
 COMMAND_NAME = "generate-pr-evidence-bundle"
 
@@ -63,6 +64,13 @@ def generate_pr_evidence_bundle(
         for item in (str(path).strip() for path in files_changed)
         if item
     )
+    validation_summary = build_validation_summary(
+        [
+            ValidationEntryInput(command="git diff --check", state="unknown"),
+            ValidationEntryInput(command="python -m pytest", state="unknown"),
+            ValidationEntryInput(command="python -m aresforge inspect-repo-governance", state="unknown"),
+        ]
+    )
 
     pr_body_text = render_evidence_bundle_text(
         EvidenceBundleInput(
@@ -76,11 +84,7 @@ def generate_pr_evidence_bundle(
             branch_name=pr.get("head_branch") if isinstance(pr.get("head_branch"), str) else "<unknown>",
             commit_sha=pr.get("merge_commit") if isinstance(pr.get("merge_commit"), str) else "<none>",
             files_changed=files_lines or ("<none>",),
-            validation_lines=(
-                "- git diff --check: <fill-result>",
-                "- python -m pytest: <fill-result>",
-                "- python -m aresforge inspect-repo-governance: <fill-result>",
-            ),
+            validation_lines=tuple(validation_summary["summary_lines"]),
             safety_notes=(
                 "- Read-only by default.",
                 "- No PR body update was executed by this command.",

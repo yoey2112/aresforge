@@ -5,6 +5,7 @@ from typing import Any
 from aresforge.config import AppConfig
 from aresforge.operator.evidence_bundle import EvidenceBundleInput, render_evidence_bundle_text
 from aresforge.operator.ready_issue_intake import fetch_issue_details
+from aresforge.operator.validation_summary import ValidationEntryInput, build_validation_summary
 
 COMMAND_NAME = "generate-child-closeout-evidence-bundle"
 
@@ -28,6 +29,13 @@ def generate_child_closeout_evidence_bundle(
         }
 
     issue = issue_payload.get("issue") if isinstance(issue_payload.get("issue"), dict) else {}
+    validation_summary = build_validation_summary(
+        [
+            ValidationEntryInput(command="git diff --check", state="unknown"),
+            ValidationEntryInput(command="python -m pytest", state="unknown"),
+            ValidationEntryInput(command="python -m aresforge inspect-repo-governance", state="unknown"),
+        ]
+    )
     bundle = EvidenceBundleInput(
         summary_lines=(
             f"- Child closeout evidence bundle generated for issue #{child_issue}.",
@@ -38,11 +46,7 @@ def generate_child_closeout_evidence_bundle(
         branch_name="<fill-branch>",
         commit_sha="<fill-main-commit>",
         files_changed=("<fill-files-changed>",),
-        validation_lines=(
-            "- git diff --check: <fill-result>",
-            "- python -m pytest: <fill-result>",
-            "- python -m aresforge inspect-repo-governance: <fill-result>",
-        ),
+        validation_lines=tuple(validation_summary["summary_lines"]),
         safety_notes=(
             "- Read-only by default.",
             "- Targeted mutation requires explicit operator approval.",

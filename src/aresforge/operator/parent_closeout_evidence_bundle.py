@@ -7,6 +7,7 @@ from aresforge.operator.evidence_bundle import EvidenceBundleInput, render_evide
 from aresforge.operator.evidence_completeness_checker import check_milestone_evidence_readiness
 from aresforge.operator.milestone_state_inspector import inspect_milestone_state
 from aresforge.operator.parent_closeout_readiness import inspect_parent_closeout_readiness
+from aresforge.operator.validation_summary import ValidationEntryInput, build_validation_summary
 
 COMMAND_NAME = "generate-parent-closeout-evidence-bundle"
 
@@ -54,7 +55,25 @@ def generate_parent_closeout_evidence_bundle(config: AppConfig, *, parent_issue:
 
     child_count = len([item for item in child_items if isinstance(item, dict)])
     pr_mappings = _child_pr_mappings(evidence)
-    validation_lines = _validation_lines(parent_closeout_ready=parent_closeout_ready, blocked_reasons=blocked_reasons)
+    validation_summary = build_validation_summary(
+        [
+            ValidationEntryInput(command="python -m aresforge inspect-milestone-state", state="pass"),
+            ValidationEntryInput(command="python -m aresforge check-milestone-evidence-readiness", state="pass"),
+            ValidationEntryInput(
+                command="python -m aresforge inspect-parent-closeout-readiness",
+                state="pass",
+            ),
+            ValidationEntryInput(
+                command="parent_closeout_ready_gate",
+                state="pass" if parent_closeout_ready else "fail",
+            ),
+            ValidationEntryInput(
+                command="blocked_reasons",
+                output=(", ".join(blocked_reasons) if blocked_reasons else "none"),
+                state="warning" if blocked_reasons else "pass",
+            ),
+        ]
+    )
     evidence_comment_body = render_evidence_bundle_text(
         EvidenceBundleInput(
             summary_lines=(
@@ -72,7 +91,7 @@ def generate_parent_closeout_evidence_bundle(config: AppConfig, *, parent_issue:
             branch_name="<none>",
             commit_sha="<none>",
             files_changed=("Read-only generator command; no repository files changed.",),
-            validation_lines=validation_lines,
+            validation_lines=tuple(validation_summary["summary_lines"]),
             safety_notes=(
                 "- Read-only by default.",
                 "- Parent issue is never closed by this command.",
@@ -196,19 +215,6 @@ def _child_state_rows(child_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
         )
     rows.sort(key=lambda row: int(row["issue_number"]))
     return rows
-
-
-def _validation_lines(*, parent_closeout_ready: bool, blocked_reasons: list[str]) -> tuple[str, ...]:
-    blocked_text = ", ".join(blocked_reasons) if blocked_reasons else "<none>"
-    return (
-        "- inspect-milestone-state: pass",
-        "- check-milestone-evidence-readiness: pass",
-        "- inspect-parent-closeout-readiness: pass",
-        f"- parent_closeout_ready: {'pass' if parent_closeout_ready else 'fail'}",
-        f"- blocked_reasons: {blocked_text}",
-    )
-
-
 def _targeted_guidance(*, parent_issue: int, parent_closeout_ready: bool, blocked_reasons: list[str]) -> list[str]:
     if not parent_closeout_ready:
         reason_text = ", ".join(blocked_reasons) if blocked_reasons else "unknown_blocker"
