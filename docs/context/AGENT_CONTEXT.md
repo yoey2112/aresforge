@@ -2,12 +2,12 @@
 
 ## Purpose
 
-Provide minimum operating context for safe M21 self-managed milestone execution with read-only-first planning, deterministic child sequencing, targeted mutation boundaries, and parent closeout readiness gating.
+Provide minimum operating context for safe M22 evidence bundle automation execution with read-only-first generation, deterministic child sequencing, targeted mutation boundaries, and parent closeout readiness gating.
 
 ## Current Operating Model
 
-- Active milestone context: parent `#345` OPEN; children `#346-#352` CLOSED/accounted; final reconciliation child `#353` OPEN and processed last.
-- New M21 simulation command provides end-to-end dry-run execution rehearsal without mutation.
+- Active milestone context: parent `#362` OPEN; children `#363-#370` CLOSED/accounted; final reconciliation child `#371` OPEN and processed last.
+- M22 simulation command provides end-to-end dry-run evidence bundle generation rehearsal without mutation.
 - Child execution remains one-branch, one-PR, one-evidence-comment, one-targeted-closeout.
 - Parent closeout remains blocked until all children are closed/accounted and readiness checks explicitly pass.
 - GitHub issue truth remains authoritative; local run/handoff artifacts are advisory support only.
@@ -18,27 +18,28 @@ Provide minimum operating context for safe M21 self-managed milestone execution 
 - `docs/context/AGENT_CONTEXT.md`
 - `docs/roadmap/ROADMAP.md`
 - `docs/operator/LOCAL_OPERATOR_USAGE.md`
-- `docs/architecture/M21_SELF_MANAGED_EXECUTION_CONTRACT.md`
+- `docs/architecture/EVIDENCE_BUNDLE_AUTOMATION_CONTRACT.md`
 - `docs/architecture/RUNNABLE_SKELETON.md`
 
-## Current M21 Commands
+## Current M22 Commands
 
-- `python -m aresforge inspect-self-managed-milestone-execution-contract`
-- `python -m aresforge simulate-self-managed-milestone-execution --parent-issue <parent>`
-- `python -m aresforge run-sequential-child-closeout-flow --parent-issue <parent> --child-issue <child> --comment-body "<body>"`
-- `python -m aresforge generate-sequential-closeout-execution-package --parent-issue <parent> --child-issue <child>`
-- `python -m aresforge generate-self-managed-milestone-handoff --parent-issue <parent> --completed-child <child> --next-child <next-child>`
+- `python -m aresforge inspect-evidence-bundle-automation-contract`
+- `python -m aresforge generate-child-closeout-evidence-bundle --parent-issue <parent> --child-issue <child>`
+- `python -m aresforge generate-parent-closeout-evidence-bundle --parent-issue <parent>`
+- `python -m aresforge generate-pr-evidence-bundle --issue <issue> --pr <pr>`
+- `python -m aresforge simulate-evidence-bundle-generation --parent-issue <parent>`
 
-## M21 PR Mapping
+## M22 PR Mapping
 
-- `#354` -> child `#346`
-- `#355` -> child `#347`
-- `#356` -> child `#348`
-- `#357` -> child `#349`
-- `#358` -> child `#350`
-- `#359` -> child `#351`
-- `#360` -> child `#352`
-- next PR reserved for child `#353` reconciliation
+- `#372` -> child `#363`
+- `#373` -> child `#364`
+- `#374` -> child `#365`
+- `#375` -> child `#366`
+- `#376` -> child `#367`
+- `#377` -> child `#368`
+- `#378` -> child `#369`
+- `#379` -> child `#370`
+- `#380` -> child `#371`
 
 ## Prohibited Behaviors
 
@@ -53,10 +54,11 @@ Provide minimum operating context for safe M21 self-managed milestone execution 
 - `git diff --check`
 - `python -m pytest`
 - `python -m aresforge inspect-repo-governance`
-- `python -m aresforge inspect-milestone-dashboard --parent-issue 345`
-- `python -m aresforge inspect-milestone-state --parent-issue 345`
-- `python -m aresforge inspect-self-managed-milestone-execution-contract`
-- `python -m aresforge simulate-self-managed-milestone-execution --parent-issue 345`
+- `python -m aresforge inspect-milestone-dashboard --parent-issue 362`
+- `python -m aresforge inspect-milestone-state --parent-issue 362`
+- `python -m aresforge check-milestone-evidence-readiness --parent-issue 362`
+- `python -m aresforge inspect-parent-closeout-readiness --parent-issue 362`
+- `python -m aresforge generate-parent-closeout-evidence-bundle --parent-issue 362`
 
 ## Known Limitations
 

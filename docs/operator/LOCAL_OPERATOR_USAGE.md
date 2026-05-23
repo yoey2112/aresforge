@@ -2,6 +2,19 @@
 
 ## M22 Evidence Bundle Workflow
 
+M22 issue/PR mapping status:
+
+- parent `#362` OPEN
+- child `#363` CLOSED via PR `#372`
+- child `#364` CLOSED via PR `#373`
+- child `#365` CLOSED via PR `#374`
+- child `#366` CLOSED via PR `#375`
+- child `#367` CLOSED via PR `#376`
+- child `#368` CLOSED via PR `#377`
+- child `#369` CLOSED via PR `#378`
+- child `#370` CLOSED via PR `#379`
+- child `#371` OPEN via PR `#380` (final reconciliation, processed last)
+
 Command inventory:
 
 - `python -m aresforge inspect-evidence-bundle-automation-contract`
@@ -79,6 +92,12 @@ Simulation guarantees:
 - final reconciliation must remain last
 - blocked and ready parent bundle states are represented for fixture coverage
 - child and PR evidence generation paths are covered in dry-run planning form
+
+Known warnings/deviations carried forward:
+
+- `milestone_naming_status.naming_ok` remains `false` (non-blocking warning).
+- parent/child GitHub milestone assignment gaps may still appear as warnings.
+- `run-sequential-child-closeout-flow` requires explicit `--comment-body` in dry-run and execute modes.
 
 PowerShell safety for issue/comment bodies:
 
