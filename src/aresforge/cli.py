@@ -105,6 +105,7 @@ from aresforge.operator.parent_child_linkage_preflight import inspect_parent_chi
 from aresforge.operator.child_evidence_marker_preflight import inspect_child_evidence_marker_preflight
 from aresforge.operator.pr_mapping_preflight import inspect_pr_mapping_preflight
 from aresforge.operator.closeout_repair_guidance import generate_closeout_preflight_repair_guidance
+from aresforge.operator.milestone_closeout_preflight import inspect_milestone_closeout_preflight
 from aresforge.operator.milestone_reconciliation_planner import plan_milestone_final_reconciliation
 from aresforge.operator.sequential_run_state import (
     inspect_sequential_run_state,
@@ -564,6 +565,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Generate copy/paste-safe read-only repair guidance from milestone preflight findings.",
     )
     closeout_repair_guidance_parser.add_argument("--parent-issue", type=int, required=True)
+    milestone_closeout_preflight_parser = subparsers.add_parser(
+        "inspect-milestone-closeout-preflight",
+        help="Run read-only milestone closeout preflight orchestration across lineage, evidence, and PR mapping.",
+    )
+    milestone_closeout_preflight_parser.add_argument("--parent-issue", type=int, required=True)
     child_execution_gates_parser = subparsers.add_parser(
         "inspect-child-execution-gates",
         help="Inspect start/PR/merge/close gates for one child issue in read-only mode.",
@@ -1352,6 +1358,11 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "generate-closeout-preflight-repair-guidance":
         payload = generate_closeout_preflight_repair_guidance(config, parent_issue=args.parent_issue)
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-milestone-closeout-preflight":
+        payload = inspect_milestone_closeout_preflight(config, parent_issue=args.parent_issue)
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 
