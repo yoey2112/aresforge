@@ -1,5 +1,91 @@
 # Local Operator Usage
 
+## M22 Evidence Bundle Workflow
+
+Command inventory:
+
+- `python -m aresforge inspect-evidence-bundle-automation-contract`
+- `python -m aresforge generate-child-closeout-evidence-bundle --parent-issue <parent> --child-issue <child>`
+- `python -m aresforge generate-parent-closeout-evidence-bundle --parent-issue <parent>`
+- `python -m aresforge generate-pr-evidence-bundle --issue <issue> --pr <pr>`
+- `python -m aresforge simulate-evidence-bundle-generation --parent-issue <parent>`
+
+Read-only defaults and approval boundary:
+
+- all evidence bundle generation commands are read-only by default
+- generation commands must not close issues, edit PRs, or post comments automatically
+- targeted mutation remains operator-approved and narrow (`gh issue close <issue>`, `gh issue comment <issue>`, `gh pr edit <pr> --body-file <file>`)
+- never bulk-close child issues
+- never close parent before child closeout/accounting and readiness checks pass
+
+Child closeout bundle flow:
+
+1. Generate child evidence body text.
+2. Replace placeholders with concrete branch/commit/files/validation evidence.
+3. Post one targeted issue comment for one child issue.
+4. Close only that child issue.
+
+Commands:
+
+- `python -m aresforge generate-child-closeout-evidence-bundle --parent-issue <parent> --child-issue <child>`
+- `gh issue comment <child> --body-file <comment_file>`
+- `gh issue close <child> --comment "Closing after merged PR and posted evidence."`
+
+Parent closeout bundle flow:
+
+1. Run parent readiness checks and generate parent evidence bundle.
+2. Confirm `parent_closeout_ready` is `true` and blocked reasons are empty.
+3. Post one targeted parent evidence comment.
+4. Close only the parent issue.
+
+Commands:
+
+- `python -m aresforge inspect-parent-closeout-readiness --parent-issue <parent>`
+- `python -m aresforge generate-parent-closeout-evidence-bundle --parent-issue <parent>`
+- `gh issue comment <parent> --body-file <comment_file>`
+- `gh issue close <parent> --comment "Parent closeout after readiness confirmation."`
+
+PR evidence body flow:
+
+1. Generate deterministic PR evidence body text.
+2. Review and save the text.
+3. Apply one targeted PR body update only when explicitly approved.
+
+Commands:
+
+- `python -m aresforge generate-pr-evidence-bundle --issue <issue> --pr <pr>`
+- `gh pr edit <pr> --body-file artifacts/pr-<pr>-body.md`
+- `python -m aresforge prepare-pr-body-update --pr-number <pr> --target-issue <issue> --scope-summary "<summary>"`
+
+Validation summary normalization:
+
+- Validation summaries are normalized to: `pass`, `fail`, `warning`, `unknown`.
+- Common labels are normalized for deterministic evidence output:
+   - `git diff --check`
+   - `python -m pytest`
+   - `python -m aresforge inspect-repo-governance`
+   - `python -m aresforge inspect-milestone-dashboard`
+   - `python -m aresforge inspect-milestone-state`
+   - `python -m aresforge check-milestone-evidence-readiness`
+   - `python -m aresforge inspect-parent-closeout-readiness`
+
+Dry-run simulation flow:
+
+- `python -m aresforge simulate-evidence-bundle-generation --parent-issue <parent>`
+
+Simulation guarantees:
+
+- no mutation by default
+- final reconciliation must remain last
+- blocked and ready parent bundle states are represented for fixture coverage
+- child and PR evidence generation paths are covered in dry-run planning form
+
+PowerShell safety for issue/comment bodies:
+
+- avoid nested markdown fences inside here-strings
+- use plain text command examples inside issue/comment bodies
+- prefer `--body-file` and `--comment-file` for multiline content
+
 ## M18 Core Validation Bundle
 
 - `git diff --check`
