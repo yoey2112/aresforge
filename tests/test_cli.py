@@ -65,6 +65,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-closeout-planning-drift",
         "plan-github-mutation",
         "execute-github-issue-comment",
+        "execute-github-issue-close",
         "qa-review-pr",
         "qa-closeout-pr",
         "validate-pr-end-to-end",
@@ -302,6 +303,19 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     assert execute_github_issue_comment_args.issue == 329
     assert execute_github_issue_comment_args.execute is False
     assert execute_github_issue_comment_args.allow_parent_target is False
+    execute_github_issue_close_args = parser.parse_args(
+        [
+            "execute-github-issue-close",
+            "--issue-target",
+            "330",
+            "--parent-issue",
+            "326",
+        ]
+    )
+    assert execute_github_issue_close_args.command == "execute-github-issue-close"
+    assert execute_github_issue_close_args.issue_target == "330"
+    assert execute_github_issue_close_args.parent_issue == 326
+    assert execute_github_issue_close_args.execute is False
     inspect_sequential_run_state_args = parser.parse_args(
         ["inspect-sequential-run-state", "--parent-issue", "309"]
     )
