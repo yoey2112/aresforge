@@ -109,6 +109,9 @@ from aresforge.operator.self_managed_milestone_planner import plan_self_managed_
 from aresforge.operator.self_managed_milestone_execution_contract import (
     inspect_self_managed_milestone_execution_contract,
 )
+from aresforge.operator.self_managed_milestone_handoff import (
+    generate_self_managed_milestone_handoff,
+)
 from aresforge.operator.repo_bootstrap_contract import inspect_repo_bootstrap_contract
 from aresforge.operator.repo_bootstrap_plan import plan_repo_bootstrap
 from aresforge.operator.repo_governance import inspect_repo_governance
@@ -374,6 +377,17 @@ def build_parser() -> argparse.ArgumentParser:
         "inspect-self-managed-milestone-execution-contract",
         help="Inspect the read-only M21 self-managed milestone execution contract.",
     )
+    self_managed_handoff_parser = subparsers.add_parser(
+        "generate-self-managed-milestone-handoff",
+        help="Generate deterministic read-only M21 recovery/handoff package after a completed child.",
+    )
+    self_managed_handoff_parser.add_argument("--parent-issue", type=int, required=True)
+    self_managed_handoff_parser.add_argument("--completed-child", type=int, required=True)
+    self_managed_handoff_parser.add_argument("--next-child", type=int)
+    self_managed_handoff_parser.add_argument("--pr-url")
+    self_managed_handoff_parser.add_argument("--evidence-comment-url")
+    self_managed_handoff_parser.add_argument("--validation-result", action="append", default=[])
+    self_managed_handoff_parser.add_argument("--warning", action="append", default=[])
     self_managed_issue_script_parser = subparsers.add_parser(
         "generate-self-managed-issue-script",
         help="Generate human-gated PowerShell issue guidance from self-managed milestone run queue state.",
@@ -1098,6 +1112,20 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "inspect-self-managed-milestone-execution-contract":
         payload = inspect_self_managed_milestone_execution_contract(config)
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "generate-self-managed-milestone-handoff":
+        payload = generate_self_managed_milestone_handoff(
+            config,
+            parent_issue=args.parent_issue,
+            completed_child=args.completed_child,
+            next_child=args.next_child,
+            pr_url=args.pr_url,
+            validation_results=list(args.validation_result),
+            evidence_comment_url=args.evidence_comment_url,
+            warning=list(args.warning),
+        )
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 

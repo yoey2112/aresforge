@@ -33,6 +33,7 @@ def test_cli_help_includes_m6_commands() -> None:
     assert "plan-batch-closeout" in help_text
     assert "plan-sprint-issues" in help_text
     assert "inspect-self-managed-milestone-execution-contract" in help_text
+    assert "generate-self-managed-milestone-handoff" in help_text
     assert "inspect-closeout-planning-drift" in help_text
     assert "inspect-milestone-state" in help_text
     assert "plan-milestone-execution-queue" in help_text
@@ -553,3 +554,53 @@ def test_cli_dispatch_inspect_self_managed_milestone_execution_contract(
     assert exit_code == 0
     assert payload["command"] == "inspect-self-managed-milestone-execution-contract"
     assert payload["read_only"] is True
+
+
+def test_cli_dispatch_generate_self_managed_milestone_handoff(
+    monkeypatch,
+    capsys,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: _config(tmp_path))
+    monkeypatch.setattr(
+        cli,
+        "generate_self_managed_milestone_handoff",
+        lambda _config, parent_issue, completed_child, next_child, pr_url, validation_results, evidence_comment_url, warning: {
+            "command": "generate-self-managed-milestone-handoff",
+            "ok": True,
+            "read_only": True,
+            "parent_issue": parent_issue,
+            "completed_child": completed_child,
+            "next_child": next_child,
+            "pr_url": pr_url,
+            "validation_results": validation_results,
+            "evidence_comment_url": evidence_comment_url,
+            "warning": warning,
+        },
+    )
+    exit_code = cli.main(
+        [
+            "generate-self-managed-milestone-handoff",
+            "--parent-issue",
+            "345",
+            "--completed-child",
+            "349",
+            "--next-child",
+            "350",
+            "--pr-url",
+            "https://github.com/yoey2112/aresforge/pull/357",
+            "--validation-result",
+            "python -m pytest: pass",
+            "--evidence-comment-url",
+            "https://github.com/yoey2112/aresforge/issues/349#issuecomment-1",
+            "--warning",
+            "none",
+        ]
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["command"] == "generate-self-managed-milestone-handoff"
+    assert payload["read_only"] is True
+    assert payload["parent_issue"] == 345
+    assert payload["completed_child"] == 349
+    assert payload["next_child"] == 350
