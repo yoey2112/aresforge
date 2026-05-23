@@ -12,7 +12,9 @@ _PR_PATTERN = re.compile(r"^Implemented By:\s*PR\s+#(?P<number>\d+)\s*$", re.IGN
 _COMMIT_PATTERN = re.compile(r"^Merged Commit:\s*(?P<sha>[0-9a-fA-F]{7,40})\s*$", re.IGNORECASE)
 _READY_PATTERN = re.compile(r"^Closeout Ready:\s*(?P<value>true|false)\s*$", re.IGNORECASE)
 _LEGACY_PR_PATTERN = re.compile(r"\bImplemented by PR\s+#(?P<number>\d+)\b", re.IGNORECASE)
+_LEGACY_PR_URL_PATTERN = re.compile(r"\bgithub\.com/[^/\s]+/[^/\s]+/pull/(?P<number>\d+)\b", re.IGNORECASE)
 _LEGACY_COMMIT_PATTERN = re.compile(r"\bMerged (?:main )?commit(?: after PR merge)?:\s*(?P<sha>[0-9a-fA-F]{7,40})\b")
+_LEGACY_MAIN_HEAD_PATTERN = re.compile(r"\bmain\s+HEAD(?:\s+after\s+merge)?\s*:\s*(?P<sha>[0-9a-fA-F]{7,40})\b", re.IGNORECASE)
 
 
 def parse_issue_evidence_mapping(
@@ -191,11 +193,18 @@ def _parse_legacy_fallback(*, issue_number: int, issue_body: str, comments: list
     for text in texts:
         issue_match = re.search(rf"\bIssue\s+#?{issue_number}\b", text, re.IGNORECASE)
         pr_match = _LEGACY_PR_PATTERN.search(text)
+        pr_url_match = _LEGACY_PR_URL_PATTERN.search(text)
         commit_match = _LEGACY_COMMIT_PATTERN.search(text)
-        if issue_match and pr_match:
+        if issue_match and (pr_match or pr_url_match):
+            pr_number_match = pr_match if pr_match else pr_url_match
+            main_head_match = _LEGACY_MAIN_HEAD_PATTERN.search(text)
             return {
                 "matched": True,
-                "pr_number": int(pr_match.group("number")),
-                "merged_commit": commit_match.group("sha").lower() if commit_match else None,
+                "pr_number": int(pr_number_match.group("number")) if pr_number_match else None,
+                "merged_commit": (
+                    commit_match.group("sha").lower()
+                    if commit_match
+                    else (main_head_match.group("sha").lower() if main_head_match else None)
+                ),
             }
     return {"matched": False, "pr_number": None, "merged_commit": None}
