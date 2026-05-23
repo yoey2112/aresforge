@@ -2,59 +2,63 @@
 
 ## Current Milestones
 
-### M0-M18
+### M0-M19
 
 Status: Completed.
 
-### M19 - Sequential Operator Execution Engine and Recovery Planning
+### M20 - Operator-approved GitHub Mutation Orchestration
 
-Status: Final reconciliation in progress (`#317` only).
+Status: Final reconciliation in progress (`#334` only).
 
 Parent issue:
 
-- #309 M19 sequential operator execution engine and recovery planning (OPEN)
+- #326 M20 operator-approved GitHub mutation orchestration (OPEN)
 
 Child issues:
 
-- #310 CLOSED via PR #318
-- #311 CLOSED via PR #319
-- #312 CLOSED via PR #320
-- #313 CLOSED via PR #321
-- #314 CLOSED via PR #322
-- #315 CLOSED via PR #323
-- #316 CLOSED via PR #324
-- #317 OPEN (final source-of-truth reconciliation, must be processed last)
-- Final reconciliation PR: #325
+- #327 CLOSED via PR #335
+- #328 CLOSED via PR #336
+- #329 CLOSED via PR #337
+- #330 CLOSED via PR #338
+- #331 CLOSED via PR #339
+- #332 CLOSED via PR #340
+- #333 CLOSED via PR #341
+- #334 OPEN (final source-of-truth reconciliation, must be processed last)
 
-Delivered M19 outcomes:
+Delivered M20 outcomes:
 
-- `inspect-sequential-run-state`
-- `inspect-child-execution-gates`
-- `plan-sequential-run-recovery`
-- `generate-sequential-handoff-package`
-- milestone dashboard/readiness integration with sequential run-state visibility
-- GitHub truth vs local sequential run-state mismatch signaling
-- child discovery fix for checklist inline references in parent issue content
-- end-to-end sequential operator workflow documentation
+- `plan-github-mutation`
+- `execute-github-issue-comment`
+- `execute-github-issue-close`
+- `prepare-pr-body-update`
+- `inspect-github-mutation-audit-log`
+- operator-approved mutation orchestration contract and lifecycle boundaries
+- local audit logging plus targeted recovery guidance
+- end-to-end operator-approved mutation workflow documentation
 
-M19 safety posture:
+M20 safety posture:
 
 - no autonomous broad mutation
 - no bulk closure
 - no parent closure before all children are closed/accounted for
+- mutation execution defaults to dry-run/planning unless explicitly approved
 - every child is executed with dedicated branch, PR, validation, evidence comment, and targeted closeout
 - final reconciliation kept last and docs-focused
-- prior milestones are not mutated unless explicitly required for M19 documentation references
+- prior milestones are not mutated unless explicitly required for M20 documentation references
 
-M19 validation bundle:
+M20 validation bundle:
 
 - `git diff --check`
 - `python -m pytest`
 - `python -m aresforge inspect-repo-governance`
-- `python -m aresforge inspect-milestone-dashboard --parent-issue 309`
-- `python -m aresforge inspect-milestone-state --parent-issue 309`
-- `python -m aresforge check-milestone-evidence-readiness --parent-issue 309`
-- `python -m aresforge inspect-parent-closeout-readiness --parent-issue 309`
+- `python -m aresforge inspect-milestone-dashboard --parent-issue 326`
+- `python -m aresforge inspect-milestone-state --parent-issue 326`
+- `python -m aresforge check-milestone-evidence-readiness --parent-issue 326`
+- `python -m aresforge inspect-parent-closeout-readiness --parent-issue 326`
+
+Known non-blocking warning:
+
+- M20 child discovery mismatch persists in read-only milestone inspectors for parent `#326` due to lineage parsing expectations.
 
 ## Standing Boundaries
 
