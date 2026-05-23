@@ -89,6 +89,23 @@ Behavior:
 - emits audit-ready result payload
 - no bulk closure path
 
+## M20 PR Body Update Helper (Child #331)
+
+Commands:
+
+- `python -m aresforge prepare-pr-body-update --pr-number <pr> --target-issue <issue> --scope-summary "<summary>"`
+- `python -m aresforge prepare-pr-body-update --pr-number <pr> --target-issue <issue> --scope-summary "<summary>" --file-changed <path> --validation-result "<result>" --safety-note "<note>"`
+- `python -m aresforge prepare-pr-body-update --pr-number <pr> --target-issue <issue> --scope-summary "<summary>" --execute --approval-marker <marker>`
+
+Behavior:
+
+- dry-run by default
+- renders structured PR body text with scope, files changed, validation results, and safety notes
+- supports optional targeted execution for one PR body update only
+- execution requires explicit `--execute` and `--approval-marker`
+- generated output avoids nested markdown fences for PowerShell examples
+- no bulk PR update path
+
 ## Read-Only Milestone Inspection
 
 Commands:
