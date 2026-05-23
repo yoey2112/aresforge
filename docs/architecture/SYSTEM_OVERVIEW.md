@@ -52,3 +52,5 @@ Planned future components include:
 The future dashboard should consolidate the currently distributed GitHub and documentation state into a readable project control surface.
 
 The dashboard should not replace GitHub or documentation as durable records until the governance model explicitly allows that transition.
+
+- Operator-approved GitHub mutation orchestration: see OPERATOR_APPROVED_GITHUB_MUTATION_ORCHESTRATION_CONTRACT.md for M20 safety boundaries and lifecycle states.
