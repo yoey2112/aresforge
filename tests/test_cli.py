@@ -55,6 +55,7 @@ def test_cli_has_expected_commands() -> None:
         "generate-child-closeout-evidence-bundle",
         "generate-parent-closeout-evidence-bundle",
         "generate-pr-evidence-bundle",
+        "simulate-evidence-bundle-generation",
         "generate-evidence-comment-template",
         "run-autonomous-cycle",
         "inspect-autonomous-run",
@@ -263,6 +264,15 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     assert generate_pr_evidence_bundle_args.command == "generate-pr-evidence-bundle"
     assert generate_pr_evidence_bundle_args.issue == 367
     assert generate_pr_evidence_bundle_args.pr == 376
+    simulate_evidence_bundle_args = parser.parse_args(
+        [
+            "simulate-evidence-bundle-generation",
+            "--parent-issue",
+            "362",
+        ]
+    )
+    assert simulate_evidence_bundle_args.command == "simulate-evidence-bundle-generation"
+    assert simulate_evidence_bundle_args.parent_issue == 362
     generate_evidence_comment_template_args = parser.parse_args(
         ["generate-evidence-comment-template", "--issue", "297"]
     )
@@ -1252,6 +1262,53 @@ def test_cli_dispatches_generate_pr_evidence_bundle(
         "read_only": True,
         "issue": 367,
         "pr": 376,
+    }
+
+
+def test_cli_dispatches_simulate_evidence_bundle_generation(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+) -> None:
+    config = AppConfig(
+        repo_root=tmp_path,
+        db_host="127.0.0.1",
+        db_port=5433,
+        db_name="aresforge",
+        db_user="aresforge",
+        db_password="aresforge",
+        ollama_base_url="http://127.0.0.1:11434",
+        ollama_model="qwen2.5:32b",
+        artifact_root=tmp_path / "artifacts",
+        prompts_dir=tmp_path / "artifacts" / "prompts" / "generated",
+        evidence_dir=tmp_path / "artifacts" / "evidence" / "generated",
+        codex_handoffs_dir=tmp_path / "artifacts" / "codex_handoffs" / "generated",
+        github_owner="yoey2112",
+        github_repo="aresforge",
+    )
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: config)
+    monkeypatch.setattr(
+        cli,
+        "simulate_evidence_bundle_generation",
+        lambda _config, parent_issue: {
+            "command": "simulate-evidence-bundle-generation",
+            "ok": True,
+            "read_only": True,
+            "dry_run": True,
+            "parent_issue": parent_issue,
+        },
+    )
+
+    exit_code = cli.main(["simulate-evidence-bundle-generation", "--parent-issue", "362"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert payload == {
+        "command": "simulate-evidence-bundle-generation",
+        "ok": True,
+        "read_only": True,
+        "dry_run": True,
+        "parent_issue": 362,
     }
 
 
