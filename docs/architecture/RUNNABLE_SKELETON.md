@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Describe the implemented human-triggered operator surface after M16 controlled autonomous execution loop delivery.
+Describe the implemented human-triggered operator surface through M21 self-managed milestone execution.
 
 ## Operator Shape
 
@@ -10,67 +10,58 @@ Command entrypoint:
 
 - `python -m aresforge`
 
-## Current Additions
+## Current Additions (M21 Included)
 
-- `run-autonomous-cycle`: explicit controlled execution loop with mode-gated mutation boundaries.
-- `inspect-autonomous-run`: inspect DB-backed run lifecycle and step history.
-- `inspect-milestone-state`: read-only milestone parent/child issue state inspection.
-- `inspect-milestone-dashboard`: unified read-only milestone execution dashboard across inspection/planning/readiness signals.
-- `plan-milestone-execution-queue`: read-only, planning-only milestone child execution queue planner.
-- `check-issue-evidence-readiness`: read-only issue evidence completeness classification.
-- `check-milestone-evidence-readiness`: read-only milestone-level evidence readiness summary.
-- `plan-milestone-final-reconciliation`: planning-only milestone final reconciliation readiness planner.
-- `generate-evidence-comment-template`: read-only issue-specific evidence template generator.
-- `generate-child-closeout-script`: read-only target-issue closeout script generator.
-- `inspect-parent-closeout-readiness`: read-only parent closeout readiness report with child lineage/accounted signals.
-- Existing planning/validation/reporting commands remain available and compatible.
+- `inspect-self-managed-milestone-execution-contract`
+- `simulate-self-managed-milestone-execution`
+- `run-sequential-child-closeout-flow`
+- `generate-sequential-closeout-execution-package`
+- `generate-self-managed-milestone-handoff`
+- `inspect-milestone-state`
+- `inspect-milestone-dashboard`
+- `plan-milestone-execution-queue`
+- `check-issue-evidence-readiness`
+- `check-milestone-evidence-readiness`
+- `inspect-parent-closeout-readiness`
 
-## M16 Capability Contract Alignment
+## M21 Capability Contract Alignment
 
-- Contract authority: `docs/architecture/CONTROLLED_AUTONOMOUS_GITHUB_EXECUTION_CONTRACT.md`.
-- Implemented mode set:
-  - `dry-run`
-  - `local-write`
-  - `branch-write`
-  - `push-pr`
-  - `closeout-eligible`
-- Implemented execution boundaries:
-  - branch creation/commit only in `branch-write` or higher
-  - push/PR only in `push-pr` or higher
-  - issue closeout only in `closeout-eligible`
-- Implemented persistence:
-  - `autonomous_runs` for run lifecycle state
-  - `run_steps` for ordered mutation/evaluation evidence
+- Contract authority: `docs/architecture/M21_SELF_MANAGED_EXECUTION_CONTRACT.md`.
+- Parent-driven sequential child execution with final reconciliation last.
+- Read-only simulation available before mutation execution.
+- Targeted closeout flow accepts a single child issue only.
+- Parent closeout remains readiness-gated and separate from child closeout flow.
 
 ## Automation Boundary
 
-- Human-triggered only.
-- Read-only-safe defaults.
-- Fail-closed gates for higher-permission modes.
-- No automatic PR merge.
-- No background jobs, polling loops, or schedulers.
-- Evidence package generation for all run outcomes.
-- For milestone planning and inspection surfaces: no issue closure, no PR creation, no issue comments, and no cross-milestone mutation.
-- For M18 dashboard and parent-closeout-readiness surfaces: read-only aggregation only; no issue closure, PR creation, comments, or broad mutation.
-- Script/template generators are output-only and require explicit human execution for any mutation.
-- Parent issue remains open until child issues are closed/accounted and final reconciliation is merged/accounted.
+- human-triggered only
+- read-only-safe defaults
+- explicit operator approval required for execute-mode mutation
+- no bulk mutation path
+- no automatic PR merge
+- no background jobs, polling loops, or schedulers
+- parent issue remains open until children are closed/accounted and parent readiness checks pass
 
-## Validation Bundle
+## Current Validation Bundle (M21)
 
 - `git diff --check`
 - `python -m pytest`
 - `python -m aresforge inspect-repo-governance`
-- `python -m aresforge run-autonomous-cycle --mode dry-run --parent-issue <parent> --target-issue <target> --validation-command "python -m aresforge inspect-repo-governance"`
-- `python -m aresforge run-autonomous-cycle --mode local-write --parent-issue <parent> --target-issue <target> --validation-command "python -m aresforge inspect-repo-governance"`
-- `python -m aresforge run-autonomous-cycle --mode branch-write --parent-issue <parent> --target-issue <target> --validation-command "python -m aresforge inspect-repo-governance"` (fail-closed check without branch/commit inputs)
-- `python -m aresforge run-autonomous-cycle --mode push-pr --parent-issue <parent> --target-issue <target> --validation-command "python -m aresforge inspect-repo-governance"` (fail-closed check without branch/commit/PR inputs)
-- `python -m aresforge run-autonomous-cycle --mode closeout-eligible --parent-issue <parent> --target-issue <target> --validation-command "python -m aresforge inspect-repo-governance"` (fail-closed check without branch/commit/PR inputs)
-- `python -m aresforge inspect-autonomous-run --run-id <id>`
+- `python -m aresforge inspect-milestone-dashboard --parent-issue 345`
+- `python -m aresforge inspect-milestone-state --parent-issue 345`
+- `python -m aresforge inspect-self-managed-milestone-execution-contract`
+- `python -m aresforge simulate-self-managed-milestone-execution --parent-issue 345`
+- `python -m aresforge run-sequential-child-closeout-flow --parent-issue 345 --child-issue <child> --comment-body "M21 child evidence draft"`
+- `python -m aresforge generate-sequential-closeout-execution-package --parent-issue 345 --child-issue <child>`
 
-## Follow-Up Candidates
+## Known Limitations
 
-1. Tighten closeout gates with stricter PR-to-issue linkage inspection using deterministic GitHub evidence checks.
-2. Add richer run inspection summaries and filtered views.
-3. Add explicit no-op local-write step typing when no file mutation occurs.
-4. Add optional branch-write integration tests in a disposable local fixture repository.
-5. Continue hardening milestone evidence/accounted signals and parent closeout readiness guardrails.
+- Parent closeout execution remains manually triggered and intentionally conservative.
+- Governance milestone naming warning remains non-blocking and unresolved.
+- Issue milestone assignment gaps are surfaced as warnings but do not block M21 child execution.
+
+## Follow-Up Candidates (M22)
+
+1. Add read-only parent closeout evidence package generator.
+2. Add stricter issue lineage diagnostics and remediation hints.
+3. Add optional command scaffolds for evidence comments and parent closeout narratives.
