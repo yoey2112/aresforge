@@ -75,17 +75,19 @@ def plan_milestone_execution_queue(config: AppConfig, *, parent_issue: int) -> d
 
 
 def _recommend_order(child_issues: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    sortable: list[tuple[int, int, dict[str, Any]]] = []
+    sortable: list[tuple[int, int, int, dict[str, Any]]] = []
     for item in child_issues:
         issue_number = item.get("issue_number")
         if not isinstance(issue_number, int):
             continue
         is_final = _is_final_reconciliation(item)
         rank = 1 if is_final else 0
-        sortable.append((rank, issue_number, item))
-    sortable.sort(key=lambda entry: (entry[0], entry[1]))
+        discovery_position = item.get("discovery_position")
+        sequence_key = discovery_position if isinstance(discovery_position, int) and discovery_position > 0 else 999999
+        sortable.append((rank, sequence_key, issue_number, item))
+    sortable.sort(key=lambda entry: (entry[0], entry[1], entry[2]))
     ordered: list[dict[str, Any]] = []
-    for position, (_, issue_number, item) in enumerate(sortable, start=1):
+    for position, (_, _, issue_number, item) in enumerate(sortable, start=1):
         ordered.append(
             {
                 "position": position,
@@ -93,6 +95,7 @@ def _recommend_order(child_issues: list[dict[str, Any]]) -> list[dict[str, Any]]
                 "title": item.get("title"),
                 "state": item.get("state"),
                 "is_final_reconciliation": _is_final_reconciliation(item),
+                "discovery_position": item.get("discovery_position"),
             }
         )
     return ordered

@@ -198,6 +198,60 @@ def test_inspect_milestone_state_discovers_checkbox_prefixed_issue_lines(monkeyp
     assert payload["summary"]["closed_child_issue_count"] == 8
 
 
+def test_inspect_milestone_state_discovers_numbered_checklist_lines(monkeypatch, tmp_path: Path) -> None:
+    config = _config(tmp_path)
+
+    parent = {
+        "number": 345,
+        "state": "OPEN",
+        "title": "M21 parent",
+        "url": "https://example.test/issues/345",
+        "milestone": {"title": "M21"},
+        "body": (
+            "1. #346 - contract\n"
+            "2. #347 - bootstrap\n"
+            "3. #353 - source-of-truth reconciliation\n"
+            "Historical note: #326 already closed."
+        ),
+        "comments": [],
+        "reference_classification": {"implementation_issue_numbers": []},
+        "merged_pr_evidence": [],
+    }
+
+    def _child(issue_number: int) -> dict:
+        return {
+            "number": issue_number,
+            "state": "OPEN",
+            "title": f"child {issue_number}",
+            "url": f"https://example.test/issues/{issue_number}",
+            "milestone": {"title": "M21"},
+            "body": "Parent issue: #345",
+            "comments": [],
+            "reference_classification": {"implementation_issue_numbers": [345]},
+            "merged_pr_evidence": [],
+        }
+
+    children = {346: _child(346), 347: _child(347), 353: _child(353)}
+
+    def _fetch(_config: AppConfig, issue_number: int) -> dict:
+        if issue_number == 345:
+            return {"ok": True, "issue": parent}
+        issue = children.get(issue_number)
+        if issue is None:
+            return {"ok": False, "error": "not_found"}
+        return {"ok": True, "issue": issue}
+
+    monkeypatch.setattr(milestone_state_inspector, "fetch_issue_details", _fetch)
+
+    payload = milestone_state_inspector.inspect_milestone_state(config, parent_issue=345)
+
+    assert payload["ok"] is True
+    assert payload["child_discovery"]["discovered_child_issue_numbers"] == [346, 347, 353]
+    assert payload["child_issues"][0]["discovery_position"] == 1
+    assert payload["child_issues"][1]["discovery_position"] == 2
+    assert payload["child_issues"][2]["discovery_position"] == 3
+
+
 def test_inspect_milestone_state_bubbles_parent_lookup_error(monkeypatch, tmp_path: Path) -> None:
     config = _config(tmp_path)
     monkeypatch.setattr(
