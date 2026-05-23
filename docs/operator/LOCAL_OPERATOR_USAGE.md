@@ -121,6 +121,62 @@ Behavior:
 - inspection command is read-only and does not mutate GitHub
 - generated local audit artifacts must not be committed
 
+## M20 End-To-End Operator-Approved Mutation Workflow (Child #333)
+
+Recommended child order for M20:
+
+1. #327
+2. #328
+3. #329
+4. #330
+5. #331
+6. #332
+7. #333
+8. #334 (final reconciliation only; keep last)
+
+M20 workflow example:
+
+1. Plan mutation intent:
+   - `python -m aresforge plan-github-mutation --mutation-type issue_comment --planned-action "post child evidence" --target-issue <child>`
+2. Review dry-run output, required approvals, and blocked reasons.
+3. Execute targeted issue comment only when explicitly approved:
+   - `python -m aresforge execute-github-issue-comment --issue <child> --comment-body "<evidence>" --execute --approval-marker <marker>`
+4. Validate closeout readiness for a single issue target:
+   - `python -m aresforge execute-github-issue-close --issue-target <child> --parent-issue <parent>`
+5. Execute targeted issue close only when explicitly approved and ready:
+   - `python -m aresforge execute-github-issue-close --issue-target <child> --parent-issue <parent> --execute --approval-marker <marker>`
+6. Prepare PR body/update summary in dry-run mode:
+   - `python -m aresforge prepare-pr-body-update --pr-number <pr> --target-issue <child> --scope-summary "<summary>" --validation-result "python -m pytest -> pass" --safety-note "dry-run by default"`
+7. Inspect local audit records:
+   - `python -m aresforge inspect-github-mutation-audit-log --limit 20`
+8. If blocked/failure occurs, use targeted recovery only:
+   - resolve blocked reasons on one issue/PR target
+   - rerun one command in dry-run first
+   - do not run bulk mutation commands
+
+M20 safety boundaries:
+
+- no autonomous broad mutation
+- no bulk closure
+- no parent closure before children are closed/accounted for
+- dry-run/planning default for mutation features
+- explicit approval required for execution paths
+- local audit artifacts remain local-only unless explicitly exported by an operator
+
+What not to do:
+
+- do not run issue ranges or lists for closeout (`330-334`, `330,331`)
+- do not close parent #326 while any M20 child remains open
+- do not execute mutation commands without explicit approval marker
+- do not use broad scripts that mutate multiple issues/PRs in one step
+- do not commit local audit runtime artifacts
+
+PowerShell plain text examples (no nested markdown fences):
+
+- Set-Location C:\Projects\aresforge
+- python -m aresforge plan-github-mutation --mutation-type issue_close --planned-action "close child after readiness" --target-issue 333
+- python -m aresforge execute-github-issue-close --issue-target 333 --parent-issue 326
+
 ## Read-Only Milestone Inspection
 
 Commands:
