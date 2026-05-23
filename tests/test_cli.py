@@ -63,6 +63,7 @@ def test_cli_has_expected_commands() -> None:
         "plan-sequential-run-recovery",
         "generate-sequential-handoff-package",
         "inspect-closeout-planning-drift",
+        "plan-github-mutation",
         "qa-review-pr",
         "qa-closeout-pr",
         "validate-pr-end-to-end",
@@ -272,6 +273,21 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     )
     assert inspect_closeout_planning_drift_args.command == "inspect-closeout-planning-drift"
     assert inspect_closeout_planning_drift_args.parent_issue == 172
+    plan_github_mutation_args = parser.parse_args(
+        [
+            "plan-github-mutation",
+            "--mutation-type",
+            "issue_comment",
+            "--planned-action",
+            "post validation evidence",
+            "--target-issue",
+            "328",
+        ]
+    )
+    assert plan_github_mutation_args.command == "plan-github-mutation"
+    assert plan_github_mutation_args.mutation_type == "issue_comment"
+    assert plan_github_mutation_args.target_issue == 328
+    assert plan_github_mutation_args.target_pr is None
     inspect_sequential_run_state_args = parser.parse_args(
         ["inspect-sequential-run-state", "--parent-issue", "309"]
     )
