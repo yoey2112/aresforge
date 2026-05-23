@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import json
 import re
+import subprocess
 from typing import Any
 
 from aresforge.config import AppConfig
@@ -13,10 +15,10 @@ from aresforge.operator.ready_issue_intake import (
 COMMAND_NAME = "inspect-milestone-state"
 
 _CHILD_LINE_PATTERN = re.compile(
-    r"^\s*(?:[-*]\s*)?(?:\[[ xX]\]\s*)?#(?P<number>\d+)\b",
+    r"^\s*(?:[-*]\s*|\d+\.\s*)?(?:\[[ xX]\]\s*)?#(?P<number>\d+)\b",
     re.IGNORECASE,
 )
-_CHILD_INLINE_PATTERN = re.compile(r"\(#(?P<number>\d+)\)")
+_CHECKLIST_INLINE_PATTERN = re.compile(r"\(#(?P<number>\d+)\)")
 _MILESTONE_NAME_PATTERN = re.compile(r"^M\d+\b")
 
 
@@ -61,6 +63,7 @@ def inspect_milestone_state(config: AppConfig, *, parent_issue: int) -> dict[str
         parent_issue=parent_issue,
         parent_payload=parent_issue_payload,
     )
+    discovery_position = {number: index for index, number in enumerate(discovered_child_numbers, start=1)}
     child_states: list[ChildState] = []
     lookup_warnings: list[dict[str, Any]] = []
     for child_number in discovered_child_numbers:
@@ -85,7 +88,6 @@ def inspect_milestone_state(config: AppConfig, *, parent_issue: int) -> dict[str
             continue
         child_states.append(_to_child_state(parent_issue=parent_issue, issue=child_issue))
 
-    child_states.sort(key=lambda item: item.issue_number)
     summary = _build_summary(parent_issue_payload=parent_issue_payload, child_states=child_states)
 
     warnings = _build_warnings(
@@ -121,6 +123,7 @@ def inspect_milestone_state(config: AppConfig, *, parent_issue: int) -> dict[str
                 "merged_pr_count": item.merged_pr_count,
                 "lineage_detected": item.lineage_detected,
                 "lineage_sources": list(item.lineage_sources),
+                "discovery_position": discovery_position.get(item.issue_number),
             }
             for item in child_states
         ],
@@ -133,26 +136,36 @@ def inspect_milestone_state(config: AppConfig, *, parent_issue: int) -> dict[str
 
 
 def _discover_child_issue_numbers(*, parent_issue: int, parent_payload: dict[str, Any]) -> list[int]:
-    discovered: set[int] = set()
+    discovered: list[int] = []
+    seen: set[int] = set()
+
+    def _add(number: int) -> None:
+        if number in seen or number == parent_issue or number == PROTECTED_ISSUE_NUMBER:
+            return
+        seen.add(number)
+        discovered.append(number)
 
     refs = (parent_payload.get("reference_classification") or {}).get("implementation_issue_numbers")
     if isinstance(refs, list):
         for item in refs:
-            if isinstance(item, int) and item != parent_issue and item != PROTECTED_ISSUE_NUMBER:
-                discovered.add(item)
+            if isinstance(item, int):
+                _add(item)
 
     body = parent_payload.get("body")
     if isinstance(body, str):
         for line in body.splitlines():
             match = _CHILD_LINE_PATTERN.search(line)
             if match:
-                number = int(match.group("number"))
-                if number != parent_issue and number != PROTECTED_ISSUE_NUMBER:
-                    discovered.add(number)
-            for inline in _CHILD_INLINE_PATTERN.finditer(line):
-                number = int(inline.group("number"))
-                if number != parent_issue and number != PROTECTED_ISSUE_NUMBER:
-                    discovered.add(number)
+                _add(int(match.group("number")))
+                continue
+            stripped = line.strip()
+            if (
+                stripped.startswith("- [")
+                or stripped.startswith("* [")
+                or bool(re.match(r"^\d+\.\s+", stripped))
+            ):
+                for inline in _CHECKLIST_INLINE_PATTERN.finditer(line):
+                    _add(int(inline.group("number")))
 
     comments = parent_payload.get("comments")
     if isinstance(comments, list):
@@ -163,10 +176,69 @@ def _discover_child_issue_numbers(*, parent_issue: int, parent_payload: dict[str
             if not isinstance(refs, list):
                 continue
             for item in refs:
-                if isinstance(item, int) and item != parent_issue and item != PROTECTED_ISSUE_NUMBER:
-                    discovered.add(item)
+                if isinstance(item, int):
+                    _add(item)
 
-    return sorted(discovered)
+    if not discovered:
+        for child_number in _discover_children_from_repo_scan(
+            parent_issue=parent_issue,
+            owner_repo_hint=parent_payload.get("url"),
+        ):
+            _add(child_number)
+
+    return discovered
+
+
+def _discover_children_from_repo_scan(*, parent_issue: int, owner_repo_hint: Any) -> list[int]:
+    if not isinstance(owner_repo_hint, str) or "/issues/" not in owner_repo_hint:
+        return []
+    prefix = owner_repo_hint.split("/issues/")[0]
+    if "github.com/" not in prefix:
+        return []
+    repo_slug = prefix.split("github.com/", 1)[1].strip("/")
+    if not repo_slug:
+        return []
+
+    search = f"\"Parent issue: #{parent_issue}\" in:body"
+    result = subprocess.run(
+        [
+            "gh",
+            "issue",
+            "list",
+            "--repo",
+            repo_slug,
+            "--state",
+            "all",
+            "--limit",
+            "200",
+            "--json",
+            "number,body",
+            "--search",
+            search,
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        return []
+    try:
+        payload = json.loads(result.stdout)
+    except Exception:
+        return []
+    if not isinstance(payload, list):
+        return []
+    discovered: list[int] = []
+    for item in payload:
+        if not isinstance(item, dict):
+            continue
+        body = item.get("body")
+        number = item.get("number")
+        if not isinstance(number, int) or not isinstance(body, str):
+            continue
+        if re.search(rf"\bparent\s+issue\s*:\s*#{parent_issue}\b", body, re.IGNORECASE):
+            discovered.append(number)
+    return sorted(set(discovered))
 
 
 def _to_child_state(*, parent_issue: int, issue: dict[str, Any]) -> ChildState:

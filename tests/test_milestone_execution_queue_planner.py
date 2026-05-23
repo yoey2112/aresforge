@@ -158,3 +158,29 @@ def test_planner_uses_evidence_checker_duplicate_risk(monkeypatch, tmp_path: Pat
     )
     payload = milestone_execution_queue_planner.plan_milestone_execution_queue(config, parent_issue=269)
     assert payload["signals"]["duplicate_or_noop_pr_risks"][0]["risk"] == "evidence_checker_duplicate_or_noop_risk"
+
+
+def test_planner_prefers_parent_discovery_order_before_numeric_sort(monkeypatch, tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    monkeypatch.setattr(
+        milestone_execution_queue_planner,
+        "inspect_milestone_state",
+        lambda _config, parent_issue: {
+            "ok": True,
+            "parent_issue": {"issue_number": parent_issue, "state": "OPEN"},
+            "child_issues": [
+                {"issue_number": 353, "title": "source-of-truth reconciliation", "state": "OPEN", "lineage_detected": True, "merged_pr_count": 0, "discovery_position": 3},
+                {"issue_number": 347, "title": "bootstrap", "state": "OPEN", "lineage_detected": True, "merged_pr_count": 0, "discovery_position": 2},
+                {"issue_number": 346, "title": "contract", "state": "OPEN", "lineage_detected": True, "merged_pr_count": 0, "discovery_position": 1},
+            ],
+        },
+    )
+    monkeypatch.setattr(
+        milestone_execution_queue_planner,
+        "check_issue_evidence_readiness",
+        lambda _config, issue_number: {"ok": True, "classification": "ready", "duplicate_noop_planning": {"duplicate_pr_risk": False}},
+    )
+
+    payload = milestone_execution_queue_planner.plan_milestone_execution_queue(config, parent_issue=345)
+    assert [item["issue_number"] for item in payload["recommended_order"]] == [346, 347, 353]
+    assert payload["recommended_order"][-1]["is_final_reconciliation"] is True
