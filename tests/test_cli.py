@@ -55,6 +55,7 @@ def test_cli_has_expected_commands() -> None:
         "generate-self-managed-issue-script",
         "generate-child-closeout-script",
         "generate-child-closeout-evidence-bundle",
+        "generate-child-evidence-marker-template",
         "generate-parent-closeout-evidence-bundle",
         "generate-pr-evidence-bundle",
         "simulate-evidence-bundle-generation",
@@ -254,6 +255,18 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     assert generate_child_closeout_bundle_args.command == "generate-child-closeout-evidence-bundle"
     assert generate_child_closeout_bundle_args.parent_issue == 362
     assert generate_child_closeout_bundle_args.child_issue == 365
+    generate_child_marker_template_args = parser.parse_args(
+        [
+            "generate-child-evidence-marker-template",
+            "--parent-issue",
+            "400",
+            "--child-issue",
+            "403",
+        ]
+    )
+    assert generate_child_marker_template_args.command == "generate-child-evidence-marker-template"
+    assert generate_child_marker_template_args.parent_issue == 400
+    assert generate_child_marker_template_args.child_issue == 403
     generate_parent_closeout_bundle_args = parser.parse_args(
         [
             "generate-parent-closeout-evidence-bundle",
@@ -1538,6 +1551,61 @@ def test_cli_dispatches_generate_parent_closeout_evidence_bundle(
         "ok": True,
         "read_only": True,
         "parent_issue": 362,
+    }
+
+
+def test_cli_dispatches_generate_child_evidence_marker_template(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+) -> None:
+    config = AppConfig(
+        repo_root=tmp_path,
+        db_host="127.0.0.1",
+        db_port=5433,
+        db_name="aresforge",
+        db_user="aresforge",
+        db_password="aresforge",
+        ollama_base_url="http://127.0.0.1:11434",
+        ollama_model="qwen2.5:32b",
+        artifact_root=tmp_path / "artifacts",
+        prompts_dir=tmp_path / "artifacts" / "prompts" / "generated",
+        evidence_dir=tmp_path / "artifacts" / "evidence" / "generated",
+        codex_handoffs_dir=tmp_path / "artifacts" / "codex_handoffs" / "generated",
+        github_owner="yoey2112",
+        github_repo="aresforge",
+    )
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: config)
+    monkeypatch.setattr(
+        cli,
+        "generate_child_evidence_marker_template",
+        lambda _config, parent_issue, child_issue: {
+            "command": "generate-child-evidence-marker-template",
+            "ok": True,
+            "read_only": True,
+            "parent_issue": parent_issue,
+            "child_issue": child_issue,
+        },
+    )
+
+    exit_code = cli.main(
+        [
+            "generate-child-evidence-marker-template",
+            "--parent-issue",
+            "400",
+            "--child-issue",
+            "403",
+        ]
+    )
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert payload == {
+        "command": "generate-child-evidence-marker-template",
+        "ok": True,
+        "read_only": True,
+        "parent_issue": 400,
+        "child_issue": 403,
     }
 
 
