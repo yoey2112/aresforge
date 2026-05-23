@@ -111,6 +111,7 @@ from aresforge.operator.github_issue_comment_executor import (
     load_comment_body,
 )
 from aresforge.operator.github_issue_close_executor import execute_github_issue_close
+from aresforge.operator.pr_body_update_helper import prepare_pr_body_update
 from aresforge.operator.qa_closeout_pr import qa_closeout_pr
 from aresforge.operator.qa_pr_validation import qa_review_pr
 from aresforge.operator.validate_pr_end_to_end import validate_pr_end_to_end
@@ -595,6 +596,22 @@ def build_parser() -> argparse.ArgumentParser:
         "--execute",
         action="store_true",
         help="Execute issue close mutation. Without this flag, command runs in dry-run mode only.",
+    )
+    pr_body_helper_parser = subparsers.add_parser(
+        "prepare-pr-body-update",
+        help="Prepare or optionally execute a targeted PR body update with dry-run default.",
+    )
+    pr_body_helper_parser.add_argument("--pr-number", type=int, required=True)
+    pr_body_helper_parser.add_argument("--target-issue", type=int)
+    pr_body_helper_parser.add_argument("--scope-summary", required=True)
+    pr_body_helper_parser.add_argument("--file-changed", action="append", default=[])
+    pr_body_helper_parser.add_argument("--validation-result", action="append", default=[])
+    pr_body_helper_parser.add_argument("--safety-note", action="append", default=[])
+    pr_body_helper_parser.add_argument("--approval-marker")
+    pr_body_helper_parser.add_argument(
+        "--execute",
+        action="store_true",
+        help="Execute PR body update. Without this flag, command runs in dry-run mode only.",
     )
     subparsers.add_parser(
         "project-state-summary",
@@ -1213,6 +1230,21 @@ def main(argv: list[str] | None = None) -> int:
             config,
             issue_target=args.issue_target,
             parent_issue=args.parent_issue,
+            execute=bool(args.execute),
+            approval_marker=args.approval_marker,
+        )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "prepare-pr-body-update":
+        payload = prepare_pr_body_update(
+            config,
+            pr_number=args.pr_number,
+            target_issue=args.target_issue,
+            scope_summary=args.scope_summary,
+            files_changed=list(args.file_changed),
+            validation_results=list(args.validation_result),
+            safety_notes=list(args.safety_note),
             execute=bool(args.execute),
             approval_marker=args.approval_marker,
         )
