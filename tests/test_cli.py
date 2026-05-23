@@ -70,6 +70,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-parent-child-linkage-preflight",
         "inspect-child-evidence-marker-preflight",
         "inspect-pr-mapping-preflight",
+        "generate-closeout-preflight-repair-guidance",
         "inspect-child-execution-gates",
         "inspect-sequential-run-state",
         "plan-sequential-run-recovery",
@@ -354,6 +355,11 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     )
     assert inspect_pr_mapping_preflight_args.command == "inspect-pr-mapping-preflight"
     assert inspect_pr_mapping_preflight_args.parent_issue == 381
+    generate_closeout_repair_guidance_args = parser.parse_args(
+        ["generate-closeout-preflight-repair-guidance", "--parent-issue", "381"]
+    )
+    assert generate_closeout_repair_guidance_args.command == "generate-closeout-preflight-repair-guidance"
+    assert generate_closeout_repair_guidance_args.parent_issue == 381
     inspect_child_execution_gates_args = parser.parse_args(
         ["inspect-child-execution-gates", "--issue", "312", "--parent-issue", "309"]
     )
@@ -1167,6 +1173,49 @@ def test_cli_dispatches_inspect_pr_mapping_preflight(
     assert exit_code == 0
     assert payload == {
         "command": "inspect-pr-mapping-preflight",
+        "ok": True,
+        "parent_issue": 381,
+    }
+
+
+def test_cli_dispatches_generate_closeout_preflight_repair_guidance(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+) -> None:
+    config = AppConfig(
+        repo_root=tmp_path,
+        db_host="127.0.0.1",
+        db_port=5433,
+        db_name="aresforge",
+        db_user="aresforge",
+        db_password="aresforge",
+        ollama_base_url="http://127.0.0.1:11434",
+        ollama_model="qwen2.5:32b",
+        artifact_root=tmp_path / "artifacts",
+        prompts_dir=tmp_path / "artifacts" / "prompts" / "generated",
+        evidence_dir=tmp_path / "artifacts" / "evidence" / "generated",
+        codex_handoffs_dir=tmp_path / "artifacts" / "codex_handoffs" / "generated",
+        github_owner="yoey2112",
+        github_repo="aresforge",
+    )
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: config)
+    monkeypatch.setattr(
+        cli,
+        "generate_closeout_preflight_repair_guidance",
+        lambda _config, parent_issue: {
+            "command": "generate-closeout-preflight-repair-guidance",
+            "ok": True,
+            "parent_issue": parent_issue,
+        },
+    )
+
+    exit_code = cli.main(["generate-closeout-preflight-repair-guidance", "--parent-issue", "381"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert payload == {
+        "command": "generate-closeout-preflight-repair-guidance",
         "ok": True,
         "parent_issue": 381,
     }
