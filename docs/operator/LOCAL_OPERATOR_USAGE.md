@@ -106,6 +106,21 @@ Behavior:
 - generated output avoids nested markdown fences for PowerShell examples
 - no bulk PR update path
 
+## M20 Mutation Audit Log And Recovery Guidance (Child #332)
+
+Commands:
+
+- `python -m aresforge inspect-github-mutation-audit-log`
+- `python -m aresforge inspect-github-mutation-audit-log --limit 50`
+
+Behavior:
+
+- mutation planning/execution commands append local audit records
+- records include mutation intent, dry-run output, approval marker, execution result, timestamp, target, command concept, and recovery notes
+- audit artifacts are local-only by default
+- inspection command is read-only and does not mutate GitHub
+- generated local audit artifacts must not be committed
+
 ## Read-Only Milestone Inspection
 
 Commands:

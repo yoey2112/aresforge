@@ -8,4 +8,5 @@ src/aresforge.egg-info/
 artifacts/prompts/generated/
 artifacts/evidence/generated/
 artifacts/codex_handoffs/generated/
+artifacts/mutation_audit/
 .aresforge/
