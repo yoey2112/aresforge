@@ -112,6 +112,7 @@ from aresforge.operator.github_issue_comment_executor import (
 )
 from aresforge.operator.github_issue_close_executor import execute_github_issue_close
 from aresforge.operator.pr_body_update_helper import prepare_pr_body_update
+from aresforge.operator.github_mutation_audit_log import inspect_github_mutation_audit_log
 from aresforge.operator.qa_closeout_pr import qa_closeout_pr
 from aresforge.operator.qa_pr_validation import qa_review_pr
 from aresforge.operator.validate_pr_end_to_end import validate_pr_end_to_end
@@ -613,6 +614,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Execute PR body update. Without this flag, command runs in dry-run mode only.",
     )
+    inspect_mutation_audit_log_parser = subparsers.add_parser(
+        "inspect-github-mutation-audit-log",
+        help="Inspect local-only GitHub mutation audit log entries in read-only mode.",
+    )
+    inspect_mutation_audit_log_parser.add_argument("--limit", type=int, default=20)
     subparsers.add_parser(
         "project-state-summary",
         help="Emit a local-first read-only project state summary with graceful degradation.",
@@ -1202,6 +1208,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "plan-github-mutation":
         payload = plan_github_mutation(
+            config=config,
             mutation_type=args.mutation_type,
             planned_action=args.planned_action,
             target_issue=args.target_issue,
@@ -1248,6 +1255,11 @@ def main(argv: list[str] | None = None) -> int:
             execute=bool(args.execute),
             approval_marker=args.approval_marker,
         )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-github-mutation-audit-log":
+        payload = inspect_github_mutation_audit_log(config, limit=args.limit)
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 

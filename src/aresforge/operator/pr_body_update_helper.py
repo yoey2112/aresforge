@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from aresforge.config import AppConfig
+from aresforge.operator.github_mutation_audit_log import append_github_mutation_audit_log
 from aresforge.operator.ready_issue_intake import _repo_slug, _run_gh_command
 
 
@@ -65,7 +66,7 @@ def prepare_pr_body_update(
         finally:
             body_file.unlink(missing_ok=True)
 
-    return {
+    payload = {
         "command": "prepare-pr-body-update",
         "ok": len(blocked_reasons) == 0 and (not execute or mutation_succeeded),
         "mode": "execute" if execute else "dry_run",
@@ -100,6 +101,20 @@ def prepare_pr_body_update(
         ],
         **({"mutation_error": mutation_error} if mutation_error is not None else {}),
     }
+    append_github_mutation_audit_log(
+        config,
+        record={
+            "command": "prepare-pr-body-update",
+            "mutation_intent": "pr_body_update",
+            "dry_run_output": {"active": not execute, "summary": "Dry-run rendered body prepared."},
+            "approval_marker": approval_marker,
+            "execution_result": "succeeded" if mutation_succeeded else "not_executed_or_failed",
+            "target": {"type": "pr", "number": pr_number},
+            "command_concept": "prepare-pr-body-update",
+            "recovery_notes": payload["audit_ready_result"]["recovery_notes"],
+        },
+    )
+    return payload
 
 
 def _render_body(

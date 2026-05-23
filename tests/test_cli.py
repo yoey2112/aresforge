@@ -67,6 +67,7 @@ def test_cli_has_expected_commands() -> None:
         "execute-github-issue-comment",
         "execute-github-issue-close",
         "prepare-pr-body-update",
+        "inspect-github-mutation-audit-log",
         "qa-review-pr",
         "qa-closeout-pr",
         "validate-pr-end-to-end",
@@ -338,6 +339,11 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     assert prepare_pr_body_update_args.pr_number == 339
     assert prepare_pr_body_update_args.target_issue == 331
     assert prepare_pr_body_update_args.execute is False
+    inspect_github_mutation_audit_log_args = parser.parse_args(
+        ["inspect-github-mutation-audit-log", "--limit", "5"]
+    )
+    assert inspect_github_mutation_audit_log_args.command == "inspect-github-mutation-audit-log"
+    assert inspect_github_mutation_audit_log_args.limit == 5
     inspect_sequential_run_state_args = parser.parse_args(
         ["inspect-sequential-run-state", "--parent-issue", "309"]
     )

@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from aresforge.config import AppConfig
+from aresforge.operator.github_mutation_audit_log import append_github_mutation_audit_log
 from aresforge.operator.ready_issue_intake import _repo_slug, _run_gh_command
 
 
@@ -62,7 +63,7 @@ def execute_github_issue_comment(
                 "stderr": stderr.strip(),
             }
 
-    return {
+    payload = {
         "command": "execute-github-issue-comment",
         "ok": ok and (not execute or mutation_succeeded),
         "mode": "execute" if execute else "dry_run",
@@ -105,6 +106,20 @@ def execute_github_issue_comment(
         ],
         **({"mutation_error": mutation_error} if mutation_error is not None else {}),
     }
+    append_github_mutation_audit_log(
+        config,
+        record={
+            "command": "execute-github-issue-comment",
+            "mutation_intent": "issue_comment",
+            "dry_run_output": payload.get("dry_run"),
+            "approval_marker": approval_marker,
+            "execution_result": "succeeded" if mutation_succeeded else "not_executed_or_failed",
+            "target": {"type": "issue", "number": issue_number},
+            "command_concept": "execute-github-issue-comment",
+            "recovery_notes": payload["audit_ready_result"]["recovery_notes"],
+        },
+    )
+    return payload
 
 
 def load_comment_body(*, inline_body: str | None, body_file: str | None) -> str:

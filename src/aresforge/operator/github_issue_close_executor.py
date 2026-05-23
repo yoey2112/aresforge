@@ -6,6 +6,7 @@ from typing import Any
 
 from aresforge.config import AppConfig
 from aresforge.operator.evidence_completeness_checker import check_issue_evidence_readiness
+from aresforge.operator.github_mutation_audit_log import append_github_mutation_audit_log
 from aresforge.operator.parent_closeout_readiness import inspect_parent_closeout_readiness
 from aresforge.operator.ready_issue_intake import _repo_slug, _run_gh_command
 
@@ -61,7 +62,7 @@ def execute_github_issue_close(
         else:
             mutation_error = {"step": "close_issue", "exit_code": code, "stderr": stderr.strip()}
 
-    return {
+    payload = {
         "command": "execute-github-issue-close",
         "ok": len(blocked_reasons) == 0 and (not execute or mutation_succeeded),
         "mode": "execute" if execute else "dry_run",
@@ -104,6 +105,20 @@ def execute_github_issue_close(
         ],
         **({"mutation_error": mutation_error} if mutation_error is not None else {}),
     }
+    append_github_mutation_audit_log(
+        config,
+        record={
+            "command": "execute-github-issue-close",
+            "mutation_intent": "issue_close",
+            "dry_run_output": payload.get("dry_run"),
+            "approval_marker": approval_marker,
+            "execution_result": "succeeded" if mutation_succeeded else "not_executed_or_failed",
+            "target": {"type": "issue", "number": issue_number},
+            "command_concept": "execute-github-issue-close",
+            "recovery_notes": payload["audit_ready_result"]["recovery_notes"],
+        },
+    )
+    return payload
 
 
 def _parse_issue_target(issue_target: str) -> int | None:

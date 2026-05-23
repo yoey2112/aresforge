@@ -3,6 +3,9 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any
 
+from aresforge.config import AppConfig
+from aresforge.operator.github_mutation_audit_log import append_github_mutation_audit_log
+
 ALLOWED_MUTATION_TYPES = {
     "issue_comment",
     "issue_close",
@@ -13,6 +16,7 @@ ALLOWED_MUTATION_TYPES = {
 
 def plan_github_mutation(
     *,
+    config: AppConfig | None = None,
     mutation_type: str,
     planned_action: str,
     target_issue: int | None = None,
@@ -67,7 +71,7 @@ def plan_github_mutation(
     ]
 
     ok = len(blocked_reasons) == 0
-    return {
+    payload = {
         "command": "plan-github-mutation",
         "ok": ok,
         "mutation_type": normalized_type,
@@ -101,6 +105,21 @@ def plan_github_mutation(
             "Operator approval remains required for any execution command.",
         ],
     }
+    if config is not None:
+        append_github_mutation_audit_log(
+            config,
+            record={
+                "command": "plan-github-mutation",
+                "mutation_intent": normalized_type,
+                "dry_run_output": payload.get("dry_run"),
+                "approval_marker": approval_marker,
+                "execution_result": "not_executed",
+                "target": _target_descriptor(target_issue=target_issue, target_pr=target_pr),
+                "command_concept": "plan-github-mutation",
+                "recovery_notes": "Review blocked reasons before execution commands." if not ok else "No recovery action required.",
+            },
+        )
+    return payload
 
 
 def _target_descriptor(*, target_issue: int | None, target_pr: int | None) -> dict[str, Any]:
