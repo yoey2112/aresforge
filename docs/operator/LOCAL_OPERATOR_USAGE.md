@@ -1,5 +1,57 @@
 # Local Operator Usage
 
+## M23 Lineage And Evidence Preflight Workflow
+
+When to run:
+
+- Run M23 preflight before any parent closeout action.
+- Run after each child merge/closeout to detect lineage/evidence/PR mapping drift early.
+- Run before parent evidence bundle generation and before parent closeout readiness review.
+
+Primary command set:
+
+- `python -m aresforge inspect-milestone-closeout-preflight-contract`
+- `python -m aresforge inspect-parent-child-linkage-preflight --parent-issue <parent>`
+- `python -m aresforge inspect-child-evidence-marker-preflight --parent-issue <parent>`
+- `python -m aresforge inspect-pr-mapping-preflight --parent-issue <parent>`
+- `python -m aresforge generate-closeout-preflight-repair-guidance --parent-issue <parent>`
+- `python -m aresforge inspect-milestone-closeout-preflight --parent-issue <parent>`
+
+How M23 preflight relates to existing readiness commands:
+
+- `inspect-milestone-dashboard` and `inspect-milestone-state` remain the source for parent/child state and ordering.
+- `check-milestone-evidence-readiness` and `inspect-parent-closeout-readiness` remain parent closeout gates.
+- `inspect-milestone-closeout-preflight` adds strict lineage + evidence marker + PR mapping detectability checks before parent closeout.
+- `generate-parent-closeout-evidence-bundle` should be run after preflight reports ready (or after operator-reviewed warning remediation).
+
+State interpretation:
+
+- `ready`: no blocked/warning/unknown findings; closeout preflight gate is satisfied.
+- `blocked`: hard gaps found (for example missing lineage, missing PR mapping, missing evidence marker block).
+- `warning`: partial/ambiguous findings requiring operator remediation before closeout.
+- `unknown`: preflight could not determine required signal state from current data.
+
+Repair guidance usage:
+
+- `generate-closeout-preflight-repair-guidance` output is copy/paste-safe guidance only.
+- Repair guidance is not mutation execution.
+- Mutation remains a separate operator-approved targeted action.
+
+PowerShell-safe examples (plain text only):
+
+- `python -m aresforge inspect-milestone-closeout-preflight --parent-issue <parent>`
+- `python -m aresforge generate-closeout-preflight-repair-guidance --parent-issue <parent>`
+- `gh issue edit <parent> --body-file artifacts/issue-<parent>-body.md`
+- `gh issue comment <child> --body-file artifacts/issue-<child>-evidence.txt`
+- `gh pr view <pr_number> --json state,mergeCommit,url`
+
+Operator approval boundary:
+
+- Preflight commands are read-only by default.
+- PR/issue/body/comment mutation commands require explicit operator approval and targeted scope.
+- Bulk closure is forbidden.
+- Parent closeout is forbidden until children are closed/accounted for and parent readiness/preflight gates pass.
+
 ## M22 Evidence Bundle Workflow
 
 M22 issue/PR mapping status:
