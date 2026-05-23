@@ -152,6 +152,73 @@ Behavior:
 - documents dry-run default and explicit operator-approval mutation boundary
 - documents targeted mutation boundary (single issue comment, single issue close, single PR body update)
 - documents parent closeout readiness boundary
+
+## M21 End-to-End Dry-Run Simulation (Child #351)
+
+Command:
+
+- `python -m aresforge simulate-self-managed-milestone-execution --parent-issue <parent>`
+
+Behavior:
+
+- read-only simulation only
+- validates parent input, child discovery, sequential ordering, validation envelope, dry-run mutation planning, handoff planning, and parent closeout readiness blocking
+- confirms no GitHub mutation, no issue closure, and no bulk closeout path
+- preserves final reconciliation as the last child in sequence
+- reports the recommended next open child issue based on current milestone dashboard state
+
+## M21 Self-Managed Child Workflow (Child #352)
+
+Use this workflow for M21 parent execution where each child has exactly one branch, one PR, one evidence comment, and one targeted closeout.
+
+Start from parent issue:
+
+1. Sync clean main:
+   - `git checkout main`
+   - `git fetch origin`
+   - `git pull --ff-only origin main`
+   - `git status --short` (must be empty)
+2. Inspect parent state and child ordering:
+   - `python -m aresforge inspect-milestone-dashboard --parent-issue <parent>`
+   - `python -m aresforge inspect-milestone-state --parent-issue <parent>`
+   - `python -m aresforge inspect-self-managed-milestone-execution-contract`
+3. Run read-only simulation before implementation:
+   - `python -m aresforge simulate-self-managed-milestone-execution --parent-issue <parent>`
+4. Select only the recommended next open child issue (do not skip ahead; keep final reconciliation last).
+5. Create one branch for that child issue and implement only that issue scope.
+6. Run required validation for that child:
+   - `git diff --check`
+   - `python -m pytest`
+   - `python -m aresforge inspect-repo-governance`
+   - `python -m aresforge inspect-milestone-dashboard --parent-issue <parent>`
+   - `python -m aresforge inspect-milestone-state --parent-issue <parent>`
+   - `python -m aresforge inspect-self-managed-milestone-execution-contract`
+   - `python -m aresforge run-sequential-child-closeout-flow --parent-issue <parent> --child-issue <child> --comment-body "M21 child evidence draft"`
+   - `python -m aresforge generate-sequential-closeout-execution-package --parent-issue <parent> --child-issue <child>`
+7. Open and merge one PR for one child issue only.
+8. Sync clean main again and re-run validation commands.
+9. Generate handoff/recovery output:
+   - `python -m aresforge generate-self-managed-milestone-handoff --parent-issue <parent> --completed-child <child> --next-child <next-child>`
+10. Post targeted evidence comment and close only the target child issue with explicit execution approval.
+11. Re-check child and parent state:
+   - `gh issue view <child> --json number,state,closedAt,url`
+   - `gh issue view <parent> --json number,state,title,url`
+12. Repeat from step 1 for the next open child.
+
+M21 parent closeout guardrails:
+
+- never close the parent while any child remains open or unaccounted for
+- run readiness checks before parent closeout:
+  - `python -m aresforge check-milestone-evidence-readiness --parent-issue <parent>`
+  - `python -m aresforge inspect-parent-closeout-readiness --parent-issue <parent>`
+- close parent only when `parent_closeout_ready` is true and blocked reasons are empty
+- parent closeout must remain parent-targeted only and must not change child issue states
+
+PowerShell issue/comment body guidance:
+
+- avoid nested markdown fences inside here-strings
+- prefer plain text command examples inside issue/comment bodies
+- for multiline PR body/comment content, use `--body-file` or `--comment-file` rather than inline shell-escaped markdown
 2. Review dry-run output, required approvals, and blocked reasons.
 3. Execute targeted issue comment only when explicitly approved:
    - `python -m aresforge execute-github-issue-comment --issue <child> --comment-body "<evidence>" --execute --approval-marker <marker>`
