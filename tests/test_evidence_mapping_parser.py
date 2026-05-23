@@ -84,3 +84,38 @@ def test_legacy_evidence_comment_compatibility() -> None:
     )
     assert payload["legacy_fallback"]["matched"] is True
     assert payload["derived_pr_evidence"][0]["number"] == 304
+
+
+def test_m20_child_evidence_url_format_is_recognized() -> None:
+    payload = parse_issue_evidence_mapping(
+        issue_number=327,
+        issue_body="",
+        comments=[
+            _comment(
+                "M20 child evidence report (applies only to issue #327)\n"
+                "PR\n"
+                "- https://github.com/yoey2112/aresforge/pull/335\n"
+                "Merge/main head\n"
+                "- main HEAD after merge: fd1951a532e1acfbaa354a722be6e7d4f346c597\n"
+            )
+        ],
+    )
+    assert payload["legacy_fallback"]["matched"] is True
+    assert payload["derived_pr_evidence"][0]["number"] == 335
+
+
+def test_evidence_remains_issue_specific_for_m20_format() -> None:
+    payload = parse_issue_evidence_mapping(
+        issue_number=328,
+        issue_body="",
+        comments=[
+            _comment(
+                "M20 child evidence report (applies only to issue #327)\n"
+                "PR\n"
+                "- https://github.com/yoey2112/aresforge/pull/335\n"
+            )
+        ],
+    )
+    assert payload["legacy_fallback"]["matched"] is False
+    assert payload["issue_specific_mapping_detected"] is False
+    assert payload["derived_pr_evidence"] == []
