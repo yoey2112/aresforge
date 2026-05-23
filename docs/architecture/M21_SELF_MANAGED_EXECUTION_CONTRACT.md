@@ -82,3 +82,46 @@ Read-only contract inspection command:
 Boundary confirmation:
 
 - This command does not mutate GitHub state.
+
+## Dry-Run Simulation Surface (M21 Child #351)
+
+Read-only simulation command:
+
+- `python -m aresforge simulate-self-managed-milestone-execution --parent-issue <parent>`
+
+Expected simulation coverage:
+
+- parent issue input validation
+- child discovery and ordered sequential plan
+- per-child validation envelope for the recommended next child
+- dry-run targeted mutation planning (comment + closeout planning only)
+- handoff command planning
+- parent closeout readiness blocking while children remain open or unaccounted
+- final reconciliation child remains sequenced last
+
+Simulation safety boundary:
+
+- read-only only
+- no GitHub mutation
+- no issue closure
+- no bulk closeout path generation
+
+## Execution Workflow Contract Notes (M21 Child #352)
+
+The self-managed execution loop remains one-child-at-a-time:
+
+1. Start from clean synced `main`.
+2. Select only the recommended next child issue from read-only dashboard/simulation output.
+3. Implement one child scope on one branch and open one PR.
+4. Run required validation bundle before merge.
+5. Merge and sync `main`.
+6. Post one targeted evidence comment and perform one targeted child closeout.
+7. Generate handoff output and continue to next child.
+
+Operational formatting safety requirement:
+
+- when preparing PowerShell issue/comment bodies using here-strings, avoid nested markdown fences and keep command examples plain text.
+
+Parent closeout safety requirement:
+
+- parent closeout is prohibited until all children are closed or evidence-accounted and parent readiness checks explicitly pass.
