@@ -45,6 +45,7 @@ def test_cli_help_includes_m6_commands() -> None:
     assert "plan-sequential-run-recovery" in help_text
     assert "generate-sequential-handoff-package" in help_text
     assert "run-sequential-child-closeout-flow" in help_text
+    assert "generate-sequential-closeout-execution-package" in help_text
     assert "generate-child-closeout-script" in help_text
     assert "generate-evidence-comment-template" in help_text
 
@@ -466,6 +467,44 @@ def test_cli_dispatch_run_sequential_child_closeout_flow(
     assert exit_code == 0
     assert payload["command"] == "run-sequential-child-closeout-flow"
     assert payload["mode"] == "dry_run"
+
+
+def test_cli_dispatch_generate_sequential_closeout_execution_package(
+    monkeypatch,
+    capsys,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: _config(tmp_path))
+    monkeypatch.setattr(
+        cli,
+        "generate_sequential_closeout_execution_package",
+        lambda _config, parent_issue, child_issue, pr_url, validation_results: {
+            "command": "generate-sequential-closeout-execution-package",
+            "ok": True,
+            "read_only": True,
+            "parent_issue": parent_issue,
+            "child_issue": child_issue,
+            "pr_url": pr_url,
+            "validation_results": validation_results,
+        },
+    )
+    exit_code = cli.main(
+        [
+            "generate-sequential-closeout-execution-package",
+            "--parent-issue",
+            "345",
+            "--child-issue",
+            "349",
+            "--pr-url",
+            "https://github.com/yoey2112/aresforge/pull/999",
+            "--validation-result",
+            "python -m pytest: pass",
+        ]
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["command"] == "generate-sequential-closeout-execution-package"
+    assert payload["read_only"] is True
 
 
 def test_cli_dispatch_generate_evidence_comment_template(

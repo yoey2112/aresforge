@@ -101,6 +101,9 @@ from aresforge.operator.sequential_run_state import (
 from aresforge.operator.sequential_recovery_planner import plan_sequential_run_recovery
 from aresforge.operator.sequential_handoff_package import generate_sequential_handoff_package
 from aresforge.operator.sequential_child_closeout_flow import run_sequential_child_closeout_flow
+from aresforge.operator.sequential_closeout_execution_package import (
+    generate_sequential_closeout_execution_package,
+)
 from aresforge.operator.project_state_summary import project_state_summary
 from aresforge.operator.self_managed_milestone_planner import plan_self_managed_milestone
 from aresforge.operator.self_managed_milestone_execution_contract import (
@@ -555,6 +558,14 @@ def build_parser() -> argparse.ArgumentParser:
         "--approval-marker",
         help="Required for execute mode. Captured in audit-ready output.",
     )
+    sequential_closeout_package_parser = subparsers.add_parser(
+        "generate-sequential-closeout-execution-package",
+        help="Generate read-only audit-backed evidence/comment/closeout package for one child issue.",
+    )
+    sequential_closeout_package_parser.add_argument("--parent-issue", type=int, required=True)
+    sequential_closeout_package_parser.add_argument("--child-issue", type=int, required=True)
+    sequential_closeout_package_parser.add_argument("--pr-url")
+    sequential_closeout_package_parser.add_argument("--validation-result", action="append", default=[])
     closeout_planning_drift_parser = subparsers.add_parser(
         "inspect-closeout-planning-drift",
         help="Compare planned child issues against live closeout discovery without mutating local or GitHub state.",
@@ -1237,6 +1248,17 @@ def main(argv: list[str] | None = None) -> int:
             comment_body=args.comment_body,
             execute=bool(args.execute),
             approval_marker=args.approval_marker,
+        )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "generate-sequential-closeout-execution-package":
+        payload = generate_sequential_closeout_execution_package(
+            config,
+            parent_issue=args.parent_issue,
+            child_issue=args.child_issue,
+            pr_url=args.pr_url,
+            validation_results=list(args.validation_result),
         )
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1

@@ -64,6 +64,7 @@ def test_cli_has_expected_commands() -> None:
         "plan-sequential-run-recovery",
         "generate-sequential-handoff-package",
         "run-sequential-child-closeout-flow",
+        "generate-sequential-closeout-execution-package",
         "inspect-closeout-planning-drift",
         "plan-github-mutation",
         "execute-github-issue-comment",
@@ -366,6 +367,16 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     )
     assert sequential_child_closeout_args.command == "run-sequential-child-closeout-flow"
     assert sequential_child_closeout_args.execute is False
+    sequential_closeout_package_args = parser.parse_args(
+        [
+            "generate-sequential-closeout-execution-package",
+            "--parent-issue",
+            "345",
+            "--child-issue",
+            "349",
+        ]
+    )
+    assert sequential_closeout_package_args.command == "generate-sequential-closeout-execution-package"
     assert inspect_sequential_run_state_args.write_local_state is False
     plan_sequential_run_recovery_args = parser.parse_args(
         ["plan-sequential-run-recovery", "--parent-issue", "309"]
