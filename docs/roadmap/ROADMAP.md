@@ -1,5 +1,52 @@
 # AresForge Roadmap
 
+## Project Factory Realignment Track
+
+The primary near-term roadmap priority is completing the end-to-end project-factory loop. UI polish is secondary to finishing the workflow contract from intake through validated closeout.
+
+### M46 - Project Factory Source-of-Truth Realignment
+
+Status: Completed in documentation/contracts.
+
+- aligns build state, agent context, roadmap, runnable skeleton, and operator usage with current `main` through M45
+- introduces canonical workflow contract: `docs/architecture/PROJECT_FACTORY_WORKFLOW.md`
+
+### M47 - New Project Wizard
+
+Status: Planned.
+
+### M48 - Repo Create/Link Planner And Approval Gate
+
+Status: Planned.
+
+### M49 - Project Scope And Architecture Contract
+
+Status: Planned.
+
+### M50 - Milestone And Issue Plan Generator
+
+Status: Planned.
+
+### M51 - Explicit GitHub Milestone/Issue Apply Boundary
+
+Status: Planned.
+
+### M52 - Agent Queue Dispatcher
+
+Status: Planned.
+
+### M53 - Agent Run Lifecycle, Evidence, And Validation Gates
+
+Status: Planned.
+
+### M54 - Documentation And Closeout Automation
+
+Status: Planned.
+
+### M55 - Active-Project Feature Loop
+
+Status: Planned.
+
 ## Current Milestones
 
 ### M42 - First-Run Bootstrap And Seed Wizard For Hub

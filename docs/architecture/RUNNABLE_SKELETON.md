@@ -1,5 +1,37 @@
 # Runnable Skeleton
 
+## M46 Project Factory Mapping
+
+This runnable skeleton currently maps to a partial project-factory shell, not the full pipeline.
+
+Built now (through M45):
+
+- local-first Hub mission-control foundation
+- managed project/repo registry
+- active project selection/context
+- active project intake into local queue
+- project workbench and local control-plane views
+- local planning artifacts for orchestration/escalation/handoff/closeout
+
+Partial now:
+
+- GitHub identity and sync planning boundaries exist, but explicit milestone/issue apply flow is not yet integrated into the Hub factory loop
+- queue and agent metadata exist, but dispatch and run lifecycle are not yet executable
+
+Missing for canonical pipeline completion:
+
+- new project wizard
+- repo create/link apply flow
+- scope and architecture artifact contracts
+- milestone/issue generation from accepted scope
+- explicit GitHub milestone/issue apply boundary and execution path
+- agent dispatcher and approved agent/model run lifecycle
+- integrated validation, documentation update, and closeout automation loop
+
+Canonical source-of-truth target state:
+
+- `docs/architecture/PROJECT_FACTORY_WORKFLOW.md`
+
 ## Purpose
 
 Describe the implemented human-triggered operator surface through M41 GitHub-linked project/repo identity management and local Hub workflows.

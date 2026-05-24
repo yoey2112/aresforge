@@ -1,5 +1,29 @@
 # Local Operator Usage
 
+## M46 Operator Note: Project Factory Pipeline And Approval Boundaries
+
+AresForge should now be operated as a local-first project-factory control plane with explicit approval boundaries. The canonical workflow is defined in:
+
+- `docs/architecture/PROJECT_FACTORY_WORKFLOW.md`
+
+Current mission-control foundation on `main`:
+
+- M43 active project support
+- M44 active project intake
+- M45 active project workbench
+
+Important scope note:
+
+- M43-M45 provide foundational Hub control-plane capability.
+- M43-M45 do not yet implement the full end-to-end project-factory loop.
+
+Operator approval boundaries:
+
+- local read-only and planning operations are allowed by default
+- local write operations are allowed for local state/artifact/doc updates
+- GitHub mutation operations require explicit approved apply boundary
+- model/agent execution requires explicit approved execution boundary
+
 ## M31 Foundation Reconciliation And Next-Phase Planning
 
 Foundation status:

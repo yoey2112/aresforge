@@ -1,5 +1,26 @@
 # AresForge Build State
 
+## M46 Project Factory Source-of-Truth Realignment
+
+Current state on `main` includes M43-M45 and establishes a local-first Hub control plane plus a partial project-factory shell:
+
+- managed project/repo registry
+- active project selection and context
+- active project dashboard/workbench
+- active project intake into local queue
+- local queue, agent profile, orchestration planning, escalation planning, handoff, and local closeout tooling
+- explicit planning boundaries for later GitHub sync/mutation
+
+Important: the full end-to-end project factory loop is not yet complete. Missing pieces still include new-project wizarding, repo create/link apply flow, scope+architecture contract flow, milestone/issue generation from scope, explicit GitHub issue/milestone apply, and agent run execution lifecycle.
+
+Canonical workflow source-of-truth:
+
+- `docs/architecture/PROJECT_FACTORY_WORKFLOW.md`
+
+Next milestone after this M46 realignment:
+
+- M47 New Project Wizard
+
 ## Current Phase
 
 M42 first-run bootstrap and seed wizard for local AresForge Hub setup.

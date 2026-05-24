@@ -1,5 +1,25 @@
 # AresForge Agent Context
 
+## M46 Project Factory Alignment Context
+
+Project-factory vision:
+
+- AresForge is a local-first AI project factory and orchestration hub.
+- Future implementation must converge on the canonical end-to-end pipeline defined in `docs/architecture/PROJECT_FACTORY_WORKFLOW.md`.
+
+Implementation guardrails for future agents:
+
+- no GitHub mutations without an explicit approved GitHub apply boundary
+- no model/agent execution without explicit approval boundary
+- local planning and local artifact generation first
+
+Current foundation status:
+
+- M43 active project support is the active context layer.
+- M44 active project intake is the first user-to-queue bridge.
+- M45 active project workbench is the mission-control foundation.
+- This foundation is not yet the complete project-factory loop.
+
 ## Purpose
 
 Provide minimum operating context for M42 first-run bootstrap/setup with a local-first, self-managed operator model.
