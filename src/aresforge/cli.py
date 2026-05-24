@@ -109,6 +109,7 @@ from aresforge.operator.child_evidence_marker_preflight import inspect_child_evi
 from aresforge.operator.pr_mapping_preflight import inspect_pr_mapping_preflight
 from aresforge.operator.closeout_repair_guidance import generate_closeout_preflight_repair_guidance
 from aresforge.operator.milestone_closeout_preflight import inspect_milestone_closeout_preflight
+from aresforge.operator.closeout_readiness_by_construction import check_closeout_readiness_by_construction
 from aresforge.operator.milestone_reconciliation_planner import plan_milestone_final_reconciliation
 from aresforge.operator.preflight_snapshot import (
     diff_preflight_snapshots,
@@ -600,6 +601,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Run read-only milestone closeout preflight orchestration across lineage, evidence, and PR mapping.",
     )
     milestone_closeout_preflight_parser.add_argument("--parent-issue", type=int, required=True)
+    readiness_by_construction_parser = subparsers.add_parser(
+        "check-closeout-readiness-by-construction",
+        help="Validate read-only canonical marker completeness readiness across closeout evidence emission domains.",
+    )
+    readiness_by_construction_parser.add_argument("--parent-issue", type=int, required=True)
     preflight_snapshot_parser = subparsers.add_parser(
         "generate-preflight-baseline-snapshot",
         help="Generate read-only baseline snapshot payload for closeout preflight reconciliation audits.",
@@ -1442,6 +1448,11 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "inspect-milestone-closeout-preflight":
         payload = inspect_milestone_closeout_preflight(config, parent_issue=args.parent_issue)
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "check-closeout-readiness-by-construction":
+        payload = check_closeout_readiness_by_construction(config, parent_issue=args.parent_issue)
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 

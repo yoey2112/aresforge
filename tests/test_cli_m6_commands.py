@@ -42,6 +42,7 @@ def test_cli_help_includes_m6_commands() -> None:
     assert "plan-milestone-final-reconciliation" in help_text
     assert "inspect-milestone-dashboard" in help_text
     assert "inspect-child-execution-gates" in help_text
+    assert "check-closeout-readiness-by-construction" in help_text
     assert "inspect-sequential-run-state" in help_text
     assert "plan-sequential-run-recovery" in help_text
     assert "generate-sequential-handoff-package" in help_text
@@ -280,6 +281,30 @@ def test_cli_dispatch_plan_milestone_final_reconciliation(
     assert payload["command"] == "plan-milestone-final-reconciliation"
     assert payload["read_only"] is True
     assert payload["mutation_allowed"] is False
+
+
+def test_cli_dispatch_check_closeout_readiness_by_construction(
+    monkeypatch,
+    capsys,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: _config(tmp_path))
+    monkeypatch.setattr(
+        cli,
+        "check_closeout_readiness_by_construction",
+        lambda _config, parent_issue: {
+            "command": "check-closeout-readiness-by-construction",
+            "ok": True,
+            "read_only": True,
+            "parent_issue": parent_issue,
+            "readiness_by_construction": {"ready": False},
+        },
+    )
+    exit_code = cli.main(["check-closeout-readiness-by-construction", "--parent-issue", "421"])
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["command"] == "check-closeout-readiness-by-construction"
+    assert payload["read_only"] is True
 
 
 def test_cli_dispatch_inspect_milestone_dashboard(
