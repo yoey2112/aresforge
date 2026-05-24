@@ -106,7 +106,12 @@ def test_generate_parent_closeout_evidence_bundle_ready(monkeypatch, tmp_path: P
         "state": "incomplete",
         "marker_type": "parent_closeout_evidence",
         "marker_scope": "parent_closeout_evidence_bundle",
-        "missing_required_fields": ["final_main_head", "final_validation_results"],
+        "missing_required_fields": [
+            "child_issue_list",
+            "child_to_pr_mapping",
+            "final_main_head",
+            "final_validation_results",
+        ],
         "invalid_reasons": [],
         "marker_complete": False,
         "post_hoc_marker_repair_required": True,
