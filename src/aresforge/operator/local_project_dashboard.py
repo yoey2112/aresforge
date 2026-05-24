@@ -19,6 +19,7 @@ from aresforge.operator.local_llm_escalation import (
     generate_llm_escalation_plan,
 )
 from aresforge.operator.local_project_queue import resolve_project_queue_path
+from aresforge.operator.local_active_project import inspect_active_project
 from aresforge.operator.local_bootstrap_wizard import inspect_bootstrap_status
 from aresforge.operator.managed_project_registry_local import resolve_managed_project_registry_path
 
@@ -212,6 +213,11 @@ def summarize_local_project_dashboard(config: AppConfig) -> dict[str, Any]:
     queue_path = resolve_project_queue_path(config.repo_root, None)
     agents_path = resolve_agent_profiles_path(config.repo_root, None)
 
+    active_project_payload = inspect_active_project(config)
+    active_project_id = str(active_project_payload.get("active_project_id", "")).strip()
+    active_project = active_project_payload.get("active_project") if isinstance(active_project_payload.get("active_project"), dict) else None
+    active_repo = active_project_payload.get("active_repo") if isinstance(active_project_payload.get("active_repo"), dict) else None
+
     registry_data = _load_json_file(registry_path, label="Managed project registry", warnings=warnings)
     queue_data = _load_json_file(queue_path, label="Project queue", warnings=warnings)
     agents_data = _load_json_file(agents_path, label="Agent profiles", warnings=warnings)
@@ -244,6 +250,9 @@ def summarize_local_project_dashboard(config: AppConfig) -> dict[str, Any]:
         "paused_projects": [str(item.get("project_id", "")).strip() for item in projects_raw if str(item.get("status", "")).strip() == "paused"],
         "archived_projects": [str(item.get("project_id", "")).strip() for item in projects_raw if str(item.get("status", "")).strip() == "archived"],
         "planned_projects": [str(item.get("project_id", "")).strip() for item in projects_raw if str(item.get("status", "")).strip() == "planned"],
+        "selected_active_project_id": active_project_id,
+        "selected_active_project_name": str((active_project or {}).get("name", "")).strip(),
+        "selected_active_project_status": str((active_project or {}).get("status", "")).strip(),
     }
 
     repo_summary = {
@@ -322,6 +331,24 @@ def summarize_local_project_dashboard(config: AppConfig) -> dict[str, Any]:
         if str(item.get("status", "")).strip() in {"done", "cancelled"}
     ][:10]
 
+    active_project_queue_items = [
+        item for item in queue_items if active_project_id and str(item.get("project_id", "")).strip() == active_project_id
+    ]
+    active_project_blocked_items = [
+        {
+            "item_id": str(item.get("item_id", "")).strip(),
+            "title": str(item.get("title", "")).strip(),
+            "status": str(item.get("status", "")).strip(),
+        }
+        for item in active_project_queue_items
+        if str(item.get("status", "")).strip() == "blocked" or bool(item.get("blocked_by"))
+    ]
+    active_project_ready_items = [
+        str(item.get("item_id", "")).strip()
+        for item in active_project_queue_items
+        if str(item.get("status", "")).strip() == "ready"
+    ]
+
     queue_summary = {
         "item_count": len(queue_items),
         "counts_by_status": _count_by(queue_items, "status"),
@@ -333,6 +360,11 @@ def summarize_local_project_dashboard(config: AppConfig) -> dict[str, Any]:
         "high_priority_items": high_priority_items,
         "urgent_items": urgent_items,
         "recently_completed_items": recently_completed_items,
+        "active_project_item_count": len(active_project_queue_items),
+        "active_project_counts_by_status": _count_by(active_project_queue_items, "status"),
+        "active_project_counts_by_priority": _count_by(active_project_queue_items, "priority"),
+        "active_project_blocked_items": active_project_blocked_items,
+        "active_project_ready_items": active_project_ready_items,
     }
 
     agent_summary = {
@@ -469,6 +501,8 @@ def summarize_local_project_dashboard(config: AppConfig) -> dict[str, Any]:
     recommended_next_actions: list[str] = []
     if project_summary["project_count"] == 0:
         recommended_next_actions.append("Register at least one managed project.")
+    if project_summary["project_count"] > 0 and not active_project_id:
+        recommended_next_actions.append("Select an active project for dashboard, queue, reports, orchestration, and escalation focus.")
     if repo_summary["repo_count"] == 0:
         recommended_next_actions.append("Register at least one repo under a managed project.")
     if queue_summary["item_count"] == 0:
@@ -490,7 +524,26 @@ def summarize_local_project_dashboard(config: AppConfig) -> dict[str, Any]:
     if not recommended_next_actions:
         recommended_next_actions.append("Review reports and continue local plan-only workflows.")
 
+    active_project_summary = {
+        "active_project_selected": bool(active_project_id),
+        "active_project_id": active_project_id,
+        "active_project": active_project,
+        "active_repo_id": str(active_project_payload.get("active_repo_id", "")).strip(),
+        "active_repo": active_repo,
+        "active_project_queue_item_count": len(active_project_queue_items),
+        "active_project_blocked_item_count": len(active_project_blocked_items),
+        "active_project_ready_item_count": len(active_project_ready_items),
+        "active_project_counts_by_status": _count_by(active_project_queue_items, "status"),
+        "warnings": list(active_project_payload.get("warnings", [])),
+        "default_queue_project_id": active_project_id,
+        "default_queue_repo_id": str(active_project_payload.get("active_repo_id", "")).strip(),
+        "local_only": True,
+        "github_sync_status": "planned_gated_not_executed",
+        "execution_status": "selection_only",
+    }
+
     readiness_indicators = {
+        "active_project_selected": bool(active_project_id),
         "registry_ready": bool(project_summary["project_count"] > 0 and repo_summary["repo_count"] > 0),
         "queue_ready": bool(queue_summary["item_count"] > 0),
         "agents_ready": bool(agent_summary["agent_count"] > 0 and agent_summary["handoff_target_count"] > 0),
@@ -534,6 +587,11 @@ def summarize_local_project_dashboard(config: AppConfig) -> dict[str, Any]:
         "missing_local_state_files": missing_local_state_files,
         "bootstrap_missing_files": list(bootstrap_status.get("missing_files", [])),
         "bootstrap_recommended_actions": list(bootstrap_status.get("recommended_next_actions", [])),
+        "active_project_selected": bool(active_project_id),
+        "active_project_id": active_project_id,
+        "active_project_queue_items": [str(item.get("item_id", "")).strip() for item in active_project_queue_items],
+        "active_project_blocked_items": active_project_blocked_items,
+        "active_project_ready_items": active_project_ready_items,
         "projects_missing_github_link": projects_missing_github_link,
         "projects_missing_primary_repo": missing_primary_repo_projects,
         "repos_missing_github_identity": repos_missing_github_link,
@@ -583,6 +641,7 @@ def summarize_local_project_dashboard(config: AppConfig) -> dict[str, Any]:
         "generated_at": datetime.now(UTC).isoformat(),
         "local_only": True,
         "report_only": True,
+        "active_project_summary": active_project_summary,
         "project_summary": project_summary,
         "repo_summary": repo_summary,
         "github_summary": github_summary,
@@ -619,10 +678,14 @@ def summarize_local_project_dashboard(config: AppConfig) -> dict[str, Any]:
             "registry_path": str(registry_path),
             "queue_path": str(queue_path),
             "agents_path": str(agents_path),
+            "active_project_path": str(active_project_payload.get("active_project_path", "")),
         },
     }
 
     # Compatibility aliases for M37-M39 surfaces/tests that still read summary-era keys.
+    report["active_project_id"] = active_project_id
+    report["active_project_selected"] = bool(active_project_id)
+    report["active_repo_id"] = str(active_project_payload.get("active_repo_id", "")).strip()
     report["project_count"] = project_summary["project_count"]
     report["repo_count"] = repo_summary["repo_count"]
     report["queue_status_counts"] = dict(queue_summary["counts_by_status"])

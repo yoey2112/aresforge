@@ -4,6 +4,7 @@ from aresforge.config import AppConfig
 from aresforge.operator.local_agent_profiles import init_agent_profiles, register_agent_profile, register_handoff_target
 from aresforge.operator.local_project_dashboard import KEY_DOCS, summarize_local_project_dashboard
 from aresforge.operator.local_project_queue import add_queue_item, init_project_queue
+from aresforge.operator.local_active_project import set_active_project
 from aresforge.operator.managed_project_registry_local import (
     init_managed_project_registry,
     register_managed_project,
@@ -169,3 +170,74 @@ def test_dashboard_docs_workflows_and_boundaries_present(tmp_path: Path) -> None
     assert any(item["workflow_id"] == "start-new-project" for item in payload["operator_workflows"])
     assert payload["boundary_confirmations"]
     assert any("No GitHub calls" in item for item in payload["boundary_confirmations"])
+
+
+def test_dashboard_active_project_summary_and_action_center(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_docs(tmp_path)
+
+    assert init_managed_project_registry(config)["ok"] is True
+    assert register_managed_project(
+        config,
+        project_id="p1",
+        name="Project One",
+        root_path=str(tmp_path),
+        status="active",
+    )["ok"] is True
+    assert register_managed_repo(
+        config,
+        project_id="p1",
+        repo_id="r1",
+        name="Repo One",
+        path=str(tmp_path),
+        status="active",
+        role="primary",
+    )["ok"] is True
+    assert init_project_queue(config)["ok"] is True
+    assert add_queue_item(
+        config,
+        item_id="q1",
+        project_id="p1",
+        repo_id="r1",
+        title="Ready active work",
+        status="ready",
+        priority="high",
+        item_type="feature",
+    )["ok"] is True
+    assert set_active_project(config, project_id="p1")["ok"] is True
+
+    payload = summarize_local_project_dashboard(config)
+
+    assert payload["active_project_selected"] is True
+    assert payload["active_project_id"] == "p1"
+    assert payload["active_repo_id"] == "r1"
+    assert payload["active_project_summary"]["active_project_id"] == "p1"
+    assert payload["active_project_summary"]["active_project"]["name"] == "Project One"
+    assert payload["active_project_summary"]["default_queue_project_id"] == "p1"
+    assert payload["active_project_summary"]["default_queue_repo_id"] == "r1"
+    assert payload["active_project_summary"]["active_project_queue_item_count"] == 1
+    assert payload["queue_summary"]["active_project_item_count"] == 1
+    assert payload["queue_summary"]["active_project_ready_items"] == ["q1"]
+    assert payload["action_center"]["active_project_id"] == "p1"
+    assert payload["action_center"]["active_project_ready_items"] == ["q1"]
+    assert payload["readiness_indicators"]["active_project_selected"] is True
+    assert payload["paths"]["active_project_path"].endswith("active_project.json")
+
+
+def test_dashboard_recommends_selecting_active_project_when_projects_exist(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_docs(tmp_path)
+
+    assert init_managed_project_registry(config)["ok"] is True
+    assert register_managed_project(
+        config,
+        project_id="p1",
+        name="Project One",
+        root_path=str(tmp_path),
+        status="active",
+    )["ok"] is True
+
+    payload = summarize_local_project_dashboard(config)
+
+    assert payload["active_project_selected"] is False
+    assert any("Select an active project" in action for action in payload["recommended_next_actions"])

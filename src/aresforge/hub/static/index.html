@@ -39,6 +39,28 @@
           <div class="quick-actions">
             <button id="home-refresh-summary" type="button">Refresh Summary</button>
           </div>
+
+          <section class="subpanel active-project-panel">
+            <h3>Active Project</h3>
+            <div class="cards">
+              <article class="card active-project-card">
+                <h3>Selected Project</h3>
+                <p id="home-active-project-name">None selected</p>
+                <span id="home-active-project-badge" class="status-pill">not selected</span>
+                <p class="subvalue" id="home-active-project-detail">Select an active project from Projects.</p>
+              </article>
+              <article class="card">
+                <h3>Active Project Queue</h3>
+                <p id="home-active-project-queue-total">0</p>
+                <p class="subvalue" id="home-active-project-queue-detail">ready=0 | blocked=0</p>
+              </article>
+              <article class="card">
+                <h3>Default Repo</h3>
+                <p id="home-active-repo-id">-</p>
+                <p class="subvalue" id="home-active-repo-detail">Used as the Queue default when available.</p>
+              </article>
+            </div>
+          </section>
           <div class="cards" id="summary-cards">
             <article class="card"><h3>Projects</h3><p id="project-count">0</p></article>
             <article class="card"><h3>Repos</h3><p id="repo-count">0</p></article>
@@ -147,6 +169,16 @@
           <h2>Projects</h2>
           <p>Register and update local managed projects backed by the M32 registry.</p>
           <p id="projects-message" class="message"></p>
+          <section class="subpanel active-project-panel">
+            <h3>Active Project Selector</h3>
+            <p id="projects-active-project-summary" class="message-note">No active project selected.</p>
+            <div class="form-inline">
+              <select id="active-project-select">
+                <option value="">Select active project</option>
+              </select>
+              <button id="active-project-set" type="button">Set Active Project</button>
+            </div>
+          </section>
           <div class="split two-col">
             <section class="subpanel">
               <h3>Managed Projects</h3>
@@ -250,6 +282,14 @@
           <h2>Queue</h2>
           <p>Track local queue items with filters, dependency warnings, and quick status updates.</p>
           <p id="queue-message" class="message"></p>
+          <section class="subpanel active-project-panel">
+            <h3>Active Project Queue Focus</h3>
+            <p id="queue-active-project-summary" class="message-note">No active project selected. Queue filters and new items remain manual.</p>
+            <div class="quick-actions">
+              <button id="queue-use-active-project" type="button">Use Active Project Defaults</button>
+              <button id="queue-filter-active-project" type="button">Filter To Active Project</button>
+            </div>
+          </section>
           <section class="subpanel">
             <h3>Filters</h3>
             <form id="queue-filter-form" class="form-inline">
@@ -599,6 +639,11 @@
             <button id="reports-generate-orchestration" type="button">Generate Orchestration Plan</button>
             <button id="reports-generate-escalation" type="button">Generate Escalation Plan</button>
           </div>
+          <section class="subpanel active-project-panel">
+            <h3>Active Project Report Focus</h3>
+            <ul id="reports-active-project-summary" class="list"></ul>
+            <p id="reports-active-project-summary-empty" class="empty">No active project summary available.</p>
+          </section>
           <div class="split two-col">
             <section class="subpanel">
               <h3>Project/Repo Summary</h3>
@@ -662,6 +707,7 @@
             <li>Registry Path: <span id="settings-registry-path">(unavailable)</span></li>
             <li>Queue Path: <span id="settings-queue-path">(unavailable)</span></li>
             <li>Agents Path: <span id="settings-agents-path">(unavailable)</span></li>
+            <li>Active Project Path: <span id="settings-active-project-path">(unavailable)</span></li>
             <li>Handoff Artifacts: <span id="settings-handoff-artifacts-path">(unavailable)</span></li>
             <li>Orchestration Artifacts: <span id="settings-orchestration-artifacts-path">(unavailable)</span></li>
             <li>Escalation Artifacts: <span id="settings-escalation-artifacts-path">(unavailable)</span></li>

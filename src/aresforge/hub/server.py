@@ -12,6 +12,7 @@ from aresforge.config import AppConfig
 from aresforge.hub.api import (
     get_bootstrap_plan,
     get_bootstrap_status,
+    get_active_project,
     get_agent,
     get_agents,
     get_docs_status,
@@ -35,6 +36,7 @@ from aresforge.hub.api import (
     get_settings,
     get_summary,
     patch_queue_item,
+    post_active_project,
     post_agent,
     post_bootstrap_apply,
     post_escalation_plan,
@@ -273,6 +275,26 @@ def _build_handler(config: AppConfig, static_root: Path) -> type[BaseHTTPRequest
                 _render_json(self, _status_from_payload(payload), payload)
                 return True
 
+            if method == "GET" and path == "/api/projects/active":
+                payload = get_active_project(config)
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+            if method == "POST" and path == "/api/projects/active":
+                if body is None:
+                    _render_json(
+                        self,
+                        HTTPStatus.BAD_REQUEST,
+                        {
+                            "ok": False,
+                            "local_only": True,
+                            "error": "invalid_json_body",
+                            "message": "Request body must be a JSON object.",
+                        },
+                    )
+                    return True
+                payload = post_active_project(config, body)
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
             if method == "GET" and path == "/api/projects":
                 _render_json(self, HTTPStatus.OK, get_projects(config))
                 return True

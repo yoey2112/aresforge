@@ -169,6 +169,7 @@ function renderWorkflowCards(containerId, emptyId, workflows) {
 const state = {
   projects: [],
   selectedProjectId: "",
+  activeProject: null,
   bootstrapStatus: null,
   bootstrapPlan: null,
   queueFilters: {
@@ -265,38 +266,108 @@ async function applyBootstrap() {
   return payload;
 }
 
+function activeProjectId() {
+  return String((state.activeProject && state.activeProject.active_project_id) || "").trim();
+}
+
+function activeRepoId() {
+  return String((state.activeProject && state.activeProject.active_repo_id) || "").trim();
+}
+
+function renderActiveProjectSummary(payload) {
+  state.activeProject = payload || null;
+  const selected = Boolean(payload && payload.active_project_selected);
+  const project = (payload && payload.active_project) || {};
+  const repo = (payload && payload.active_repo) || {};
+  const projectId = String((payload && payload.active_project_id) || "").trim();
+  const repoId = String((payload && payload.active_repo_id) || "").trim();
+  const projectName = project.name || projectId || "None selected";
+
+  const homeName = byId("home-active-project-name");
+  if (homeName) {
+    homeName.textContent = selected ? projectName : "None selected";
+  }
+  const badge = byId("home-active-project-badge");
+  if (badge) {
+    badge.textContent = selected ? "active" : "not selected";
+    badge.className = selected ? "status-pill status-pill-ready" : "status-pill status-pill-needs_attention";
+  }
+  const detail = byId("home-active-project-detail");
+  if (detail) {
+    detail.textContent = selected
+      ? `${projectId} | status=${project.status || "-"} | github=${project.github_connection_status || "unlinked"}`
+      : "Select an active project from Projects.";
+  }
+  const repoIdElement = byId("home-active-repo-id");
+  if (repoIdElement) {
+    repoIdElement.textContent = repoId || "-";
+  }
+  const repoDetail = byId("home-active-repo-detail");
+  if (repoDetail) {
+    repoDetail.textContent = repoId
+      ? `${repo.name || repoId} | role=${repo.role || "-"} | status=${repo.status || "-"}`
+      : "Used as the Queue default when available.";
+  }
+
+  const projectSummary = byId("projects-active-project-summary");
+  if (projectSummary) {
+    projectSummary.textContent = selected
+      ? `Active project: ${projectId} (${project.name || projectId}) | default repo: ${repoId || "-"}`
+      : "No active project selected.";
+  }
+  const queueSummary = byId("queue-active-project-summary");
+  if (queueSummary) {
+    queueSummary.textContent = selected
+      ? `Queue defaults will use project=${projectId} and repo=${repoId || "(manual repo required)"}.`
+      : "No active project selected. Queue filters and new items remain manual.";
+  }
+}
+
 function renderProjects(projects) {
   const lines = (projects || []).map((project) => {
     const tags = (project.tags || []).join(", ") || "-";
     const githubState = project.github_connection_status || "unlinked";
-    return `${project.project_id} | ${project.name} | status=${project.status || "-"} | github=${githubState} | owner=${project.github_owner || "-"} | repo=${project.github_repo || "-"} | primary=${project.primary_repo_id || "-"} | root=${project.root_path || "-"} | repos=${project.repo_count || 0} | tags=${tags}`;
+    const activeMarker = project.is_active_project ? "ACTIVE | " : "";
+    return `${activeMarker}${project.project_id} | ${project.name} | status=${project.status || "-"} | github=${githubState} | owner=${project.github_owner || "-"} | repo=${project.github_repo || "-"} | primary=${project.primary_repo_id || "-"} | root=${project.root_path || "-"} | repos=${project.repo_count || 0} | tags=${tags}`;
   });
   setList("projects-list", "projects-empty-state", lines);
 }
 
 function refreshProjectSelectors(projects) {
-  const selector = byId("repo-project-select");
-  if (!selector) {
-    return;
-  }
-  const previous = selector.value;
-  selector.innerHTML = "";
-  const initialOption = document.createElement("option");
-  initialOption.value = "";
-  initialOption.textContent = "Select project";
-  selector.appendChild(initialOption);
-  (projects || []).forEach((project) => {
-    const option = document.createElement("option");
-    option.value = project.project_id;
-    option.textContent = `${project.project_id} (${project.name})`;
-    selector.appendChild(option);
+  const selectors = [byId("repo-project-select"), byId("active-project-select")].filter(Boolean);
+  const previousRepoProject = byId("repo-project-select") ? byId("repo-project-select").value : "";
+  const currentActive = activeProjectId();
+
+  selectors.forEach((selector) => {
+    const previous = selector.id === "active-project-select" ? currentActive : previousRepoProject;
+    selector.innerHTML = "";
+    const initialOption = document.createElement("option");
+    initialOption.value = "";
+    initialOption.textContent = selector.id === "active-project-select" ? "Select active project" : "Select project";
+    selector.appendChild(initialOption);
+    (projects || []).forEach((project) => {
+      const option = document.createElement("option");
+      option.value = project.project_id;
+      option.textContent = `${project.is_active_project ? "ACTIVE - " : ""}${project.project_id} (${project.name})`;
+      selector.appendChild(option);
+    });
+    if ((projects || []).some((project) => project.project_id === previous)) {
+      selector.value = previous;
+    } else {
+      selector.value = "";
+    }
   });
-  if ((projects || []).some((project) => project.project_id === previous)) {
-    selector.value = previous;
-    state.selectedProjectId = previous;
-  } else {
-    selector.value = "";
-    state.selectedProjectId = "";
+
+  const repoSelector = byId("repo-project-select");
+  if (repoSelector) {
+    if ((projects || []).some((project) => project.project_id === previousRepoProject)) {
+      state.selectedProjectId = previousRepoProject;
+    } else if (currentActive && (projects || []).some((project) => project.project_id === currentActive)) {
+      repoSelector.value = currentActive;
+      state.selectedProjectId = currentActive;
+    } else {
+      state.selectedProjectId = "";
+    }
   }
 }
 
@@ -493,10 +564,30 @@ function renderEscalationPlan(plan) {
   setList("escalation-actions", "escalation-actions-empty", plan.next_actions || []);
 }
 
+async function loadActiveProject() {
+  const payload = await fetchJson("/api/projects/active");
+  renderActiveProjectSummary(payload);
+  return payload;
+}
+
+async function setActiveProject(projectId) {
+  const payload = await fetchJson("/api/projects/active", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ project_id: projectId }),
+  });
+  renderActiveProjectSummary(payload);
+  return payload;
+}
+
 async function loadProjects() {
   setMessage("projects-message", "Loading projects...", "loading");
+  await loadActiveProject();
   const payload = await fetchJson("/api/projects");
   state.projects = payload.projects || [];
+  if (payload.active_project_id) {
+    renderActiveProjectSummary(payload);
+  }
   renderProjects(state.projects);
   refreshProjectSelectors(state.projects);
   setMessage("projects-message", payload.warnings && payload.warnings.length ? payload.warnings.join(" | ") : "Projects loaded.", payload.warnings && payload.warnings.length ? "warn" : "success");
@@ -574,6 +665,7 @@ async function loadEscalationPlan(filters, usePost) {
 }
 
 function renderReportSummary(report) {
+  const activeProjectSummary = report.active_project_summary || {};
   const projectSummary = report.project_summary || {};
   const repoSummary = report.repo_summary || {};
   const queueSummary = report.queue_summary || {};
@@ -598,6 +690,16 @@ function renderReportSummary(report) {
   byId("github-unlinked-project-count").textContent = String(githubSummary.unlinked_project_count || 0);
   byId("github-unlinked-repo-count").textContent = String(githubSummary.unlinked_repo_count || 0);
 
+  renderActiveProjectSummary({
+    active_project_selected: Boolean(activeProjectSummary.active_project_selected || report.active_project_selected),
+    active_project_id: activeProjectSummary.active_project_id || report.active_project_id || "",
+    active_project: activeProjectSummary.active_project || null,
+    active_repo_id: activeProjectSummary.active_repo_id || report.active_repo_id || "",
+    active_repo: activeProjectSummary.active_repo || null,
+  });
+  byId("home-active-project-queue-total").textContent = String(activeProjectSummary.active_project_queue_item_count || 0);
+  byId("home-active-project-queue-detail").textContent = `ready=${activeProjectSummary.active_project_ready_item_count || 0} | blocked=${activeProjectSummary.active_project_blocked_item_count || 0}`;
+
   setList("queue-status-list", "queue-empty-state", queueEntries(queueSummary.counts_by_status));
   setList("warnings-list", "warnings-empty-state", report.warnings || []);
   setList("actions-list", "actions-empty-state", report.recommended_next_actions || []);
@@ -619,6 +721,16 @@ function renderReportSummary(report) {
   if (state.bootstrapStatus) {
     renderBootstrapStatus(state.bootstrapStatus);
   }
+
+  setList("reports-active-project-summary", "reports-active-project-summary-empty", [
+    `active_project_selected: ${Boolean(activeProjectSummary.active_project_selected || report.active_project_selected)}`,
+    `active_project_id: ${activeProjectSummary.active_project_id || report.active_project_id || "-"}`,
+    `active_repo_id: ${activeProjectSummary.active_repo_id || report.active_repo_id || "-"}`,
+    `queue_items: ${activeProjectSummary.active_project_queue_item_count || 0}`,
+    `ready_items: ${activeProjectSummary.active_project_ready_item_count || 0}`,
+    `blocked_items: ${activeProjectSummary.active_project_blocked_item_count || 0}`,
+    `github_sync_status: ${activeProjectSummary.github_sync_status || "planned_gated_not_executed"}`,
+  ]);
 
   setList("reports-project-repo-summary", "reports-project-repo-summary-empty", [
     `project_count: ${projectSummary.project_count || 0}`,
@@ -754,6 +866,7 @@ async function loadSettings() {
     byId("settings-registry-path").textContent = payload.registry_path || "(unavailable)";
     byId("settings-queue-path").textContent = payload.queue_path || "(unavailable)";
     byId("settings-agents-path").textContent = payload.agents_path || "(unavailable)";
+    byId("settings-active-project-path").textContent = payload.active_project_path || "(unavailable)";
     const artifacts = payload.default_artifact_paths || {};
     byId("settings-handoff-artifacts-path").textContent = artifacts.handoff || "(unavailable)";
     byId("settings-orchestration-artifacts-path").textContent = artifacts.orchestration || "(unavailable)";
@@ -811,7 +924,24 @@ function buildRepoPayload() {
   });
 }
 
+function applyActiveProjectDefaultsToQueueForm() {
+  const projectId = activeProjectId();
+  const repoId = activeRepoId();
+  if (projectId && byId("queue-project-id")) {
+    byId("queue-project-id").value = projectId;
+  }
+  if (repoId && byId("queue-repo-id")) {
+    byId("queue-repo-id").value = repoId;
+  }
+}
+
 function buildQueuePayload() {
+  if (!byId("queue-project-id").value.trim() && activeProjectId()) {
+    byId("queue-project-id").value = activeProjectId();
+  }
+  if (!byId("queue-repo-id").value.trim() && activeRepoId()) {
+    byId("queue-repo-id").value = activeRepoId();
+  }
   return prunePayload({
     item_id: byId("queue-item-id").value.trim(),
     project_id: byId("queue-project-id").value.trim(),
@@ -891,6 +1021,24 @@ function bindForms() {
     }
   });
 
+  on("active-project-set", "click", async () => {
+    const projectId = byId("active-project-select").value.trim();
+    if (!projectId) {
+      setMessage("projects-message", "Choose a project to set active.", "warn");
+      return;
+    }
+    try {
+      setMessage("projects-message", "Setting active project...", "loading");
+      await setActiveProject(projectId);
+      await loadProjects();
+      await refreshSummaryAndReport();
+      applyActiveProjectDefaultsToQueueForm();
+      setMessage("projects-message", `Active project set to ${projectId}.`, "success");
+    } catch (error) {
+      setMessage("projects-message", String(error.message || error), "error");
+    }
+  });
+
   on("repo-project-select", "change", async () => {
     state.selectedProjectId = byId("repo-project-select").value;
     try {
@@ -927,6 +1075,28 @@ function bindForms() {
       await inspectRepoGitHubLink(byId("repo-repo-id").value.trim(), true);
     } catch (error) {
       setMessage("repos-message", String(error.message || error), "error");
+    }
+  });
+
+  on("queue-use-active-project", "click", () => {
+    applyActiveProjectDefaultsToQueueForm();
+    setMessage("queue-message", activeProjectId() ? "Active project defaults applied to queue form." : "No active project selected.", activeProjectId() ? "success" : "warn");
+  });
+
+  on("queue-filter-active-project", "click", async () => {
+    if (!activeProjectId()) {
+      setMessage("queue-message", "No active project selected.", "warn");
+      return;
+    }
+    byId("filter-project-id").value = activeProjectId();
+    byId("filter-repo-id").value = activeRepoId();
+    state.queueFilters.project_id = activeProjectId();
+    state.queueFilters.repo_id = activeRepoId();
+    try {
+      await loadQueue();
+      setMessage("queue-message", "Queue filtered to active project.", "success");
+    } catch (error) {
+      setMessage("queue-message", String(error.message || error), "error");
     }
   });
 
@@ -1189,6 +1359,7 @@ async function init() {
   renderRepos([], true);
 
   try {
+    await loadActiveProject();
     await refreshSummaryAndReport();
   } catch (error) {
     setMessage("reports-message", String(error.message || error), "error");

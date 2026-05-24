@@ -6,6 +6,7 @@ from typing import Any
 
 from aresforge.config import AppConfig
 from aresforge.operator.local_project_dashboard import summarize_docs_status, summarize_local_project_dashboard
+from aresforge.operator.local_active_project import inspect_active_project, set_active_project
 from aresforge.operator.local_project_queue import (
     QUEUE_ITEM_TYPES,
     QUEUE_PRIORITIES,
@@ -602,16 +603,62 @@ def get_docs_status(config: AppConfig) -> dict[str, Any]:
     return payload
 
 
+def get_active_project(config: AppConfig) -> dict[str, Any]:
+    payload = inspect_active_project(config)
+    payload.update(
+        {
+            "service": SERVICE_NAME,
+            "boundary_confirmations": list(
+                dict.fromkeys(list(payload.get("boundary_confirmations", [])) + list(_BOUNDARY_CONFIRMATIONS))
+            ),
+        }
+    )
+    return payload
+
+
+def post_active_project(config: AppConfig, body: dict[str, Any]) -> dict[str, Any]:
+    project_id = str(body.get("project_id", "")).strip()
+    result = set_active_project(config, project_id=project_id)
+    if not result.get("ok", False):
+        details = dict(result.get("details", {}))
+        error = str(result.get("error", "set_active_project_failed"))
+        status = 404 if error == "managed_project_not_found" else 400
+        return _api_error(
+            error,
+            str(details.get("message", "Failed to set active project.")),
+            details=details,
+            status=status,
+        )
+    result.update(
+        {
+            "service": SERVICE_NAME,
+            "boundary_confirmations": list(
+                dict.fromkeys(list(result.get("boundary_confirmations", [])) + list(_BOUNDARY_CONFIRMATIONS))
+            ),
+        }
+    )
+    return result
+
+
 def get_projects(config: AppConfig) -> dict[str, Any]:
     projects_raw, warnings, registry_path = _load_registry_if_present(config)
     projects = [_project_view(project) for project in projects_raw]
+    active_payload = inspect_active_project(config)
+    active_project_id = str(active_payload.get("active_project_id", "")).strip()
+    for project in projects:
+        project["is_active_project"] = bool(project.get("project_id") == active_project_id)
     return {
         "ok": True,
         "local_only": True,
         "registry_path": str(registry_path),
         "projects": projects,
         "project_count": len(projects),
-        "warnings": sorted(set(warnings)),
+        "active_project_id": active_project_id,
+        "active_project_selected": bool(active_project_id),
+        "active_project": active_payload.get("active_project"),
+        "active_repo_id": active_payload.get("active_repo_id", ""),
+        "active_repo": active_payload.get("active_repo"),
+        "warnings": sorted(set(warnings + list(active_payload.get("warnings", [])))),
         "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
     }
 
@@ -1476,6 +1523,7 @@ def get_settings(config: AppConfig) -> dict[str, Any]:
         "default_registry_path": str(resolve_managed_project_registry_path(config.repo_root, None)),
         "default_queue_path": str(resolve_project_queue_path(config.repo_root, None)),
         "default_agent_profiles_path": str(resolve_agent_profiles_path(config.repo_root, None)),
+        "active_project_path": str(inspect_active_project(config).get("active_project_path", "")),
         "default_artifact_paths": {
             "handoff": str(config.artifact_root / "handoff"),
             "orchestration": str(config.repo_root / ORCHESTRATION_OUTPUT_DIR),

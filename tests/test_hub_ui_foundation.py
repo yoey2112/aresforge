@@ -201,12 +201,20 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "Apply Bootstrap" in index_text
     assert "Seed sample work queue" in index_text
     assert "Force overwrite where safe" in index_text
+    assert "Active Project Selector" in index_text
+    assert "Set Active Project" in index_text
+    assert "Active Project Queue Focus" in index_text
+    assert "Use Active Project Defaults" in index_text
+    assert "Filter To Active Project" in index_text
+    assert "Active Project Report Focus" in index_text
+    assert "settings-active-project-path" in index_text
 
 
 def test_app_js_references_m39_api_endpoints_and_forms() -> None:
     app_text = (_static_dir() / "app.js").read_text(encoding="utf-8")
     for endpoint in (
         "/api/projects",
+        "/api/projects/active",
         "/api/projects/",
         "/github-link",
         "/api/bootstrap/status",
@@ -248,6 +256,9 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
         "reports-generate-orchestration",
         "reports-generate-escalation",
         "home-refresh-summary",
+        "active-project-set",
+        "queue-use-active-project",
+        "queue-filter-active-project",
     ):
         assert action_id in app_text
 
