@@ -226,6 +226,10 @@ def _build_payload(
     alignment_notes: list[str] = []
     risks: list[str] = []
     next_actions: list[str] = []
+    github_sync_plan_present = any(
+        candidate.is_file()
+        for candidate in (repo_root / "artifacts" / "github-sync").rglob("*")
+    ) if (repo_root / "artifacts" / "github-sync").exists() else False
 
     build_state = docs_by_path.get("docs/context/BUILD_STATE.md", DocSnapshot("", False, ""))
     agent_context = docs_by_path.get("docs/context/AGENT_CONTEXT.md", DocSnapshot("", False, ""))
@@ -294,6 +298,10 @@ def _build_payload(
     if roadmap.exists and "M28" not in roadmap.text:
         stale_or_missing_sections.append("ROADMAP.md does not mention M28 milestone direction.")
         recommended_doc_updates.append("Add M28 section with status, outcomes, and local-only boundaries.")
+    if github_sync_plan_present:
+        recommended_doc_updates.append(
+            "Review source-of-truth docs after sync planning; ensure they reflect the latest offline-to-GitHub sync plan intent."
+        )
 
     if not stale_or_missing_sections:
         alignment_notes.append("Source-of-truth docs appear aligned with detected local project/documentation state.")

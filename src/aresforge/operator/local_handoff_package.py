@@ -260,6 +260,7 @@ def _build_payload(
     ]
     project_state_summary = project_state_summary_for_handoff(config)
     latest_doc_reconciliation_plan = _latest_doc_reconciliation_plan(repo_root)
+    latest_github_sync_plan = _latest_github_sync_plan(repo_root)
     project_state_warnings: list[str] = []
     if project_state_summary is None:
         project_state_warnings.append(
@@ -287,6 +288,7 @@ def _build_payload(
         "source_docs": [doc.path for doc in docs],
         "project_state_summary": project_state_summary,
         "latest_doc_reconciliation_plan": latest_doc_reconciliation_plan,
+        "latest_github_sync_plan": latest_github_sync_plan,
         "warnings": sorted(
             set(warnings + list(git_state.get("warnings", [])) + project_state_warnings)
         ),
@@ -370,6 +372,14 @@ def _render_markdown(payload: dict[str, Any]) -> str:
     else:
         lines.append("- No local doc reconciliation plan detected under artifacts/doc-reconciliation/.")
 
+    lines.extend(["", "## Latest GitHub Sync Plan"])
+    latest_sync_plan = payload.get("latest_github_sync_plan")
+    if isinstance(latest_sync_plan, dict):
+        lines.append(f"- path: {latest_sync_plan.get('path')}")
+        lines.append(f"- modified_at: {latest_sync_plan.get('modified_at')}")
+    else:
+        lines.append("- No local GitHub sync plan detected under artifacts/github-sync/.")
+
     lines.extend(["", "## Codex Continuation Prompt", "```text", payload.get("codex_continuation_prompt", ""), "```"])
 
     warnings = payload.get("warnings", [])
@@ -417,6 +427,24 @@ def _latest_doc_reconciliation_plan(repo_root: Path) -> dict[str, str] | None:
     candidates = [
         candidate
         for candidate in reconciliation_root.rglob("*")
+        if candidate.is_file() and candidate.suffix.lower() in {".json", ".md"}
+    ]
+    if not candidates:
+        return None
+    latest = max(candidates, key=lambda path: path.stat().st_mtime)
+    return {
+        "path": str(latest),
+        "modified_at": datetime.fromtimestamp(latest.stat().st_mtime, tz=UTC).isoformat(),
+    }
+
+
+def _latest_github_sync_plan(repo_root: Path) -> dict[str, str] | None:
+    sync_root = repo_root / "artifacts" / "github-sync"
+    if not sync_root.exists():
+        return None
+    candidates = [
+        candidate
+        for candidate in sync_root.rglob("*")
         if candidate.is_file() and candidate.suffix.lower() in {".json", ".md"}
     ]
     if not candidates:

@@ -347,3 +347,25 @@ M28 safety posture:
 - local-only; no `gh` and no GitHub APIs
 - no LLM calls
 - no network dependency
+
+### M29 - Offline-to-GitHub Sync Planner
+
+Status: Implemented.
+
+Delivered M29 outcomes:
+
+- `plan-github-sync` local-only planning command added.
+- Deterministic markdown/json sync-plan output with operation classification.
+- Input support for offline closeout state file and local project state ledger.
+- Candidate sections for comments, issue closures, PR evidence linkage, labels/milestones, and validation commands.
+- Explicit boundary confirmations and no-GitHub-operations statement in generated plans.
+- Overwrite-safe output behavior with directory creation and `--force` gating.
+- M26 handoff package integration now references latest local sync plan in `artifacts/github-sync/`.
+- M28 docs reconciliation planner now flags follow-up docs review after sync planning when applicable.
+
+M29 safety posture:
+
+- plan-only output; no GitHub mutation execution
+- local-only; no `gh`, no GitHub APIs
+- no network dependency
+- no automatic issue comment posting, issue closure, PR creation, or live sync validation

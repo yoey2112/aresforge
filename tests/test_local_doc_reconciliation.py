@@ -77,3 +77,15 @@ def test_doc_reconciliation_generates_recommendations_from_state_and_docs(tmp_pa
     plan = payload["payload"]
     assert any("M28" in item for item in plan["recommended_doc_updates"])
     assert any("M28" in item for item in plan["stale_or_missing_sections"])
+
+
+def test_doc_reconciliation_recommends_docs_review_when_sync_plan_exists(tmp_path: Path) -> None:
+    _write_minimum_docs(tmp_path)
+    sync_plan = tmp_path / "artifacts" / "github-sync" / "plan.md"
+    sync_plan.parent.mkdir(parents=True, exist_ok=True)
+    sync_plan.write_text("# sync plan", encoding="utf-8")
+
+    payload = generate_doc_reconciliation_plan(_config(tmp_path), output_format="json")
+    assert payload["ok"] is True
+    plan = payload["payload"]
+    assert any("sync plan" in item.lower() for item in plan["recommended_doc_updates"])

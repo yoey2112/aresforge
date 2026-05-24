@@ -2,11 +2,34 @@
 
 ## Current Phase
 
-M28 documentation agent foundation implementation and documentation reconciliation planning.
+M29 offline-to-GitHub sync planner implementation and documentation.
 
 ## Current Goal
 
-Establish a plan-only, local-only documentation reconciliation foundation that inspects source-of-truth docs and local state to recommend doc updates without automatic editing.
+Add a plan-only, local-only offline-to-GitHub sync planner that prepares reviewed sync candidates without executing any GitHub operations.
+
+## M29 Offline-to-GitHub Sync Planner
+
+- New local-only plan command:
+  - `python -m aresforge plan-github-sync [--state-file <path>] [--project-state <path>] [--output <path>] [--format json|markdown] [--force]`
+- Planner inspects only local sources:
+  - optional offline closeout state file
+  - optional/default project state ledger at `.aresforge/state/project_state.json`
+  - optional source-of-truth docs context paths for plan traceability
+- Planner output includes:
+  - generated timestamp and input files used
+  - parent/child sync candidates
+  - evidence comment, closeout, label, milestone, PR evidence mapping, and validation candidates
+  - rate-limit warnings, manual review checklist, and explicit no-GitHub-operations confirmation
+- Strict M29 boundary:
+  - plan-only
+  - local-only
+  - no `gh`
+  - no GitHub API calls
+  - no network access
+  - no mutation
+- M26 handoff package generation now includes latest local GitHub sync plan reference when detected under `artifacts/github-sync/`.
+- M28 documentation reconciliation planning now recommends source-of-truth doc review when a local GitHub sync plan is present.
 
 ## M28 Documentation Agent Foundation
 

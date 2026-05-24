@@ -113,6 +113,7 @@ from aresforge.operator.closeout_readiness_by_construction import check_closeout
 from aresforge.operator.offline_state_template import generate_offline_closeout_state_template
 from aresforge.operator.local_handoff_package import generate_handoff_package
 from aresforge.operator.local_doc_reconciliation import generate_doc_reconciliation_plan
+from aresforge.operator.local_github_sync_planner import generate_github_sync_plan
 from aresforge.operator.local_project_state import (
     append_operation_log,
     init_project_state,
@@ -694,6 +695,30 @@ def build_parser() -> argparse.ArgumentParser:
         help="Collect local git state using the approved command subset.",
     )
     doc_reconciliation_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite existing output file.",
+    )
+    github_sync_plan_parser = subparsers.add_parser(
+        "plan-github-sync",
+        help="Generate a local-only, plan-only offline-to-GitHub sync plan.",
+    )
+    github_sync_plan_parser.add_argument(
+        "--state-file",
+        help="Optional offline closeout state file path.",
+    )
+    github_sync_plan_parser.add_argument(
+        "--project-state",
+        help="Optional project state file path (defaults to .aresforge/state/project_state.json).",
+    )
+    github_sync_plan_parser.add_argument("--output")
+    github_sync_plan_parser.add_argument(
+        "--format",
+        choices=["markdown", "json"],
+        default="markdown",
+        help="Output format for file writes or stdout rendering.",
+    )
+    github_sync_plan_parser.add_argument(
         "--force",
         action="store_true",
         help="Overwrite existing output file.",
@@ -1650,6 +1675,21 @@ def main(argv: list[str] | None = None) -> int:
             output=args.output,
             output_format=args.format,
             include_git_state=bool(args.include_git_state),
+            force=bool(args.force),
+        )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "plan-github-sync":
+        payload = generate_github_sync_plan(
+            config,
+            state_file=args.state_file,
+            project_state=args.project_state,
+            output=args.output,
+            output_format=args.format,
             force=bool(args.force),
         )
         if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):

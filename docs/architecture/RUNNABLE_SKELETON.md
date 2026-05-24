@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Describe the implemented human-triggered operator surface through M28 local documentation reconciliation planning support.
+Describe the implemented human-triggered operator surface through M29 local offline-to-GitHub sync planning support.
 
 ## Operator Shape
 
@@ -53,6 +53,7 @@ Command entrypoint:
 - `append-operation-log`
 - `inspect-operation-log`
 - `plan-doc-reconciliation`
+- `plan-github-sync`
 - offline/local state-file mode supported for milestone/parent readiness and parent evidence generation commands via `--state-file <path>`
 - canonical marker completeness payloads in:
   - child closeout evidence bundle generation
@@ -116,6 +117,22 @@ Offline state-file command surface:
   - plan-only (no automatic doc editing)
   - local-only
   - no `gh`, no GitHub APIs, no LLM calls, no external network use
+
+## M29 Offline-to-GitHub Sync Planning Surface
+
+- Command: `python -m aresforge plan-github-sync [--state-file <path>] [--project-state <path>] [--output <path>] [--format json|markdown] [--force]`
+- Planner scope:
+  - optional offline closeout state file
+  - optional/default local project state file at `.aresforge/state/project_state.json`
+  - local source-of-truth docs for context traceability
+- Output:
+  - stable JSON for automation/tests
+  - human-readable markdown for operator review
+- Boundary:
+  - plan-only (no posting comments, no closing issues, no PR creation)
+  - local-only
+  - no `gh`, no GitHub APIs, no network access
+  - no mutation
 
 ## M25 Capability Contract Alignment
 

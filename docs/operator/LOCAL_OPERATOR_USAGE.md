@@ -1,5 +1,41 @@
 # Local Operator Usage
 
+## M29 Offline-to-GitHub Sync Planner
+
+When to run:
+
+- Run after offline closeout/state updates to prepare a reviewed GitHub sync plan.
+- Run before any live GitHub mutation window to classify potential comment/close/label/milestone actions.
+- Run during rate-limit-sensitive periods to keep planning local and deterministic.
+
+Command:
+
+- `python -m aresforge plan-github-sync [--state-file <path>] [--project-state <path>] [--output <path>] [--format json|markdown] [--force]`
+
+Stdout behavior when `--output` is omitted:
+
+- default: markdown to stdout
+- `--format json`: stable JSON to stdout
+
+Safety and boundary:
+
+- plan-only (does not post comments, close issues, or create PRs)
+- local-only command surface
+- does not call `gh`
+- does not call GitHub APIs
+- does not validate against live GitHub state
+- does not require network access
+- does not mutate local state files
+
+Output highlights:
+
+- generated timestamp and input files used
+- parent/child sync candidates
+- evidence comments and issue closures to consider later
+- PR evidence mappings, label/milestone candidates, and validation command candidates
+- rate-limit risk warnings and manual review checklist
+- explicit statement that no GitHub operations were performed
+
 ## M28 Documentation Reconciliation Planner
 
 When to run:

@@ -20,6 +20,9 @@ Provide minimum operating context for safe M25 automatic canonical marker emissi
 - M28 documentation reconciliation agent foundation is now available as a plan-only local command surface.
 - M28 documentation reconciliation is advisory only and does not edit documentation files automatically.
 - M28 documentation reconciliation must not call LLMs, `gh`, GitHub APIs, or external network services.
+- M29 offline-to-GitHub sync planning is now available as a plan-only local command surface.
+- M29 offline-to-GitHub sync planning is advisory only and does not post comments, close issues, create PRs, query GitHub, or run GitHub validation.
+- M29 offline-to-GitHub sync planning must not call `gh`, GitHub APIs, or external network services.
 - Ledger defaults:
   - `.aresforge/state/project_state.json`
   - `.aresforge/state/operation_log.jsonl`
@@ -31,6 +34,8 @@ Provide minimum operating context for safe M25 automatic canonical marker emissi
   - `python -m aresforge inspect-operation-log`
 - M28 command surface:
   - `python -m aresforge plan-doc-reconciliation [--output <path>] [--format json|markdown] [--include-git-state] [--force]`
+- M29 command surface:
+  - `python -m aresforge plan-github-sync [--state-file <path>] [--project-state <path>] [--output <path>] [--format json|markdown] [--force]`
 
 ## Canonical Documents
 

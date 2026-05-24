@@ -80,6 +80,7 @@ def test_cli_has_expected_commands() -> None:
         "check-closeout-readiness-by-construction",
         "generate-offline-closeout-state-template",
         "generate-handoff-package",
+        "plan-github-sync",
         "init-project-state",
         "update-project-state",
         "append-operation-log",
