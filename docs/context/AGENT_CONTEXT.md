@@ -2,11 +2,11 @@
 
 ## Purpose
 
-Provide minimum operating context for M31 foundation reconciliation and next-phase planning with a local-first, self-managed operator model.
+Provide minimum operating context for M32 local managed-project registry implementation with a local-first, self-managed operator model.
 
 ## Current Operating Model
 
-- Active milestone context: M31 foundation reconciliation and next-phase planning.
+- Active milestone context: M32 local managed-project registry foundation.
 - AresForge now has a local-first foundation for self-managed operation.
 - GitHub is optional/syncable and not mandatory for local planning.
 - M26 added local handoff package generation.
@@ -14,6 +14,7 @@ Provide minimum operating context for M31 foundation reconciliation and next-pha
 - M28 added plan-only documentation reconciliation.
 - M29 added plan-only offline-to-GitHub sync planning.
 - M30 added local self-managed milestone lifecycle support.
+- M32 added local managed-project/multi-repo registry support.
 - Foundation-batch boundaries (M26-M30):
   - no `gh`
   - no GitHub API calls
@@ -32,8 +33,13 @@ Provide minimum operating context for M31 foundation reconciliation and next-pha
   - `python -m aresforge inspect-local-milestone --definition <path> [--format json|markdown]`
   - `python -m aresforge check-local-milestone-readiness --definition <path> [--project-state <path>] [--format json|markdown]`
   - `python -m aresforge generate-local-milestone-closeout --definition <path> --output <path> [--format json|markdown] [--force]`
+  - `python -m aresforge init-managed-project-registry [--path <path>] [--force]`
+  - `python -m aresforge register-managed-project --project-id <id> --name <name> --root-path <path> [--registry-path <path>] [--description <text>] [--status <status>] [--default-branch <branch>] [--tag <tag>]... [--notes <text>]`
+  - `python -m aresforge register-managed-repo --project-id <id> --repo-id <id> --name <name> --path <path> [--registry-path <path>] [--remote-url <url>] [--default-branch <branch>] [--role <role>] [--status <status>] [--tag <tag>]... [--notes <text>]`
+  - `python -m aresforge inspect-managed-project-registry [--registry-path <path>] [--format json|markdown]`
+  - `python -m aresforge inspect-managed-project --project-id <id> [--registry-path <path>] [--format json|markdown]`
+  - `python -m aresforge inspect-managed-repo --project-id <id> --repo-id <id> [--registry-path <path>] [--format json|markdown]`
 - Next-phase planning focus:
-  - multi-project / multi-repo registry
   - local project queue and tracking
   - local LLM agent handoff profiles
   - multi-agent orchestration planning
@@ -111,7 +117,6 @@ Provide minimum operating context for M31 foundation reconciliation and next-pha
 
 ## Known Limitations
 
-- No actual multi-project registry yet unless implemented later.
 - No local queue/tracking yet unless implemented later.
 - No actual LLM invocation yet.
 - No cloud LLM API integration yet.

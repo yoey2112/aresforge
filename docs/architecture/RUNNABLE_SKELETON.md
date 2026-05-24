@@ -25,6 +25,15 @@ Command entrypoint:
   - no new LLM API calls
   - no mandatory network dependency for local planning
 
+## M32 Managed Project Registry
+
+- Added local managed-project registry under `.aresforge/projects/projects.json`.
+- Supports multiple projects and repos with local metadata and deterministic inspect output.
+- Local-only boundary:
+  - no `gh`
+  - no GitHub API calls
+  - no network access
+
 ## Current Additions (M25 Included)
 
 - `inspect-evidence-bundle-automation-contract`
@@ -73,6 +82,12 @@ Command entrypoint:
 - `inspect-local-milestone`
 - `check-local-milestone-readiness`
 - `generate-local-milestone-closeout`
+- `init-managed-project-registry`
+- `register-managed-project`
+- `register-managed-repo`
+- `inspect-managed-project-registry`
+- `inspect-managed-project`
+- `inspect-managed-repo`
 - offline/local state-file mode supported for milestone/parent readiness and parent evidence generation commands via `--state-file <path>`
 - canonical marker completeness payloads in:
   - child closeout evidence bundle generation
@@ -108,6 +123,7 @@ Offline state-file command surface:
 - No `gh`, no GitHub API calls, no network dependency.
 - Includes local project-state summary from `.aresforge/state/project_state.json` when available.
 - Emits a warning and still succeeds when local project-state file is missing.
+- Includes managed-project registry summary from `.aresforge/projects/projects.json` when available.
 
 ## M27 Local Project State Ledger Surface
 
@@ -121,6 +137,7 @@ Offline state-file command surface:
   - `python -m aresforge append-operation-log [--state-path <path>] --event-type <type> --summary <summary> [--details <json>]`
   - `python -m aresforge inspect-operation-log [--state-path <path>] [--limit <n>]`
 - Local-only boundary: no `gh`, no GitHub API calls, no network dependency.
+- Scope boundary: M27 project state is per current repo/session context; M32 registry tracks many projects/repos.
 
 ## M28 Documentation Reconciliation Surface
 
@@ -166,6 +183,7 @@ Offline state-file command surface:
   - M28 `plan-doc-reconciliation` as a required lifecycle closeout follow-up.
   - M26 `generate-handoff-package` reminder as a closeout continuity step.
   - M29 `plan-github-sync` as an optional future sync planning step.
+  - Later milestones can be associated with M32 managed `project_id` / `repo_id`.
 - Boundary:
   - local-only
   - plan/check/generate only
@@ -238,7 +256,6 @@ Offline state-file command surface:
 
 ## Known Limitations
 
-- No actual multi-project registry yet unless implemented later.
 - No local queue/tracking yet unless implemented later.
 - No actual LLM invocation yet.
 - No cloud LLM API integration yet.
@@ -249,12 +266,11 @@ Offline state-file command surface:
 
 ## Next-Phase Roadmap (Planned)
 
-1. Multi-project / multi-repo registry.
-2. Local project queue and tracking.
-3. Local LLM agent handoff profiles.
-4. Multi-agent orchestration planning.
-5. Escalation to cloud LLMs.
-6. Project dashboard and local project management reporting.
-7. Optional later GitHub sync execution.
-8. Optional later web dashboard UI.
-9. Optional later background daemon or scheduler.
+1. Local project queue and tracking.
+2. Local LLM agent handoff profiles.
+3. Multi-agent orchestration planning.
+4. Escalation to cloud LLMs.
+5. Project dashboard and local project management reporting.
+6. Optional later GitHub sync execution.
+7. Optional later web dashboard UI.
+8. Optional later background daemon or scheduler.

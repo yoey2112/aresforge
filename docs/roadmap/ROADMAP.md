@@ -417,11 +417,32 @@ M31 safety posture:
 - local-first planning remains available without GitHub access
 - no automatic sync execution, no background automation, no unattended mutation
 
+### M32 - Multi-Project / Multi-Repo Local Registry
+
+Status: Implemented.
+
+Delivered M32 outcomes:
+
+- Added local managed-project registry defaults under `.aresforge/projects/projects.json`.
+- Implemented local-only project and repo registration with idempotent update behavior.
+- Added local inspection commands with stable JSON default and readable markdown option.
+- Added validation gates for project/repo statuses and repo roles.
+- Added clear missing-registry and missing-project error paths for register/inspect workflows.
+- Integrated managed-project registry summary into M26 local handoff package when registry exists.
+- Added unit and CLI coverage for registry initialization, registration/update idempotency, validation, and inspection paths.
+
+M32 safety posture:
+
+- local-only command surface
+- no `gh`
+- no GitHub API calls
+- no network access
+- no queue/orchestration execution introduced in this milestone
+
 ## Next Phase Roadmap (Planned)
 
 The next phase shifts from single-repo local foundation hardening to multi-project and multi-agent project-management capabilities.
 
-- Multi-project / multi-repo registry.
 - Local project queue and tracking.
 - Local LLM agent handoff profiles.
 - Multi-agent orchestration planning.
@@ -433,7 +454,6 @@ The next phase shifts from single-repo local foundation hardening to multi-proje
 
 ## Known Limitations (Current Foundation Batch)
 
-- No actual multi-project registry yet unless implemented later.
 - No local queue/tracking yet unless implemented later.
 - No actual LLM invocation yet.
 - No cloud LLM API integration yet.

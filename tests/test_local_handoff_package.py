@@ -4,6 +4,11 @@ from pathlib import Path
 
 from aresforge.config import AppConfig
 from aresforge.operator.local_handoff_package import generate_handoff_package
+from aresforge.operator.managed_project_registry_local import (
+    init_managed_project_registry,
+    register_managed_project,
+    register_managed_repo,
+)
 from aresforge.operator.local_project_state import init_project_state, update_project_state
 
 
@@ -163,3 +168,41 @@ def test_generate_handoff_package_includes_latest_github_sync_plan(monkeypatch, 
     latest = payload["payload"]["latest_github_sync_plan"]
     assert isinstance(latest, dict)
     assert latest["path"].endswith("artifacts\\github-sync\\latest.json")
+
+
+def test_generate_handoff_package_includes_managed_project_registry_summary(monkeypatch, tmp_path: Path) -> None:
+    _write_source_docs(tmp_path)
+    config = _config(tmp_path)
+    assert init_managed_project_registry(config)['ok'] is True
+    assert (
+        register_managed_project(
+            config,
+            project_id='aresforge-main',
+            name='AresForge',
+            root_path=str(tmp_path),
+        )['ok']
+        is True
+    )
+    assert (
+        register_managed_repo(
+            config,
+            project_id='aresforge-main',
+            repo_id='docs',
+            name='Docs Repo',
+            path=str(tmp_path / 'docs'),
+            role='docs',
+            status='active',
+        )['ok']
+        is True
+    )
+    monkeypatch.setattr(
+        subprocess,
+        'run',
+        lambda command, **_kwargs: subprocess.CompletedProcess(command, 0, stdout='x\n', stderr=''),
+    )
+    payload = generate_handoff_package(config, output_format='json')
+    assert payload['ok'] is True
+    summary = payload['payload']['managed_project_registry_summary']
+    assert isinstance(summary, dict)
+    assert summary['project_count'] == 1
+    assert summary['repo_count'] == 1

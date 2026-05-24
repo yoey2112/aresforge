@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from aresforge.config import AppConfig
+from aresforge.operator.managed_project_registry_local import managed_project_registry_summary_for_handoff
 from aresforge.operator.local_project_state import project_state_summary_for_handoff
 
 COMMAND_NAME = "generate-handoff-package"
@@ -259,6 +260,7 @@ def _build_payload(
         "Before deciding the next task, present options and wait for selection.",
     ]
     project_state_summary = project_state_summary_for_handoff(config)
+    managed_project_registry_summary = managed_project_registry_summary_for_handoff(config)
     latest_doc_reconciliation_plan = _latest_doc_reconciliation_plan(repo_root)
     latest_github_sync_plan = _latest_github_sync_plan(repo_root)
     project_state_warnings: list[str] = []
@@ -269,6 +271,10 @@ def _build_payload(
     elif "error" in project_state_summary:
         project_state_warnings.append(
             "Local project state ledger exists but could not be parsed."
+        )
+    if isinstance(managed_project_registry_summary, dict) and "error" in managed_project_registry_summary:
+        project_state_warnings.append(
+            "Managed project registry exists but could not be parsed."
         )
 
     payload: dict[str, Any] = {
@@ -287,6 +293,7 @@ def _build_payload(
         "codex_continuation_prompt": "\n".join(prompt_lines),
         "source_docs": [doc.path for doc in docs],
         "project_state_summary": project_state_summary,
+        "managed_project_registry_summary": managed_project_registry_summary,
         "active_local_milestone": (
             project_state_summary.get("current_milestone")
             if isinstance(project_state_summary, dict)
@@ -371,6 +378,17 @@ def _render_markdown(payload: dict[str, Any]) -> str:
 
     lines.extend(["", "## Recommended Next Options"])
     lines.extend(f"- {item}" for item in payload.get("recommended_next_options", []))
+
+    lines.extend(["", "## Managed Project Registry Summary"])
+    managed_summary = payload.get("managed_project_registry_summary")
+    if isinstance(managed_summary, dict):
+        lines.append(f"- path: {managed_summary.get('path')}")
+        lines.append(f"- schema_version: {managed_summary.get('schema_version')}")
+        lines.append(f"- updated_at: {managed_summary.get('updated_at')}")
+        lines.append(f"- project_count: {managed_summary.get('project_count')}")
+        lines.append(f"- repo_count: {managed_summary.get('repo_count')}")
+    else:
+        lines.append("- No managed project registry summary available.")
 
     lines.extend(["", "## Latest Doc Reconciliation Plan"])
     latest_plan = payload.get("latest_doc_reconciliation_plan")

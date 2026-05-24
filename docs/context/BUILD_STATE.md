@@ -2,12 +2,29 @@
 
 ## Current Phase
 
-M31 foundation reconciliation and next-phase planning.
+M32 local managed-project registry foundation.
 
 ## Current Goal
 
-Reconcile source-of-truth documentation for the completed M26-M30 local-first foundation and prepare the next phase for multi-project and multi-agent project-management capabilities.
+Implement and document a local-only managed-project registry so AresForge can track multiple projects and repos without GitHub API dependency.
 
+## M32 Multi-Project / Multi-Repo Local Registry
+
+- Added a local managed-project registry under `.aresforge/projects/projects.json`.
+- Registry tracks multiple projects and multiple repos with explicit status, role, metadata, and timestamps.
+- New local-only command surface:
+  - `python -m aresforge init-managed-project-registry [--path <path>] [--force]`
+  - `python -m aresforge register-managed-project --project-id <id> --name <name> --root-path <path> [--registry-path <path>] [--description <text>] [--status <status>] [--default-branch <branch>] [--tag <tag>]... [--notes <text>]`
+  - `python -m aresforge register-managed-repo --project-id <id> --repo-id <id> --name <name> --path <path> [--registry-path <path>] [--remote-url <url>] [--default-branch <branch>] [--role <role>] [--status <status>] [--tag <tag>]... [--notes <text>]`
+  - `python -m aresforge inspect-managed-project-registry [--registry-path <path>] [--format json|markdown]`
+  - `python -m aresforge inspect-managed-project --project-id <id> [--registry-path <path>] [--format json|markdown]`
+  - `python -m aresforge inspect-managed-repo --project-id <id> --repo-id <id> [--registry-path <path>] [--format json|markdown]`
+- M26 handoff generation now includes managed-project registry summary when the registry exists.
+- M32 boundary confirmation:
+  - local-only
+  - no `gh`
+  - no GitHub API calls
+  - no network access
 ## M31 Foundation Reconciliation and Next-Phase Planning
 
 - AresForge now has a local-first foundation for self-managed operation.
@@ -23,7 +40,6 @@ Reconcile source-of-truth documentation for the completed M26-M30 local-first fo
 
 ## Next-Phase Roadmap (Planned)
 
-- Multi-project / multi-repo registry.
 - Local project queue and tracking.
 - Local LLM agent handoff profiles.
 - Multi-agent orchestration planning.
@@ -35,7 +51,6 @@ Reconcile source-of-truth documentation for the completed M26-M30 local-first fo
 
 ## Known Limitations (Current Foundation Batch)
 
-- No actual multi-project registry yet unless implemented later.
 - No local queue/tracking yet unless implemented later.
 - No actual LLM invocation yet.
 - No cloud LLM API integration yet.
@@ -60,6 +75,7 @@ Reconcile source-of-truth documentation for the completed M26-M30 local-first fo
 - Readiness checks validate required fields/docs/artifacts/commands/closeout requirements and optionally reconcile with local project state.
 - Closeout generation includes milestone summary, readiness result, validation checklist, documentation reconciliation reminder (M28), handoff reminder (M26), and optional GitHub sync planning reminder (M29).
 - M26 handoff package now surfaces `active_local_milestone` when inferable from M27 project state (`current_milestone`).
+- Later milestones can be associated with managed `project_id` and `repo_id` from the M32 registry.
 
 ## M29 Offline-to-GitHub Sync Planner
 
@@ -119,6 +135,9 @@ Reconcile source-of-truth documentation for the completed M26-M30 local-first fo
   - `python -m aresforge inspect-operation-log [--state-path <path>] [--limit <n>]`
 - M26 handoff package generation now includes local project-state summary when present.
 - If project state is missing, handoff generation adds a warning and still succeeds.
+- Scope clarification:
+  - M27 local project state tracks the current repo/session context.
+  - M32 managed-project registry tracks many projects and repos in local-first control-plane context.
 
 ## M26 Local Handoff Package Generator
 

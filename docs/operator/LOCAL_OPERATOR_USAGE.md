@@ -11,13 +11,13 @@ Foundation status:
 - M28 added plan-only documentation reconciliation.
 - M29 added plan-only offline-to-GitHub sync planning.
 - M30 added local self-managed milestone lifecycle support.
+- M32 added local managed-project registry support for multi-project/multi-repo tracking.
 - No new functionality in this foundation batch calls GitHub APIs.
 - No new functionality in this foundation batch calls LLM APIs.
 - The system is ready to move into multi-project and multi-agent project-management capabilities.
 
 ## Next-Phase Roadmap (Planned)
 
-- Multi-project / multi-repo registry.
 - Local project queue and tracking.
 - Local LLM agent handoff profiles.
 - Multi-agent orchestration planning.
@@ -29,7 +29,6 @@ Foundation status:
 
 ## Known Limitations (Current Foundation Batch)
 
-- No actual multi-project registry yet unless implemented later.
 - No local queue/tracking yet unless implemented later.
 - No actual LLM invocation yet.
 - No cloud LLM API integration yet.
@@ -101,6 +100,44 @@ Write-Host ""
 Write-Host "== Final status ==" -ForegroundColor Cyan
 git status --short
 ```
+
+## M32 Managed Project Registry
+
+Purpose:
+
+- Track multiple local projects and multiple repos in a local-first control-plane registry.
+- Keep registry management local-only with no GitHub or network dependency.
+
+Defaults:
+
+- registry directory: `.aresforge/projects/`
+- registry file: `.aresforge/projects/projects.json`
+
+Commands:
+
+- `python -m aresforge init-managed-project-registry [--path <path>] [--force]`
+- `python -m aresforge register-managed-project --project-id <id> --name <name> --root-path <path> [--registry-path <path>] [--description <text>] [--status <status>] [--default-branch <branch>] [--tag <tag>]... [--notes <text>]`
+- `python -m aresforge register-managed-repo --project-id <id> --repo-id <id> --name <name> --path <path> [--registry-path <path>] [--remote-url <url>] [--default-branch <branch>] [--role <role>] [--status <status>] [--tag <tag>]... [--notes <text>]`
+- `python -m aresforge inspect-managed-project-registry [--registry-path <path>] [--format json|markdown]`
+- `python -m aresforge inspect-managed-project --project-id <id> [--registry-path <path>] [--format json|markdown]`
+- `python -m aresforge inspect-managed-repo --project-id <id> --repo-id <id> [--registry-path <path>] [--format json|markdown]`
+
+Behavior guarantees:
+
+- local-only command surface
+- no `gh` calls
+- no GitHub API calls
+- no network access
+- `init-managed-project-registry` creates missing directories and refuses overwrite unless `--force`
+- `register-managed-project` is idempotent by `project_id`
+- `register-managed-repo` is idempotent by `project_id + repo_id`
+- repo registration fails clearly when `project_id` does not exist
+
+M26/M27/M30 linkage:
+
+- M26 `generate-handoff-package` includes managed-project registry summary when registry exists.
+- M27 local project state remains per current repo/session context, while M32 registry tracks many projects/repos.
+- M30 milestones can later be associated with managed `project_id` / `repo_id`.
 
 ## M30 Self-Managed Local Milestone Lifecycle
 

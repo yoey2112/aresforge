@@ -127,6 +127,17 @@ from aresforge.operator.local_project_state import (
     inspect_project_state as inspect_local_project_state,
     update_project_state,
 )
+from aresforge.operator.managed_project_registry_local import (
+    PROJECT_STATUSES,
+    REPO_ROLES,
+    REPO_STATUSES,
+    init_managed_project_registry,
+    inspect_managed_project,
+    inspect_managed_project_registry,
+    inspect_managed_repo,
+    register_managed_project,
+    register_managed_repo,
+)
 from aresforge.operator.milestone_reconciliation_planner import plan_milestone_final_reconciliation
 from aresforge.operator.preflight_snapshot import (
     diff_preflight_snapshots,
@@ -821,6 +832,77 @@ def build_parser() -> argparse.ArgumentParser:
     )
     inspect_operation_log_parser.add_argument("--state-path")
     inspect_operation_log_parser.add_argument("--limit", type=int)
+    init_managed_project_registry_parser = subparsers.add_parser(
+        "init-managed-project-registry",
+        help="Initialize local managed-project registry under .aresforge/projects.",
+    )
+    init_managed_project_registry_parser.add_argument("--path")
+    init_managed_project_registry_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite existing managed-project registry file.",
+    )
+    register_managed_project_parser = subparsers.add_parser(
+        "register-managed-project",
+        help="Register or update one managed project in local managed-project registry.",
+    )
+    register_managed_project_parser.add_argument("--project-id", required=True)
+    register_managed_project_parser.add_argument("--name", required=True)
+    register_managed_project_parser.add_argument("--root-path", required=True)
+    register_managed_project_parser.add_argument("--registry-path")
+    register_managed_project_parser.add_argument("--description")
+    register_managed_project_parser.add_argument("--status", choices=list(PROJECT_STATUSES))
+    register_managed_project_parser.add_argument("--default-branch")
+    register_managed_project_parser.add_argument("--tag", action="append", default=[])
+    register_managed_project_parser.add_argument("--notes")
+    register_managed_repo_parser = subparsers.add_parser(
+        "register-managed-repo",
+        help="Register or update one repo under a managed project in local managed-project registry.",
+    )
+    register_managed_repo_parser.add_argument("--project-id", required=True)
+    register_managed_repo_parser.add_argument("--repo-id", required=True)
+    register_managed_repo_parser.add_argument("--name", required=True)
+    register_managed_repo_parser.add_argument("--path", required=True)
+    register_managed_repo_parser.add_argument("--registry-path")
+    register_managed_repo_parser.add_argument("--remote-url")
+    register_managed_repo_parser.add_argument("--default-branch")
+    register_managed_repo_parser.add_argument("--role", choices=list(REPO_ROLES))
+    register_managed_repo_parser.add_argument("--status", choices=list(REPO_STATUSES))
+    register_managed_repo_parser.add_argument("--tag", action="append", default=[])
+    register_managed_repo_parser.add_argument("--notes")
+    inspect_managed_project_registry_parser = subparsers.add_parser(
+        "inspect-managed-project-registry",
+        help="Inspect local managed-project registry.",
+    )
+    inspect_managed_project_registry_parser.add_argument("--registry-path")
+    inspect_managed_project_registry_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="json",
+    )
+    inspect_managed_project_parser = subparsers.add_parser(
+        "inspect-managed-project",
+        help="Inspect one managed project from local managed-project registry.",
+    )
+    inspect_managed_project_parser.add_argument("--project-id", required=True)
+    inspect_managed_project_parser.add_argument("--registry-path")
+    inspect_managed_project_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="json",
+    )
+    inspect_managed_repo_parser = subparsers.add_parser(
+        "inspect-managed-repo",
+        help="Inspect one managed repo from local managed-project registry.",
+    )
+    inspect_managed_repo_parser.add_argument("--project-id", required=True)
+    inspect_managed_repo_parser.add_argument("--repo-id", required=True)
+    inspect_managed_repo_parser.add_argument("--registry-path")
+    inspect_managed_repo_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="json",
+    )
     preflight_snapshot_parser = subparsers.add_parser(
         "generate-preflight-baseline-snapshot",
         help="Generate read-only baseline snapshot payload for closeout preflight reconciliation audits.",
@@ -1859,6 +1941,88 @@ def main(argv: list[str] | None = None) -> int:
             state_path=args.state_path,
             limit=args.limit,
         )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "init-managed-project-registry":
+        payload = init_managed_project_registry(
+            config,
+            path=args.path,
+            force=bool(args.force),
+        )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "register-managed-project":
+        payload = register_managed_project(
+            config,
+            project_id=args.project_id,
+            name=args.name,
+            root_path=args.root_path,
+            registry_path=args.registry_path,
+            description=args.description,
+            status=args.status,
+            default_branch=args.default_branch,
+            tags=list(args.tag),
+            notes=args.notes,
+        )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "register-managed-repo":
+        payload = register_managed_repo(
+            config,
+            project_id=args.project_id,
+            repo_id=args.repo_id,
+            name=args.name,
+            path=args.path,
+            registry_path=args.registry_path,
+            remote_url=args.remote_url,
+            default_branch=args.default_branch,
+            role=args.role,
+            status=args.status,
+            tags=list(args.tag),
+            notes=args.notes,
+        )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-managed-project-registry":
+        payload = inspect_managed_project_registry(
+            config,
+            registry_path=args.registry_path,
+            output_format=args.format,
+        )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-managed-project":
+        payload = inspect_managed_project(
+            config,
+            project_id=args.project_id,
+            registry_path=args.registry_path,
+            output_format=args.format,
+        )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-managed-repo":
+        payload = inspect_managed_repo(
+            config,
+            project_id=args.project_id,
+            repo_id=args.repo_id,
+            registry_path=args.registry_path,
+            output_format=args.format,
+        )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 
