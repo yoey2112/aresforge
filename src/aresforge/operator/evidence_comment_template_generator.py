@@ -6,6 +6,7 @@ import subprocess
 from typing import Any
 
 from aresforge.config import AppConfig
+from aresforge.operator.child_evidence_marker_template import generate_child_evidence_marker_template
 from aresforge.operator.evidence_completeness_checker import check_issue_evidence_readiness
 from aresforge.operator.milestone_dashboard import inspect_milestone_dashboard
 from aresforge.operator.ready_issue_intake import PROTECTED_ISSUE_NUMBER, fetch_issue_details
@@ -45,6 +46,11 @@ def generate_evidence_comment_template(config: AppConfig, *, issue_number: int) 
     issue_readiness = check_issue_evidence_readiness(config, issue_number=target_issue)
     pr_evidence = _collect_pr_evidence(config, issue)
     parent_context = _collect_parent_context(config, parent_issue=parent_issue)
+    marker_payload = _collect_canonical_marker_payload(
+        config,
+        parent_issue=parent_issue,
+        target_issue=target_issue,
+    )
 
     template = _render_template(
         issue=issue,
@@ -52,6 +58,7 @@ def generate_evidence_comment_template(config: AppConfig, *, issue_number: int) 
         parent_context=parent_context,
         issue_readiness=issue_readiness,
         pr_evidence=pr_evidence,
+        marker_payload=marker_payload,
     )
     warnings = _warnings(
         target_issue=target_issue,
@@ -59,6 +66,7 @@ def generate_evidence_comment_template(config: AppConfig, *, issue_number: int) 
         issue_readiness=issue_readiness,
         pr_evidence=pr_evidence,
         parent_context=parent_context,
+        marker_payload=marker_payload,
     )
 
     return {
@@ -82,6 +90,7 @@ def generate_evidence_comment_template(config: AppConfig, *, issue_number: int) 
             "includes_files_changed_section": True,
             "includes_acceptance_criteria_mapping": True,
             "includes_closeout_readiness_statement": True,
+            "includes_canonical_marker_completeness_section": True,
             "contains_nested_markdown_fences": "```" in template,
         },
         "evidence_status": {
@@ -93,6 +102,10 @@ def generate_evidence_comment_template(config: AppConfig, *, issue_number: int) 
             "related_commit_count": len(pr_evidence["commits"]),
             "files_changed_count": len(pr_evidence["files_changed"]),
         },
+        "canonical_marker": marker_payload["canonical_marker"],
+        "canonical_marker_text": marker_payload["canonical_marker_text"],
+        "canonical_marker_completeness": marker_payload["canonical_marker_completeness"],
+        "closeout_comment_ready": marker_payload["canonical_marker_completeness"]["marker_complete"],
         "safety_gates": {
             "read_only": True,
             "mutation_performed": False,
@@ -278,6 +291,7 @@ def _render_template(
     parent_context: dict[str, Any],
     issue_readiness: dict[str, Any],
     pr_evidence: dict[str, Any],
+    marker_payload: dict[str, Any],
 ) -> str:
     target_issue = issue.get("number")
     issue_title = issue.get("title") if isinstance(issue.get("title"), str) else ""
@@ -293,6 +307,26 @@ def _render_template(
     commit_lines = _render_commit_lines(pr_evidence.get("commits") if isinstance(pr_evidence.get("commits"), list) else [])
     file_lines = _render_file_lines(pr_evidence.get("files_changed") if isinstance(pr_evidence.get("files_changed"), list) else [])
     readiness_lines = _render_readiness_lines(readiness_reasons)
+    canonical_marker_text = str(marker_payload.get("canonical_marker_text") or "")
+    canonical_marker_completeness = (
+        marker_payload.get("canonical_marker_completeness")
+        if isinstance(marker_payload.get("canonical_marker_completeness"), dict)
+        else {}
+    )
+    marker_state = canonical_marker_completeness.get("state")
+    marker_complete = canonical_marker_completeness.get("marker_complete")
+    missing_fields = canonical_marker_completeness.get("missing_required_fields")
+    invalid_reasons = canonical_marker_completeness.get("invalid_reasons")
+    missing_fields_text = (
+        ", ".join(str(item) for item in missing_fields)
+        if isinstance(missing_fields, list) and missing_fields
+        else "<none>"
+    )
+    invalid_reasons_text = (
+        ", ".join(str(item) for item in invalid_reasons)
+        if isinstance(invalid_reasons, list) and invalid_reasons
+        else "<none>"
+    )
 
     lines = [
         "### Issue-Specific Evidence Mapping",
@@ -322,6 +356,20 @@ def _render_template(
         "- python -m aresforge inspect-repo-governance: <fill-after-validation>",
         f"- python -m aresforge generate-evidence-comment-template --issue {target_issue}: generated",
         f"- python -m aresforge generate-child-closeout-script --issue {target_issue}: generated",
+        "",
+        "Canonical marker completeness:",
+        f"- state: {marker_state}",
+        f"- marker_complete: {marker_complete}",
+        f"- missing_required_fields: {missing_fields_text}",
+        f"- invalid_reasons: {invalid_reasons_text}",
+        (
+            "- marker_repair_guidance: resolve missing/invalid marker fields before treating this comment as closeout-ready."
+            if marker_complete is not True
+            else "- marker_repair_guidance: none required."
+        ),
+        "",
+        "Canonical marker (copy/paste-safe):",
+        canonical_marker_text if canonical_marker_text else "<missing>",
         "",
         "Acceptance criteria mapping:",
         *acceptance_items,
@@ -438,6 +486,7 @@ def _warnings(
     issue_readiness: dict[str, Any],
     pr_evidence: dict[str, Any],
     parent_context: dict[str, Any],
+    marker_payload: dict[str, Any],
 ) -> list[str]:
     warnings = [
         "Template generation is read-only; no GitHub mutation was performed.",
@@ -452,9 +501,78 @@ def _warnings(
         warnings.append("Parent issue lineage was not detected automatically from issue metadata.")
     if parent_context.get("detected") is True and not parent_context.get("ok"):
         warnings.append("Parent dashboard context could not be fully inspected; verify parent/final reconciliation states manually.")
+    marker_completeness = (
+        marker_payload.get("canonical_marker_completeness")
+        if isinstance(marker_payload.get("canonical_marker_completeness"), dict)
+        else {}
+    )
+    if marker_completeness.get("marker_complete") is not True:
+        warnings.append(
+            "Canonical marker completeness is not ready; missing/invalid marker fields must be resolved before closeout comment posting."
+        )
     if target_issue == 301:
         warnings.append("Target issue is #301 final reconciliation; do not close without explicit final-reconciliation authorization.")
     return warnings
+
+
+def _collect_canonical_marker_payload(
+    config: AppConfig,
+    *,
+    parent_issue: int | None,
+    target_issue: int,
+) -> dict[str, Any]:
+    if not isinstance(parent_issue, int):
+        missing_fields_list = ["parent_issue"]
+        invalid_reasons_list = ["parent_issue_lineage_not_detected"]
+        return {
+            "canonical_marker": {
+                "marker_type": "child_evidence",
+                "marker_state": "incomplete",
+                "missing_required_fields": missing_fields_list,
+                "invalid_reasons": invalid_reasons_list,
+            },
+            "canonical_marker_text": "",
+            "canonical_marker_completeness": {
+                "state": "incomplete",
+                "marker_type": "child_evidence",
+                "marker_scope": "generated_closeout_comment",
+                "missing_required_fields": missing_fields_list,
+                "invalid_reasons": invalid_reasons_list,
+                "marker_complete": False,
+                "post_hoc_marker_repair_required": True,
+            },
+        }
+
+    marker_payload = generate_child_evidence_marker_template(
+        config,
+        parent_issue=parent_issue,
+        child_issue=target_issue,
+    )
+    canonical_marker = (
+        marker_payload.get("canonical_marker")
+        if isinstance(marker_payload.get("canonical_marker"), dict)
+        else {}
+    )
+    canonical_marker_text = str(marker_payload.get("canonical_marker_text") or "")
+    missing_fields = canonical_marker.get("missing_required_fields")
+    invalid_reasons = canonical_marker.get("invalid_reasons")
+    missing_fields_list = list(missing_fields) if isinstance(missing_fields, (list, tuple)) else []
+    invalid_reasons_list = list(invalid_reasons) if isinstance(invalid_reasons, (list, tuple)) else []
+    marker_state = canonical_marker.get("marker_state") if isinstance(canonical_marker.get("marker_state"), str) else "unknown"
+    marker_complete = marker_state == "ready" and not missing_fields_list and not invalid_reasons_list
+    return {
+        "canonical_marker": canonical_marker,
+        "canonical_marker_text": canonical_marker_text,
+        "canonical_marker_completeness": {
+            "state": marker_state,
+            "marker_type": canonical_marker.get("marker_type"),
+            "marker_scope": "generated_closeout_comment",
+            "missing_required_fields": missing_fields_list,
+            "invalid_reasons": invalid_reasons_list,
+            "marker_complete": marker_complete,
+            "post_hoc_marker_repair_required": not marker_complete,
+        },
+    }
 
 
 def _boundary_confirmations(*, parent_context: dict[str, Any], parent_issue: int | None) -> list[str]:
