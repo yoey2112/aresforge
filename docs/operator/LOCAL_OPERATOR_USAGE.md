@@ -1,5 +1,35 @@
 # Local Operator Usage
 
+## M30 Self-Managed Local Milestone Lifecycle
+
+When to run:
+
+- Run at milestone start to create a local milestone definition template.
+- Run during implementation to inspect/update scope and check readiness.
+- Run before handoff/closeout to generate a deterministic local closeout package.
+
+Commands:
+
+- `python -m aresforge generate-local-milestone-template --milestone-id <id> --output <path> [--title <title>] [--force]`
+- `python -m aresforge inspect-local-milestone --definition <path> [--format json|markdown]`
+- `python -m aresforge check-local-milestone-readiness --definition <path> [--project-state <path>] [--format json|markdown]`
+- `python -m aresforge generate-local-milestone-closeout --definition <path> --output <path> [--format json|markdown] [--force]`
+
+Suggested local structure:
+
+- `.aresforge/milestones/<milestone-id>.json`
+
+Lifecycle expectations:
+
+- Local-only, plan/check/generate only.
+- No `gh`, no GitHub API calls, no network access, no LLM calls.
+- Treat M28 documentation reconciliation as a required closeout lifecycle step:
+  - `python -m aresforge plan-doc-reconciliation ...`
+- Treat M26 handoff generation as a required continuity step:
+  - `python -m aresforge generate-handoff-package ...`
+- Treat M29 GitHub sync planning as optional for future sync windows:
+  - `python -m aresforge plan-github-sync ...`
+
 ## M29 Offline-to-GitHub Sync Planner
 
 When to run:

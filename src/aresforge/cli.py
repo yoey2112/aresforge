@@ -114,6 +114,12 @@ from aresforge.operator.offline_state_template import generate_offline_closeout_
 from aresforge.operator.local_handoff_package import generate_handoff_package
 from aresforge.operator.local_doc_reconciliation import generate_doc_reconciliation_plan
 from aresforge.operator.local_github_sync_planner import generate_github_sync_plan
+from aresforge.operator.local_milestone_lifecycle import (
+    check_local_milestone_readiness,
+    generate_local_milestone_closeout,
+    generate_local_milestone_template,
+    inspect_local_milestone,
+)
 from aresforge.operator.local_project_state import (
     append_operation_log,
     init_project_state,
@@ -719,6 +725,55 @@ def build_parser() -> argparse.ArgumentParser:
         help="Output format for file writes or stdout rendering.",
     )
     github_sync_plan_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite existing output file.",
+    )
+    local_milestone_template_parser = subparsers.add_parser(
+        "generate-local-milestone-template",
+        help="Generate a local milestone definition template file.",
+    )
+    local_milestone_template_parser.add_argument("--milestone-id", required=True)
+    local_milestone_template_parser.add_argument("--output", required=True)
+    local_milestone_template_parser.add_argument("--title")
+    local_milestone_template_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite existing output file.",
+    )
+    inspect_local_milestone_parser = subparsers.add_parser(
+        "inspect-local-milestone",
+        help="Inspect one local milestone definition file.",
+    )
+    inspect_local_milestone_parser.add_argument("--definition", required=True)
+    inspect_local_milestone_parser.add_argument(
+        "--format",
+        choices=["markdown", "json"],
+        default="markdown",
+    )
+    check_local_milestone_readiness_parser = subparsers.add_parser(
+        "check-local-milestone-readiness",
+        help="Run local-only readiness checks for a milestone definition file.",
+    )
+    check_local_milestone_readiness_parser.add_argument("--definition", required=True)
+    check_local_milestone_readiness_parser.add_argument("--project-state")
+    check_local_milestone_readiness_parser.add_argument(
+        "--format",
+        choices=["markdown", "json"],
+        default="markdown",
+    )
+    generate_local_milestone_closeout_parser = subparsers.add_parser(
+        "generate-local-milestone-closeout",
+        help="Generate a local-only milestone closeout package from a definition file.",
+    )
+    generate_local_milestone_closeout_parser.add_argument("--definition", required=True)
+    generate_local_milestone_closeout_parser.add_argument("--output", required=True)
+    generate_local_milestone_closeout_parser.add_argument(
+        "--format",
+        choices=["markdown", "json"],
+        default="markdown",
+    )
+    generate_local_milestone_closeout_parser.add_argument(
         "--force",
         action="store_true",
         help="Overwrite existing output file.",
@@ -1695,6 +1750,53 @@ def main(argv: list[str] | None = None) -> int:
         if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
             print(payload["stdout"])
             return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "generate-local-milestone-template":
+        payload = generate_local_milestone_template(
+            config,
+            milestone_id=args.milestone_id,
+            output=args.output,
+            title=args.title,
+            force=bool(args.force),
+        )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-local-milestone":
+        payload = inspect_local_milestone(
+            config,
+            definition=args.definition,
+            output_format=args.format,
+        )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "check-local-milestone-readiness":
+        payload = check_local_milestone_readiness(
+            config,
+            definition=args.definition,
+            project_state=args.project_state,
+            output_format=args.format,
+        )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "generate-local-milestone-closeout":
+        payload = generate_local_milestone_closeout(
+            config,
+            definition=args.definition,
+            output=args.output,
+            output_format=args.format,
+            force=bool(args.force),
+        )
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 

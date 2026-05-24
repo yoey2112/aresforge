@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Describe the implemented human-triggered operator surface through M29 local offline-to-GitHub sync planning support.
+Describe the implemented human-triggered operator surface through M30 local self-managed milestone lifecycle support.
 
 ## Operator Shape
 
@@ -54,6 +54,10 @@ Command entrypoint:
 - `inspect-operation-log`
 - `plan-doc-reconciliation`
 - `plan-github-sync`
+- `generate-local-milestone-template`
+- `inspect-local-milestone`
+- `check-local-milestone-readiness`
+- `generate-local-milestone-closeout`
 - offline/local state-file mode supported for milestone/parent readiness and parent evidence generation commands via `--state-file <path>`
 - canonical marker completeness payloads in:
   - child closeout evidence bundle generation
@@ -132,7 +136,25 @@ Offline state-file command surface:
   - plan-only (no posting comments, no closing issues, no PR creation)
   - local-only
   - no `gh`, no GitHub APIs, no network access
-  - no mutation
+- no mutation
+
+## M30 Local Milestone Lifecycle Surface
+
+- Commands:
+  - `python -m aresforge generate-local-milestone-template --milestone-id <id> --output <path> [--title <title>] [--force]`
+  - `python -m aresforge inspect-local-milestone --definition <path> [--format json|markdown]`
+  - `python -m aresforge check-local-milestone-readiness --definition <path> [--project-state <path>] [--format json|markdown]`
+  - `python -m aresforge generate-local-milestone-closeout --definition <path> --output <path> [--format json|markdown] [--force]`
+- Suggested local definition path: `.aresforge/milestones/`.
+- Lifecycle links:
+  - M27 project-state ledger for active milestone/phase and documentation status checks.
+  - M28 `plan-doc-reconciliation` as a required lifecycle closeout follow-up.
+  - M26 `generate-handoff-package` reminder as a closeout continuity step.
+  - M29 `plan-github-sync` as an optional future sync planning step.
+- Boundary:
+  - local-only
+  - plan/check/generate only
+  - no `gh`, no GitHub APIs, no network, no LLM calls
 
 ## M25 Capability Contract Alignment
 

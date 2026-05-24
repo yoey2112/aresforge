@@ -2,11 +2,28 @@
 
 ## Current Phase
 
-M29 offline-to-GitHub sync planner implementation and documentation.
+M30 self-managed local milestone lifecycle implementation and documentation.
 
 ## Current Goal
 
-Add a plan-only, local-only offline-to-GitHub sync planner that prepares reviewed sync candidates without executing any GitHub operations.
+Connect local milestone definition, readiness checks, and closeout generation into a local-first lifecycle that links project state, documentation reconciliation planning, handoff generation, and optional future GitHub sync planning.
+
+## M30 Self-Managed Milestone Lifecycle
+
+- New local-only command surface:
+  - `python -m aresforge generate-local-milestone-template --milestone-id <id> --output <path> [--title <title>] [--force]`
+  - `python -m aresforge inspect-local-milestone --definition <path> [--format json|markdown]`
+  - `python -m aresforge check-local-milestone-readiness --definition <path> [--project-state <path>] [--format json|markdown]`
+  - `python -m aresforge generate-local-milestone-closeout --definition <path> --output <path> [--format json|markdown] [--force]`
+- Definition files are local and operator-managed (suggested location: `.aresforge/milestones/`).
+- Lifecycle is local-first and plan/check/generate only:
+  - no `gh`
+  - no GitHub API calls
+  - no network access
+  - no LLM calls
+- Readiness checks validate required fields/docs/artifacts/commands/closeout requirements and optionally reconcile with local project state.
+- Closeout generation includes milestone summary, readiness result, validation checklist, documentation reconciliation reminder (M28), handoff reminder (M26), and optional GitHub sync planning reminder (M29).
+- M26 handoff package now surfaces `active_local_milestone` when inferable from M27 project state (`current_milestone`).
 
 ## M29 Offline-to-GitHub Sync Planner
 

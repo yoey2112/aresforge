@@ -116,6 +116,7 @@ def test_generate_handoff_package_includes_project_state_summary(monkeypatch, tm
     payload = generate_handoff_package(config, output_format="json")
     assert payload["ok"] is True
     assert payload["payload"]["project_state_summary"]["current_milestone"] == "M27"
+    assert payload["payload"]["active_local_milestone"] == "M27"
 
 
 def test_generate_handoff_package_warns_when_project_state_missing(monkeypatch, tmp_path: Path) -> None:

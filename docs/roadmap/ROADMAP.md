@@ -369,3 +369,26 @@ M29 safety posture:
 - local-only; no `gh`, no GitHub APIs
 - no network dependency
 - no automatic issue comment posting, issue closure, PR creation, or live sync validation
+
+### M30 - Self-Managed Local Milestone Lifecycle
+
+Status: Implemented.
+
+Delivered M30 outcomes:
+
+- Local milestone definition template generation under operator-defined local paths (suggested `.aresforge/milestones/`).
+- Local milestone inspection command with deterministic markdown/json rendering.
+- Local milestone readiness checks for required fields, required docs/artifacts, validation command coverage, closeout requirement coverage, and optional project-state documentation status alignment.
+- Local milestone closeout generation with readiness summary, checklist output, and lifecycle reminders.
+- Lifecycle integration across prior milestones:
+  - M27 local project state (`current_milestone`/`current_phase`) as readiness context.
+  - M28 documentation reconciliation planning as required lifecycle follow-up.
+  - M26 handoff package continuity includes active local milestone when inferable.
+  - M29 offline-to-GitHub sync planning referenced as optional future sync step.
+
+M30 safety posture:
+
+- local-only plan/check/generate commands
+- no `gh`, no GitHub API calls, no network usage
+- no LLM calls
+- no live mutation execution

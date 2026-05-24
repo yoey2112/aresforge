@@ -287,6 +287,11 @@ def _build_payload(
         "codex_continuation_prompt": "\n".join(prompt_lines),
         "source_docs": [doc.path for doc in docs],
         "project_state_summary": project_state_summary,
+        "active_local_milestone": (
+            project_state_summary.get("current_milestone")
+            if isinstance(project_state_summary, dict)
+            else None
+        ),
         "latest_doc_reconciliation_plan": latest_doc_reconciliation_plan,
         "latest_github_sync_plan": latest_github_sync_plan,
         "warnings": sorted(
@@ -360,6 +365,9 @@ def _render_markdown(payload: dict[str, Any]) -> str:
         lines.append(f"- pending_sync: {summary.get('pending_sync')}")
     else:
         lines.append("- No local project state ledger summary available.")
+    active_local_milestone = payload.get("active_local_milestone")
+    if isinstance(active_local_milestone, str) and active_local_milestone.strip():
+        lines.append(f"- active_local_milestone: {active_local_milestone.strip()}")
 
     lines.extend(["", "## Recommended Next Options"])
     lines.extend(f"- {item}" for item in payload.get("recommended_next_options", []))
