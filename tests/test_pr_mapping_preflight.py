@@ -185,4 +185,5 @@ def test_pr_mapping_preflight_prefers_canonical_marker_when_present(monkeypatch,
 
     assert payload["pr_mapping_summary"]["aggregate_state"] == "ready"
     assert payload["children"][0]["mapping_source"] == "canonical_marker"
+    assert payload["children"][0]["canonical_preferred"] is True
     assert payload["children"][0]["normalized_pr_number"] == 500

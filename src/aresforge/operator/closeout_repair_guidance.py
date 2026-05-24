@@ -34,6 +34,7 @@ def generate_closeout_preflight_repair_guidance(config: AppConfig, *, parent_iss
     child_repair = _child_repair_guidance(evidence=evidence)
     pr_repair = _pr_repair_guidance(pr_mapping=pr_mapping)
     evidence_marker_repair = _evidence_marker_repair_guidance(evidence=evidence)
+    canonical_marker_repair = _canonical_marker_repair_guidance(parent_issue=parent_issue)
 
     guidance_text = _render_plain_text_guidance(
         parent_issue=parent_issue,
@@ -41,6 +42,7 @@ def generate_closeout_preflight_repair_guidance(config: AppConfig, *, parent_iss
         child_repair=child_repair,
         pr_repair=pr_repair,
         evidence_marker_repair=evidence_marker_repair,
+        canonical_marker_repair=canonical_marker_repair,
     )
 
     return {
@@ -53,6 +55,7 @@ def generate_closeout_preflight_repair_guidance(config: AppConfig, *, parent_iss
             "child_repair": child_repair,
             "pr_mapping_repair": pr_repair,
             "evidence_marker_repair": evidence_marker_repair,
+            "canonical_marker_repair": canonical_marker_repair,
         },
         "guidance_text": guidance_text,
         "mutation_executed": False,
@@ -141,6 +144,7 @@ def _render_plain_text_guidance(
     child_repair: list[str],
     pr_repair: list[str],
     evidence_marker_repair: list[str],
+    canonical_marker_repair: list[str],
 ) -> str:
     lines: list[str] = [
         f"M23 closeout preflight repair guidance for parent issue #{parent_issue}",
@@ -161,6 +165,17 @@ def _render_plain_text_guidance(
         "Evidence marker repair:",
         *[f"- {item}" for item in evidence_marker_repair],
         "",
+        "Canonical marker repair:",
+        *[f"- {item}" for item in canonical_marker_repair],
+        "",
         "Safety boundary: guidance only, no mutation executed.",
     ]
     return "\n".join(lines).strip() + "\n"
+
+
+def _canonical_marker_repair_guidance(*, parent_issue: int) -> list[str]:
+    return [
+        f"Generate canonical child marker templates: python -m aresforge generate-child-evidence-marker-template --parent-issue {parent_issue} --child-issue <child_issue>",
+        "Generate canonical PR marker templates: python -m aresforge generate-pr-evidence-marker-template --issue <child_issue> --pr <pr_number>",
+        f"Generate canonical parent marker template: python -m aresforge generate-parent-closeout-marker-template --parent-issue {parent_issue}",
+    ]

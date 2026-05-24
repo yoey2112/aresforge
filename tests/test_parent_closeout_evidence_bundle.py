@@ -101,6 +101,8 @@ def test_generate_parent_closeout_evidence_bundle_ready(monkeypatch, tmp_path: P
     assert payload["readiness_gates"]["parent_closeout_ready"] is True
     assert payload["child_summary"]["closed_child_issue_count"] == 2
     assert payload["child_pr_mappings"][0]["merged_pr_urls"] == ["https://github.com/yoey2112/aresforge/pull/375"]
+    assert payload["canonical_marker"]["marker_type"] == "parent_closeout_evidence"
+    assert "### Canonical Marker" in payload["parent_evidence_comment_body"]
     assert "### Safety posture" in payload["parent_evidence_comment_body"]
     assert "```" not in payload["parent_evidence_comment_body"]
 

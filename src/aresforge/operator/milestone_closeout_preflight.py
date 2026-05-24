@@ -47,7 +47,13 @@ def inspect_milestone_closeout_preflight(config: AppConfig, *, parent_issue: int
         evidence.get("unknown_reasons"),
         pr_mapping.get("unknown_reasons"),
     )
-    repair_guidance = _combine_reasons(repair.get("guidance", {}).get("parent_repair"), repair.get("guidance", {}).get("child_repair"), repair.get("guidance", {}).get("pr_mapping_repair"), repair.get("guidance", {}).get("evidence_marker_repair"))
+    repair_guidance = _combine_reasons(
+        repair.get("guidance", {}).get("parent_repair"),
+        repair.get("guidance", {}).get("child_repair"),
+        repair.get("guidance", {}).get("pr_mapping_repair"),
+        repair.get("guidance", {}).get("evidence_marker_repair"),
+        repair.get("guidance", {}).get("canonical_marker_repair"),
+    )
 
     if blocked_reasons:
         aggregate_state = "blocked"
