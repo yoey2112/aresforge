@@ -2,11 +2,36 @@
 
 ## Current Phase
 
-M25 automatic canonical marker emission workflow final reconciliation.
+M26 local handoff package generator implementation and documentation.
 
 ## Current Goal
 
-Complete M25 source-of-truth reconciliation child issue `#430` (last child), then run parent closeout readiness checks for parent `#421`.
+Complete and operationalize local-only handoff package generation so human sessions, Codex sessions, and local LLM agents can continue work with less manual handoff effort.
+
+## M26 Local Handoff Package Generator
+
+- New local-only command: `python -m aresforge generate-handoff-package --output <path> [--format markdown|json] [--include-doc-excerpts] [--force]`.
+- Reads only local repo + source-of-truth docs and does not call GitHub APIs or `gh`.
+- Uses only safe local git commands for state capture:
+  - `git branch --show-current`
+  - `git rev-parse HEAD`
+  - `git status --short`
+  - `git log -n 10 --oneline`
+- Supports stdout rendering when `--output` is omitted:
+  - Markdown by default.
+  - Stable JSON when `--format json`.
+- Supports continuity sections for future sessions:
+  - project status summary
+  - completed recent capabilities
+  - known blockers/warnings
+  - working preferences
+  - recommended next options
+  - Codex continuation prompt
+
+## Continuity Value
+
+- Reduces manual handoff writing for human and agent transitions.
+- Establishes a local-first continuity baseline required before future multi-project queue/orchestration/dashboard/cloud escalation milestones.
 
 ## Current Repository State
 

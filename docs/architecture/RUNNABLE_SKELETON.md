@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Describe the implemented human-triggered operator surface through M25 automatic canonical marker emission workflow orchestration.
+Describe the implemented human-triggered operator surface through M26 local handoff package generation.
 
 ## Operator Shape
 
@@ -46,6 +46,7 @@ Command entrypoint:
 
 - `inspect-automatic-canonical-evidence-emission-contract`
 - `check-closeout-readiness-by-construction`
+- `generate-handoff-package`
 - offline/local state-file mode supported for milestone/parent readiness and parent evidence generation commands via `--state-file <path>`
 - canonical marker completeness payloads in:
   - child closeout evidence bundle generation
@@ -63,6 +64,22 @@ Offline state-file command surface:
 - This local/offline path avoids `gh` and GitHub API calls when `--state-file` is provided.
 - Reference fixture: `tests/fixtures/offline_state/parent_closeout_ready.json`.
 - Implemented/pushed through commit `40de9fe`; preferred during GitHub GraphQL/API rate-limit windows.
+
+## M26 Local Handoff Package Surface
+
+- Command: `python -m aresforge generate-handoff-package --output <path> [--format markdown|json] [--include-doc-excerpts] [--force]`
+- Local-only continuity artifact for:
+  - human session handoff
+  - Codex session continuation
+  - local LLM agent continuation
+  - future project agent continuation
+- Reads local source-of-truth docs and local git state only.
+- Approved local git command set:
+  - `git branch --show-current`
+  - `git rev-parse HEAD`
+  - `git status --short`
+  - `git log -n 10 --oneline`
+- No `gh`, no GitHub API calls, no network dependency.
 
 ## M25 Capability Contract Alignment
 

@@ -1,5 +1,34 @@
 # Local Operator Usage
 
+## M26 Local Handoff Package Generator
+
+When to run:
+
+- Run before ending a session to reduce manual handoff writing.
+- Run when transferring work between human sessions, Codex sessions, or local LLM agents.
+- Run after meaningful changes so the next session has current branch/head/status context and next-step options.
+
+Command:
+
+- `python -m aresforge generate-handoff-package --output <path> [--format markdown|json] [--include-doc-excerpts] [--force]`
+
+Stdout behavior when `--output` is omitted:
+
+- default: markdown to stdout
+- `--format json`: stable JSON to stdout
+
+Safety and boundary:
+
+- local-only command surface
+- does not call `gh`
+- does not call GitHub APIs
+- does not require network access
+- local git state collection is limited to:
+  - `git branch --show-current`
+  - `git rev-parse HEAD`
+  - `git status --short`
+  - `git log -n 10 --oneline`
+
 ## M25 Automatic Canonical Marker Emission Workflow
 
 When to run:

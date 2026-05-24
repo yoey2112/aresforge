@@ -14,6 +14,8 @@ Provide minimum operating context for safe M25 automatic canonical marker emissi
 - GitHub issue truth remains authoritative; local run/handoff artifacts are advisory support only.
 - Offline state-file parent closeout readiness workflow is implemented and pushed through `40de9fe`; use it as the preferred path during GitHub GraphQL/API rate-limit windows.
 - With `--state-file <path>`, supported readiness/evidence commands execute local-only without `gh` or GitHub API calls.
+- M26 local handoff package generation is available for local continuity between human sessions, Codex sessions, and local LLM agents.
+- Handoff generation is local-only and must not call GitHub APIs, `gh`, or network-dependent services.
 
 ## Canonical Documents
 
@@ -33,6 +35,13 @@ Provide minimum operating context for safe M25 automatic canonical marker emissi
 - `python -m aresforge generate-parent-closeout-evidence-bundle --parent-issue <parent>`
 - `python -m aresforge generate-evidence-comment-template --issue <issue>`
 - `python -m aresforge check-closeout-readiness-by-construction --parent-issue <parent>`
+
+## M26 Continuity Command
+
+- `python -m aresforge generate-handoff-package --output <path> [--format markdown|json] [--include-doc-excerpts] [--force]`
+- If `--output` is omitted:
+  - markdown is printed to stdout by default
+  - JSON is printed to stdout when `--format json`
 
 ## Offline State-File Commands
 

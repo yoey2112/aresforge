@@ -78,6 +78,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-milestone-closeout-preflight",
         "check-closeout-readiness-by-construction",
         "generate-offline-closeout-state-template",
+        "generate-handoff-package",
         "generate-preflight-baseline-snapshot",
         "diff-preflight-snapshots",
         "inspect-child-execution-gates",

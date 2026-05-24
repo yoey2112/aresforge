@@ -282,6 +282,25 @@ M25 head tracking:
 - main after #428 and #429 merges: `cafda2ceda0a329de7d06a42c0edc6725ece3b10`
 - final main after #430 merge: pending
 
+### M26 - Local Handoff Package Generator
+
+Status: Implemented.
+
+Delivered M26 outcomes:
+
+- `generate-handoff-package` local-only command added.
+- Markdown and JSON handoff rendering from local repo/doc state.
+- Safe local git-state capture limited to approved command set.
+- Output write safety with directory creation, overwrite refusal, and `--force`.
+- Source-of-truth doc ingestion with graceful missing-doc warnings.
+- Continuity sections for human, Codex, and local LLM session handoff.
+- Unit and CLI coverage for markdown/json output, stdout behavior, and overwrite protection.
+
+M26 milestone value:
+
+- Reduces manual handoff authoring and improves continuity across sessions/chats.
+- Provides a prerequisite local continuity baseline before multi-project queue/orchestration/dashboard/cloud escalation milestones.
+
 ## Standing Boundaries
 
 - No autonomous mutation without explicit mode selection.

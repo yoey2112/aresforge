@@ -111,6 +111,7 @@ from aresforge.operator.closeout_repair_guidance import generate_closeout_prefli
 from aresforge.operator.milestone_closeout_preflight import inspect_milestone_closeout_preflight
 from aresforge.operator.closeout_readiness_by_construction import check_closeout_readiness_by_construction
 from aresforge.operator.offline_state_template import generate_offline_closeout_state_template
+from aresforge.operator.local_handoff_package import generate_handoff_package
 from aresforge.operator.milestone_reconciliation_planner import plan_milestone_final_reconciliation
 from aresforge.operator.preflight_snapshot import (
     diff_preflight_snapshots,
@@ -643,6 +644,27 @@ def build_parser() -> argparse.ArgumentParser:
     offline_state_template_parser.add_argument("--final-main-head")
     offline_state_template_parser.add_argument("--final-validation-results")
     offline_state_template_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite existing output file.",
+    )
+    handoff_package_parser = subparsers.add_parser(
+        "generate-handoff-package",
+        help="Generate a local-only handoff package from repo state and source-of-truth docs.",
+    )
+    handoff_package_parser.add_argument("--output")
+    handoff_package_parser.add_argument(
+        "--format",
+        choices=["markdown", "json"],
+        default="markdown",
+        help="Output format for file writes or stdout rendering.",
+    )
+    handoff_package_parser.add_argument(
+        "--include-doc-excerpts",
+        action="store_true",
+        help="Include short excerpts from source-of-truth docs.",
+    )
+    handoff_package_parser.add_argument(
         "--force",
         action="store_true",
         help="Overwrite existing output file.",
@@ -1526,6 +1548,20 @@ def main(argv: list[str] | None = None) -> int:
             final_validation_results=args.final_validation_results,
             force=bool(args.force),
         )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "generate-handoff-package":
+        payload = generate_handoff_package(
+            config,
+            output=args.output,
+            output_format=args.format,
+            include_doc_excerpts=bool(args.include_doc_excerpts),
+            force=bool(args.force),
+        )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 
