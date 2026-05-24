@@ -1,5 +1,80 @@
 # Local Operator Usage
 
+## M24 Canonical Evidence Marker Workflow
+
+When to run:
+
+- Run canonical marker generation before posting child, PR, or parent evidence comments.
+- Run preflight snapshot generation before and after reconciliation updates to audit drift.
+- Keep parent closeout blocked until marker + readiness checks report ready.
+
+Canonical marker command set (read-only by default):
+
+- `python -m aresforge inspect-canonical-evidence-marker-contract`
+- `python -m aresforge generate-child-evidence-marker-template --parent-issue <parent> --child-issue <child>`
+- `python -m aresforge generate-pr-evidence-marker-template --issue <child> --pr <pr>`
+- `python -m aresforge generate-parent-closeout-marker-template --parent-issue <parent>`
+- `python -m aresforge generate-preflight-baseline-snapshot --parent-issue <parent>`
+- `python -m aresforge diff-preflight-snapshots --before <before_snapshot.json> --after <after_snapshot.json>`
+
+Marker types and required fields:
+
+- `child_evidence`: parent issue, child issue, branch, commit, PR, validation summary, safety notes
+- `pr_evidence`: issue, PR, branch, commit, changed files, validation summary, merge status, safety posture, evidence status
+- `parent_closeout_evidence`: parent issue, child issue list, child-to-PR mapping, final main HEAD, final validation results, readiness gate summary, safety confirmations, closeout readiness state
+- `reconciliation_audit`: baseline snapshot, post-reconciliation snapshot, snapshot diff, audit classification, warnings/deviations
+
+Snapshot and diff interpretation:
+
+- `no-change`: no readiness signal improvements/regressions detected
+- `improved`: one or more readiness signals improved and none regressed
+- `regressed`: one or more readiness signals regressed and none improved
+- `mixed`: both improvements and regressions detected in the same diff
+
+Marker-complete evidence block examples (plain text, copy/paste safe):
+
+- Child evidence marker:
+   [ARESFORGE_CANONICAL_EVIDENCE_MARKER]
+   marker_type: child_evidence
+   marker_state: ready
+   required.parent_issue: #400
+   required.child_issue: #409
+   required.branch: m24-409-canonical-marker-workflow-docs
+   required.commit: <commit_sha>
+   required.pr: #<pr>
+   required.validation_summary: git diff --check=pass; pytest=pass; inspect-repo-governance=pass
+   required.safety_notes: read-only by default; targeted mutation only
+   optional.closeout_status: closed
+   optional.evidence_comment_status: posted
+   optional.merge_status: merged
+   missing_required_fields: <none>
+   invalid_reasons: <none>
+   [/ARESFORGE_CANONICAL_EVIDENCE_MARKER]
+
+- Parent closeout evidence marker:
+   [ARESFORGE_CANONICAL_EVIDENCE_MARKER]
+   marker_type: parent_closeout_evidence
+   marker_state: ready
+   required.parent_issue: #400
+   required.child_issue_list: #401, #402, #403, #404, #405, #406, #407, #408, #409, #410
+   required.child_to_pr_mapping: #401->#411, #402->#412, #403->#413, #404->#414, #405->#415, #406->#416, #407->#417, #408->#418, #409->#<pr>, #410->#<pr>
+   required.final_main_head: <main_head>
+   required.final_validation_results: git diff --check=pass; pytest=pass; inspect-repo-governance=pass
+   required.readiness_gate_summary: parent_closeout_ready=true; blocked_reasons=none
+   required.safety_confirmations: read-only generation; explicit operator-approved targeted mutation only
+   required.closeout_readiness_state: ready
+   optional.warnings_deviations: milestone_naming_status.naming_ok=false; missing milestone assignment warnings
+   missing_required_fields: <none>
+   invalid_reasons: <none>
+   [/ARESFORGE_CANONICAL_EVIDENCE_MARKER]
+
+Explicit mutation boundary:
+
+- Marker generation, preflight generation, snapshot generation, and evidence bundle generation are read-only by default.
+- Repair/update guidance is copy/paste guidance only unless a separate targeted mutation command is explicitly approved.
+- PR body update, issue comment, and issue closeout execution remain separate operator-approved targeted commands.
+- Never bulk-close child issues; never close parent before child closeout/readiness gates pass.
+
 ## M23 Lineage And Evidence Preflight Workflow
 
 When to run:

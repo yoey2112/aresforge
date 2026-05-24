@@ -83,6 +83,50 @@ Define canonical marker blocks used across child issue evidence, PR evidence, pa
 - Snapshot diff results classify outcomes as no-change, improved, regressed, or mixed.
 - Snapshot/diff output must be deterministic and fixture-testable.
 
+## Command Surfaces
+
+- python -m aresforge inspect-canonical-evidence-marker-contract
+- python -m aresforge generate-child-evidence-marker-template --parent-issue <parent> --child-issue <child>
+- python -m aresforge generate-pr-evidence-marker-template --issue <child> --pr <pr>
+- python -m aresforge generate-parent-closeout-marker-template --parent-issue <parent>
+- python -m aresforge generate-preflight-baseline-snapshot --parent-issue <parent>
+- python -m aresforge diff-preflight-snapshots --before <before_snapshot.json> --after <after_snapshot.json>
+
+## Marker-Complete Examples
+
+Child evidence marker (ready):
+
+[ARESFORGE_CANONICAL_EVIDENCE_MARKER]
+marker_type: child_evidence
+marker_state: ready
+required.parent_issue: #400
+required.child_issue: #409
+required.branch: m24-409-canonical-marker-workflow-docs
+required.commit: <commit_sha>
+required.pr: #<pr>
+required.validation_summary: git diff --check=pass; pytest=pass; inspect-repo-governance=pass
+required.safety_notes: read-only by default; targeted mutation only
+optional.closeout_status: closed
+optional.evidence_comment_status: posted
+optional.merge_status: merged
+missing_required_fields: <none>
+invalid_reasons: <none>
+[/ARESFORGE_CANONICAL_EVIDENCE_MARKER]
+
+Reconciliation audit marker (ready):
+
+[ARESFORGE_CANONICAL_EVIDENCE_MARKER]
+marker_type: reconciliation_audit
+marker_state: ready
+required.baseline_snapshot: artifacts/evidence/generated/m24-400-baseline-before.json
+required.post_reconciliation_snapshot: artifacts/evidence/generated/m24-400-baseline-after.json
+required.snapshot_diff: artifacts/evidence/generated/m24-400-diff.json
+required.audit_classification: improved
+required.warnings_deviations: milestone_naming_status.naming_ok=false; missing milestone assignment warnings
+missing_required_fields: <none>
+invalid_reasons: <none>
+[/ARESFORGE_CANONICAL_EVIDENCE_MARKER]
+
 ## Operator Boundary
 
 - Marker generation and inspection commands are documentation and planning aids only.
