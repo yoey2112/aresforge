@@ -158,7 +158,7 @@ M23 standard validation bundle:
 
 ### M24 - Canonical Evidence Marker Workflow
 
-Status: Final reconciliation in progress (`#410` only).
+Status: Completed.
 
 Parent issue:
 
@@ -175,7 +175,7 @@ Child issues:
 - `#407` CLOSED via PR `#417`
 - `#408` CLOSED via PR `#418`
 - `#409` CLOSED via PR `#419`
-- `#410` OPEN (final source-of-truth reconciliation; must be processed last)
+- `#410` CLOSED
 
 Delivered M24 outcomes:
 
@@ -211,11 +211,63 @@ M24 standard validation bundle:
 - `python -m aresforge inspect-milestone-closeout-preflight --parent-issue 400`
 - `python -m aresforge inspect-canonical-evidence-marker-contract`
 
-### M25 Candidate Themes
+### M25 - Automatic Canonical Marker Emission Workflow
 
-1. Close out parent #400 with final reconciliation evidence package automation checks.
-2. Tighten milestone assignment governance warnings with explicit remediation playbooks.
-3. Expand deterministic evidence extraction for historical closeout comments.
+Status: Final reconciliation in progress (`#430` only).
+
+Parent issue:
+
+- `#421` M25 automatic canonical marker emission workflow (OPEN; pending final closeout)
+
+Child issues:
+
+- `#422` CLOSED via PR `#431`
+- `#423` CLOSED via PR `#432`
+- `#424` CLOSED via PR `#433`
+- `#425` CLOSED via PR `#434`
+- `#426` CLOSED via PR `#435`
+- `#427` CLOSED via PR `#436`
+- `#428` CLOSED via PR `#437`
+- `#429` CLOSED via PR `#438`
+- `#430` OPEN (final source-of-truth reconciliation; must be processed last)
+
+Delivered M25 outcomes:
+
+- `inspect-automatic-canonical-evidence-emission-contract`
+- canonical marker completeness emitted by child closeout evidence bundles
+- canonical marker completeness emitted by PR evidence bundles
+- canonical marker completeness emitted by parent closeout evidence bundles
+- canonical marker completeness emitted by generated closeout comment templates
+- `check-closeout-readiness-by-construction` read-only readiness gate
+- regression fixtures proving complete generated marker paths do not require post-hoc marker repair
+- operator documentation updates for automatic marker workflow
+
+M25 safety posture:
+
+- no autonomous broad mutation
+- no bulk closure
+- no parent closeout before all children are closed/accounted for
+- mutation execution defaults to dry-run/planning unless explicitly approved
+- marker generation/checking and readiness-by-construction remain read-only by default
+- final reconciliation kept last and docs-focused
+- prior milestones are not mutated
+
+M25 standard validation bundle:
+
+- `git diff --check`
+- `python -m pytest`
+- `python -m aresforge inspect-repo-governance`
+- `python -m aresforge check-closeout-readiness-by-construction --parent-issue 421`
+- `python -m aresforge inspect-milestone-state --parent-issue 421`
+- `python -m aresforge check-milestone-evidence-readiness --parent-issue 421`
+- `python -m aresforge inspect-parent-closeout-readiness --parent-issue 421`
+- `python -m aresforge generate-parent-closeout-evidence-bundle --parent-issue 421`
+
+M25 head tracking:
+
+- main before remaining sequence (#428/#429/#430): `dd856632e2f1831b20b73613f29e9e953771180f`
+- main after #428 and #429 merges: `cafda2ceda0a329de7d06a42c0edc6725ece3b10`
+- final main after #430 merge: pending
 
 ## Standing Boundaries
 

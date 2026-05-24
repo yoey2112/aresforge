@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Describe the implemented human-triggered operator surface through M24 canonical evidence marker workflow orchestration.
+Describe the implemented human-triggered operator surface through M25 automatic canonical marker emission workflow orchestration.
 
 ## Operator Shape
 
@@ -10,7 +10,7 @@ Command entrypoint:
 
 - `python -m aresforge`
 
-## Current Additions (M24 Included)
+## Current Additions (M25 Included)
 
 - `inspect-evidence-bundle-automation-contract`
 - `generate-child-closeout-evidence-bundle`
@@ -43,6 +43,22 @@ Command entrypoint:
 - `generate-parent-closeout-marker-template`
 - `generate-preflight-baseline-snapshot`
 - `diff-preflight-snapshots`
+
+- `inspect-automatic-canonical-evidence-emission-contract`
+- `check-closeout-readiness-by-construction`
+- canonical marker completeness payloads in:
+  - child closeout evidence bundle generation
+  - PR evidence bundle generation
+  - parent closeout evidence bundle generation
+  - closeout comment template generation
+
+## M25 Capability Contract Alignment
+
+- Contract authority: `docs/architecture/AUTOMATIC_CANONICAL_EVIDENCE_EMISSION_CONTRACT.md`.
+- Canonical marker emission now occurs by default across child, PR, parent, and closeout-comment evidence domains.
+- Readiness-by-construction inspects emitted marker completeness plus milestone execution readiness in a read-only command path.
+- Missing marker completeness or post-hoc-repair-required signals block readiness-by-construction deterministically.
+- Parent closeout remains human-gated and separate from marker/readiness command execution.
 
 ## M24 Capability Contract Alignment
 
@@ -87,28 +103,27 @@ Command entrypoint:
 - no background jobs, polling loops, or schedulers
 - parent issue remains open until children are closed/accounted and parent readiness checks pass
 
-## Current Validation Bundle (M24)
+## Current Validation Bundle (M25)
 
 - `git diff --check`
 - `python -m pytest`
 - `python -m aresforge inspect-repo-governance`
-- `python -m aresforge inspect-milestone-dashboard --parent-issue 400`
-- `python -m aresforge inspect-milestone-state --parent-issue 400`
-- `python -m aresforge check-milestone-evidence-readiness --parent-issue 400`
-- `python -m aresforge inspect-parent-closeout-readiness --parent-issue 400`
-- `python -m aresforge inspect-milestone-closeout-preflight --parent-issue 400`
-- `python -m aresforge inspect-canonical-evidence-marker-contract`
-- `python -m aresforge generate-parent-closeout-marker-template --parent-issue 400`
-- `python -m aresforge generate-parent-closeout-evidence-bundle --parent-issue 400`
+- `python -m aresforge inspect-milestone-state --parent-issue 421`
+- `python -m aresforge check-milestone-evidence-readiness --parent-issue 421`
+- `python -m aresforge inspect-parent-closeout-readiness --parent-issue 421`
+- `python -m aresforge inspect-milestone-closeout-preflight --parent-issue 421`
+- `python -m aresforge inspect-automatic-canonical-evidence-emission-contract`
+- `python -m aresforge check-closeout-readiness-by-construction --parent-issue 421`
+- `python -m aresforge generate-parent-closeout-evidence-bundle --parent-issue 421`
 
 ## Known Limitations
 
 - Parent closeout execution remains manually triggered and intentionally conservative.
 - Governance milestone naming warning remains non-blocking and unresolved.
-- Issue milestone assignment gaps are surfaced as warnings but do not block M24 child execution.
+- Issue milestone assignment gaps are surfaced as warnings but do not block M25 child execution.
 
-## Follow-Up Candidates (Post-M24)
+## Follow-Up Candidates (Post-M25)
 
-1. Extend reconciliation evidence automation for parent closeout issue comments.
-2. Add richer diff severity scoring for snapshot comparison output.
-3. Add explicit stale-warning triage guidance for milestone assignment gaps.
+1. Improve parent/child milestone assignment governance diagnostics and remediation playbooks.
+2. Add higher-fidelity closeout lineage discoverability reporting to reduce `no_child_issue_targets_detected` ambiguity.
+3. Expand deterministic historical evidence extraction for previously closed milestones.
