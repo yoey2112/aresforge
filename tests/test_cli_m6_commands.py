@@ -45,6 +45,11 @@ def test_cli_help_includes_m6_commands() -> None:
     assert "check-closeout-readiness-by-construction" in help_text
     assert "generate-offline-closeout-state-template" in help_text
     assert "generate-handoff-package" in help_text
+    assert "init-project-state" in help_text
+    assert "inspect-project-state" in help_text
+    assert "update-project-state" in help_text
+    assert "append-operation-log" in help_text
+    assert "inspect-operation-log" in help_text
     assert "inspect-sequential-run-state" in help_text
     assert "plan-sequential-run-recovery" in help_text
     assert "generate-sequential-handoff-package" in help_text

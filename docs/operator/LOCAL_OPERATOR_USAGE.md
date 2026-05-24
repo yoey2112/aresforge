@@ -29,6 +29,42 @@ Safety and boundary:
   - `git status --short`
   - `git log -n 10 --oneline`
 
+M27 integration:
+
+- When `.aresforge/state/project_state.json` exists, handoff payloads include a local project-state summary.
+- If the local project-state file is missing, handoff generation warns and still succeeds.
+
+## M27 Local Project State Ledger
+
+Purpose:
+
+- Persist local project status without requiring GitHub as the only source of project state.
+
+Defaults:
+
+- state directory: `.aresforge/state/`
+- state file: `.aresforge/state/project_state.json`
+- operation log: `.aresforge/state/operation_log.jsonl`
+
+Commands:
+
+- `python -m aresforge init-project-state [--path <path>] [--force]`
+- `python -m aresforge inspect-project-state [--path <path>]`
+- `python -m aresforge update-project-state [--path <path>] [--current-milestone <value>] [--current-phase <value>] [--current-mode <value>] [--validation-status <value>] [--documentation-status <value>] [--warning <text>]...`
+- `python -m aresforge append-operation-log [--state-path <path>] --event-type <type> --summary <summary> [--details <json>]`
+- `python -m aresforge inspect-operation-log [--state-path <path>] [--limit <n>]`
+
+Behavior guarantees:
+
+- Local-only command surface.
+- No `gh` calls.
+- No GitHub API calls.
+- No network dependency.
+- `init-project-state` creates missing folders and refuses overwrite unless `--force`.
+- `update-project-state` updates only supplied fields (plus `updated_at`).
+- `append-operation-log` creates log file if missing and appends JSONL entries.
+- `inspect-operation-log --limit <n>` returns newest entries when limit is provided.
+
 ## M25 Automatic Canonical Marker Emission Workflow
 
 When to run:

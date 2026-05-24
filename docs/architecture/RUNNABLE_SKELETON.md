@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Describe the implemented human-triggered operator surface through M26 local handoff package generation.
+Describe the implemented human-triggered operator surface through M27 local project state ledger support.
 
 ## Operator Shape
 
@@ -47,6 +47,11 @@ Command entrypoint:
 - `inspect-automatic-canonical-evidence-emission-contract`
 - `check-closeout-readiness-by-construction`
 - `generate-handoff-package`
+- `init-project-state`
+- `inspect-project-state`
+- `update-project-state`
+- `append-operation-log`
+- `inspect-operation-log`
 - offline/local state-file mode supported for milestone/parent readiness and parent evidence generation commands via `--state-file <path>`
 - canonical marker completeness payloads in:
   - child closeout evidence bundle generation
@@ -80,6 +85,21 @@ Offline state-file command surface:
   - `git status --short`
   - `git log -n 10 --oneline`
 - No `gh`, no GitHub API calls, no network dependency.
+- Includes local project-state summary from `.aresforge/state/project_state.json` when available.
+- Emits a warning and still succeeds when local project-state file is missing.
+
+## M27 Local Project State Ledger Surface
+
+- Ledger defaults:
+  - `.aresforge/state/project_state.json`
+  - `.aresforge/state/operation_log.jsonl`
+- Commands:
+  - `python -m aresforge init-project-state [--path <path>] [--force]`
+  - `python -m aresforge inspect-project-state [--path <path>]`
+  - `python -m aresforge update-project-state [--path <path>] [--current-milestone <value>] [--current-phase <value>] [--current-mode <value>] [--validation-status <value>] [--documentation-status <value>] [--warning <text>]...`
+  - `python -m aresforge append-operation-log [--state-path <path>] --event-type <type> --summary <summary> [--details <json>]`
+  - `python -m aresforge inspect-operation-log [--state-path <path>] [--limit <n>]`
+- Local-only boundary: no `gh`, no GitHub API calls, no network dependency.
 
 ## M25 Capability Contract Alignment
 

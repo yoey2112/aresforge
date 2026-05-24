@@ -2,11 +2,26 @@
 
 ## Current Phase
 
-M26 local handoff package generator implementation and documentation.
+M27 local project state ledger implementation and documentation.
 
 ## Current Goal
 
-Complete and operationalize local-only handoff package generation so human sessions, Codex sessions, and local LLM agents can continue work with less manual handoff effort.
+Establish a persistent local project-state ledger foundation so project progress tracking can continue without GitHub as the only state source.
+
+## M27 Local Project State Ledger
+
+- New local-only ledger defaults:
+  - `.aresforge/state/`
+  - `.aresforge/state/project_state.json`
+  - `.aresforge/state/operation_log.jsonl`
+- New local-only command surface:
+  - `python -m aresforge init-project-state [--path <path>] [--force]`
+  - `python -m aresforge inspect-project-state [--path <path>]`
+  - `python -m aresforge update-project-state [--path <path>] [--current-milestone <value>] [--current-phase <value>] [--current-mode <value>] [--validation-status <value>] [--documentation-status <value>] [--warning <text>]...`
+  - `python -m aresforge append-operation-log [--state-path <path>] --event-type <type> --summary <summary> [--details <json>]`
+  - `python -m aresforge inspect-operation-log [--state-path <path>] [--limit <n>]`
+- M26 handoff package generation now includes local project-state summary when present.
+- If project state is missing, handoff generation adds a warning and still succeeds.
 
 ## M26 Local Handoff Package Generator
 

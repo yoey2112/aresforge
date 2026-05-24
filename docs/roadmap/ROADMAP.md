@@ -307,3 +307,22 @@ M26 milestone value:
 - No autonomous queue workers.
 - No automatic PR merge.
 - No unattended background execution.
+
+### M27 - Local Project State Ledger
+
+Status: Implemented.
+
+Delivered M27 outcomes:
+
+- Persistent local project-state ledger under `.aresforge/state/project_state.json`.
+- Append-only local operation log under `.aresforge/state/operation_log.jsonl`.
+- Local-only CLI commands for ledger init/inspect/update and operation log append/inspect.
+- M26 handoff package integration now includes local project-state summary when present.
+- Handoff generation warning behavior when ledger is missing (generation still succeeds).
+- Unit and CLI test coverage for ledger lifecycle and operation log behavior.
+
+M27 milestone value:
+
+- Establishes a broader local project state foundation beyond closeout-specific offline files.
+- Removes GitHub as the only practical source for local progress/state tracking.
+- Prepares future multi-project queue/orchestration/documentation/sync workflows for local-first continuity.

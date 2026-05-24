@@ -4,6 +4,7 @@ from pathlib import Path
 
 from aresforge.config import AppConfig
 from aresforge.operator.local_handoff_package import generate_handoff_package
+from aresforge.operator.local_project_state import init_project_state, update_project_state
 
 
 def _config(tmp_path: Path) -> AppConfig:
@@ -100,3 +101,30 @@ def test_generate_handoff_package_force_overwrite_and_missing_docs_warning(monke
     payload = generate_handoff_package(_config(tmp_path), output=output, force=True)
     assert payload["ok"] is True
     assert any("Missing source-of-truth doc" in warning for warning in payload["warnings"])
+
+
+def test_generate_handoff_package_includes_project_state_summary(monkeypatch, tmp_path: Path) -> None:
+    _write_source_docs(tmp_path)
+    config = _config(tmp_path)
+    assert init_project_state(config)["ok"] is True
+    assert update_project_state(config, current_milestone="M27", current_phase="Implementation")["ok"] is True
+    monkeypatch.setattr(
+        subprocess,
+        "run",
+        lambda command, **_kwargs: subprocess.CompletedProcess(command, 0, stdout="x\n", stderr=""),
+    )
+    payload = generate_handoff_package(config, output_format="json")
+    assert payload["ok"] is True
+    assert payload["payload"]["project_state_summary"]["current_milestone"] == "M27"
+
+
+def test_generate_handoff_package_warns_when_project_state_missing(monkeypatch, tmp_path: Path) -> None:
+    _write_source_docs(tmp_path)
+    monkeypatch.setattr(
+        subprocess,
+        "run",
+        lambda command, **_kwargs: subprocess.CompletedProcess(command, 0, stdout="x\n", stderr=""),
+    )
+    payload = generate_handoff_package(_config(tmp_path), output_format="json")
+    assert payload["ok"] is True
+    assert any("Local project state ledger not found" in warning for warning in payload["payload"]["warnings"])

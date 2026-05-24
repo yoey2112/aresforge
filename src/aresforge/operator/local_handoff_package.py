@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from aresforge.config import AppConfig
+from aresforge.operator.local_project_state import project_state_summary_for_handoff
 
 COMMAND_NAME = "generate-handoff-package"
 ALLOWED_GIT_COMMANDS: tuple[tuple[str, ...], ...] = (
@@ -57,6 +58,7 @@ def generate_handoff_package(
     git_state = _collect_git_state(config.repo_root)
     payload = _build_payload(
         repo_root=config.repo_root,
+        config=config,
         git_state=git_state,
         docs=docs,
         include_doc_excerpts=include_doc_excerpts,
@@ -218,6 +220,7 @@ def _first_section_paragraph(text: str, section_name: str) -> str:
 def _build_payload(
     *,
     repo_root: Path,
+    config: AppConfig,
     git_state: dict[str, Any],
     docs: list[DocSnapshot],
     include_doc_excerpts: bool,
@@ -255,6 +258,16 @@ def _build_payload(
         "Respect local-only boundaries unless explicitly changed.",
         "Before deciding the next task, present options and wait for selection.",
     ]
+    project_state_summary = project_state_summary_for_handoff(config)
+    project_state_warnings: list[str] = []
+    if project_state_summary is None:
+        project_state_warnings.append(
+            "Local project state ledger not found at .aresforge/state/project_state.json."
+        )
+    elif "error" in project_state_summary:
+        project_state_warnings.append(
+            "Local project state ledger exists but could not be parsed."
+        )
 
     payload: dict[str, Any] = {
         "title": "AresForge Local Handoff Package",
@@ -271,7 +284,10 @@ def _build_payload(
         "recommended_next_options": recommended_next_options,
         "codex_continuation_prompt": "\n".join(prompt_lines),
         "source_docs": [doc.path for doc in docs],
-        "warnings": sorted(set(warnings + list(git_state.get("warnings", [])))),
+        "project_state_summary": project_state_summary,
+        "warnings": sorted(
+            set(warnings + list(git_state.get("warnings", [])) + project_state_warnings)
+        ),
     }
     if include_doc_excerpts:
         payload["doc_excerpts"] = {
@@ -327,6 +343,19 @@ def _render_markdown(payload: dict[str, Any]) -> str:
 
     lines.extend(["", "## Current Working Preferences"])
     lines.extend(f"- {item}" for item in payload.get("current_working_preferences", []))
+
+    lines.extend(["", "## Local Project State Summary"])
+    summary = payload.get("project_state_summary")
+    if isinstance(summary, dict):
+        lines.append(f"- path: {summary.get('path')}")
+        lines.append(f"- current_phase: {summary.get('current_phase')}")
+        lines.append(f"- current_milestone: {summary.get('current_milestone')}")
+        lines.append(f"- current_mode: {summary.get('current_mode')}")
+        lines.append(f"- validation_status: {summary.get('validation_status')}")
+        lines.append(f"- documentation_status: {summary.get('documentation_status')}")
+        lines.append(f"- pending_sync: {summary.get('pending_sync')}")
+    else:
+        lines.append("- No local project state ledger summary available.")
 
     lines.extend(["", "## Recommended Next Options"])
     lines.extend(f"- {item}" for item in payload.get("recommended_next_options", []))

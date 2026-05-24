@@ -16,6 +16,16 @@ Provide minimum operating context for safe M25 automatic canonical marker emissi
 - With `--state-file <path>`, supported readiness/evidence commands execute local-only without `gh` or GitHub API calls.
 - M26 local handoff package generation is available for local continuity between human sessions, Codex sessions, and local LLM agents.
 - Handoff generation is local-only and must not call GitHub APIs, `gh`, or network-dependent services.
+- M27 local project state ledger is now available for persistent local project tracking without GitHub as the only state source.
+- Ledger defaults:
+  - `.aresforge/state/project_state.json`
+  - `.aresforge/state/operation_log.jsonl`
+- M27 command surface:
+  - `python -m aresforge init-project-state`
+  - `python -m aresforge inspect-project-state`
+  - `python -m aresforge update-project-state`
+  - `python -m aresforge append-operation-log`
+  - `python -m aresforge inspect-operation-log`
 
 ## Canonical Documents
 

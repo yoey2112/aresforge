@@ -112,6 +112,13 @@ from aresforge.operator.milestone_closeout_preflight import inspect_milestone_cl
 from aresforge.operator.closeout_readiness_by_construction import check_closeout_readiness_by_construction
 from aresforge.operator.offline_state_template import generate_offline_closeout_state_template
 from aresforge.operator.local_handoff_package import generate_handoff_package
+from aresforge.operator.local_project_state import (
+    append_operation_log,
+    init_project_state,
+    inspect_operation_log,
+    inspect_project_state as inspect_local_project_state,
+    update_project_state,
+)
 from aresforge.operator.milestone_reconciliation_planner import plan_milestone_final_reconciliation
 from aresforge.operator.preflight_snapshot import (
     diff_preflight_snapshots,
@@ -190,7 +197,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="List pending migration files without applying them.",
     )
 
-    subparsers.add_parser("inspect-project-state", help="Show local database state summary.")
+    subparsers.add_parser("inspect-db-state", help="Show local database state summary.")
     inspect_project_parser = subparsers.add_parser(
         "inspect-project", help="Inspect one local project record with expanded metadata."
     )
@@ -669,6 +676,49 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Overwrite existing output file.",
     )
+    init_project_state_parser = subparsers.add_parser(
+        "init-project-state",
+        help="Initialize local project state ledger under .aresforge/state.",
+    )
+    init_project_state_parser.add_argument("--path")
+    init_project_state_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite existing project state file.",
+    )
+    inspect_project_state_parser = subparsers.add_parser(
+        "inspect-project-state",
+        help="Inspect local project state ledger JSON.",
+    )
+    inspect_project_state_parser.add_argument("--path")
+    update_project_state_parser = subparsers.add_parser(
+        "update-project-state",
+        help="Update selected fields in local project state ledger JSON.",
+    )
+    update_project_state_parser.add_argument("--path")
+    update_project_state_parser.add_argument("--current-milestone")
+    update_project_state_parser.add_argument("--current-phase")
+    update_project_state_parser.add_argument("--current-mode")
+    update_project_state_parser.add_argument("--validation-status")
+    update_project_state_parser.add_argument("--documentation-status")
+    update_project_state_parser.add_argument("--warning", action="append", default=[])
+    append_operation_log_parser = subparsers.add_parser(
+        "append-operation-log",
+        help="Append one local operation event to .aresforge/state/operation_log.jsonl.",
+    )
+    append_operation_log_parser.add_argument("--state-path")
+    append_operation_log_parser.add_argument("--event-type", required=True)
+    append_operation_log_parser.add_argument("--summary", required=True)
+    append_operation_log_parser.add_argument(
+        "--details",
+        help="Optional JSON object string for structured event details.",
+    )
+    inspect_operation_log_parser = subparsers.add_parser(
+        "inspect-operation-log",
+        help="Inspect local operation log JSONL entries.",
+    )
+    inspect_operation_log_parser.add_argument("--state-path")
+    inspect_operation_log_parser.add_argument("--limit", type=int)
     preflight_snapshot_parser = subparsers.add_parser(
         "generate-preflight-baseline-snapshot",
         help="Generate read-only baseline snapshot payload for closeout preflight reconciliation audits.",
@@ -1086,6 +1136,13 @@ def parse_metadata_pairs(items: list[str]) -> dict[str, str]:
     return parsed
 
 
+def parse_json_object(raw_json: str) -> dict[str, Any]:
+    value = json.loads(raw_json)
+    if not isinstance(value, dict):
+        raise ValueError("details must decode to a JSON object.")
+    return value
+
+
 def command_requires_directories(args: argparse.Namespace) -> bool:
     if args.command == "validate-config":
         return True
@@ -1140,7 +1197,7 @@ def main(argv: list[str] | None = None) -> int:
         emit_json({"applied_migrations": applied, "bootstrap": "ok"})
         return 0
 
-    if args.command == "inspect-project-state":
+    if args.command == "inspect-db-state":
         with connect(config) as conn:
             emit_json(inspect_state(conn))
         return 0
@@ -1562,6 +1619,68 @@ def main(argv: list[str] | None = None) -> int:
         if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
             print(payload["stdout"])
             return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "init-project-state":
+        payload = init_project_state(
+            config,
+            path=args.path,
+            force=bool(args.force),
+        )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-project-state":
+        payload = inspect_local_project_state(config, path=args.path)
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "update-project-state":
+        payload = update_project_state(
+            config,
+            path=args.path,
+            current_milestone=args.current_milestone,
+            current_phase=args.current_phase,
+            current_mode=args.current_mode,
+            validation_status=args.validation_status,
+            documentation_status=args.documentation_status,
+            warnings_to_add=list(args.warning),
+        )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "append-operation-log":
+        details: dict[str, Any] | None = None
+        if args.details is not None:
+            try:
+                details = parse_json_object(args.details)
+            except ValueError as exc:
+                emit_json(
+                    {
+                        "ok": False,
+                        "local_only": True,
+                        "error": "invalid_details_json",
+                        "details": {"message": str(exc)},
+                    }
+                )
+                return 1
+        payload = append_operation_log(
+            config,
+            state_path=args.state_path,
+            event_type=args.event_type,
+            summary=args.summary,
+            details=details,
+        )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-operation-log":
+        payload = inspect_operation_log(
+            config,
+            state_path=args.state_path,
+            limit=args.limit,
+        )
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 
