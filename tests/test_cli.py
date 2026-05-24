@@ -281,6 +281,19 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     )
     assert generate_parent_closeout_bundle_args.command == "generate-parent-closeout-evidence-bundle"
     assert generate_parent_closeout_bundle_args.parent_issue == 362
+    assert generate_parent_closeout_bundle_args.state_file is None
+    generate_parent_closeout_bundle_state_file_args = parser.parse_args(
+        [
+            "generate-parent-closeout-evidence-bundle",
+            "--parent-issue",
+            "362",
+            "--state-file",
+            "artifacts/offline-state/m25-421.json",
+        ]
+    )
+    assert generate_parent_closeout_bundle_state_file_args.command == "generate-parent-closeout-evidence-bundle"
+    assert generate_parent_closeout_bundle_state_file_args.parent_issue == 362
+    assert generate_parent_closeout_bundle_state_file_args.state_file == "artifacts/offline-state/m25-421.json"
     generate_parent_marker_template_args = parser.parse_args(
         [
             "generate-parent-closeout-marker-template",
@@ -1716,15 +1729,24 @@ def test_cli_dispatches_generate_parent_closeout_evidence_bundle(
     monkeypatch.setattr(
         cli,
         "generate_parent_closeout_evidence_bundle",
-        lambda _config, parent_issue: {
+        lambda _config, parent_issue, state_file=None: {
             "command": "generate-parent-closeout-evidence-bundle",
             "ok": True,
             "read_only": True,
             "parent_issue": parent_issue,
+            "state_file": state_file,
         },
     )
 
-    exit_code = cli.main(["generate-parent-closeout-evidence-bundle", "--parent-issue", "362"])
+    exit_code = cli.main(
+        [
+            "generate-parent-closeout-evidence-bundle",
+            "--parent-issue",
+            "362",
+            "--state-file",
+            "artifacts/offline-state/m25-421.json",
+        ]
+    )
     payload = json.loads(capsys.readouterr().out)
 
     assert exit_code == 0
@@ -1733,6 +1755,7 @@ def test_cli_dispatches_generate_parent_closeout_evidence_bundle(
         "ok": True,
         "read_only": True,
         "parent_issue": 362,
+        "state_file": "artifacts/offline-state/m25-421.json",
     }
 
 

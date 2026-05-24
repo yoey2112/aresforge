@@ -31,7 +31,7 @@ def test_generate_parent_closeout_marker_template_ready(
     config = _config(tmp_path)
     monkeypatch.setattr(
         "aresforge.operator.parent_closeout_marker_template.inspect_milestone_state",
-        lambda _config, parent_issue: {
+        lambda _config, parent_issue, state_file=None: {
             "ok": True,
             "child_issues": [
                 {"issue_number": 401},
@@ -51,7 +51,7 @@ def test_generate_parent_closeout_marker_template_ready(
     )
     monkeypatch.setattr(
         "aresforge.operator.parent_closeout_marker_template.inspect_parent_closeout_readiness",
-        lambda _config, parent_issue: {
+        lambda _config, parent_issue, state_file=None: {
             "ok": True,
             "closeout_readiness": {"parent_closeout_ready": True},
             "blocked_reasons": [],
@@ -80,7 +80,7 @@ def test_generate_parent_closeout_marker_template_blocked_incomplete(
     config = _config(tmp_path)
     monkeypatch.setattr(
         "aresforge.operator.parent_closeout_marker_template.inspect_milestone_state",
-        lambda _config, parent_issue: {
+        lambda _config, parent_issue, state_file=None: {
             "ok": True,
             "child_issues": [
                 {"issue_number": 401},
@@ -100,7 +100,7 @@ def test_generate_parent_closeout_marker_template_blocked_incomplete(
     )
     monkeypatch.setattr(
         "aresforge.operator.parent_closeout_marker_template.inspect_parent_closeout_readiness",
-        lambda _config, parent_issue: {
+        lambda _config, parent_issue, state_file=None: {
             "ok": True,
             "closeout_readiness": {"parent_closeout_ready": False},
             "blocked_reasons": ["one_or_more_children_not_closed_or_accounted_for"],

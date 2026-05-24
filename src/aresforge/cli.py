@@ -476,6 +476,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="Generate read-only parent closeout evidence bundle text and targeted closeout guidance.",
     )
     parent_closeout_bundle_parser.add_argument("--parent-issue", type=int, required=True)
+    parent_closeout_bundle_parser.add_argument(
+        "--state-file",
+        help="Optional local JSON state file for offline parent closeout evidence bundle generation.",
+    )
     parent_marker_template_parser = subparsers.add_parser(
         "generate-parent-closeout-marker-template",
         help="Generate read-only canonical parent closeout evidence marker template text.",
@@ -1335,6 +1339,7 @@ def main(argv: list[str] | None = None) -> int:
         payload = generate_parent_closeout_evidence_bundle(
             config,
             parent_issue=args.parent_issue,
+            state_file=args.state_file,
         )
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
 from typing import Any
 
 from aresforge.config import AppConfig
@@ -13,14 +15,19 @@ from aresforge.operator.validation_summary import ValidationEntryInput, build_va
 COMMAND_NAME = "generate-parent-closeout-evidence-bundle"
 
 
-def generate_parent_closeout_evidence_bundle(config: AppConfig, *, parent_issue: int) -> dict[str, Any]:
-    milestone = inspect_milestone_state(config, parent_issue=parent_issue)
-    evidence = check_milestone_evidence_readiness(config, parent_issue=parent_issue)
-    readiness = inspect_parent_closeout_readiness(config, parent_issue=parent_issue)
+def generate_parent_closeout_evidence_bundle(
+    config: AppConfig,
+    *,
+    parent_issue: int,
+    state_file: str | Path | None = None,
+) -> dict[str, Any]:
+    milestone = inspect_milestone_state(config, parent_issue=parent_issue, state_file=state_file)
+    evidence = check_milestone_evidence_readiness(config, parent_issue=parent_issue, state_file=state_file)
+    readiness = inspect_parent_closeout_readiness(config, parent_issue=parent_issue, state_file=state_file)
 
     failures = _collect_failures(milestone=milestone, evidence=evidence, readiness=readiness)
     if failures:
-        return {
+        payload: dict[str, Any] = {
             "command": COMMAND_NAME,
             "ok": False,
             "read_only": True,
@@ -32,6 +39,10 @@ def generate_parent_closeout_evidence_bundle(config: AppConfig, *, parent_issue:
                 f"Do not close parent issue #{parent_issue} while dependency failures remain.",
             ],
         }
+        if state_file is not None:
+            payload["inspection_mode"] = "local_state_file"
+            payload["state_file"] = str(state_file)
+        return payload
 
     parent = milestone.get("parent_issue") if isinstance(milestone.get("parent_issue"), dict) else {}
     child_items = milestone.get("child_issues") if isinstance(milestone.get("child_issues"), list) else []
@@ -55,7 +66,8 @@ def generate_parent_closeout_evidence_bundle(config: AppConfig, *, parent_issue:
             accounted_count += 1
 
     child_count = len([item for item in child_items if isinstance(item, dict)])
-    pr_mappings = _child_pr_mappings(evidence)
+    offline_pr_urls = _offline_child_pr_urls(state_file) if state_file is not None else {}
+    pr_mappings = _child_pr_mappings(evidence, offline_pr_urls=offline_pr_urls)
     validation_summary = build_validation_summary(
         [
             ValidationEntryInput(command="python -m aresforge inspect-milestone-state", state="pass"),
@@ -78,6 +90,7 @@ def generate_parent_closeout_evidence_bundle(config: AppConfig, *, parent_issue:
     canonical = generate_parent_closeout_marker_template(
         config,
         parent_issue=parent_issue,
+        state_file=state_file,
     )
     canonical_marker = canonical.get("canonical_marker") if isinstance(canonical.get("canonical_marker"), dict) else {}
     canonical_marker_text = str(canonical.get("canonical_marker_text") or "")
@@ -122,7 +135,7 @@ def generate_parent_closeout_evidence_bundle(config: AppConfig, *, parent_issue:
     evidence_comment_body += "\n### Canonical Marker\n\n"
     evidence_comment_body += canonical_marker_text if canonical_marker_text else "<missing>\n"
 
-    return {
+    payload: dict[str, Any] = {
         "command": COMMAND_NAME,
         "ok": True,
         "read_only": True,
@@ -166,6 +179,10 @@ def generate_parent_closeout_evidence_bundle(config: AppConfig, *, parent_issue:
             "Post evidence comment and close parent as separate targeted operator-approved steps.",
         ],
     }
+    if state_file is not None:
+        payload["inspection_mode"] = "local_state_file"
+        payload["state_file"] = str(state_file)
+    return payload
 
 
 def _collect_failures(
@@ -192,7 +209,11 @@ def _collect_failures(
     return failures
 
 
-def _child_pr_mappings(evidence_payload: dict[str, Any]) -> list[dict[str, Any]]:
+def _child_pr_mappings(
+    evidence_payload: dict[str, Any],
+    *,
+    offline_pr_urls: dict[int, list[str]] | None = None,
+) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     issues = evidence_payload.get("issues") if isinstance(evidence_payload.get("issues"), list) else []
     for item in issues:
@@ -202,14 +223,17 @@ def _child_pr_mappings(evidence_payload: dict[str, Any]) -> list[dict[str, Any]]
         number = issue.get("number")
         if not isinstance(number, int):
             continue
-        merged_pr_evidence = issue.get("merged_pr_evidence")
         pr_urls: list[str] = []
+        merged_pr_evidence = issue.get("merged_pr_evidence")
         if isinstance(merged_pr_evidence, list):
             for candidate in merged_pr_evidence:
-                if isinstance(candidate, dict):
-                    url = candidate.get("url")
-                    if isinstance(url, str) and url.strip():
-                        pr_urls.append(url.strip())
+                if not isinstance(candidate, dict):
+                    continue
+                url = candidate.get("url")
+                if isinstance(url, str) and url.strip():
+                    pr_urls.append(url.strip())
+        if not pr_urls and isinstance(offline_pr_urls, dict):
+            pr_urls.extend(offline_pr_urls.get(number, []))
         rows.append(
             {
                 "issue_number": number,
@@ -219,6 +243,38 @@ def _child_pr_mappings(evidence_payload: dict[str, Any]) -> list[dict[str, Any]]
             }
         )
     rows.sort(key=lambda row: int(row["issue_number"]))
+    return rows
+
+
+def _offline_child_pr_urls(state_file: str | Path) -> dict[int, list[str]]:
+    try:
+        parsed = json.loads(Path(state_file).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    if not isinstance(parsed, dict):
+        return {}
+    child_issues = parsed.get("child_issues")
+    if not isinstance(child_issues, list):
+        return {}
+
+    rows: dict[int, list[str]] = {}
+    for item in child_issues:
+        if not isinstance(item, dict):
+            continue
+        number = item.get("number")
+        if not isinstance(number, int):
+            continue
+        merged_pr_evidence = item.get("merged_pr_evidence")
+        if not isinstance(merged_pr_evidence, list):
+            continue
+        urls: list[str] = []
+        for pr_item in merged_pr_evidence:
+            if not isinstance(pr_item, dict):
+                continue
+            url = pr_item.get("url")
+            if isinstance(url, str) and url.strip():
+                urls.append(url.strip())
+        rows[number] = sorted(set(urls))
     return rows
 
 
