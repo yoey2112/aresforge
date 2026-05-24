@@ -5,11 +5,25 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
-from urllib.parse import unquote, urlparse
+from urllib.parse import parse_qs, unquote, urlparse
 import webbrowser
 
 from aresforge.config import AppConfig
-from aresforge.hub.api import get_docs_status, get_health, get_summary
+from aresforge.hub.api import (
+    get_docs_status,
+    get_health,
+    get_project,
+    get_project_repos,
+    get_projects,
+    get_queue,
+    get_queue_item,
+    get_settings,
+    get_summary,
+    patch_queue_item,
+    post_project,
+    post_project_repo,
+    post_queue_item,
+)
 
 _DEFAULT_MIME_TYPE = "application/octet-stream"
 
@@ -20,12 +34,20 @@ def _is_loopback_host(host: str) -> bool:
 
 
 def _render_json(handler: BaseHTTPRequestHandler, status_code: int, payload: dict[str, Any]) -> None:
-    body = json.dumps(payload, indent=2, sort_keys=True).encode("utf-8")
+    safe_payload = {key: value for key, value in payload.items() if key != "_status"}
+    body = json.dumps(safe_payload, indent=2, sort_keys=True).encode("utf-8")
     handler.send_response(status_code)
     handler.send_header("Content-Type", "application/json; charset=utf-8")
     handler.send_header("Content-Length", str(len(body)))
     handler.end_headers()
     handler.wfile.write(body)
+
+
+def _status_from_payload(payload: dict[str, Any], fallback: HTTPStatus = HTTPStatus.OK) -> HTTPStatus:
+    raw = payload.get("_status")
+    if isinstance(raw, int) and 100 <= raw <= 599:
+        return HTTPStatus(raw)
+    return fallback
 
 
 def _guess_content_type(path: Path) -> str:
@@ -41,27 +63,167 @@ def _guess_content_type(path: Path) -> str:
 
 def _build_handler(config: AppConfig, static_root: Path) -> type[BaseHTTPRequestHandler]:
     class HubRequestHandler(BaseHTTPRequestHandler):
+        def _read_json_body(self) -> dict[str, Any] | None:
+            content_length = self.headers.get("Content-Length", "0").strip()
+            try:
+                length = int(content_length)
+            except ValueError:
+                return None
+
+            if length <= 0:
+                return {}
+
+            raw = self.rfile.read(length)
+            try:
+                parsed = json.loads(raw.decode("utf-8"))
+            except (UnicodeDecodeError, json.JSONDecodeError):
+                return None
+            if not isinstance(parsed, dict):
+                return None
+            return parsed
+
+        def _handle_api_route(
+            self,
+            *,
+            method: str,
+            path: str,
+            query_values: dict[str, list[str]],
+            body: dict[str, Any] | None,
+        ) -> bool:
+            segments = [unquote(segment) for segment in path.split("/") if segment]
+            if len(segments) < 2 or segments[0] != "api":
+                return False
+
+            if method == "GET" and path == "/api/health":
+                _render_json(self, HTTPStatus.OK, get_health())
+                return True
+            if method == "GET" and path == "/api/summary":
+                _render_json(self, HTTPStatus.OK, get_summary(config))
+                return True
+            if method == "GET" and path == "/api/docs/status":
+                _render_json(self, HTTPStatus.OK, get_docs_status(config))
+                return True
+            if method == "GET" and path == "/api/settings":
+                _render_json(self, HTTPStatus.OK, get_settings(config))
+                return True
+
+            if method == "GET" and path == "/api/projects":
+                _render_json(self, HTTPStatus.OK, get_projects(config))
+                return True
+            if method == "POST" and path == "/api/projects":
+                if body is None:
+                    _render_json(
+                        self,
+                        HTTPStatus.BAD_REQUEST,
+                        {
+                            "ok": False,
+                            "local_only": True,
+                            "error": "invalid_json_body",
+                            "message": "Request body must be a JSON object.",
+                        },
+                    )
+                    return True
+                payload = post_project(config, body)
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+
+            if len(segments) >= 3 and segments[1] == "projects":
+                project_id = segments[2]
+                if len(segments) == 3 and method == "GET":
+                    payload = get_project(config, project_id)
+                    _render_json(self, _status_from_payload(payload), payload)
+                    return True
+                if len(segments) == 4 and segments[3] == "repos" and method == "GET":
+                    payload = get_project_repos(config, project_id)
+                    _render_json(self, _status_from_payload(payload), payload)
+                    return True
+                if len(segments) == 4 and segments[3] == "repos" and method == "POST":
+                    if body is None:
+                        _render_json(
+                            self,
+                            HTTPStatus.BAD_REQUEST,
+                            {
+                                "ok": False,
+                                "local_only": True,
+                                "error": "invalid_json_body",
+                                "message": "Request body must be a JSON object.",
+                            },
+                        )
+                        return True
+                    payload = post_project_repo(config, project_id, body)
+                    _render_json(self, _status_from_payload(payload), payload)
+                    return True
+
+            if method == "GET" and path == "/api/queue":
+                payload = get_queue(
+                    config,
+                    {
+                        "project_id": query_values.get("project_id", [None])[0],
+                        "repo_id": query_values.get("repo_id", [None])[0],
+                        "status": query_values.get("status", [None])[0],
+                        "type": query_values.get("type", [None])[0],
+                        "assigned_agent": query_values.get("assigned_agent", [None])[0],
+                    },
+                )
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+            if method == "POST" and path == "/api/queue":
+                if body is None:
+                    _render_json(
+                        self,
+                        HTTPStatus.BAD_REQUEST,
+                        {
+                            "ok": False,
+                            "local_only": True,
+                            "error": "invalid_json_body",
+                            "message": "Request body must be a JSON object.",
+                        },
+                    )
+                    return True
+                payload = post_queue_item(config, body)
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+            if len(segments) == 3 and segments[1] == "queue" and method == "GET":
+                payload = get_queue_item(config, segments[2])
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+            if len(segments) == 3 and segments[1] == "queue" and method == "PATCH":
+                if body is None:
+                    _render_json(
+                        self,
+                        HTTPStatus.BAD_REQUEST,
+                        {
+                            "ok": False,
+                            "local_only": True,
+                            "error": "invalid_json_body",
+                            "message": "Request body must be a JSON object.",
+                        },
+                    )
+                    return True
+                payload = patch_queue_item(config, segments[2], body)
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+
+            return False
+
         def do_GET(self) -> None:  # noqa: N802
             parsed = urlparse(self.path)
             path = parsed.path
+            query_values = parse_qs(parsed.query, keep_blank_values=False)
 
-            if path == "/api/health":
-                _render_json(self, HTTPStatus.OK, get_health())
+            if self._handle_api_route(method="GET", path=path, query_values=query_values, body=None):
                 return
-            if path == "/api/summary":
-                _render_json(self, HTTPStatus.OK, get_summary(config))
-                return
-            if path == "/api/docs/status":
-                _render_json(self, HTTPStatus.OK, get_docs_status(config))
-                return
+
             if path.startswith("/api/"):
                 _render_json(
                     self,
                     HTTPStatus.NOT_FOUND,
                     {
                         "ok": False,
+                        "local_only": True,
                         "error": "unknown_api_endpoint",
                         "path": path,
+                        "method": "GET",
                     },
                 )
                 return
@@ -86,6 +248,70 @@ def _build_handler(config: AppConfig, static_root: Path) -> type[BaseHTTPRequest
             self.send_header("Content-Length", str(len(data)))
             self.end_headers()
             self.wfile.write(data)
+
+        def do_POST(self) -> None:  # noqa: N802
+            parsed = urlparse(self.path)
+            path = parsed.path
+            query_values = parse_qs(parsed.query, keep_blank_values=False)
+            body = self._read_json_body()
+            if self._handle_api_route(method="POST", path=path, query_values=query_values, body=body):
+                return
+            if path.startswith("/api/"):
+                _render_json(
+                    self,
+                    HTTPStatus.NOT_FOUND,
+                    {
+                        "ok": False,
+                        "local_only": True,
+                        "error": "unknown_api_endpoint",
+                        "path": path,
+                        "method": "POST",
+                    },
+                )
+                return
+            _render_json(
+                self,
+                HTTPStatus.METHOD_NOT_ALLOWED,
+                {
+                    "ok": False,
+                    "local_only": True,
+                    "error": "method_not_allowed",
+                    "path": path,
+                    "method": "POST",
+                },
+            )
+
+        def do_PATCH(self) -> None:  # noqa: N802
+            parsed = urlparse(self.path)
+            path = parsed.path
+            query_values = parse_qs(parsed.query, keep_blank_values=False)
+            body = self._read_json_body()
+            if self._handle_api_route(method="PATCH", path=path, query_values=query_values, body=body):
+                return
+            if path.startswith("/api/"):
+                _render_json(
+                    self,
+                    HTTPStatus.NOT_FOUND,
+                    {
+                        "ok": False,
+                        "local_only": True,
+                        "error": "unknown_api_endpoint",
+                        "path": path,
+                        "method": "PATCH",
+                    },
+                )
+                return
+            _render_json(
+                self,
+                HTTPStatus.METHOD_NOT_ALLOWED,
+                {
+                    "ok": False,
+                    "local_only": True,
+                    "error": "method_not_allowed",
+                    "path": path,
+                    "method": "PATCH",
+                },
+            )
 
         def log_message(self, _format: str, *_args: Any) -> None:
             return

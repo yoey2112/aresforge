@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Describe the implemented human-triggered operator surface through M37 Hub UI foundation.
+Describe the implemented human-triggered operator surface through M38 Hub project/repo/queue management.
 
 ## Operator Shape
 
@@ -173,6 +173,47 @@ Command entrypoint:
   - no production deployment implementation yet
   - no agent execution yet
   - no live GitHub sync yet
+
+## M38 Hub Project, Repo, And Queue Management
+
+- Extended Hub API endpoints:
+  - `GET /api/projects`
+  - `POST /api/projects`
+  - `GET /api/projects/{project_id}`
+  - `GET /api/projects/{project_id}/repos`
+  - `POST /api/projects/{project_id}/repos`
+  - `GET /api/queue`
+  - `POST /api/queue`
+  - `GET /api/queue/{item_id}`
+  - `PATCH /api/queue/{item_id}`
+  - `GET /api/settings`
+- Hub UI now supports local interactive management for:
+  - Projects (list + add/update)
+  - Repos (project-scoped list + add/update)
+  - Queue (filter + add/update + quick status transitions)
+- M38 data path:
+  - project/repo operations use M32 managed-project registry file-backed storage
+  - queue operations use M33 local queue file-backed storage
+- Home/Settings updates:
+  - Home includes management readiness hints
+  - Settings shows local registry/queue file paths and local-only boundaries
+- Local-only boundary:
+  - no `gh`
+  - no GitHub API calls
+  - no network service calls
+  - no local LLM calls
+  - no cloud LLM calls
+  - no Codex calls
+  - no ChatGPT calls
+  - no Ollama calls
+  - no external API calls
+  - no agent execution
+  - no live GitHub sync
+  - no authentication implementation yet
+  - no production deployment implementation yet
+- Deferred scope remains:
+  - M39: agent/orchestration/escalation/handoff screens
+  - M40: reporting/dashboard polish and operator workflows
 
 ## Current Additions (M25 Included)
 

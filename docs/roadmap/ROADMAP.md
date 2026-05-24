@@ -2,6 +2,44 @@
 
 ## Current Milestones
 
+### M38 - Hub Project, Repo, And Queue Management
+
+Status: Completed (local-only interactive management screens and API).
+
+Delivered M38 outcomes:
+
+- local Hub API endpoints for managed projects, managed repos, and queue items:
+  - `GET/POST /api/projects`
+  - `GET /api/projects/{project_id}`
+  - `GET/POST /api/projects/{project_id}/repos`
+  - `GET/POST /api/queue`
+  - `GET/PATCH /api/queue/{item_id}`
+- local Hub static UI now includes interactive:
+  - Projects list and create/update form
+  - Repos selector, list, and create/update form
+  - Queue filter surface, item display, create/update form, and quick status updates
+  - Home readiness hints and Settings local storage-path display
+- M38 uses M32 managed-project registry and M33 local queue operators/storage rather than duplicating business logic.
+
+M38 safety posture:
+
+- local-only, local-first, file-backed management surface
+- no GitHub calls
+- no `gh` calls
+- no network service calls
+- no local/cloud LLM calls
+- no Codex/ChatGPT/Ollama calls
+- no external API calls
+- no authentication implementation yet
+- no production deployment implementation yet
+- no live GitHub sync yet
+- no agent/LLM execution yet
+
+Upcoming milestone split:
+
+- M39: agent/orchestration/escalation/handoff screens
+- M40: reporting/dashboard polish and operator workflows
+
 ### M37 - AresForge Hub UI Foundation
 
 Status: Completed (local-first Hub foundation only).

@@ -97,6 +97,49 @@ Milestone split after M37:
 - M39: full agent/orchestration/escalation/handoff screens
 - M40: reporting/dashboard polish and operator workflow expansion
 
+## M38 Hub Project, Repo, And Queue Management
+
+M38 adds interactive local Hub project-management screens using file-backed M32/M33 storage.
+
+Quick operator note:
+
+- Start the Hub:
+   - `python -m aresforge serve-hub`
+- Open:
+   - `http://127.0.0.1:8765`
+- Use Projects, Repos, and Queue sections for local management.
+- Data remains local file-backed.
+
+M38 Hub API endpoints:
+
+- `GET /api/projects`
+- `POST /api/projects`
+- `GET /api/projects/{project_id}`
+- `GET /api/projects/{project_id}/repos`
+- `POST /api/projects/{project_id}/repos`
+- `GET /api/queue`
+- `POST /api/queue`
+- `GET /api/queue/{item_id}`
+- `PATCH /api/queue/{item_id}`
+
+M38 boundary guarantees:
+
+- local-only command/API/UI surface
+- no `gh` calls
+- no GitHub API calls
+- no network service calls
+- no local LLM calls
+- no cloud LLM calls
+- no Codex/ChatGPT/Ollama calls
+- no external API calls
+- no agent execution and no live GitHub sync
+
+Remaining scope split:
+
+- M39: agent, handoff, orchestration, and escalation screens
+- M40: reporting/dashboard polish and operator workflow expansion
+- authentication and production deployment are not implemented yet
+
 ## Final Validation Checklist (Local-Only)
 
 ```powershell

@@ -58,21 +58,205 @@
             <ul id="actions-list" class="list"></ul>
             <p id="actions-empty-state" class="empty">No actions suggested.</p>
           </section>
+
+          <section class="subpanel">
+            <h3>M38 Management Readiness</h3>
+            <ul id="readiness-list" class="list"></ul>
+            <p id="readiness-empty-state" class="empty">No readiness hints available.</p>
+          </section>
         </section>
 
         <section id="panel-projects" class="panel" data-panel="projects">
           <h2>Projects</h2>
-          <p class="placeholder">M38 will add local project management screens and workflows.</p>
+          <p>Register and update local managed projects backed by the M32 registry.</p>
+          <p id="projects-message" class="message"></p>
+          <div class="split two-col">
+            <section class="subpanel">
+              <h3>Managed Projects</h3>
+              <ul id="projects-list" class="list"></ul>
+              <p id="projects-empty-state" class="empty">No projects found yet.</p>
+            </section>
+            <section class="subpanel">
+              <h3>Add Or Update Project</h3>
+              <form id="project-form" class="form-grid">
+                <label>Project ID<input id="project-project-id" name="project_id" required /></label>
+                <label>Name<input id="project-name" name="name" required /></label>
+                <label>Root Path<input id="project-root-path" name="root_path" required /></label>
+                <label>Status
+                  <select id="project-status" name="status">
+                    <option value="">(default)</option>
+                    <option value="active">active</option>
+                    <option value="paused">paused</option>
+                    <option value="archived">archived</option>
+                    <option value="planned">planned</option>
+                  </select>
+                </label>
+                <label>Default Branch<input id="project-default-branch" name="default_branch" placeholder="main" /></label>
+                <label>Tags (comma-separated)<input id="project-tags" name="tags" /></label>
+                <label class="full">Description<textarea id="project-description" name="description"></textarea></label>
+                <label class="full">Notes<textarea id="project-notes" name="notes"></textarea></label>
+                <button id="project-submit" type="submit">Save Project</button>
+              </form>
+            </section>
+          </div>
         </section>
 
         <section id="panel-repos" class="panel" data-panel="repos">
           <h2>Repos</h2>
-          <p class="placeholder">M38 will add local managed-repo screens and workflows.</p>
+          <p>Register and update repos under a managed project using local M32 storage.</p>
+          <p id="repos-message" class="message"></p>
+          <label class="inline-label" for="repo-project-select">Project</label>
+          <select id="repo-project-select">
+            <option value="">Select project</option>
+          </select>
+          <div class="split two-col">
+            <section class="subpanel">
+              <h3>Repos For Selected Project</h3>
+              <ul id="repos-list" class="list"></ul>
+              <p id="repos-empty-state" class="empty">No repos found for this project.</p>
+              <p id="repos-no-project-state" class="empty">Select a project to view and manage repos.</p>
+            </section>
+            <section class="subpanel">
+              <h3>Add Or Update Repo</h3>
+              <form id="repo-form" class="form-grid">
+                <label>Repo ID<input id="repo-repo-id" name="repo_id" required /></label>
+                <label>Name<input id="repo-name" name="name" required /></label>
+                <label>Path<input id="repo-path" name="path" required /></label>
+                <label>Role
+                  <select id="repo-role" name="role">
+                    <option value="">(default)</option>
+                    <option value="primary">primary</option>
+                    <option value="docs">docs</option>
+                    <option value="app">app</option>
+                    <option value="api">api</option>
+                    <option value="infrastructure">infrastructure</option>
+                    <option value="automation">automation</option>
+                    <option value="reference">reference</option>
+                    <option value="archive">archive</option>
+                    <option value="other">other</option>
+                  </select>
+                </label>
+                <label>Status
+                  <select id="repo-status" name="status">
+                    <option value="">(default)</option>
+                    <option value="active">active</option>
+                    <option value="paused">paused</option>
+                    <option value="archived">archived</option>
+                    <option value="planned">planned</option>
+                  </select>
+                </label>
+                <label>Default Branch<input id="repo-default-branch" name="default_branch" placeholder="main" /></label>
+                <label>Remote URL<input id="repo-remote-url" name="remote_url" /></label>
+                <label>Tags (comma-separated)<input id="repo-tags" name="tags" /></label>
+                <label class="full">Notes<textarea id="repo-notes" name="notes"></textarea></label>
+                <button id="repo-submit" type="submit">Save Repo</button>
+              </form>
+            </section>
+          </div>
         </section>
 
         <section id="panel-queue" class="panel" data-panel="queue">
           <h2>Queue</h2>
-          <p class="placeholder">M38 will add queue management and tracking screens.</p>
+          <p>Track local queue items with filters, dependency warnings, and quick status updates.</p>
+          <p id="queue-message" class="message"></p>
+          <section class="subpanel">
+            <h3>Filters</h3>
+            <form id="queue-filter-form" class="form-inline">
+              <input id="filter-project-id" name="project_id" placeholder="project_id" />
+              <input id="filter-repo-id" name="repo_id" placeholder="repo_id" />
+              <select id="filter-status" name="status">
+                <option value="">status</option>
+                <option value="proposed">proposed</option>
+                <option value="ready">ready</option>
+                <option value="in_progress">in_progress</option>
+                <option value="blocked">blocked</option>
+                <option value="done">done</option>
+                <option value="cancelled">cancelled</option>
+              </select>
+              <select id="filter-type" name="type">
+                <option value="">type</option>
+                <option value="milestone">milestone</option>
+                <option value="feature">feature</option>
+                <option value="bug">bug</option>
+                <option value="task">task</option>
+                <option value="documentation">documentation</option>
+                <option value="validation">validation</option>
+                <option value="handoff">handoff</option>
+                <option value="orchestration">orchestration</option>
+                <option value="sync">sync</option>
+                <option value="dashboard">dashboard</option>
+                <option value="other">other</option>
+              </select>
+              <input id="filter-assigned-agent" name="assigned_agent" placeholder="assigned_agent" />
+              <button type="submit">Apply Filters</button>
+              <button type="button" id="queue-filter-reset">Reset</button>
+            </form>
+          </section>
+          <div class="split two-col">
+            <section class="subpanel">
+              <h3>Queue Items</h3>
+              <div id="queue-items" class="cards"></div>
+              <p id="queue-items-empty-state" class="empty">No queue items found.</p>
+              <section>
+                <h4>Counts</h4>
+                <ul id="queue-counts" class="list"></ul>
+                <p id="queue-counts-empty-state" class="empty">No counts to show.</p>
+              </section>
+            </section>
+            <section class="subpanel">
+              <h3>Add Or Update Queue Item</h3>
+              <form id="queue-form" class="form-grid">
+                <label>Item ID<input id="queue-item-id" name="item_id" required /></label>
+                <label>Project ID<input id="queue-project-id" name="project_id" required /></label>
+                <label>Repo ID<input id="queue-repo-id" name="repo_id" required /></label>
+                <label>Title<input id="queue-title" name="title" required /></label>
+                <label>Status
+                  <select id="queue-status" name="status">
+                    <option value="">(default)</option>
+                    <option value="proposed">proposed</option>
+                    <option value="ready">ready</option>
+                    <option value="in_progress">in_progress</option>
+                    <option value="blocked">blocked</option>
+                    <option value="done">done</option>
+                    <option value="cancelled">cancelled</option>
+                  </select>
+                </label>
+                <label>Priority
+                  <select id="queue-priority" name="priority">
+                    <option value="">(default)</option>
+                    <option value="low">low</option>
+                    <option value="normal">normal</option>
+                    <option value="high">high</option>
+                    <option value="urgent">urgent</option>
+                  </select>
+                </label>
+                <label>Type
+                  <select id="queue-item-type" name="item_type">
+                    <option value="">(default)</option>
+                    <option value="milestone">milestone</option>
+                    <option value="feature">feature</option>
+                    <option value="bug">bug</option>
+                    <option value="task">task</option>
+                    <option value="documentation">documentation</option>
+                    <option value="validation">validation</option>
+                    <option value="handoff">handoff</option>
+                    <option value="orchestration">orchestration</option>
+                    <option value="sync">sync</option>
+                    <option value="dashboard">dashboard</option>
+                    <option value="other">other</option>
+                  </select>
+                </label>
+                <label>Assigned Agent<input id="queue-assigned-agent" name="assigned_agent" /></label>
+                <label>Source<input id="queue-source" name="source" /></label>
+                <label>Tags (comma-separated)<input id="queue-tags" name="tags" /></label>
+                <label>Dependencies (comma-separated item IDs)<input id="queue-dependencies" name="dependencies" /></label>
+                <label>Blocked By (comma-separated item IDs)<input id="queue-blocked-by" name="blocked_by" /></label>
+                <label class="full">Description<textarea id="queue-description" name="description"></textarea></label>
+                <label class="full">Notes<textarea id="queue-notes" name="notes"></textarea></label>
+                <button id="queue-submit" type="submit">Save Queue Item</button>
+              </form>
+            </section>
+          </div>
         </section>
 
         <section id="panel-agents" class="panel" data-panel="agents">
@@ -102,6 +286,11 @@
 
         <section id="panel-settings" class="panel" data-panel="settings">
           <h2>Settings</h2>
+          <p>Local storage paths:</p>
+          <ul class="list">
+            <li>Registry Path: <span id="settings-registry-path">(unavailable)</span></li>
+            <li>Queue Path: <span id="settings-queue-path">(unavailable)</span></li>
+          </ul>
           <p>Boundary confirmations:</p>
           <ul id="boundary-list" class="list"></ul>
           <p id="boundary-empty-state" class="empty">No boundary confirmations available.</p>

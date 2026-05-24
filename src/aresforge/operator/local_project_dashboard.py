@@ -83,10 +83,21 @@ def summarize_local_project_dashboard(config: AppConfig) -> dict[str, Any]:
     warnings.extend(list(docs_status.get("warnings", [])))
 
     next_actions: list[str] = []
+    readiness_hints: list[str] = []
     if project_count == 0:
         next_actions.append("Register at least one managed project and repo.")
+        readiness_hints.append("Project management: initialize the managed project registry and add a project.")
+    else:
+        readiness_hints.append("Project management: ready.")
+    if repo_count == 0:
+        readiness_hints.append("Repo management: register at least one repo under a project.")
+    else:
+        readiness_hints.append("Repo management: ready.")
     if not queue_status_counts:
         next_actions.append("Initialize local project queue to track work items.")
+        readiness_hints.append("Queue management: initialize queue and add at least one item.")
+    else:
+        readiness_hints.append("Queue management: ready.")
     if agent_count == 0:
         next_actions.append("Initialize agent profiles for handoff/orchestration planning.")
     if int(docs_status.get("missing_count", 0)) > 0:
@@ -104,6 +115,7 @@ def summarize_local_project_dashboard(config: AppConfig) -> dict[str, Any]:
         "docs_status": docs_status,
         "warnings": sorted(set(warnings)),
         "next_recommended_actions": next_actions,
+        "project_management_readiness": readiness_hints,
         "boundary_confirmations": [
             "Local-first control-plane summary only.",
             "No GitHub calls.",

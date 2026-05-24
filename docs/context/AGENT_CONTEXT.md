@@ -2,11 +2,11 @@
 
 ## Purpose
 
-Provide minimum operating context for M37 Hub UI foundation with a local-first, self-managed operator model.
+Provide minimum operating context for M38 Hub project/repo/queue management with a local-first, self-managed operator model.
 
 ## Current Operating Model
 
-- Active milestone context: M37 AresForge Hub UI foundation.
+- Active milestone context: M38 Hub project/repo/queue management.
 - AresForge now has a local-first foundation for self-managed operation.
 - GitHub is optional/syncable and not mandatory for local planning.
 - M26 added local handoff package generation.
@@ -20,6 +20,7 @@ Provide minimum operating context for M37 Hub UI foundation with a local-first, 
 - M35 added local multi-agent orchestration planning (assignment + sequencing + handoff prompts).
 - M36 added local escalation planning that classifies queue/orchestration work for local LLM, Codex, cloud advisory, human-required, and blocked/clarification paths.
 - M37 added a local Hub server/API/frontend foundation intended to become the primary local entry point for AresForge.
+- M38 adds interactive local Hub screens and API workflows for M32 managed-project registry and M33 local queue management.
 - Foundation-batch boundaries (M26-M30):
   - no `gh`
   - no GitHub API calls
@@ -104,8 +105,16 @@ Provide minimum operating context for M37 Hub UI foundation with a local-first, 
   - no live GitHub sync
   - no authentication implementation yet
   - no production deployment implementation yet
+- M38 boundary confirmations:
+  - local-first, file-backed project/repo/queue management via Hub API and static UI
+  - no `gh`, no GitHub API calls, no network services
+  - no local LLM calls, no cloud LLM calls, no Codex/ChatGPT/Ollama calls
+  - no external API calls
+  - no agent execution, no live GitHub sync
+  - agent/handoff/orchestration/escalation screens remain scheduled for M39
+  - reporting/dashboard polish and operator workflows remain scheduled for M40
+  - authentication and production deployment remain unimplemented
 - Next-phase planning focus:
-  - M38: project/repo/queue management screens and workflows
   - M39: agent/orchestration/escalation/handoff screens
   - M40: reporting/dashboard polish and operator workflows
 

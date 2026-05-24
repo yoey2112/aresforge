@@ -2,11 +2,50 @@
 
 ## Current Phase
 
-M37 AresForge Hub UI foundation (local-only).
+M38 AresForge Hub project, repo, and queue management (local-only).
 
 ## Current Goal
 
-Implement and document a local-first Hub foundation that serves as the main local entry point for AresForge with a local server, API shell, frontend shell, navigation, home summary, docs status, and placeholder sections.
+Implement and document local-first interactive Hub screens for managed projects, managed repos, and local queue workflows using existing M32 and M33 operators.
+
+## M38 Hub Project, Repo, And Queue Management
+
+- Extended local Hub API with local-only management endpoints:
+  - `GET /api/projects`
+  - `POST /api/projects`
+  - `GET /api/projects/{project_id}`
+  - `GET /api/projects/{project_id}/repos`
+  - `POST /api/projects/{project_id}/repos`
+  - `GET /api/queue`
+  - `POST /api/queue`
+  - `GET /api/queue/{item_id}`
+  - `PATCH /api/queue/{item_id}`
+  - `GET /api/settings`
+- Extended Hub frontend with interactive sections:
+  - Projects list and add/update project form
+  - Repos project selector, repo list, and add/update repo form
+  - Queue filters, item list/cards, add/update item form, and quick status update controls
+  - Home readiness hints for project/repo/queue management
+  - Settings storage-path display for local registry and queue files
+- M38 data model linkage:
+  - project/repo operations reuse M32 managed-project registry storage
+  - queue operations reuse M33 local project queue storage
+  - create/update behavior is idempotent where operator contracts already support idempotent registration/update
+- M38 local-first/file-backed boundary:
+  - no `gh`
+  - no GitHub API calls
+  - no network service calls
+  - no local LLM calls
+  - no cloud LLM calls
+  - no Codex calls
+  - no ChatGPT calls
+  - no Ollama calls
+  - no external API calls
+- M38 scope boundary:
+  - agent, handoff, orchestration, and escalation screens remain planned for M39
+  - reporting/dashboard polish and operator workflow expansion remain planned for M40
+  - authentication and production deployment remain unimplemented
+  - live GitHub sync and agent/LLM execution remain unimplemented
 
 ## M37 AresForge Hub UI Foundation
 
