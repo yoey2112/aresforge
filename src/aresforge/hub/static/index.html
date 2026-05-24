@@ -61,6 +61,47 @@
               </article>
             </div>
           </section>
+
+          <section class="subpanel">
+            <h3>Active Project Workbench</h3>
+            <div class="cards">
+              <article class="card">
+                <h3>Active Project</h3>
+                <p id="home-workbench-project">No active project selected</p>
+                <p class="subvalue" id="home-workbench-project-detail">Select an active project from Projects.</p>
+              </article>
+              <article class="card">
+                <h3>Active Repo</h3>
+                <p id="home-workbench-repo">-</p>
+                <p class="subvalue" id="home-workbench-repo-detail">No active repo selected.</p>
+              </article>
+              <article class="card">
+                <h3>Current Work</h3>
+                <p id="home-workbench-current-work">queue=0 | ready=0 | blocked=0</p>
+                <p class="subvalue" id="home-workbench-current-work-detail">in_progress=0 | high/urgent=0 | unassigned=0</p>
+              </article>
+              <article class="card">
+                <h3>Attention Needed</h3>
+                <p id="home-workbench-attention">blocked=0 | high/urgent=0</p>
+                <p class="subvalue" id="home-workbench-attention-detail">GitHub sync status: planned_gated_not_executed</p>
+              </article>
+            </div>
+            <div class="quick-actions">
+              <button id="home-quick-intake" type="button">Add Active Project Intake</button>
+            </div>
+          </section>
+
+          <section class="subpanel">
+            <h3>Current Active Work</h3>
+            <ul id="home-current-active-work" class="list"></ul>
+            <p id="home-current-active-work-empty" class="empty">No active project work items yet.</p>
+          </section>
+
+          <section class="subpanel">
+            <h3>Workbench Actions</h3>
+            <ul id="home-workbench-actions" class="list"></ul>
+            <p id="home-workbench-actions-empty" class="empty">No workbench actions right now.</p>
+          </section>
           <div class="cards" id="summary-cards">
             <article class="card"><h3>Projects</h3><p id="project-count">0</p></article>
             <article class="card"><h3>Repos</h3><p id="repo-count">0</p></article>

@@ -336,6 +336,83 @@ function renderActiveProjectSummary(payload) {
   }
 }
 
+function renderActiveProjectWorkbench(report) {
+  const activeProjectSummary = (report && report.active_project_summary) || {};
+  const readiness = (report && report.readiness_indicators) || {};
+  const actionCenter = (report && report.action_center) || {};
+  const project = activeProjectSummary.active_project || {};
+  const repo = activeProjectSummary.active_repo || {};
+  const selected = Boolean(activeProjectSummary.active_project_selected || report.active_project_selected);
+  const activeProjectIdValue = activeProjectSummary.active_project_id || report.active_project_id || "";
+  const activeRepoIdValue = activeProjectSummary.active_repo_id || report.active_repo_id || "";
+
+  const queueTotal = Number(activeProjectSummary.active_project_queue_item_count || 0);
+  const readyCount = Number(activeProjectSummary.active_project_ready_item_count || 0);
+  const blockedCount = Number(activeProjectSummary.active_project_blocked_item_count || 0);
+  const inProgressCount = Number(activeProjectSummary.active_project_in_progress_item_count || 0);
+  const highCount = Number(activeProjectSummary.active_project_high_priority_item_count || 0);
+  const urgentCount = Number(activeProjectSummary.active_project_urgent_item_count || 0);
+  const unassignedCount = Number(activeProjectSummary.active_project_unassigned_item_count || 0);
+  const highUrgentCount = highCount + urgentCount;
+  const githubSyncStatus = activeProjectSummary.github_sync_status || "planned_gated_not_executed";
+
+  byId("home-workbench-project").textContent = selected
+    ? `${activeProjectIdValue} | ${(project.name || activeProjectIdValue || "-")}`
+    : "No active project selected";
+  byId("home-workbench-project-detail").textContent = selected
+    ? `status=${project.status || "-"}`
+    : "Select an active project from Projects.";
+  byId("home-workbench-repo").textContent = activeRepoIdValue
+    ? `${activeRepoIdValue} | ${(repo.name || activeRepoIdValue)}`
+    : "-";
+  byId("home-workbench-repo-detail").textContent = activeRepoIdValue
+    ? `status=${repo.status || "-"}`
+    : "No active repo selected.";
+  byId("home-workbench-current-work").textContent = `queue=${queueTotal} | ready=${readyCount} | blocked=${blockedCount}`;
+  byId("home-workbench-current-work-detail").textContent = `in_progress=${inProgressCount} | high/urgent=${highUrgentCount} | unassigned=${unassignedCount}`;
+  byId("home-workbench-attention").textContent = `blocked=${blockedCount} | high/urgent=${highUrgentCount}`;
+  byId("home-workbench-attention-detail").textContent = `GitHub sync status: ${githubSyncStatus}`;
+
+  const currentWorkItems = (report.active_project_current_items || []).map((item) => {
+    const title = item.title || "(no title)";
+    return `${item.item_id || "-"} | ${title} | status=${item.status || "-"} | priority=${item.priority || "-"} | agent=${item.assigned_agent || "-"}`;
+  });
+  if (!selected) {
+    setList("home-current-active-work", "home-current-active-work-empty", ["No active project selected"]);
+  } else {
+    setList("home-current-active-work", "home-current-active-work-empty", currentWorkItems);
+  }
+
+  const workbenchActions = [];
+  (report.recommended_next_actions || []).forEach((action) => workbenchActions.push(String(action)));
+  if (activeProjectIdValue) {
+    workbenchActions.push(`active_project_ready_items: ${readyCount}`);
+    workbenchActions.push(`active_project_blocked_items: ${blockedCount}`);
+  }
+  if (Array.isArray(actionCenter.active_project_ready_items) && actionCenter.active_project_ready_items.length > 0) {
+    workbenchActions.push(`action_center_ready_items: ${actionCenter.active_project_ready_items.join(", ")}`);
+  }
+  if (Array.isArray(actionCenter.active_project_blocked_items) && actionCenter.active_project_blocked_items.length > 0) {
+    workbenchActions.push(`action_center_blocked_items: ${actionCenter.active_project_blocked_items.map((item) => item.item_id || "-").join(", ")}`);
+  }
+  if (readiness.active_project_selected === false) {
+    workbenchActions.push("Select an active project from Projects.");
+  }
+  if (Array.isArray(actionCenter.bootstrap_recommended_actions)) {
+    actionCenter.bootstrap_recommended_actions.forEach((action) => workbenchActions.push(`bootstrap: ${action}`));
+  }
+  const dedupedActions = workbenchActions.filter((value, index, all) => value && all.indexOf(value) === index);
+  setList("home-workbench-actions", "home-workbench-actions-empty", dedupedActions);
+}
+
+function activateQueueIntakeFocus() {
+  activateSection("queue");
+  const intakeTitle = byId("intake-title");
+  if (intakeTitle) {
+    intakeTitle.focus();
+  }
+}
+
 function renderProjects(projects) {
   const lines = (projects || []).map((project) => {
     const tags = (project.tags || []).join(", ") || "-";
@@ -712,6 +789,7 @@ function renderReportSummary(report) {
   });
   byId("home-active-project-queue-total").textContent = String(activeProjectSummary.active_project_queue_item_count || 0);
   byId("home-active-project-queue-detail").textContent = `ready=${activeProjectSummary.active_project_ready_item_count || 0} | blocked=${activeProjectSummary.active_project_blocked_item_count || 0}`;
+  renderActiveProjectWorkbench(report);
 
   setList("queue-status-list", "queue-empty-state", queueEntries(queueSummary.counts_by_status));
   setList("warnings-list", "warnings-empty-state", report.warnings || []);
@@ -1373,6 +1451,10 @@ function bindForms() {
 
   on("home-open-bootstrap", "click", () => {
     activateSection("bootstrap");
+  });
+
+  on("home-quick-intake", "click", () => {
+    activateQueueIntakeFocus();
   });
 
   on("bootstrap-refresh-status", "click", async () => {

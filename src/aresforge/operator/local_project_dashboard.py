@@ -100,6 +100,26 @@ def _latest_artifact(path: Path) -> str | None:
     return str(latest) if latest is not None else None
 
 
+def _status_rank(status: str) -> int:
+    return {
+        "blocked": 0,
+        "ready": 1,
+        "in_progress": 2,
+        "proposed": 3,
+        "done": 4,
+        "cancelled": 4,
+    }.get(status, 5)
+
+
+def _priority_rank(priority: str) -> int:
+    return {
+        "urgent": 0,
+        "high": 1,
+        "normal": 2,
+        "low": 3,
+    }.get(priority, 4)
+
+
 def _operator_workflows() -> list[dict[str, Any]]:
     return [
         {
@@ -348,6 +368,47 @@ def summarize_local_project_dashboard(config: AppConfig) -> dict[str, Any]:
         for item in active_project_queue_items
         if str(item.get("status", "")).strip() == "ready"
     ]
+    active_project_in_progress_items = [
+        str(item.get("item_id", "")).strip()
+        for item in active_project_queue_items
+        if str(item.get("status", "")).strip() == "in_progress"
+    ]
+    active_project_high_priority_items = [
+        str(item.get("item_id", "")).strip()
+        for item in active_project_queue_items
+        if str(item.get("priority", "")).strip() == "high"
+    ]
+    active_project_urgent_items = [
+        str(item.get("item_id", "")).strip()
+        for item in active_project_queue_items
+        if str(item.get("priority", "")).strip() == "urgent"
+    ]
+    active_project_unassigned_items = [
+        str(item.get("item_id", "")).strip()
+        for item in active_project_queue_items
+        if not str(item.get("assigned_agent", "")).strip()
+    ]
+    active_project_current_items = [
+        {
+            "item_id": str(item.get("item_id", "")).strip(),
+            "title": str(item.get("title", "")).strip(),
+            "status": str(item.get("status", "")).strip(),
+            "priority": str(item.get("priority", "")).strip(),
+            "item_type": str(item.get("item_type", "")).strip(),
+            "assigned_agent": str(item.get("assigned_agent", "")).strip(),
+            "repo_id": str(item.get("repo_id", "")).strip(),
+            "tags": [str(tag).strip() for tag in item.get("tags", []) if str(tag).strip()] if isinstance(item.get("tags", []), list) else [],
+        }
+        for item in sorted(
+            active_project_queue_items,
+            key=lambda value: (
+                _status_rank(str(value.get("status", "")).strip()),
+                _priority_rank(str(value.get("priority", "")).strip()),
+                str(value.get("updated_at", "")).strip(),
+                str(value.get("item_id", "")).strip(),
+            ),
+        )
+    ][:10]
 
     queue_summary = {
         "item_count": len(queue_items),
@@ -533,6 +594,10 @@ def summarize_local_project_dashboard(config: AppConfig) -> dict[str, Any]:
         "active_project_queue_item_count": len(active_project_queue_items),
         "active_project_blocked_item_count": len(active_project_blocked_items),
         "active_project_ready_item_count": len(active_project_ready_items),
+        "active_project_in_progress_item_count": len(active_project_in_progress_items),
+        "active_project_high_priority_item_count": len(active_project_high_priority_items),
+        "active_project_urgent_item_count": len(active_project_urgent_items),
+        "active_project_unassigned_item_count": len(active_project_unassigned_items),
         "active_project_counts_by_status": _count_by(active_project_queue_items, "status"),
         "warnings": list(active_project_payload.get("warnings", [])),
         "default_queue_project_id": active_project_id,
@@ -663,6 +728,7 @@ def summarize_local_project_dashboard(config: AppConfig) -> dict[str, Any]:
         "warnings": sorted(set(warnings)),
         "risks": risks,
         "recommended_next_actions": recommended_next_actions,
+        "active_project_current_items": active_project_current_items,
         "bootstrap_ready": bool(bootstrap_status.get("bootstrap_ready", False)),
         "bootstrap_missing_files": list(bootstrap_status.get("missing_files", [])),
         "bootstrap_recommended_actions": list(bootstrap_status.get("recommended_next_actions", [])),

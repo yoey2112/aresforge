@@ -241,3 +241,108 @@ def test_dashboard_recommends_selecting_active_project_when_projects_exist(tmp_p
 
     assert payload["active_project_selected"] is False
     assert any("Select an active project" in action for action in payload["recommended_next_actions"])
+
+
+def test_dashboard_active_project_current_items_and_counts(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_docs(tmp_path)
+
+    assert init_managed_project_registry(config)["ok"] is True
+    assert register_managed_project(
+        config,
+        project_id="p1",
+        name="Project One",
+        root_path=str(tmp_path),
+        status="active",
+    )["ok"] is True
+    assert register_managed_repo(
+        config,
+        project_id="p1",
+        repo_id="r1",
+        name="Repo One",
+        path=str(tmp_path),
+        status="active",
+        role="primary",
+    )["ok"] is True
+    assert register_managed_project(
+        config,
+        project_id="p2",
+        name="Project Two",
+        root_path=str(tmp_path),
+        status="active",
+    )["ok"] is True
+    assert register_managed_repo(
+        config,
+        project_id="p2",
+        repo_id="r2",
+        name="Repo Two",
+        path=str(tmp_path),
+        status="active",
+        role="primary",
+    )["ok"] is True
+    assert init_project_queue(config)["ok"] is True
+
+    assert add_queue_item(
+        config,
+        item_id="p1-blocked-urgent",
+        project_id="p1",
+        repo_id="r1",
+        title="Blocked urgent",
+        status="blocked",
+        priority="urgent",
+        item_type="bug",
+        tags=["prod"],
+    )["ok"] is True
+    assert add_queue_item(
+        config,
+        item_id="p1-ready-high",
+        project_id="p1",
+        repo_id="r1",
+        title="Ready high",
+        status="ready",
+        priority="high",
+        item_type="feature",
+        assigned_agent="agent-a",
+    )["ok"] is True
+    assert add_queue_item(
+        config,
+        item_id="p1-progress-normal",
+        project_id="p1",
+        repo_id="r1",
+        title="In progress",
+        status="in_progress",
+        priority="normal",
+        item_type="task",
+    )["ok"] is True
+    assert add_queue_item(
+        config,
+        item_id="p2-ready-other",
+        project_id="p2",
+        repo_id="r2",
+        title="Other project ready",
+        status="ready",
+        priority="high",
+        item_type="task",
+    )["ok"] is True
+
+    assert set_active_project(config, project_id="p1")["ok"] is True
+    payload = summarize_local_project_dashboard(config)
+
+    summary = payload["active_project_summary"]
+    assert summary["active_project_queue_item_count"] == 3
+    assert summary["active_project_ready_item_count"] == 1
+    assert summary["active_project_blocked_item_count"] == 1
+    assert summary["active_project_in_progress_item_count"] == 1
+    assert summary["active_project_high_priority_item_count"] == 1
+    assert summary["active_project_urgent_item_count"] == 1
+    assert summary["active_project_unassigned_item_count"] == 2
+
+    current_items = payload["active_project_current_items"]
+    assert current_items
+    assert all(item["repo_id"] == "r1" for item in current_items)
+    assert {item["item_id"] for item in current_items} == {
+        "p1-blocked-urgent",
+        "p1-ready-high",
+        "p1-progress-normal",
+    }
+    assert current_items[0]["item_id"] == "p1-blocked-urgent"

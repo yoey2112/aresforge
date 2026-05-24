@@ -1036,3 +1036,19 @@ def test_m44_active_project_intake_static_contract() -> None:
     assert "active-project-intake" in app_text
     assert 'intakeType === "direction" ? "task" : intakeType' in app_text
     assert 'fetchJson("/api/queue"' in app_text
+
+
+def test_m45_active_project_workbench_static_contract() -> None:
+    index_text = (_static_dir() / "index.html").read_text(encoding="utf-8")
+    app_text = (_static_dir() / "app.js").read_text(encoding="utf-8")
+
+    assert "Active Project Workbench" in index_text
+    assert "Current Active Work" in index_text
+    assert "Workbench Actions" in index_text
+    assert "Add Active Project Intake" in index_text
+
+    assert "renderActiveProjectWorkbench" in app_text
+    assert "home-quick-intake" in app_text
+    assert 'activateSection("queue")' in app_text
+    assert 'byId("intake-title")' in app_text
+    assert ".focus()" in app_text
