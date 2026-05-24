@@ -161,6 +161,7 @@ from aresforge.operator.local_agent_profiles import (
     register_handoff_target,
 )
 from aresforge.operator.local_agent_orchestration import generate_agent_orchestration_plan
+from aresforge.operator.local_llm_escalation import generate_llm_escalation_plan
 from aresforge.operator.milestone_reconciliation_planner import plan_milestone_final_reconciliation
 from aresforge.operator.preflight_snapshot import (
     diff_preflight_snapshots,
@@ -1106,6 +1107,29 @@ def build_parser() -> argparse.ArgumentParser:
         help="Output format for file writes or stdout rendering.",
     )
     plan_agent_orchestration_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite existing output file.",
+    )
+    plan_llm_escalation_parser = subparsers.add_parser(
+        "plan-llm-escalation",
+        help="Generate a local-only, plan-only LLM escalation plan from queue/profiles/orchestration context.",
+    )
+    plan_llm_escalation_parser.add_argument("--item-id")
+    plan_llm_escalation_parser.add_argument("--project-id")
+    plan_llm_escalation_parser.add_argument("--repo-id")
+    plan_llm_escalation_parser.add_argument("--status", choices=list(QUEUE_STATUSES))
+    plan_llm_escalation_parser.add_argument("--queue-path")
+    plan_llm_escalation_parser.add_argument("--profiles-path")
+    plan_llm_escalation_parser.add_argument("--orchestration-plan")
+    plan_llm_escalation_parser.add_argument("--output")
+    plan_llm_escalation_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="json",
+        help="Output format for file writes or stdout rendering.",
+    )
+    plan_llm_escalation_parser.add_argument(
         "--force",
         action="store_true",
         help="Overwrite existing output file.",
@@ -2445,6 +2469,26 @@ def main(argv: list[str] | None = None) -> int:
             queue_path=args.queue_path,
             profiles_path=args.profiles_path,
             registry_path=args.registry_path,
+            output=args.output,
+            output_format=args.format,
+            force=bool(args.force),
+        )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "plan-llm-escalation":
+        payload = generate_llm_escalation_plan(
+            config,
+            item_id=args.item_id,
+            project_id=args.project_id,
+            repo_id=args.repo_id,
+            status=args.status,
+            queue_path=args.queue_path,
+            profiles_path=args.profiles_path,
+            orchestration_plan=args.orchestration_plan,
             output=args.output,
             output_format=args.format,
             force=bool(args.force),

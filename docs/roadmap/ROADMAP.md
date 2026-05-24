@@ -2,6 +2,33 @@
 
 ## Current Milestones
 
+### M36 - Cloud LLM Escalation Planner
+
+Status: Completed (local-only, plan-only advisory classification).
+
+Delivered M36 outcomes:
+
+- `plan-llm-escalation` local command for queue/profile/orchestration-based escalation planning
+- classification buckets for local LLM, Codex, cloud advisory, human-required, and blocked/clarification
+- recommended handoff target generation from local agent profiles and handoff target metadata
+- copy/paste prompt guidance with explicit local-only and external-call boundaries
+- escalation artifact linkage in M26 handoff package generation (`artifacts/escalation/`)
+- operator/context/architecture documentation updates for advisory-only escalation posture
+
+M36 safety posture:
+
+- local-only planning surface
+- plan-only classification output
+- cloud escalation is advisory only
+- no LLM invocation
+- no local LLM calls
+- no cloud LLM calls
+- no Codex execution
+- no ChatGPT calls
+- no `gh` calls
+- no GitHub API calls
+- no network access
+
 ### M0-M20
 
 Status: Completed.

@@ -13,6 +13,7 @@ from aresforge.operator.managed_project_registry_local import managed_project_re
 from aresforge.operator.local_project_queue import project_queue_summary_for_handoff
 from aresforge.operator.local_project_state import project_state_summary_for_handoff
 from aresforge.operator.local_agent_orchestration import DEFAULT_OUTPUT_DIR
+from aresforge.operator.local_llm_escalation import DEFAULT_OUTPUT_DIR as ESCALATION_OUTPUT_DIR
 
 COMMAND_NAME = "generate-handoff-package"
 ALLOWED_GIT_COMMANDS: tuple[tuple[str, ...], ...] = (
@@ -269,8 +270,12 @@ def _build_payload(
     latest_doc_reconciliation_plan = _latest_doc_reconciliation_plan(repo_root)
     latest_github_sync_plan = _latest_github_sync_plan(repo_root)
     latest_orchestration_plan = _latest_orchestration_plan(repo_root)
+    latest_escalation_plan = _latest_escalation_plan(repo_root)
     orchestration_capability_note = (
         "M35 local multi-agent orchestration planning is available via python -m aresforge plan-agent-orchestration."
+    )
+    escalation_capability_note = (
+        "M36 local LLM escalation planning is available via python -m aresforge plan-llm-escalation."
     )
     project_state_warnings: list[str] = []
     if project_state_summary is None:
@@ -321,7 +326,9 @@ def _build_payload(
         "latest_doc_reconciliation_plan": latest_doc_reconciliation_plan,
         "latest_github_sync_plan": latest_github_sync_plan,
         "latest_orchestration_plan": latest_orchestration_plan,
+        "latest_escalation_plan": latest_escalation_plan,
         "orchestration_capability_note": orchestration_capability_note,
+        "escalation_capability_note": escalation_capability_note,
         "warnings": sorted(
             set(warnings + list(git_state.get("warnings", [])) + project_state_warnings)
         ),
@@ -469,6 +476,17 @@ def _render_markdown(payload: dict[str, Any]) -> str:
         if capability:
             lines.append(f"- capability: {capability}")
 
+    lines.extend(["", "## Latest Escalation Plan"])
+    latest_escalation_plan = payload.get("latest_escalation_plan")
+    if isinstance(latest_escalation_plan, dict):
+        lines.append(f"- path: {latest_escalation_plan.get('path')}")
+        lines.append(f"- modified_at: {latest_escalation_plan.get('modified_at')}")
+    else:
+        lines.append("- No local escalation plan detected under artifacts/escalation/.")
+        capability = str(payload.get("escalation_capability_note", "")).strip()
+        if capability:
+            lines.append(f"- capability: {capability}")
+
     lines.extend(["", "## Codex Continuation Prompt", "```text", payload.get("codex_continuation_prompt", ""), "```"])
 
     warnings = payload.get("warnings", [])
@@ -552,6 +570,24 @@ def _latest_orchestration_plan(repo_root: Path) -> dict[str, str] | None:
     candidates = [
         candidate
         for candidate in orchestration_root.rglob("*")
+        if candidate.is_file() and candidate.suffix.lower() in {".json", ".md"}
+    ]
+    if not candidates:
+        return None
+    latest = max(candidates, key=lambda path: path.stat().st_mtime)
+    return {
+        "path": str(latest),
+        "modified_at": datetime.fromtimestamp(latest.stat().st_mtime, tz=UTC).isoformat(),
+    }
+
+
+def _latest_escalation_plan(repo_root: Path) -> dict[str, str] | None:
+    escalation_root = repo_root / ESCALATION_OUTPUT_DIR
+    if not escalation_root.exists():
+        return None
+    candidates = [
+        candidate
+        for candidate in escalation_root.rglob("*")
         if candidate.is_file() and candidate.suffix.lower() in {".json", ".md"}
     ]
     if not candidates:

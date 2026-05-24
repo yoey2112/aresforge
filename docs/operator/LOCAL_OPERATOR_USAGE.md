@@ -13,6 +13,8 @@ Foundation status:
 - M30 added local self-managed milestone lifecycle support.
 - M32 added local managed-project registry support for multi-project/multi-repo tracking.
 - M33 added local project queue/work tracking for local issue-free planning across projects/repos.
+- M35 added local multi-agent orchestration planning.
+- M36 added local escalation planning for local LLM/Codex/cloud-advisory/human/blocked paths.
 - No new functionality in this foundation batch calls GitHub APIs.
 - No new functionality in this foundation batch calls LLM APIs.
 - The system is ready to move into multi-project and multi-agent project-management capabilities.
@@ -263,6 +265,48 @@ M26/M32/M33/M34 linkage:
 - M32 registry can be used for project/repo linkage checks during orchestration planning.
 - M33 queue `assigned_agent`, `dependencies`, and `blocked_by` fields are used directly by M35 planning logic.
 - M34 profiles and handoff target references are used for assignment recommendations and handoff prompt generation.
+
+## M36 Local Escalation Planner
+
+Purpose:
+
+- Produce local-only, plan-only escalation guidance for queue work.
+- Classify items into `local_llm_suitable`, `codex_suitable`, `cloud_llm_recommended`, `human_required`, or `blocked_or_needs_clarification`.
+- Recommend handoff targets and copy/paste prompt guidance without executing any model or service.
+
+Defaults:
+
+- escalation artifact folder: `artifacts/escalation/`
+
+Command:
+
+- `python -m aresforge plan-llm-escalation [--item-id <id>] [--project-id <id>] [--repo-id <id>] [--status <status>] [--queue-path <path>] [--profiles-path <path>] [--orchestration-plan <path>] [--output <path>] [--format json|markdown] [--force]`
+
+Behavior guarantees:
+
+- local-only command surface
+- plan-only classification output
+- cloud escalation guidance is advisory only
+- no LLM invocation
+- no local LLM calls
+- no cloud LLM calls
+- no Codex execution
+- no ChatGPT calls
+- no `gh` calls
+- no GitHub API calls
+- no network access
+- default stdout format is stable JSON
+- markdown output is available for readability
+- if `--output` is omitted, plan renders to stdout
+- if `--output` is supplied, missing directories are created and overwrite is refused unless `--force`
+- missing queue/profiles/orchestration inputs produce warnings and reduced output instead of hard failure
+
+M26/M33/M34/M35 linkage:
+
+- M26 `generate-handoff-package` includes latest escalation artifact note when found under `artifacts/escalation/`, or an escalation capability note if none exist.
+- M33 queue fields (`item_id`, `project_id`, `repo_id`, `status`, `item_type`, dependencies/blockers) are classification inputs.
+- M34 profiles and handoff targets are used for recommended escalation routing.
+- M35 orchestration output can be provided to classify orchestration outcomes and queue work for local/Codex/cloud/human paths.
 
 ## M30 Self-Managed Local Milestone Lifecycle
 

@@ -2,11 +2,11 @@
 
 ## Purpose
 
-Provide minimum operating context for M35 local multi-agent orchestration planning with a local-first, self-managed operator model.
+Provide minimum operating context for M36 local escalation planning with a local-first, self-managed operator model.
 
 ## Current Operating Model
 
-- Active milestone context: M35 local multi-agent orchestration planner.
+- Active milestone context: M36 cloud/local/Codex/human escalation planner.
 - AresForge now has a local-first foundation for self-managed operation.
 - GitHub is optional/syncable and not mandatory for local planning.
 - M26 added local handoff package generation.
@@ -18,6 +18,7 @@ Provide minimum operating context for M35 local multi-agent orchestration planni
 - M33 added local project queue/work tracking support.
 - M34 added local agent profiles and handoff target descriptors.
 - M35 added local multi-agent orchestration planning (assignment + sequencing + handoff prompts).
+- M36 added local escalation planning that classifies queue/orchestration work for local LLM, Codex, cloud advisory, human-required, and blocked/clarification paths.
 - Foundation-batch boundaries (M26-M30):
   - no `gh`
   - no GitHub API calls
@@ -54,6 +55,7 @@ Provide minimum operating context for M35 local multi-agent orchestration planni
   - `python -m aresforge inspect-agent-profile --agent-id <id> [--profiles-path <path>] [--format json|markdown]`
   - `python -m aresforge inspect-handoff-target --target-id <id> [--profiles-path <path>] [--format json|markdown]`
   - `python -m aresforge plan-agent-orchestration [--project-id <id>] [--repo-id <id>] [--status <status>] [--queue-path <path>] [--profiles-path <path>] [--registry-path <path>] [--output <path>] [--format json|markdown] [--force]`
+  - `python -m aresforge plan-llm-escalation [--item-id <id>] [--project-id <id>] [--repo-id <id>] [--status <status>] [--queue-path <path>] [--profiles-path <path>] [--orchestration-plan <path>] [--output <path>] [--format json|markdown] [--force]`
 - M33 boundary confirmations:
   - queue is local-only and can track work without GitHub issues
   - no `gh`
@@ -78,6 +80,17 @@ Provide minimum operating context for M35 local multi-agent orchestration planni
   - no cloud LLM invocation
   - no `gh`, no GitHub API calls, no network access
   - reads M32 registry, M33 queue, and M34 profiles where available
+- M36 boundary confirmations:
+  - local-only escalation planning
+  - plan-only classification output only (no execution)
+  - cloud escalation is advisory only
+  - no LLM invocation
+  - no local LLM calls
+  - no cloud LLM calls
+  - no Codex execution
+  - no ChatGPT calls
+  - no `gh`, no GitHub API calls, no network access
+  - reads M33 queue and M34 profiles where available and optional M35 orchestration artifact input when supplied
 - Next-phase planning focus:
   - local LLM agent handoff profiles
   - multi-agent orchestration planning

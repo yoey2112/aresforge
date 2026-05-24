@@ -2,11 +2,46 @@
 
 ## Current Phase
 
-M35 local multi-agent orchestration planner.
+M36 cloud/local/Codex/human escalation planner (local-only, plan-only).
 
 ## Current Goal
 
-Implement and document local-only, plan-only multi-agent orchestration planning that connects M32 registry data, M33 queue work items, and M34 agent profiles.
+Implement and document local-only, plan-only escalation planning that classifies queue work into local LLM, Codex, cloud-advisory, human-required, and blocked/needs-clarification paths.
+
+## M36 Cloud LLM Escalation Planner
+
+- Added local escalation planner command:
+  - `python -m aresforge plan-llm-escalation [--item-id <id>] [--project-id <id>] [--repo-id <id>] [--status <status>] [--queue-path <path>] [--profiles-path <path>] [--orchestration-plan <path>] [--output <path>] [--format json|markdown] [--force]`
+- Added local escalation planner module:
+  - `src/aresforge/operator/local_llm_escalation.py`
+- Default escalation artifact folder:
+  - `artifacts/escalation/`
+- Planner reads local inputs where available:
+  - M33 queue file (`.aresforge/queue/work_items.json` by default)
+  - M34 profiles file (`.aresforge/agents/agents.json` by default)
+  - optional M35 orchestration plan file when supplied via `--orchestration-plan`
+- Missing files are warning-only and produce reduced output rather than hard failure.
+- Plan output includes:
+  - selected work items and available agents
+  - per-item classification and reasons
+  - category buckets: `local_llm_suitable`, `codex_suitable`, `cloud_llm_recommended`, `human_required`, `blocked_or_needs_clarification`
+  - recommended handoff targets and copy/paste prompt guidance
+  - risk warnings, next actions, and explicit boundary confirmations
+- M26 handoff linkage:
+  - handoff package includes latest escalation artifact when found under `artifacts/escalation/`
+  - otherwise includes an escalation capability note
+- M36 safety posture:
+  - local-only escalation planning
+  - plan-only
+  - cloud escalation is advisory only
+  - no LLM invocation
+  - no local LLM calls
+  - no cloud LLM calls
+  - no Codex execution
+  - no ChatGPT calls
+  - no GitHub calls
+  - no `gh` calls
+  - no network calls
 
 ## M35 Multi-Agent Orchestration Planner
 

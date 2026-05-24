@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Describe the implemented human-triggered operator surface through M35 local multi-agent orchestration planning.
+Describe the implemented human-triggered operator surface through M36 local escalation planning.
 
 ## Operator Shape
 
@@ -104,6 +104,37 @@ Command entrypoint:
   - no `gh`
   - no GitHub API calls
   - no network access
+
+## M36 Local Escalation Planner
+
+- Added local escalation planner module under `src/aresforge/operator/local_llm_escalation.py`.
+- Added command:
+  - `python -m aresforge plan-llm-escalation [--item-id <id>] [--project-id <id>] [--repo-id <id>] [--status <status>] [--queue-path <path>] [--profiles-path <path>] [--orchestration-plan <path>] [--output <path>] [--format json|markdown] [--force]`
+- Planner links:
+  - M33 queue work items
+  - M34 agent profiles and handoff targets
+  - optional M35 orchestration plan artifact when supplied
+- Planner output includes:
+  - per-item escalation classifications and reasons
+  - classification buckets for local LLM, Codex, cloud advisory, human-required, and blocked/clarification
+  - recommended handoff targets
+  - copy/paste prompt guidance
+  - risk warnings and next actions
+- Output behavior:
+  - default stdout format: JSON (stable/testable)
+  - optional markdown format
+  - optional file output with directory creation and overwrite protection (`--force`)
+- Local-only boundary:
+  - plan-only classification
+  - no LLM invocation
+  - no local LLM calls
+  - no cloud LLM calls
+  - no Codex execution
+  - no ChatGPT calls
+  - no `gh`
+  - no GitHub API calls
+  - no network access
+  - cloud escalation guidance is advisory only
 
 ## Current Additions (M25 Included)
 
