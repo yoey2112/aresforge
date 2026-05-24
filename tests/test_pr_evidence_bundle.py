@@ -68,6 +68,8 @@ def test_generate_pr_evidence_bundle_dry_run(monkeypatch, tmp_path: Path) -> Non
     assert "### Notes/warnings" in payload["pr_body_text"]
     assert "### Canonical Marker" in payload["pr_body_text"]
     assert payload["canonical_marker"]["marker_type"] == "pr_evidence"
+    assert payload["canonical_marker_completeness"]["state"] == "incomplete"
+    assert payload["canonical_marker_completeness"]["marker_complete"] is False
     assert "gh pr edit 376 --body-file artifacts/pr-376-body.md" in payload["targeted_pr_update_guidance"][1]
 
 
@@ -109,3 +111,54 @@ def test_generate_pr_evidence_bundle_pr_lookup_failure(monkeypatch, tmp_path: Pa
 
     assert payload["ok"] is False
     assert payload["error"] == "pr_lookup_failed"
+
+
+def test_generate_pr_evidence_bundle_reports_complete_marker_state(monkeypatch, tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    monkeypatch.setattr(
+        pr_evidence_bundle,
+        "fetch_issue_details",
+        lambda _config, issue_number: {
+            "ok": True,
+            "issue": {
+                "number": issue_number,
+                "state": "OPEN",
+                "title": "M25 child",
+                "url": f"https://github.com/yoey2112/aresforge/issues/{issue_number}",
+            },
+        },
+    )
+    monkeypatch.setattr(
+        pr_evidence_bundle,
+        "_fetch_pr_details",
+        lambda _config, pr_number: {
+            "ok": True,
+            "pr": {
+                "number": pr_number,
+                "title": "M25 work",
+                "url": f"https://github.com/yoey2112/aresforge/pull/{pr_number}",
+                "head_branch": "m25/424-pr-bundle-marker-emission",
+                "merge_commit": "abc123",
+                "files_changed": ["src/aresforge/operator/pr_evidence_bundle.py"],
+            },
+        },
+    )
+    monkeypatch.setattr(
+        "aresforge.operator.pr_evidence_marker_template.generate_pr_evidence_marker_template",
+        lambda _config, issue_number, pr_number: {
+            "canonical_marker_text": "[ARESFORGE_CANONICAL_EVIDENCE_MARKER]\nmarker_state: ready\n[/ARESFORGE_CANONICAL_EVIDENCE_MARKER]\n",
+            "canonical_marker": {
+                "marker_type": "pr_evidence",
+                "marker_state": "ready",
+                "missing_required_fields": (),
+                "invalid_reasons": (),
+            },
+        },
+    )
+
+    payload = pr_evidence_bundle.generate_pr_evidence_bundle(config, issue_number=424, pr_number=433)
+    completeness = payload["canonical_marker_completeness"]
+    assert completeness["state"] == "ready"
+    assert completeness["missing_required_fields"] == []
+    assert completeness["marker_complete"] is True
+    assert completeness["post_hoc_marker_repair_required"] is False
