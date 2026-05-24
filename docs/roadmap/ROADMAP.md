@@ -326,3 +326,24 @@ M27 milestone value:
 - Establishes a broader local project state foundation beyond closeout-specific offline files.
 - Removes GitHub as the only practical source for local progress/state tracking.
 - Prepares future multi-project queue/orchestration/documentation/sync workflows for local-first continuity.
+
+### M28 - Documentation Agent Foundation
+
+Status: Implemented.
+
+Delivered M28 outcomes:
+
+- `plan-doc-reconciliation` local-only planning command added.
+- Deterministic reconciliation output in markdown or stable JSON.
+- Source-of-truth documentation inspection plus local project-state alignment checks.
+- Optional local git-state inspection via approved command subset only.
+- Overwrite-safe output writing with directory creation and explicit `--force`.
+- M26 handoff package now references latest local doc reconciliation plan when available.
+- Test coverage for missing docs detection, recommendation generation, CLI output modes, and overwrite protection.
+
+M28 safety posture:
+
+- plan-only output; no automatic documentation edits
+- local-only; no `gh` and no GitHub APIs
+- no LLM calls
+- no network dependency

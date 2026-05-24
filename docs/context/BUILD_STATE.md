@@ -2,11 +2,32 @@
 
 ## Current Phase
 
-M27 local project state ledger implementation and documentation.
+M28 documentation agent foundation implementation and documentation reconciliation planning.
 
 ## Current Goal
 
-Establish a persistent local project-state ledger foundation so project progress tracking can continue without GitHub as the only state source.
+Establish a plan-only, local-only documentation reconciliation foundation that inspects source-of-truth docs and local state to recommend doc updates without automatic editing.
+
+## M28 Documentation Agent Foundation
+
+- New local-only plan command:
+  - `python -m aresforge plan-doc-reconciliation [--output <path>] [--format json|markdown] [--include-git-state] [--force]`
+- Planner inspects only local sources:
+  - source-of-truth docs under `docs/context`, `docs/roadmap`, `docs/architecture`, `docs/operator`
+  - local project state at `.aresforge/state/project_state.json` when present
+  - local git state only when `--include-git-state` is supplied, using approved command subset
+- Planner output fields include:
+  - generated timestamp, docs inspected, missing docs, milestone and command references
+  - stale/missing sections, recommended updates, alignment notes, risks, and next actions
+- Strict M28 boundary:
+  - plan-only (no doc edits)
+  - local-only
+  - no `gh`
+  - no GitHub API calls
+  - no LLM calls
+  - no network dependency
+- M26 handoff package generation now includes latest local doc reconciliation plan reference when detected under `artifacts/doc-reconciliation/`.
+- M27 project-state documentation status can be used to track documentation reconciliation progress.
 
 ## M27 Local Project State Ledger
 

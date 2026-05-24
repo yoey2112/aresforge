@@ -128,3 +128,20 @@ def test_generate_handoff_package_warns_when_project_state_missing(monkeypatch, 
     payload = generate_handoff_package(_config(tmp_path), output_format="json")
     assert payload["ok"] is True
     assert any("Local project state ledger not found" in warning for warning in payload["payload"]["warnings"])
+
+
+def test_generate_handoff_package_includes_latest_doc_reconciliation_plan(monkeypatch, tmp_path: Path) -> None:
+    _write_source_docs(tmp_path)
+    plan_path = tmp_path / "artifacts" / "doc-reconciliation" / "latest.md"
+    plan_path.parent.mkdir(parents=True, exist_ok=True)
+    plan_path.write_text("# plan\n", encoding="utf-8")
+    monkeypatch.setattr(
+        subprocess,
+        "run",
+        lambda command, **_kwargs: subprocess.CompletedProcess(command, 0, stdout="x\n", stderr=""),
+    )
+    payload = generate_handoff_package(_config(tmp_path), output_format="json")
+    assert payload["ok"] is True
+    latest = payload["payload"]["latest_doc_reconciliation_plan"]
+    assert isinstance(latest, dict)
+    assert latest["path"].endswith("artifacts\\doc-reconciliation\\latest.md")

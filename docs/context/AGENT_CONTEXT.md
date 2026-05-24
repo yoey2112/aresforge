@@ -17,6 +17,9 @@ Provide minimum operating context for safe M25 automatic canonical marker emissi
 - M26 local handoff package generation is available for local continuity between human sessions, Codex sessions, and local LLM agents.
 - Handoff generation is local-only and must not call GitHub APIs, `gh`, or network-dependent services.
 - M27 local project state ledger is now available for persistent local project tracking without GitHub as the only state source.
+- M28 documentation reconciliation agent foundation is now available as a plan-only local command surface.
+- M28 documentation reconciliation is advisory only and does not edit documentation files automatically.
+- M28 documentation reconciliation must not call LLMs, `gh`, GitHub APIs, or external network services.
 - Ledger defaults:
   - `.aresforge/state/project_state.json`
   - `.aresforge/state/operation_log.jsonl`
@@ -26,6 +29,8 @@ Provide minimum operating context for safe M25 automatic canonical marker emissi
   - `python -m aresforge update-project-state`
   - `python -m aresforge append-operation-log`
   - `python -m aresforge inspect-operation-log`
+- M28 command surface:
+  - `python -m aresforge plan-doc-reconciliation [--output <path>] [--format json|markdown] [--include-git-state] [--force]`
 
 ## Canonical Documents
 

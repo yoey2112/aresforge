@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Describe the implemented human-triggered operator surface through M27 local project state ledger support.
+Describe the implemented human-triggered operator surface through M28 local documentation reconciliation planning support.
 
 ## Operator Shape
 
@@ -52,6 +52,7 @@ Command entrypoint:
 - `update-project-state`
 - `append-operation-log`
 - `inspect-operation-log`
+- `plan-doc-reconciliation`
 - offline/local state-file mode supported for milestone/parent readiness and parent evidence generation commands via `--state-file <path>`
 - canonical marker completeness payloads in:
   - child closeout evidence bundle generation
@@ -100,6 +101,21 @@ Offline state-file command surface:
   - `python -m aresforge append-operation-log [--state-path <path>] --event-type <type> --summary <summary> [--details <json>]`
   - `python -m aresforge inspect-operation-log [--state-path <path>] [--limit <n>]`
 - Local-only boundary: no `gh`, no GitHub API calls, no network dependency.
+
+## M28 Documentation Reconciliation Surface
+
+- Command: `python -m aresforge plan-doc-reconciliation [--output <path>] [--format json|markdown] [--include-git-state] [--force]`
+- Planner scope:
+  - source-of-truth docs in `docs/context`, `docs/roadmap`, `docs/architecture`, and `docs/operator`
+  - local project state at `.aresforge/state/project_state.json` when present
+  - optional local git state via approved command set only
+- Output:
+  - stable JSON for tests/automation
+  - human-readable markdown for operator review
+- Boundary:
+  - plan-only (no automatic doc editing)
+  - local-only
+  - no `gh`, no GitHub APIs, no LLM calls, no external network use
 
 ## M25 Capability Contract Alignment
 

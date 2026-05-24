@@ -112,6 +112,7 @@ from aresforge.operator.milestone_closeout_preflight import inspect_milestone_cl
 from aresforge.operator.closeout_readiness_by_construction import check_closeout_readiness_by_construction
 from aresforge.operator.offline_state_template import generate_offline_closeout_state_template
 from aresforge.operator.local_handoff_package import generate_handoff_package
+from aresforge.operator.local_doc_reconciliation import generate_doc_reconciliation_plan
 from aresforge.operator.local_project_state import (
     append_operation_log,
     init_project_state,
@@ -672,6 +673,27 @@ def build_parser() -> argparse.ArgumentParser:
         help="Include short excerpts from source-of-truth docs.",
     )
     handoff_package_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite existing output file.",
+    )
+    doc_reconciliation_parser = subparsers.add_parser(
+        "plan-doc-reconciliation",
+        help="Generate a local-only, plan-only documentation reconciliation plan.",
+    )
+    doc_reconciliation_parser.add_argument("--output")
+    doc_reconciliation_parser.add_argument(
+        "--format",
+        choices=["markdown", "json"],
+        default="markdown",
+        help="Output format for file writes or stdout rendering.",
+    )
+    doc_reconciliation_parser.add_argument(
+        "--include-git-state",
+        action="store_true",
+        help="Collect local git state using the approved command subset.",
+    )
+    doc_reconciliation_parser.add_argument(
         "--force",
         action="store_true",
         help="Overwrite existing output file.",
@@ -1614,6 +1636,20 @@ def main(argv: list[str] | None = None) -> int:
             output=args.output,
             output_format=args.format,
             include_doc_excerpts=bool(args.include_doc_excerpts),
+            force=bool(args.force),
+        )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "plan-doc-reconciliation":
+        payload = generate_doc_reconciliation_plan(
+            config,
+            output=args.output,
+            output_format=args.format,
+            include_git_state=bool(args.include_git_state),
             force=bool(args.force),
         )
         if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):

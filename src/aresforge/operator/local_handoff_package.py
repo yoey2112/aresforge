@@ -259,6 +259,7 @@ def _build_payload(
         "Before deciding the next task, present options and wait for selection.",
     ]
     project_state_summary = project_state_summary_for_handoff(config)
+    latest_doc_reconciliation_plan = _latest_doc_reconciliation_plan(repo_root)
     project_state_warnings: list[str] = []
     if project_state_summary is None:
         project_state_warnings.append(
@@ -285,6 +286,7 @@ def _build_payload(
         "codex_continuation_prompt": "\n".join(prompt_lines),
         "source_docs": [doc.path for doc in docs],
         "project_state_summary": project_state_summary,
+        "latest_doc_reconciliation_plan": latest_doc_reconciliation_plan,
         "warnings": sorted(
             set(warnings + list(git_state.get("warnings", [])) + project_state_warnings)
         ),
@@ -360,6 +362,14 @@ def _render_markdown(payload: dict[str, Any]) -> str:
     lines.extend(["", "## Recommended Next Options"])
     lines.extend(f"- {item}" for item in payload.get("recommended_next_options", []))
 
+    lines.extend(["", "## Latest Doc Reconciliation Plan"])
+    latest_plan = payload.get("latest_doc_reconciliation_plan")
+    if isinstance(latest_plan, dict):
+        lines.append(f"- path: {latest_plan.get('path')}")
+        lines.append(f"- modified_at: {latest_plan.get('modified_at')}")
+    else:
+        lines.append("- No local doc reconciliation plan detected under artifacts/doc-reconciliation/.")
+
     lines.extend(["", "## Codex Continuation Prompt", "```text", payload.get("codex_continuation_prompt", ""), "```"])
 
     warnings = payload.get("warnings", [])
@@ -398,6 +408,24 @@ def _extract_items_after_label(text: str, label: str) -> list[str]:
         if stripped == "" and items:
             break
     return items
+
+
+def _latest_doc_reconciliation_plan(repo_root: Path) -> dict[str, str] | None:
+    reconciliation_root = repo_root / "artifacts" / "doc-reconciliation"
+    if not reconciliation_root.exists():
+        return None
+    candidates = [
+        candidate
+        for candidate in reconciliation_root.rglob("*")
+        if candidate.is_file() and candidate.suffix.lower() in {".json", ".md"}
+    ]
+    if not candidates:
+        return None
+    latest = max(candidates, key=lambda path: path.stat().st_mtime)
+    return {
+        "path": str(latest),
+        "modified_at": datetime.fromtimestamp(latest.stat().st_mtime, tz=UTC).isoformat(),
+    }
 
 
 def _error(error: str, details: dict[str, Any], payload: dict[str, Any] | None = None) -> dict[str, Any]:

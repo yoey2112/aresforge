@@ -1,5 +1,41 @@
 # Local Operator Usage
 
+## M28 Documentation Reconciliation Planner
+
+When to run:
+
+- Run after milestone implementation or doc-heavy changes to detect stale source-of-truth sections.
+- Run before session handoff to produce a local documentation update plan for the next operator.
+- Run after updating `.aresforge/state/project_state.json` documentation fields to verify source-of-truth alignment.
+
+Command:
+
+- `python -m aresforge plan-doc-reconciliation [--output <path>] [--format json|markdown] [--include-git-state] [--force]`
+
+Stdout behavior when `--output` is omitted:
+
+- default: markdown to stdout
+- `--format json`: stable JSON to stdout
+
+Safety and boundary:
+
+- plan-only (no automatic doc edits)
+- local-only command surface
+- does not call `gh`
+- does not call GitHub APIs
+- does not call LLMs
+- does not require network access
+- local git state collection only when `--include-git-state` is set, and limited to:
+  - `git branch --show-current`
+  - `git rev-parse HEAD`
+  - `git status --short`
+  - `git log -n 10 --oneline`
+
+M26/M27 continuity integration:
+
+- M26 `generate-handoff-package` now includes latest local documentation reconciliation plan reference when present in `artifacts/doc-reconciliation/`.
+- M27 local project state ledger `documentation_status` should be used to track documentation progress between planning runs.
+
 ## M26 Local Handoff Package Generator
 
 When to run:
