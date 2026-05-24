@@ -2,11 +2,37 @@
 
 ## Current Phase
 
-M33 local project queue and work tracking.
+M34 local LLM agent profiles and handoff targets.
 
 ## Current Goal
 
-Implement and document a local-only project queue so AresForge can track work items across managed projects and repos without GitHub issues.
+Implement and document local-only agent profiles and handoff targets so AresForge can describe who should handle work items and where work handoffs should be routed.
+
+## M34 Local LLM Agent Profiles And Handoff Targets
+
+- Added local agent profile defaults under `.aresforge/agents/agents.json`.
+- Agent profiles schema stores `schema_version`, `updated_at`, `agents`, and `handoff_targets`.
+- Agent profile records support role, execution mode, strengths/constraints, allowed item types, escalation metadata, status, tags, notes, and timestamps.
+- Handoff target records support descriptive target type metadata, local command placeholder fields, input/output formats, safety notes, status, tags, notes, and timestamps.
+- New local-only command surface:
+  - `python -m aresforge init-agent-profiles [--path <path>] [--force] [--with-defaults]`
+  - `python -m aresforge register-agent-profile --agent-id <id> --name <name> --role <role> [--profiles-path <path>] [--description <text>] [--execution-mode <mode>] [--model-preference <value>] [--strength <text>]... [--constraint <text>]... [--allowed-type <type>]... [--escalation-allowed true|false] [--handoff-target-id <id>] [--status <status>] [--tag <tag>]... [--notes <text>]`
+  - `python -m aresforge register-handoff-target --target-id <id> --name <name> --target-type <type> [--profiles-path <path>] [--description <text>] [--local-command <command>] [--input-format <format>] [--output-format <format>] [--safety-note <text>]... [--status <status>] [--tag <tag>]... [--notes <text>]`
+  - `python -m aresforge inspect-agent-profiles [--profiles-path <path>] [--role <role>] [--execution-mode <mode>] [--status <status>] [--format json|markdown]`
+  - `python -m aresforge inspect-agent-profile --agent-id <id> [--profiles-path <path>] [--format json|markdown]`
+  - `python -m aresforge inspect-handoff-target --target-id <id> [--profiles-path <path>] [--format json|markdown]`
+- `init-agent-profiles --with-defaults` seeds generic local-first defaults for architect, implementer, tester, documentation, reviewer, operator, local-llm-general, and cloud-escalation profiles.
+- Agent profile registration is idempotent by `agent_id`; handoff target registration is idempotent by `target_id`.
+- Agent registration allows unresolved `handoff_target_id` values and returns warning-only guidance for future linkage.
+- M26 handoff generation now includes local agent profile summary when profiles exist.
+- M34 safety posture:
+  - local-only configuration and planning surface
+  - no `gh`
+  - no GitHub API calls
+  - no network access
+  - no local LLM invocation
+  - no cloud LLM invocation
+  - no agent execution/orchestration in this milestone
 
 ## M33 Local Project Queue And Work Tracking
 
@@ -25,6 +51,7 @@ Implement and document a local-only project queue so AresForge can track work it
   - queue remains local-only and does not call GitHub APIs, `gh`, network services, or LLM services
 - M26 handoff generation now includes local project queue summary when queue exists.
 - `assigned_agent` is stored for future orchestration and does not execute agents in M33.
+- `assigned_agent` can now reference an M34 `agent_id` from local agent profiles.
 
 ## M32 Multi-Project / Multi-Repo Local Registry
 

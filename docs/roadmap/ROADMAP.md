@@ -464,11 +464,37 @@ M33 safety posture:
 - no LLM calls
 - `assigned_agent` persisted as metadata only; no agent orchestration execution introduced in this milestone
 
+### M34 - Local LLM Agent Profiles And Handoff Targets
+
+Status: Implemented.
+
+Delivered M34 outcomes:
+
+- Added local agent profile defaults under `.aresforge/agents/agents.json` with schema fields `schema_version`, `updated_at`, `agents`, and `handoff_targets`.
+- Implemented local-only profile and target lifecycle commands for initialization, idempotent registration/update, and profile/target inspection.
+- Added validation gates for supported agent roles, execution modes, handoff target types, and statuses.
+- Added safe boolean parsing for `--escalation-allowed true|false`.
+- Added warning-only behavior when agent `handoff_target_id` references a target not yet registered.
+- Added optional default profile seeding for architect, implementer, tester, documentation, reviewer, operator, local-llm-general, and cloud-escalation.
+- Integrated agent profile summary into M26 local handoff package when profiles exist.
+- Clarified M33 linkage so `assigned_agent` can reference M34 `agent_id` without introducing orchestration execution.
+- Added unit and CLI coverage for initialization, overwrite protection, idempotency, validation failures, filtering, markdown/json output, and handoff summary integration.
+
+M34 safety posture:
+
+- local-only command surface
+- no `gh`
+- no GitHub API calls
+- no network access
+- no local LLM invocation
+- no cloud LLM invocation
+- handoff targets are descriptive/advisory only
+- no agent execution/orchestration introduced in this milestone
+
 ## Next Phase Roadmap (Planned)
 
 The next phase shifts from single-repo local foundation hardening to multi-project and multi-agent project-management capabilities.
 
-- Local LLM agent handoff profiles.
 - Multi-agent orchestration planning.
 - Escalation to cloud LLMs.
 - Project dashboard and local project management reporting.

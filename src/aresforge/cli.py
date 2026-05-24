@@ -148,6 +148,18 @@ from aresforge.operator.local_project_queue import (
     inspect_queue_item,
     update_queue_item,
 )
+from aresforge.operator.local_agent_profiles import (
+    AGENT_PROFILE_STATUSES,
+    AGENT_ROLES,
+    EXECUTION_MODES,
+    HANDOFF_TARGET_TYPES,
+    init_agent_profiles,
+    inspect_agent_profile,
+    inspect_agent_profiles,
+    inspect_handoff_target,
+    register_agent_profile,
+    register_handoff_target,
+)
 from aresforge.operator.milestone_reconciliation_planner import plan_milestone_final_reconciliation
 from aresforge.operator.preflight_snapshot import (
     diff_preflight_snapshots,
@@ -988,6 +1000,93 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["json", "markdown"],
         default="json",
     )
+    init_agent_profiles_parser = subparsers.add_parser(
+        "init-agent-profiles",
+        help="Initialize local agent profiles under .aresforge/agents.",
+    )
+    init_agent_profiles_parser.add_argument("--path")
+    init_agent_profiles_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite existing agent profiles file.",
+    )
+    init_agent_profiles_parser.add_argument(
+        "--with-defaults",
+        action="store_true",
+        help="Seed default local-first agent profiles and handoff targets.",
+    )
+    register_agent_profile_parser = subparsers.add_parser(
+        "register-agent-profile",
+        help="Register or update one local agent profile by agent_id.",
+    )
+    register_agent_profile_parser.add_argument("--agent-id", required=True)
+    register_agent_profile_parser.add_argument("--name", required=True)
+    register_agent_profile_parser.add_argument("--role", required=True, choices=list(AGENT_ROLES))
+    register_agent_profile_parser.add_argument("--profiles-path")
+    register_agent_profile_parser.add_argument("--description")
+    register_agent_profile_parser.add_argument("--execution-mode", choices=list(EXECUTION_MODES))
+    register_agent_profile_parser.add_argument("--model-preference")
+    register_agent_profile_parser.add_argument("--strength", action="append", default=[])
+    register_agent_profile_parser.add_argument("--constraint", action="append", default=[])
+    register_agent_profile_parser.add_argument("--allowed-type", action="append", default=[])
+    register_agent_profile_parser.add_argument("--escalation-allowed")
+    register_agent_profile_parser.add_argument("--handoff-target-id")
+    register_agent_profile_parser.add_argument("--status", choices=list(AGENT_PROFILE_STATUSES))
+    register_agent_profile_parser.add_argument("--tag", action="append", default=[])
+    register_agent_profile_parser.add_argument("--notes")
+    register_handoff_target_parser = subparsers.add_parser(
+        "register-handoff-target",
+        help="Register or update one local handoff target by target_id.",
+    )
+    register_handoff_target_parser.add_argument("--target-id", required=True)
+    register_handoff_target_parser.add_argument("--name", required=True)
+    register_handoff_target_parser.add_argument(
+        "--target-type", required=True, choices=list(HANDOFF_TARGET_TYPES)
+    )
+    register_handoff_target_parser.add_argument("--profiles-path")
+    register_handoff_target_parser.add_argument("--description")
+    register_handoff_target_parser.add_argument("--local-command")
+    register_handoff_target_parser.add_argument("--input-format")
+    register_handoff_target_parser.add_argument("--output-format")
+    register_handoff_target_parser.add_argument("--safety-note", action="append", default=[])
+    register_handoff_target_parser.add_argument("--status", choices=list(AGENT_PROFILE_STATUSES))
+    register_handoff_target_parser.add_argument("--tag", action="append", default=[])
+    register_handoff_target_parser.add_argument("--notes")
+    inspect_agent_profiles_parser = subparsers.add_parser(
+        "inspect-agent-profiles",
+        help="Inspect local agent profiles with optional filtering.",
+    )
+    inspect_agent_profiles_parser.add_argument("--profiles-path")
+    inspect_agent_profiles_parser.add_argument("--role", choices=list(AGENT_ROLES))
+    inspect_agent_profiles_parser.add_argument("--execution-mode", choices=list(EXECUTION_MODES))
+    inspect_agent_profiles_parser.add_argument("--status", choices=list(AGENT_PROFILE_STATUSES))
+    inspect_agent_profiles_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="json",
+    )
+    inspect_agent_profile_parser = subparsers.add_parser(
+        "inspect-agent-profile",
+        help="Inspect one local agent profile by agent_id.",
+    )
+    inspect_agent_profile_parser.add_argument("--agent-id", required=True)
+    inspect_agent_profile_parser.add_argument("--profiles-path")
+    inspect_agent_profile_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="json",
+    )
+    inspect_handoff_target_parser = subparsers.add_parser(
+        "inspect-handoff-target",
+        help="Inspect one local handoff target by target_id.",
+    )
+    inspect_handoff_target_parser.add_argument("--target-id", required=True)
+    inspect_handoff_target_parser.add_argument("--profiles-path")
+    inspect_handoff_target_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="json",
+    )
     preflight_snapshot_parser = subparsers.add_parser(
         "generate-preflight-baseline-snapshot",
         help="Generate read-only baseline snapshot payload for closeout preflight reconciliation audits.",
@@ -1410,6 +1509,15 @@ def parse_json_object(raw_json: str) -> dict[str, Any]:
     if not isinstance(value, dict):
         raise ValueError("details must decode to a JSON object.")
     return value
+
+
+def parse_boolean_flag(raw_value: str) -> bool:
+    normalized = raw_value.strip().lower()
+    if normalized == 'true':
+        return True
+    if normalized == 'false':
+        return False
+    raise ValueError('expected true or false')
 
 
 def command_requires_directories(args: argparse.Namespace) -> bool:
@@ -2187,6 +2295,116 @@ def main(argv: list[str] | None = None) -> int:
             config,
             item_id=args.item_id,
             queue_path=args.queue_path,
+            output_format=args.format,
+        )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "init-agent-profiles":
+        payload = init_agent_profiles(
+            config,
+            path=args.path,
+            force=bool(args.force),
+            with_defaults=bool(args.with_defaults),
+        )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "register-agent-profile":
+        escalation_allowed: bool | None = None
+        if args.escalation_allowed is not None:
+            try:
+                escalation_allowed = parse_boolean_flag(args.escalation_allowed)
+            except ValueError:
+                emit_json(
+                    {
+                        "ok": False,
+                        "local_only": True,
+                        "error": "invalid_escalation_allowed",
+                        "details": {
+                            "value": args.escalation_allowed,
+                            "message": "--escalation-allowed must be true or false.",
+                        },
+                    }
+                )
+                return 1
+
+        payload = register_agent_profile(
+            config,
+            agent_id=args.agent_id,
+            name=args.name,
+            role=args.role,
+            profiles_path=args.profiles_path,
+            description=args.description,
+            execution_mode=args.execution_mode,
+            model_preference=args.model_preference,
+            strengths=list(args.strength),
+            constraints=list(args.constraint),
+            allowed_item_types=list(args.allowed_type),
+            escalation_allowed=escalation_allowed,
+            handoff_target_id=args.handoff_target_id,
+            status=args.status,
+            tags=list(args.tag),
+            notes=args.notes,
+        )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "register-handoff-target":
+        payload = register_handoff_target(
+            config,
+            target_id=args.target_id,
+            name=args.name,
+            target_type=args.target_type,
+            profiles_path=args.profiles_path,
+            description=args.description,
+            local_command=args.local_command,
+            input_format=args.input_format,
+            output_format=args.output_format,
+            safety_notes=list(args.safety_note),
+            status=args.status,
+            tags=list(args.tag),
+            notes=args.notes,
+        )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-agent-profiles":
+        payload = inspect_agent_profiles(
+            config,
+            profiles_path=args.profiles_path,
+            role=args.role,
+            execution_mode=args.execution_mode,
+            status=args.status,
+            output_format=args.format,
+        )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-agent-profile":
+        payload = inspect_agent_profile(
+            config,
+            agent_id=args.agent_id,
+            profiles_path=args.profiles_path,
+            output_format=args.format,
+        )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-handoff-target":
+        payload = inspect_handoff_target(
+            config,
+            target_id=args.target_id,
+            profiles_path=args.profiles_path,
             output_format=args.format,
         )
         if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):

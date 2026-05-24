@@ -2,11 +2,11 @@
 
 ## Purpose
 
-Provide minimum operating context for M33 local project queue implementation with a local-first, self-managed operator model.
+Provide minimum operating context for M34 local agent profile and handoff-target implementation with a local-first, self-managed operator model.
 
 ## Current Operating Model
 
-- Active milestone context: M33 local project queue and work tracking.
+- Active milestone context: M34 local LLM agent profiles and handoff targets.
 - AresForge now has a local-first foundation for self-managed operation.
 - GitHub is optional/syncable and not mandatory for local planning.
 - M26 added local handoff package generation.
@@ -16,6 +16,7 @@ Provide minimum operating context for M33 local project queue implementation wit
 - M30 added local self-managed milestone lifecycle support.
 - M32 added local managed-project/multi-repo registry support.
 - M33 added local project queue/work tracking support.
+- M34 added local agent profiles and handoff target descriptors.
 - Foundation-batch boundaries (M26-M30):
   - no `gh`
   - no GitHub API calls
@@ -45,6 +46,12 @@ Provide minimum operating context for M33 local project queue implementation wit
   - `python -m aresforge update-queue-item --item-id <id> [--queue-path <path>] [--project-id <id>] [--repo-id <id>] [--status <status>] [--priority <priority>] [--type <type>] [--title <title>] [--description <text>] [--tag <tag>]... [--depends-on <item_id>]... [--blocked-by <item_id>]... [--assigned-agent <agent_id>] [--source <source>] [--notes <text>]`
   - `python -m aresforge inspect-project-queue [--queue-path <path>] [--project-id <id>] [--repo-id <id>] [--status <status>] [--type <type>] [--assigned-agent <agent_id>] [--format json|markdown]`
   - `python -m aresforge inspect-queue-item --item-id <id> [--queue-path <path>] [--format json|markdown]`
+  - `python -m aresforge init-agent-profiles [--path <path>] [--force] [--with-defaults]`
+  - `python -m aresforge register-agent-profile --agent-id <id> --name <name> --role <role> [--profiles-path <path>] [--description <text>] [--execution-mode <mode>] [--model-preference <value>] [--strength <text>]... [--constraint <text>]... [--allowed-type <type>]... [--escalation-allowed true|false] [--handoff-target-id <id>] [--status <status>] [--tag <tag>]... [--notes <text>]`
+  - `python -m aresforge register-handoff-target --target-id <id> --name <name> --target-type <type> [--profiles-path <path>] [--description <text>] [--local-command <command>] [--input-format <format>] [--output-format <format>] [--safety-note <text>]... [--status <status>] [--tag <tag>]... [--notes <text>]`
+  - `python -m aresforge inspect-agent-profiles [--profiles-path <path>] [--role <role>] [--execution-mode <mode>] [--status <status>] [--format json|markdown]`
+  - `python -m aresforge inspect-agent-profile --agent-id <id> [--profiles-path <path>] [--format json|markdown]`
+  - `python -m aresforge inspect-handoff-target --target-id <id> [--profiles-path <path>] [--format json|markdown]`
 - M33 boundary confirmations:
   - queue is local-only and can track work without GitHub issues
   - no `gh`
@@ -53,6 +60,14 @@ Provide minimum operating context for M33 local project queue implementation wit
   - no LLM calls
   - `assigned_agent` is data-only for future orchestration and does not execute agents
   - M32 registry validation is local-only when registry exists or `--registry-path` is supplied
+- M34 boundary confirmations:
+  - local-only configuration for agent and handoff metadata
+  - handoff targets are descriptive/advisory only
+  - no agent execution path is introduced yet
+  - no local LLM invocation is introduced yet
+  - no cloud LLM invocation is introduced yet
+  - no `gh`, no GitHub API calls, no network access
+  - M33 `assigned_agent` can reference M34 `agent_id`
 - Next-phase planning focus:
   - local LLM agent handoff profiles
   - multi-agent orchestration planning

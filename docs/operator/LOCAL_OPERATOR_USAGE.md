@@ -172,12 +172,56 @@ Behavior guarantees:
 - inspect commands default to stable JSON and can render readable markdown
 - dependency references can target future items and produce warning-only guidance
 - `assigned_agent` is stored for future orchestration and does not execute agents in M33
+- `assigned_agent` can reference an M34 local agent profile `agent_id`
 
 M26/M27/M32 linkage:
 
 - M26 `generate-handoff-package` includes local project queue summary when queue exists.
 - M27 local project state captures current repo/session state, while M33 queue tracks local work progression.
 - M32 managed-project registry provides local project/repo validation for queue item registration.
+
+## M34 Local Agent Profiles And Handoff Targets
+
+Purpose:
+
+- Define local-only agent profiles describing roles, execution mode preferences, and handoff metadata.
+- Define local-only handoff target descriptors for operator workflows.
+- Keep M34 configuration/planning oriented with no agent execution.
+
+Defaults:
+
+- profiles directory: `.aresforge/agents/`
+- profiles file: `.aresforge/agents/agents.json`
+
+Commands:
+
+- `python -m aresforge init-agent-profiles [--path <path>] [--force] [--with-defaults]`
+- `python -m aresforge register-agent-profile --agent-id <id> --name <name> --role <role> [--profiles-path <path>] [--description <text>] [--execution-mode <mode>] [--model-preference <value>] [--strength <text>]... [--constraint <text>]... [--allowed-type <type>]... [--escalation-allowed true|false] [--handoff-target-id <id>] [--status <status>] [--tag <tag>]... [--notes <text>]`
+- `python -m aresforge register-handoff-target --target-id <id> --name <name> --target-type <type> [--profiles-path <path>] [--description <text>] [--local-command <command>] [--input-format <format>] [--output-format <format>] [--safety-note <text>]... [--status <status>] [--tag <tag>]... [--notes <text>]`
+- `python -m aresforge inspect-agent-profiles [--profiles-path <path>] [--role <role>] [--execution-mode <mode>] [--status <status>] [--format json|markdown]`
+- `python -m aresforge inspect-agent-profile --agent-id <id> [--profiles-path <path>] [--format json|markdown]`
+- `python -m aresforge inspect-handoff-target --target-id <id> [--profiles-path <path>] [--format json|markdown]`
+
+Behavior guarantees:
+
+- local-only command surface
+- no `gh` calls
+- no GitHub API calls
+- no network access
+- no local LLM calls
+- no cloud LLM calls
+- handoff targets are descriptive/advisory only
+- no orchestration execution is introduced in M34
+- `init-agent-profiles` creates missing directories and refuses overwrite unless `--force`
+- `init-agent-profiles --with-defaults` seeds safe, generic local-first defaults
+- `register-agent-profile` is idempotent by `agent_id`
+- `register-handoff-target` is idempotent by `target_id`
+- missing `handoff_target_id` references are saved with warning-only guidance
+
+M26/M33 linkage:
+
+- M26 `generate-handoff-package` includes local agent profile summary when profiles exist.
+- M33 `assigned_agent` can point to an M34 `agent_id`.
 
 ## M30 Self-Managed Local Milestone Lifecycle
 

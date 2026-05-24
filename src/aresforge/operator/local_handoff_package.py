@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from aresforge.config import AppConfig
+from aresforge.operator.local_agent_profiles import agent_profiles_summary_for_handoff
 from aresforge.operator.managed_project_registry_local import managed_project_registry_summary_for_handoff
 from aresforge.operator.local_project_queue import project_queue_summary_for_handoff
 from aresforge.operator.local_project_state import project_state_summary_for_handoff
@@ -261,6 +262,7 @@ def _build_payload(
         "Before deciding the next task, present options and wait for selection.",
     ]
     project_state_summary = project_state_summary_for_handoff(config)
+    agent_profiles_summary = agent_profiles_summary_for_handoff(config)
     managed_project_registry_summary = managed_project_registry_summary_for_handoff(config)
     project_queue_summary = project_queue_summary_for_handoff(config)
     latest_doc_reconciliation_plan = _latest_doc_reconciliation_plan(repo_root)
@@ -277,6 +279,10 @@ def _build_payload(
     if isinstance(managed_project_registry_summary, dict) and "error" in managed_project_registry_summary:
         project_state_warnings.append(
             "Managed project registry exists but could not be parsed."
+        )
+    if isinstance(agent_profiles_summary, dict) and "error" in agent_profiles_summary:
+        project_state_warnings.append(
+            "Local agent profiles exist but could not be parsed."
         )
     if isinstance(project_queue_summary, dict) and "error" in project_queue_summary:
         project_state_warnings.append(
@@ -299,6 +305,7 @@ def _build_payload(
         "codex_continuation_prompt": "\n".join(prompt_lines),
         "source_docs": [doc.path for doc in docs],
         "project_state_summary": project_state_summary,
+        "agent_profiles_summary": agent_profiles_summary,
         "managed_project_registry_summary": managed_project_registry_summary,
         "project_queue_summary": project_queue_summary,
         "active_local_milestone": (
@@ -385,6 +392,22 @@ def _render_markdown(payload: dict[str, Any]) -> str:
 
     lines.extend(["", "## Recommended Next Options"])
     lines.extend(f"- {item}" for item in payload.get("recommended_next_options", []))
+
+    lines.extend(["", "## Local Agent Profiles Summary"])
+    agent_profiles = payload.get("agent_profiles_summary")
+    if isinstance(agent_profiles, dict):
+        lines.append(f"- path: {agent_profiles.get('path')}")
+        lines.append(f"- schema_version: {agent_profiles.get('schema_version')}")
+        lines.append(f"- updated_at: {agent_profiles.get('updated_at')}")
+        lines.append(f"- agent_count: {agent_profiles.get('agent_count')}")
+        lines.append(f"- handoff_target_count: {agent_profiles.get('handoff_target_count')}")
+        status_counts = agent_profiles.get('status_counts')
+        if isinstance(status_counts, dict):
+            lines.append("- status_counts:")
+            for key in sorted(status_counts.keys()):
+                lines.append(f"  - {key}: {status_counts.get(key)}")
+    else:
+        lines.append("- No local agent profiles summary available.")
 
     lines.extend(["", "## Managed Project Registry Summary"])
     managed_summary = payload.get("managed_project_registry_summary")

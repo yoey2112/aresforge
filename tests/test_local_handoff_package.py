@@ -11,6 +11,7 @@ from aresforge.operator.managed_project_registry_local import (
 )
 from aresforge.operator.local_project_state import init_project_state, update_project_state
 from aresforge.operator.local_project_queue import init_project_queue, add_queue_item
+from aresforge.operator.local_agent_profiles import init_agent_profiles, register_agent_profile
 
 
 def _config(tmp_path: Path) -> AppConfig:
@@ -235,3 +236,30 @@ def test_generate_handoff_package_includes_project_queue_summary(monkeypatch, tm
     assert isinstance(summary, dict)
     assert summary['item_count'] == 1
     assert summary['status_counts']['ready'] == 1
+
+
+def test_generate_handoff_package_includes_agent_profiles_summary(monkeypatch, tmp_path: Path) -> None:
+    _write_source_docs(tmp_path)
+    config = _config(tmp_path)
+    assert init_agent_profiles(config)['ok'] is True
+    assert (
+        register_agent_profile(
+            config,
+            agent_id='architect-a',
+            name='Architect A',
+            role='architect',
+            execution_mode='human',
+            status='active',
+        )['ok']
+        is True
+    )
+    monkeypatch.setattr(
+        subprocess,
+        'run',
+        lambda command, **_kwargs: subprocess.CompletedProcess(command, 0, stdout='x\n', stderr=''),
+    )
+    payload = generate_handoff_package(config, output_format='json')
+    assert payload['ok'] is True
+    summary = payload['payload']['agent_profiles_summary']
+    assert isinstance(summary, dict)
+    assert summary['agent_count'] == 1

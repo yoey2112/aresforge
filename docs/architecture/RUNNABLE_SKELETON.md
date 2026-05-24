@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Describe the implemented human-triggered operator surface through M33 local project queue and work tracking.
+Describe the implemented human-triggered operator surface through M34 local agent profiles and handoff targets.
 
 ## Operator Shape
 
@@ -47,11 +47,33 @@ Command entrypoint:
   - `python -m aresforge inspect-queue-item --item-id <id> [--queue-path <path>] [--format json|markdown]`
 - Queue supports dependency references with warning-only handling for future IDs.
 - `assigned_agent` is stored for future orchestration and does not execute agents in M33.
+- `assigned_agent` can reference an M34 local agent profile `agent_id`.
 - Local-only boundary:
   - no `gh`
   - no GitHub API calls
   - no network access
   - no LLM calls
+
+## M34 Local Agent Profiles And Handoff Targets
+
+- Added local agent profile storage under `.aresforge/agents/agents.json`.
+- Agent profile schema now stores `schema_version`, `updated_at`, `agents`, and `handoff_targets`.
+- Commands:
+  - `python -m aresforge init-agent-profiles [--path <path>] [--force] [--with-defaults]`
+  - `python -m aresforge register-agent-profile --agent-id <id> --name <name> --role <role> [--profiles-path <path>] [--description <text>] [--execution-mode <mode>] [--model-preference <value>] [--strength <text>]... [--constraint <text>]... [--allowed-type <type>]... [--escalation-allowed true|false] [--handoff-target-id <id>] [--status <status>] [--tag <tag>]... [--notes <text>]`
+  - `python -m aresforge register-handoff-target --target-id <id> --name <name> --target-type <type> [--profiles-path <path>] [--description <text>] [--local-command <command>] [--input-format <format>] [--output-format <format>] [--safety-note <text>]... [--status <status>] [--tag <tag>]... [--notes <text>]`
+  - `python -m aresforge inspect-agent-profiles [--profiles-path <path>] [--role <role>] [--execution-mode <mode>] [--status <status>] [--format json|markdown]`
+  - `python -m aresforge inspect-agent-profile --agent-id <id> [--profiles-path <path>] [--format json|markdown]`
+  - `python -m aresforge inspect-handoff-target --target-id <id> [--profiles-path <path>] [--format json|markdown]`
+- M26 handoff package includes local agent profile summary when profiles exist.
+- Local-only boundary:
+  - no `gh`
+  - no GitHub API calls
+  - no network access
+  - no local LLM invocation
+  - no cloud LLM invocation
+  - handoff targets are descriptive/advisory only
+  - no agent execution/orchestration is introduced yet
 
 ## Current Additions (M25 Included)
 
@@ -107,6 +129,12 @@ Command entrypoint:
 - `inspect-managed-project-registry`
 - `inspect-managed-project`
 - `inspect-managed-repo`
+- `init-agent-profiles`
+- `register-agent-profile`
+- `register-handoff-target`
+- `inspect-agent-profiles`
+- `inspect-agent-profile`
+- `inspect-handoff-target`
 - offline/local state-file mode supported for milestone/parent readiness and parent evidence generation commands via `--state-file <path>`
 - canonical marker completeness payloads in:
   - child closeout evidence bundle generation
@@ -144,6 +172,7 @@ Offline state-file command surface:
 - Emits a warning and still succeeds when local project-state file is missing.
 - Includes managed-project registry summary from `.aresforge/projects/projects.json` when available.
 - Includes local project queue summary from `.aresforge/queue/work_items.json` when available.
+- Includes local agent profiles summary from `.aresforge/agents/agents.json` when available.
 
 ## M27 Local Project State Ledger Surface
 
