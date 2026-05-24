@@ -565,6 +565,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="Check milestone child issue evidence completeness in read-only mode.",
     )
     milestone_evidence_parser.add_argument("--parent-issue", type=int, required=True)
+    milestone_evidence_parser.add_argument(
+        "--state-file",
+        help="Optional local JSON state file for offline milestone evidence readiness checks.",
+    )
     milestone_final_reconciliation_parser = subparsers.add_parser(
         "plan-milestone-final-reconciliation",
         help="Plan milestone final reconciliation readiness in read-only mode.",
@@ -1415,7 +1419,11 @@ def main(argv: list[str] | None = None) -> int:
         return 0 if bool(payload.get("ok")) else 1
 
     if args.command == "check-milestone-evidence-readiness":
-        payload = check_milestone_evidence_readiness(config, parent_issue=args.parent_issue)
+        payload = check_milestone_evidence_readiness(
+            config,
+            parent_issue=args.parent_issue,
+            state_file=args.state_file,
+        )
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 

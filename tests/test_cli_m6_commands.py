@@ -247,17 +247,51 @@ def test_cli_dispatch_check_milestone_evidence_readiness(
     monkeypatch.setattr(
         cli,
         "check_milestone_evidence_readiness",
-        lambda _config, parent_issue: {
+        lambda _config, parent_issue, state_file=None: {
             "command": "check-milestone-evidence-readiness",
             "ok": True,
             "read_only": True,
             "parent_issue": {"issue_number": parent_issue},
+            "state_file": state_file,
         },
     )
     exit_code = cli.main(["check-milestone-evidence-readiness", "--parent-issue", "269"])
     payload = json.loads(capsys.readouterr().out)
     assert exit_code == 0
     assert payload["command"] == "check-milestone-evidence-readiness"
+    assert payload["state_file"] is None
+
+
+def test_cli_dispatch_check_milestone_evidence_readiness_with_state_file(
+    monkeypatch,
+    capsys,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: _config(tmp_path))
+    monkeypatch.setattr(
+        cli,
+        "check_milestone_evidence_readiness",
+        lambda _config, parent_issue, state_file=None: {
+            "command": "check-milestone-evidence-readiness",
+            "ok": True,
+            "read_only": True,
+            "parent_issue": {"issue_number": parent_issue},
+            "state_file": state_file,
+        },
+    )
+    exit_code = cli.main(
+        [
+            "check-milestone-evidence-readiness",
+            "--parent-issue",
+            "269",
+            "--state-file",
+            "artifacts/offline-state/m25-421.json",
+        ]
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["command"] == "check-milestone-evidence-readiness"
+    assert payload["state_file"] == "artifacts/offline-state/m25-421.json"
 
 
 def test_cli_dispatch_plan_milestone_final_reconciliation(

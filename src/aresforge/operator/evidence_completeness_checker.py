@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
 import re
 from typing import Any
 
@@ -93,8 +95,13 @@ def check_issue_evidence_readiness(config: AppConfig, *, issue_number: int) -> d
     }
 
 
-def check_milestone_evidence_readiness(config: AppConfig, *, parent_issue: int) -> dict[str, Any]:
-    milestone = inspect_milestone_state(config, parent_issue=parent_issue)
+def check_milestone_evidence_readiness(
+    config: AppConfig,
+    *,
+    parent_issue: int,
+    state_file: str | Path | None = None,
+) -> dict[str, Any]:
+    milestone = inspect_milestone_state(config, parent_issue=parent_issue, state_file=state_file)
     if not milestone.get("ok"):
         return {
             "command": COMMAND_MILESTONE,
@@ -107,6 +114,7 @@ def check_milestone_evidence_readiness(config: AppConfig, *, parent_issue: int) 
         }
 
     children = milestone.get("child_issues") if isinstance(milestone.get("child_issues"), list) else []
+    local_child_issues = _load_local_child_issues(state_file) if state_file is not None else {}
     per_issue: list[dict[str, Any]] = []
     for child in children:
         if not isinstance(child, dict):
@@ -114,7 +122,11 @@ def check_milestone_evidence_readiness(config: AppConfig, *, parent_issue: int) 
         number = child.get("issue_number")
         if not isinstance(number, int):
             continue
-        issue_result = check_issue_evidence_readiness(config, issue_number=number)
+        local_issue = local_child_issues.get(number)
+        if isinstance(local_issue, dict):
+            issue_result = _check_issue_evidence_readiness_from_issue(local_issue)
+        else:
+            issue_result = check_issue_evidence_readiness(config, issue_number=number)
         per_issue.append(issue_result)
 
     status_counts: dict[str, int] = {
@@ -130,7 +142,7 @@ def check_milestone_evidence_readiness(config: AppConfig, *, parent_issue: int) 
             status_counts[cls] += 1
 
     milestone_ready = status_counts[STATE_NOT_READY] == 0 and status_counts[STATE_BLOCKED] == 0
-    return {
+    payload: dict[str, Any] = {
         "command": COMMAND_MILESTONE,
         "ok": True,
         "read_only": True,
@@ -145,6 +157,97 @@ def check_milestone_evidence_readiness(config: AppConfig, *, parent_issue: int) 
         "safety": _safety_fields(),
         "boundary_confirmations": _boundaries(),
     }
+    if state_file is not None:
+        payload["inspection_mode"] = "local_state_file"
+        payload["state_file"] = str(state_file)
+    return payload
+
+
+def _check_issue_evidence_readiness_from_issue(issue: dict[str, Any]) -> dict[str, Any]:
+    classification, reasons = _classify_issue(issue)
+    merged_prs = issue.get("merged_pr_evidence") if isinstance(issue.get("merged_pr_evidence"), list) else []
+    duplicate_pr_risk = _has_duplicate_or_noop_signals(issue)
+    docs_only_reconciliation = _is_docs_only_reconciliation(issue)
+    explicit_mapping = _has_explicit_mapping(issue)
+
+    new_pr_needed = _new_pr_needed(
+        classification=classification,
+        merged_prs=merged_prs,
+        docs_only_reconciliation=docs_only_reconciliation,
+    )
+    recommendation = _recommendation(
+        classification=classification,
+        merged_prs=merged_prs,
+        duplicate_pr_risk=duplicate_pr_risk,
+        new_pr_needed=new_pr_needed,
+    )
+    closeout_ready = True if classification in (STATE_READY, STATE_ALREADY_CLOSED) else (
+        "ambiguous" if classification == STATE_AMBIGUOUS else False
+    )
+
+    operator_actions = _operator_actions(
+        classification=classification,
+        explicit_mapping=explicit_mapping,
+        merged_prs=merged_prs,
+        duplicate_pr_risk=duplicate_pr_risk,
+        new_pr_needed=new_pr_needed,
+    )
+
+    return {
+        "command": COMMAND_ISSUE,
+        "ok": True,
+        "read_only": True,
+        "issue": {
+            "number": issue.get("number"),
+            "title": issue.get("title"),
+            "state": issue.get("state"),
+            "url": issue.get("url"),
+        },
+        "classification": classification,
+        "reasons": reasons,
+        "evidence_signals": {
+            "merged_pr_evidence_count": len(merged_prs),
+            "explicit_issue_evidence_mapping": explicit_mapping,
+            "docs_only_reconciliation": docs_only_reconciliation,
+            "duplicate_or_noop_pr_detected": duplicate_pr_risk,
+            "historical_or_protected_references_present": _has_historical_or_protected(issue),
+            "missing_issue_specific_proof": not explicit_mapping and len(merged_prs) == 0,
+        },
+        "duplicate_noop_planning": {
+            "new_pr_needed": new_pr_needed,
+            "recommendation": recommendation,
+            "requires_operator_evidence_mapping": bool(merged_prs) and not explicit_mapping,
+            "duplicate_pr_risk": duplicate_pr_risk,
+            "closeout_ready": closeout_ready,
+            "mutation_allowed": False,
+        },
+        "safety": _safety_fields(),
+        "operator_next_actions": operator_actions,
+        "boundary_confirmations": _boundaries(),
+    }
+
+
+def _load_local_child_issues(state_file: str | Path | None) -> dict[int, dict[str, Any]]:
+    if state_file is None:
+        return {}
+    state_path = Path(state_file)
+    try:
+        parsed = json.loads(state_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    if not isinstance(parsed, dict):
+        return {}
+    child_issues = parsed.get("child_issues")
+    if not isinstance(child_issues, list):
+        return {}
+    issues_by_number: dict[int, dict[str, Any]] = {}
+    for item in child_issues:
+        if not isinstance(item, dict):
+            continue
+        number = item.get("number")
+        if isinstance(number, int):
+            issues_by_number[number] = item
+    return issues_by_number
 
 
 def _classify_issue(issue: dict[str, Any]) -> tuple[str, list[str]]:

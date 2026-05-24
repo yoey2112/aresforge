@@ -375,6 +375,13 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     )
     assert check_milestone_evidence_args.command == "check-milestone-evidence-readiness"
     assert check_milestone_evidence_args.parent_issue == 269
+    assert check_milestone_evidence_args.state_file is None
+    check_milestone_evidence_state_file_args = parser.parse_args(
+        ["check-milestone-evidence-readiness", "--parent-issue", "269", "--state-file", "artifacts/offline-state/m25-421.json"]
+    )
+    assert check_milestone_evidence_state_file_args.command == "check-milestone-evidence-readiness"
+    assert check_milestone_evidence_state_file_args.parent_issue == 269
+    assert check_milestone_evidence_state_file_args.state_file == "artifacts/offline-state/m25-421.json"
     check_closeout_readiness_args = parser.parse_args(
         ["check-closeout-readiness-by-construction", "--parent-issue", "421"]
     )

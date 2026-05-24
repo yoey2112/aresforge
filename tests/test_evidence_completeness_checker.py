@@ -1,7 +1,9 @@
+import json
 from pathlib import Path
 
 from aresforge.config import AppConfig
 from aresforge.operator import evidence_completeness_checker
+from aresforge.operator import milestone_state_inspector
 
 
 def _config(tmp_path: Path) -> AppConfig:
@@ -183,7 +185,7 @@ def test_milestone_checker_implemented(monkeypatch, tmp_path: Path) -> None:
     monkeypatch.setattr(
         evidence_completeness_checker,
         "inspect_milestone_state",
-        lambda _config, parent_issue: {
+        lambda _config, parent_issue, state_file=None: {
             "ok": True,
             "parent_issue": {"issue_number": parent_issue},
             "child_issues": [
@@ -227,4 +229,105 @@ def test_conflicting_structured_mapping_is_blocked(monkeypatch, tmp_path: Path) 
     )
     payload = evidence_completeness_checker.check_issue_evidence_readiness(config, issue_number=299)
     assert payload["classification"] == "blocked"
+
+
+def test_milestone_checker_offline_mode_uses_local_state_file_data(monkeypatch, tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    state_file = tmp_path / "offline-state.json"
+    state_file.write_text(
+        json.dumps(
+            {
+                "parent_issue": {
+                    "number": 421,
+                    "state": "OPEN",
+                    "title": "M25 Parent",
+                    "url": "https://example.test/issues/421",
+                    "milestone": {"title": "M25"},
+                    "body": "",
+                    "comments": [],
+                    "merged_pr_evidence": [],
+                    "reference_classification": {"implementation_issue_numbers": [422, 423]},
+                },
+                "child_issues": [
+                    {
+                        "number": 422,
+                        "state": "CLOSED",
+                        "title": "closed child",
+                        "url": "https://example.test/issues/422",
+                        "milestone": {"title": "M25"},
+                        "body": "Parent issue: #421 Implements #422",
+                        "comments": [],
+                        "merged_pr_evidence": [{"number": 9001}],
+                        "reference_classification": {
+                            "implementation_issue_numbers": [421],
+                            "explicit_implementation_issue_numbers": [422],
+                            "safety_or_historical_issue_numbers": [],
+                            "contains_protected_issue_implementation_link": False,
+                        },
+                    },
+                    {
+                        "number": 423,
+                        "state": "OPEN",
+                        "title": "open child no evidence",
+                        "url": "https://example.test/issues/423",
+                        "milestone": {"title": "M25"},
+                        "body": "Parent issue: #421",
+                        "comments": [],
+                        "merged_pr_evidence": [],
+                        "reference_classification": {
+                            "implementation_issue_numbers": [421],
+                            "explicit_implementation_issue_numbers": [],
+                            "safety_or_historical_issue_numbers": [],
+                            "contains_protected_issue_implementation_link": False,
+                        },
+                    },
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    monkeypatch.setattr(
+        evidence_completeness_checker,
+        "fetch_issue_details",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(AssertionError("fetch_issue_details should not be called")),
+    )
+    monkeypatch.setattr(
+        milestone_state_inspector.subprocess,
+        "run",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(AssertionError("subprocess.run should not be called")),
+    )
+
+    payload = evidence_completeness_checker.check_milestone_evidence_readiness(
+        config,
+        parent_issue=421,
+        state_file=state_file,
+    )
+    assert payload["ok"] is True
+    assert payload["inspection_mode"] == "local_state_file"
+    assert payload["state_file"] == str(state_file)
+    assert payload["status_counts"]["already_closed"] == 1
+    assert payload["status_counts"]["not_ready"] == 1
+
+    by_number = {item["issue"]["number"]: item for item in payload["issues"]}
+    assert by_number[422]["classification"] == "already_closed"
+    assert by_number[423]["classification"] == "not_ready"
+
+
+def test_milestone_checker_offline_invalid_state_file_propagates_inspection_failure(
+    tmp_path: Path,
+) -> None:
+    config = _config(tmp_path)
+    state_file = tmp_path / "offline-state-invalid.json"
+    state_file.write_text("{invalid-json", encoding="utf-8")
+
+    payload = evidence_completeness_checker.check_milestone_evidence_readiness(
+        config,
+        parent_issue=421,
+        state_file=state_file,
+    )
+    assert payload["ok"] is False
+    assert payload["error"] == "milestone_state_inspection_failed"
+    assert payload["details"]["inspection_mode"] == "local_state_file"
+    assert payload["details"]["error"] == "state_file_invalid_json"
 
