@@ -107,11 +107,11 @@ M22 standard validation bundle:
 
 ### M23 - Milestone Lineage And Evidence Mapping Preflight
 
-Status: Final reconciliation in progress (`#390` only).
+Status: Completed.
 
 Parent issue:
 
-- `#381` M23 milestone lineage and evidence mapping preflight (OPEN)
+- `#381` CLOSED
 
 Child issues:
 
@@ -123,7 +123,7 @@ Child issues:
 - `#387` CLOSED via PR `#396`
 - `#388` CLOSED via PR `#397`
 - `#389` CLOSED via PR `#398`
-- `#390` OPEN (final source-of-truth reconciliation; must be processed last)
+- `#390` CLOSED (final source-of-truth reconciliation child)
 
 Delivered M23 outcomes:
 
@@ -156,11 +156,66 @@ M23 standard validation bundle:
 - `python -m aresforge inspect-parent-closeout-readiness --parent-issue 381`
 - `python -m aresforge inspect-milestone-closeout-preflight --parent-issue 381`
 
-### M24 Candidate Themes
+### M24 - Canonical Evidence Marker Workflow
 
-1. Canonical structured child evidence marker templates for deterministic parsing.
-2. Stronger child-to-PR mapping extraction in milestone state inspection.
-3. Historical snapshot diffing for closeout preflight drift detection.
+Status: Final reconciliation in progress (`#410` only).
+
+Parent issue:
+
+- `#400` M24 canonical evidence marker workflow (OPEN)
+
+Child issues:
+
+- `#401` CLOSED via PR `#411`
+- `#402` CLOSED via PR `#412`
+- `#403` CLOSED via PR `#413`
+- `#404` CLOSED via PR `#414`
+- `#405` CLOSED via PR `#415`
+- `#406` CLOSED via PR `#416`
+- `#407` CLOSED via PR `#417`
+- `#408` CLOSED via PR `#418`
+- `#409` CLOSED via PR `#419`
+- `#410` OPEN (final source-of-truth reconciliation; must be processed last)
+
+Delivered M24 outcomes:
+
+- `inspect-canonical-evidence-marker-contract`
+- `generate-child-evidence-marker-template`
+- `generate-pr-evidence-marker-template`
+- `generate-parent-closeout-marker-template`
+- `generate-preflight-baseline-snapshot`
+- `diff-preflight-snapshots`
+- canonical-marker integration in evidence bundles and preflight guidance
+- canonical-first preflight parsing with backward-compatible fallback
+- operator and architecture documentation updates for canonical marker workflow
+
+M24 safety posture:
+
+- no autonomous broad mutation
+- no bulk closure
+- no parent closeout before all children are closed/accounted for
+- mutation execution defaults to dry-run/planning unless explicitly approved
+- canonical marker and snapshot/diff commands are read-only by default
+- final reconciliation kept last and docs-focused
+- prior milestones are not mutated
+
+M24 standard validation bundle:
+
+- `git diff --check`
+- `python -m pytest`
+- `python -m aresforge inspect-repo-governance`
+- `python -m aresforge inspect-milestone-dashboard --parent-issue 400`
+- `python -m aresforge inspect-milestone-state --parent-issue 400`
+- `python -m aresforge check-milestone-evidence-readiness --parent-issue 400`
+- `python -m aresforge inspect-parent-closeout-readiness --parent-issue 400`
+- `python -m aresforge inspect-milestone-closeout-preflight --parent-issue 400`
+- `python -m aresforge inspect-canonical-evidence-marker-contract`
+
+### M25 Candidate Themes
+
+1. Close out parent #400 with final reconciliation evidence package automation checks.
+2. Tighten milestone assignment governance warnings with explicit remediation playbooks.
+3. Expand deterministic evidence extraction for historical closeout comments.
 
 ## Standing Boundaries
 
