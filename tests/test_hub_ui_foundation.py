@@ -13,6 +13,7 @@ from aresforge.hub.api import (
     get_handoff_targets,
     get_orchestration_plan,
     get_project,
+    get_project_repo_github_link,
     get_project_repos,
     get_reports_action_center,
     get_reports_dashboard,
@@ -82,6 +83,9 @@ def _seed_project(config: AppConfig, project_id: str = "p1") -> None:
             "root_path": str(config.repo_root),
             "status": "active",
             "default_branch": "main",
+            "github_owner": "example-org",
+            "github_repo": "sample-repo",
+            "github_default_branch": "main",
             "tags": ["local"],
             "notes": "seed",
         },
@@ -99,6 +103,9 @@ def _seed_repo(config: AppConfig, project_id: str = "p1", repo_id: str = "r1") -
             "path": str(config.repo_root),
             "role": "primary",
             "status": "active",
+            "github_owner": "example-org",
+            "github_repo": "sample-repo",
+            "github_default_branch": "main",
         },
     )
     assert payload["ok"] is True
@@ -181,6 +188,11 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "Refresh Report" in index_text
     assert "Copy Report JSON" in index_text
     assert "Export JSON Text" in index_text
+    assert "GitHub URL" in index_text
+    assert "GitHub Owner" in index_text
+    assert "GitHub Repo" in index_text
+    assert "Inspect local git during save" in index_text
+    assert "Inspect Local Git Link For Repo ID" in index_text
 
 
 def test_app_js_references_m39_api_endpoints_and_forms() -> None:
@@ -188,6 +200,7 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
     for endpoint in (
         "/api/projects",
         "/api/projects/",
+        "/github-link",
         "/api/queue",
         "/api/settings",
         "/api/agents",
@@ -236,6 +249,7 @@ def test_reports_and_settings_sections_contain_m40_concepts() -> None:
     assert "Readiness Indicators" in index_text
     assert "Action Center" in index_text
     assert "Operator Workflows" in index_text
+    assert "GitHub Linkage" in index_text
     assert "Known limitations" in index_text
     assert "Next milestone scope" in index_text
 
@@ -266,6 +280,8 @@ def test_settings_and_boundary_notice_present_in_static_markup() -> None:
     assert "settings-orchestration-artifacts-path" in index_text
     assert "settings-escalation-artifacts-path" in index_text
     assert "settings-dashboard-artifacts-path" in index_text
+    assert "settings-m41-boundaries" in index_text
+    assert "GitHub link boundary note" in index_text
     assert "plan-only" in index_text
 
 
@@ -377,6 +393,9 @@ def test_post_project_creates_and_updates_project(tmp_path: Path) -> None:
             "root_path": str(tmp_path),
             "status": "active",
             "default_branch": "main",
+            "github_owner": "example-org",
+            "github_repo": "sample-repo",
+            "github_default_branch": "main",
             "tags": ["m38"],
             "notes": "initial",
         },
@@ -398,6 +417,7 @@ def test_post_project_creates_and_updates_project(tmp_path: Path) -> None:
     assert updated["created"] is False
     assert updated["project"]["name"] == "Project One Updated"
     assert updated["project"]["status"] == "paused"
+    assert updated["project"]["github_url"] == "https://github.com/example-org/sample-repo"
 
 
 def test_get_project_returns_project_details_and_repos(tmp_path: Path) -> None:
@@ -409,8 +429,13 @@ def test_get_project_returns_project_details_and_repos(tmp_path: Path) -> None:
 
     assert payload["ok"] is True
     assert payload["project"]["project_id"] == "p1"
+    assert payload["project"]["github_owner"] == "example-org"
+    assert payload["project"]["github_repo"] == "sample-repo"
+    assert payload["project"]["github_url"] == "https://github.com/example-org/sample-repo"
     assert len(payload["repos"]) == 1
     assert payload["repos"][0]["repo_id"] == "r1"
+    assert payload["repos"][0]["github_owner"] == "example-org"
+    assert payload["repos"][0]["github_repo"] == "sample-repo"
 
 
 def test_get_project_repos_returns_repos_for_project(tmp_path: Path) -> None:
@@ -423,6 +448,7 @@ def test_get_project_repos_returns_repos_for_project(tmp_path: Path) -> None:
     assert payload["ok"] is True
     assert payload["project_id"] == "p1"
     assert payload["repo_count"] == 1
+    assert payload["repos"][0]["github_url"] == "https://github.com/example-org/sample-repo"
 
 
 def test_post_project_repo_creates_and_updates_repo(tmp_path: Path) -> None:
@@ -438,6 +464,7 @@ def test_post_project_repo_creates_and_updates_repo(tmp_path: Path) -> None:
             "path": str(tmp_path),
             "role": "primary",
             "status": "active",
+            "github_url": "https://github.com/example-org/sample-repo",
         },
     )
     assert created["ok"] is True
@@ -459,6 +486,37 @@ def test_post_project_repo_creates_and_updates_repo(tmp_path: Path) -> None:
     assert updated["created"] is False
     assert updated["repo"]["name"] == "Repo One Updated"
     assert updated["repo"]["role"] == "automation"
+
+
+def test_get_project_repo_github_link_returns_local_only_payload(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_project(config, "p1")
+    non_git_dir = tmp_path / "non-git"
+    non_git_dir.mkdir(parents=True, exist_ok=True)
+    created = post_project_repo(
+        config,
+        "p1",
+        {
+            "repo_id": "r1",
+            "name": "Repo One",
+            "path": str(non_git_dir),
+            "role": "primary",
+            "github_owner": "example-org",
+            "github_repo": "sample-repo",
+        },
+    )
+    assert created["ok"] is True
+
+    payload = get_project_repo_github_link(config, "p1", "r1", inspect_local_git=True)
+    assert payload["ok"] is True
+    assert payload["local_only"] is True
+    assert payload["project_id"] == "p1"
+    assert payload["repo_id"] == "r1"
+    assert payload["github_owner"] == "example-org"
+    assert payload["github_repo"] == "sample-repo"
+    assert payload["github_url"] == "https://github.com/example-org/sample-repo"
+    assert isinstance(payload["warnings"], list)
+    assert payload["boundary_confirmations"]
 
 
 def test_post_repo_fails_clearly_when_project_missing(tmp_path: Path) -> None:
@@ -659,6 +717,7 @@ def test_boundary_confirmations_remain_present_for_m38_endpoints(tmp_path: Path)
     for payload in (projects, queue, settings):
         assert payload["local_only"] is True
         assert payload["boundary_confirmations"]
+    assert settings["m41_boundary_confirmations"]
 
 
 def test_get_agents_returns_empty_state_when_profiles_missing(tmp_path: Path) -> None:

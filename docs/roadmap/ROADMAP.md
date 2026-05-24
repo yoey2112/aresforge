@@ -2,6 +2,50 @@
 
 ## Current Milestones
 
+### M41 - GitHub-Linked Project/Repo Model In Hub
+
+Status: Completed (local-only GitHub identity model and local git-link inspection support).
+
+Delivered M41 outcomes:
+
+- extended managed project/repo registry schema with local GitHub identity fields and local git inspection fields
+- project-level primary repo linkage (`primary_repo_id`) and identity derivation from primary repo when project link fields are omitted
+- GitHub URL parsing/generation rules for:
+  - `https://github.com/owner/repo`
+  - `https://github.com/owner/repo.git`
+  - `git@github.com:owner/repo.git`
+- local-only git inspection support using safe local commands:
+  - `git -C <path> remote get-url origin`
+  - `git -C <path> branch --show-current`
+  - `git -C <path> rev-parse HEAD`
+  - `git -C <path> status --short`
+- CLI updates:
+  - new GitHub-link flags on `register-managed-project`
+  - new GitHub-link flags and `--inspect-local-git` on `register-managed-repo`
+  - new `inspect-managed-repo-github-link` command
+- Hub API updates:
+  - project/repo create endpoints accept GitHub-link fields
+  - new endpoint: `GET /api/projects/{project_id}/repos/{repo_id}/github-link`
+- Hub UI updates:
+  - Projects and Repos forms include GitHub-link fields
+  - Repos supports local git-link inspection action
+  - Home/Reports/Settings include GitHub linkage readiness/reporting and boundary notes
+- dashboard reporting updates include `github_summary`, `github_links_ready`, and GitHub-link action-center items
+
+M41 safety posture:
+
+- local-only and file-backed
+- no GitHub API calls
+- no `gh` calls
+- no GraphQL or REST calls
+- no network service calls
+- no live GitHub validation
+- no local/cloud/Codex/ChatGPT/Ollama model invocation
+
+Future after M41 (not implemented in M41):
+
+- explicitly gated GitHub sync/validation execution with operator approvals and additional safeguards
+
 ### M40 - Reporting, Dashboard Polish, And Operator Workflows
 
 Status: Completed (local-only control-plane reporting and workflow guidance).

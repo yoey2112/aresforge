@@ -61,6 +61,10 @@ def _count_by(items: list[dict[str, Any]], field: str) -> dict[str, int]:
     return dict(sorted(counts.items()))
 
 
+def _is_linked(owner: Any, repo: Any, url: Any) -> bool:
+    return bool(str(owner or '').strip() and str(repo or '').strip() and str(url or '').strip())
+
+
 def _load_json_file(path: Path, *, label: str, warnings: list[str]) -> dict[str, Any] | None:
     if not path.exists():
         warnings.append(f"{label} not found: {path}")
@@ -244,6 +248,41 @@ def summarize_local_project_dashboard(config: AppConfig) -> dict[str, Any]:
         "repo_count": len(repos_raw),
         "counts_by_status": _count_by(repos_raw, "status"),
         "counts_by_role": _count_by(repos_raw, "role"),
+    }
+
+    projects_missing_github_link = [
+        str(item.get("project_id", "")).strip()
+        for item in projects_raw
+        if not _is_linked(item.get("github_owner"), item.get("github_repo"), item.get("github_url"))
+    ]
+    repos_missing_github_link = [
+        str(item.get("repo_id", "")).strip()
+        for item in repos_raw
+        if not _is_linked(item.get("github_owner"), item.get("github_repo"), item.get("github_url"))
+    ]
+    missing_primary_repo_projects = [
+        str(item.get("project_id", "")).strip()
+        for item in projects_raw
+        if len([repo for repo in item.get("repos", []) if isinstance(repo, dict)]) > 0
+        and not str(item.get("primary_repo_id", "")).strip()
+    ]
+    github_warnings = [
+        f"Project missing GitHub link: {project_id}" for project_id in projects_missing_github_link
+    ] + [
+        f"Repo missing GitHub link: {repo_id}" for repo_id in repos_missing_github_link
+    ] + [
+        f"Project missing primary repo: {project_id}" for project_id in missing_primary_repo_projects
+    ]
+
+    github_summary = {
+        "linked_project_count": len(projects_raw) - len(projects_missing_github_link),
+        "linked_repo_count": len(repos_raw) - len(repos_missing_github_link),
+        "unlinked_project_count": len(projects_missing_github_link),
+        "unlinked_repo_count": len(repos_missing_github_link),
+        "missing_primary_repo_count": len(missing_primary_repo_projects),
+        "projects_missing_github_link": projects_missing_github_link,
+        "repos_missing_github_link": repos_missing_github_link,
+        "warnings": github_warnings,
     }
 
     blocked_items = [
@@ -440,6 +479,10 @@ def summarize_local_project_dashboard(config: AppConfig) -> dict[str, Any]:
         recommended_next_actions.append("Restore missing source-of-truth docs.")
     if queue_summary["blocked_items"]:
         recommended_next_actions.append("Resolve blocked queue items and dependency blockers.")
+    if github_summary["unlinked_project_count"] > 0:
+        recommended_next_actions.append("Link projects to GitHub owner/repo/url metadata.")
+    if github_summary["missing_primary_repo_count"] > 0:
+        recommended_next_actions.append("Assign primary repo IDs for projects with repos.")
     if not recommended_next_actions:
         recommended_next_actions.append("Review reports and continue local plan-only workflows.")
 
@@ -451,6 +494,11 @@ def summarize_local_project_dashboard(config: AppConfig) -> dict[str, Any]:
         "orchestration_ready": bool(queue_summary["item_count"] > 0 and agent_summary["agent_count"] > 0),
         "escalation_ready": bool(queue_summary["item_count"] > 0 and (agent_summary["agent_count"] > 0 or agent_summary["handoff_target_count"] > 0)),
         "docs_ready": bool(docs_summary.get("docs_ready", False)),
+        "github_links_ready": bool(
+            github_summary["unlinked_project_count"] == 0
+            and github_summary["unlinked_repo_count"] == 0
+            and github_summary["missing_primary_repo_count"] == 0
+        ),
         "hub_ready": False,
         "overall_status": "needs_attention",
     }
@@ -479,6 +527,10 @@ def summarize_local_project_dashboard(config: AppConfig) -> dict[str, Any]:
         "human_required_items": escalation_counts["human_required_count"],
         "missing_docs": missing_docs,
         "missing_local_state_files": missing_local_state_files,
+        "projects_missing_github_link": projects_missing_github_link,
+        "projects_missing_primary_repo": missing_primary_repo_projects,
+        "repos_missing_github_identity": repos_missing_github_link,
+        "local_git_inspection_warnings": github_summary["warnings"],
         "recommended_operator_actions": recommended_next_actions,
     }
 
@@ -487,6 +539,7 @@ def summarize_local_project_dashboard(config: AppConfig) -> dict[str, Any]:
         + list(handoff_summary.get("warnings", []))
         + list(orchestration_summary.get("warnings", []))
         + list(escalation_summary.get("warnings", []))
+        + list(github_summary.get("warnings", []))
     )
     warnings.extend(component_warnings)
     risks = sorted(
@@ -525,6 +578,7 @@ def summarize_local_project_dashboard(config: AppConfig) -> dict[str, Any]:
         "report_only": True,
         "project_summary": project_summary,
         "repo_summary": repo_summary,
+        "github_summary": github_summary,
         "queue_summary": queue_summary,
         "agent_summary": agent_summary,
         "handoff_summary": handoff_summary,
@@ -564,6 +618,7 @@ def summarize_local_project_dashboard(config: AppConfig) -> dict[str, Any]:
         f"Registry ready: {readiness_indicators['registry_ready']}",
         f"Queue ready: {readiness_indicators['queue_ready']}",
         f"Agents ready: {readiness_indicators['agents_ready']}",
+        f"GitHub links ready: {readiness_indicators['github_links_ready']}",
         f"Docs ready: {readiness_indicators['docs_ready']}",
     ]
     report["orchestration_readiness_hint"] = (

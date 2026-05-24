@@ -135,6 +135,7 @@ from aresforge.operator.managed_project_registry_local import (
     inspect_managed_project,
     inspect_managed_project_registry,
     inspect_managed_repo,
+    inspect_managed_repo_github_link,
     register_managed_project,
     register_managed_repo,
 )
@@ -878,6 +879,11 @@ def build_parser() -> argparse.ArgumentParser:
     register_managed_project_parser.add_argument("--description")
     register_managed_project_parser.add_argument("--status", choices=list(PROJECT_STATUSES))
     register_managed_project_parser.add_argument("--default-branch")
+    register_managed_project_parser.add_argument("--github-url")
+    register_managed_project_parser.add_argument("--github-owner")
+    register_managed_project_parser.add_argument("--github-repo")
+    register_managed_project_parser.add_argument("--github-default-branch")
+    register_managed_project_parser.add_argument("--primary-repo-id")
     register_managed_project_parser.add_argument("--tag", action="append", default=[])
     register_managed_project_parser.add_argument("--notes")
     register_managed_repo_parser = subparsers.add_parser(
@@ -891,6 +897,11 @@ def build_parser() -> argparse.ArgumentParser:
     register_managed_repo_parser.add_argument("--registry-path")
     register_managed_repo_parser.add_argument("--remote-url")
     register_managed_repo_parser.add_argument("--default-branch")
+    register_managed_repo_parser.add_argument("--github-url")
+    register_managed_repo_parser.add_argument("--github-owner")
+    register_managed_repo_parser.add_argument("--github-repo")
+    register_managed_repo_parser.add_argument("--github-default-branch")
+    register_managed_repo_parser.add_argument("--inspect-local-git", action="store_true")
     register_managed_repo_parser.add_argument("--role", choices=list(REPO_ROLES))
     register_managed_repo_parser.add_argument("--status", choices=list(REPO_STATUSES))
     register_managed_repo_parser.add_argument("--tag", action="append", default=[])
@@ -924,6 +935,19 @@ def build_parser() -> argparse.ArgumentParser:
     inspect_managed_repo_parser.add_argument("--repo-id", required=True)
     inspect_managed_repo_parser.add_argument("--registry-path")
     inspect_managed_repo_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="json",
+    )
+    inspect_managed_repo_github_link_parser = subparsers.add_parser(
+        "inspect-managed-repo-github-link",
+        help="Inspect one managed repo GitHub-link posture with optional local git inspection.",
+    )
+    inspect_managed_repo_github_link_parser.add_argument("--project-id", required=True)
+    inspect_managed_repo_github_link_parser.add_argument("--repo-id", required=True)
+    inspect_managed_repo_github_link_parser.add_argument("--registry-path")
+    inspect_managed_repo_github_link_parser.add_argument("--inspect-local-git", action="store_true")
+    inspect_managed_repo_github_link_parser.add_argument(
         "--format",
         choices=["json", "markdown"],
         default="json",
@@ -2224,6 +2248,11 @@ def main(argv: list[str] | None = None) -> int:
             description=args.description,
             status=args.status,
             default_branch=args.default_branch,
+            github_url=args.github_url,
+            github_owner=args.github_owner,
+            github_repo=args.github_repo,
+            github_default_branch=args.github_default_branch,
+            primary_repo_id=args.primary_repo_id,
             tags=list(args.tag),
             notes=args.notes,
         )
@@ -2240,6 +2269,11 @@ def main(argv: list[str] | None = None) -> int:
             registry_path=args.registry_path,
             remote_url=args.remote_url,
             default_branch=args.default_branch,
+            github_url=args.github_url,
+            github_owner=args.github_owner,
+            github_repo=args.github_repo,
+            github_default_branch=args.github_default_branch,
+            inspect_local_git=bool(args.inspect_local_git),
             role=args.role,
             status=args.status,
             tags=list(args.tag),
@@ -2279,6 +2313,21 @@ def main(argv: list[str] | None = None) -> int:
             project_id=args.project_id,
             repo_id=args.repo_id,
             registry_path=args.registry_path,
+            output_format=args.format,
+        )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-managed-repo-github-link":
+        payload = inspect_managed_repo_github_link(
+            config,
+            project_id=args.project_id,
+            repo_id=args.repo_id,
+            registry_path=args.registry_path,
+            inspect_local_git=bool(args.inspect_local_git),
             output_format=args.format,
         )
         if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):

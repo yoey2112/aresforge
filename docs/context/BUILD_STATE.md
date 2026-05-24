@@ -2,11 +2,63 @@
 
 ## Current Phase
 
-M40 Hub reporting, dashboard polish, and operator workflows (local-only, report/plan-only workflows).
+M41 GitHub-linked project/repo model in the local AresForge Hub and managed registry.
 
 ## Current Goal
 
-Implement and document M40 so the Hub is a cohesive local operator entry point with reporting, readiness, action-center guidance, and workflow cards on top of M32-M39.
+Implement and document M41 so managed projects and repos carry explicit local GitHub identity metadata, primary repo linkage, and local-only git-link inspection across CLI, API, Hub UI, reports, and operator docs.
+
+## M41 GitHub-Linked Project/Repo Model (Local-Only)
+
+- Extended local managed project/repo registry schema for GitHub identity fields.
+- Projects now track local GitHub linkage metadata:
+  - `primary_repo_id`
+  - `github_owner`
+  - `github_repo`
+  - `github_url`
+  - `github_default_branch`
+  - `github_connection_status`
+- Repos now track local GitHub and local git inspection metadata:
+  - `github_owner`
+  - `github_repo`
+  - `github_url`
+  - `github_default_branch`
+  - `github_connection_status`
+  - `local_git_branch`
+  - `local_git_head`
+  - `local_git_remote_url`
+  - `local_git_status_summary`
+- GitHub identity rules now support:
+  - owner/repo/url local storage
+  - URL parsing for GitHub HTTPS and SSH remote formats
+  - URL generation from owner/repo when URL is omitted
+  - project-level identity derivation from primary repo when needed
+  - project primary repo linkage enforcement when repos exist
+- Added local-only git inspection support (no network):
+  - `git -C <path> remote get-url origin`
+  - `git -C <path> branch --show-current`
+  - `git -C <path> rev-parse HEAD`
+  - `git -C <path> status --short`
+- Added CLI command:
+  - `python -m aresforge inspect-managed-repo-github-link --project-id <id> --repo-id <id> [--registry-path <path>] [--inspect-local-git] [--format json|markdown]`
+- Extended Hub API and UI with M41 GitHub-linked surfaces:
+  - project/repo forms include GitHub metadata
+  - repo-local action for local git link inspection
+  - report/home/settings include GitHub linkage readiness summaries and boundary notes
+
+M41 safety posture:
+
+- local-only metadata management and inspection
+- no GitHub API calls
+- no `gh` calls
+- no GraphQL or REST calls
+- no network service calls
+- no live GitHub validation
+- no local/cloud/Codex/ChatGPT/Ollama invocation
+
+Future (not implemented in M41):
+
+- explicitly gated GitHub sync/validation execution under additional safeguards and approvals
 
 ## M40 Reporting, Dashboard Polish, And Operator Workflows
 

@@ -36,6 +36,7 @@ from aresforge.operator.managed_project_registry_local import (
     REPO_ROLES,
     REPO_STATUSES,
     init_managed_project_registry,
+    inspect_managed_repo_github_link,
     register_managed_project,
     register_managed_repo,
     resolve_managed_project_registry_path,
@@ -133,6 +134,12 @@ def _project_view(project: dict[str, Any]) -> dict[str, Any]:
         "status": str(project.get("status", "")).strip(),
         "default_branch": str(project.get("default_branch", "")).strip(),
         "tags": _normalize_str_list(project.get("tags", [])),
+        "primary_repo_id": str(project.get("primary_repo_id", "")).strip(),
+        "github_owner": str(project.get("github_owner", "")).strip(),
+        "github_repo": str(project.get("github_repo", "")).strip(),
+        "github_url": str(project.get("github_url", "")).strip(),
+        "github_default_branch": str(project.get("github_default_branch", "")).strip(),
+        "github_connection_status": str(project.get("github_connection_status", "")).strip(),
         "notes": str(project.get("notes", "")).strip(),
         "created_at": str(project.get("created_at", "")).strip(),
         "updated_at": str(project.get("updated_at", "")).strip(),
@@ -151,6 +158,15 @@ def _repo_view(repo: dict[str, Any]) -> dict[str, Any]:
         "role": str(repo.get("role", "")).strip(),
         "status": str(repo.get("status", "")).strip(),
         "tags": _normalize_str_list(repo.get("tags", [])),
+        "github_owner": str(repo.get("github_owner", "")).strip(),
+        "github_repo": str(repo.get("github_repo", "")).strip(),
+        "github_url": str(repo.get("github_url", "")).strip(),
+        "github_default_branch": str(repo.get("github_default_branch", "")).strip(),
+        "github_connection_status": str(repo.get("github_connection_status", "")).strip(),
+        "local_git_branch": str(repo.get("local_git_branch", "")).strip(),
+        "local_git_head": str(repo.get("local_git_head", "")).strip(),
+        "local_git_remote_url": str(repo.get("local_git_remote_url", "")).strip(),
+        "local_git_status_summary": str(repo.get("local_git_status_summary", "")).strip(),
         "notes": str(repo.get("notes", "")).strip(),
         "created_at": str(repo.get("created_at", "")).strip(),
         "updated_at": str(repo.get("updated_at", "")).strip(),
@@ -543,6 +559,11 @@ def post_project(config: AppConfig, body: dict[str, Any]) -> dict[str, Any]:
         description=body.get("description"),
         status=body.get("status"),
         default_branch=body.get("default_branch"),
+        primary_repo_id=body.get("primary_repo_id"),
+        github_url=body.get("github_url"),
+        github_owner=body.get("github_owner"),
+        github_repo=body.get("github_repo"),
+        github_default_branch=body.get("github_default_branch"),
         tags=body.get("tags") if isinstance(body.get("tags"), list) else None,
         notes=body.get("notes"),
     )
@@ -556,6 +577,7 @@ def post_project(config: AppConfig, body: dict[str, Any]) -> dict[str, Any]:
         )
 
     project = result.get("project", {}) if isinstance(result.get("project"), dict) else {}
+    warnings.extend(list(result.get("warnings", [])))
     return {
         "ok": True,
         "local_only": True,
@@ -649,6 +671,10 @@ def post_project_repo(config: AppConfig, project_id: str, body: dict[str, Any]) 
             details={"required_fields": ["repo_id", "name", "path"]},
         )
 
+    valid_bool, bool_error = _require_boolean_field(body, "inspect_local_git")
+    if not valid_bool:
+        return bool_error or _api_error("invalid_inspect_local_git", "inspect_local_git must be a boolean value.")
+
     result = register_managed_repo(
         config,
         project_id=normalized_project_id,
@@ -657,6 +683,11 @@ def post_project_repo(config: AppConfig, project_id: str, body: dict[str, Any]) 
         path=path,
         remote_url=body.get("remote_url"),
         default_branch=body.get("default_branch"),
+        github_url=body.get("github_url"),
+        github_owner=body.get("github_owner"),
+        github_repo=body.get("github_repo"),
+        github_default_branch=body.get("github_default_branch"),
+        inspect_local_git=bool(body.get("inspect_local_git", False)),
         role=body.get("role"),
         status=body.get("status"),
         tags=body.get("tags") if isinstance(body.get("tags"), list) else None,
@@ -680,8 +711,53 @@ def post_project_repo(config: AppConfig, project_id: str, body: dict[str, Any]) 
         "project_id": normalized_project_id,
         "created": bool(result.get("created", False)),
         "repo": repo,
-        "warnings": [],
+        "warnings": sorted(set(result.get("warnings", []))),
         "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+    }
+
+
+def get_project_repo_github_link(
+    config: AppConfig,
+    project_id: str,
+    repo_id: str,
+    *,
+    inspect_local_git: bool,
+) -> dict[str, Any]:
+    result = inspect_managed_repo_github_link(
+        config,
+        project_id=project_id,
+        repo_id=repo_id,
+        inspect_local_git=inspect_local_git,
+        output_format="json",
+    )
+    if not result.get("ok", False):
+        details = dict(result.get("details", {}))
+        error = str(result.get("error", "inspect_managed_repo_github_link_failed"))
+        status = 404 if error in {"managed_project_not_found", "managed_repo_not_found"} else 400
+        return _api_error(
+            error,
+            str(details.get("message", "Failed to inspect managed repo GitHub link.")),
+            details=details,
+            status=status,
+        )
+
+    payload = result.get("payload", {}) if isinstance(result.get("payload"), dict) else {}
+    return {
+        "ok": True,
+        "local_only": True,
+        "project_id": str(payload.get("project_id", "")).strip(),
+        "repo_id": str(payload.get("repo_id", "")).strip(),
+        "github_owner": str(payload.get("github_owner", "")).strip(),
+        "github_repo": str(payload.get("github_repo", "")).strip(),
+        "github_url": str(payload.get("github_url", "")).strip(),
+        "remote_url": str(payload.get("remote_url", "")).strip(),
+        "local_git_remote_url": str(payload.get("local_git_remote_url", "")).strip(),
+        "local_git_branch": str(payload.get("local_git_branch", "")).strip(),
+        "local_git_head": str(payload.get("local_git_head", "")).strip(),
+        "local_git_status_summary": str(payload.get("local_git_status_summary", "")).strip(),
+        "github_connection_status": str(payload.get("github_connection_status", "")).strip(),
+        "warnings": list(payload.get("warnings", [])),
+        "boundary_confirmations": list(payload.get("boundary_confirmations", _BOUNDARY_CONFIRMATIONS)),
     }
 
 
@@ -1327,7 +1403,8 @@ def get_settings(config: AppConfig) -> dict[str, Any]:
             "Local-only and report/plan-only workflows.",
             "No agent execution.",
             "No local/cloud/Codex/ChatGPT/Ollama model invocation.",
-            "No GitHub, gh, network services, or external API calls.",
+            "GitHub links are stored locally; no live validation is performed.",
+            "No GitHub APIs, gh, GraphQL, REST, network services, or external API calls.",
             "Live GitHub sync is not implemented.",
             "Authentication and production deployment are not implemented.",
         ],
@@ -1351,5 +1428,11 @@ def get_settings(config: AppConfig) -> dict[str, Any]:
             "No local/cloud/Codex/ChatGPT/Ollama model invocation.",
             "No GitHub, gh, network, or external API calls.",
             "No live GitHub sync execution.",
+        ],
+        "m41_boundary_confirmations": [
+            "M41 GitHub link metadata is local-only and file-backed.",
+            "M41 uses local git inspection only when requested.",
+            "M41 does not call GitHub APIs, gh, GraphQL, REST, or network services.",
+            "M41 does not perform live GitHub validation.",
         ],
     }

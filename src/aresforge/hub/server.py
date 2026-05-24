@@ -20,6 +20,7 @@ from aresforge.hub.api import (
     get_handoff_targets,
     get_orchestration_plan,
     get_project,
+    get_project_repo_github_link,
     get_project_repos,
     get_reports_action_center,
     get_reports_dashboard,
@@ -285,6 +286,17 @@ def _build_handler(config: AppConfig, static_root: Path) -> type[BaseHTTPRequest
                         )
                         return True
                     payload = post_project_repo(config, project_id, body)
+                    _render_json(self, _status_from_payload(payload), payload)
+                    return True
+                if len(segments) == 6 and segments[3] == "repos" and segments[5] == "github-link" and method == "GET":
+                    inspect_value = str(query_values.get("inspect_local_git", ["false"])[0]).strip().lower()
+                    inspect_local_git = inspect_value in {"1", "true", "yes", "on"}
+                    payload = get_project_repo_github_link(
+                        config,
+                        project_id,
+                        segments[4],
+                        inspect_local_git=inspect_local_git,
+                    )
                     _render_json(self, _status_from_payload(payload), payload)
                     return True
 

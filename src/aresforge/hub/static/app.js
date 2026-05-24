@@ -183,7 +183,8 @@ const state = {
 function renderProjects(projects) {
   const lines = (projects || []).map((project) => {
     const tags = (project.tags || []).join(", ") || "-";
-    return `${project.project_id} | ${project.name} | status=${project.status || "-"} | root=${project.root_path || "-"} | repos=${project.repo_count || 0} | tags=${tags}`;
+    const githubState = project.github_connection_status || "unlinked";
+    return `${project.project_id} | ${project.name} | status=${project.status || "-"} | github=${githubState} | owner=${project.github_owner || "-"} | repo=${project.github_repo || "-"} | primary=${project.primary_repo_id || "-"} | root=${project.root_path || "-"} | repos=${project.repo_count || 0} | tags=${tags}`;
   });
   setList("projects-list", "projects-empty-state", lines);
 }
@@ -216,14 +217,65 @@ function refreshProjectSelectors(projects) {
 
 function renderRepos(repos, showNoProject) {
   const noProject = byId("repos-no-project-state");
+  const list = byId("repos-list");
+  const empty = byId("repos-empty-state");
   if (noProject) {
     noProject.style.display = showNoProject ? "block" : "none";
   }
-  const lines = (repos || []).map((repo) => {
+  if (!list || !empty) {
+    return;
+  }
+  list.innerHTML = "";
+  if (!repos || repos.length === 0) {
+    empty.style.display = "block";
+    return;
+  }
+  empty.style.display = "none";
+  repos.forEach((repo) => {
+    const item = document.createElement("li");
     const tags = (repo.tags || []).join(", ") || "-";
-    return `${repo.repo_id} | ${repo.name} | role=${repo.role || "-"} | status=${repo.status || "-"} | path=${repo.path || "-"} | tags=${tags}`;
+    const githubState = repo.github_connection_status || "unlinked";
+    const localGit = repo.local_git_status_summary || "-";
+    item.textContent = `${repo.repo_id} | ${repo.name} | role=${repo.role || "-"} | status=${repo.status || "-"} | github=${githubState} | owner=${repo.github_owner || "-"} | repo=${repo.github_repo || "-"} | branch=${repo.local_git_branch || "-"} | head=${repo.local_git_head || "-"} | local_status=${localGit} | path=${repo.path || "-"} | tags=${tags}`;
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = "Inspect local git link";
+    button.className = "repo-link-action";
+    button.addEventListener("click", async () => {
+      await inspectRepoGitHubLink(repo.repo_id, true);
+    });
+    item.appendChild(document.createTextNode(" "));
+    item.appendChild(button);
+    list.appendChild(item);
   });
-  setList("repos-list", "repos-empty-state", lines);
+}
+
+async function inspectRepoGitHubLink(repoId, inspectLocalGit) {
+  if (!state.selectedProjectId) {
+    setMessage("repos-message", "Select a project before inspecting a repo link.", "warn");
+    return;
+  }
+  if (!repoId || !String(repoId).trim()) {
+    setMessage("repos-message", "Enter or choose a repo id before inspecting link state.", "warn");
+    return;
+  }
+
+  try {
+    setMessage("repos-message", "Inspecting local git link metadata...", "loading");
+    const query = toQuery({ inspect_local_git: inspectLocalGit ? "true" : "false" });
+    const payload = await fetchJson(
+      `/api/projects/${encodeURIComponent(state.selectedProjectId)}/repos/${encodeURIComponent(String(repoId).trim())}/github-link${query}`
+    );
+    const warningText = (payload.warnings || []).join(" | ");
+    const message = `Repo ${payload.repo_id}: github=${payload.github_connection_status} owner=${payload.github_owner || "-"} repo=${payload.github_repo || "-"} local_branch=${payload.local_git_branch || "-"} local_head=${payload.local_git_head || "-"} local_status=${payload.local_git_status_summary || "-"}`;
+    setMessage("repos-message", warningText ? `${message} | warnings: ${warningText}` : message, warningText ? "warn" : "success");
+    await loadReposForSelectedProject();
+    await loadProjects();
+    await refreshSummaryAndReport();
+  } catch (error) {
+    setMessage("repos-message", String(error.message || error), "error");
+  }
 }
 
 function renderQueueItems(items) {
@@ -444,6 +496,7 @@ function renderReportSummary(report) {
   const orchestrationSummary = report.orchestration_summary || {};
   const escalationSummary = report.escalation_summary || {};
   const docsSummary = report.docs_summary || {};
+  const githubSummary = report.github_summary || {};
   const readiness = report.readiness_indicators || {};
   const actionCenter = report.action_center || {};
 
@@ -455,6 +508,10 @@ function renderReportSummary(report) {
   byId("home-escalation-count").textContent = String((escalationSummary.cloud_llm_recommended_count || 0) + (escalationSummary.human_required_count || 0));
   byId("home-docs-status").textContent = docsSummary.docs_ready ? "ready" : "needs docs";
   byId("home-overall-status").textContent = statusBadgeText(readiness);
+  byId("github-linked-project-count").textContent = String(githubSummary.linked_project_count || 0);
+  byId("github-linked-repo-count").textContent = String(githubSummary.linked_repo_count || 0);
+  byId("github-unlinked-project-count").textContent = String(githubSummary.unlinked_project_count || 0);
+  byId("github-unlinked-repo-count").textContent = String(githubSummary.unlinked_repo_count || 0);
 
   setList("queue-status-list", "queue-empty-state", queueEntries(queueSummary.counts_by_status));
   setList("warnings-list", "warnings-empty-state", report.warnings || []);
@@ -468,6 +525,9 @@ function renderReportSummary(report) {
     `cloud_escalation_candidates: ${actionCenter.cloud_escalation_candidates || 0}`,
     `human_required_items: ${actionCenter.human_required_items || 0}`,
     `missing_docs: ${(actionCenter.missing_docs || []).length}`,
+    `projects_missing_github_link: ${(actionCenter.projects_missing_github_link || []).length}`,
+    `projects_missing_primary_repo: ${(actionCenter.projects_missing_primary_repo || []).length}`,
+    `repos_missing_github_identity: ${(actionCenter.repos_missing_github_identity || []).length}`,
     `missing_local_state_files: ${(actionCenter.missing_local_state_files || []).length}`,
   ]);
   renderWorkflowCards("home-workflow-cards", "home-workflow-cards-empty", (report.operator_workflows || []).slice(0, 6));
@@ -478,6 +538,16 @@ function renderReportSummary(report) {
     `repo_count: ${repoSummary.repo_count || 0}`,
     ...countLines("repo_status", repoSummary.counts_by_status),
     ...countLines("repo_role", repoSummary.counts_by_role),
+  ]);
+  setList("reports-github-linkage", "reports-github-linkage-empty", [
+    `linked_projects: ${githubSummary.linked_project_count || 0}`,
+    `linked_repos: ${githubSummary.linked_repo_count || 0}`,
+    `unlinked_projects: ${githubSummary.unlinked_project_count || 0}`,
+    `unlinked_repos: ${githubSummary.unlinked_repo_count || 0}`,
+    `missing_primary_repo_count: ${githubSummary.missing_primary_repo_count || 0}`,
+    `projects_missing_github_link: ${(githubSummary.projects_missing_github_link || []).join(", ") || "none"}`,
+    `repos_missing_github_link: ${(githubSummary.repos_missing_github_link || []).join(", ") || "none"}`,
+    `warnings: ${(githubSummary.warnings || []).join(" | ") || "none"}`,
   ]);
   setList("reports-queue-summary", "reports-queue-summary-empty", [
     `item_count: ${queueSummary.item_count || 0}`,
@@ -526,6 +596,9 @@ function renderReportSummary(report) {
     `cloud_escalation_candidates: ${actionCenter.cloud_escalation_candidates || 0}`,
     `human_required_items: ${actionCenter.human_required_items || 0}`,
     `missing_docs: ${(actionCenter.missing_docs || []).join(", ") || "none"}`,
+    `projects_missing_github_link: ${(actionCenter.projects_missing_github_link || []).join(", ") || "none"}`,
+    `projects_missing_primary_repo: ${(actionCenter.projects_missing_primary_repo || []).join(", ") || "none"}`,
+    `repos_missing_github_identity: ${(actionCenter.repos_missing_github_identity || []).join(", ") || "none"}`,
     `missing_local_state_files: ${(actionCenter.missing_local_state_files || []).join(", ") || "none"}`,
   ]);
   renderWorkflowCards("reports-operator-workflows", "reports-operator-workflows-empty", report.operator_workflows || []);
@@ -603,6 +676,7 @@ async function loadSettings() {
     byId("settings-hub-port").textContent = String(hubServer.current_port_hint || hubServer.default_port || 8765);
     setList("settings-m39-boundaries", "settings-m39-boundaries-empty", payload.m39_boundary_confirmations || []);
     setList("settings-m40-boundaries", "settings-m40-boundaries-empty", payload.m40_boundary_confirmations || []);
+    setList("settings-m41-boundaries", "settings-m41-boundaries-empty", payload.m41_boundary_confirmations || []);
     setList("settings-known-limitations", "settings-known-limitations-empty", payload.known_limitations || []);
     setList("settings-next-milestone", "settings-next-milestone-empty", payload.next_milestone_scope || []);
   } catch (_error) {
@@ -620,6 +694,11 @@ function buildProjectPayload() {
     description: byId("project-description").value.trim(),
     status: byId("project-status").value.trim(),
     default_branch: byId("project-default-branch").value.trim(),
+    primary_repo_id: byId("project-primary-repo-id").value.trim(),
+    github_url: byId("project-github-url").value.trim(),
+    github_owner: byId("project-github-owner").value.trim(),
+    github_repo: byId("project-github-repo").value.trim(),
+    github_default_branch: byId("project-github-default-branch").value.trim(),
     tags: parseCommaList(byId("project-tags").value),
     notes: byId("project-notes").value.trim(),
   });
@@ -632,6 +711,11 @@ function buildRepoPayload() {
     path: byId("repo-path").value.trim(),
     remote_url: byId("repo-remote-url").value.trim(),
     default_branch: byId("repo-default-branch").value.trim(),
+    github_url: byId("repo-github-url").value.trim(),
+    github_owner: byId("repo-github-owner").value.trim(),
+    github_repo: byId("repo-github-repo").value.trim(),
+    github_default_branch: byId("repo-github-default-branch").value.trim(),
+    inspect_local_git: byId("repo-inspect-local-git").checked,
     role: byId("repo-role").value.trim(),
     status: byId("repo-status").value.trim(),
     tags: parseCommaList(byId("repo-tags").value),
@@ -745,6 +829,14 @@ function bindForms() {
       await loadProjects();
       await refreshSummaryAndReport();
       setMessage("repos-message", "Repo saved.", "success");
+    } catch (error) {
+      setMessage("repos-message", String(error.message || error), "error");
+    }
+  });
+
+  on("repo-check-github-link", "click", async () => {
+    try {
+      await inspectRepoGitHubLink(byId("repo-repo-id").value.trim(), true);
     } catch (error) {
       setMessage("repos-message", String(error.message || error), "error");
     }

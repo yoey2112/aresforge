@@ -201,6 +201,38 @@ Remaining scope split:
 - Optional CLI `inspect-project-dashboard` command is deferred as future work; M40 focuses on Hub/API reporting surfaces.
 - authentication and production deployment are not implemented yet
 
+## M41 GitHub-Linked Project/Repo Operations (Local-Only)
+
+M41 introduces local GitHub-link identity metadata for managed projects and repos.
+
+Boundary note:
+
+- GitHub links are stored locally.
+- M41 does not validate against live GitHub.
+- M41 does not call GitHub APIs, `gh`, GraphQL, REST, or any network services.
+
+Register a project with a GitHub URL:
+
+- `python -m aresforge register-managed-project --project-id aresforge-main --name "AresForge" --root-path "C:\Projects\aresforge" --status active --default-branch main --github-url "https://github.com/yoey2112/aresforge" --github-default-branch main --primary-repo-id repo-main`
+
+Register a repo with a GitHub URL and local git inspection:
+
+- `python -m aresforge register-managed-repo --project-id aresforge-main --repo-id repo-main --name "AresForge Main Repo" --path "C:\Projects\aresforge" --role primary --status active --github-url "https://github.com/yoey2112/aresforge.git" --github-default-branch main --inspect-local-git`
+
+Inspect repo GitHub link posture:
+
+- `python -m aresforge inspect-managed-repo-github-link --project-id aresforge-main --repo-id repo-main --inspect-local-git --format json`
+- `python -m aresforge inspect-managed-repo-github-link --project-id aresforge-main --repo-id repo-main --format markdown`
+
+Hub usage for GitHub-link metadata:
+
+- Start Hub: `python -m aresforge serve-hub`
+- Open `http://127.0.0.1:8765`
+- Use Projects screen to set project GitHub URL/owner/repo/default branch and primary repo ID.
+- Use Repos screen to set repo GitHub URL/owner/repo/default branch and optionally inspect local git during save.
+- Use Repos action `Inspect Local Git Link For Repo ID` for local-only git-link checks.
+- Use Home/Reports to review linked/unlinked counts and missing primary repo warnings.
+
 ## Final Validation Checklist (Local-Only)
 
 ```powershell

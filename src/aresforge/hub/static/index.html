@@ -41,6 +41,10 @@
           <div class="cards" id="summary-cards">
             <article class="card"><h3>Projects</h3><p id="project-count">0</p></article>
             <article class="card"><h3>Repos</h3><p id="repo-count">0</p></article>
+            <article class="card"><h3>Linked Projects</h3><p id="github-linked-project-count">0</p></article>
+            <article class="card"><h3>Linked Repos</h3><p id="github-linked-repo-count">0</p></article>
+            <article class="card"><h3>Unlinked Projects</h3><p id="github-unlinked-project-count">0</p></article>
+            <article class="card"><h3>Unlinked Repos</h3><p id="github-unlinked-repo-count">0</p></article>
             <article class="card"><h3>Queue</h3><p id="queue-total">0</p></article>
             <article class="card"><h3>Agents</h3><p id="agent-count">0</p></article>
             <article class="card"><h3>Orchestration</h3><p id="home-orchestration-count">0</p></article>
@@ -118,6 +122,11 @@
                   </select>
                 </label>
                 <label>Default Branch<input id="project-default-branch" name="default_branch" placeholder="main" /></label>
+                <label>Primary Repo ID<input id="project-primary-repo-id" name="primary_repo_id" /></label>
+                <label>GitHub URL<input id="project-github-url" name="github_url" placeholder="github.com/owner/repo or git@github.com:owner/repo.git" /></label>
+                <label>GitHub Owner<input id="project-github-owner" name="github_owner" /></label>
+                <label>GitHub Repo<input id="project-github-repo" name="github_repo" /></label>
+                <label>GitHub Default Branch<input id="project-github-default-branch" name="github_default_branch" /></label>
                 <label>Tags (comma-separated)<input id="project-tags" name="tags" /></label>
                 <label class="full">Description<textarea id="project-description" name="description"></textarea></label>
                 <label class="full">Notes<textarea id="project-notes" name="notes"></textarea></label>
@@ -130,6 +139,7 @@
         <section id="panel-repos" class="panel" data-panel="repos">
           <h2>Repos</h2>
           <p>Register and update repos under a managed project using local M32 storage.</p>
+          <p class="boundary-banner">Local-only inspection: GitHub links are parsed/stored locally and local git checks never call GitHub APIs.</p>
           <p id="repos-message" class="message"></p>
           <label class="inline-label" for="repo-project-select">Project</label>
           <select id="repo-project-select">
@@ -173,10 +183,18 @@
                 </label>
                 <label>Default Branch<input id="repo-default-branch" name="default_branch" placeholder="main" /></label>
                 <label>Remote URL<input id="repo-remote-url" name="remote_url" /></label>
+                <label>GitHub URL<input id="repo-github-url" name="github_url" placeholder="github.com/owner/repo or git@github.com:owner/repo.git" /></label>
+                <label>GitHub Owner<input id="repo-github-owner" name="github_owner" /></label>
+                <label>GitHub Repo<input id="repo-github-repo" name="github_repo" /></label>
+                <label>GitHub Default Branch<input id="repo-github-default-branch" name="github_default_branch" /></label>
+                <label class="inline-checkbox"><input id="repo-inspect-local-git" name="inspect_local_git" type="checkbox" /> Inspect local git during save</label>
                 <label>Tags (comma-separated)<input id="repo-tags" name="tags" /></label>
                 <label class="full">Notes<textarea id="repo-notes" name="notes"></textarea></label>
                 <button id="repo-submit" type="submit">Save Repo</button>
               </form>
+              <div class="quick-actions">
+                <button id="repo-check-github-link" type="button">Inspect Local Git Link For Repo ID</button>
+              </div>
             </section>
           </div>
         </section>
@@ -539,6 +557,9 @@
               <h3>Project/Repo Summary</h3>
               <ul id="reports-project-repo-summary" class="list"></ul>
               <p id="reports-project-repo-summary-empty" class="empty">No project/repo summary available.</p>
+              <h3>GitHub Linkage</h3>
+              <ul id="reports-github-linkage" class="list"></ul>
+              <p id="reports-github-linkage-empty" class="empty">No GitHub linkage summary available.</p>
               <h3>Queue Summary</h3>
               <ul id="reports-queue-summary" class="list"></ul>
               <p id="reports-queue-summary-empty" class="empty">No queue summary available.</p>
@@ -610,6 +631,10 @@
           <p>M40 boundary confirmations:</p>
           <ul id="settings-m40-boundaries" class="list"></ul>
           <p id="settings-m40-boundaries-empty" class="empty">No M40 boundary confirmations available.</p>
+          <p>M41 boundary confirmations:</p>
+          <ul id="settings-m41-boundaries" class="list"></ul>
+          <p id="settings-m41-boundaries-empty" class="empty">No M41 boundary confirmations available.</p>
+          <p>GitHub link boundary note: GitHub links are stored locally, inspected locally, and not validated against live GitHub in M41.</p>
           <p>Known limitations:</p>
           <ul id="settings-known-limitations" class="list"></ul>
           <p id="settings-known-limitations-empty" class="empty">No known limitations listed.</p>

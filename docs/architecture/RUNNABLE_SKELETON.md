@@ -2,13 +2,41 @@
 
 ## Purpose
 
-Describe the implemented human-triggered operator surface through M40 Hub reporting/dashboard/operator workflows.
+Describe the implemented human-triggered operator surface through M41 GitHub-linked project/repo identity management and local Hub workflows.
 
 ## Operator Shape
 
 Command entrypoint:
 
 - `python -m aresforge`
+
+## M41 GitHub-Linked Project/Repo Model
+
+- Managed project/repo registry now supports local GitHub identity metadata at both project and repo levels.
+- Projects now carry `primary_repo_id` and local GitHub identity fields.
+- Repos now carry local GitHub identity fields plus local git inspection fields.
+- New local inspection command:
+  - `python -m aresforge inspect-managed-repo-github-link --project-id <id> --repo-id <id> [--registry-path <path>] [--inspect-local-git] [--format json|markdown]`
+- Updated local registration commands:
+  - `python -m aresforge register-managed-project --project-id <id> --name <name> --root-path <path> [--github-url <url>] [--github-owner <owner>] [--github-repo <repo>] [--github-default-branch <branch>] [--primary-repo-id <repo_id>] ...`
+  - `python -m aresforge register-managed-repo --project-id <id> --repo-id <id> --name <name> --path <path> [--github-url <url>] [--github-owner <owner>] [--github-repo <repo>] [--github-default-branch <branch>] [--inspect-local-git] ...`
+- Hub API adds:
+  - GitHub-link fields accepted by project/repo create endpoints
+  - `GET /api/projects/{project_id}/repos/{repo_id}/github-link`
+- Hub UI adds:
+  - project/repo GitHub-link form fields
+  - local git-link inspection action in Repos
+  - GitHub linkage signals in Home/Reports/Settings
+
+M41 local boundary:
+
+- GitHub link metadata is local-only and file-backed
+- local git inspection uses only local `git -C` commands
+- no GitHub API calls
+- no `gh` calls
+- no GraphQL/REST calls
+- no network service calls
+- no live GitHub validation
 
 ## M31 Foundation Reconciliation
 
