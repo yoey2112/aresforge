@@ -147,6 +147,9 @@ from aresforge.operator.milestone_closeout_preflight_contract import (
 from aresforge.operator.canonical_evidence_marker_contract import (
     inspect_canonical_evidence_marker_contract,
 )
+from aresforge.operator.automatic_canonical_evidence_emission_contract import (
+    inspect_automatic_canonical_evidence_emission_contract,
+)
 from aresforge.operator.github_mutation_planner import plan_github_mutation
 from aresforge.operator.github_issue_comment_executor import (
     execute_github_issue_comment,
@@ -807,6 +810,10 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser(
         "inspect-canonical-evidence-marker-contract",
         help="Inspect canonical evidence marker contract coverage and safety boundaries.",
+    )
+    subparsers.add_parser(
+        "inspect-automatic-canonical-evidence-emission-contract",
+        help="Inspect M25 automatic canonical evidence emission contract coverage and safety boundaries.",
     )
     subparsers.add_parser(
         "inspect-repo-bootstrap-contract",
@@ -1610,6 +1617,11 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "inspect-canonical-evidence-marker-contract":
         payload = inspect_canonical_evidence_marker_contract(config)
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-automatic-canonical-evidence-emission-contract":
+        payload = inspect_automatic_canonical_evidence_emission_contract(config)
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 
