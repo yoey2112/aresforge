@@ -2,11 +2,53 @@
 
 ## Current Phase
 
-M39 Hub agent, handoff, orchestration, and escalation screens (local-only, plan-only workflows).
+M40 Hub reporting, dashboard polish, and operator workflows (local-only, report/plan-only workflows).
 
 ## Current Goal
 
-Implement and document local-first interactive Hub screens and API workflows for agent profiles, handoff targets, handoff preview, orchestration planning, and escalation planning using M34, M35, and M36 operators.
+Implement and document M40 so the Hub is a cohesive local operator entry point with reporting, readiness, action-center guidance, and workflow cards on top of M32-M39.
+
+## M40 Reporting, Dashboard Polish, And Operator Workflows
+
+- Extended local Hub API with local-only report endpoints:
+  - `GET /api/reports/dashboard`
+  - `GET /api/reports/action-center`
+  - `GET /api/reports/readiness`
+  - `GET /api/reports/operator-workflows`
+  - `GET /api/reports/export`
+- Expanded local dashboard helper (`src/aresforge/operator/local_project_dashboard.py`) to emit a stable report schema including:
+  - project/repo/queue/agent/handoff/orchestration/escalation/docs summaries
+  - readiness indicators
+  - action center
+  - risks, warnings, recommended next actions
+  - operator workflow cards
+  - explicit boundary confirmations
+- Hub Home now acts as a polished operator dashboard:
+  - top-level status cards
+  - readiness indicators
+  - action-center preview
+  - recommended next actions
+  - quick workflow cards
+- Hub Reports now provides control-plane report sections and in-page export/copy actions.
+- Hub Settings now shows default local paths, artifact folders, boundary confirmations, known limitations, and next milestone scope.
+- M40 remains local-only and workflow/report oriented:
+  - no agent execution
+  - no local LLM invocation
+  - no cloud LLM invocation
+  - no Codex invocation
+  - no ChatGPT invocation
+  - no Ollama invocation
+  - no GitHub calls
+  - no `gh` calls
+  - no network/external API calls
+  - no live GitHub sync
+  - no authentication or production deployment implementation
+- Future work after M40:
+  - richer guided UI workflows
+  - optional execution gates with explicit operator approval
+  - authentication if exposed beyond localhost
+  - controlled GitHub sync execution behind safeguards
+  - optional LLM execution behind explicit user-approved gates
 
 ## M39 Agent, Handoff, Orchestration, And Escalation Hub Screens
 

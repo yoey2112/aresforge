@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Describe the implemented human-triggered operator surface through M39 Hub agent/handoff/orchestration/escalation management.
+Describe the implemented human-triggered operator surface through M40 Hub reporting/dashboard/operator workflows.
 
 ## Operator Shape
 
@@ -156,7 +156,7 @@ Command entrypoint:
   - placeholder sections for Projects/Repos/Queue/Agents/Handoff/Orchestration/Escalation/Reports
   - full project/repo/queue management deferred to M38
   - full agent/orchestration/escalation/handoff screens deferred to M39
-  - reporting/dashboard polish deferred to M40
+  - M40 reporting/dashboard/operator workflows are now implemented
 - Local-only boundary:
   - local-first serving path
   - binds to `127.0.0.1` by default
@@ -212,7 +212,7 @@ Command entrypoint:
   - no authentication implementation yet
   - no production deployment implementation yet
 - Deferred scope remains:
-  - M40: reporting/dashboard polish and operator workflows
+  - follow-on scope: richer guided workflows, optional execution gates, authentication hardening, and controlled sync execution
 
 ## M39 Hub Agent, Handoff, Orchestration, And Escalation Screens
 
@@ -256,7 +256,35 @@ Command entrypoint:
   - no production deployment implementation yet
   - no live GitHub sync yet
 - Deferred scope remains:
-  - M40: reporting/dashboard polish and operator workflows
+  - follow-on scope: richer guided workflows, optional execution gates, authentication hardening, and controlled sync execution
+
+## M40 Hub Reporting, Dashboard, And Operator Workflows
+
+- Extended Hub API report endpoints:
+  - `GET /api/reports/dashboard`
+  - `GET /api/reports/action-center`
+  - `GET /api/reports/readiness`
+  - `GET /api/reports/operator-workflows`
+  - `GET /api/reports/export`
+- Hub Home now provides:
+  - top-level status cards for projects/repos/queue/agents/orchestration/escalation/docs/overall readiness
+  - readiness indicators and action-center preview
+  - recommended next actions and quick workflow cards
+- Hub Reports now provides:
+  - local control-plane summaries for projects/repos/queue/agents/orchestration/escalation/docs/readiness
+  - action-center and operator-workflow sections
+  - local in-page report export/copy actions
+- Hub Settings now provides:
+  - default local state file paths
+  - default artifact folders for handoff/orchestration/escalation/dashboard
+  - boundary confirmations, known limitations, and next milestone scope
+- Local-only boundary:
+  - report-only and plan-only guidance surfaces
+  - no agent execution
+  - no local/cloud/Codex/ChatGPT/Ollama invocation
+  - no GitHub/gh/network/external API calls
+  - no live GitHub sync execution
+  - authentication and production deployment remain unimplemented
 
 ## Current Additions (M25 Included)
 

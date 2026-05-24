@@ -2,11 +2,11 @@
 
 ## Purpose
 
-Provide minimum operating context for M39 Hub agent/handoff/orchestration/escalation management with a local-first, self-managed operator model.
+Provide minimum operating context for M40 Hub reporting/dashboard/operator workflows with a local-first, self-managed operator model.
 
 ## Current Operating Model
 
-- Active milestone context: M39 Hub agent/handoff/orchestration/escalation management.
+- Active milestone context: M40 Hub reporting, dashboard polish, and operator workflows.
 - AresForge now has a local-first foundation for self-managed operation.
 - GitHub is optional/syncable and not mandatory for local planning.
 - M26 added local handoff package generation.
@@ -22,6 +22,7 @@ Provide minimum operating context for M39 Hub agent/handoff/orchestration/escala
 - M37 added a local Hub server/API/frontend foundation intended to become the primary local entry point for AresForge.
 - M38 added interactive local Hub screens and API workflows for M32 managed-project registry and M33 local queue management.
 - M39 adds interactive local Hub screens and API workflows for M34 local agent profiles/handoff targets, M26 handoff preview, M35 orchestration planning, and M36 escalation planning.
+- M40 adds unified local control-plane reporting, readiness indicators, action-center guidance, and operator workflow cards in Hub Home/Reports/Settings.
 - Foundation-batch boundaries (M26-M30):
   - no `gh`
   - no GitHub API calls
@@ -112,8 +113,18 @@ Provide minimum operating context for M39 Hub agent/handoff/orchestration/escala
   - no local LLM calls, no cloud LLM calls, no Codex/ChatGPT/Ollama calls
   - no external API calls
   - no agent execution, no live GitHub sync
-  - reporting/dashboard polish and operator workflows remain scheduled for M40
+  - M40 reporting/dashboard/operator workflow surfaces are implemented as local-only report/plan-only flows
   - authentication and production deployment remain unimplemented
+- M39 boundary confirmations:
+- M40 boundary confirmations:
+  - local-first, file-backed reporting and workflow guidance
+  - report-only and plan-only control-plane surfaces
+  - no agent execution
+  - no local/cloud/Codex/ChatGPT/Ollama model invocation
+  - no GitHub calls, no `gh` calls, no network/external API calls
+  - no live GitHub sync execution
+  - authentication and production deployment remain unimplemented
+  - future work includes guided workflow depth, optional execution gates, auth hardening when exposed beyond localhost, controlled sync execution, and optional LLM execution behind explicit user approval gates
 - M39 boundary confirmations:
   - local-first, file-backed agent/handoff/orchestration/escalation management via Hub API and static UI
   - no `gh`, no GitHub API calls, no network services
@@ -122,10 +133,14 @@ Provide minimum operating context for M39 Hub agent/handoff/orchestration/escala
   - orchestration and escalation remain plan-only
   - no agent execution and no model invocation
   - handoff preview is local-only and does not post anywhere
-  - reporting/dashboard polish and operator workflows remain scheduled for M40
+  - M40 reporting/dashboard/operator workflow surfaces are implemented as local-only report/plan-only flows
   - authentication and production deployment remain unimplemented
 - Next-phase planning focus:
-  - M40: reporting/dashboard polish and operator workflows
+  - richer guided Hub workflows and cross-section automation
+  - optional execution gates with explicit user approval
+  - authentication hardening if exposed beyond localhost
+  - controlled GitHub sync execution behind explicit safety gates
+  - optional LLM execution behind explicit user-approved gates
 
 ## Canonical Documents
 
@@ -200,6 +215,6 @@ Provide minimum operating context for M39 Hub agent/handoff/orchestration/escala
 - No actual LLM invocation yet.
 - No cloud LLM API integration yet.
 - No GitHub sync execution yet.
-- Hub UI foundation exists, but full management/reporting workflows are not implemented yet.
+- Hub now provides M40 local management/planning/reporting workflows; execution gates/auth/deployment hardening remain future work.
 - No cross-machine coordination yet.
 - No background daemon/scheduler yet.

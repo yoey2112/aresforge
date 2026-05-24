@@ -34,7 +34,7 @@ Foundation status:
 - No actual LLM invocation yet.
 - No cloud LLM API integration yet.
 - No GitHub sync execution yet.
-- Hub UI foundation exists, but full management/reporting workflows are not implemented yet.
+- Hub now supports M40 local reporting/dashboard/operator workflows, but execution gates/auth/deployment hardening remain future work.
 - No cross-machine coordination yet.
 - No background daemon/scheduler yet.
 
@@ -71,7 +71,7 @@ M37 Hub surface:
    - Home, Projects, Repos, Queue, Agents, Handoff, Orchestration, Escalation, Reports, Settings
 - Home renders local summary data and empty states when optional files are missing.
 - Settings shows local-only boundary confirmations.
-- non-Home sections are intentional placeholders for M38-M40.
+- non-Home sections are now implemented through M40 for local management/planning/reporting.
 
 Boundary guarantees:
 
@@ -95,7 +95,7 @@ Milestone split after M37:
 
 - M38: full project/repo/queue management screens
 - M39: full agent/orchestration/escalation/handoff screens
-- M40: reporting/dashboard polish and operator workflow expansion
+- M40: completed locally (reporting/dashboard/operator workflow expansion)
 
 ## M38 Hub Project, Repo, And Queue Management
 
@@ -136,7 +136,7 @@ M38 boundary guarantees:
 
 Remaining scope split:
 
-- M40: reporting/dashboard polish and operator workflow expansion
+- M40: completed locally; next work includes guided workflows, optional execution gates, authentication hardening, and controlled sync execution
 - authentication and production deployment are not implemented yet
 
 ## M39 Hub Agent, Handoff, Orchestration, And Escalation Screens
@@ -184,7 +184,21 @@ M39 boundary guarantees:
 
 Remaining scope split:
 
-- M40: reporting/dashboard polish and operator workflow expansion
+- M40: completed locally; next work includes guided workflows, optional execution gates, authentication hardening, and controlled sync execution
+
+## M40 Operator Note
+
+- Start the Hub:
+   - `python -m aresforge serve-hub`
+- Open:
+   - `http://127.0.0.1:8765`
+- Use Home for readiness and action center.
+- Use Reports for local control-plane reporting.
+- Use Settings to review local paths and boundary confirmations.
+- Use workflow cards to guide local operations.
+- Data remains local file-backed.
+- Reports/workflows do not execute agents, models, GitHub sync, or external calls.
+- Optional CLI `inspect-project-dashboard` command is deferred as future work; M40 focuses on Hub/API reporting surfaces.
 - authentication and production deployment are not implemented yet
 
 ## Final Validation Checklist (Local-Only)

@@ -2,6 +2,43 @@
 
 ## Current Milestones
 
+### M40 - Reporting, Dashboard Polish, And Operator Workflows
+
+Status: Completed (local-only control-plane reporting and workflow guidance).
+
+Delivered M40 outcomes:
+
+- local Hub API report endpoints:
+  - `GET /api/reports/dashboard`
+  - `GET /api/reports/action-center`
+  - `GET /api/reports/readiness`
+  - `GET /api/reports/operator-workflows`
+  - `GET /api/reports/export`
+- Home now acts as a polished local operator dashboard with status cards, readiness indicators, action-center preview, and workflow cards.
+- Reports now includes project/repo/queue/agent/orchestration/escalation/docs/readiness/action-center/workflow sections plus local export/copy report actions.
+- Settings now includes default local paths, artifact folders, boundary confirmations, known limitations, and next milestone scope.
+
+M40 safety posture:
+
+- local-only and file-backed
+- report-only and plan-only workflow guidance
+- no agent execution
+- no local/cloud/Codex/ChatGPT/Ollama model execution
+- no GitHub calls
+- no `gh` calls
+- no network service calls
+- no external API calls
+- no live GitHub sync execution
+- no authentication implementation yet
+- no production deployment implementation yet
+
+Next-phase focus after M40:
+
+- richer guided workflows and optional execution gates
+- authentication hardening if exposed beyond localhost
+- controlled GitHub sync execution behind explicit safeguards
+- optional LLM execution behind explicit user-approved gates
+
 ### M39 - Hub Agent, Handoff, Orchestration, And Escalation Screens
 
 Status: Completed (local-only, file-backed interactive planning workflows).
@@ -44,7 +81,7 @@ M39 safety posture:
 
 Upcoming milestone split:
 
-- M40: reporting/dashboard polish and operator workflows
+- M40 completed locally; follow-on work shifts to guided workflows, execution gates, and controlled sync/auth hardening.
 
 ### M38 - Hub Project, Repo, And Queue Management
 
@@ -81,7 +118,7 @@ M38 safety posture:
 
 Upcoming milestone split:
 
-- M40: reporting/dashboard polish and operator workflows
+- M40 completed locally; follow-on work shifts to guided workflows, execution gates, and controlled sync/auth hardening.
 
 ### M37 - AresForge Hub UI Foundation
 
@@ -115,7 +152,7 @@ Upcoming milestone split:
 
 - M38: project/repo/queue management screens
 - M39: agent/orchestration/escalation/handoff screens
-- M40: reporting/dashboard polish and operator workflows
+- M40: completed locally; next scope is guided workflows, optional execution gates, and controlled sync/auth hardening
 
 ### M36 - Cloud LLM Escalation Planner
 

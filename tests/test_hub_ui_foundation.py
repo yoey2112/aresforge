@@ -14,6 +14,11 @@ from aresforge.hub.api import (
     get_orchestration_plan,
     get_project,
     get_project_repos,
+    get_reports_action_center,
+    get_reports_dashboard,
+    get_reports_export,
+    get_reports_operator_workflows,
+    get_reports_readiness,
     get_projects,
     get_queue,
     get_queue_item,
@@ -170,6 +175,12 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "Refresh Handoff Preview" in index_text
     assert "Generate/view plan-only orchestration guidance" in index_text
     assert "Generate/view plan-only escalation classification" in index_text
+    assert "Action Center Preview" in index_text
+    assert "Quick Workflow Cards" in index_text
+    assert "Refresh Summary" in index_text
+    assert "Refresh Report" in index_text
+    assert "Copy Report JSON" in index_text
+    assert "Export JSON Text" in index_text
 
 
 def test_app_js_references_m39_api_endpoints_and_forms() -> None:
@@ -184,6 +195,11 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
         "/api/handoff/preview",
         "/api/orchestration/plan",
         "/api/escalation/plan",
+        "/api/reports/dashboard",
+        "/api/reports/action-center",
+        "/api/reports/readiness",
+        "/api/reports/operator-workflows",
+        "/api/reports/export",
     ):
         assert endpoint in app_text
     for form_id in (
@@ -197,6 +213,31 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
         "escalation-form",
     ):
         assert form_id in app_text
+    for action_id in (
+        "reports-refresh",
+        "reports-copy-json",
+        "reports-export-json",
+        "reports-generate-handoff",
+        "reports-generate-orchestration",
+        "reports-generate-escalation",
+        "home-refresh-summary",
+    ):
+        assert action_id in app_text
+
+
+def test_reports_and_settings_sections_contain_m40_concepts() -> None:
+    index_text = (_static_dir() / "index.html").read_text(encoding="utf-8")
+    assert "Project/Repo Summary" in index_text
+    assert "Queue Summary" in index_text
+    assert "Agent Summary" in index_text
+    assert "Orchestration Summary" in index_text
+    assert "Escalation Summary" in index_text
+    assert "Docs Summary" in index_text
+    assert "Readiness Indicators" in index_text
+    assert "Action Center" in index_text
+    assert "Operator Workflows" in index_text
+    assert "Known limitations" in index_text
+    assert "Next milestone scope" in index_text
 
 
 def test_static_assets_do_not_reference_external_resources() -> None:
@@ -221,6 +262,10 @@ def test_settings_and_boundary_notice_present_in_static_markup() -> None:
     assert "settings-registry-path" in index_text
     assert "settings-queue-path" in index_text
     assert "settings-agents-path" in index_text
+    assert "settings-handoff-artifacts-path" in index_text
+    assert "settings-orchestration-artifacts-path" in index_text
+    assert "settings-escalation-artifacts-path" in index_text
+    assert "settings-dashboard-artifacts-path" in index_text
     assert "plan-only" in index_text
 
 
@@ -258,6 +303,55 @@ def test_api_docs_status_response(tmp_path: Path) -> None:
     assert isinstance(payload["docs"], list)
     assert payload["missing_count"] >= 0
     assert "boundary_confirmations" in payload
+
+
+def test_reports_dashboard_with_missing_files_returns_report_and_warnings(tmp_path: Path) -> None:
+    payload = get_reports_dashboard(_config(tmp_path))
+
+    assert payload["ok"] is True
+    assert payload["local_only"] is True
+    assert payload["report_only"] is True
+    assert "project_summary" in payload
+    assert "queue_summary" in payload
+    assert "agent_summary" in payload
+    assert "docs_summary" in payload
+    assert payload["warnings"]
+    assert payload["boundary_confirmations"]
+
+
+def test_reports_action_center_readiness_workflows_and_export_endpoints(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_project(config, "p1")
+    _seed_repo(config, "p1", "r1")
+    _seed_queue_item(config, "q1")
+    _seed_agent(config, "agent-a")
+    _seed_handoff_target(config, "target-a")
+
+    action_center = get_reports_action_center(config)
+    readiness = get_reports_readiness(config)
+    workflows = get_reports_operator_workflows(config)
+    exported = get_reports_export(config, {"format": "json"})
+
+    assert action_center["ok"] is True
+    assert "action_center" in action_center
+    assert action_center["boundary_confirmations"]
+
+    assert readiness["ok"] is True
+    assert "readiness_indicators" in readiness
+    assert "overall_status" in readiness["readiness_indicators"]
+    assert readiness["boundary_confirmations"]
+
+    assert workflows["ok"] is True
+    assert isinstance(workflows["operator_workflows"], list)
+    assert workflows["operator_workflows"]
+    assert workflows["boundary_confirmations"]
+
+    assert exported["ok"] is True
+    assert exported["report_only"] is True
+    assert "report" in exported
+    assert "content" in exported
+    assert exported["write_performed"] is False
+    assert exported["boundary_confirmations"]
 
 
 def test_get_projects_returns_empty_state_when_registry_missing(tmp_path: Path) -> None:

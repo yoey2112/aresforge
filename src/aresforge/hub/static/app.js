@@ -2,17 +2,21 @@ function byId(id) {
   return document.getElementById(id);
 }
 
+function on(id, eventName, handler) {
+  const element = byId(id);
+  if (!element) {
+    return;
+  }
+  element.addEventListener(eventName, handler);
+}
+
 function setMessage(id, text, tone) {
   const element = byId(id);
   if (!element) {
     return;
   }
   element.className = "message";
-  if (!text) {
-    element.textContent = "";
-    return;
-  }
-  element.textContent = text;
+  element.textContent = text || "";
   if (tone) {
     element.classList.add(`message-${tone}`);
   }
@@ -24,13 +28,11 @@ function setList(listId, emptyId, values) {
   if (!list || !empty) {
     return;
   }
-
   list.innerHTML = "";
   if (!values || values.length === 0) {
     empty.style.display = "block";
     return;
   }
-
   empty.style.display = "none";
   values.forEach((value) => {
     const item = document.createElement("li");
@@ -66,7 +68,7 @@ function parseCommaList(value) {
 
 function toQuery(params) {
   const query = new URLSearchParams();
-  Object.keys(params).forEach((key) => {
+  Object.keys(params || {}).forEach((key) => {
     const value = params[key];
     if (value !== undefined && value !== null && String(value).trim()) {
       query.set(key, String(value).trim());
@@ -75,55 +77,6 @@ function toQuery(params) {
   const rendered = query.toString();
   return rendered ? `?${rendered}` : "";
 }
-
-async function fetchJson(url, options) {
-  const response = await fetch(url, options || { method: "GET" });
-  const payload = await response.json();
-  if (!response.ok || payload.ok === false) {
-    const message = payload.message || payload.error || "Request failed.";
-    throw new Error(message);
-  }
-  return payload;
-}
-
-function activateSection(sectionName) {
-  document.querySelectorAll(".nav-item").forEach((button) => {
-    const active = button.dataset.section === sectionName;
-    button.classList.toggle("active", active);
-  });
-
-  document.querySelectorAll(".panel").forEach((panel) => {
-    const active = panel.dataset.panel === sectionName;
-    panel.classList.toggle("active", active);
-  });
-}
-
-function bindNavigation() {
-  document.querySelectorAll(".nav-item").forEach((button) => {
-    button.addEventListener("click", () => activateSection(button.dataset.section));
-  });
-}
-
-function queueEntries(queueStatusCounts) {
-  if (!queueStatusCounts || typeof queueStatusCounts !== "object") {
-    return [];
-  }
-  return Object.keys(queueStatusCounts)
-    .sort()
-    .map((status) => `${status}: ${queueStatusCounts[status]}`);
-}
-
-const state = {
-  projects: [],
-  selectedProjectId: "",
-  queueFilters: {
-    project_id: "",
-    repo_id: "",
-    status: "",
-    type: "",
-    assigned_agent: "",
-  },
-};
 
 function prunePayload(payload) {
   Object.keys(payload).forEach((key) => {
@@ -139,10 +92,98 @@ function prunePayload(payload) {
   return payload;
 }
 
+async function fetchJson(url, options) {
+  const response = await fetch(url, options || { method: "GET" });
+  const payload = await response.json();
+  if (!response.ok || payload.ok === false) {
+    throw new Error(payload.message || payload.error || "Request failed.");
+  }
+  return payload;
+}
+
+function activateSection(sectionName) {
+  document.querySelectorAll(".nav-item").forEach((button) => {
+    button.classList.toggle("active", button.dataset.section === sectionName);
+  });
+  document.querySelectorAll(".panel").forEach((panel) => {
+    panel.classList.toggle("active", panel.dataset.panel === sectionName);
+  });
+}
+
+function bindNavigation() {
+  document.querySelectorAll(".nav-item").forEach((button) => {
+    button.addEventListener("click", () => activateSection(button.dataset.section));
+  });
+}
+
+function countLines(prefix, counts) {
+  if (!counts || typeof counts !== "object") {
+    return [];
+  }
+  return Object.keys(counts)
+    .sort()
+    .map((key) => `${prefix} ${key}: ${counts[key]}`);
+}
+
+function queueEntries(queueStatusCounts) {
+  return countLines("status", queueStatusCounts);
+}
+
+function statusBadgeText(readiness) {
+  const status = String((readiness || {}).overall_status || "needs_attention");
+  return status;
+}
+
+function workflowLine(workflow) {
+  return `${workflow.workflow_id} | ${workflow.title} | section=${workflow.related_hub_section} | status=${workflow.execution_status}`;
+}
+
+function renderWorkflowCards(containerId, emptyId, workflows) {
+  const container = byId(containerId);
+  const empty = byId(emptyId);
+  if (!container || !empty) {
+    return;
+  }
+  container.innerHTML = "";
+  if (!workflows || workflows.length === 0) {
+    empty.style.display = "block";
+    return;
+  }
+  empty.style.display = "none";
+  workflows.forEach((workflow) => {
+    const card = document.createElement("article");
+    card.className = "workflow-card";
+    const required = (workflow.required_inputs || []).join(", ") || "none";
+    card.innerHTML = `
+      <h4>${workflow.title || workflow.workflow_id || "workflow"}</h4>
+      <p>${workflow.description || ""}</p>
+      <p><strong>Hub:</strong> ${workflow.related_hub_section || "-"}</p>
+      <p><strong>Inputs:</strong> ${required}</p>
+      <p><strong>Status:</strong> ${workflow.execution_status || "report_only"}</p>
+      <p><strong>Notes:</strong> ${workflow.notes || ""}</p>
+    `;
+    container.appendChild(card);
+  });
+}
+
+const state = {
+  projects: [],
+  selectedProjectId: "",
+  queueFilters: {
+    project_id: "",
+    repo_id: "",
+    status: "",
+    type: "",
+    assigned_agent: "",
+  },
+  report: null,
+  exportText: "",
+};
+
 function renderProjects(projects) {
   const lines = (projects || []).map((project) => {
     const tags = (project.tags || []).join(", ") || "-";
-    return `${project.project_id} | ${project.name} | status=${project.status || "-"} | root=${project.root_path || "-"} | branch=${project.default_branch || "-"} | tags=${tags} | repos=${project.repo_count || 0}`;
+    return `${project.project_id} | ${project.name} | status=${project.status || "-"} | root=${project.root_path || "-"} | repos=${project.repo_count || 0} | tags=${tags}`;
   });
   setList("projects-list", "projects-empty-state", lines);
 }
@@ -154,19 +195,16 @@ function refreshProjectSelectors(projects) {
   }
   const previous = selector.value;
   selector.innerHTML = "";
-
   const initialOption = document.createElement("option");
   initialOption.value = "";
   initialOption.textContent = "Select project";
   selector.appendChild(initialOption);
-
   (projects || []).forEach((project) => {
     const option = document.createElement("option");
     option.value = project.project_id;
     option.textContent = `${project.project_id} (${project.name})`;
     selector.appendChild(option);
   });
-
   if ((projects || []).some((project) => project.project_id === previous)) {
     selector.value = previous;
     state.selectedProjectId = previous;
@@ -176,71 +214,16 @@ function refreshProjectSelectors(projects) {
   }
 }
 
-async function loadProjects() {
-  setMessage("projects-message", "Loading projects...", "loading");
-  const payload = await fetchJson("/api/projects");
-  state.projects = payload.projects || [];
-  renderProjects(state.projects);
-  refreshProjectSelectors(state.projects);
-  setMessage("projects-message", "Projects loaded.", "success");
-  if (payload.warnings && payload.warnings.length > 0) {
-    setMessage("projects-message", payload.warnings.join(" | "), "warn");
-  }
-}
-
 function renderRepos(repos, showNoProject) {
   const noProject = byId("repos-no-project-state");
   if (noProject) {
     noProject.style.display = showNoProject ? "block" : "none";
   }
-
   const lines = (repos || []).map((repo) => {
     const tags = (repo.tags || []).join(", ") || "-";
-    return `${repo.repo_id} | ${repo.name} | role=${repo.role || "-"} | status=${repo.status || "-"} | path=${repo.path || "-"} | branch=${repo.default_branch || "-"} | remote=${repo.remote_url || "-"} | tags=${tags}`;
+    return `${repo.repo_id} | ${repo.name} | role=${repo.role || "-"} | status=${repo.status || "-"} | path=${repo.path || "-"} | tags=${tags}`;
   });
   setList("repos-list", "repos-empty-state", lines);
-}
-
-async function loadReposForSelectedProject() {
-  const projectId = state.selectedProjectId;
-  if (!projectId) {
-    renderRepos([], true);
-    return;
-  }
-
-  setMessage("repos-message", "Loading repos...", "loading");
-  const payload = await fetchJson(`/api/projects/${encodeURIComponent(projectId)}/repos`);
-  renderRepos(payload.repos || [], false);
-  setMessage("repos-message", "Repos loaded.", "success");
-  if (payload.warnings && payload.warnings.length > 0) {
-    setMessage("repos-message", payload.warnings.join(" | "), "warn");
-  }
-}
-
-function queueCountLines(payload) {
-  const lines = [];
-  const byStatus = payload.counts_by_status || {};
-  const byType = payload.counts_by_type || {};
-  const byPriority = payload.counts_by_priority || {};
-  Object.keys(byStatus).forEach((key) => lines.push(`status ${key}: ${byStatus[key]}`));
-  Object.keys(byType).forEach((key) => lines.push(`type ${key}: ${byType[key]}`));
-  Object.keys(byPriority).forEach((key) => lines.push(`priority ${key}: ${byPriority[key]}`));
-  return lines;
-}
-
-async function quickUpdateQueueStatus(itemId, newStatus) {
-  try {
-    setMessage("queue-message", `Updating ${itemId} -> ${newStatus}...`, "loading");
-    await fetchJson(`/api/queue/${encodeURIComponent(itemId)}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: newStatus }),
-    });
-    await loadQueue();
-    setMessage("queue-message", `Updated ${itemId} to ${newStatus}.`, "success");
-  } catch (error) {
-    setMessage("queue-message", String(error.message || error), "error");
-  }
 }
 
 function renderQueueItems(items) {
@@ -259,29 +242,34 @@ function renderQueueItems(items) {
   items.forEach((item) => {
     const card = document.createElement("article");
     card.className = "card queue-card";
-
-    const tags = (item.tags || []).join(", ") || "-";
-    const deps = (item.dependencies || []).join(", ") || "-";
-    const blocked = (item.blocked_by || []).join(", ") || "-";
-
     card.innerHTML = `
       <h3>${item.item_id}</h3>
       <p>${item.title || "(no title)"}</p>
       <p><strong>Project:</strong> ${item.project_id || "-"} | <strong>Repo:</strong> ${item.repo_id || "-"}</p>
       <p><strong>Status:</strong> ${item.status || "-"} | <strong>Priority:</strong> ${item.priority || "-"} | <strong>Type:</strong> ${item.item_type || "-"}</p>
       <p><strong>Assigned:</strong> ${item.assigned_agent || "-"}</p>
-      <p><strong>Dependencies:</strong> ${deps}</p>
-      <p><strong>Blocked By:</strong> ${blocked}</p>
-      <p><strong>Tags:</strong> ${tags}</p>
     `;
-
     const controls = document.createElement("div");
     controls.className = "quick-actions";
     ["ready", "in_progress", "blocked", "done"].forEach((status) => {
       const button = document.createElement("button");
       button.type = "button";
       button.textContent = `Set ${status}`;
-      button.addEventListener("click", () => quickUpdateQueueStatus(item.item_id, status));
+      button.addEventListener("click", async () => {
+        try {
+          setMessage("queue-message", `Updating ${item.item_id} -> ${status}...`, "loading");
+          await fetchJson(`/api/queue/${encodeURIComponent(item.item_id)}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status }),
+          });
+          await loadQueue();
+          await loadDashboardReport();
+          setMessage("queue-message", `Updated ${item.item_id} to ${status}.`, "success");
+        } catch (error) {
+          setMessage("queue-message", String(error.message || error), "error");
+        }
+      });
       controls.appendChild(button);
     });
     card.appendChild(controls);
@@ -289,65 +277,24 @@ function renderQueueItems(items) {
   });
 }
 
-async function loadQueue() {
-  setMessage("queue-message", "Loading queue...", "loading");
-  const payload = await fetchJson(`/api/queue${toQuery(state.queueFilters)}`);
-  renderQueueItems(payload.items || []);
-  setList("queue-counts", "queue-counts-empty-state", queueCountLines(payload));
-  setMessage("queue-message", "Queue loaded.", "success");
-  if (payload.warnings && payload.warnings.length > 0) {
-    setMessage("queue-message", payload.warnings.join(" | "), "warn");
-  }
-}
-
 function renderAgents(agents) {
   const lines = (agents || []).map((agent) => {
     const types = (agent.allowed_item_types || []).join(", ") || "-";
-    const tags = (agent.tags || []).join(", ") || "-";
-    return `${agent.agent_id} | ${agent.name} | role=${agent.role || "-"} | mode=${agent.execution_mode || "-"} | status=${agent.status || "-"} | model=${agent.model_preference || "-"} | escalation_allowed=${agent.escalation_allowed} | allowed_types=${types} | tags=${tags}`;
+    return `${agent.agent_id} | ${agent.name} | role=${agent.role || "-"} | mode=${agent.execution_mode || "-"} | status=${agent.status || "-"} | types=${types}`;
   });
   setList("agents-list", "agents-empty-state", lines);
 }
 
 function renderHandoffTargets(targets) {
   const lines = (targets || []).map((target) => {
-    const tags = (target.tags || []).join(", ") || "-";
-    return `${target.target_id} | ${target.name} | type=${target.target_type || "-"} | in=${target.input_format || "-"} | out=${target.output_format || "-"} | status=${target.status || "-"} | tags=${tags}`;
+    return `${target.target_id} | ${target.name} | type=${target.target_type || "-"} | status=${target.status || "-"}`;
   });
   setList("handoff-targets-list", "handoff-targets-empty-state", lines);
 }
 
-async function loadAgents() {
-  setMessage("agents-message", "Loading agents...", "loading");
-  const payload = await fetchJson("/api/agents");
-  renderAgents(payload.agents || []);
-  setMessage("agents-message", "Agents loaded.", "success");
-  if (payload.warnings && payload.warnings.length > 0) {
-    setMessage("agents-message", payload.warnings.join(" | "), "warn");
-  }
-}
-
-async function loadHandoffTargets() {
-  const payload = await fetchJson("/api/handoff-targets");
-  renderHandoffTargets(payload.handoff_targets || []);
-  if (payload.warnings && payload.warnings.length > 0) {
-    setMessage("agents-message", payload.warnings.join(" | "), "warn");
-  }
-}
-
-async function loadHandoffPreview() {
-  setMessage("handoff-message", "Generating local handoff preview...", "loading");
-  const payload = await fetchJson("/api/handoff/preview");
-  setCodeBlock("handoff-preview", "handoff-preview-empty", payload.preview || "");
-  setMessage("handoff-message", "Handoff preview loaded. Local-only and not posted anywhere.", "success");
-  if (payload.warnings && payload.warnings.length > 0) {
-    setMessage("handoff-message", payload.warnings.join(" | "), "warn");
-  }
-}
-
 function assignmentLines(assignments) {
   return (assignments || []).map((assignment) => {
-    return `${assignment.item_id} -> ${assignment.recommended_agent_id || "unassigned"} (${assignment.recommended_agent_role || "unknown"}, confidence=${assignment.confidence || "-"})`;
+    return `${assignment.item_id} -> ${assignment.recommended_agent_id || "unassigned"} (${assignment.recommended_agent_role || "unknown"})`;
   });
 }
 
@@ -373,22 +320,6 @@ function renderOrchestrationPlan(plan) {
   setList("orchestration-actions", "orchestration-actions-empty", plan.next_actions || []);
 }
 
-async function loadOrchestrationPlan(filters, usePost) {
-  setMessage("orchestration-message", "Generating plan-only orchestration output...", "loading");
-  let payload;
-  if (usePost) {
-    payload = await fetchJson("/api/orchestration/plan", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(prunePayload(filters || {})),
-    });
-  } else {
-    payload = await fetchJson("/api/orchestration/plan");
-  }
-  renderOrchestrationPlan(payload);
-  setMessage("orchestration-message", "Plan generated. This is plan-only and does not execute agents.", "success");
-}
-
 function classificationLines(label, items) {
   return (items || []).map((item) => `${label}: ${item.item_id} (${item.project_id || "-"}/${item.repo_id || "-"})`);
 }
@@ -401,9 +332,7 @@ function reasonLines(reasonsByItem) {
 }
 
 function targetLines(targets) {
-  return (targets || []).map((target) => {
-    return `${target.item_id || "item"}: agent=${target.recommended_agent_id || "-"} target=${target.recommended_target_id || "-"} type=${target.recommended_target_type || "-"}`;
-  });
+  return (targets || []).map((target) => `${target.item_id || "item"}: agent=${target.recommended_agent_id || "-"} target=${target.recommended_target_id || "-"} type=${target.recommended_target_type || "-"}`);
 }
 
 function guidanceLines(guidance) {
@@ -427,6 +356,70 @@ function renderEscalationPlan(plan) {
   setList("escalation-actions", "escalation-actions-empty", plan.next_actions || []);
 }
 
+async function loadProjects() {
+  setMessage("projects-message", "Loading projects...", "loading");
+  const payload = await fetchJson("/api/projects");
+  state.projects = payload.projects || [];
+  renderProjects(state.projects);
+  refreshProjectSelectors(state.projects);
+  setMessage("projects-message", payload.warnings && payload.warnings.length ? payload.warnings.join(" | ") : "Projects loaded.", payload.warnings && payload.warnings.length ? "warn" : "success");
+}
+
+async function loadReposForSelectedProject() {
+  const projectId = state.selectedProjectId;
+  if (!projectId) {
+    renderRepos([], true);
+    return;
+  }
+  setMessage("repos-message", "Loading repos...", "loading");
+  const payload = await fetchJson(`/api/projects/${encodeURIComponent(projectId)}/repos`);
+  renderRepos(payload.repos || [], false);
+  setMessage("repos-message", payload.warnings && payload.warnings.length ? payload.warnings.join(" | ") : "Repos loaded.", payload.warnings && payload.warnings.length ? "warn" : "success");
+}
+
+async function loadQueue() {
+  setMessage("queue-message", "Loading queue...", "loading");
+  const payload = await fetchJson(`/api/queue${toQuery(state.queueFilters)}`);
+  renderQueueItems(payload.items || []);
+  setList("queue-counts", "queue-counts-empty-state", [].concat(countLines("status", payload.counts_by_status), countLines("type", payload.counts_by_type), countLines("priority", payload.counts_by_priority)));
+  setMessage("queue-message", payload.warnings && payload.warnings.length ? payload.warnings.join(" | ") : "Queue loaded.", payload.warnings && payload.warnings.length ? "warn" : "success");
+}
+
+async function loadAgents() {
+  setMessage("agents-message", "Loading agents...", "loading");
+  const payload = await fetchJson("/api/agents");
+  renderAgents(payload.agents || []);
+  setMessage("agents-message", payload.warnings && payload.warnings.length ? payload.warnings.join(" | ") : "Agents loaded.", payload.warnings && payload.warnings.length ? "warn" : "success");
+}
+
+async function loadHandoffTargets() {
+  const payload = await fetchJson("/api/handoff-targets");
+  renderHandoffTargets(payload.handoff_targets || []);
+}
+
+async function loadHandoffPreview() {
+  setMessage("handoff-message", "Generating local handoff preview...", "loading");
+  const payload = await fetchJson("/api/handoff/preview");
+  setCodeBlock("handoff-preview", "handoff-preview-empty", payload.preview || "");
+  setMessage("handoff-message", payload.warnings && payload.warnings.length ? payload.warnings.join(" | ") : "Handoff preview loaded. Local-only and not posted anywhere.", payload.warnings && payload.warnings.length ? "warn" : "success");
+}
+
+async function loadOrchestrationPlan(filters, usePost) {
+  setMessage("orchestration-message", "Generating plan-only orchestration output...", "loading");
+  let payload;
+  if (usePost) {
+    payload = await fetchJson("/api/orchestration/plan", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(prunePayload(filters || {})),
+    });
+  } else {
+    payload = await fetchJson("/api/orchestration/plan");
+  }
+  renderOrchestrationPlan(payload);
+  setMessage("orchestration-message", "Plan generated. This is plan-only and does not execute agents.", "success");
+}
+
 async function loadEscalationPlan(filters, usePost) {
   setMessage("escalation-message", "Generating plan-only escalation output...", "loading");
   let payload;
@@ -443,46 +436,180 @@ async function loadEscalationPlan(filters, usePost) {
   setMessage("escalation-message", "Plan generated. No local/cloud/Codex/ChatGPT/Ollama model invocation occurred.", "success");
 }
 
+function renderReportSummary(report) {
+  const projectSummary = report.project_summary || {};
+  const repoSummary = report.repo_summary || {};
+  const queueSummary = report.queue_summary || {};
+  const agentSummary = report.agent_summary || {};
+  const orchestrationSummary = report.orchestration_summary || {};
+  const escalationSummary = report.escalation_summary || {};
+  const docsSummary = report.docs_summary || {};
+  const readiness = report.readiness_indicators || {};
+  const actionCenter = report.action_center || {};
+
+  byId("project-count").textContent = String(projectSummary.project_count || 0);
+  byId("repo-count").textContent = String(repoSummary.repo_count || 0);
+  byId("queue-total").textContent = String(queueSummary.item_count || 0);
+  byId("agent-count").textContent = String(agentSummary.agent_count || 0);
+  byId("home-orchestration-count").textContent = String(orchestrationSummary.assigned_count || 0);
+  byId("home-escalation-count").textContent = String((escalationSummary.cloud_llm_recommended_count || 0) + (escalationSummary.human_required_count || 0));
+  byId("home-docs-status").textContent = docsSummary.docs_ready ? "ready" : "needs docs";
+  byId("home-overall-status").textContent = statusBadgeText(readiness);
+
+  setList("queue-status-list", "queue-empty-state", queueEntries(queueSummary.counts_by_status));
+  setList("warnings-list", "warnings-empty-state", report.warnings || []);
+  setList("actions-list", "actions-empty-state", report.recommended_next_actions || []);
+  setList("readiness-list", "readiness-empty-state", (report.project_management_readiness || []).concat((report.plan_only_boundary_hints || []).map((hint) => `Boundary: ${hint}`)));
+  setList("home-readiness-indicators", "home-readiness-indicators-empty", Object.keys(readiness).map((key) => `${key}: ${readiness[key]}`));
+  setList("home-action-center", "home-action-center-empty", [
+    `blocked_work_items: ${(actionCenter.blocked_work_items || []).length}`,
+    `urgent_or_high_priority_items: ${(actionCenter.urgent_or_high_priority_items || []).length}`,
+    `unassigned_queue_items: ${(actionCenter.unassigned_queue_items || []).length}`,
+    `cloud_escalation_candidates: ${actionCenter.cloud_escalation_candidates || 0}`,
+    `human_required_items: ${actionCenter.human_required_items || 0}`,
+    `missing_docs: ${(actionCenter.missing_docs || []).length}`,
+    `missing_local_state_files: ${(actionCenter.missing_local_state_files || []).length}`,
+  ]);
+  renderWorkflowCards("home-workflow-cards", "home-workflow-cards-empty", (report.operator_workflows || []).slice(0, 6));
+
+  setList("reports-project-repo-summary", "reports-project-repo-summary-empty", [
+    `project_count: ${projectSummary.project_count || 0}`,
+    ...countLines("project_status", projectSummary.counts_by_status),
+    `repo_count: ${repoSummary.repo_count || 0}`,
+    ...countLines("repo_status", repoSummary.counts_by_status),
+    ...countLines("repo_role", repoSummary.counts_by_role),
+  ]);
+  setList("reports-queue-summary", "reports-queue-summary-empty", [
+    `item_count: ${queueSummary.item_count || 0}`,
+    ...countLines("status", queueSummary.counts_by_status),
+    ...countLines("priority", queueSummary.counts_by_priority),
+    ...countLines("type", queueSummary.counts_by_type),
+    `blocked_items: ${(queueSummary.blocked_items || []).length}`,
+    `ready_items: ${(queueSummary.ready_items || []).length}`,
+    `in_progress_items: ${(queueSummary.in_progress_items || []).length}`,
+  ]);
+  setList("reports-agent-summary", "reports-agent-summary-empty", [
+    `agent_count: ${agentSummary.agent_count || 0}`,
+    `handoff_target_count: ${agentSummary.handoff_target_count || 0}`,
+    ...countLines("role", agentSummary.counts_by_role),
+    ...countLines("execution_mode", agentSummary.counts_by_execution_mode),
+    ...countLines("status", agentSummary.counts_by_status),
+  ]);
+  setList("reports-orchestration-summary", "reports-orchestration-summary-empty", [
+    `orchestration_available: ${orchestrationSummary.orchestration_available}`,
+    `assigned_count: ${orchestrationSummary.assigned_count || 0}`,
+    `unassigned_count: ${orchestrationSummary.unassigned_count || 0}`,
+    `blocked_count: ${orchestrationSummary.blocked_count || 0}`,
+    `risk_count: ${orchestrationSummary.risk_count || 0}`,
+    `latest_orchestration_artifact: ${orchestrationSummary.latest_orchestration_artifact || "(none)"}`,
+  ]);
+  setList("reports-escalation-summary", "reports-escalation-summary-empty", [
+    `escalation_available: ${escalationSummary.escalation_available}`,
+    `local_llm_suitable_count: ${escalationSummary.local_llm_suitable_count || 0}`,
+    `codex_suitable_count: ${escalationSummary.codex_suitable_count || 0}`,
+    `cloud_llm_recommended_count: ${escalationSummary.cloud_llm_recommended_count || 0}`,
+    `human_required_count: ${escalationSummary.human_required_count || 0}`,
+    `blocked_or_needs_clarification_count: ${escalationSummary.blocked_or_needs_clarification_count || 0}`,
+    `latest_escalation_artifact: ${escalationSummary.latest_escalation_artifact || "(none)"}`,
+  ]);
+  setList("reports-docs-summary", "reports-docs-summary-empty", [
+    `docs_ready: ${docsSummary.docs_ready}`,
+    `present_count: ${docsSummary.present_count || 0}`,
+    `missing_count: ${docsSummary.missing_count || 0}`,
+    `missing_docs: ${(docsSummary.missing_docs || []).join(", ") || "none"}`,
+  ]);
+  setList("reports-readiness", "reports-readiness-empty", Object.keys(readiness).map((key) => `${key}: ${readiness[key]}`));
+  setList("reports-action-center", "reports-action-center-empty", [
+    `blocked_work_items: ${(actionCenter.blocked_work_items || []).length}`,
+    `urgent_or_high_priority_items: ${(actionCenter.urgent_or_high_priority_items || []).length}`,
+    `unassigned_queue_items: ${(actionCenter.unassigned_queue_items || []).length}`,
+    `cloud_escalation_candidates: ${actionCenter.cloud_escalation_candidates || 0}`,
+    `human_required_items: ${actionCenter.human_required_items || 0}`,
+    `missing_docs: ${(actionCenter.missing_docs || []).join(", ") || "none"}`,
+    `missing_local_state_files: ${(actionCenter.missing_local_state_files || []).join(", ") || "none"}`,
+  ]);
+  renderWorkflowCards("reports-operator-workflows", "reports-operator-workflows-empty", report.operator_workflows || []);
+  setList("reports-warnings", "reports-warnings-empty", report.warnings || []);
+  setList("reports-risks", "reports-risks-empty", report.risks || []);
+  setList("boundary-list", "boundary-empty-state", report.boundary_confirmations || []);
+}
+
+async function loadDashboardReport() {
+  setMessage("reports-message", "Loading dashboard report...", "loading");
+  const payload = await fetchJson("/api/reports/dashboard", { method: "GET" });
+  state.report = payload;
+  renderReportSummary(payload);
+  setMessage("reports-message", "Report loaded.", "success");
+}
+
+async function loadReportSlices() {
+  const readiness = await fetchJson("/api/reports/readiness", { method: "GET" });
+  const actionCenter = await fetchJson("/api/reports/action-center", { method: "GET" });
+  const workflows = await fetchJson("/api/reports/operator-workflows", { method: "GET" });
+  setList("reports-readiness", "reports-readiness-empty", Object.keys(readiness.readiness_indicators || {}).map((key) => `${key}: ${readiness.readiness_indicators[key]}`));
+  setList("reports-action-center", "reports-action-center-empty", [
+    `blocked_work_items: ${(actionCenter.action_center || {}).blocked_work_items ? (actionCenter.action_center.blocked_work_items || []).length : 0}`,
+    `urgent_or_high_priority_items: ${(actionCenter.action_center || {}).urgent_or_high_priority_items ? (actionCenter.action_center.urgent_or_high_priority_items || []).length : 0}`,
+    `unassigned_queue_items: ${(actionCenter.action_center || {}).unassigned_queue_items ? (actionCenter.action_center.unassigned_queue_items || []).length : 0}`,
+  ]);
+  renderWorkflowCards("reports-operator-workflows", "reports-operator-workflows-empty", workflows.operator_workflows || []);
+}
+
+async function loadExportPreview(formatName) {
+  const payload = await fetchJson(`/api/reports/export${toQuery({ format: formatName || "json" })}`, { method: "GET" });
+  state.exportText = String(payload.content || "");
+  setCodeBlock("reports-export-content", "reports-export-content-empty", state.exportText);
+  return payload;
+}
+
+async function copyExportText() {
+  if (!state.exportText) {
+    await loadExportPreview("json");
+  }
+  if (!state.exportText) {
+    return false;
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    await navigator.clipboard.writeText(state.exportText);
+    return true;
+  }
+  const helper = document.createElement("textarea");
+  helper.value = state.exportText;
+  document.body.appendChild(helper);
+  helper.select();
+  document.execCommand("copy");
+  document.body.removeChild(helper);
+  return true;
+}
+
+async function refreshSummaryAndReport() {
+  await loadDashboardReport();
+  await loadReportSlices();
+}
+
 async function loadSettings() {
   try {
     const payload = await fetchJson("/api/settings");
     byId("settings-registry-path").textContent = payload.registry_path || "(unavailable)";
     byId("settings-queue-path").textContent = payload.queue_path || "(unavailable)";
     byId("settings-agents-path").textContent = payload.agents_path || "(unavailable)";
+    const artifacts = payload.default_artifact_paths || {};
+    byId("settings-handoff-artifacts-path").textContent = artifacts.handoff || "(unavailable)";
+    byId("settings-orchestration-artifacts-path").textContent = artifacts.orchestration || "(unavailable)";
+    byId("settings-escalation-artifacts-path").textContent = artifacts.escalation || "(unavailable)";
+    byId("settings-dashboard-artifacts-path").textContent = artifacts.dashboard || "(unavailable)";
+    const hubServer = payload.hub_server || {};
+    byId("settings-hub-host").textContent = hubServer.current_host_hint || hubServer.default_host || "127.0.0.1";
+    byId("settings-hub-port").textContent = String(hubServer.current_port_hint || hubServer.default_port || 8765);
     setList("settings-m39-boundaries", "settings-m39-boundaries-empty", payload.m39_boundary_confirmations || []);
+    setList("settings-m40-boundaries", "settings-m40-boundaries-empty", payload.m40_boundary_confirmations || []);
+    setList("settings-known-limitations", "settings-known-limitations-empty", payload.known_limitations || []);
+    setList("settings-next-milestone", "settings-next-milestone-empty", payload.next_milestone_scope || []);
   } catch (_error) {
     byId("settings-registry-path").textContent = "(unavailable)";
     byId("settings-queue-path").textContent = "(unavailable)";
     byId("settings-agents-path").textContent = "(unavailable)";
   }
-}
-
-async function loadSummary() {
-  const payload = await fetchJson("/api/summary", { method: "GET" });
-  byId("project-count").textContent = String(payload.project_count || 0);
-  byId("repo-count").textContent = String(payload.repo_count || 0);
-  byId("agent-count").textContent = String(payload.agent_count || 0);
-
-  const queueValues = queueEntries(payload.queue_status_counts);
-  const queueTotal = queueValues.reduce((sum, line) => sum + Number(line.split(": ")[1] || 0), 0);
-  byId("queue-total").textContent = String(queueTotal);
-
-  const readiness = (payload.project_management_readiness || []).slice();
-  if (payload.orchestration_readiness_hint) {
-    readiness.push(`Orchestration: ${payload.orchestration_readiness_hint}`);
-  }
-  if (payload.escalation_readiness_hint) {
-    readiness.push(`Escalation: ${payload.escalation_readiness_hint}`);
-  }
-  if (payload.plan_only_boundary_hints && Array.isArray(payload.plan_only_boundary_hints)) {
-    payload.plan_only_boundary_hints.forEach((hint) => readiness.push(`Boundary: ${hint}`));
-  }
-
-  setList("queue-status-list", "queue-empty-state", queueValues);
-  setList("warnings-list", "warnings-empty-state", payload.warnings || []);
-  setList("actions-list", "actions-empty-state", payload.next_recommended_actions || []);
-  setList("readiness-list", "readiness-empty-state", readiness);
-  setList("boundary-list", "boundary-empty-state", payload.boundary_confirmations || []);
 }
 
 function buildProjectPayload() {
@@ -539,7 +666,6 @@ function buildAgentPayload() {
   } else if (escalationRaw === "false") {
     escalationAllowed = false;
   }
-
   return prunePayload({
     agent_id: byId("agent-agent-id").value.trim(),
     name: byId("agent-name").value.trim(),
@@ -575,7 +701,7 @@ function buildHandoffTargetPayload() {
 }
 
 function bindForms() {
-  byId("project-form").addEventListener("submit", async (event) => {
+  on("project-form", "submit", async (event) => {
     event.preventDefault();
     try {
       setMessage("projects-message", "Saving project...", "loading");
@@ -585,7 +711,7 @@ function bindForms() {
         body: JSON.stringify(buildProjectPayload()),
       });
       await loadProjects();
-      await loadSummary();
+      await refreshSummaryAndReport();
       await loadReposForSelectedProject();
       setMessage("projects-message", "Project saved.", "success");
     } catch (error) {
@@ -593,12 +719,16 @@ function bindForms() {
     }
   });
 
-  byId("repo-project-select").addEventListener("change", async () => {
+  on("repo-project-select", "change", async () => {
     state.selectedProjectId = byId("repo-project-select").value;
-    await loadReposForSelectedProject();
+    try {
+      await loadReposForSelectedProject();
+    } catch (error) {
+      setMessage("repos-message", String(error.message || error), "error");
+    }
   });
 
-  byId("repo-form").addEventListener("submit", async (event) => {
+  on("repo-form", "submit", async (event) => {
     event.preventDefault();
     if (!state.selectedProjectId) {
       setMessage("repos-message", "Select a project before saving a repo.", "warn");
@@ -613,14 +743,14 @@ function bindForms() {
       });
       await loadReposForSelectedProject();
       await loadProjects();
-      await loadSummary();
+      await refreshSummaryAndReport();
       setMessage("repos-message", "Repo saved.", "success");
     } catch (error) {
       setMessage("repos-message", String(error.message || error), "error");
     }
   });
 
-  byId("queue-filter-form").addEventListener("submit", async (event) => {
+  on("queue-filter-form", "submit", async (event) => {
     event.preventDefault();
     state.queueFilters.project_id = byId("filter-project-id").value.trim();
     state.queueFilters.repo_id = byId("filter-repo-id").value.trim();
@@ -634,7 +764,7 @@ function bindForms() {
     }
   });
 
-  byId("queue-filter-reset").addEventListener("click", async () => {
+  on("queue-filter-reset", "click", async () => {
     byId("filter-project-id").value = "";
     byId("filter-repo-id").value = "";
     byId("filter-status").value = "";
@@ -649,7 +779,7 @@ function bindForms() {
     }
   });
 
-  byId("queue-form").addEventListener("submit", async (event) => {
+  on("queue-form", "submit", async (event) => {
     event.preventDefault();
     try {
       setMessage("queue-message", "Saving queue item...", "loading");
@@ -659,14 +789,14 @@ function bindForms() {
         body: JSON.stringify(buildQueuePayload()),
       });
       await loadQueue();
-      await loadSummary();
+      await refreshSummaryAndReport();
       setMessage("queue-message", "Queue item saved.", "success");
     } catch (error) {
       setMessage("queue-message", String(error.message || error), "error");
     }
   });
 
-  byId("agent-form").addEventListener("submit", async (event) => {
+  on("agent-form", "submit", async (event) => {
     event.preventDefault();
     try {
       setMessage("agents-message", "Saving agent...", "loading");
@@ -676,14 +806,14 @@ function bindForms() {
         body: JSON.stringify(buildAgentPayload()),
       });
       await loadAgents();
-      await loadSummary();
+      await refreshSummaryAndReport();
       setMessage("agents-message", "Agent saved.", "success");
     } catch (error) {
       setMessage("agents-message", String(error.message || error), "error");
     }
   });
 
-  byId("handoff-target-form").addEventListener("submit", async (event) => {
+  on("handoff-target-form", "submit", async (event) => {
     event.preventDefault();
     try {
       setMessage("agents-message", "Saving handoff target...", "loading");
@@ -693,14 +823,14 @@ function bindForms() {
         body: JSON.stringify(buildHandoffTargetPayload()),
       });
       await loadHandoffTargets();
-      await loadSummary();
+      await refreshSummaryAndReport();
       setMessage("agents-message", "Handoff target saved.", "success");
     } catch (error) {
       setMessage("agents-message", String(error.message || error), "error");
     }
   });
 
-  byId("handoff-refresh").addEventListener("click", async () => {
+  on("handoff-refresh", "click", async () => {
     try {
       await loadHandoffPreview();
     } catch (error) {
@@ -708,7 +838,7 @@ function bindForms() {
     }
   });
 
-  byId("orchestration-form").addEventListener("submit", async (event) => {
+  on("orchestration-form", "submit", async (event) => {
     event.preventDefault();
     try {
       await loadOrchestrationPlan(
@@ -720,23 +850,25 @@ function bindForms() {
         },
         true
       );
+      await refreshSummaryAndReport();
     } catch (error) {
       setMessage("orchestration-message", String(error.message || error), "error");
     }
   });
 
-  byId("orchestration-reset").addEventListener("click", async () => {
+  on("orchestration-reset", "click", async () => {
     byId("orchestration-project-id").value = "";
     byId("orchestration-repo-id").value = "";
     byId("orchestration-status").value = "";
     try {
       await loadOrchestrationPlan({}, false);
+      await refreshSummaryAndReport();
     } catch (error) {
       setMessage("orchestration-message", String(error.message || error), "error");
     }
   });
 
-  byId("escalation-form").addEventListener("submit", async (event) => {
+  on("escalation-form", "submit", async (event) => {
     event.preventDefault();
     try {
       await loadEscalationPlan(
@@ -749,20 +881,88 @@ function bindForms() {
         },
         true
       );
+      await refreshSummaryAndReport();
     } catch (error) {
       setMessage("escalation-message", String(error.message || error), "error");
     }
   });
 
-  byId("escalation-reset").addEventListener("click", async () => {
+  on("escalation-reset", "click", async () => {
     byId("escalation-item-id").value = "";
     byId("escalation-project-id").value = "";
     byId("escalation-repo-id").value = "";
     byId("escalation-status").value = "";
     try {
       await loadEscalationPlan({}, false);
+      await refreshSummaryAndReport();
     } catch (error) {
       setMessage("escalation-message", String(error.message || error), "error");
+    }
+  });
+
+  on("reports-refresh", "click", async () => {
+    try {
+      await refreshSummaryAndReport();
+      setMessage("reports-message", "Report refreshed.", "success");
+    } catch (error) {
+      setMessage("reports-message", String(error.message || error), "error");
+    }
+  });
+
+  on("home-refresh-summary", "click", async () => {
+    try {
+      await refreshSummaryAndReport();
+      setMessage("reports-message", "Summary refreshed.", "success");
+    } catch (error) {
+      setMessage("reports-message", String(error.message || error), "error");
+    }
+  });
+
+  on("reports-copy-json", "click", async () => {
+    try {
+      const copied = await copyExportText();
+      setMessage("reports-message", copied ? "Report JSON copied." : "Nothing to copy.", copied ? "success" : "warn");
+    } catch (error) {
+      setMessage("reports-message", String(error.message || error), "error");
+    }
+  });
+
+  on("reports-export-json", "click", async () => {
+    try {
+      await loadExportPreview("json");
+      setMessage("reports-message", "Report export JSON generated in-page.", "success");
+    } catch (error) {
+      setMessage("reports-message", String(error.message || error), "error");
+    }
+  });
+
+  on("reports-generate-handoff", "click", async () => {
+    try {
+      await loadHandoffPreview();
+      await refreshSummaryAndReport();
+      setMessage("reports-message", "Handoff preview refreshed.", "success");
+    } catch (error) {
+      setMessage("reports-message", String(error.message || error), "error");
+    }
+  });
+
+  on("reports-generate-orchestration", "click", async () => {
+    try {
+      await loadOrchestrationPlan({}, false);
+      await refreshSummaryAndReport();
+      setMessage("reports-message", "Orchestration plan refreshed.", "success");
+    } catch (error) {
+      setMessage("reports-message", String(error.message || error), "error");
+    }
+  });
+
+  on("reports-generate-escalation", "click", async () => {
+    try {
+      await loadEscalationPlan({}, false);
+      await refreshSummaryAndReport();
+      setMessage("reports-message", "Escalation plan refreshed.", "success");
+    } catch (error) {
+      setMessage("reports-message", String(error.message || error), "error");
     }
   });
 }
@@ -773,10 +973,10 @@ async function init() {
   renderRepos([], true);
 
   try {
-    await loadSummary();
-  } catch (_error) {
-    setList("warnings-list", "warnings-empty-state", ["Hub summary API is unavailable."]);
-    setList("actions-list", "actions-empty-state", ["Start the local hub server via python -m aresforge serve-hub."]);
+    await refreshSummaryAndReport();
+  } catch (error) {
+    setMessage("reports-message", String(error.message || error), "error");
+    setList("warnings-list", "warnings-empty-state", ["Hub report API is unavailable."]);
   }
 
   try {
@@ -816,18 +1016,13 @@ async function init() {
     setMessage("escalation-message", String(error.message || error), "error");
   }
 
-  await loadSettings();
-}
-
-init();
-    state.selectedProjectId = selector.value;
-    try {
-      await loadProjectDetail(selector.value);
-      await loadReposForSelectedProject();
-    } catch (error) {
-      setMessage("repos-message", String(error.message || error), "error");
-    }
+  try {
+    await loadExportPreview("json");
+  } catch (_error) {
+    setCodeBlock("reports-export-content", "reports-export-content-empty", "");
   }
+
+  await loadSettings();
 }
 
 init();

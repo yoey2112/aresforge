@@ -40,6 +40,8 @@ from aresforge.operator.managed_project_registry_local import (
     register_managed_repo,
     resolve_managed_project_registry_path,
 )
+from aresforge.operator.local_agent_orchestration import DEFAULT_OUTPUT_DIR as ORCHESTRATION_OUTPUT_DIR
+from aresforge.operator.local_llm_escalation import DEFAULT_OUTPUT_DIR as ESCALATION_OUTPUT_DIR
 
 SERVICE_NAME = "aresforge-hub"
 
@@ -368,6 +370,115 @@ def get_summary(config: AppConfig) -> dict[str, Any]:
         }
     )
     return payload
+
+
+def _report_payload(config: AppConfig) -> dict[str, Any]:
+    return summarize_local_project_dashboard(config)
+
+
+def get_reports_dashboard(config: AppConfig) -> dict[str, Any]:
+    payload = _report_payload(config)
+    payload.update(
+        {
+            "ok": True,
+            "service": SERVICE_NAME,
+        }
+    )
+    return payload
+
+
+def get_reports_action_center(config: AppConfig) -> dict[str, Any]:
+    report = _report_payload(config)
+    return {
+        "ok": True,
+        "service": SERVICE_NAME,
+        "local_only": True,
+        "report_only": True,
+        "generated_at": report.get("generated_at"),
+        "action_center": report.get("action_center", {}),
+        "warnings": report.get("warnings", []),
+        "risks": report.get("risks", []),
+        "recommended_next_actions": report.get("recommended_next_actions", []),
+        "boundary_confirmations": report.get("boundary_confirmations", list(_BOUNDARY_CONFIRMATIONS)),
+    }
+
+
+def get_reports_readiness(config: AppConfig) -> dict[str, Any]:
+    report = _report_payload(config)
+    return {
+        "ok": True,
+        "service": SERVICE_NAME,
+        "local_only": True,
+        "report_only": True,
+        "generated_at": report.get("generated_at"),
+        "readiness_indicators": report.get("readiness_indicators", {}),
+        "warnings": report.get("warnings", []),
+        "boundary_confirmations": report.get("boundary_confirmations", list(_BOUNDARY_CONFIRMATIONS)),
+    }
+
+
+def get_reports_operator_workflows(config: AppConfig) -> dict[str, Any]:
+    report = _report_payload(config)
+    return {
+        "ok": True,
+        "service": SERVICE_NAME,
+        "local_only": True,
+        "report_only": True,
+        "generated_at": report.get("generated_at"),
+        "operator_workflows": report.get("operator_workflows", []),
+        "warnings": report.get("warnings", []),
+        "boundary_confirmations": report.get("boundary_confirmations", list(_BOUNDARY_CONFIRMATIONS)),
+    }
+
+
+def get_reports_export(config: AppConfig, params: dict[str, str | None]) -> dict[str, Any]:
+    report = _report_payload(config)
+    format_name = str(params.get("format") or "json").strip().lower()
+    if format_name not in {"json", "markdown"}:
+        return _api_error(
+            "invalid_export_format",
+            "format must be json or markdown.",
+            details={"format": format_name, "supported_formats": ["json", "markdown"]},
+        )
+
+    if format_name == "markdown":
+        lines = [
+            "# AresForge Hub Dashboard Report",
+            "",
+            f"- generated_at: {report.get('generated_at')}",
+            f"- overall_status: {report.get('readiness_indicators', {}).get('overall_status', 'unknown')}",
+            "",
+            "## Recommended Next Actions",
+        ]
+        actions = report.get("recommended_next_actions", [])
+        if isinstance(actions, list) and actions:
+            lines.extend(f"- {action}" for action in actions)
+        else:
+            lines.append("- None")
+        lines.extend(["", "## Boundary Confirmations"])
+        boundaries = report.get("boundary_confirmations", [])
+        if isinstance(boundaries, list) and boundaries:
+            lines.extend(f"- {item}" for item in boundaries)
+        else:
+            lines.append("- Local-only")
+        export_content = "\n".join(lines)
+    else:
+        export_content = json.dumps(report, indent=2, sort_keys=True)
+
+    return {
+        "ok": True,
+        "service": SERVICE_NAME,
+        "local_only": True,
+        "report_only": True,
+        "format": format_name,
+        "generated_at": report.get("generated_at"),
+        "report": report,
+        "content": export_content,
+        "warnings": report.get("warnings", []),
+        "boundary_confirmations": report.get("boundary_confirmations", list(_BOUNDARY_CONFIRMATIONS)),
+        "write_supported": False,
+        "write_performed": False,
+    }
 
 
 def get_docs_status(config: AppConfig) -> dict[str, Any]:
@@ -1193,14 +1304,52 @@ def get_settings(config: AppConfig) -> dict[str, Any]:
     return {
         "ok": True,
         "local_only": True,
+        "report_only": True,
         "registry_path": str(resolve_managed_project_registry_path(config.repo_root, None)),
         "queue_path": str(resolve_project_queue_path(config.repo_root, None)),
         "agents_path": str(resolve_agent_profiles_path(config.repo_root, None)),
+        "default_registry_path": str(resolve_managed_project_registry_path(config.repo_root, None)),
+        "default_queue_path": str(resolve_project_queue_path(config.repo_root, None)),
+        "default_agent_profiles_path": str(resolve_agent_profiles_path(config.repo_root, None)),
+        "default_artifact_paths": {
+            "handoff": str(config.artifact_root / "handoff"),
+            "orchestration": str(config.repo_root / ORCHESTRATION_OUTPUT_DIR),
+            "escalation": str(config.repo_root / ESCALATION_OUTPUT_DIR),
+            "dashboard": str(config.artifact_root / "dashboard"),
+        },
+        "hub_server": {
+            "default_host": "127.0.0.1",
+            "default_port": 8765,
+            "current_host_hint": "127.0.0.1",
+            "current_port_hint": 8765,
+        },
+        "known_limitations": [
+            "Local-only and report/plan-only workflows.",
+            "No agent execution.",
+            "No local/cloud/Codex/ChatGPT/Ollama model invocation.",
+            "No GitHub, gh, network services, or external API calls.",
+            "Live GitHub sync is not implemented.",
+            "Authentication and production deployment are not implemented.",
+        ],
+        "next_milestone_scope": [
+            "Richer UI workflow depth and guided operator flows.",
+            "Optional execution gates with explicit user approval.",
+            "Authentication and deployment hardening if exposed beyond localhost.",
+            "Controlled GitHub sync execution with safety gates.",
+            "Optional LLM execution behind explicit user-approved gates.",
+        ],
         "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
         "m39_boundary_confirmations": [
             "M39 screens are local-only and file-backed.",
             "Orchestration and escalation are plan-only.",
             "No agents are executed.",
             "No local/cloud/Codex/ChatGPT/Ollama model invocation.",
+        ],
+        "m40_boundary_confirmations": [
+            "M40 reports/workflows are local-only and report/plan-only.",
+            "No agents are executed.",
+            "No local/cloud/Codex/ChatGPT/Ollama model invocation.",
+            "No GitHub, gh, network, or external API calls.",
+            "No live GitHub sync execution.",
         ],
     }

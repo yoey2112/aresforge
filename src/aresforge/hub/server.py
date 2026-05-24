@@ -21,6 +21,11 @@ from aresforge.hub.api import (
     get_orchestration_plan,
     get_project,
     get_project_repos,
+    get_reports_action_center,
+    get_reports_dashboard,
+    get_reports_export,
+    get_reports_operator_workflows,
+    get_reports_readiness,
     get_projects,
     get_queue,
     get_queue_item,
@@ -116,6 +121,29 @@ def _build_handler(config: AppConfig, static_root: Path) -> type[BaseHTTPRequest
                 return True
             if method == "GET" and path == "/api/settings":
                 _render_json(self, HTTPStatus.OK, get_settings(config))
+                return True
+
+            if method == "GET" and path == "/api/reports/dashboard":
+                _render_json(self, HTTPStatus.OK, get_reports_dashboard(config))
+                return True
+            if method == "GET" and path == "/api/reports/action-center":
+                _render_json(self, HTTPStatus.OK, get_reports_action_center(config))
+                return True
+            if method == "GET" and path == "/api/reports/readiness":
+                _render_json(self, HTTPStatus.OK, get_reports_readiness(config))
+                return True
+            if method == "GET" and path == "/api/reports/operator-workflows":
+                _render_json(self, HTTPStatus.OK, get_reports_operator_workflows(config))
+                return True
+            if method == "GET" and path == "/api/reports/export":
+                payload = get_reports_export(
+                    config,
+                    {
+                        "format": query_values.get("format", [None])[0],
+                        "output": query_values.get("output", [None])[0],
+                    },
+                )
+                _render_json(self, _status_from_payload(payload), payload)
                 return True
 
             if method == "GET" and path == "/api/agents":

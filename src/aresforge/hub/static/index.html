@@ -9,7 +9,7 @@
   <body>
     <header class="topbar">
       <h1>AresForge Hub</h1>
-      <p class="subtitle">Local-first control plane (M39 agent/handoff/orchestration/escalation)</p>
+      <p class="subtitle">Local-first operator control plane (M40 reporting, dashboard, and workflows)</p>
       <p class="boundary-notice">
         Local-only boundary: no GitHub, no gh, no network services, no local/cloud LLM calls,
         no Codex/ChatGPT/Ollama calls, and no agent/model execution.
@@ -33,18 +33,38 @@
       <main class="content">
         <section id="panel-home" class="panel active" data-panel="home">
           <h2>Home</h2>
-          <p>Summary of the local AresForge control plane.</p>
+          <p>Operator readiness dashboard for local, report-only and plan-only workflows.</p>
+          <p class="boundary-banner">Local-only and plan/report-only: no agent execution, no model invocation, no live sync.</p>
+          <div class="quick-actions">
+            <button id="home-refresh-summary" type="button">Refresh Summary</button>
+          </div>
           <div class="cards" id="summary-cards">
             <article class="card"><h3>Projects</h3><p id="project-count">0</p></article>
             <article class="card"><h3>Repos</h3><p id="repo-count">0</p></article>
-            <article class="card"><h3>Queue Items</h3><p id="queue-total">0</p></article>
+            <article class="card"><h3>Queue</h3><p id="queue-total">0</p></article>
             <article class="card"><h3>Agents</h3><p id="agent-count">0</p></article>
+            <article class="card"><h3>Orchestration</h3><p id="home-orchestration-count">0</p></article>
+            <article class="card"><h3>Escalation</h3><p id="home-escalation-count">0</p></article>
+            <article class="card"><h3>Docs</h3><p id="home-docs-status">unknown</p></article>
+            <article class="card"><h3>Overall Readiness</h3><p id="home-overall-status">needs_attention</p></article>
           </div>
 
           <section class="subpanel">
             <h3>Queue Status</h3>
             <ul id="queue-status-list" class="list"></ul>
             <p id="queue-empty-state" class="empty">No queue status data yet.</p>
+          </section>
+
+          <section class="subpanel">
+            <h3>Readiness Indicators</h3>
+            <ul id="home-readiness-indicators" class="list"></ul>
+            <p id="home-readiness-indicators-empty" class="empty">No readiness indicators available.</p>
+          </section>
+
+          <section class="subpanel">
+            <h3>Action Center Preview</h3>
+            <ul id="home-action-center" class="list"></ul>
+            <p id="home-action-center-empty" class="empty">No action-center items.</p>
           </section>
 
           <section class="subpanel">
@@ -63,6 +83,12 @@
             <h3>M39 Readiness</h3>
             <ul id="readiness-list" class="list"></ul>
             <p id="readiness-empty-state" class="empty">No readiness hints available.</p>
+          </section>
+
+          <section class="subpanel">
+            <h3>Quick Workflow Cards</h3>
+            <div id="home-workflow-cards" class="cards"></div>
+            <p id="home-workflow-cards-empty" class="empty">No workflow guidance available.</p>
           </section>
         </section>
 
@@ -498,7 +524,67 @@
 
         <section id="panel-reports" class="panel" data-panel="reports">
           <h2>Reports</h2>
-          <p class="placeholder">M40 will add reporting and dashboard polish.</p>
+          <p>Local control-plane reporting for project, repo, queue, agent, orchestration, escalation, docs, and readiness.</p>
+          <p id="reports-message" class="message"></p>
+          <div class="quick-actions">
+            <button id="reports-refresh" type="button">Refresh Report</button>
+            <button id="reports-copy-json" type="button">Copy Report JSON</button>
+            <button id="reports-export-json" type="button">Export JSON Text</button>
+            <button id="reports-generate-handoff" type="button">Generate Handoff Preview</button>
+            <button id="reports-generate-orchestration" type="button">Generate Orchestration Plan</button>
+            <button id="reports-generate-escalation" type="button">Generate Escalation Plan</button>
+          </div>
+          <div class="split two-col">
+            <section class="subpanel">
+              <h3>Project/Repo Summary</h3>
+              <ul id="reports-project-repo-summary" class="list"></ul>
+              <p id="reports-project-repo-summary-empty" class="empty">No project/repo summary available.</p>
+              <h3>Queue Summary</h3>
+              <ul id="reports-queue-summary" class="list"></ul>
+              <p id="reports-queue-summary-empty" class="empty">No queue summary available.</p>
+              <h3>Agent Summary</h3>
+              <ul id="reports-agent-summary" class="list"></ul>
+              <p id="reports-agent-summary-empty" class="empty">No agent summary available.</p>
+            </section>
+            <section class="subpanel">
+              <h3>Orchestration Summary</h3>
+              <ul id="reports-orchestration-summary" class="list"></ul>
+              <p id="reports-orchestration-summary-empty" class="empty">No orchestration summary available.</p>
+              <h3>Escalation Summary</h3>
+              <ul id="reports-escalation-summary" class="list"></ul>
+              <p id="reports-escalation-summary-empty" class="empty">No escalation summary available.</p>
+              <h3>Docs Summary</h3>
+              <ul id="reports-docs-summary" class="list"></ul>
+              <p id="reports-docs-summary-empty" class="empty">No docs summary available.</p>
+            </section>
+          </div>
+          <section class="subpanel">
+            <h3>Readiness Indicators</h3>
+            <ul id="reports-readiness" class="list"></ul>
+            <p id="reports-readiness-empty" class="empty">No readiness indicators available.</p>
+          </section>
+          <section class="subpanel">
+            <h3>Action Center</h3>
+            <ul id="reports-action-center" class="list"></ul>
+            <p id="reports-action-center-empty" class="empty">No action-center items available.</p>
+          </section>
+          <section class="subpanel">
+            <h3>Operator Workflows</h3>
+            <div id="reports-operator-workflows" class="cards"></div>
+            <p id="reports-operator-workflows-empty" class="empty">No operator workflows available.</p>
+          </section>
+          <section class="subpanel">
+            <h3>Warnings And Risks</h3>
+            <ul id="reports-warnings" class="list"></ul>
+            <p id="reports-warnings-empty" class="empty">No warnings.</p>
+            <ul id="reports-risks" class="list"></ul>
+            <p id="reports-risks-empty" class="empty">No risks.</p>
+          </section>
+          <section class="subpanel">
+            <h3>Export Preview</h3>
+            <pre id="reports-export-content" class="code-block"></pre>
+            <p id="reports-export-content-empty" class="empty">No report export generated yet.</p>
+          </section>
         </section>
 
         <section id="panel-settings" class="panel" data-panel="settings">
@@ -508,6 +594,12 @@
             <li>Registry Path: <span id="settings-registry-path">(unavailable)</span></li>
             <li>Queue Path: <span id="settings-queue-path">(unavailable)</span></li>
             <li>Agents Path: <span id="settings-agents-path">(unavailable)</span></li>
+            <li>Handoff Artifacts: <span id="settings-handoff-artifacts-path">(unavailable)</span></li>
+            <li>Orchestration Artifacts: <span id="settings-orchestration-artifacts-path">(unavailable)</span></li>
+            <li>Escalation Artifacts: <span id="settings-escalation-artifacts-path">(unavailable)</span></li>
+            <li>Dashboard Artifacts: <span id="settings-dashboard-artifacts-path">(unavailable)</span></li>
+            <li>Hub Host: <span id="settings-hub-host">127.0.0.1</span></li>
+            <li>Hub Port: <span id="settings-hub-port">8765</span></li>
           </ul>
           <p>Boundary confirmations:</p>
           <ul id="boundary-list" class="list"></ul>
@@ -515,6 +607,15 @@
           <p>M39 boundary confirmations:</p>
           <ul id="settings-m39-boundaries" class="list"></ul>
           <p id="settings-m39-boundaries-empty" class="empty">No M39 boundary confirmations available.</p>
+          <p>M40 boundary confirmations:</p>
+          <ul id="settings-m40-boundaries" class="list"></ul>
+          <p id="settings-m40-boundaries-empty" class="empty">No M40 boundary confirmations available.</p>
+          <p>Known limitations:</p>
+          <ul id="settings-known-limitations" class="list"></ul>
+          <p id="settings-known-limitations-empty" class="empty">No known limitations listed.</p>
+          <p>Next milestone scope:</p>
+          <ul id="settings-next-milestone" class="list"></ul>
+          <p id="settings-next-milestone-empty" class="empty">No next milestone scope listed.</p>
         </section>
       </main>
     </div>
