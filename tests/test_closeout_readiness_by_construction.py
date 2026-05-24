@@ -56,12 +56,12 @@ def _apply_marker_fixture(monkeypatch, scenario: dict) -> None:
     monkeypatch.setattr(
         closeout_readiness_by_construction,
         "generate_child_closeout_evidence_bundle",
-        lambda _config, parent_issue, child_issue: {"ok": True, "canonical_marker_completeness": scenario["child"]},
+        lambda _config, parent_issue, child_issue, marker_context=None: {"ok": True, "canonical_marker_completeness": scenario["child"]},
     )
     monkeypatch.setattr(
         closeout_readiness_by_construction,
         "generate_pr_evidence_bundle",
-        lambda _config, issue_number, pr_number: {"ok": True, "canonical_marker_completeness": scenario["pr"]},
+        lambda _config, issue_number, pr_number, marker_context=None: {"ok": True, "canonical_marker_completeness": scenario["pr"]},
     )
     monkeypatch.setattr(
         closeout_readiness_by_construction,
@@ -71,7 +71,7 @@ def _apply_marker_fixture(monkeypatch, scenario: dict) -> None:
     monkeypatch.setattr(
         closeout_readiness_by_construction,
         "generate_evidence_comment_template",
-        lambda _config, issue_number: {"ok": True, "canonical_marker_completeness": scenario["closeout_comment"]},
+        lambda _config, issue_number, parent_issue_override=None, marker_context=None: {"ok": True, "canonical_marker_completeness": scenario["closeout_comment"]},
     )
 
 
@@ -107,12 +107,12 @@ def test_check_closeout_readiness_by_construction_all_complete(monkeypatch, tmp_
     monkeypatch.setattr(
         closeout_readiness_by_construction,
         "generate_child_closeout_evidence_bundle",
-        lambda _config, parent_issue, child_issue: {"ok": True, "canonical_marker_completeness": _ready_marker()},
+        lambda _config, parent_issue, child_issue, marker_context=None: {"ok": True, "canonical_marker_completeness": _ready_marker()},
     )
     monkeypatch.setattr(
         closeout_readiness_by_construction,
         "generate_pr_evidence_bundle",
-        lambda _config, issue_number, pr_number: {"ok": True, "canonical_marker_completeness": _ready_marker()},
+        lambda _config, issue_number, pr_number, marker_context=None: {"ok": True, "canonical_marker_completeness": _ready_marker()},
     )
     monkeypatch.setattr(
         closeout_readiness_by_construction,
@@ -122,7 +122,7 @@ def test_check_closeout_readiness_by_construction_all_complete(monkeypatch, tmp_
     monkeypatch.setattr(
         closeout_readiness_by_construction,
         "generate_evidence_comment_template",
-        lambda _config, issue_number: {"ok": True, "canonical_marker_completeness": _ready_marker()},
+        lambda _config, issue_number, parent_issue_override=None, marker_context=None: {"ok": True, "canonical_marker_completeness": _ready_marker()},
     )
 
     payload = closeout_readiness_by_construction.check_closeout_readiness_by_construction(_config(tmp_path), parent_issue=421)
@@ -136,12 +136,12 @@ def test_check_closeout_readiness_by_construction_missing_child_marker(monkeypat
     monkeypatch.setattr(
         closeout_readiness_by_construction,
         "generate_child_closeout_evidence_bundle",
-        lambda _config, parent_issue, child_issue: {"ok": True, "canonical_marker_completeness": _incomplete_marker(missing=["branch_name"])},
+        lambda _config, parent_issue, child_issue, marker_context=None: {"ok": True, "canonical_marker_completeness": _incomplete_marker(missing=["branch_name"])},
     )
     monkeypatch.setattr(
         closeout_readiness_by_construction,
         "generate_pr_evidence_bundle",
-        lambda _config, issue_number, pr_number: {"ok": True, "canonical_marker_completeness": _ready_marker()},
+        lambda _config, issue_number, pr_number, marker_context=None: {"ok": True, "canonical_marker_completeness": _ready_marker()},
     )
     monkeypatch.setattr(
         closeout_readiness_by_construction,
@@ -151,7 +151,7 @@ def test_check_closeout_readiness_by_construction_missing_child_marker(monkeypat
     monkeypatch.setattr(
         closeout_readiness_by_construction,
         "generate_evidence_comment_template",
-        lambda _config, issue_number: {"ok": True, "canonical_marker_completeness": _ready_marker()},
+        lambda _config, issue_number, parent_issue_override=None, marker_context=None: {"ok": True, "canonical_marker_completeness": _ready_marker()},
     )
     payload = closeout_readiness_by_construction.check_closeout_readiness_by_construction(_config(tmp_path), parent_issue=421)
     assert payload["readiness_by_construction"]["ready"] is False
@@ -163,12 +163,12 @@ def test_check_closeout_readiness_by_construction_missing_pr_marker(monkeypatch,
     monkeypatch.setattr(
         closeout_readiness_by_construction,
         "generate_child_closeout_evidence_bundle",
-        lambda _config, parent_issue, child_issue: {"ok": True, "canonical_marker_completeness": _ready_marker()},
+        lambda _config, parent_issue, child_issue, marker_context=None: {"ok": True, "canonical_marker_completeness": _ready_marker()},
     )
     monkeypatch.setattr(
         closeout_readiness_by_construction,
         "generate_pr_evidence_bundle",
-        lambda _config, issue_number, pr_number: {"ok": True, "canonical_marker_completeness": _incomplete_marker(missing=["merge_commit"])},
+        lambda _config, issue_number, pr_number, marker_context=None: {"ok": True, "canonical_marker_completeness": _incomplete_marker(missing=["merge_commit"])},
     )
     monkeypatch.setattr(
         closeout_readiness_by_construction,
@@ -178,7 +178,7 @@ def test_check_closeout_readiness_by_construction_missing_pr_marker(monkeypatch,
     monkeypatch.setattr(
         closeout_readiness_by_construction,
         "generate_evidence_comment_template",
-        lambda _config, issue_number: {"ok": True, "canonical_marker_completeness": _ready_marker()},
+        lambda _config, issue_number, parent_issue_override=None, marker_context=None: {"ok": True, "canonical_marker_completeness": _ready_marker()},
     )
     payload = closeout_readiness_by_construction.check_closeout_readiness_by_construction(_config(tmp_path), parent_issue=421)
     assert payload["readiness_by_construction"]["ready"] is False
@@ -190,12 +190,12 @@ def test_check_closeout_readiness_by_construction_missing_parent_marker(monkeypa
     monkeypatch.setattr(
         closeout_readiness_by_construction,
         "generate_child_closeout_evidence_bundle",
-        lambda _config, parent_issue, child_issue: {"ok": True, "canonical_marker_completeness": _ready_marker()},
+        lambda _config, parent_issue, child_issue, marker_context=None: {"ok": True, "canonical_marker_completeness": _ready_marker()},
     )
     monkeypatch.setattr(
         closeout_readiness_by_construction,
         "generate_pr_evidence_bundle",
-        lambda _config, issue_number, pr_number: {"ok": True, "canonical_marker_completeness": _ready_marker()},
+        lambda _config, issue_number, pr_number, marker_context=None: {"ok": True, "canonical_marker_completeness": _ready_marker()},
     )
     monkeypatch.setattr(
         closeout_readiness_by_construction,
@@ -205,7 +205,7 @@ def test_check_closeout_readiness_by_construction_missing_parent_marker(monkeypa
     monkeypatch.setattr(
         closeout_readiness_by_construction,
         "generate_evidence_comment_template",
-        lambda _config, issue_number: {"ok": True, "canonical_marker_completeness": _ready_marker()},
+        lambda _config, issue_number, parent_issue_override=None, marker_context=None: {"ok": True, "canonical_marker_completeness": _ready_marker()},
     )
     payload = closeout_readiness_by_construction.check_closeout_readiness_by_construction(_config(tmp_path), parent_issue=421)
     assert payload["readiness_by_construction"]["ready"] is False
@@ -217,12 +217,12 @@ def test_check_closeout_readiness_by_construction_missing_closeout_comment_marke
     monkeypatch.setattr(
         closeout_readiness_by_construction,
         "generate_child_closeout_evidence_bundle",
-        lambda _config, parent_issue, child_issue: {"ok": True, "canonical_marker_completeness": _ready_marker()},
+        lambda _config, parent_issue, child_issue, marker_context=None: {"ok": True, "canonical_marker_completeness": _ready_marker()},
     )
     monkeypatch.setattr(
         closeout_readiness_by_construction,
         "generate_pr_evidence_bundle",
-        lambda _config, issue_number, pr_number: {"ok": True, "canonical_marker_completeness": _ready_marker()},
+        lambda _config, issue_number, pr_number, marker_context=None: {"ok": True, "canonical_marker_completeness": _ready_marker()},
     )
     monkeypatch.setattr(
         closeout_readiness_by_construction,
@@ -232,7 +232,7 @@ def test_check_closeout_readiness_by_construction_missing_closeout_comment_marke
     monkeypatch.setattr(
         closeout_readiness_by_construction,
         "generate_evidence_comment_template",
-        lambda _config, issue_number: {"ok": True, "canonical_marker_completeness": _incomplete_marker(invalid=["parent_issue_lineage_not_detected"])},
+        lambda _config, issue_number, parent_issue_override=None, marker_context=None: {"ok": True, "canonical_marker_completeness": _incomplete_marker(invalid=["parent_issue_lineage_not_detected"])},
     )
     payload = closeout_readiness_by_construction.check_closeout_readiness_by_construction(_config(tmp_path), parent_issue=421)
     assert payload["readiness_by_construction"]["ready"] is False
@@ -244,12 +244,12 @@ def test_check_closeout_readiness_by_construction_post_hoc_repair_true_not_ready
     monkeypatch.setattr(
         closeout_readiness_by_construction,
         "generate_child_closeout_evidence_bundle",
-        lambda _config, parent_issue, child_issue: {"ok": True, "canonical_marker_completeness": _incomplete_marker(post_hoc=True)},
+        lambda _config, parent_issue, child_issue, marker_context=None: {"ok": True, "canonical_marker_completeness": _incomplete_marker(post_hoc=True)},
     )
     monkeypatch.setattr(
         closeout_readiness_by_construction,
         "generate_pr_evidence_bundle",
-        lambda _config, issue_number, pr_number: {"ok": True, "canonical_marker_completeness": _ready_marker()},
+        lambda _config, issue_number, pr_number, marker_context=None: {"ok": True, "canonical_marker_completeness": _ready_marker()},
     )
     monkeypatch.setattr(
         closeout_readiness_by_construction,
@@ -259,7 +259,7 @@ def test_check_closeout_readiness_by_construction_post_hoc_repair_true_not_ready
     monkeypatch.setattr(
         closeout_readiness_by_construction,
         "generate_evidence_comment_template",
-        lambda _config, issue_number: {"ok": True, "canonical_marker_completeness": _ready_marker()},
+        lambda _config, issue_number, parent_issue_override=None, marker_context=None: {"ok": True, "canonical_marker_completeness": _ready_marker()},
     )
     payload = closeout_readiness_by_construction.check_closeout_readiness_by_construction(_config(tmp_path), parent_issue=421)
     assert payload["post_hoc_marker_repair_required"] is True
@@ -271,12 +271,12 @@ def test_check_closeout_readiness_by_construction_remains_read_only(monkeypatch,
     monkeypatch.setattr(
         closeout_readiness_by_construction,
         "generate_child_closeout_evidence_bundle",
-        lambda _config, parent_issue, child_issue: {"ok": True, "canonical_marker_completeness": _ready_marker()},
+        lambda _config, parent_issue, child_issue, marker_context=None: {"ok": True, "canonical_marker_completeness": _ready_marker()},
     )
     monkeypatch.setattr(
         closeout_readiness_by_construction,
         "generate_pr_evidence_bundle",
-        lambda _config, issue_number, pr_number: {"ok": True, "canonical_marker_completeness": _ready_marker()},
+        lambda _config, issue_number, pr_number, marker_context=None: {"ok": True, "canonical_marker_completeness": _ready_marker()},
     )
     monkeypatch.setattr(
         closeout_readiness_by_construction,
@@ -286,7 +286,7 @@ def test_check_closeout_readiness_by_construction_remains_read_only(monkeypatch,
     monkeypatch.setattr(
         closeout_readiness_by_construction,
         "generate_evidence_comment_template",
-        lambda _config, issue_number: {"ok": True, "canonical_marker_completeness": _ready_marker()},
+        lambda _config, issue_number, parent_issue_override=None, marker_context=None: {"ok": True, "canonical_marker_completeness": _ready_marker()},
     )
     payload = closeout_readiness_by_construction.check_closeout_readiness_by_construction(_config(tmp_path), parent_issue=421)
     assert payload["read_only"] is True
@@ -322,3 +322,116 @@ def test_m25_regression_fixtures_no_post_hoc_marker_repair_needed(monkeypatch, t
     else:
         assert payload["readiness_by_construction"]["marker_emission_ready"] is False
         assert any("Regenerate affected evidence artifacts/comments" in action for action in payload["recommended_actions"])
+
+
+def test_check_closeout_readiness_by_construction_uses_parent_child_pr_mapping(monkeypatch, tmp_path: Path) -> None:
+    _mock_common(monkeypatch)
+    monkeypatch.setattr(
+        closeout_readiness_by_construction,
+        "check_milestone_evidence_readiness",
+        lambda _config, parent_issue: {
+            "ok": True,
+            "issues": [
+                {"issue": {"number": 422, "merged_pr_evidence": []}},
+                {"issue": {"number": 423, "merged_pr_evidence": []}},
+            ],
+            "milestone_closeout_readiness": {"closeout_ready": True},
+        },
+    )
+    monkeypatch.setattr(
+        closeout_readiness_by_construction,
+        "generate_parent_closeout_evidence_bundle",
+        lambda _config, parent_issue: {
+            "ok": True,
+            "canonical_marker_completeness": _ready_marker(),
+            "child_pr_mappings": [
+                {"issue_number": 422, "merged_pr_urls": ["https://github.com/yoey2112/aresforge/pull/431"]},
+                {"issue_number": 423, "merged_pr_urls": ["https://github.com/yoey2112/aresforge/pull/432"]},
+            ],
+        },
+    )
+    monkeypatch.setattr(
+        closeout_readiness_by_construction,
+        "fetch_issue_details",
+        lambda _config, issue_number: {
+            "ok": True,
+            "issue": {"state": "CLOSED", "merged_pr_evidence": []},
+        },
+    )
+    monkeypatch.setattr(
+        closeout_readiness_by_construction,
+        "generate_child_closeout_evidence_bundle",
+        lambda _config, parent_issue, child_issue, marker_context=None: {"ok": True, "canonical_marker_completeness": _ready_marker()},
+    )
+    monkeypatch.setattr(
+        closeout_readiness_by_construction,
+        "generate_evidence_comment_template",
+        lambda _config, issue_number, parent_issue_override=None, marker_context=None: {"ok": True, "canonical_marker_completeness": _ready_marker()},
+    )
+
+    observed_pairs: set[tuple[int, int]] = set()
+
+    def _pr_bundle(_config, issue_number, pr_number, marker_context=None):
+        observed_pairs.add((issue_number, pr_number))
+        return {
+            "ok": True,
+            "pr": {"head_branch": "m25/test", "merge_commit": "abc123", "files_changed": ["src/file.py"]},
+            "canonical_marker_completeness": _ready_marker(),
+        }
+
+    monkeypatch.setattr(closeout_readiness_by_construction, "generate_pr_evidence_bundle", _pr_bundle)
+
+    payload = closeout_readiness_by_construction.check_closeout_readiness_by_construction(_config(tmp_path), parent_issue=421)
+    assert payload["readiness_by_construction"]["ready"] is True
+    assert observed_pairs == {(422, 431), (423, 432)}
+
+
+def test_check_closeout_readiness_by_construction_stays_blocked_when_pr_mapping_missing(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    _mock_common(monkeypatch)
+    monkeypatch.setattr(
+        closeout_readiness_by_construction,
+        "fetch_issue_details",
+        lambda _config, issue_number: {
+            "ok": True,
+            "issue": {"state": "CLOSED", "merged_pr_evidence": []},
+        },
+    )
+
+    def _child_bundle(_config, parent_issue, child_issue, marker_context=None):
+        marker_context = marker_context or {}
+        if marker_context.get("pr"):
+            return {"ok": True, "canonical_marker_completeness": _ready_marker()}
+        return {"ok": True, "canonical_marker_completeness": _incomplete_marker(missing=["pr"])}
+
+    monkeypatch.setattr(closeout_readiness_by_construction, "generate_child_closeout_evidence_bundle", _child_bundle)
+    monkeypatch.setattr(
+        closeout_readiness_by_construction,
+        "generate_pr_evidence_bundle",
+        lambda _config, issue_number, pr_number, marker_context=None: {"ok": True, "canonical_marker_completeness": _ready_marker()},
+    )
+    monkeypatch.setattr(
+        closeout_readiness_by_construction,
+        "generate_parent_closeout_evidence_bundle",
+        lambda _config, parent_issue: {"ok": True, "canonical_marker_completeness": _ready_marker(), "child_pr_mappings": []},
+    )
+    monkeypatch.setattr(
+        closeout_readiness_by_construction,
+        "generate_evidence_comment_template",
+        lambda _config, issue_number, parent_issue_override=None, marker_context=None: {"ok": True, "canonical_marker_completeness": _ready_marker()},
+    )
+    monkeypatch.setattr(
+        closeout_readiness_by_construction,
+        "check_milestone_evidence_readiness",
+        lambda _config, parent_issue: {
+            "ok": True,
+            "issues": [{"issue": {"number": 422, "merged_pr_evidence": []}}],
+            "milestone_closeout_readiness": {"closeout_ready": True},
+        },
+    )
+
+    payload = closeout_readiness_by_construction.check_closeout_readiness_by_construction(_config(tmp_path), parent_issue=421)
+    assert payload["readiness_by_construction"]["ready"] is False
+    assert "pr" in payload["missing_required_fields"]

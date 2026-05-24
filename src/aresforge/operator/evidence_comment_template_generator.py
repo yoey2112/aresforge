@@ -15,7 +15,13 @@ COMMAND_NAME = "generate-evidence-comment-template"
 _AC_PATTERN = re.compile(r"^\s*(?:[-*]|\d+\.)\s+(?P<item>.+)$")
 
 
-def generate_evidence_comment_template(config: AppConfig, *, issue_number: int) -> dict[str, Any]:
+def generate_evidence_comment_template(
+    config: AppConfig,
+    *,
+    issue_number: int,
+    parent_issue_override: int | None = None,
+    marker_context: dict[str, str] | None = None,
+) -> dict[str, Any]:
     issue_payload = fetch_issue_details(config, issue_number)
     if not issue_payload.get("ok"):
         return {
@@ -42,7 +48,7 @@ def generate_evidence_comment_template(config: AppConfig, *, issue_number: int) 
         }
 
     target_issue = issue.get("number") if isinstance(issue.get("number"), int) else issue_number
-    parent_issue = _resolve_parent_issue(issue=issue, target_issue=target_issue)
+    parent_issue = parent_issue_override if isinstance(parent_issue_override, int) else _resolve_parent_issue(issue=issue, target_issue=target_issue)
     issue_readiness = check_issue_evidence_readiness(config, issue_number=target_issue)
     pr_evidence = _collect_pr_evidence(config, issue)
     parent_context = _collect_parent_context(config, parent_issue=parent_issue)
@@ -50,6 +56,7 @@ def generate_evidence_comment_template(config: AppConfig, *, issue_number: int) 
         config,
         parent_issue=parent_issue,
         target_issue=target_issue,
+        marker_context=marker_context,
     )
 
     template = _render_template(
@@ -520,6 +527,7 @@ def _collect_canonical_marker_payload(
     *,
     parent_issue: int | None,
     target_issue: int,
+    marker_context: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     if not isinstance(parent_issue, int):
         missing_fields_list = ["parent_issue"]
@@ -543,10 +551,19 @@ def _collect_canonical_marker_payload(
             },
         }
 
+    context = marker_context if isinstance(marker_context, dict) else {}
     marker_payload = generate_child_evidence_marker_template(
         config,
         parent_issue=parent_issue,
         child_issue=target_issue,
+        branch=_context_value(context, "branch"),
+        commit=_context_value(context, "commit"),
+        pr=_context_value(context, "pr"),
+        validation_summary=_context_value(context, "validation_summary"),
+        safety_notes=_context_value(context, "safety_notes"),
+        closeout_status=_context_value(context, "closeout_status"),
+        evidence_comment_status=_context_value(context, "evidence_comment_status"),
+        merge_status=_context_value(context, "merge_status"),
     )
     canonical_marker = (
         marker_payload.get("canonical_marker")
@@ -598,3 +615,11 @@ def _boundaries() -> list[str]:
         "create_prs: false",
         "bulk_closeout_allowed: false",
     ]
+
+
+def _context_value(context: dict[str, str], key: str) -> str | None:
+    value = context.get(key)
+    if value is None:
+        return None
+    text = str(value).strip()
+    return text or None

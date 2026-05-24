@@ -16,6 +16,7 @@ def generate_pr_evidence_bundle(
     *,
     issue_number: int,
     pr_number: int,
+    marker_context: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     blocked_reasons: list[str] = []
     if issue_number <= 0:
@@ -74,10 +75,19 @@ def generate_pr_evidence_bundle(
 
     from aresforge.operator.pr_evidence_marker_template import generate_pr_evidence_marker_template
 
+    context = marker_context if isinstance(marker_context, dict) else {}
     canonical = generate_pr_evidence_marker_template(
         config,
         issue_number=issue_number,
         pr_number=pr_number,
+        branch=_context_value(context, "branch"),
+        commit=_context_value(context, "commit"),
+        changed_files=_context_value(context, "changed_files"),
+        validation_summary=_context_value(context, "validation_summary"),
+        merge_status=_context_value(context, "merge_status"),
+        safety_posture=_context_value(context, "safety_posture"),
+        evidence_status=_context_value(context, "evidence_status"),
+        notes_warnings=_context_value(context, "notes_warnings"),
     )
     canonical_marker_text = str(canonical.get("canonical_marker_text") or "")
     canonical_marker = canonical.get("canonical_marker") if isinstance(canonical.get("canonical_marker"), dict) else {}
@@ -210,3 +220,11 @@ def _fetch_pr_details(config: AppConfig, pr_number: int) -> dict[str, Any]:
             ],
         },
     }
+
+
+def _context_value(context: dict[str, str], key: str) -> str | None:
+    value = context.get(key)
+    if value is None:
+        return None
+    text = str(value).strip()
+    return text or None

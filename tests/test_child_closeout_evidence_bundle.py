@@ -73,7 +73,7 @@ def test_generate_child_closeout_evidence_bundle_reports_incomplete_marker_state
     )
     monkeypatch.setattr(
         "aresforge.operator.child_closeout_evidence_bundle.generate_child_evidence_marker_template",
-        lambda _config, parent_issue, child_issue: {
+        lambda _config, parent_issue, child_issue, **kwargs: {
             "canonical_marker_text": "[ARESFORGE_CANONICAL_EVIDENCE_MARKER]\nmarker_state: incomplete\n[/ARESFORGE_CANONICAL_EVIDENCE_MARKER]\n",
             "canonical_marker": {
                 "marker_type": "child_evidence",
