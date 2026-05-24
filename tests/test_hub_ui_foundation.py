@@ -3,8 +3,15 @@ from pathlib import Path
 
 from aresforge.config import AppConfig
 from aresforge.hub.api import (
+    get_agent,
+    get_agents,
     get_docs_status,
+    get_escalation_plan,
     get_health,
+    get_handoff_preview,
+    get_handoff_target,
+    get_handoff_targets,
+    get_orchestration_plan,
     get_project,
     get_project_repos,
     get_projects,
@@ -13,6 +20,10 @@ from aresforge.hub.api import (
     get_settings,
     get_summary,
     patch_queue_item,
+    post_agent,
+    post_escalation_plan,
+    post_handoff_target,
+    post_orchestration_plan,
     post_project,
     post_project_repo,
     post_queue_item,
@@ -107,6 +118,39 @@ def _seed_queue_item(config: AppConfig, item_id: str = "q1") -> None:
     assert payload["ok"] is True
 
 
+def _seed_agent(config: AppConfig, agent_id: str = "agent-a") -> None:
+    payload = post_agent(
+        config,
+        {
+            "agent_id": agent_id,
+            "name": "Agent A",
+            "role": "implementer",
+            "execution_mode": "codex",
+            "status": "active",
+            "escalation_allowed": True,
+            "allowed_item_types": ["task", "feature"],
+            "tags": ["m39"],
+        },
+    )
+    assert payload["ok"] is True
+
+
+def _seed_handoff_target(config: AppConfig, target_id: str = "target-a") -> None:
+    payload = post_handoff_target(
+        config,
+        {
+            "target_id": target_id,
+            "name": "Target A",
+            "target_type": "codex_prompt",
+            "status": "active",
+            "input_format": "markdown",
+            "output_format": "patch",
+            "tags": ["m39"],
+        },
+    )
+    assert payload["ok"] is True
+
+
 def test_hub_static_files_exist() -> None:
     static_dir = _static_dir()
     assert (static_dir / "index.html").exists()
@@ -114,25 +158,44 @@ def test_hub_static_files_exist() -> None:
     assert (static_dir / "styles.css").exists()
 
 
-def test_index_contains_required_navigation_labels_and_m38_sections() -> None:
+def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     index_text = (_static_dir() / "index.html").read_text(encoding="utf-8")
     for label in NAV_LABELS:
         assert label in index_text
     assert "Add Or Update Project" in index_text
     assert "Add Or Update Repo" in index_text
     assert "Add Or Update Queue Item" in index_text
+    assert "Add Or Update Agent" in index_text
+    assert "Add Or Update Handoff Target" in index_text
+    assert "Refresh Handoff Preview" in index_text
+    assert "Generate/view plan-only orchestration guidance" in index_text
+    assert "Generate/view plan-only escalation classification" in index_text
 
 
-def test_app_js_references_m38_api_endpoints_and_forms() -> None:
+def test_app_js_references_m39_api_endpoints_and_forms() -> None:
     app_text = (_static_dir() / "app.js").read_text(encoding="utf-8")
     for endpoint in (
         "/api/projects",
         "/api/projects/",
         "/api/queue",
         "/api/settings",
+        "/api/agents",
+        "/api/handoff-targets",
+        "/api/handoff/preview",
+        "/api/orchestration/plan",
+        "/api/escalation/plan",
     ):
         assert endpoint in app_text
-    for form_id in ("project-form", "repo-form", "queue-form", "queue-filter-form"):
+    for form_id in (
+        "project-form",
+        "repo-form",
+        "queue-form",
+        "queue-filter-form",
+        "agent-form",
+        "handoff-target-form",
+        "orchestration-form",
+        "escalation-form",
+    ):
         assert form_id in app_text
 
 
@@ -157,6 +220,8 @@ def test_settings_and_boundary_notice_present_in_static_markup() -> None:
     assert "Local-only boundary" in index_text
     assert "settings-registry-path" in index_text
     assert "settings-queue-path" in index_text
+    assert "settings-agents-path" in index_text
+    assert "plan-only" in index_text
 
 
 def test_api_health_response_contains_boundaries() -> None:
@@ -498,5 +563,250 @@ def test_boundary_confirmations_remain_present_for_m38_endpoints(tmp_path: Path)
     settings = get_settings(config)
 
     for payload in (projects, queue, settings):
+        assert payload["local_only"] is True
+        assert payload["boundary_confirmations"]
+
+
+def test_get_agents_returns_empty_state_when_profiles_missing(tmp_path: Path) -> None:
+    payload = get_agents(_config(tmp_path))
+    assert payload["ok"] is True
+    assert payload["agents"] == []
+    assert payload["agent_count"] == 0
+    assert payload["counts_by_role"] == {}
+    assert payload["counts_by_execution_mode"] == {}
+    assert payload["counts_by_status"] == {}
+    assert payload["warnings"]
+    assert payload["boundary_confirmations"]
+
+
+def test_post_agent_creates_and_updates_profile(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    created = post_agent(
+        config,
+        {
+            "agent_id": "agent-a",
+            "name": "Agent A",
+            "role": "implementer",
+            "execution_mode": "codex",
+            "status": "active",
+            "escalation_allowed": True,
+            "allowed_item_types": ["task"],
+        },
+    )
+    assert created["ok"] is True
+    assert created["created"] is True
+
+    updated = post_agent(
+        config,
+        {
+            "agent_id": "agent-a",
+            "name": "Agent A Updated",
+            "role": "implementer",
+            "execution_mode": "scripted",
+            "status": "paused",
+            "escalation_allowed": False,
+        },
+    )
+    assert updated["ok"] is True
+    assert updated["created"] is False
+    assert updated["agent"]["name"] == "Agent A Updated"
+    assert updated["agent"]["execution_mode"] == "scripted"
+
+
+def test_get_agent_returns_details_and_linked_target_when_available(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_handoff_target(config, "target-a")
+    post_agent(
+        config,
+        {
+            "agent_id": "agent-a",
+            "name": "Agent A",
+            "role": "implementer",
+            "handoff_target_id": "target-a",
+        },
+    )
+
+    payload = get_agent(config, "agent-a")
+    assert payload["ok"] is True
+    assert payload["agent"]["agent_id"] == "agent-a"
+    assert payload["linked_handoff_target"]["target_id"] == "target-a"
+
+
+def test_post_agent_rejects_invalid_role_execution_mode_status_and_escalation_flag(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+
+    invalid_role = post_agent(config, {"agent_id": "a", "name": "A", "role": "invalid"})
+    assert invalid_role["ok"] is False
+    assert invalid_role["error"] == "invalid_role"
+
+    invalid_mode = post_agent(
+        config,
+        {"agent_id": "a", "name": "A", "role": "operator", "execution_mode": "invalid"},
+    )
+    assert invalid_mode["ok"] is False
+    assert invalid_mode["error"] == "invalid_execution_mode"
+
+    invalid_status = post_agent(
+        config,
+        {"agent_id": "a", "name": "A", "role": "operator", "status": "invalid"},
+    )
+    assert invalid_status["ok"] is False
+    assert invalid_status["error"] == "invalid_status"
+
+    invalid_escalation = post_agent(
+        config,
+        {
+            "agent_id": "a",
+            "name": "A",
+            "role": "operator",
+            "escalation_allowed": "yes",
+        },
+    )
+    assert invalid_escalation["ok"] is False
+    assert invalid_escalation["error"] == "invalid_escalation_allowed"
+
+
+def test_get_handoff_targets_returns_empty_state_when_profiles_missing(tmp_path: Path) -> None:
+    payload = get_handoff_targets(_config(tmp_path))
+    assert payload["ok"] is True
+    assert payload["handoff_targets"] == []
+    assert payload["target_count"] == 0
+    assert payload["counts_by_target_type"] == {}
+    assert payload["counts_by_status"] == {}
+    assert payload["warnings"]
+
+
+def test_post_handoff_target_creates_and_updates_target(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    created = post_handoff_target(
+        config,
+        {
+            "target_id": "target-a",
+            "name": "Target A",
+            "target_type": "markdown_packet",
+            "status": "active",
+        },
+    )
+    assert created["ok"] is True
+    assert created["created"] is True
+
+    updated = post_handoff_target(
+        config,
+        {
+            "target_id": "target-a",
+            "name": "Target A Updated",
+            "target_type": "json_packet",
+            "status": "paused",
+        },
+    )
+    assert updated["ok"] is True
+    assert updated["created"] is False
+    assert updated["handoff_target"]["target_type"] == "json_packet"
+
+
+def test_get_handoff_target_returns_target_details(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_handoff_target(config, "target-a")
+    payload = get_handoff_target(config, "target-a")
+    assert payload["ok"] is True
+    assert payload["handoff_target"]["target_id"] == "target-a"
+
+
+def test_post_handoff_target_rejects_invalid_type_and_status(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    invalid_type = post_handoff_target(
+        config,
+        {"target_id": "t", "name": "T", "target_type": "invalid"},
+    )
+    assert invalid_type["ok"] is False
+    assert invalid_type["error"] == "invalid_target_type"
+
+    invalid_status = post_handoff_target(
+        config,
+        {
+            "target_id": "t",
+            "name": "T",
+            "target_type": "markdown_packet",
+            "status": "invalid",
+        },
+    )
+    assert invalid_status["ok"] is False
+    assert invalid_status["error"] == "invalid_status"
+
+
+def test_get_handoff_preview_returns_local_only_response(tmp_path: Path) -> None:
+    payload = get_handoff_preview(_config(tmp_path))
+    assert payload["ok"] is True
+    assert payload["local_only"] is True
+    assert payload["preview_format"] == "markdown"
+    assert isinstance(payload["preview"], str)
+    assert payload["boundary_confirmations"]
+
+
+def test_get_orchestration_plan_returns_plan_only_with_empty_inputs(tmp_path: Path) -> None:
+    payload = get_orchestration_plan(_config(tmp_path))
+    assert payload["ok"] is True
+    assert payload["local_only"] is True
+    assert payload["plan_only"] is True
+    assert isinstance(payload["selected_work_items"], list)
+    assert "recommended_assignments" in payload
+    assert payload["boundary_confirmations"]
+
+
+def test_post_orchestration_plan_supports_filters(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_queue_item(config, "q1")
+    _seed_agent(config, "agent-a")
+    payload = post_orchestration_plan(
+        config,
+        {"project_id": "p1", "repo_id": "r1", "status": "ready", "format": "json"},
+    )
+    assert payload["ok"] is True
+    assert payload["filters"]["project_id"] == "p1"
+    assert payload["plan_only"] is True
+
+
+def test_get_escalation_plan_returns_plan_only_with_empty_inputs(tmp_path: Path) -> None:
+    payload = get_escalation_plan(_config(tmp_path))
+    assert payload["ok"] is True
+    assert payload["local_only"] is True
+    assert payload["plan_only"] is True
+    assert "classifications" in payload
+    assert "prompt_guidance" in payload
+    assert payload["boundary_confirmations"]
+
+
+def test_post_escalation_plan_supports_filters(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_queue_item(config, "q1")
+    _seed_agent(config, "agent-a")
+    _seed_handoff_target(config, "target-a")
+    payload = post_escalation_plan(
+        config,
+        {
+            "item_id": "q1",
+            "project_id": "p1",
+            "repo_id": "r1",
+            "status": "ready",
+            "format": "json",
+        },
+    )
+    assert payload["ok"] is True
+    assert payload["filters"]["item_id"] == "q1"
+    assert payload["plan_only"] is True
+
+
+def test_boundary_confirmations_remain_present_for_m39_endpoints(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_queue_item(config, "q1")
+    _seed_agent(config, "agent-a")
+
+    for payload in (
+        get_agents(config),
+        get_handoff_targets(config),
+        get_handoff_preview(config),
+        get_orchestration_plan(config),
+        get_escalation_plan(config),
+    ):
         assert payload["local_only"] is True
         assert payload["boundary_confirmations"]

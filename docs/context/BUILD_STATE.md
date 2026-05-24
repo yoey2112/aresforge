@@ -2,11 +2,55 @@
 
 ## Current Phase
 
-M38 AresForge Hub project, repo, and queue management (local-only).
+M39 Hub agent, handoff, orchestration, and escalation screens (local-only, plan-only workflows).
 
 ## Current Goal
 
-Implement and document local-first interactive Hub screens for managed projects, managed repos, and local queue workflows using existing M32 and M33 operators.
+Implement and document local-first interactive Hub screens and API workflows for agent profiles, handoff targets, handoff preview, orchestration planning, and escalation planning using M34, M35, and M36 operators.
+
+## M39 Agent, Handoff, Orchestration, And Escalation Hub Screens
+
+- Extended local Hub API with local-only M39 endpoints:
+  - `GET /api/agents`
+  - `POST /api/agents`
+  - `GET /api/agents/{agent_id}`
+  - `GET /api/handoff-targets`
+  - `POST /api/handoff-targets`
+  - `GET /api/handoff-targets/{target_id}`
+  - `GET /api/handoff/preview`
+  - `POST /api/orchestration/plan`
+  - `GET /api/orchestration/plan`
+  - `POST /api/escalation/plan`
+  - `GET /api/escalation/plan`
+- Extended Hub frontend with interactive sections:
+  - Agents list and add/update form
+  - Handoff targets list and add/update form
+  - Handoff preview refresh and local-only preview panel
+  - Orchestration filter controls and plan visualization
+  - Escalation filter controls and classification visualization
+- M39 data model linkage:
+  - agent and handoff target operations reuse M34 local profiles storage
+  - orchestration plan responses reuse M35 plan-only orchestration logic
+  - escalation plan responses reuse M36 plan-only escalation logic
+  - handoff preview reuses M26 local handoff package logic without posting anywhere
+- M39 boundary confirmations:
+  - local-only
+  - file-backed
+  - plan-only for orchestration and escalation
+  - no agent execution
+  - no local LLM calls
+  - no cloud LLM calls
+  - no Codex execution
+  - no ChatGPT calls
+  - no Ollama calls
+  - no `gh`
+  - no GitHub API calls
+  - no network service calls
+  - no external API calls
+- M39 scope boundary:
+  - reporting/dashboard polish and expanded operator workflows remain planned for M40
+  - authentication and production deployment remain unimplemented
+  - live GitHub sync remains unimplemented
 
 ## M38 Hub Project, Repo, And Queue Management
 

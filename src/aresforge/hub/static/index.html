@@ -9,10 +9,10 @@
   <body>
     <header class="topbar">
       <h1>AresForge Hub</h1>
-      <p class="subtitle">Local-first control plane foundation (M37)</p>
+      <p class="subtitle">Local-first control plane (M39 agent/handoff/orchestration/escalation)</p>
       <p class="boundary-notice">
         Local-only boundary: no GitHub, no gh, no network services, no local/cloud LLM calls,
-        no Codex/ChatGPT/Ollama calls.
+        no Codex/ChatGPT/Ollama calls, and no agent/model execution.
       </p>
     </header>
 
@@ -60,7 +60,7 @@
           </section>
 
           <section class="subpanel">
-            <h3>M38 Management Readiness</h3>
+            <h3>M39 Readiness</h3>
             <ul id="readiness-list" class="list"></ul>
             <p id="readiness-empty-state" class="empty">No readiness hints available.</p>
           </section>
@@ -261,22 +261,239 @@
 
         <section id="panel-agents" class="panel" data-panel="agents">
           <h2>Agents</h2>
-          <p class="placeholder">M39 will add agent profile management screens.</p>
+          <p>Manage local agent profiles and handoff targets backed by M34 file storage.</p>
+          <p class="message-note">Local-only. Create/update is idempotent and file-backed.</p>
+          <p id="agents-message" class="message"></p>
+          <div class="split two-col">
+            <section class="subpanel">
+              <h3>Agent Profiles</h3>
+              <ul id="agents-list" class="list"></ul>
+              <p id="agents-empty-state" class="empty">No agents found yet.</p>
+            </section>
+            <section class="subpanel">
+              <h3>Add Or Update Agent</h3>
+              <form id="agent-form" class="form-grid">
+                <label>Agent ID<input id="agent-agent-id" name="agent_id" required /></label>
+                <label>Name<input id="agent-name" name="name" required /></label>
+                <label>Role
+                  <select id="agent-role" name="role" required>
+                    <option value="">Select role</option>
+                    <option value="architect">architect</option>
+                    <option value="implementer">implementer</option>
+                    <option value="tester">tester</option>
+                    <option value="documentation">documentation</option>
+                    <option value="reviewer">reviewer</option>
+                    <option value="operator">operator</option>
+                    <option value="coordinator">coordinator</option>
+                    <option value="local_llm">local_llm</option>
+                    <option value="cloud_llm">cloud_llm</option>
+                    <option value="other">other</option>
+                  </select>
+                </label>
+                <label>Execution Mode
+                  <select id="agent-execution-mode" name="execution_mode">
+                    <option value="">(default)</option>
+                    <option value="human">human</option>
+                    <option value="codex">codex</option>
+                    <option value="local_llm">local_llm</option>
+                    <option value="cloud_llm">cloud_llm</option>
+                    <option value="scripted">scripted</option>
+                    <option value="manual">manual</option>
+                    <option value="other">other</option>
+                  </select>
+                </label>
+                <label>Status
+                  <select id="agent-status" name="status">
+                    <option value="">(default)</option>
+                    <option value="active">active</option>
+                    <option value="paused">paused</option>
+                    <option value="archived">archived</option>
+                    <option value="planned">planned</option>
+                  </select>
+                </label>
+                <label>Model Preference<input id="agent-model-preference" name="model_preference" /></label>
+                <label>Handoff Target ID<input id="agent-handoff-target-id" name="handoff_target_id" /></label>
+                <label>Escalation Allowed
+                  <select id="agent-escalation-allowed" name="escalation_allowed">
+                    <option value="">(default)</option>
+                    <option value="true">true</option>
+                    <option value="false">false</option>
+                  </select>
+                </label>
+                <label>Allowed Item Types (comma-separated)<input id="agent-allowed-item-types" name="allowed_item_types" /></label>
+                <label>Strengths (comma-separated)<input id="agent-strengths" name="strengths" /></label>
+                <label>Constraints (comma-separated)<input id="agent-constraints" name="constraints" /></label>
+                <label>Tags (comma-separated)<input id="agent-tags" name="tags" /></label>
+                <label class="full">Description<textarea id="agent-description" name="description"></textarea></label>
+                <label class="full">Notes<textarea id="agent-notes" name="notes"></textarea></label>
+                <button id="agent-submit" type="submit">Save Agent</button>
+              </form>
+            </section>
+          </div>
+          <div class="split two-col">
+            <section class="subpanel">
+              <h3>Handoff Targets</h3>
+              <ul id="handoff-targets-list" class="list"></ul>
+              <p id="handoff-targets-empty-state" class="empty">No handoff targets found yet.</p>
+            </section>
+            <section class="subpanel">
+              <h3>Add Or Update Handoff Target</h3>
+              <form id="handoff-target-form" class="form-grid">
+                <label>Target ID<input id="target-target-id" name="target_id" required /></label>
+                <label>Name<input id="target-name" name="name" required /></label>
+                <label>Target Type
+                  <select id="target-type" name="target_type" required>
+                    <option value="">Select target type</option>
+                    <option value="human_prompt">human_prompt</option>
+                    <option value="codex_prompt">codex_prompt</option>
+                    <option value="local_llm_prompt">local_llm_prompt</option>
+                    <option value="cloud_llm_prompt">cloud_llm_prompt</option>
+                    <option value="script_input">script_input</option>
+                    <option value="markdown_packet">markdown_packet</option>
+                    <option value="json_packet">json_packet</option>
+                    <option value="other">other</option>
+                  </select>
+                </label>
+                <label>Status
+                  <select id="target-status" name="status">
+                    <option value="">(default)</option>
+                    <option value="active">active</option>
+                    <option value="paused">paused</option>
+                    <option value="archived">archived</option>
+                    <option value="planned">planned</option>
+                  </select>
+                </label>
+                <label>Input Format<input id="target-input-format" name="input_format" /></label>
+                <label>Output Format<input id="target-output-format" name="output_format" /></label>
+                <label>Local Command<input id="target-local-command" name="local_command" /></label>
+                <label>Safety Notes (comma-separated)<input id="target-safety-notes" name="safety_notes" /></label>
+                <label>Tags (comma-separated)<input id="target-tags" name="tags" /></label>
+                <label class="full">Description<textarea id="target-description" name="description"></textarea></label>
+                <label class="full">Notes<textarea id="target-notes" name="notes"></textarea></label>
+                <button id="target-submit" type="submit">Save Handoff Target</button>
+              </form>
+            </section>
+          </div>
         </section>
 
         <section id="panel-handoff" class="panel" data-panel="handoff">
           <h2>Handoff</h2>
-          <p class="placeholder">M39 will add handoff target and packet screens.</p>
+          <p>Preview local handoff content generated from M26 logic. It is local-only and does not post anywhere.</p>
+          <p id="handoff-message" class="message"></p>
+          <button id="handoff-refresh" type="button">Refresh Handoff Preview</button>
+          <section class="subpanel">
+            <h3>Preview</h3>
+            <pre id="handoff-preview" class="code-block"></pre>
+            <p id="handoff-preview-empty" class="empty">No preview loaded yet.</p>
+          </section>
         </section>
 
         <section id="panel-orchestration" class="panel" data-panel="orchestration">
           <h2>Orchestration</h2>
-          <p class="placeholder">M39 will add orchestration planning detail screens.</p>
+          <p>Generate/view plan-only orchestration guidance. This does not execute agents.</p>
+          <p id="orchestration-message" class="message"></p>
+          <form id="orchestration-form" class="form-inline">
+            <input id="orchestration-project-id" name="project_id" placeholder="project_id" />
+            <input id="orchestration-repo-id" name="repo_id" placeholder="repo_id" />
+            <select id="orchestration-status" name="status">
+              <option value="">status</option>
+              <option value="proposed">proposed</option>
+              <option value="ready">ready</option>
+              <option value="in_progress">in_progress</option>
+              <option value="blocked">blocked</option>
+              <option value="done">done</option>
+              <option value="cancelled">cancelled</option>
+            </select>
+            <button type="submit">Generate Plan</button>
+            <button id="orchestration-reset" type="button">Use Defaults</button>
+          </form>
+          <div class="split two-col">
+            <section class="subpanel">
+              <h3>Recommended Assignments</h3>
+              <ul id="orchestration-assignments" class="list"></ul>
+              <p id="orchestration-assignments-empty" class="empty">No assignments yet.</p>
+              <h3>Dependency Order</h3>
+              <ul id="orchestration-dependency-order" class="list"></ul>
+              <p id="orchestration-dependency-empty" class="empty">No dependency order yet.</p>
+            </section>
+            <section class="subpanel">
+              <h3>Blocked Items</h3>
+              <ul id="orchestration-blocked" class="list"></ul>
+              <p id="orchestration-blocked-empty" class="empty">No blocked items.</p>
+              <h3>Unassigned Items</h3>
+              <ul id="orchestration-unassigned" class="list"></ul>
+              <p id="orchestration-unassigned-empty" class="empty">No unassigned items.</p>
+            </section>
+          </div>
+          <section class="subpanel">
+            <h3>Handoff Prompt Snippets</h3>
+            <ul id="orchestration-prompts" class="list"></ul>
+            <p id="orchestration-prompts-empty" class="empty">No handoff prompts yet.</p>
+          </section>
+          <section class="subpanel">
+            <h3>Risk Warnings</h3>
+            <ul id="orchestration-risks" class="list"></ul>
+            <p id="orchestration-risks-empty" class="empty">No risk warnings.</p>
+            <h3>Next Actions</h3>
+            <ul id="orchestration-actions" class="list"></ul>
+            <p id="orchestration-actions-empty" class="empty">No next actions.</p>
+          </section>
         </section>
 
         <section id="panel-escalation" class="panel" data-panel="escalation">
           <h2>Escalation</h2>
-          <p class="placeholder">M39 will add escalation planning detail screens.</p>
+          <p>Generate/view plan-only escalation classification. No local/cloud/Codex/ChatGPT/Ollama model is invoked.</p>
+          <p id="escalation-message" class="message"></p>
+          <form id="escalation-form" class="form-inline">
+            <input id="escalation-item-id" name="item_id" placeholder="item_id" />
+            <input id="escalation-project-id" name="project_id" placeholder="project_id" />
+            <input id="escalation-repo-id" name="repo_id" placeholder="repo_id" />
+            <select id="escalation-status" name="status">
+              <option value="">status</option>
+              <option value="proposed">proposed</option>
+              <option value="ready">ready</option>
+              <option value="in_progress">in_progress</option>
+              <option value="blocked">blocked</option>
+              <option value="done">done</option>
+              <option value="cancelled">cancelled</option>
+            </select>
+            <button type="submit">Generate Plan</button>
+            <button id="escalation-reset" type="button">Use Defaults</button>
+          </form>
+          <div class="split two-col">
+            <section class="subpanel">
+              <h3>Classification Buckets</h3>
+              <ul id="escalation-local-llm" class="list"></ul>
+              <p id="escalation-local-llm-empty" class="empty">No local_llm_suitable items.</p>
+              <ul id="escalation-codex" class="list"></ul>
+              <p id="escalation-codex-empty" class="empty">No codex_suitable items.</p>
+              <ul id="escalation-cloud" class="list"></ul>
+              <p id="escalation-cloud-empty" class="empty">No cloud_llm_recommended items.</p>
+              <ul id="escalation-human" class="list"></ul>
+              <p id="escalation-human-empty" class="empty">No human_required items.</p>
+              <ul id="escalation-blocked" class="list"></ul>
+              <p id="escalation-blocked-empty" class="empty">No blocked_or_needs_clarification items.</p>
+            </section>
+            <section class="subpanel">
+              <h3>Escalation Reasons</h3>
+              <ul id="escalation-reasons" class="list"></ul>
+              <p id="escalation-reasons-empty" class="empty">No escalation reasons yet.</p>
+              <h3>Recommended Handoff Targets</h3>
+              <ul id="escalation-targets" class="list"></ul>
+              <p id="escalation-targets-empty" class="empty">No recommended handoff targets yet.</p>
+            </section>
+          </div>
+          <section class="subpanel">
+            <h3>Prompt Guidance</h3>
+            <ul id="escalation-guidance" class="list"></ul>
+            <p id="escalation-guidance-empty" class="empty">No prompt guidance yet.</p>
+            <h3>Risk Warnings</h3>
+            <ul id="escalation-risks" class="list"></ul>
+            <p id="escalation-risks-empty" class="empty">No risk warnings.</p>
+            <h3>Next Actions</h3>
+            <ul id="escalation-actions" class="list"></ul>
+            <p id="escalation-actions-empty" class="empty">No next actions.</p>
+          </section>
         </section>
 
         <section id="panel-reports" class="panel" data-panel="reports">
@@ -290,10 +507,14 @@
           <ul class="list">
             <li>Registry Path: <span id="settings-registry-path">(unavailable)</span></li>
             <li>Queue Path: <span id="settings-queue-path">(unavailable)</span></li>
+            <li>Agents Path: <span id="settings-agents-path">(unavailable)</span></li>
           </ul>
           <p>Boundary confirmations:</p>
           <ul id="boundary-list" class="list"></ul>
           <p id="boundary-empty-state" class="empty">No boundary confirmations available.</p>
+          <p>M39 boundary confirmations:</p>
+          <ul id="settings-m39-boundaries" class="list"></ul>
+          <p id="settings-m39-boundaries-empty" class="empty">No M39 boundary confirmations available.</p>
         </section>
       </main>
     </div>

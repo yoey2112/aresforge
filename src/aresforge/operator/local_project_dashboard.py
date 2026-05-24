@@ -44,6 +44,7 @@ def summarize_local_project_dashboard(config: AppConfig) -> dict[str, Any]:
     repo_count = 0
     queue_status_counts: dict[str, int] = {}
     agent_count = 0
+    handoff_target_count = 0
 
     registry_summary = managed_project_registry_summary_for_handoff(config)
     if registry_summary is None:
@@ -78,6 +79,7 @@ def summarize_local_project_dashboard(config: AppConfig) -> dict[str, Any]:
         )
     else:
         agent_count = int(agent_summary.get("agent_count", 0))
+        handoff_target_count = int(agent_summary.get("handoff_target_count", 0))
 
     docs_status = summarize_docs_status(config.repo_root)
     warnings.extend(list(docs_status.get("warnings", [])))
@@ -100,10 +102,21 @@ def summarize_local_project_dashboard(config: AppConfig) -> dict[str, Any]:
         readiness_hints.append("Queue management: ready.")
     if agent_count == 0:
         next_actions.append("Initialize agent profiles for handoff/orchestration planning.")
+    if handoff_target_count == 0:
+        next_actions.append("Register at least one handoff target for escalation and handoff routing.")
     if int(docs_status.get("missing_count", 0)) > 0:
         next_actions.append("Restore missing source-of-truth docs used by local planning.")
     if not next_actions:
         next_actions.append("Continue with M38 screens for project/repo/queue workflows.")
+
+    orchestration_readiness_hint = (
+        "ready" if queue_status_counts and agent_count > 0 else "needs queue items and active agent profiles"
+    )
+    escalation_readiness_hint = (
+        "ready"
+        if queue_status_counts and (agent_count > 0 or handoff_target_count > 0)
+        else "needs queue context and handoff/agent metadata"
+    )
 
     return {
         "local_only": True,
@@ -112,10 +125,18 @@ def summarize_local_project_dashboard(config: AppConfig) -> dict[str, Any]:
         "repo_count": repo_count,
         "queue_status_counts": queue_status_counts,
         "agent_count": agent_count,
+        "handoff_target_count": handoff_target_count,
         "docs_status": docs_status,
         "warnings": sorted(set(warnings)),
         "next_recommended_actions": next_actions,
         "project_management_readiness": readiness_hints,
+        "orchestration_readiness_hint": orchestration_readiness_hint,
+        "escalation_readiness_hint": escalation_readiness_hint,
+        "plan_only_boundary_hints": [
+            "Orchestration remains plan-only and does not execute agents.",
+            "Escalation remains plan-only and does not invoke local/cloud/Codex/ChatGPT/Ollama models.",
+            "Handoff preview is local-only and does not post anywhere.",
+        ],
         "boundary_confirmations": [
             "Local-first control-plane summary only.",
             "No GitHub calls.",

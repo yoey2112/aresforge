@@ -137,6 +137,25 @@ h1 {
   color: var(--muted);
 }
 
+.message-note {
+  color: var(--muted);
+  margin: 0.4rem 0 0.8rem;
+}
+
+.code-block {
+  margin: 0.5rem 0 0;
+  max-height: 420px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #f7fafc;
+  padding: 0.7rem;
+  white-space: pre-wrap;
+  font-family: "Consolas", "Courier New", monospace;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
 .split {
   display: grid;
   gap: 1rem;

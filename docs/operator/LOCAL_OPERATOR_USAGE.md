@@ -136,7 +136,54 @@ M38 boundary guarantees:
 
 Remaining scope split:
 
-- M39: agent, handoff, orchestration, and escalation screens
+- M40: reporting/dashboard polish and operator workflow expansion
+- authentication and production deployment are not implemented yet
+
+## M39 Hub Agent, Handoff, Orchestration, And Escalation Screens
+
+M39 extends the local Hub with interactive planning-focused workflows on top of M34, M35, and M36.
+
+Quick M39 operator note:
+
+- Start the Hub:
+   - `python -m aresforge serve-hub`
+- Open:
+   - `http://127.0.0.1:8765`
+- Use Agents to manage local profiles and handoff targets.
+- Use Handoff to preview local handoff content.
+- Use Orchestration to generate plan-only agent assignments.
+- Use Escalation to generate plan-only local/Codex/cloud/human classification.
+- Data remains local file-backed.
+- No agents or models are executed.
+
+M39 Hub API endpoints:
+
+- `GET /api/agents`
+- `POST /api/agents`
+- `GET /api/agents/{agent_id}`
+- `GET /api/handoff-targets`
+- `POST /api/handoff-targets`
+- `GET /api/handoff-targets/{target_id}`
+- `GET /api/handoff/preview`
+- `GET /api/orchestration/plan`
+- `POST /api/orchestration/plan`
+- `GET /api/escalation/plan`
+- `POST /api/escalation/plan`
+
+M39 boundary guarantees:
+
+- local-only command/API/UI surface
+- file-backed storage and planning
+- orchestration and escalation are plan-only
+- no agent execution
+- no local/cloud/Codex/ChatGPT/Ollama model execution
+- no `gh` calls
+- no GitHub API calls
+- no network service calls
+- no external API calls
+
+Remaining scope split:
+
 - M40: reporting/dashboard polish and operator workflow expansion
 - authentication and production deployment are not implemented yet
 

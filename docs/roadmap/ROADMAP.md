@@ -2,6 +2,50 @@
 
 ## Current Milestones
 
+### M39 - Hub Agent, Handoff, Orchestration, And Escalation Screens
+
+Status: Completed (local-only, file-backed interactive planning workflows).
+
+Delivered M39 outcomes:
+
+- local Hub API endpoints for agent profiles, handoff targets, handoff preview, orchestration plan, and escalation plan:
+  - `GET/POST /api/agents`
+  - `GET /api/agents/{agent_id}`
+  - `GET/POST /api/handoff-targets`
+  - `GET /api/handoff-targets/{target_id}`
+  - `GET /api/handoff/preview`
+  - `GET/POST /api/orchestration/plan`
+  - `GET/POST /api/escalation/plan`
+- local Hub static UI now includes interactive:
+  - Agents profile list and add/update form
+  - Handoff targets list and add/update form
+  - Handoff preview refresh panel
+  - Orchestration planning controls and plan detail rendering
+  - Escalation planning controls and classification/detail rendering
+- M39 uses existing local operators instead of duplicating business logic:
+  - M34 local agent profiles and handoff targets
+  - M35 local orchestration planner
+  - M36 local escalation planner
+  - M26 local handoff package generation for preview content
+
+M39 safety posture:
+
+- local-only, local-first, file-backed management and planning surface
+- orchestration and escalation remain plan-only
+- no agent execution
+- no local/cloud/Codex/ChatGPT/Ollama model execution
+- no GitHub calls
+- no `gh` calls
+- no network service calls
+- no external API calls
+- no authentication implementation yet
+- no production deployment implementation yet
+- no live GitHub sync yet
+
+Upcoming milestone split:
+
+- M40: reporting/dashboard polish and operator workflows
+
 ### M38 - Hub Project, Repo, And Queue Management
 
 Status: Completed (local-only interactive management screens and API).
@@ -37,7 +81,6 @@ M38 safety posture:
 
 Upcoming milestone split:
 
-- M39: agent/orchestration/escalation/handoff screens
 - M40: reporting/dashboard polish and operator workflows
 
 ### M37 - AresForge Hub UI Foundation

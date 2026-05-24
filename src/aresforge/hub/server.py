@@ -10,8 +10,15 @@ import webbrowser
 
 from aresforge.config import AppConfig
 from aresforge.hub.api import (
+    get_agent,
+    get_agents,
     get_docs_status,
+    get_escalation_plan,
     get_health,
+    get_handoff_preview,
+    get_handoff_target,
+    get_handoff_targets,
+    get_orchestration_plan,
     get_project,
     get_project_repos,
     get_projects,
@@ -20,6 +27,10 @@ from aresforge.hub.api import (
     get_settings,
     get_summary,
     patch_queue_item,
+    post_agent,
+    post_escalation_plan,
+    post_handoff_target,
+    post_orchestration_plan,
     post_project,
     post_project_repo,
     post_queue_item,
@@ -105,6 +116,101 @@ def _build_handler(config: AppConfig, static_root: Path) -> type[BaseHTTPRequest
                 return True
             if method == "GET" and path == "/api/settings":
                 _render_json(self, HTTPStatus.OK, get_settings(config))
+                return True
+
+            if method == "GET" and path == "/api/agents":
+                _render_json(self, HTTPStatus.OK, get_agents(config))
+                return True
+            if method == "POST" and path == "/api/agents":
+                if body is None:
+                    _render_json(
+                        self,
+                        HTTPStatus.BAD_REQUEST,
+                        {
+                            "ok": False,
+                            "local_only": True,
+                            "error": "invalid_json_body",
+                            "message": "Request body must be a JSON object.",
+                        },
+                    )
+                    return True
+                payload = post_agent(config, body)
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+            if len(segments) == 3 and segments[1] == "agents" and method == "GET":
+                payload = get_agent(config, segments[2])
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+
+            if method == "GET" and path == "/api/handoff-targets":
+                _render_json(self, HTTPStatus.OK, get_handoff_targets(config))
+                return True
+            if method == "POST" and path == "/api/handoff-targets":
+                if body is None:
+                    _render_json(
+                        self,
+                        HTTPStatus.BAD_REQUEST,
+                        {
+                            "ok": False,
+                            "local_only": True,
+                            "error": "invalid_json_body",
+                            "message": "Request body must be a JSON object.",
+                        },
+                    )
+                    return True
+                payload = post_handoff_target(config, body)
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+            if len(segments) == 3 and segments[1] == "handoff-targets" and method == "GET":
+                payload = get_handoff_target(config, segments[2])
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+
+            if method == "GET" and path == "/api/handoff/preview":
+                payload = get_handoff_preview(config)
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+
+            if method == "GET" and path == "/api/orchestration/plan":
+                payload = get_orchestration_plan(config)
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+            if method == "POST" and path == "/api/orchestration/plan":
+                if body is None:
+                    _render_json(
+                        self,
+                        HTTPStatus.BAD_REQUEST,
+                        {
+                            "ok": False,
+                            "local_only": True,
+                            "error": "invalid_json_body",
+                            "message": "Request body must be a JSON object.",
+                        },
+                    )
+                    return True
+                payload = post_orchestration_plan(config, body)
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+
+            if method == "GET" and path == "/api/escalation/plan":
+                payload = get_escalation_plan(config)
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+            if method == "POST" and path == "/api/escalation/plan":
+                if body is None:
+                    _render_json(
+                        self,
+                        HTTPStatus.BAD_REQUEST,
+                        {
+                            "ok": False,
+                            "local_only": True,
+                            "error": "invalid_json_body",
+                            "message": "Request body must be a JSON object.",
+                        },
+                    )
+                    return True
+                payload = post_escalation_plan(config, body)
+                _render_json(self, _status_from_payload(payload), payload)
                 return True
 
             if method == "GET" and path == "/api/projects":

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Describe the implemented human-triggered operator surface through M38 Hub project/repo/queue management.
+Describe the implemented human-triggered operator surface through M39 Hub agent/handoff/orchestration/escalation management.
 
 ## Operator Shape
 
@@ -212,7 +212,50 @@ Command entrypoint:
   - no authentication implementation yet
   - no production deployment implementation yet
 - Deferred scope remains:
-  - M39: agent/orchestration/escalation/handoff screens
+  - M40: reporting/dashboard polish and operator workflows
+
+## M39 Hub Agent, Handoff, Orchestration, And Escalation Screens
+
+- Extended Hub API endpoints:
+  - `GET /api/agents`
+  - `POST /api/agents`
+  - `GET /api/agents/{agent_id}`
+  - `GET /api/handoff-targets`
+  - `POST /api/handoff-targets`
+  - `GET /api/handoff-targets/{target_id}`
+  - `GET /api/handoff/preview`
+  - `GET /api/orchestration/plan`
+  - `POST /api/orchestration/plan`
+  - `GET /api/escalation/plan`
+  - `POST /api/escalation/plan`
+- Hub UI now supports local interactive workflows for:
+  - Agent profile list and add/update management
+  - Handoff target list and add/update management
+  - Handoff preview generation and refresh
+  - Orchestration plan generation/viewing with filters
+  - Escalation plan generation/viewing with filters
+- M39 data path:
+  - agent/handoff operations use M34 local profile storage
+  - orchestration operations use M35 local plan-only logic
+  - escalation operations use M36 local plan-only logic
+  - handoff preview uses M26 local handoff logic without posting externally
+- Local-only boundary:
+  - file-backed local-first workflows
+  - orchestration and escalation are plan-only
+  - no agent execution
+  - no local LLM invocation
+  - no cloud LLM invocation
+  - no Codex execution
+  - no ChatGPT calls
+  - no Ollama calls
+  - no `gh`
+  - no GitHub API calls
+  - no network service calls
+  - no external API calls
+  - no authentication implementation yet
+  - no production deployment implementation yet
+  - no live GitHub sync yet
+- Deferred scope remains:
   - M40: reporting/dashboard polish and operator workflows
 
 ## Current Additions (M25 Included)
