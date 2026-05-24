@@ -2,13 +2,28 @@
 
 ## Purpose
 
-Describe the implemented human-triggered operator surface through M30 local self-managed milestone lifecycle support.
+Describe the implemented human-triggered operator surface through M31 foundation reconciliation and next-phase planning.
 
 ## Operator Shape
 
 Command entrypoint:
 
 - `python -m aresforge`
+
+## M31 Foundation Reconciliation
+
+- AresForge now has a local-first foundation for self-managed operation.
+- GitHub is optional/syncable and not mandatory for local planning.
+- M26-M30 capabilities are established and reconciled as the baseline foundation:
+  - M26 handoff package generation
+  - M27 local project state ledger
+  - M28 plan-only documentation reconciliation
+  - M29 plan-only offline-to-GitHub sync planning
+  - M30 local self-managed milestone lifecycle
+- Foundation batch boundary confirmations:
+  - no new GitHub API calls
+  - no new LLM API calls
+  - no mandatory network dependency for local planning
 
 ## Current Additions (M25 Included)
 
@@ -207,27 +222,39 @@ Offline state-file command surface:
 - no background jobs, polling loops, or schedulers
 - parent issue remains open until children are closed/accounted and parent readiness checks pass
 
-## Current Validation Bundle (M25)
+## Current Foundation Validation Bundle (Local-Only)
 
 - `git diff --check`
 - `python -m pytest`
-- `python -m aresforge inspect-repo-governance`
-- `python -m aresforge inspect-milestone-state --parent-issue 421`
-- `python -m aresforge check-milestone-evidence-readiness --parent-issue 421`
-- `python -m aresforge inspect-parent-closeout-readiness --parent-issue 421`
-- `python -m aresforge inspect-milestone-closeout-preflight --parent-issue 421`
-- `python -m aresforge inspect-automatic-canonical-evidence-emission-contract`
-- `python -m aresforge check-closeout-readiness-by-construction --parent-issue 421`
-- `python -m aresforge generate-parent-closeout-evidence-bundle --parent-issue 421`
+- `python -m aresforge init-project-state --force`
+- `python -m aresforge inspect-project-state`
+- `python -m aresforge generate-handoff-package --output artifacts/handoff/final-handoff.md --force`
+- `python -m aresforge plan-doc-reconciliation --output artifacts/doc-reconciliation/final-plan.json --force`
+- `python -m aresforge plan-github-sync --output artifacts/github-sync/final-sync-plan.json --force`
+- `python -m aresforge generate-local-milestone-template --milestone-id m31-final-validation --title "M31 Final Validation" --output artifacts/milestones/m31-final-validation.json --force`
+- `python -m aresforge inspect-local-milestone --definition artifacts/milestones/m31-final-validation.json --format markdown`
+- `python -m aresforge check-local-milestone-readiness --definition artifacts/milestones/m31-final-validation.json --format markdown`
+- `python -m aresforge generate-local-milestone-closeout --definition artifacts/milestones/m31-final-validation.json --output artifacts/milestones/m31-closeout.md --format markdown --force`
 
 ## Known Limitations
 
-- Parent closeout execution remains manually triggered and intentionally conservative.
-- Governance milestone naming warning remains non-blocking and unresolved.
-- Issue milestone assignment gaps are surfaced as warnings but do not block M25 child execution.
+- No actual multi-project registry yet unless implemented later.
+- No local queue/tracking yet unless implemented later.
+- No actual LLM invocation yet.
+- No cloud LLM API integration yet.
+- No GitHub sync execution yet.
+- No web dashboard UI yet.
+- No cross-machine coordination yet.
+- No background daemon/scheduler yet.
 
-## Follow-Up Candidates (Post-M25)
+## Next-Phase Roadmap (Planned)
 
-1. Improve parent/child milestone assignment governance diagnostics and remediation playbooks.
-2. Add higher-fidelity closeout lineage discoverability reporting to reduce `no_child_issue_targets_detected` ambiguity.
-3. Expand deterministic historical evidence extraction for previously closed milestones.
+1. Multi-project / multi-repo registry.
+2. Local project queue and tracking.
+3. Local LLM agent handoff profiles.
+4. Multi-agent orchestration planning.
+5. Escalation to cloud LLMs.
+6. Project dashboard and local project management reporting.
+7. Optional later GitHub sync execution.
+8. Optional later web dashboard UI.
+9. Optional later background daemon or scheduler.

@@ -2,11 +2,47 @@
 
 ## Current Phase
 
-M30 self-managed local milestone lifecycle implementation and documentation.
+M31 foundation reconciliation and next-phase planning.
 
 ## Current Goal
 
-Connect local milestone definition, readiness checks, and closeout generation into a local-first lifecycle that links project state, documentation reconciliation planning, handoff generation, and optional future GitHub sync planning.
+Reconcile source-of-truth documentation for the completed M26-M30 local-first foundation and prepare the next phase for multi-project and multi-agent project-management capabilities.
+
+## M31 Foundation Reconciliation and Next-Phase Planning
+
+- AresForge now has a local-first foundation for self-managed operation.
+- GitHub is optional/syncable and not mandatory for local planning.
+- M26 added local handoff package generation.
+- M27 added the local project state ledger.
+- M28 added plan-only documentation reconciliation.
+- M29 added plan-only offline-to-GitHub sync planning.
+- M30 added local self-managed milestone lifecycle support.
+- No new functionality in this foundation batch calls GitHub APIs.
+- No new functionality in this foundation batch calls LLM APIs.
+- The system is ready to move into multi-project and multi-agent project-management capabilities.
+
+## Next-Phase Roadmap (Planned)
+
+- Multi-project / multi-repo registry.
+- Local project queue and tracking.
+- Local LLM agent handoff profiles.
+- Multi-agent orchestration planning.
+- Escalation to cloud LLMs.
+- Project dashboard and local project management reporting.
+- Optional later GitHub sync execution.
+- Optional later web dashboard UI.
+- Optional later background daemon or scheduler.
+
+## Known Limitations (Current Foundation Batch)
+
+- No actual multi-project registry yet unless implemented later.
+- No local queue/tracking yet unless implemented later.
+- No actual LLM invocation yet.
+- No cloud LLM API integration yet.
+- No GitHub sync execution yet.
+- No web dashboard UI yet.
+- No cross-machine coordination yet.
+- No background daemon/scheduler yet.
 
 ## M30 Self-Managed Milestone Lifecycle
 

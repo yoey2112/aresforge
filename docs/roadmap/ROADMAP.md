@@ -392,3 +392,52 @@ M30 safety posture:
 - no `gh`, no GitHub API calls, no network usage
 - no LLM calls
 - no live mutation execution
+
+### M31 - Foundation Reconciliation and Next-Phase Planning
+
+Status: Implemented.
+
+Delivered M31 outcomes:
+
+- Reconciled source-of-truth docs across build state, agent context, roadmap, runnable skeleton, and operator usage.
+- Confirmed M26-M30 foundation status and boundaries in one aligned narrative.
+- Documented that AresForge now has a local-first foundation for self-managed operation.
+- Documented that GitHub is optional/syncable and not mandatory for local planning.
+- Preserved and clarified M26-M30 command surfaces:
+  - M26 handoff package generation
+  - M27 local project state ledger
+  - M28 plan-only documentation reconciliation
+  - M29 plan-only offline-to-GitHub sync planning
+  - M30 local self-managed milestone lifecycle
+
+M31 safety posture:
+
+- no new GitHub API calls in this foundation batch
+- no new LLM API calls in this foundation batch
+- local-first planning remains available without GitHub access
+- no automatic sync execution, no background automation, no unattended mutation
+
+## Next Phase Roadmap (Planned)
+
+The next phase shifts from single-repo local foundation hardening to multi-project and multi-agent project-management capabilities.
+
+- Multi-project / multi-repo registry.
+- Local project queue and tracking.
+- Local LLM agent handoff profiles.
+- Multi-agent orchestration planning.
+- Escalation to cloud LLMs.
+- Project dashboard and local project management reporting.
+- Optional later GitHub sync execution.
+- Optional later web dashboard UI.
+- Optional later background daemon or scheduler.
+
+## Known Limitations (Current Foundation Batch)
+
+- No actual multi-project registry yet unless implemented later.
+- No local queue/tracking yet unless implemented later.
+- No actual LLM invocation yet.
+- No cloud LLM API integration yet.
+- No GitHub sync execution yet.
+- No web dashboard UI yet.
+- No cross-machine coordination yet.
+- No background daemon/scheduler yet.

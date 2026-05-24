@@ -1,5 +1,107 @@
 # Local Operator Usage
 
+## M31 Foundation Reconciliation And Next-Phase Planning
+
+Foundation status:
+
+- AresForge now has a local-first foundation for self-managed operation.
+- GitHub is optional/syncable and not mandatory for local planning.
+- M26 added handoff package generation.
+- M27 added the local project state ledger.
+- M28 added plan-only documentation reconciliation.
+- M29 added plan-only offline-to-GitHub sync planning.
+- M30 added local self-managed milestone lifecycle support.
+- No new functionality in this foundation batch calls GitHub APIs.
+- No new functionality in this foundation batch calls LLM APIs.
+- The system is ready to move into multi-project and multi-agent project-management capabilities.
+
+## Next-Phase Roadmap (Planned)
+
+- Multi-project / multi-repo registry.
+- Local project queue and tracking.
+- Local LLM agent handoff profiles.
+- Multi-agent orchestration planning.
+- Escalation to cloud LLMs.
+- Project dashboard and local project management reporting.
+- Optional later GitHub sync execution.
+- Optional later web dashboard UI.
+- Optional later background daemon or scheduler.
+
+## Known Limitations (Current Foundation Batch)
+
+- No actual multi-project registry yet unless implemented later.
+- No local queue/tracking yet unless implemented later.
+- No actual LLM invocation yet.
+- No cloud LLM API integration yet.
+- No GitHub sync execution yet.
+- No web dashboard UI yet.
+- No cross-machine coordination yet.
+- No background daemon/scheduler yet.
+
+## Final Validation Checklist (Local-Only)
+
+```powershell
+$ErrorActionPreference = "Stop"
+
+Set-Location "C:\Projects\aresforge"
+
+Write-Host "== Confirm branch and recent commits ==" -ForegroundColor Cyan
+git branch --show-current
+git log -n 10 --oneline
+
+Write-Host ""
+Write-Host "== Confirm working tree ==" -ForegroundColor Cyan
+git status --short
+
+Write-Host ""
+Write-Host "== Whitespace validation ==" -ForegroundColor Cyan
+git diff --check
+
+Write-Host ""
+Write-Host "== Full test suite ==" -ForegroundColor Cyan
+python -m pytest
+
+Write-Host ""
+Write-Host "== Generate local project state if needed ==" -ForegroundColor Cyan
+python -m aresforge init-project-state --force
+
+Write-Host ""
+Write-Host "== Inspect project state ==" -ForegroundColor Cyan
+python -m aresforge inspect-project-state
+
+Write-Host ""
+Write-Host "== Generate handoff package ==" -ForegroundColor Cyan
+python -m aresforge generate-handoff-package --output "artifacts\handoff\final-handoff.md" --force
+
+Write-Host ""
+Write-Host "== Plan doc reconciliation ==" -ForegroundColor Cyan
+python -m aresforge plan-doc-reconciliation --output "artifacts\doc-reconciliation\final-plan.json" --force
+
+Write-Host ""
+Write-Host "== Plan GitHub sync locally ==" -ForegroundColor Cyan
+python -m aresforge plan-github-sync --output "artifacts\github-sync\final-sync-plan.json" --force
+
+Write-Host ""
+Write-Host "== Generate local milestone template ==" -ForegroundColor Cyan
+python -m aresforge generate-local-milestone-template --milestone-id "m31-final-validation" --title "M31 Final Validation" --output "artifacts\milestones\m31-final-validation.json" --force
+
+Write-Host ""
+Write-Host "== Inspect local milestone ==" -ForegroundColor Cyan
+python -m aresforge inspect-local-milestone --definition "artifacts\milestones\m31-final-validation.json" --format markdown
+
+Write-Host ""
+Write-Host "== Check local milestone readiness ==" -ForegroundColor Cyan
+python -m aresforge check-local-milestone-readiness --definition "artifacts\milestones\m31-final-validation.json" --format markdown
+
+Write-Host ""
+Write-Host "== Generate local milestone closeout ==" -ForegroundColor Cyan
+python -m aresforge generate-local-milestone-closeout --definition "artifacts\milestones\m31-final-validation.json" --output "artifacts\milestones\m31-closeout.md" --format markdown --force
+
+Write-Host ""
+Write-Host "== Final status ==" -ForegroundColor Cyan
+git status --short
+```
+
 ## M30 Self-Managed Local Milestone Lifecycle
 
 When to run:

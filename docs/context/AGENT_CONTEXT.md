@@ -2,48 +2,44 @@
 
 ## Purpose
 
-Provide minimum operating context for safe M25 automatic canonical marker emission workflow execution with read-only-first behavior, deterministic child sequencing, targeted mutation boundaries, and parent closeout readiness gating.
+Provide minimum operating context for M31 foundation reconciliation and next-phase planning with a local-first, self-managed operator model.
 
 ## Current Operating Model
 
-- Active milestone context: parent `#421` OPEN; children `#422-#429` CLOSED/accounted; final reconciliation child `#430` OPEN and processed last.
-- M25 automatic canonical marker emission now spans child/PR/parent/closeout-comment evidence domains.
-- M25 readiness-by-construction validation remains read-only and surfaces actionable blockers.
-- Child execution remains one-branch, one-PR, one-evidence-comment, one-targeted-closeout.
-- Parent closeout remains blocked until all children are closed/accounted and readiness checks explicitly pass.
-- GitHub issue truth remains authoritative; local run/handoff artifacts are advisory support only.
-- Offline state-file parent closeout readiness workflow is implemented and pushed through `40de9fe`; use it as the preferred path during GitHub GraphQL/API rate-limit windows.
-- With `--state-file <path>`, supported readiness/evidence commands execute local-only without `gh` or GitHub API calls.
-- M26 local handoff package generation is available for local continuity between human sessions, Codex sessions, and local LLM agents.
-- Handoff generation is local-only and must not call GitHub APIs, `gh`, or network-dependent services.
-- M27 local project state ledger is now available for persistent local project tracking without GitHub as the only state source.
-- M28 documentation reconciliation agent foundation is now available as a plan-only local command surface.
-- M28 documentation reconciliation is advisory only and does not edit documentation files automatically.
-- M28 documentation reconciliation must not call LLMs, `gh`, GitHub APIs, or external network services.
-- M29 offline-to-GitHub sync planning is now available as a plan-only local command surface.
-- M29 offline-to-GitHub sync planning is advisory only and does not post comments, close issues, create PRs, query GitHub, or run GitHub validation.
-- M29 offline-to-GitHub sync planning must not call `gh`, GitHub APIs, or external network services.
-- M30 local self-managed milestone lifecycle is now available as a local-first plan/check/generate command surface.
-- M30 milestone lifecycle does not call `gh`, GitHub APIs, LLMs, or external network services.
-- M30 lifecycle links M27 project state tracking, M28 documentation reconciliation planning, M26 handoff continuity artifacts, and optional M29 offline-to-GitHub sync planning.
-- Ledger defaults:
-  - `.aresforge/state/project_state.json`
-  - `.aresforge/state/operation_log.jsonl`
-- M27 command surface:
-  - `python -m aresforge init-project-state`
-  - `python -m aresforge inspect-project-state`
-  - `python -m aresforge update-project-state`
-  - `python -m aresforge append-operation-log`
-  - `python -m aresforge inspect-operation-log`
-- M28 command surface:
+- Active milestone context: M31 foundation reconciliation and next-phase planning.
+- AresForge now has a local-first foundation for self-managed operation.
+- GitHub is optional/syncable and not mandatory for local planning.
+- M26 added local handoff package generation.
+- M27 added the local project state ledger.
+- M28 added plan-only documentation reconciliation.
+- M29 added plan-only offline-to-GitHub sync planning.
+- M30 added local self-managed milestone lifecycle support.
+- Foundation-batch boundaries (M26-M30):
+  - no `gh`
+  - no GitHub API calls
+  - no LLM API calls
+  - no network-required execution path
+- Current local-first command surface:
+  - `python -m aresforge generate-handoff-package --output <path> [--format markdown|json] [--include-doc-excerpts] [--force]`
+  - `python -m aresforge init-project-state [--path <path>] [--force]`
+  - `python -m aresforge inspect-project-state [--path <path>]`
+  - `python -m aresforge update-project-state [--path <path>] [--current-milestone <value>] [--current-phase <value>] [--current-mode <value>] [--validation-status <value>] [--documentation-status <value>] [--warning <text>]...`
+  - `python -m aresforge append-operation-log [--state-path <path>] --event-type <type> --summary <summary> [--details <json>]`
+  - `python -m aresforge inspect-operation-log [--state-path <path>] [--limit <n>]`
   - `python -m aresforge plan-doc-reconciliation [--output <path>] [--format json|markdown] [--include-git-state] [--force]`
-- M29 command surface:
   - `python -m aresforge plan-github-sync [--state-file <path>] [--project-state <path>] [--output <path>] [--format json|markdown] [--force]`
-- M30 command surface:
   - `python -m aresforge generate-local-milestone-template --milestone-id <id> --output <path> [--title <title>] [--force]`
   - `python -m aresforge inspect-local-milestone --definition <path> [--format json|markdown]`
   - `python -m aresforge check-local-milestone-readiness --definition <path> [--project-state <path>] [--format json|markdown]`
   - `python -m aresforge generate-local-milestone-closeout --definition <path> --output <path> [--format json|markdown] [--force]`
+- Next-phase planning focus:
+  - multi-project / multi-repo registry
+  - local project queue and tracking
+  - local LLM agent handoff profiles
+  - multi-agent orchestration planning
+  - cloud LLM escalation planning
+  - project dashboard and local project management reporting
+  - optional later GitHub sync execution and optional later web UI/daemon support
 
 ## Canonical Documents
 
@@ -115,7 +111,11 @@ Provide minimum operating context for safe M25 automatic canonical marker emissi
 
 ## Known Limitations
 
-- Parent closeout remains intentionally manual and readiness-gated.
-- Non-blocking governance milestone naming warning remains present.
-- Milestone assignment warnings remain present for parent/child issues in current repo state.
-- Final parent closeout for `#421` remains pending until child `#430` is closed and readiness passes.
+- No actual multi-project registry yet unless implemented later.
+- No local queue/tracking yet unless implemented later.
+- No actual LLM invocation yet.
+- No cloud LLM API integration yet.
+- No GitHub sync execution yet.
+- No web dashboard UI yet.
+- No cross-machine coordination yet.
+- No background daemon/scheduler yet.
