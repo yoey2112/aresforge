@@ -369,6 +369,40 @@ def test_cli_dispatch_inspect_milestone_dashboard(
     assert payload["dashboard"]["recommended_next_child_issue"]["issue_number"] == 295
 
 
+def test_cli_dispatch_inspect_parent_closeout_readiness_with_state_file(
+    monkeypatch,
+    capsys,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: _config(tmp_path))
+    monkeypatch.setattr(
+        cli,
+        "inspect_parent_closeout_readiness",
+        lambda _config, parent_issue, state_file=None: {
+            "command": "inspect-parent-closeout-readiness",
+            "ok": True,
+            "read_only": True,
+            "parent_issue": {"issue_number": parent_issue},
+            "inspection_mode": "local_state_file",
+            "state_file": state_file,
+        },
+    )
+    exit_code = cli.main(
+        [
+            "inspect-parent-closeout-readiness",
+            "--parent-issue",
+            "269",
+            "--state-file",
+            "artifacts/offline-state/m25-421.json",
+        ]
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["command"] == "inspect-parent-closeout-readiness"
+    assert payload["inspection_mode"] == "local_state_file"
+    assert payload["state_file"] == "artifacts/offline-state/m25-421.json"
+
+
 def test_cli_dispatch_generate_child_closeout_script(
     monkeypatch,
     capsys,

@@ -584,6 +584,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="Inspect parent closeout readiness with explicit child lineage in read-only mode.",
     )
     parent_closeout_readiness_parser.add_argument("--parent-issue", type=int, required=True)
+    parent_closeout_readiness_parser.add_argument(
+        "--state-file",
+        help="Optional local JSON state file for offline parent closeout readiness checks.",
+    )
     parent_child_linkage_preflight_parser = subparsers.add_parser(
         "inspect-parent-child-linkage-preflight",
         help="Inspect parent-child lineage detectability in read-only preflight mode.",
@@ -1438,7 +1442,11 @@ def main(argv: list[str] | None = None) -> int:
         return 0 if bool(payload.get("ok")) else 1
 
     if args.command == "inspect-parent-closeout-readiness":
-        payload = inspect_parent_closeout_readiness(config, parent_issue=args.parent_issue)
+        payload = inspect_parent_closeout_readiness(
+            config,
+            parent_issue=args.parent_issue,
+            state_file=args.state_file,
+        )
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 

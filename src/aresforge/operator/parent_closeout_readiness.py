@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
 from typing import Any
 
 from aresforge.config import AppConfig
@@ -11,14 +13,23 @@ COMMAND_NAME = "inspect-parent-closeout-readiness"
 _ACCOUNTED_CLASSIFICATIONS = {"ready", "already_closed"}
 
 
-def inspect_parent_closeout_readiness(config: AppConfig, *, parent_issue: int) -> dict[str, Any]:
-    milestone = inspect_milestone_state(config, parent_issue=parent_issue)
-    evidence = check_milestone_evidence_readiness(config, parent_issue=parent_issue)
-    reconciliation = plan_milestone_final_reconciliation(config, parent_issue=parent_issue)
+def inspect_parent_closeout_readiness(
+    config: AppConfig,
+    *,
+    parent_issue: int,
+    state_file: str | Path | None = None,
+) -> dict[str, Any]:
+    milestone = inspect_milestone_state(config, parent_issue=parent_issue, state_file=state_file)
+    evidence = check_milestone_evidence_readiness(config, parent_issue=parent_issue, state_file=state_file)
+    reconciliation = (
+        _offline_reconciliation_from_state_file(parent_issue=parent_issue, state_file=state_file)
+        if state_file is not None
+        else plan_milestone_final_reconciliation(config, parent_issue=parent_issue)
+    )
 
     failures = _collect_failures(milestone=milestone, evidence=evidence, reconciliation=reconciliation)
     if failures:
-        return {
+        failure_payload: dict[str, Any] = {
             "command": COMMAND_NAME,
             "ok": False,
             "read_only": True,
@@ -31,6 +42,10 @@ def inspect_parent_closeout_readiness(config: AppConfig, *, parent_issue: int) -
             "safety_gates": _safety_gates(parent_state=None, closeout_ready=False),
             "boundary_confirmations": _boundaries(),
         }
+        if state_file is not None:
+            failure_payload["inspection_mode"] = "local_state_file"
+            failure_payload["state_file"] = str(state_file)
+        return failure_payload
 
     parent = milestone.get("parent_issue") if isinstance(milestone.get("parent_issue"), dict) else {}
     children = milestone.get("child_issues") if isinstance(milestone.get("child_issues"), list) else []
@@ -52,7 +67,7 @@ def inspect_parent_closeout_readiness(config: AppConfig, *, parent_issue: int) -
             warnings.extend(item for item in source if isinstance(item, str))
     warnings = sorted(set(warnings))
 
-    return {
+    payload: dict[str, Any] = {
         "command": COMMAND_NAME,
         "ok": True,
         "read_only": True,
@@ -82,6 +97,129 @@ def inspect_parent_closeout_readiness(config: AppConfig, *, parent_issue: int) -
             reconciliation_boundaries=reconciliation.get("boundary_confirmations"),
         ),
         "warnings": warnings,
+    }
+    if state_file is not None:
+        payload["inspection_mode"] = "local_state_file"
+        payload["state_file"] = str(state_file)
+    return payload
+
+
+def _offline_reconciliation_from_state_file(
+    *,
+    parent_issue: int,
+    state_file: str | Path,
+) -> dict[str, Any]:
+    state_path = Path(state_file)
+    try:
+        parsed = json.loads(state_path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return _offline_reconciliation_error(
+            parent_issue=parent_issue,
+            state_file=state_path,
+            error="state_file_not_found",
+            details={"path": str(state_path)},
+        )
+    except json.JSONDecodeError as exc:
+        return _offline_reconciliation_error(
+            parent_issue=parent_issue,
+            state_file=state_path,
+            error="state_file_invalid_json",
+            details={"path": str(state_path), "message": str(exc)},
+        )
+    except OSError as exc:
+        return _offline_reconciliation_error(
+            parent_issue=parent_issue,
+            state_file=state_path,
+            error="state_file_read_failed",
+            details={"path": str(state_path), "message": str(exc)},
+        )
+
+    if not isinstance(parsed, dict):
+        return _offline_reconciliation_error(
+            parent_issue=parent_issue,
+            state_file=state_path,
+            error="invalid_state_file_schema",
+            details={"reason": "state_file_root_must_be_object"},
+        )
+
+    summary = parsed.get("final_reconciliation")
+    if not isinstance(summary, dict):
+        return {
+            "command": "plan-milestone-final-reconciliation",
+            "ok": True,
+            "read_only": True,
+            "inspection_mode": "local_state_file",
+            "state_file": str(state_path),
+            "parent_issue": {"issue_number": parent_issue},
+            "ready_for_final_reconciliation": False,
+            "parent_should_remain_open": True,
+            "unaccounted_children": [],
+            "required_operator_actions": [
+                "Add final_reconciliation to the local state file before relying on offline parent closeout readiness."
+            ],
+            "warnings": ["offline_final_reconciliation_not_provided_in_state_file"],
+            "boundary_confirmations": _boundaries(),
+        }
+
+    ready = summary.get("ready_for_final_reconciliation") is True
+    parent_should_remain_open = bool(summary.get("parent_should_remain_open")) if "parent_should_remain_open" in summary else (not ready)
+    unaccounted_children = summary.get("unaccounted_children")
+    if not isinstance(unaccounted_children, list):
+        unaccounted_children = []
+
+    required_operator_actions: list[str] = []
+    source_actions = summary.get("required_operator_actions")
+    if isinstance(source_actions, list):
+        required_operator_actions.extend(item for item in source_actions if isinstance(item, str))
+    if not ready:
+        required_operator_actions.append(
+            "Complete final source-of-truth reconciliation in local state before parent closeout."
+        )
+
+    payload: dict[str, Any] = {
+        "command": "plan-milestone-final-reconciliation",
+        "ok": True,
+        "read_only": True,
+        "inspection_mode": "local_state_file",
+        "state_file": str(state_path),
+        "parent_issue": {"issue_number": parent_issue},
+        "ready_for_final_reconciliation": ready,
+        "parent_should_remain_open": parent_should_remain_open,
+        "unaccounted_children": unaccounted_children,
+        "required_operator_actions": sorted(set(required_operator_actions)),
+        "boundary_confirmations": _boundaries(),
+    }
+
+    final_reconciliation_issue = summary.get("final_reconciliation_issue")
+    if isinstance(final_reconciliation_issue, int):
+        payload["final_reconciliation_issue"] = {"issue_number": final_reconciliation_issue}
+    elif isinstance(final_reconciliation_issue, dict):
+        payload["final_reconciliation_issue"] = final_reconciliation_issue
+
+    warnings = summary.get("warnings")
+    if isinstance(warnings, list):
+        payload["warnings"] = [item for item in warnings if isinstance(item, str)]
+
+    return payload
+
+
+def _offline_reconciliation_error(
+    *,
+    parent_issue: int,
+    state_file: Path,
+    error: str,
+    details: dict[str, Any],
+) -> dict[str, Any]:
+    return {
+        "command": "plan-milestone-final-reconciliation",
+        "ok": False,
+        "read_only": True,
+        "error": error,
+        "inspection_mode": "local_state_file",
+        "state_file": str(state_file),
+        "parent_issue": {"issue_number": parent_issue},
+        "details": details,
+        "boundary_confirmations": _boundaries(),
     }
 
 

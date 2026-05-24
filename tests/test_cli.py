@@ -402,6 +402,19 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     )
     assert inspect_parent_closeout_readiness_args.command == "inspect-parent-closeout-readiness"
     assert inspect_parent_closeout_readiness_args.parent_issue == 269
+    assert inspect_parent_closeout_readiness_args.state_file is None
+    inspect_parent_closeout_readiness_state_file_args = parser.parse_args(
+        [
+            "inspect-parent-closeout-readiness",
+            "--parent-issue",
+            "269",
+            "--state-file",
+            "artifacts/offline-state/m25-421.json",
+        ]
+    )
+    assert inspect_parent_closeout_readiness_state_file_args.command == "inspect-parent-closeout-readiness"
+    assert inspect_parent_closeout_readiness_state_file_args.parent_issue == 269
+    assert inspect_parent_closeout_readiness_state_file_args.state_file == "artifacts/offline-state/m25-421.json"
     inspect_parent_child_linkage_preflight_args = parser.parse_args(
         ["inspect-parent-child-linkage-preflight", "--parent-issue", "381"]
     )
