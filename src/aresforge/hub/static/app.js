@@ -996,6 +996,31 @@ function buildProjectPayload() {
   });
 }
 
+function buildNewProjectWizardPayload() {
+  return prunePayload({
+    name: byId("wizard-project-name").value.trim(),
+    project_id: byId("wizard-project-id").value.trim(),
+    description: byId("wizard-description").value.trim(),
+    project_type: byId("wizard-project-type").value.trim() || "other",
+    preferred_stack: byId("wizard-preferred-stack").value.trim(),
+    root_path: byId("wizard-root-path").value.trim(),
+    github_owner: byId("wizard-github-owner").value.trim(),
+    github_repo: byId("wizard-github-repo").value.trim(),
+    github_mode: byId("wizard-github-mode").value.trim() || "create-later",
+    default_branch: byId("wizard-default-branch").value.trim() || "main",
+    initial_requirements: byId("wizard-initial-requirements").value.trim(),
+    tags: parseCommaList(byId("wizard-tags").value),
+  });
+}
+
+function focusNewProjectWizard() {
+  activateSection("projects");
+  const firstField = byId("wizard-project-name");
+  if (firstField) {
+    firstField.focus();
+  }
+}
+
 function buildRepoPayload() {
   return prunePayload({
     repo_id: byId("repo-repo-id").value.trim(),
@@ -1327,6 +1352,36 @@ function bindForms() {
     }
   });
 
+  on("new-project-wizard-form", "submit", async (event) => {
+    event.preventDefault();
+    const submitButton = byId("new-project-wizard-submit");
+    const originalLabel = submitButton ? submitButton.textContent : "";
+    try {
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = "Creating...";
+      }
+      setMessage("projects-message", "Creating local project-factory start...", "loading");
+      const payload = await fetchJson("/api/project-factory/new-project", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildNewProjectWizardPayload()),
+      });
+      await loadProjects();
+      applyActiveProjectDefaultsToQueueForm();
+      await loadQueue();
+      await refreshSummaryAndReport();
+      setMessage("projects-message", `Local-only project wizard completed for ${payload.active_project_id}.`, "success");
+    } catch (error) {
+      setMessage("projects-message", String(error.message || error), "error");
+    } finally {
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = originalLabel || "Create Local Project Factory Start";
+      }
+    }
+  });
+
   on("agent-form", "submit", async (event) => {
     event.preventDefault();
     try {
@@ -1455,6 +1510,14 @@ function bindForms() {
 
   on("home-quick-intake", "click", () => {
     activateQueueIntakeFocus();
+  });
+
+  on("home-start-new-project", "click", () => {
+    focusNewProjectWizard();
+  });
+
+  on("projects-focus-new-project-wizard", "click", () => {
+    focusNewProjectWizard();
   });
 
   on("bootstrap-refresh-status", "click", async () => {

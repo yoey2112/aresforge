@@ -37,6 +37,11 @@ from aresforge.operator.local_bootstrap_wizard import (
     inspect_bootstrap_status,
     plan_bootstrap,
 )
+from aresforge.operator.local_project_factory import (
+    GITHUB_MODES,
+    PROJECT_TYPES,
+    start_new_project_factory,
+)
 from aresforge.operator.managed_project_registry_local import (
     PROJECT_STATUSES,
     REPO_ROLES,
@@ -638,6 +643,82 @@ def post_active_project(config: AppConfig, body: dict[str, Any]) -> dict[str, An
         }
     )
     return result
+
+
+def post_project_factory_new_project(config: AppConfig, body: dict[str, Any]) -> dict[str, Any]:
+    name = str(body.get("name", "")).strip()
+    root_path = str(body.get("root_path", "")).strip()
+    if not name or not root_path:
+        return _api_error(
+            "invalid_project_factory_payload",
+            "name and root_path are required.",
+            details={"required_fields": ["name", "root_path"]},
+        )
+
+    project_type = str(body.get("project_type", "other")).strip() or "other"
+    if project_type not in PROJECT_TYPES:
+        return _invalid_choice_error(
+            field="project_type",
+            value=project_type,
+            supported=PROJECT_TYPES,
+            label="project type",
+        )
+
+    github_mode = str(body.get("github_mode", "create-later")).strip() or "create-later"
+    if github_mode not in GITHUB_MODES:
+        return _invalid_choice_error(
+            field="github_mode",
+            value=github_mode,
+            supported=GITHUB_MODES,
+            label="GitHub mode",
+        )
+
+    tags_raw = body.get("tags")
+    tags: list[str] = []
+    if isinstance(tags_raw, list):
+        tags = _normalize_str_list(tags_raw)
+    elif isinstance(tags_raw, str):
+        tags = _normalize_str_list([item for item in tags_raw.split(",")])
+
+    result = start_new_project_factory(
+        config,
+        {
+            "name": name,
+            "project_id": str(body.get("project_id", "")).strip(),
+            "description": str(body.get("description", "")).strip(),
+            "project_type": project_type,
+            "preferred_stack": str(body.get("preferred_stack", "")).strip(),
+            "root_path": root_path,
+            "github_owner": str(body.get("github_owner", "")).strip(),
+            "github_repo": str(body.get("github_repo", "")).strip(),
+            "github_mode": github_mode,
+            "default_branch": str(body.get("default_branch", "main")).strip() or "main",
+            "initial_requirements": str(body.get("initial_requirements", "")).strip(),
+            "tags": tags,
+        },
+    )
+    if not result.get("ok", False):
+        details = dict(result.get("details", {}))
+        return _api_error(
+            str(result.get("error", "new_project_factory_failed")),
+            str(details.get("message", "Failed to initialize local new project factory state.")),
+            details=details,
+        )
+
+    return {
+        "ok": True,
+        "local_only": True,
+        "project": result.get("project", {}),
+        "repo": result.get("repo", {}),
+        "active_project_id": str(result.get("active_project_id", "")).strip(),
+        "scope_queue_item": result.get("scope_queue_item", {}),
+        "dossier_path": str(result.get("dossier_path", "")).strip(),
+        "dossier": result.get("dossier", {}),
+        "warnings": result.get("warnings", []),
+        "boundary_confirmations": list(
+            dict.fromkeys(list(result.get("boundary_confirmations", [])) + list(_BOUNDARY_CONFIRMATIONS))
+        ),
+    }
 
 
 def get_projects(config: AppConfig) -> dict[str, Any]:

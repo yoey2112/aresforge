@@ -203,6 +203,21 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "Force overwrite where safe" in index_text
     assert "Active Project Selector" in index_text
     assert "Set Active Project" in index_text
+    assert "New Project Wizard" in index_text
+    assert "Start New Project" in index_text
+    assert "Create Local Project Factory Start" in index_text
+    assert "wizard-project-name" in index_text
+    assert "wizard-project-id" in index_text
+    assert "wizard-project-type" in index_text
+    assert "wizard-preferred-stack" in index_text
+    assert "wizard-root-path" in index_text
+    assert "wizard-github-owner" in index_text
+    assert "wizard-github-repo" in index_text
+    assert "wizard-github-mode" in index_text
+    assert "wizard-default-branch" in index_text
+    assert "wizard-description" in index_text
+    assert "wizard-initial-requirements" in index_text
+    assert "wizard-tags" in index_text
     assert "Active Project Queue Focus" in index_text
     assert "Use Active Project Defaults" in index_text
     assert "Filter To Active Project" in index_text
@@ -219,6 +234,7 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
     for endpoint in (
         "/api/projects",
         "/api/projects/active",
+        "/api/project-factory/new-project",
         "/api/projects/",
         "/github-link",
         "/api/bootstrap/status",
@@ -240,6 +256,7 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
         assert endpoint in app_text
     for form_id in (
         "project-form",
+        "new-project-wizard-form",
         "repo-form",
         "queue-form",
         "queue-filter-form",
@@ -261,6 +278,8 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
         "reports-generate-orchestration",
         "reports-generate-escalation",
         "home-refresh-summary",
+        "home-start-new-project",
+        "projects-focus-new-project-wizard",
         "active-project-set",
         "queue-use-active-project",
         "queue-filter-active-project",
@@ -1031,6 +1050,9 @@ def test_m44_active_project_intake_static_contract() -> None:
     assert "Add To Active Project Queue" in index_text
 
     assert "buildIntakePayload" in app_text
+    assert "buildNewProjectWizardPayload" in app_text
+    assert "focusNewProjectWizard" in app_text
+    assert 'fetchJson("/api/project-factory/new-project"' in app_text
     assert "generatedQueueItemId" in app_text
     assert "hub-active-project-intake" in app_text
     assert "active-project-intake" in app_text

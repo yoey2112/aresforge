@@ -38,6 +38,7 @@
           <p class="boundary-banner">Local-only and plan/report-only: no agent execution, no model invocation, no live sync.</p>
           <div class="quick-actions">
             <button id="home-refresh-summary" type="button">Refresh Summary</button>
+            <button id="home-start-new-project" type="button">Start New Project</button>
           </div>
 
           <section class="subpanel active-project-panel">
@@ -218,7 +219,43 @@
                 <option value="">Select active project</option>
               </select>
               <button id="active-project-set" type="button">Set Active Project</button>
+              <button id="projects-focus-new-project-wizard" type="button">Start New Project</button>
             </div>
+          </section>
+          <section class="subpanel">
+            <h3>New Project Wizard</h3>
+            <p class="message-note">Local-only initialization. This does not create a live GitHub repository and does not execute agents/models.</p>
+            <form id="new-project-wizard-form" class="form-grid">
+              <label>Project Name<input id="wizard-project-name" name="name" required /></label>
+              <label>Project ID Optional<input id="wizard-project-id" name="project_id" placeholder="auto-generated when blank" /></label>
+              <label>Project Type
+                <select id="wizard-project-type" name="project_type">
+                  <option value="app">app</option>
+                  <option value="automation">automation</option>
+                  <option value="website">website</option>
+                  <option value="agent-system">agent-system</option>
+                  <option value="internal-tool">internal-tool</option>
+                  <option value="documentation">documentation</option>
+                  <option value="other">other</option>
+                </select>
+              </label>
+              <label>Preferred Stack<input id="wizard-preferred-stack" name="preferred_stack" /></label>
+              <label>Local Root Path<input id="wizard-root-path" name="root_path" required /></label>
+              <label>GitHub Owner<input id="wizard-github-owner" name="github_owner" /></label>
+              <label>GitHub Repo Name<input id="wizard-github-repo" name="github_repo" /></label>
+              <label>GitHub Mode
+                <select id="wizard-github-mode" name="github_mode">
+                  <option value="create-later">create-later</option>
+                  <option value="link-existing">link-existing</option>
+                  <option value="create-with-approval-later">create-with-approval-later</option>
+                </select>
+              </label>
+              <label>Default Branch<input id="wizard-default-branch" name="default_branch" value="main" /></label>
+              <label>Tags (comma-separated)<input id="wizard-tags" name="tags" /></label>
+              <label class="full">Description / Business Goal<textarea id="wizard-description" name="description"></textarea></label>
+              <label class="full">Initial Requirements / Instructions<textarea id="wizard-initial-requirements" name="initial_requirements"></textarea></label>
+              <button id="new-project-wizard-submit" type="submit">Create Local Project Factory Start</button>
+            </form>
           </section>
           <div class="split two-col">
             <section class="subpanel">
