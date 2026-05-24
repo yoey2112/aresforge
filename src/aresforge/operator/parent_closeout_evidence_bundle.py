@@ -79,7 +79,14 @@ def generate_parent_closeout_evidence_bundle(config: AppConfig, *, parent_issue:
         config,
         parent_issue=parent_issue,
     )
+    canonical_marker = canonical.get("canonical_marker") if isinstance(canonical.get("canonical_marker"), dict) else {}
     canonical_marker_text = str(canonical.get("canonical_marker_text") or "")
+    missing_fields = canonical_marker.get("missing_required_fields")
+    invalid_reasons = canonical_marker.get("invalid_reasons")
+    missing_fields_list = list(missing_fields) if isinstance(missing_fields, (list, tuple)) else []
+    invalid_reasons_list = list(invalid_reasons) if isinstance(invalid_reasons, (list, tuple)) else []
+    marker_state = canonical_marker.get("marker_state") if isinstance(canonical_marker.get("marker_state"), str) else "unknown"
+    marker_complete = marker_state == "ready" and not missing_fields_list and not invalid_reasons_list
 
     evidence_comment_body = render_evidence_bundle_text(
         EvidenceBundleInput(
@@ -136,8 +143,17 @@ def generate_parent_closeout_evidence_bundle(config: AppConfig, *, parent_issue:
             "parent_closeout_ready": parent_closeout_ready,
             "blocked_reasons": blocked_reasons,
         },
-        "canonical_marker": canonical.get("canonical_marker"),
+        "canonical_marker": canonical_marker,
         "canonical_marker_text": canonical_marker_text,
+        "canonical_marker_completeness": {
+            "state": marker_state,
+            "marker_type": canonical_marker.get("marker_type"),
+            "marker_scope": "parent_closeout_evidence_bundle",
+            "missing_required_fields": missing_fields_list,
+            "invalid_reasons": invalid_reasons_list,
+            "marker_complete": marker_complete,
+            "post_hoc_marker_repair_required": not marker_complete,
+        },
         "parent_evidence_comment_body": evidence_comment_body,
         "targeted_parent_closeout_guidance": _targeted_guidance(
             parent_issue=parent_issue,
@@ -226,6 +242,8 @@ def _child_state_rows(child_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
         )
     rows.sort(key=lambda row: int(row["issue_number"]))
     return rows
+
+
 def _targeted_guidance(*, parent_issue: int, parent_closeout_ready: bool, blocked_reasons: list[str]) -> list[str]:
     if not parent_closeout_ready:
         reason_text = ", ".join(blocked_reasons) if blocked_reasons else "unknown_blocker"
