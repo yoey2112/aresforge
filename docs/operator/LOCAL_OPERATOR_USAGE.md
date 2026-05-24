@@ -43,6 +43,51 @@ PowerShell-safe guidance:
 - Use plain text command examples in issue/comment bodies.
 - Prefer `--body-file` and `--comment-file` for multiline mutation content.
 
+## Offline State-File Mode (Local-Only Parent Closeout Readiness)
+
+Use `--state-file` when you need local, deterministic closeout readiness checks with no live GitHub calls.
+
+Local-only command set:
+
+- `python -m aresforge inspect-milestone-state --parent-issue <parent> --state-file <path>`
+- `python -m aresforge check-milestone-evidence-readiness --parent-issue <parent> --state-file <path>`
+- `python -m aresforge inspect-parent-closeout-readiness --parent-issue <parent> --state-file <path>`
+- `python -m aresforge generate-parent-closeout-evidence-bundle --parent-issue <parent> --state-file <path>`
+- `python -m aresforge check-closeout-readiness-by-construction --parent-issue <parent> --state-file <path>`
+
+Offline boundary:
+
+- `--state-file` mode is local-only.
+- Do not run `gh` commands as part of this flow.
+- Do not create or close issues, do not comment on issues, and do not create PRs from these commands.
+
+Expected local state schema (minimum + readiness markers):
+
+- `parent_issue`: object with `number` (must match `--parent-issue`), plus normal issue fields (`state`, `title`, `url`, optional lineage references).
+- `child_issues`: list of child issue objects with:
+- `number`, `state`, `title`, `url`
+- child lineage hints (`body` containing `Parent issue: #<parent>` and/or `reference_classification.implementation_issue_numbers`)
+- `merged_pr_evidence` (each PR supports `number` and/or `url`)
+- `closeout_marker` marker completeness object
+- `closeout_comment_marker` marker completeness object
+- PR marker data per `merged_pr_evidence` item via `marker` when validating readiness-by-construction
+- `final_reconciliation`: object with `ready_for_final_reconciliation`, `parent_should_remain_open`, optional `final_reconciliation_issue`, and `unaccounted_children`
+- `final_main_head`: string for parent closeout marker completeness
+- `final_validation_results`: string for parent closeout marker completeness
+
+Marker completeness object shape:
+
+- `state` (`ready` or `incomplete`)
+- `marker_complete` (`true`/`false`)
+- `missing_required_fields` (list)
+- `invalid_reasons` (list)
+- `post_hoc_marker_repair_required` (`true`/`false`)
+
+Example synthetic fixture:
+
+- `tests/fixtures/offline_state/parent_closeout_ready.json`
+- Example-only test data; not production GitHub state.
+
 ## M24 Canonical Evidence Marker Workflow
 
 When to run:

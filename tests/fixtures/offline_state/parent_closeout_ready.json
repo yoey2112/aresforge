@@ -1,0 +1,108 @@
+{
+  "example_only": true,
+  "example_note": "Synthetic offline state file for local-only parent closeout readiness workflow documentation and testing.",
+  "parent_issue": {
+    "number": 421,
+    "state": "OPEN",
+    "title": "M25 parent (synthetic example)",
+    "url": "https://github.com/example/example-repo/issues/421",
+    "milestone": { "title": "M25" },
+    "body": "Parent issue checklist for synthetic demonstration only.",
+    "comments": [],
+    "reference_classification": {
+      "implementation_issue_numbers": [422, 423]
+    }
+  },
+  "child_issues": [
+    {
+      "number": 422,
+      "state": "CLOSED",
+      "title": "Child issue A (synthetic)",
+      "url": "https://github.com/example/example-repo/issues/422",
+      "milestone": { "title": "M25" },
+      "body": "Implements #422\nParent issue: #421",
+      "comments": [],
+      "reference_classification": {
+        "implementation_issue_numbers": [421],
+        "explicit_implementation_issue_numbers": [422]
+      },
+      "merged_pr_evidence": [
+        {
+          "number": 501,
+          "url": "https://github.com/example/example-repo/pull/501",
+          "marker": {
+            "state": "ready",
+            "marker_complete": true,
+            "missing_required_fields": [],
+            "invalid_reasons": [],
+            "post_hoc_marker_repair_required": false
+          }
+        }
+      ],
+      "closeout_marker": {
+        "state": "ready",
+        "marker_complete": true,
+        "missing_required_fields": [],
+        "invalid_reasons": [],
+        "post_hoc_marker_repair_required": false
+      },
+      "closeout_comment_marker": {
+        "state": "ready",
+        "marker_complete": true,
+        "missing_required_fields": [],
+        "invalid_reasons": [],
+        "post_hoc_marker_repair_required": false
+      }
+    },
+    {
+      "number": 423,
+      "state": "CLOSED",
+      "title": "Child issue B (synthetic)",
+      "url": "https://github.com/example/example-repo/issues/423",
+      "milestone": { "title": "M25" },
+      "body": "Fixes #423\nParent issue: #421",
+      "comments": [],
+      "reference_classification": {
+        "implementation_issue_numbers": [421],
+        "explicit_implementation_issue_numbers": [423]
+      },
+      "merged_pr_evidence": [
+        {
+          "number": 502,
+          "url": "https://github.com/example/example-repo/pull/502",
+          "marker": {
+            "state": "ready",
+            "marker_complete": true,
+            "missing_required_fields": [],
+            "invalid_reasons": [],
+            "post_hoc_marker_repair_required": false
+          }
+        }
+      ],
+      "closeout_marker": {
+        "state": "ready",
+        "marker_complete": true,
+        "missing_required_fields": [],
+        "invalid_reasons": [],
+        "post_hoc_marker_repair_required": false
+      },
+      "closeout_comment_marker": {
+        "state": "ready",
+        "marker_complete": true,
+        "missing_required_fields": [],
+        "invalid_reasons": [],
+        "post_hoc_marker_repair_required": false
+      }
+    }
+  ],
+  "final_reconciliation": {
+    "ready_for_final_reconciliation": true,
+    "final_reconciliation_issue": 430,
+    "parent_should_remain_open": false,
+    "unaccounted_children": [],
+    "required_operator_actions": [],
+    "warnings": []
+  },
+  "final_main_head": "abc1234synthetic",
+  "final_validation_results": "git diff --check: pass; python -m pytest: pass"
+}
