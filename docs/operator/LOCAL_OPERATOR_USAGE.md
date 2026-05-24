@@ -1,5 +1,48 @@
 # Local Operator Usage
 
+## M25 Automatic Canonical Marker Emission Workflow
+
+When to run:
+
+- Run M25 readiness-by-construction checks while executing each child in sequence for a parent milestone.
+- Use it to confirm canonical marker emission coverage across child, PR, parent, and closeout-comment evidence domains.
+- Keep parent closeout blocked until both milestone execution readiness and marker emission readiness are true.
+
+M25 command set (read-only by default):
+
+- `python -m aresforge inspect-automatic-canonical-evidence-emission-contract`
+- `python -m aresforge generate-child-closeout-evidence-bundle --parent-issue <parent> --child-issue <child>`
+- `python -m aresforge generate-pr-evidence-bundle --issue <child> --pr <pr>`
+- `python -m aresforge generate-parent-closeout-evidence-bundle --parent-issue <parent>`
+- `python -m aresforge generate-evidence-comment-template --issue <issue>`
+- `python -m aresforge check-closeout-readiness-by-construction --parent-issue <parent>`
+
+Automatic canonical marker emission domains checked by readiness-by-construction:
+
+- child evidence bundle canonical marker completeness
+- PR evidence bundle canonical marker completeness
+- parent closeout evidence bundle canonical marker completeness
+- closeout comment canonical marker completeness
+
+Readiness-by-construction interpretation:
+
+- `readiness_by_construction.ready=true` means marker emission readiness and milestone execution readiness are both satisfied.
+- `readiness_by_construction.ready=false` with `blocked_reasons` means closeout remains blocked and remediation should be targeted.
+- `post_hoc_marker_repair_required=true` means generated marker completeness is not sufficient and readiness fails by construction.
+
+Operator approval boundary:
+
+- Marker generation/checking, preflight generation, snapshot generation, and readiness-by-construction checks remain read-only by default.
+- Posting issue comments, editing PR bodies, and closing issues remain separate operator-approved targeted actions.
+- Never use bulk issue closure.
+- Never close the parent before children are closed/accounted for and parent readiness gates pass.
+
+PowerShell-safe guidance:
+
+- Avoid nested markdown fences inside here-strings.
+- Use plain text command examples in issue/comment bodies.
+- Prefer `--body-file` and `--comment-file` for multiline mutation content.
+
 ## M24 Canonical Evidence Marker Workflow
 
 When to run:
