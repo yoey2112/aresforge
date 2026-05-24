@@ -2,46 +2,39 @@
 
 ## Current Phase
 
-M24 canonical evidence marker workflow final reconciliation.
+M25 automatic canonical marker emission workflow final reconciliation.
 
 ## Current Goal
 
-Complete M24 source-of-truth reconciliation child issue `#410` (last child), then run parent closeout readiness checks for parent `#400`.
+Complete M25 source-of-truth reconciliation child issue `#430` (last child), then run parent closeout readiness checks for parent `#421`.
 
 ## Current Repository State
 
-- M24 parent issue: `#400` (OPEN).
-- M24 child issue status:
-  - `#401` CLOSED via PR `#411`
-  - `#402` CLOSED via PR `#412`
-  - `#403` CLOSED via PR `#413`
-  - `#404` CLOSED via PR `#414`
-  - `#405` CLOSED via PR `#415`
-  - `#406` CLOSED via PR `#416`
-  - `#407` CLOSED via PR `#417`
-  - `#408` CLOSED via PR `#418`
-  - `#409` CLOSED via PR `#419`
-  - `#410` OPEN (final source-of-truth reconciliation; sequenced last)
+- M25 parent issue: `#421` (OPEN; pending final closeout).
+- M25 child issue status:
+  - `#422` CLOSED via PR `#431`
+  - `#423` CLOSED via PR `#432`
+  - `#424` CLOSED via PR `#433`
+  - `#425` CLOSED via PR `#434`
+  - `#426` CLOSED via PR `#435`
+  - `#427` CLOSED via PR `#436`
+  - `#428` CLOSED via PR `#437`
+  - `#429` CLOSED via PR `#438`
+  - `#430` OPEN (final source-of-truth reconciliation; sequenced last)
 
-## M24 Command Surface
+## M25 Command Surface
 
-- `python -m aresforge inspect-canonical-evidence-marker-contract`
-- `python -m aresforge generate-child-evidence-marker-template --parent-issue <parent> --child-issue <child>`
-- `python -m aresforge generate-pr-evidence-marker-template --issue <child> --pr <pr>`
-- `python -m aresforge generate-parent-closeout-marker-template --parent-issue <parent>`
-- `python -m aresforge generate-preflight-baseline-snapshot --parent-issue <parent> --output <path>`
-- `python -m aresforge diff-preflight-snapshots --before <before_snapshot.json> --after <after_snapshot.json>`
-
-Integrated M24 read paths:
-
+- `python -m aresforge inspect-automatic-canonical-evidence-emission-contract`
 - `python -m aresforge inspect-child-evidence-marker-preflight --parent-issue <parent>`
 - `python -m aresforge inspect-pr-mapping-preflight --parent-issue <parent>`
 - `python -m aresforge generate-closeout-preflight-repair-guidance --parent-issue <parent>`
 - `python -m aresforge generate-child-closeout-evidence-bundle --parent-issue <parent> --child-issue <child>`
 - `python -m aresforge generate-pr-evidence-bundle --issue <child> --pr <pr>`
 - `python -m aresforge generate-parent-closeout-evidence-bundle --parent-issue <parent>`
+- `python -m aresforge generate-evidence-comment-template --issue <issue>`
+- `python -m aresforge check-closeout-readiness-by-construction --parent-issue <parent>`
 
-## M24 Safety Posture
+## M25 Safety Posture
 
 - no autonomous broad mutation
 - no bulk closeout
@@ -50,37 +43,41 @@ Integrated M24 read paths:
 - execute-mode mutation requires explicit operator approval markers
 - mutation scope remains single-target and auditable
 - canonical marker generation and snapshot/diff inspection remain read-only by default
-- final reconciliation issue remains sequenced last (`#410`)
+- final reconciliation issue remains sequenced last (`#430`)
+- no post-hoc marker repair should be needed when generated evidence artifacts are complete
 
 ## Known Limitations
 
-- `run-sequential-child-closeout-flow` requires explicit `--comment-body` input even in dry-run mode.
 - Project-specific milestone naming mapping warning remains non-blocking (`milestone_naming_status.naming_ok: false`).
-- Parent and some child issues currently have no GitHub milestone assignment (warning only, non-blocking for M24 closeout).
+- Parent and some child issues currently have no GitHub milestone assignment (warning only, non-blocking for M25 closeout).
 
-## Validation Baseline For M24
+## Validation Baseline For M25
 
 - `git diff --check`
 - `python -m pytest`
 - `python -m aresforge inspect-repo-governance`
-- `python -m aresforge inspect-milestone-dashboard --parent-issue 400`
-- `python -m aresforge inspect-milestone-state --parent-issue 400`
-- `python -m aresforge check-milestone-evidence-readiness --parent-issue 400`
-- `python -m aresforge inspect-parent-closeout-readiness --parent-issue 400`
-- `python -m aresforge inspect-milestone-closeout-preflight --parent-issue 400`
-- `python -m aresforge inspect-canonical-evidence-marker-contract`
-- `python -m aresforge generate-parent-closeout-marker-template --parent-issue 400`
-- `python -m aresforge generate-preflight-baseline-snapshot --parent-issue 400 --output artifacts/evidence/generated/m24-400-baseline.json`
+- `python -m aresforge inspect-milestone-state --parent-issue 421`
+- `python -m aresforge check-milestone-evidence-readiness --parent-issue 421`
+- `python -m aresforge inspect-parent-closeout-readiness --parent-issue 421`
+- `python -m aresforge inspect-milestone-closeout-preflight --parent-issue 421`
+- `python -m aresforge inspect-automatic-canonical-evidence-emission-contract`
+- `python -m aresforge check-closeout-readiness-by-construction --parent-issue 421`
+- `python -m aresforge generate-parent-closeout-evidence-bundle --parent-issue 421`
 
-## M24 Child/PR Mapping
+## M25 Child/PR Mapping
 
-- `#401` -> `#411`
-- `#402` -> `#412`
-- `#403` -> `#413`
-- `#404` -> `#414`
-- `#405` -> `#415`
-- `#406` -> `#416`
-- `#407` -> `#417`
-- `#408` -> `#418`
-- `#409` -> `#419`
-- `#410` -> pending (final reconciliation docs child)
+- `#422` -> `#431`
+- `#423` -> `#432`
+- `#424` -> `#433`
+- `#425` -> `#434`
+- `#426` -> `#435`
+- `#427` -> `#436`
+- `#428` -> `#437`
+- `#429` -> `#438`
+- `#430` -> pending (this reconciliation PR)
+
+## Main HEAD Tracking (M25 Remaining Sequence)
+
+- Before #428/#429/#430 sequence: `dd856632e2f1831b20b73613f29e9e953771180f`
+- After #428 and #429 merges: `cafda2ceda0a329de7d06a42c0edc6725ece3b10`
+- Final main HEAD after #430 merge: pending (set after merge)
