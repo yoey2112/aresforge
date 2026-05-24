@@ -12,6 +12,7 @@ from aresforge.operator.local_agent_profiles import agent_profiles_summary_for_h
 from aresforge.operator.managed_project_registry_local import managed_project_registry_summary_for_handoff
 from aresforge.operator.local_project_queue import project_queue_summary_for_handoff
 from aresforge.operator.local_project_state import project_state_summary_for_handoff
+from aresforge.operator.local_agent_orchestration import DEFAULT_OUTPUT_DIR
 
 COMMAND_NAME = "generate-handoff-package"
 ALLOWED_GIT_COMMANDS: tuple[tuple[str, ...], ...] = (
@@ -267,6 +268,10 @@ def _build_payload(
     project_queue_summary = project_queue_summary_for_handoff(config)
     latest_doc_reconciliation_plan = _latest_doc_reconciliation_plan(repo_root)
     latest_github_sync_plan = _latest_github_sync_plan(repo_root)
+    latest_orchestration_plan = _latest_orchestration_plan(repo_root)
+    orchestration_capability_note = (
+        "M35 local multi-agent orchestration planning is available via python -m aresforge plan-agent-orchestration."
+    )
     project_state_warnings: list[str] = []
     if project_state_summary is None:
         project_state_warnings.append(
@@ -315,6 +320,8 @@ def _build_payload(
         ),
         "latest_doc_reconciliation_plan": latest_doc_reconciliation_plan,
         "latest_github_sync_plan": latest_github_sync_plan,
+        "latest_orchestration_plan": latest_orchestration_plan,
+        "orchestration_capability_note": orchestration_capability_note,
         "warnings": sorted(
             set(warnings + list(git_state.get("warnings", [])) + project_state_warnings)
         ),
@@ -451,6 +458,17 @@ def _render_markdown(payload: dict[str, Any]) -> str:
     else:
         lines.append("- No local GitHub sync plan detected under artifacts/github-sync/.")
 
+    lines.extend(["", "## Latest Orchestration Plan"])
+    latest_orchestration_plan = payload.get("latest_orchestration_plan")
+    if isinstance(latest_orchestration_plan, dict):
+        lines.append(f"- path: {latest_orchestration_plan.get('path')}")
+        lines.append(f"- modified_at: {latest_orchestration_plan.get('modified_at')}")
+    else:
+        lines.append("- No local orchestration plan detected under artifacts/orchestration/.")
+        capability = str(payload.get("orchestration_capability_note", "")).strip()
+        if capability:
+            lines.append(f"- capability: {capability}")
+
     lines.extend(["", "## Codex Continuation Prompt", "```text", payload.get("codex_continuation_prompt", ""), "```"])
 
     warnings = payload.get("warnings", [])
@@ -516,6 +534,24 @@ def _latest_github_sync_plan(repo_root: Path) -> dict[str, str] | None:
     candidates = [
         candidate
         for candidate in sync_root.rglob("*")
+        if candidate.is_file() and candidate.suffix.lower() in {".json", ".md"}
+    ]
+    if not candidates:
+        return None
+    latest = max(candidates, key=lambda path: path.stat().st_mtime)
+    return {
+        "path": str(latest),
+        "modified_at": datetime.fromtimestamp(latest.stat().st_mtime, tz=UTC).isoformat(),
+    }
+
+
+def _latest_orchestration_plan(repo_root: Path) -> dict[str, str] | None:
+    orchestration_root = repo_root / DEFAULT_OUTPUT_DIR
+    if not orchestration_root.exists():
+        return None
+    candidates = [
+        candidate
+        for candidate in orchestration_root.rglob("*")
         if candidate.is_file() and candidate.suffix.lower() in {".json", ".md"}
     ]
     if not candidates:

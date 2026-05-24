@@ -85,6 +85,7 @@ def test_cli_has_expected_commands() -> None:
         "check-local-milestone-readiness",
         "generate-local-milestone-closeout",
         "plan-github-sync",
+        "plan-agent-orchestration",
         "init-project-state",
         "update-project-state",
         "append-operation-log",

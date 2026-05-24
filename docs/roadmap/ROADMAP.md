@@ -301,6 +301,37 @@ M26 milestone value:
 - Reduces manual handoff authoring and improves continuity across sessions/chats.
 - Provides a prerequisite local continuity baseline before multi-project queue/orchestration/dashboard/cloud escalation milestones.
 
+### M35 - Local Multi-Agent Orchestration Planner
+
+Status: Implemented.
+
+Delivered M35 outcomes:
+
+- Added `plan-agent-orchestration` local command for plan-only multi-agent orchestration recommendations.
+- Reads local inputs from M32 managed-project registry, M33 project queue, and M34 agent profiles when available.
+- Handles missing queue/profiles/registry inputs with warning-only degraded planning output.
+- Produces stable JSON and readable markdown with:
+  - recommended assignments
+  - dependency ordering
+  - blocked items
+  - unassigned items
+  - handoff prompts
+  - risk warnings
+  - next actions
+  - explicit boundary confirmations
+- M26 handoff package now references latest orchestration artifact under `artifacts/orchestration/` when available, or emits orchestration capability guidance.
+
+M35 safety posture:
+
+- local-only
+- plan-only
+- no agent execution
+- no local LLM invocation
+- no cloud LLM invocation
+- no `gh`
+- no GitHub API calls
+- no network access
+
 ## Standing Boundaries
 
 - No autonomous mutation without explicit mode selection.

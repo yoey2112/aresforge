@@ -160,6 +160,7 @@ from aresforge.operator.local_agent_profiles import (
     register_agent_profile,
     register_handoff_target,
 )
+from aresforge.operator.local_agent_orchestration import generate_agent_orchestration_plan
 from aresforge.operator.milestone_reconciliation_planner import plan_milestone_final_reconciliation
 from aresforge.operator.preflight_snapshot import (
     diff_preflight_snapshots,
@@ -1086,6 +1087,28 @@ def build_parser() -> argparse.ArgumentParser:
         "--format",
         choices=["json", "markdown"],
         default="json",
+    )
+    plan_agent_orchestration_parser = subparsers.add_parser(
+        "plan-agent-orchestration",
+        help="Generate a local-only, plan-only multi-agent orchestration plan from queue, profiles, and registry data.",
+    )
+    plan_agent_orchestration_parser.add_argument("--project-id")
+    plan_agent_orchestration_parser.add_argument("--repo-id")
+    plan_agent_orchestration_parser.add_argument("--status", choices=list(QUEUE_STATUSES))
+    plan_agent_orchestration_parser.add_argument("--queue-path")
+    plan_agent_orchestration_parser.add_argument("--profiles-path")
+    plan_agent_orchestration_parser.add_argument("--registry-path")
+    plan_agent_orchestration_parser.add_argument("--output")
+    plan_agent_orchestration_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="json",
+        help="Output format for file writes or stdout rendering.",
+    )
+    plan_agent_orchestration_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite existing output file.",
     )
     preflight_snapshot_parser = subparsers.add_parser(
         "generate-preflight-baseline-snapshot",
@@ -2406,6 +2429,25 @@ def main(argv: list[str] | None = None) -> int:
             target_id=args.target_id,
             profiles_path=args.profiles_path,
             output_format=args.format,
+        )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "plan-agent-orchestration":
+        payload = generate_agent_orchestration_plan(
+            config,
+            project_id=args.project_id,
+            repo_id=args.repo_id,
+            status=args.status,
+            queue_path=args.queue_path,
+            profiles_path=args.profiles_path,
+            registry_path=args.registry_path,
+            output=args.output,
+            output_format=args.format,
+            force=bool(args.force),
         )
         if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
             print(payload["stdout"])

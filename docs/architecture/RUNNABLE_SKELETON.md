@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Describe the implemented human-triggered operator surface through M34 local agent profiles and handoff targets.
+Describe the implemented human-triggered operator surface through M35 local multi-agent orchestration planning.
 
 ## Operator Shape
 
@@ -74,6 +74,36 @@ Command entrypoint:
   - no cloud LLM invocation
   - handoff targets are descriptive/advisory only
   - no agent execution/orchestration is introduced yet
+
+## M35 Local Multi-Agent Orchestration Planner
+
+- Added local orchestration planner module under `src/aresforge/operator/local_agent_orchestration.py`.
+- Added command:
+  - `python -m aresforge plan-agent-orchestration [--project-id <id>] [--repo-id <id>] [--status <status>] [--queue-path <path>] [--profiles-path <path>] [--registry-path <path>] [--output <path>] [--format json|markdown] [--force]`
+- Planner links:
+  - M32 managed-project registry for project/repo context where available
+  - M33 queue work items including `assigned_agent`, `dependencies`, and `blocked_by`
+  - M34 agent profiles and handoff target references for assignment planning
+- Planner output includes:
+  - selected work items
+  - available agents
+  - recommended assignments
+  - dependency order
+  - blocked and unassigned item lists
+  - handoff prompts
+  - risk warnings and next actions
+- Output behavior:
+  - default stdout format: JSON
+  - optional markdown format
+  - optional file output with directory creation and overwrite protection (`--force`)
+- Local-only boundary:
+  - plan-only
+  - no agent execution
+  - no local LLM calls
+  - no cloud LLM calls
+  - no `gh`
+  - no GitHub API calls
+  - no network access
 
 ## Current Additions (M25 Included)
 
@@ -173,6 +203,7 @@ Offline state-file command surface:
 - Includes managed-project registry summary from `.aresforge/projects/projects.json` when available.
 - Includes local project queue summary from `.aresforge/queue/work_items.json` when available.
 - Includes local agent profiles summary from `.aresforge/agents/agents.json` when available.
+- Includes latest orchestration artifact summary from `artifacts/orchestration/` when available, or an orchestration capability note when none exists.
 
 ## M27 Local Project State Ledger Surface
 

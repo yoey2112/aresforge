@@ -2,11 +2,55 @@
 
 ## Current Phase
 
-M34 local LLM agent profiles and handoff targets.
+M35 local multi-agent orchestration planner.
 
 ## Current Goal
 
-Implement and document local-only agent profiles and handoff targets so AresForge can describe who should handle work items and where work handoffs should be routed.
+Implement and document local-only, plan-only multi-agent orchestration planning that connects M32 registry data, M33 queue work items, and M34 agent profiles.
+
+## M35 Multi-Agent Orchestration Planner
+
+- Added local orchestration planner command:
+  - `python -m aresforge plan-agent-orchestration [--project-id <id>] [--repo-id <id>] [--status <status>] [--queue-path <path>] [--profiles-path <path>] [--registry-path <path>] [--output <path>] [--format json|markdown] [--force]`
+- Added local orchestration planner module:
+  - `src/aresforge/operator/local_agent_orchestration.py`
+- Default orchestration artifact folder:
+  - `artifacts/orchestration/`
+- Planner reads local inputs where available:
+  - M33 queue file (`.aresforge/queue/work_items.json` by default)
+  - M34 profiles file (`.aresforge/agents/agents.json` by default)
+  - M32 registry file (`.aresforge/projects/projects.json` by default)
+- Missing files are warning-only and produce reduced plans rather than hard failures.
+- Plan includes:
+  - selected work items
+  - available agents
+  - recommended assignments
+  - dependency ordering
+  - blocked/unassigned items
+  - handoff prompts
+  - risk warnings
+  - next actions
+  - explicit boundary confirmations
+- Assignment behavior:
+  - preserves queue `assigned_agent` when present in profiles
+  - warns and leaves unassigned when `assigned_agent` is missing from profiles
+  - recommends by `item_type`, role preference, and `allowed_item_types`
+- Dependency behavior:
+  - respects `dependencies` order
+  - detects unresolved `blocked_by` blockers
+  - reports circular dependency risks without crashing
+- M26 handoff linkage:
+  - handoff package includes latest orchestration artifact when found under `artifacts/orchestration/`
+  - otherwise includes an orchestration capability note
+- M35 safety posture:
+  - local-only orchestration planning
+  - plan-only
+  - no agent execution
+  - no local LLM invocation
+  - no cloud LLM invocation
+  - no `gh`
+  - no GitHub API calls
+  - no network access
 
 ## M34 Local LLM Agent Profiles And Handoff Targets
 
@@ -25,6 +69,7 @@ Implement and document local-only agent profiles and handoff targets so AresForg
 - Agent profile registration is idempotent by `agent_id`; handoff target registration is idempotent by `target_id`.
 - Agent registration allows unresolved `handoff_target_id` values and returns warning-only guidance for future linkage.
 - M26 handoff generation now includes local agent profile summary when profiles exist.
+- M35 orchestration planning consumes M34 agent profiles and handoff-target metadata for assignment and handoff prompt generation.
 - M34 safety posture:
   - local-only configuration and planning surface
   - no `gh`
@@ -52,6 +97,7 @@ Implement and document local-only agent profiles and handoff targets so AresForg
 - M26 handoff generation now includes local project queue summary when queue exists.
 - `assigned_agent` is stored for future orchestration and does not execute agents in M33.
 - `assigned_agent` can now reference an M34 `agent_id` from local agent profiles.
+- M35 orchestration planning consumes queue `assigned_agent`, `dependencies`, and `blocked_by` fields for plan-only assignment and sequencing.
 
 ## M32 Multi-Project / Multi-Repo Local Registry
 

@@ -223,6 +223,47 @@ M26/M33 linkage:
 - M26 `generate-handoff-package` includes local agent profile summary when profiles exist.
 - M33 `assigned_agent` can point to an M34 `agent_id`.
 
+## M35 Local Multi-Agent Orchestration Planner
+
+Purpose:
+
+- Produce local-only, plan-only multi-agent orchestration recommendations.
+- Connect M32 managed registry context, M33 queue work items, and M34 agent profiles.
+- Generate handoff-ready prompts without executing agents.
+
+Defaults:
+
+- orchestration artifact folder: `artifacts/orchestration/`
+
+Command:
+
+- `python -m aresforge plan-agent-orchestration [--project-id <id>] [--repo-id <id>] [--status <status>] [--queue-path <path>] [--profiles-path <path>] [--registry-path <path>] [--output <path>] [--format json|markdown] [--force]`
+
+Behavior guarantees:
+
+- local-only command surface
+- plan-only output
+- no agent execution
+- no local LLM calls
+- no cloud LLM calls
+- no `gh` calls
+- no GitHub API calls
+- no network access
+- default output format is stable JSON
+- markdown output is available for operator readability
+- if `--output` is omitted, plan renders to stdout
+- if `--output` is supplied, missing directories are created and overwrite is refused unless `--force`
+- missing queue/profiles/registry inputs produce warnings and reduced output instead of hard failure
+- assignment logic preserves valid existing `assigned_agent`, warns on missing assigned agents, otherwise recommends by `item_type`, role preference, and allowed item types
+- dependency ordering respects `dependencies`, flags unresolved `blocked_by`, and reports circular dependency risks
+
+M26/M32/M33/M34 linkage:
+
+- M26 `generate-handoff-package` includes latest orchestration artifact note when found under `artifacts/orchestration/`, or an orchestration capability note if none exist.
+- M32 registry can be used for project/repo linkage checks during orchestration planning.
+- M33 queue `assigned_agent`, `dependencies`, and `blocked_by` fields are used directly by M35 planning logic.
+- M34 profiles and handoff target references are used for assignment recommendations and handoff prompt generation.
+
 ## M30 Self-Managed Local Milestone Lifecycle
 
 When to run:

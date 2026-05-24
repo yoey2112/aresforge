@@ -263,3 +263,35 @@ def test_generate_handoff_package_includes_agent_profiles_summary(monkeypatch, t
     summary = payload['payload']['agent_profiles_summary']
     assert isinstance(summary, dict)
     assert summary['agent_count'] == 1
+
+
+def test_generate_handoff_package_includes_latest_orchestration_plan(monkeypatch, tmp_path: Path) -> None:
+    _write_source_docs(tmp_path)
+    plan_path = tmp_path / "artifacts" / "orchestration" / "latest-plan.json"
+    plan_path.parent.mkdir(parents=True, exist_ok=True)
+    plan_path.write_text('{"ok": true}', encoding="utf-8")
+    monkeypatch.setattr(
+        subprocess,
+        "run",
+        lambda command, **_kwargs: subprocess.CompletedProcess(command, 0, stdout="x\n", stderr=""),
+    )
+    payload = generate_handoff_package(_config(tmp_path), output_format="json")
+    assert payload["ok"] is True
+    latest = payload["payload"]["latest_orchestration_plan"]
+    assert isinstance(latest, dict)
+    assert latest["path"].endswith("artifacts\\orchestration\\latest-plan.json")
+
+
+def test_generate_handoff_package_includes_orchestration_capability_note_when_no_artifacts(
+    monkeypatch, tmp_path: Path
+) -> None:
+    _write_source_docs(tmp_path)
+    monkeypatch.setattr(
+        subprocess,
+        "run",
+        lambda command, **_kwargs: subprocess.CompletedProcess(command, 0, stdout="x\n", stderr=""),
+    )
+    payload = generate_handoff_package(_config(tmp_path), output_format="json")
+    assert payload["ok"] is True
+    assert payload["payload"]["latest_orchestration_plan"] is None
+    assert "plan-agent-orchestration" in payload["payload"]["orchestration_capability_note"]

@@ -2,11 +2,11 @@
 
 ## Purpose
 
-Provide minimum operating context for M34 local agent profile and handoff-target implementation with a local-first, self-managed operator model.
+Provide minimum operating context for M35 local multi-agent orchestration planning with a local-first, self-managed operator model.
 
 ## Current Operating Model
 
-- Active milestone context: M34 local LLM agent profiles and handoff targets.
+- Active milestone context: M35 local multi-agent orchestration planner.
 - AresForge now has a local-first foundation for self-managed operation.
 - GitHub is optional/syncable and not mandatory for local planning.
 - M26 added local handoff package generation.
@@ -17,6 +17,7 @@ Provide minimum operating context for M34 local agent profile and handoff-target
 - M32 added local managed-project/multi-repo registry support.
 - M33 added local project queue/work tracking support.
 - M34 added local agent profiles and handoff target descriptors.
+- M35 added local multi-agent orchestration planning (assignment + sequencing + handoff prompts).
 - Foundation-batch boundaries (M26-M30):
   - no `gh`
   - no GitHub API calls
@@ -52,6 +53,7 @@ Provide minimum operating context for M34 local agent profile and handoff-target
   - `python -m aresforge inspect-agent-profiles [--profiles-path <path>] [--role <role>] [--execution-mode <mode>] [--status <status>] [--format json|markdown]`
   - `python -m aresforge inspect-agent-profile --agent-id <id> [--profiles-path <path>] [--format json|markdown]`
   - `python -m aresforge inspect-handoff-target --target-id <id> [--profiles-path <path>] [--format json|markdown]`
+  - `python -m aresforge plan-agent-orchestration [--project-id <id>] [--repo-id <id>] [--status <status>] [--queue-path <path>] [--profiles-path <path>] [--registry-path <path>] [--output <path>] [--format json|markdown] [--force]`
 - M33 boundary confirmations:
   - queue is local-only and can track work without GitHub issues
   - no `gh`
@@ -68,6 +70,14 @@ Provide minimum operating context for M34 local agent profile and handoff-target
   - no cloud LLM invocation is introduced yet
   - no `gh`, no GitHub API calls, no network access
   - M33 `assigned_agent` can reference M34 `agent_id`
+- M35 boundary confirmations:
+  - local-only orchestration planning
+  - plan-only output (assignment and sequencing guidance only)
+  - no agent execution
+  - no local LLM invocation
+  - no cloud LLM invocation
+  - no `gh`, no GitHub API calls, no network access
+  - reads M32 registry, M33 queue, and M34 profiles where available
 - Next-phase planning focus:
   - local LLM agent handoff profiles
   - multi-agent orchestration planning
