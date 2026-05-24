@@ -110,6 +110,10 @@ from aresforge.operator.pr_mapping_preflight import inspect_pr_mapping_preflight
 from aresforge.operator.closeout_repair_guidance import generate_closeout_preflight_repair_guidance
 from aresforge.operator.milestone_closeout_preflight import inspect_milestone_closeout_preflight
 from aresforge.operator.milestone_reconciliation_planner import plan_milestone_final_reconciliation
+from aresforge.operator.preflight_snapshot import (
+    diff_preflight_snapshots,
+    generate_preflight_baseline_snapshot,
+)
 from aresforge.operator.sequential_run_state import (
     inspect_sequential_run_state,
     resolve_sequential_run_state_path,
@@ -593,6 +597,21 @@ def build_parser() -> argparse.ArgumentParser:
         help="Run read-only milestone closeout preflight orchestration across lineage, evidence, and PR mapping.",
     )
     milestone_closeout_preflight_parser.add_argument("--parent-issue", type=int, required=True)
+    preflight_snapshot_parser = subparsers.add_parser(
+        "generate-preflight-baseline-snapshot",
+        help="Generate read-only baseline snapshot payload for closeout preflight reconciliation audits.",
+    )
+    preflight_snapshot_parser.add_argument("--parent-issue", type=int, required=True)
+    preflight_snapshot_parser.add_argument(
+        "--output",
+        help="Optional output path for snapshot JSON; defaults to artifacts evidence directory.",
+    )
+    preflight_snapshot_diff_parser = subparsers.add_parser(
+        "diff-preflight-snapshots",
+        help="Diff two preflight snapshot JSON files in read-only mode.",
+    )
+    preflight_snapshot_diff_parser.add_argument("--before", required=True)
+    preflight_snapshot_diff_parser.add_argument("--after", required=True)
     child_execution_gates_parser = subparsers.add_parser(
         "inspect-child-execution-gates",
         help="Inspect start/PR/merge/close gates for one child issue in read-only mode.",
@@ -1416,6 +1435,20 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "inspect-milestone-closeout-preflight":
         payload = inspect_milestone_closeout_preflight(config, parent_issue=args.parent_issue)
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "generate-preflight-baseline-snapshot":
+        payload = generate_preflight_baseline_snapshot(
+            config,
+            parent_issue=args.parent_issue,
+            output_path=args.output,
+        )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "diff-preflight-snapshots":
+        payload = diff_preflight_snapshots(before_path=args.before, after_path=args.after)
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 
