@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import json
 import re
+from pathlib import Path
 from typing import Any
 
 from aresforge.config import AppConfig
@@ -16,10 +18,15 @@ COMMAND_NAME = "check-closeout-readiness-by-construction"
 _PR_NUMBER_PATTERN = re.compile(r"/pull/(?P<number>\d+)\b")
 
 
-def check_closeout_readiness_by_construction(config: AppConfig, *, parent_issue: int) -> dict[str, Any]:
-    milestone = inspect_milestone_state(config, parent_issue=parent_issue)
+def check_closeout_readiness_by_construction(
+    config: AppConfig,
+    *,
+    parent_issue: int,
+    state_file: str | Path | None = None,
+) -> dict[str, Any]:
+    milestone = inspect_milestone_state(config, parent_issue=parent_issue, state_file=state_file)
     if not bool(milestone.get("ok")):
-        return {
+        payload: dict[str, Any] = {
             "command": COMMAND_NAME,
             "ok": False,
             "read_only": True,
@@ -32,6 +39,10 @@ def check_closeout_readiness_by_construction(config: AppConfig, *, parent_issue:
             ],
             "mutation": _mutation_fields(),
         }
+        if state_file is not None:
+            payload["inspection_mode"] = "local_state_file"
+            payload["state_file"] = str(state_file)
+        return payload
 
     children = milestone.get("child_issues") if isinstance(milestone.get("child_issues"), list) else []
     child_numbers = sorted(
@@ -39,8 +50,8 @@ def check_closeout_readiness_by_construction(config: AppConfig, *, parent_issue:
         for item in children
         if isinstance(item, dict) and isinstance(item.get("issue_number"), int)
     )
-    parent_result = generate_parent_closeout_evidence_bundle(config, parent_issue=parent_issue)
-    milestone_evidence = check_milestone_evidence_readiness(config, parent_issue=parent_issue)
+    parent_result = generate_parent_closeout_evidence_bundle(config, parent_issue=parent_issue, state_file=state_file)
+    milestone_evidence = check_milestone_evidence_readiness(config, parent_issue=parent_issue, state_file=state_file)
     child_to_pr_numbers = _resolve_child_pr_mappings(
         milestone=milestone,
         milestone_evidence=milestone_evidence,
@@ -51,57 +62,112 @@ def check_closeout_readiness_by_construction(config: AppConfig, *, parent_issue:
     child_results: list[dict[str, Any]] = []
     closeout_comment_results: list[dict[str, Any]] = []
     pr_results: list[dict[str, Any]] = []
-    for child_issue in child_numbers:
-        issue_payload = fetch_issue_details(config, child_issue)
-        issue = issue_payload.get("issue") if isinstance(issue_payload.get("issue"), dict) else {}
-        mapped_pr_numbers = set(child_to_pr_numbers.get(child_issue, set()))
-        if not mapped_pr_numbers:
-            merged = issue.get("merged_pr_evidence") if isinstance(issue.get("merged_pr_evidence"), list) else []
-            for pr in merged:
-                if isinstance(pr, dict):
-                    pr_number = _extract_pr_number(pr)
-                    if isinstance(pr_number, int):
-                        mapped_pr_numbers.add(pr_number)
-        first_pr_context: dict[str, str] = {}
-        for pr_number in sorted(mapped_pr_numbers):
-            pr_result = generate_pr_evidence_bundle(
-                config,
-                issue_number=child_issue,
-                pr_number=pr_number,
-                marker_context=_pr_marker_context(issue=issue),
+
+    if state_file is None:
+        for child_issue in child_numbers:
+            issue_payload = fetch_issue_details(config, child_issue)
+            issue = issue_payload.get("issue") if isinstance(issue_payload.get("issue"), dict) else {}
+            mapped_pr_numbers = set(child_to_pr_numbers.get(child_issue, set()))
+            if not mapped_pr_numbers:
+                merged = issue.get("merged_pr_evidence") if isinstance(issue.get("merged_pr_evidence"), list) else []
+                for pr in merged:
+                    if isinstance(pr, dict):
+                        pr_number = _extract_pr_number(pr)
+                        if isinstance(pr_number, int):
+                            mapped_pr_numbers.add(pr_number)
+            first_pr_context: dict[str, str] = {}
+            for pr_number in sorted(mapped_pr_numbers):
+                pr_result = generate_pr_evidence_bundle(
+                    config,
+                    issue_number=child_issue,
+                    pr_number=pr_number,
+                    marker_context=_pr_marker_context(issue=issue),
+                )
+                pr_results.append(pr_result)
+                if not first_pr_context and bool(pr_result.get("ok")):
+                    pr_payload = pr_result.get("pr") if isinstance(pr_result.get("pr"), dict) else {}
+                    branch = pr_payload.get("head_branch")
+                    commit = pr_payload.get("merge_commit")
+                    changed_files = pr_payload.get("files_changed")
+                    first_pr_context = {
+                        "branch": str(branch).strip() if isinstance(branch, str) else "",
+                        "commit": str(commit).strip() if isinstance(commit, str) else "",
+                        "changed_files": (
+                            ", ".join(item for item in changed_files if isinstance(item, str) and item.strip())
+                            if isinstance(changed_files, list)
+                            else ""
+                        ),
+                    }
+            marker_context = _child_marker_context(issue=issue, pr_numbers=mapped_pr_numbers, pr_context=first_pr_context)
+            child_results.append(
+                generate_child_closeout_evidence_bundle(
+                    config,
+                    parent_issue=parent_issue,
+                    child_issue=child_issue,
+                    marker_context=marker_context,
+                )
             )
-            pr_results.append(pr_result)
-            if not first_pr_context and bool(pr_result.get("ok")):
-                pr_payload = pr_result.get("pr") if isinstance(pr_result.get("pr"), dict) else {}
-                branch = pr_payload.get("head_branch")
-                commit = pr_payload.get("merge_commit")
-                changed_files = pr_payload.get("files_changed")
-                first_pr_context = {
-                    "branch": str(branch).strip() if isinstance(branch, str) else "",
-                    "commit": str(commit).strip() if isinstance(commit, str) else "",
-                    "changed_files": (
-                        ", ".join(item for item in changed_files if isinstance(item, str) and item.strip())
-                        if isinstance(changed_files, list)
-                        else ""
-                    ),
+            closeout_comment_results.append(
+                generate_evidence_comment_template(
+                    config,
+                    issue_number=child_issue,
+                    parent_issue_override=parent_issue,
+                    marker_context=marker_context,
+                )
+            )
+    else:
+        local_children = _load_local_children_by_number(state_file)
+        for child_issue in child_numbers:
+            issue = local_children.get(child_issue, {})
+            child_results.append(
+                {
+                    "ok": True,
+                    "canonical_marker_completeness": _offline_child_marker_completeness(issue),
                 }
-        marker_context = _child_marker_context(issue=issue, pr_numbers=mapped_pr_numbers, pr_context=first_pr_context)
-        child_results.append(
-            generate_child_closeout_evidence_bundle(
-                config,
-                parent_issue=parent_issue,
-                child_issue=child_issue,
-                marker_context=marker_context,
             )
-        )
-        closeout_comment_results.append(
-            generate_evidence_comment_template(
-                config,
-                issue_number=child_issue,
-                parent_issue_override=parent_issue,
-                marker_context=marker_context,
+            closeout_comment_results.append(
+                {
+                    "ok": True,
+                    "canonical_marker_completeness": _offline_closeout_comment_marker_completeness(issue),
+                }
             )
-        )
+
+            mapped_pr_numbers = set(child_to_pr_numbers.get(child_issue, set()))
+            if not mapped_pr_numbers:
+                merged = issue.get("merged_pr_evidence") if isinstance(issue.get("merged_pr_evidence"), list) else []
+                for pr in merged:
+                    if isinstance(pr, dict):
+                        pr_number = _extract_pr_number(pr)
+                        if isinstance(pr_number, int):
+                            mapped_pr_numbers.add(pr_number)
+
+            pr_items = issue.get("merged_pr_evidence") if isinstance(issue.get("merged_pr_evidence"), list) else []
+            pr_by_number: dict[int, dict[str, Any]] = {}
+            for pr_item in pr_items:
+                if not isinstance(pr_item, dict):
+                    continue
+                pr_number = _extract_pr_number(pr_item)
+                if isinstance(pr_number, int):
+                    pr_by_number[pr_number] = pr_item
+
+            if not mapped_pr_numbers:
+                pr_results.append(
+                    {
+                        "ok": True,
+                        "canonical_marker_completeness": _missing_marker_completeness(
+                            missing_required_fields=["merged_pr_evidence"],
+                            invalid_reasons=["offline_pr_mapping_missing"],
+                        ),
+                    }
+                )
+
+            for pr_number in sorted(mapped_pr_numbers):
+                pr_results.append(
+                    {
+                        "ok": True,
+                        "canonical_marker_completeness": _offline_pr_marker_completeness(pr_by_number.get(pr_number)),
+                    }
+                )
 
     child_domain = _domain_summary(
         "child_bundle_canonical_marker_completeness",
@@ -160,7 +226,7 @@ def check_closeout_readiness_by_construction(config: AppConfig, *, parent_issue:
         milestone_execution_ready=milestone_execution_ready,
         blocked_reasons=blocked_reasons,
     )
-    return {
+    payload: dict[str, Any] = {
         "command": COMMAND_NAME,
         "ok": True,
         "read_only": True,
@@ -187,6 +253,86 @@ def check_closeout_readiness_by_construction(config: AppConfig, *, parent_issue:
         "recommended_actions": recommended_actions,
         "mutation": _mutation_fields(),
     }
+    if state_file is not None:
+        payload["inspection_mode"] = "local_state_file"
+        payload["state_file"] = str(state_file)
+    return payload
+
+
+def _load_local_children_by_number(state_file: str | Path) -> dict[int, dict[str, Any]]:
+    try:
+        parsed = json.loads(Path(state_file).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    if not isinstance(parsed, dict):
+        return {}
+    child_issues = parsed.get("child_issues")
+    if not isinstance(child_issues, list):
+        return {}
+
+    rows: dict[int, dict[str, Any]] = {}
+    for child in child_issues:
+        if not isinstance(child, dict):
+            continue
+        number = child.get("number")
+        if isinstance(number, int):
+            rows[number] = child
+    return rows
+
+
+def _missing_marker_completeness(
+    *,
+    missing_required_fields: list[str],
+    invalid_reasons: list[str] | None = None,
+) -> dict[str, Any]:
+    return {
+        "state": "incomplete",
+        "marker_complete": False,
+        "missing_required_fields": sorted(set(missing_required_fields)),
+        "invalid_reasons": sorted(set(invalid_reasons or [])),
+        "post_hoc_marker_repair_required": True,
+    }
+
+
+def _normalize_marker_completeness(marker: Any, *, fallback_missing_field: str) -> dict[str, Any]:
+    if isinstance(marker, dict):
+        state = marker.get("state")
+        marker_complete = marker.get("marker_complete")
+        missing = marker.get("missing_required_fields")
+        invalid = marker.get("invalid_reasons")
+        post_hoc = marker.get("post_hoc_marker_repair_required")
+        if isinstance(state, str) and isinstance(marker_complete, bool):
+            return {
+                "state": state,
+                "marker_complete": marker_complete,
+                "missing_required_fields": list(missing) if isinstance(missing, list) else [],
+                "invalid_reasons": list(invalid) if isinstance(invalid, list) else [],
+                "post_hoc_marker_repair_required": bool(post_hoc),
+            }
+
+        canonical = marker.get("canonical_marker_completeness")
+        if isinstance(canonical, dict):
+            return _normalize_marker_completeness(canonical, fallback_missing_field=fallback_missing_field)
+
+    return _missing_marker_completeness(missing_required_fields=[fallback_missing_field])
+
+
+def _offline_child_marker_completeness(issue: dict[str, Any]) -> dict[str, Any]:
+    return _normalize_marker_completeness(issue.get("closeout_marker"), fallback_missing_field="closeout_marker")
+
+
+def _offline_closeout_comment_marker_completeness(issue: dict[str, Any]) -> dict[str, Any]:
+    return _normalize_marker_completeness(
+        issue.get("closeout_comment_marker"),
+        fallback_missing_field="closeout_comment_marker",
+    )
+
+
+def _offline_pr_marker_completeness(pr: dict[str, Any] | None) -> dict[str, Any]:
+    if not isinstance(pr, dict):
+        return _missing_marker_completeness(missing_required_fields=["pr_marker"])
+    marker_candidate = pr.get("marker") if isinstance(pr.get("marker"), dict) else pr
+    return _normalize_marker_completeness(marker_candidate, fallback_missing_field="pr_marker")
 
 
 def _domain_summary(domain: str, rows: list[dict[str, Any]], completeness_field: str) -> dict[str, Any]:

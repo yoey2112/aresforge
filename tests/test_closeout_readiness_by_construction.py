@@ -66,7 +66,7 @@ def _apply_marker_fixture(monkeypatch, scenario: dict) -> None:
     monkeypatch.setattr(
         closeout_readiness_by_construction,
         "generate_parent_closeout_evidence_bundle",
-        lambda _config, parent_issue: {"ok": True, "canonical_marker_completeness": scenario["parent"]},
+        lambda _config, parent_issue, state_file=None: {"ok": True, "canonical_marker_completeness": scenario["parent"]},
     )
     monkeypatch.setattr(
         closeout_readiness_by_construction,
@@ -79,7 +79,7 @@ def _mock_common(monkeypatch) -> None:
     monkeypatch.setattr(
         closeout_readiness_by_construction,
         "inspect_milestone_state",
-        lambda _config, parent_issue: {
+        lambda _config, parent_issue, state_file=None: {
             "ok": True,
             "child_issues": [{"issue_number": 422}, {"issue_number": 423}],
         },
@@ -87,7 +87,7 @@ def _mock_common(monkeypatch) -> None:
     monkeypatch.setattr(
         closeout_readiness_by_construction,
         "check_milestone_evidence_readiness",
-        lambda _config, parent_issue: {
+        lambda _config, parent_issue, state_file=None: {
             "ok": True,
             "milestone_closeout_readiness": {"closeout_ready": True},
         },
@@ -117,7 +117,7 @@ def test_check_closeout_readiness_by_construction_all_complete(monkeypatch, tmp_
     monkeypatch.setattr(
         closeout_readiness_by_construction,
         "generate_parent_closeout_evidence_bundle",
-        lambda _config, parent_issue: {"ok": True, "canonical_marker_completeness": _ready_marker()},
+        lambda _config, parent_issue, state_file=None: {"ok": True, "canonical_marker_completeness": _ready_marker()},
     )
     monkeypatch.setattr(
         closeout_readiness_by_construction,
@@ -146,7 +146,7 @@ def test_check_closeout_readiness_by_construction_missing_child_marker(monkeypat
     monkeypatch.setattr(
         closeout_readiness_by_construction,
         "generate_parent_closeout_evidence_bundle",
-        lambda _config, parent_issue: {"ok": True, "canonical_marker_completeness": _ready_marker()},
+        lambda _config, parent_issue, state_file=None: {"ok": True, "canonical_marker_completeness": _ready_marker()},
     )
     monkeypatch.setattr(
         closeout_readiness_by_construction,
@@ -173,7 +173,7 @@ def test_check_closeout_readiness_by_construction_missing_pr_marker(monkeypatch,
     monkeypatch.setattr(
         closeout_readiness_by_construction,
         "generate_parent_closeout_evidence_bundle",
-        lambda _config, parent_issue: {"ok": True, "canonical_marker_completeness": _ready_marker()},
+        lambda _config, parent_issue, state_file=None: {"ok": True, "canonical_marker_completeness": _ready_marker()},
     )
     monkeypatch.setattr(
         closeout_readiness_by_construction,
@@ -200,7 +200,7 @@ def test_check_closeout_readiness_by_construction_missing_parent_marker(monkeypa
     monkeypatch.setattr(
         closeout_readiness_by_construction,
         "generate_parent_closeout_evidence_bundle",
-        lambda _config, parent_issue: {"ok": True, "canonical_marker_completeness": _incomplete_marker(missing=["final_main_head"])},
+        lambda _config, parent_issue, state_file=None: {"ok": True, "canonical_marker_completeness": _incomplete_marker(missing=["final_main_head"])},
     )
     monkeypatch.setattr(
         closeout_readiness_by_construction,
@@ -227,7 +227,7 @@ def test_check_closeout_readiness_by_construction_missing_closeout_comment_marke
     monkeypatch.setattr(
         closeout_readiness_by_construction,
         "generate_parent_closeout_evidence_bundle",
-        lambda _config, parent_issue: {"ok": True, "canonical_marker_completeness": _ready_marker()},
+        lambda _config, parent_issue, state_file=None: {"ok": True, "canonical_marker_completeness": _ready_marker()},
     )
     monkeypatch.setattr(
         closeout_readiness_by_construction,
@@ -254,7 +254,7 @@ def test_check_closeout_readiness_by_construction_post_hoc_repair_true_not_ready
     monkeypatch.setattr(
         closeout_readiness_by_construction,
         "generate_parent_closeout_evidence_bundle",
-        lambda _config, parent_issue: {"ok": True, "canonical_marker_completeness": _ready_marker()},
+        lambda _config, parent_issue, state_file=None: {"ok": True, "canonical_marker_completeness": _ready_marker()},
     )
     monkeypatch.setattr(
         closeout_readiness_by_construction,
@@ -281,7 +281,7 @@ def test_check_closeout_readiness_by_construction_remains_read_only(monkeypatch,
     monkeypatch.setattr(
         closeout_readiness_by_construction,
         "generate_parent_closeout_evidence_bundle",
-        lambda _config, parent_issue: {"ok": True, "canonical_marker_completeness": _ready_marker()},
+        lambda _config, parent_issue, state_file=None: {"ok": True, "canonical_marker_completeness": _ready_marker()},
     )
     monkeypatch.setattr(
         closeout_readiness_by_construction,
@@ -329,7 +329,7 @@ def test_check_closeout_readiness_by_construction_uses_parent_child_pr_mapping(m
     monkeypatch.setattr(
         closeout_readiness_by_construction,
         "check_milestone_evidence_readiness",
-        lambda _config, parent_issue: {
+        lambda _config, parent_issue, state_file=None: {
             "ok": True,
             "issues": [
                 {"issue": {"number": 422, "merged_pr_evidence": []}},
@@ -341,7 +341,7 @@ def test_check_closeout_readiness_by_construction_uses_parent_child_pr_mapping(m
     monkeypatch.setattr(
         closeout_readiness_by_construction,
         "generate_parent_closeout_evidence_bundle",
-        lambda _config, parent_issue: {
+        lambda _config, parent_issue, state_file=None: {
             "ok": True,
             "canonical_marker_completeness": _ready_marker(),
             "child_pr_mappings": [
@@ -415,7 +415,7 @@ def test_check_closeout_readiness_by_construction_stays_blocked_when_pr_mapping_
     monkeypatch.setattr(
         closeout_readiness_by_construction,
         "generate_parent_closeout_evidence_bundle",
-        lambda _config, parent_issue: {"ok": True, "canonical_marker_completeness": _ready_marker(), "child_pr_mappings": []},
+        lambda _config, parent_issue, state_file=None: {"ok": True, "canonical_marker_completeness": _ready_marker(), "child_pr_mappings": []},
     )
     monkeypatch.setattr(
         closeout_readiness_by_construction,
@@ -425,7 +425,7 @@ def test_check_closeout_readiness_by_construction_stays_blocked_when_pr_mapping_
     monkeypatch.setattr(
         closeout_readiness_by_construction,
         "check_milestone_evidence_readiness",
-        lambda _config, parent_issue: {
+        lambda _config, parent_issue, state_file=None: {
             "ok": True,
             "issues": [{"issue": {"number": 422, "merged_pr_evidence": []}}],
             "milestone_closeout_readiness": {"closeout_ready": True},
@@ -435,3 +435,152 @@ def test_check_closeout_readiness_by_construction_stays_blocked_when_pr_mapping_
     payload = closeout_readiness_by_construction.check_closeout_readiness_by_construction(_config(tmp_path), parent_issue=421)
     assert payload["readiness_by_construction"]["ready"] is False
     assert "pr" in payload["missing_required_fields"]
+
+
+def test_check_closeout_readiness_by_construction_offline_ready_without_live_calls(monkeypatch, tmp_path: Path) -> None:
+    state_file = tmp_path / "offline-state.json"
+    state_file.write_text(
+        json.dumps(
+            {
+                "parent_issue": {"number": 421, "state": "OPEN", "title": "Parent"},
+                "child_issues": [
+                    {
+                        "number": 422,
+                        "merged_pr_evidence": [
+                            {
+                                "number": 431,
+                                "url": "https://github.com/yoey2112/aresforge/pull/431",
+                                "marker": _ready_marker(),
+                            }
+                        ],
+                        "closeout_marker": _ready_marker(),
+                        "closeout_comment_marker": _ready_marker(),
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(
+        closeout_readiness_by_construction,
+        "inspect_milestone_state",
+        lambda _config, parent_issue, state_file=None: {
+            "ok": True,
+            "inspection_mode": "local_state_file",
+            "state_file": str(state_file),
+            "child_issues": [{"issue_number": 422}],
+        },
+    )
+    monkeypatch.setattr(
+        closeout_readiness_by_construction,
+        "check_milestone_evidence_readiness",
+        lambda _config, parent_issue, state_file=None: {
+            "ok": True,
+            "inspection_mode": "local_state_file",
+            "state_file": str(state_file),
+            "issues": [{"issue": {"number": 422, "merged_pr_evidence": [{"number": 431}]}}],
+            "milestone_closeout_readiness": {"closeout_ready": True},
+        },
+    )
+    monkeypatch.setattr(
+        closeout_readiness_by_construction,
+        "generate_parent_closeout_evidence_bundle",
+        lambda _config, parent_issue, state_file=None: {
+            "ok": True,
+            "inspection_mode": "local_state_file",
+            "state_file": str(state_file),
+            "canonical_marker_completeness": _ready_marker(),
+            "child_pr_mappings": [{"issue_number": 422, "merged_pr_urls": ["https://github.com/yoey2112/aresforge/pull/431"]}],
+        },
+    )
+    monkeypatch.setattr(
+        closeout_readiness_by_construction,
+        "fetch_issue_details",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(AssertionError("fetch_issue_details should not be called in offline mode")),
+    )
+    monkeypatch.setattr(
+        closeout_readiness_by_construction,
+        "generate_pr_evidence_bundle",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(AssertionError("generate_pr_evidence_bundle should not be called in offline mode")),
+    )
+    monkeypatch.setattr(
+        closeout_readiness_by_construction,
+        "generate_child_closeout_evidence_bundle",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(AssertionError("generate_child_closeout_evidence_bundle should not be called in offline mode")),
+    )
+    monkeypatch.setattr(
+        closeout_readiness_by_construction,
+        "generate_evidence_comment_template",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(AssertionError("generate_evidence_comment_template should not be called in offline mode")),
+    )
+
+    payload = closeout_readiness_by_construction.check_closeout_readiness_by_construction(
+        _config(tmp_path),
+        parent_issue=421,
+        state_file=state_file,
+    )
+    assert payload["ok"] is True
+    assert payload["inspection_mode"] == "local_state_file"
+    assert payload["state_file"] == str(state_file)
+    assert payload["readiness_by_construction"]["ready"] is True
+
+
+def test_check_closeout_readiness_by_construction_offline_missing_markers_blocked(monkeypatch, tmp_path: Path) -> None:
+    state_file = tmp_path / "offline-missing.json"
+    state_file.write_text(
+        json.dumps(
+            {
+                "parent_issue": {"number": 421, "state": "OPEN", "title": "Parent"},
+                "child_issues": [{"number": 422, "merged_pr_evidence": []}],
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(
+        closeout_readiness_by_construction,
+        "inspect_milestone_state",
+        lambda _config, parent_issue, state_file=None: {
+            "ok": True,
+            "inspection_mode": "local_state_file",
+            "state_file": str(state_file),
+            "child_issues": [{"issue_number": 422}],
+        },
+    )
+    monkeypatch.setattr(
+        closeout_readiness_by_construction,
+        "check_milestone_evidence_readiness",
+        lambda _config, parent_issue, state_file=None: {
+            "ok": True,
+            "inspection_mode": "local_state_file",
+            "state_file": str(state_file),
+            "issues": [{"issue": {"number": 422, "merged_pr_evidence": []}}],
+            "milestone_closeout_readiness": {"closeout_ready": True},
+        },
+    )
+    monkeypatch.setattr(
+        closeout_readiness_by_construction,
+        "generate_parent_closeout_evidence_bundle",
+        lambda _config, parent_issue, state_file=None: {
+            "ok": True,
+            "inspection_mode": "local_state_file",
+            "state_file": str(state_file),
+            "canonical_marker_completeness": _ready_marker(),
+            "child_pr_mappings": [],
+        },
+    )
+    monkeypatch.setattr(
+        closeout_readiness_by_construction,
+        "fetch_issue_details",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(AssertionError("fetch_issue_details should not be called in offline mode")),
+    )
+
+    payload = closeout_readiness_by_construction.check_closeout_readiness_by_construction(
+        _config(tmp_path),
+        parent_issue=421,
+        state_file=state_file,
+    )
+    assert payload["ok"] is True
+    assert payload["readiness_by_construction"]["ready"] is False
+    assert "closeout_marker" in payload["missing_required_fields"]
+    assert "closeout_comment_marker" in payload["missing_required_fields"]
+    assert "merged_pr_evidence" in payload["missing_required_fields"]

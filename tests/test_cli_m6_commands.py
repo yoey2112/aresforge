@@ -328,11 +328,12 @@ def test_cli_dispatch_check_closeout_readiness_by_construction(
     monkeypatch.setattr(
         cli,
         "check_closeout_readiness_by_construction",
-        lambda _config, parent_issue: {
+        lambda _config, parent_issue, state_file=None: {
             "command": "check-closeout-readiness-by-construction",
             "ok": True,
             "read_only": True,
             "parent_issue": parent_issue,
+            "state_file": state_file,
             "readiness_by_construction": {"ready": False},
         },
     )
@@ -341,6 +342,42 @@ def test_cli_dispatch_check_closeout_readiness_by_construction(
     assert exit_code == 0
     assert payload["command"] == "check-closeout-readiness-by-construction"
     assert payload["read_only"] is True
+    assert payload["state_file"] is None
+
+
+def test_cli_dispatch_check_closeout_readiness_by_construction_with_state_file(
+    monkeypatch,
+    capsys,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: _config(tmp_path))
+    monkeypatch.setattr(
+        cli,
+        "check_closeout_readiness_by_construction",
+        lambda _config, parent_issue, state_file=None: {
+            "command": "check-closeout-readiness-by-construction",
+            "ok": True,
+            "read_only": True,
+            "parent_issue": parent_issue,
+            "inspection_mode": "local_state_file",
+            "state_file": state_file,
+            "readiness_by_construction": {"ready": True},
+        },
+    )
+    exit_code = cli.main(
+        [
+            "check-closeout-readiness-by-construction",
+            "--parent-issue",
+            "421",
+            "--state-file",
+            "artifacts/offline-state/m25-421.json",
+        ]
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["command"] == "check-closeout-readiness-by-construction"
+    assert payload["inspection_mode"] == "local_state_file"
+    assert payload["state_file"] == "artifacts/offline-state/m25-421.json"
 
 
 def test_cli_dispatch_inspect_milestone_dashboard(

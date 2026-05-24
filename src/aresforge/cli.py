@@ -622,6 +622,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="Validate read-only canonical marker completeness readiness across closeout evidence emission domains.",
     )
     readiness_by_construction_parser.add_argument("--parent-issue", type=int, required=True)
+    readiness_by_construction_parser.add_argument(
+        "--state-file",
+        help="Optional local JSON state file for offline closeout-readiness-by-construction checks.",
+    )
     preflight_snapshot_parser = subparsers.add_parser(
         "generate-preflight-baseline-snapshot",
         help="Generate read-only baseline snapshot payload for closeout preflight reconciliation audits.",
@@ -1481,7 +1485,11 @@ def main(argv: list[str] | None = None) -> int:
         return 0 if bool(payload.get("ok")) else 1
 
     if args.command == "check-closeout-readiness-by-construction":
-        payload = check_closeout_readiness_by_construction(config, parent_issue=args.parent_issue)
+        payload = check_closeout_readiness_by_construction(
+            config,
+            parent_issue=args.parent_issue,
+            state_file=args.state_file,
+        )
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 
