@@ -57,6 +57,7 @@ def test_cli_has_expected_commands() -> None:
         "generate-child-closeout-evidence-bundle",
         "generate-child-evidence-marker-template",
         "generate-parent-closeout-evidence-bundle",
+        "generate-parent-closeout-marker-template",
         "generate-pr-evidence-bundle",
         "generate-pr-evidence-marker-template",
         "simulate-evidence-bundle-generation",
@@ -277,6 +278,15 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     )
     assert generate_parent_closeout_bundle_args.command == "generate-parent-closeout-evidence-bundle"
     assert generate_parent_closeout_bundle_args.parent_issue == 362
+    generate_parent_marker_template_args = parser.parse_args(
+        [
+            "generate-parent-closeout-marker-template",
+            "--parent-issue",
+            "400",
+        ]
+    )
+    assert generate_parent_marker_template_args.command == "generate-parent-closeout-marker-template"
+    assert generate_parent_marker_template_args.parent_issue == 400
     generate_pr_evidence_bundle_args = parser.parse_args(
         [
             "generate-pr-evidence-bundle",
@@ -1564,6 +1574,51 @@ def test_cli_dispatches_generate_parent_closeout_evidence_bundle(
         "ok": True,
         "read_only": True,
         "parent_issue": 362,
+    }
+
+
+def test_cli_dispatches_generate_parent_closeout_marker_template(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+) -> None:
+    config = AppConfig(
+        repo_root=tmp_path,
+        db_host="127.0.0.1",
+        db_port=5433,
+        db_name="aresforge",
+        db_user="aresforge",
+        db_password="aresforge",
+        ollama_base_url="http://127.0.0.1:11434",
+        ollama_model="qwen2.5:32b",
+        artifact_root=tmp_path / "artifacts",
+        prompts_dir=tmp_path / "artifacts" / "prompts" / "generated",
+        evidence_dir=tmp_path / "artifacts" / "evidence" / "generated",
+        codex_handoffs_dir=tmp_path / "artifacts" / "codex_handoffs" / "generated",
+        github_owner="yoey2112",
+        github_repo="aresforge",
+    )
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: config)
+    monkeypatch.setattr(
+        cli,
+        "generate_parent_closeout_marker_template",
+        lambda _config, parent_issue: {
+            "command": "generate-parent-closeout-marker-template",
+            "ok": True,
+            "read_only": True,
+            "parent_issue": parent_issue,
+        },
+    )
+
+    exit_code = cli.main(["generate-parent-closeout-marker-template", "--parent-issue", "400"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert payload == {
+        "command": "generate-parent-closeout-marker-template",
+        "ok": True,
+        "read_only": True,
+        "parent_issue": 400,
     }
 
 

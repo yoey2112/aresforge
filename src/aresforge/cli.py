@@ -53,6 +53,7 @@ from aresforge.operator.child_evidence_marker_template import generate_child_evi
 from aresforge.operator.parent_closeout_evidence_bundle import (
     generate_parent_closeout_evidence_bundle,
 )
+from aresforge.operator.parent_closeout_marker_template import generate_parent_closeout_marker_template
 from aresforge.operator.pr_evidence_bundle import generate_pr_evidence_bundle
 from aresforge.operator.pr_evidence_marker_template import generate_pr_evidence_marker_template
 from aresforge.operator.evidence_bundle_simulation import simulate_evidence_bundle_generation
@@ -467,6 +468,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Generate read-only parent closeout evidence bundle text and targeted closeout guidance.",
     )
     parent_closeout_bundle_parser.add_argument("--parent-issue", type=int, required=True)
+    parent_marker_template_parser = subparsers.add_parser(
+        "generate-parent-closeout-marker-template",
+        help="Generate read-only canonical parent closeout evidence marker template text.",
+    )
+    parent_marker_template_parser.add_argument("--parent-issue", type=int, required=True)
     pr_evidence_bundle_parser = subparsers.add_parser(
         "generate-pr-evidence-bundle",
         help="Generate read-only deterministic PR evidence body text and targeted update guidance.",
@@ -1283,6 +1289,14 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "generate-parent-closeout-evidence-bundle":
         payload = generate_parent_closeout_evidence_bundle(
+            config,
+            parent_issue=args.parent_issue,
+        )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "generate-parent-closeout-marker-template":
+        payload = generate_parent_closeout_marker_template(
             config,
             parent_issue=args.parent_issue,
         )
