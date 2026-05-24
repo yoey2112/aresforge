@@ -76,6 +76,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-pr-mapping-preflight",
         "generate-closeout-preflight-repair-guidance",
         "inspect-milestone-closeout-preflight",
+        "check-closeout-readiness-by-construction",
         "generate-preflight-baseline-snapshot",
         "diff-preflight-snapshots",
         "inspect-child-execution-gates",
@@ -367,6 +368,11 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     )
     assert check_milestone_evidence_args.command == "check-milestone-evidence-readiness"
     assert check_milestone_evidence_args.parent_issue == 269
+    check_closeout_readiness_args = parser.parse_args(
+        ["check-closeout-readiness-by-construction", "--parent-issue", "421"]
+    )
+    assert check_closeout_readiness_args.command == "check-closeout-readiness-by-construction"
+    assert check_closeout_readiness_args.parent_issue == 421
     plan_final_reconciliation_args = parser.parse_args(
         ["plan-milestone-final-reconciliation", "--parent-issue", "269"]
     )
