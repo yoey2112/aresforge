@@ -102,6 +102,15 @@ def test_generate_parent_closeout_evidence_bundle_ready(monkeypatch, tmp_path: P
     assert payload["child_summary"]["closed_child_issue_count"] == 2
     assert payload["child_pr_mappings"][0]["merged_pr_urls"] == ["https://github.com/yoey2112/aresforge/pull/375"]
     assert payload["canonical_marker"]["marker_type"] == "parent_closeout_evidence"
+    assert payload["canonical_marker_completeness"] == {
+        "state": "incomplete",
+        "marker_type": "parent_closeout_evidence",
+        "marker_scope": "parent_closeout_evidence_bundle",
+        "missing_required_fields": ["final_main_head", "final_validation_results"],
+        "invalid_reasons": [],
+        "marker_complete": False,
+        "post_hoc_marker_repair_required": True,
+    }
     assert "### Canonical Marker" in payload["parent_evidence_comment_body"]
     assert "### Safety posture" in payload["parent_evidence_comment_body"]
     assert "```" not in payload["parent_evidence_comment_body"]
@@ -173,6 +182,14 @@ def test_generate_parent_closeout_evidence_bundle_blocked(monkeypatch, tmp_path:
     assert payload["read_only"] is True
     assert payload["readiness_gates"]["parent_closeout_ready"] is False
     assert "one_or_more_children_not_closed_or_accounted_for" in payload["readiness_gates"]["blocked_reasons"]
+    completeness = payload["canonical_marker_completeness"]
+    assert completeness["state"] == "incomplete"
+    assert completeness["marker_type"] == "parent_closeout_evidence"
+    assert completeness["marker_scope"] == "parent_closeout_evidence_bundle"
+    assert completeness["marker_complete"] is False
+    assert completeness["post_hoc_marker_repair_required"] is True
+    assert "final_main_head" in completeness["missing_required_fields"]
+    assert "final_validation_results" in completeness["missing_required_fields"]
     assert payload["targeted_parent_closeout_guidance"][0].startswith("1. Do not close parent issue #362")
 
 
