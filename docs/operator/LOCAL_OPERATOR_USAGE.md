@@ -49,11 +49,18 @@ Use `--state-file` when you need local, deterministic closeout readiness checks 
 
 Local-only command set:
 
+- `python -m aresforge generate-offline-closeout-state-template --parent-issue <parent> --children <child1,child2,...> --output <path>`
 - `python -m aresforge inspect-milestone-state --parent-issue <parent> --state-file <path>`
 - `python -m aresforge check-milestone-evidence-readiness --parent-issue <parent> --state-file <path>`
 - `python -m aresforge inspect-parent-closeout-readiness --parent-issue <parent> --state-file <path>`
 - `python -m aresforge generate-parent-closeout-evidence-bundle --parent-issue <parent> --state-file <path>`
 - `python -m aresforge check-closeout-readiness-by-construction --parent-issue <parent> --state-file <path>`
+
+Template generation notes:
+
+- The generator is local-only and does not call `gh` or live GitHub APIs.
+- Output is an editable JSON template artifact that includes parent/child placeholders, marker placeholders, and a `final_reconciliation` section.
+- Use `--force` to overwrite an existing template file; otherwise the command fails safely when output already exists.
 
 Offline boundary:
 

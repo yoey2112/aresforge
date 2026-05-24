@@ -43,6 +43,7 @@ def test_cli_help_includes_m6_commands() -> None:
     assert "inspect-milestone-dashboard" in help_text
     assert "inspect-child-execution-gates" in help_text
     assert "check-closeout-readiness-by-construction" in help_text
+    assert "generate-offline-closeout-state-template" in help_text
     assert "inspect-sequential-run-state" in help_text
     assert "plan-sequential-run-recovery" in help_text
     assert "generate-sequential-handoff-package" in help_text
@@ -378,6 +379,51 @@ def test_cli_dispatch_check_closeout_readiness_by_construction_with_state_file(
     assert payload["command"] == "check-closeout-readiness-by-construction"
     assert payload["inspection_mode"] == "local_state_file"
     assert payload["state_file"] == "artifacts/offline-state/m25-421.json"
+
+
+def test_cli_dispatch_generate_offline_closeout_state_template_local_only(
+    monkeypatch,
+    capsys,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: _config(tmp_path))
+    monkeypatch.setattr(
+        cli,
+        "generate_offline_closeout_state_template",
+        lambda _config, **kwargs: {
+            "command": "generate-offline-closeout-state-template",
+            "ok": True,
+            "local_only": True,
+            "kwargs": kwargs,
+        },
+    )
+    monkeypatch.setattr(
+        cli,
+        "inspect_milestone_state",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(
+            AssertionError("inspect_milestone_state must not be called by template generator command")
+        ),
+    )
+
+    exit_code = cli.main(
+        [
+            "generate-offline-closeout-state-template",
+            "--parent-issue",
+            "421",
+            "--children",
+            "422,423,424",
+            "--output",
+            "artifacts/offline-state/m25-421.template.json",
+            "--force",
+        ]
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["command"] == "generate-offline-closeout-state-template"
+    assert payload["local_only"] is True
+    assert payload["kwargs"]["parent_issue"] == 421
+    assert payload["kwargs"]["children"] == "422,423,424"
+    assert payload["kwargs"]["force"] is True
 
 
 def test_cli_dispatch_inspect_milestone_dashboard(

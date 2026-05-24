@@ -110,6 +110,7 @@ from aresforge.operator.pr_mapping_preflight import inspect_pr_mapping_preflight
 from aresforge.operator.closeout_repair_guidance import generate_closeout_preflight_repair_guidance
 from aresforge.operator.milestone_closeout_preflight import inspect_milestone_closeout_preflight
 from aresforge.operator.closeout_readiness_by_construction import check_closeout_readiness_by_construction
+from aresforge.operator.offline_state_template import generate_offline_closeout_state_template
 from aresforge.operator.milestone_reconciliation_planner import plan_milestone_final_reconciliation
 from aresforge.operator.preflight_snapshot import (
     diff_preflight_snapshots,
@@ -625,6 +626,26 @@ def build_parser() -> argparse.ArgumentParser:
     readiness_by_construction_parser.add_argument(
         "--state-file",
         help="Optional local JSON state file for offline closeout-readiness-by-construction checks.",
+    )
+    offline_state_template_parser = subparsers.add_parser(
+        "generate-offline-closeout-state-template",
+        help="Generate a local-only editable offline closeout state-file template.",
+    )
+    offline_state_template_parser.add_argument("--parent-issue", type=int, required=True)
+    offline_state_template_parser.add_argument(
+        "--children",
+        required=True,
+        help="Comma-separated child issue numbers (example: 422,423,424).",
+    )
+    offline_state_template_parser.add_argument("--output", required=True)
+    offline_state_template_parser.add_argument("--parent-title")
+    offline_state_template_parser.add_argument("--milestone-title")
+    offline_state_template_parser.add_argument("--final-main-head")
+    offline_state_template_parser.add_argument("--final-validation-results")
+    offline_state_template_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite existing output file.",
     )
     preflight_snapshot_parser = subparsers.add_parser(
         "generate-preflight-baseline-snapshot",
@@ -1489,6 +1510,21 @@ def main(argv: list[str] | None = None) -> int:
             config,
             parent_issue=args.parent_issue,
             state_file=args.state_file,
+        )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "generate-offline-closeout-state-template":
+        payload = generate_offline_closeout_state_template(
+            config,
+            parent_issue=args.parent_issue,
+            children=args.children,
+            output=args.output,
+            parent_title=args.parent_title,
+            milestone_title=args.milestone_title,
+            final_main_head=args.final_main_head,
+            final_validation_results=args.final_validation_results,
+            force=bool(args.force),
         )
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1

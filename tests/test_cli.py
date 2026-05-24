@@ -77,6 +77,7 @@ def test_cli_has_expected_commands() -> None:
         "generate-closeout-preflight-repair-guidance",
         "inspect-milestone-closeout-preflight",
         "check-closeout-readiness-by-construction",
+        "generate-offline-closeout-state-template",
         "generate-preflight-baseline-snapshot",
         "diff-preflight-snapshots",
         "inspect-child-execution-gates",
@@ -413,6 +414,22 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     assert check_closeout_readiness_state_file_args.command == "check-closeout-readiness-by-construction"
     assert check_closeout_readiness_state_file_args.parent_issue == 421
     assert check_closeout_readiness_state_file_args.state_file == "artifacts/offline-state/m25-421.json"
+    offline_template_args = parser.parse_args(
+        [
+            "generate-offline-closeout-state-template",
+            "--parent-issue",
+            "421",
+            "--children",
+            "422,423,424",
+            "--output",
+            "artifacts/offline-state/m25-421.template.json",
+        ]
+    )
+    assert offline_template_args.command == "generate-offline-closeout-state-template"
+    assert offline_template_args.parent_issue == 421
+    assert offline_template_args.children == "422,423,424"
+    assert offline_template_args.output == "artifacts/offline-state/m25-421.template.json"
+    assert offline_template_args.force is False
     plan_final_reconciliation_args = parser.parse_args(
         ["plan-milestone-final-reconciliation", "--parent-issue", "269"]
     )
