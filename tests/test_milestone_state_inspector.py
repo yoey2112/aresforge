@@ -1,4 +1,5 @@
 from pathlib import Path
+import subprocess
 
 from aresforge.config import AppConfig
 from aresforge.operator import milestone_state_inspector
@@ -264,4 +265,95 @@ def test_inspect_milestone_state_bubbles_parent_lookup_error(monkeypatch, tmp_pa
     assert payload["ok"] is False
     assert payload["read_only"] is True
     assert payload["error"] == "gh_cli_failed"
+
+
+def test_inspect_milestone_state_offline_local_state_file(monkeypatch, tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    state_file = tmp_path / "artifacts" / "offline-state" / "m25-421.json"
+    state_file.parent.mkdir(parents=True, exist_ok=True)
+    state_file.write_text(
+        """
+{
+  "parent_issue": {
+    "number": 421,
+    "state": "CLOSED",
+    "title": "M25 parent",
+    "url": "https://github.com/yoey2112/aresforge/issues/421",
+    "milestone": { "title": "M25" },
+    "body": "...",
+    "comments": []
+  },
+  "child_issues": [
+    {
+      "number": 422,
+      "state": "CLOSED",
+      "title": "Child title",
+      "url": "https://github.com/yoey2112/aresforge/issues/422",
+      "milestone": { "title": "M25" },
+      "body": "Parent issue: #421",
+      "comments": [],
+      "merged_pr_evidence": [
+        { "number": 431, "url": "https://github.com/yoey2112/aresforge/pull/431" }
+      ],
+      "reference_classification": {
+        "implementation_issue_numbers": [421]
+      }
+    }
+  ]
+}
+        """.strip(),
+        encoding="utf-8",
+    )
+
+    def _fetch_should_not_run(_config: AppConfig, _issue_number: int) -> dict:
+        raise AssertionError("fetch_issue_details should not be called in local_state_file mode")
+
+    def _subprocess_should_not_run(*args, **kwargs):  # type: ignore[no-untyped-def]
+        raise AssertionError("subprocess.run should not be called in local_state_file mode")
+
+    monkeypatch.setattr(milestone_state_inspector, "fetch_issue_details", _fetch_should_not_run)
+    monkeypatch.setattr(subprocess, "run", _subprocess_should_not_run)
+
+    payload = milestone_state_inspector.inspect_milestone_state(
+        config,
+        parent_issue=421,
+        state_file=state_file,
+    )
+
+    assert payload["ok"] is True
+    assert payload["inspection_mode"] == "local_state_file"
+    assert payload["state_file"] == str(state_file)
+    assert payload["parent_issue"]["issue_number"] == 421
+    assert payload["summary"]["parent_state"] == "CLOSED"
+    assert payload["child_discovery"]["discovered_child_issue_numbers"] == [422]
+    assert payload["child_issues"][0]["issue_number"] == 422
+    assert payload["child_issues"][0]["state"] == "CLOSED"
+    assert payload["child_issues"][0]["merged_pr_count"] == 1
+
+
+def test_inspect_milestone_state_offline_parent_issue_mismatch_returns_error(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    state_file = tmp_path / "artifacts" / "offline-state" / "m25-421.json"
+    state_file.parent.mkdir(parents=True, exist_ok=True)
+    state_file.write_text(
+        """
+{
+  "parent_issue": { "number": 422, "state": "CLOSED", "title": "M25 parent" },
+  "child_issues": []
+}
+        """.strip(),
+        encoding="utf-8",
+    )
+
+    payload = milestone_state_inspector.inspect_milestone_state(
+        config,
+        parent_issue=421,
+        state_file=state_file,
+    )
+
+    assert payload["ok"] is False
+    assert payload["inspection_mode"] == "local_state_file"
+    assert payload["error"] == "parent_issue_mismatch"
+    assert payload["details"]["expected_parent_issue"] == 421
+    assert payload["details"]["state_file_parent_issue"] == 422
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import json
+from pathlib import Path
 import re
 import subprocess
 from typing import Any
@@ -35,7 +36,19 @@ class ChildState:
     lineage_sources: tuple[str, ...]
 
 
-def inspect_milestone_state(config: AppConfig, *, parent_issue: int) -> dict[str, Any]:
+def inspect_milestone_state(
+    config: AppConfig,
+    *,
+    parent_issue: int,
+    state_file: str | Path | None = None,
+) -> dict[str, Any]:
+    if state_file is not None:
+        return _inspect_milestone_state_from_local_file(
+            config,
+            parent_issue=parent_issue,
+            state_file=state_file,
+        )
+
     parent_payload = fetch_issue_details(config, parent_issue)
     if not parent_payload.get("ok"):
         return {
@@ -131,6 +144,172 @@ def inspect_milestone_state(config: AppConfig, *, parent_issue: int) -> dict[str
         "lineage_hints": lineage_hints,
         "evidence_hints": evidence_hints,
         "warnings": warnings,
+        "boundary_confirmations": _boundaries(),
+    }
+
+
+def _inspect_milestone_state_from_local_file(
+    config: AppConfig,
+    *,
+    parent_issue: int,
+    state_file: str | Path,
+) -> dict[str, Any]:
+    state_path = Path(state_file)
+    try:
+        parsed = json.loads(state_path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return _local_state_error(
+            parent_issue=parent_issue,
+            state_file=state_path,
+            error="state_file_not_found",
+            details={"path": str(state_path)},
+        )
+    except json.JSONDecodeError as exc:
+        return _local_state_error(
+            parent_issue=parent_issue,
+            state_file=state_path,
+            error="state_file_invalid_json",
+            details={"path": str(state_path), "message": str(exc)},
+        )
+    except OSError as exc:
+        return _local_state_error(
+            parent_issue=parent_issue,
+            state_file=state_path,
+            error="state_file_read_failed",
+            details={"path": str(state_path), "message": str(exc)},
+        )
+
+    if not isinstance(parsed, dict):
+        return _local_state_error(
+            parent_issue=parent_issue,
+            state_file=state_path,
+            error="invalid_state_file_schema",
+            details={"reason": "state_file_root_must_be_object"},
+        )
+
+    parent_issue_payload = parsed.get("parent_issue")
+    if not isinstance(parent_issue_payload, dict):
+        return _local_state_error(
+            parent_issue=parent_issue,
+            state_file=state_path,
+            error="invalid_state_file_schema",
+            details={"reason": "parent_issue_must_be_object"},
+        )
+
+    file_parent_number = parent_issue_payload.get("number")
+    if not isinstance(file_parent_number, int):
+        return _local_state_error(
+            parent_issue=parent_issue,
+            state_file=state_path,
+            error="invalid_state_file_schema",
+            details={"reason": "parent_issue.number_must_be_integer"},
+        )
+    if file_parent_number != parent_issue:
+        return _local_state_error(
+            parent_issue=parent_issue,
+            state_file=state_path,
+            error="parent_issue_mismatch",
+            details={"expected_parent_issue": parent_issue, "state_file_parent_issue": file_parent_number},
+        )
+
+    child_issues_payload = parsed.get("child_issues")
+    if not isinstance(child_issues_payload, list):
+        return _local_state_error(
+            parent_issue=parent_issue,
+            state_file=state_path,
+            error="invalid_state_file_schema",
+            details={"reason": "child_issues_must_be_list"},
+        )
+
+    child_issue_objects: list[dict[str, Any]] = []
+    for index, item in enumerate(child_issues_payload):
+        if not isinstance(item, dict):
+            return _local_state_error(
+                parent_issue=parent_issue,
+                state_file=state_path,
+                error="invalid_state_file_schema",
+                details={"reason": "child_issue_must_be_object", "child_index": index},
+            )
+        issue_number = item.get("number")
+        if not isinstance(issue_number, int):
+            return _local_state_error(
+                parent_issue=parent_issue,
+                state_file=state_path,
+                error="invalid_state_file_schema",
+                details={"reason": "child_issue.number_must_be_integer", "child_index": index},
+            )
+        child_issue_objects.append(item)
+
+    discovered_child_numbers = [int(item["number"]) for item in child_issue_objects]
+    discovery_position = {number: index for index, number in enumerate(discovered_child_numbers, start=1)}
+    child_states = [
+        _to_child_state(parent_issue=parent_issue, issue=item)
+        for item in child_issue_objects
+    ]
+    lookup_warnings: list[dict[str, Any]] = []
+    summary = _build_summary(parent_issue_payload=parent_issue_payload, child_states=child_states)
+    warnings = _build_warnings(
+        parent_issue=parent_issue,
+        parent_issue_payload=parent_issue_payload,
+        child_states=child_states,
+        lookup_warnings=lookup_warnings,
+    )
+    lineage_hints = _lineage_hints(parent_issue=parent_issue, child_states=child_states)
+    evidence_hints = _evidence_hints(child_states)
+
+    return {
+        "command": COMMAND_NAME,
+        "ok": True,
+        "read_only": True,
+        "inspection_mode": "local_state_file",
+        "repo": f"{config.github_owner}/{config.github_repo}",
+        "state_file": str(state_path),
+        "parent_issue": _issue_summary(parent_issue_payload),
+        "child_discovery": {
+            "strategy": "local_state_file",
+            "discovered_child_issue_numbers": discovered_child_numbers,
+            "child_issue_count": len(child_states),
+            "lookup_warnings": lookup_warnings,
+        },
+        "child_issues": [
+            {
+                "issue_number": item.issue_number,
+                "state": item.state,
+                "title": item.title,
+                "url": item.url,
+                "milestone_title": item.milestone_title,
+                "linked_pr_count": item.linked_pr_count,
+                "merged_pr_count": item.merged_pr_count,
+                "lineage_detected": item.lineage_detected,
+                "lineage_sources": list(item.lineage_sources),
+                "discovery_position": discovery_position.get(item.issue_number),
+            }
+            for item in child_states
+        ],
+        "summary": summary,
+        "lineage_hints": lineage_hints,
+        "evidence_hints": evidence_hints,
+        "warnings": warnings,
+        "boundary_confirmations": _boundaries(),
+    }
+
+
+def _local_state_error(
+    *,
+    parent_issue: int,
+    state_file: Path,
+    error: str,
+    details: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    return {
+        "command": COMMAND_NAME,
+        "ok": False,
+        "read_only": True,
+        "inspection_mode": "local_state_file",
+        "error": error,
+        "parent_issue": parent_issue,
+        "state_file": str(state_file),
+        "details": details or {},
         "boundary_confirmations": _boundaries(),
     }
 

@@ -167,11 +167,12 @@ def test_cli_dispatch_inspect_milestone_state(
     monkeypatch.setattr(
         cli,
         "inspect_milestone_state",
-        lambda _config, parent_issue: {
+        lambda _config, parent_issue, state_file=None: {
             "command": "inspect-milestone-state",
             "ok": True,
             "read_only": True,
             "parent_issue": {"issue_number": parent_issue},
+            "state_file": state_file,
         },
     )
     exit_code = cli.main(["inspect-milestone-state", "--parent-issue", "269"])
@@ -180,6 +181,7 @@ def test_cli_dispatch_inspect_milestone_state(
     assert payload["command"] == "inspect-milestone-state"
     assert payload["read_only"] is True
     assert payload["parent_issue"]["issue_number"] == 269
+    assert payload["state_file"] is None
 
 
 def test_cli_dispatch_plan_milestone_execution_queue(

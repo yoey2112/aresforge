@@ -546,6 +546,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="Inspect milestone parent/child issue state in read-only mode.",
     )
     inspect_milestone_state_parser.add_argument("--parent-issue", type=int, required=True)
+    inspect_milestone_state_parser.add_argument(
+        "--state-file",
+        help="Optional local JSON state file for offline milestone inspection.",
+    )
     milestone_queue_parser = subparsers.add_parser(
         "plan-milestone-execution-queue",
         help="Plan milestone child issue execution order in read-only mode.",
@@ -1392,7 +1396,11 @@ def main(argv: list[str] | None = None) -> int:
         return 0 if bool(payload.get("ok")) else 1
 
     if args.command == "inspect-milestone-state":
-        payload = inspect_milestone_state(config, parent_issue=args.parent_issue)
+        payload = inspect_milestone_state(
+            config,
+            parent_issue=args.parent_issue,
+            state_file=args.state_file,
+        )
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 

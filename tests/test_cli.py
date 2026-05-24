@@ -353,6 +353,13 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     )
     assert inspect_milestone_state_args.command == "inspect-milestone-state"
     assert inspect_milestone_state_args.parent_issue == 269
+    assert inspect_milestone_state_args.state_file is None
+    inspect_milestone_state_state_file_args = parser.parse_args(
+        ["inspect-milestone-state", "--parent-issue", "269", "--state-file", "artifacts/offline-state/m25-421.json"]
+    )
+    assert inspect_milestone_state_state_file_args.command == "inspect-milestone-state"
+    assert inspect_milestone_state_state_file_args.parent_issue == 269
+    assert inspect_milestone_state_state_file_args.state_file == "artifacts/offline-state/m25-421.json"
     plan_milestone_execution_queue_args = parser.parse_args(
         ["plan-milestone-execution-queue", "--parent-issue", "269"]
     )
