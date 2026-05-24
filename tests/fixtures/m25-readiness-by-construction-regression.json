@@ -1,0 +1,62 @@
+[
+  {
+    "name": "all_domains_complete_no_post_hoc_repair",
+    "child": {"state": "ready", "marker_complete": true, "missing_required_fields": [], "invalid_reasons": [], "post_hoc_marker_repair_required": false},
+    "pr": {"state": "ready", "marker_complete": true, "missing_required_fields": [], "invalid_reasons": [], "post_hoc_marker_repair_required": false},
+    "parent": {"state": "ready", "marker_complete": true, "missing_required_fields": [], "invalid_reasons": [], "post_hoc_marker_repair_required": false},
+    "closeout_comment": {"state": "ready", "marker_complete": true, "missing_required_fields": [], "invalid_reasons": [], "post_hoc_marker_repair_required": false},
+    "expected_ready": true,
+    "expected_post_hoc": false,
+    "expected_blocked_reasons": []
+  },
+  {
+    "name": "missing_child_canonical_marker_completeness",
+    "child": {"state": "incomplete", "marker_complete": false, "missing_required_fields": ["branch_name"], "invalid_reasons": [], "post_hoc_marker_repair_required": true},
+    "pr": {"state": "ready", "marker_complete": true, "missing_required_fields": [], "invalid_reasons": [], "post_hoc_marker_repair_required": false},
+    "parent": {"state": "ready", "marker_complete": true, "missing_required_fields": [], "invalid_reasons": [], "post_hoc_marker_repair_required": false},
+    "closeout_comment": {"state": "ready", "marker_complete": true, "missing_required_fields": [], "invalid_reasons": [], "post_hoc_marker_repair_required": false},
+    "expected_ready": false,
+    "expected_post_hoc": true,
+    "expected_blocked_reasons": ["child_bundle_canonical_marker_completeness_marker_incomplete"]
+  },
+  {
+    "name": "missing_pr_canonical_marker_completeness",
+    "child": {"state": "ready", "marker_complete": true, "missing_required_fields": [], "invalid_reasons": [], "post_hoc_marker_repair_required": false},
+    "pr": {"state": "incomplete", "marker_complete": false, "missing_required_fields": ["merge_commit"], "invalid_reasons": [], "post_hoc_marker_repair_required": true},
+    "parent": {"state": "ready", "marker_complete": true, "missing_required_fields": [], "invalid_reasons": [], "post_hoc_marker_repair_required": false},
+    "closeout_comment": {"state": "ready", "marker_complete": true, "missing_required_fields": [], "invalid_reasons": [], "post_hoc_marker_repair_required": false},
+    "expected_ready": false,
+    "expected_post_hoc": true,
+    "expected_blocked_reasons": ["pr_bundle_canonical_marker_completeness_marker_incomplete"]
+  },
+  {
+    "name": "missing_parent_canonical_marker_completeness",
+    "child": {"state": "ready", "marker_complete": true, "missing_required_fields": [], "invalid_reasons": [], "post_hoc_marker_repair_required": false},
+    "pr": {"state": "ready", "marker_complete": true, "missing_required_fields": [], "invalid_reasons": [], "post_hoc_marker_repair_required": false},
+    "parent": {"state": "incomplete", "marker_complete": false, "missing_required_fields": ["final_main_head"], "invalid_reasons": [], "post_hoc_marker_repair_required": true},
+    "closeout_comment": {"state": "ready", "marker_complete": true, "missing_required_fields": [], "invalid_reasons": [], "post_hoc_marker_repair_required": false},
+    "expected_ready": false,
+    "expected_post_hoc": true,
+    "expected_blocked_reasons": ["parent_bundle_canonical_marker_completeness_marker_incomplete"]
+  },
+  {
+    "name": "missing_closeout_comment_canonical_marker_completeness",
+    "child": {"state": "ready", "marker_complete": true, "missing_required_fields": [], "invalid_reasons": [], "post_hoc_marker_repair_required": false},
+    "pr": {"state": "ready", "marker_complete": true, "missing_required_fields": [], "invalid_reasons": [], "post_hoc_marker_repair_required": false},
+    "parent": {"state": "ready", "marker_complete": true, "missing_required_fields": [], "invalid_reasons": [], "post_hoc_marker_repair_required": false},
+    "closeout_comment": {"state": "incomplete", "marker_complete": false, "missing_required_fields": [], "invalid_reasons": ["parent_issue_lineage_not_detected"], "post_hoc_marker_repair_required": true},
+    "expected_ready": false,
+    "expected_post_hoc": true,
+    "expected_blocked_reasons": ["closeout_comment_canonical_marker_completeness_marker_incomplete"]
+  },
+  {
+    "name": "post_hoc_marker_repair_required_true",
+    "child": {"state": "ready", "marker_complete": true, "missing_required_fields": [], "invalid_reasons": [], "post_hoc_marker_repair_required": true},
+    "pr": {"state": "ready", "marker_complete": true, "missing_required_fields": [], "invalid_reasons": [], "post_hoc_marker_repair_required": false},
+    "parent": {"state": "ready", "marker_complete": true, "missing_required_fields": [], "invalid_reasons": [], "post_hoc_marker_repair_required": false},
+    "closeout_comment": {"state": "ready", "marker_complete": true, "missing_required_fields": [], "invalid_reasons": [], "post_hoc_marker_repair_required": false},
+    "expected_ready": false,
+    "expected_post_hoc": true,
+    "expected_blocked_reasons": []
+  }
+]

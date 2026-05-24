@@ -1,4 +1,7 @@
+import json
 from pathlib import Path
+
+import pytest
 
 from aresforge.config import AppConfig
 from aresforge.operator import closeout_readiness_by_construction
@@ -42,6 +45,34 @@ def _incomplete_marker(*, missing: list[str] | None = None, invalid: list[str] |
         "invalid_reasons": invalid or [],
         "post_hoc_marker_repair_required": post_hoc,
     }
+
+
+def _load_regression_fixtures() -> list[dict]:
+    fixture_path = Path(__file__).parent / "fixtures" / "m25-readiness-by-construction-regression.json"
+    return json.loads(fixture_path.read_text(encoding="utf-8"))
+
+
+def _apply_marker_fixture(monkeypatch, scenario: dict) -> None:
+    monkeypatch.setattr(
+        closeout_readiness_by_construction,
+        "generate_child_closeout_evidence_bundle",
+        lambda _config, parent_issue, child_issue: {"ok": True, "canonical_marker_completeness": scenario["child"]},
+    )
+    monkeypatch.setattr(
+        closeout_readiness_by_construction,
+        "generate_pr_evidence_bundle",
+        lambda _config, issue_number, pr_number: {"ok": True, "canonical_marker_completeness": scenario["pr"]},
+    )
+    monkeypatch.setattr(
+        closeout_readiness_by_construction,
+        "generate_parent_closeout_evidence_bundle",
+        lambda _config, parent_issue: {"ok": True, "canonical_marker_completeness": scenario["parent"]},
+    )
+    monkeypatch.setattr(
+        closeout_readiness_by_construction,
+        "generate_evidence_comment_template",
+        lambda _config, issue_number: {"ok": True, "canonical_marker_completeness": scenario["closeout_comment"]},
+    )
 
 
 def _mock_common(monkeypatch) -> None:
@@ -264,3 +295,30 @@ def test_check_closeout_readiness_by_construction_remains_read_only(monkeypatch,
     assert payload["mutation"]["close_issues"] is False
     assert payload["mutation"]["create_pr"] is False
     assert payload["mutation"]["merge_pr"] is False
+
+
+@pytest.mark.parametrize("scenario", _load_regression_fixtures(), ids=lambda item: item["name"])
+def test_m25_regression_fixtures_no_post_hoc_marker_repair_needed(monkeypatch, tmp_path: Path, scenario: dict) -> None:
+    _mock_common(monkeypatch)
+    _apply_marker_fixture(monkeypatch, scenario)
+
+    payload = closeout_readiness_by_construction.check_closeout_readiness_by_construction(_config(tmp_path), parent_issue=421)
+
+    assert payload["ok"] is True
+    assert payload["read_only"] is True
+    assert payload["readiness_by_construction"]["ready"] is scenario["expected_ready"]
+    assert payload["post_hoc_marker_repair_required"] is scenario["expected_post_hoc"]
+
+    for expected_reason in scenario["expected_blocked_reasons"]:
+        assert expected_reason in payload["blocked_reasons"]
+
+    if scenario["expected_ready"]:
+        assert payload["readiness_by_construction"]["marker_emission_ready"] is True
+        assert payload["missing_required_fields"] == []
+        assert payload["invalid_reasons"] == []
+        assert payload["recommended_actions"] == [
+            "Readiness by construction is satisfied; proceed with standard human-gated closeout flow."
+        ]
+    else:
+        assert payload["readiness_by_construction"]["marker_emission_ready"] is False
+        assert any("Regenerate affected evidence artifacts/comments" in action for action in payload["recommended_actions"])
