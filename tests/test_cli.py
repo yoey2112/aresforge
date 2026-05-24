@@ -76,6 +76,8 @@ def test_cli_has_expected_commands() -> None:
         "inspect-pr-mapping-preflight",
         "generate-closeout-preflight-repair-guidance",
         "inspect-milestone-closeout-preflight",
+        "generate-preflight-baseline-snapshot",
+        "diff-preflight-snapshots",
         "inspect-child-execution-gates",
         "inspect-sequential-run-state",
         "plan-sequential-run-recovery",
@@ -405,6 +407,24 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     )
     assert inspect_milestone_closeout_preflight_args.command == "inspect-milestone-closeout-preflight"
     assert inspect_milestone_closeout_preflight_args.parent_issue == 381
+    generate_preflight_snapshot_args = parser.parse_args(
+        ["generate-preflight-baseline-snapshot", "--parent-issue", "400"]
+    )
+    assert generate_preflight_snapshot_args.command == "generate-preflight-baseline-snapshot"
+    assert generate_preflight_snapshot_args.parent_issue == 400
+    assert generate_preflight_snapshot_args.output is None
+    diff_preflight_snapshots_args = parser.parse_args(
+        [
+            "diff-preflight-snapshots",
+            "--before",
+            "artifacts/evidence/generated/before.json",
+            "--after",
+            "artifacts/evidence/generated/after.json",
+        ]
+    )
+    assert diff_preflight_snapshots_args.command == "diff-preflight-snapshots"
+    assert diff_preflight_snapshots_args.before == "artifacts/evidence/generated/before.json"
+    assert diff_preflight_snapshots_args.after == "artifacts/evidence/generated/after.json"
     inspect_child_execution_gates_args = parser.parse_args(
         ["inspect-child-execution-gates", "--issue", "312", "--parent-issue", "309"]
     )
@@ -1307,6 +1327,112 @@ def test_cli_dispatches_inspect_milestone_closeout_preflight(
         "command": "inspect-milestone-closeout-preflight",
         "ok": True,
         "parent_issue": 381,
+    }
+
+
+def test_cli_dispatches_generate_preflight_baseline_snapshot(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+) -> None:
+    config = AppConfig(
+        repo_root=tmp_path,
+        db_host="127.0.0.1",
+        db_port=5433,
+        db_name="aresforge",
+        db_user="aresforge",
+        db_password="aresforge",
+        ollama_base_url="http://127.0.0.1:11434",
+        ollama_model="qwen2.5:32b",
+        artifact_root=tmp_path / "artifacts",
+        prompts_dir=tmp_path / "artifacts" / "prompts" / "generated",
+        evidence_dir=tmp_path / "artifacts" / "evidence" / "generated",
+        codex_handoffs_dir=tmp_path / "artifacts" / "codex_handoffs" / "generated",
+        github_owner="yoey2112",
+        github_repo="aresforge",
+    )
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: config)
+    monkeypatch.setattr(
+        cli,
+        "generate_preflight_baseline_snapshot",
+        lambda _config, parent_issue, output_path: {
+            "command": "generate-preflight-baseline-snapshot",
+            "ok": True,
+            "parent_issue": parent_issue,
+            "snapshot_path": output_path,
+        },
+    )
+
+    exit_code = cli.main([
+        "generate-preflight-baseline-snapshot",
+        "--parent-issue",
+        "400",
+        "--output",
+        "artifacts/evidence/generated/m24-400-snapshot.json",
+    ])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert payload == {
+        "command": "generate-preflight-baseline-snapshot",
+        "ok": True,
+        "parent_issue": 400,
+        "snapshot_path": "artifacts/evidence/generated/m24-400-snapshot.json",
+    }
+
+
+def test_cli_dispatches_diff_preflight_snapshots(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+) -> None:
+    config = AppConfig(
+        repo_root=tmp_path,
+        db_host="127.0.0.1",
+        db_port=5433,
+        db_name="aresforge",
+        db_user="aresforge",
+        db_password="aresforge",
+        ollama_base_url="http://127.0.0.1:11434",
+        ollama_model="qwen2.5:32b",
+        artifact_root=tmp_path / "artifacts",
+        prompts_dir=tmp_path / "artifacts" / "prompts" / "generated",
+        evidence_dir=tmp_path / "artifacts" / "evidence" / "generated",
+        codex_handoffs_dir=tmp_path / "artifacts" / "codex_handoffs" / "generated",
+        github_owner="yoey2112",
+        github_repo="aresforge",
+    )
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: config)
+    monkeypatch.setattr(
+        cli,
+        "diff_preflight_snapshots",
+        lambda before_path, after_path: {
+            "command": "diff-preflight-snapshots",
+            "ok": True,
+            "before_path": before_path,
+            "after_path": after_path,
+            "classification": "improved",
+        },
+    )
+
+    exit_code = cli.main(
+        [
+            "diff-preflight-snapshots",
+            "--before",
+            "artifacts/evidence/generated/before.json",
+            "--after",
+            "artifacts/evidence/generated/after.json",
+        ]
+    )
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert payload == {
+        "command": "diff-preflight-snapshots",
+        "ok": True,
+        "before_path": "artifacts/evidence/generated/before.json",
+        "after_path": "artifacts/evidence/generated/after.json",
+        "classification": "improved",
     }
 
 
