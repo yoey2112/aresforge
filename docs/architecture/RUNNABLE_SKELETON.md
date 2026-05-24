@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Describe the implemented human-triggered operator surface through M36 local escalation planning.
+Describe the implemented human-triggered operator surface through M37 Hub UI foundation.
 
 ## Operator Shape
 
@@ -135,6 +135,44 @@ Command entrypoint:
   - no GitHub API calls
   - no network access
   - cloud escalation guidance is advisory only
+
+## M37 Hub UI Foundation
+
+- Added local Hub package under `src/aresforge/hub/`.
+- Added local command:
+  - `python -m aresforge serve-hub [--host <host>] [--port <port>] [--open-browser]`
+- Defaults:
+  - `--host` defaults to `127.0.0.1`
+  - `--port` defaults to `8765`
+  - `--open-browser` defaults to disabled
+- Hub serves:
+  - local static frontend shell with persistent navigation
+  - local API shell endpoints under `/api/`
+  - `GET /api/health`
+  - `GET /api/summary`
+  - `GET /api/docs/status`
+- M37 intentionally provides foundation scope only:
+  - Home summary and Settings boundary confirmations
+  - placeholder sections for Projects/Repos/Queue/Agents/Handoff/Orchestration/Escalation/Reports
+  - full project/repo/queue management deferred to M38
+  - full agent/orchestration/escalation/handoff screens deferred to M39
+  - reporting/dashboard polish deferred to M40
+- Local-only boundary:
+  - local-first serving path
+  - binds to `127.0.0.1` by default
+  - no `gh`
+  - no GitHub API calls
+  - no network service calls
+  - no local LLM calls
+  - no cloud LLM calls
+  - no Codex calls
+  - no ChatGPT calls
+  - no Ollama calls
+  - no external API calls
+  - no authentication implementation yet
+  - no production deployment implementation yet
+  - no agent execution yet
+  - no live GitHub sync yet
 
 ## Current Additions (M25 Included)
 

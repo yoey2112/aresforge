@@ -2,11 +2,55 @@
 
 ## Current Phase
 
-M36 cloud/local/Codex/human escalation planner (local-only, plan-only).
+M37 AresForge Hub UI foundation (local-only).
 
 ## Current Goal
 
-Implement and document local-only, plan-only escalation planning that classifies queue work into local LLM, Codex, cloud-advisory, human-required, and blocked/needs-clarification paths.
+Implement and document a local-first Hub foundation that serves as the main local entry point for AresForge with a local server, API shell, frontend shell, navigation, home summary, docs status, and placeholder sections.
+
+## M37 AresForge Hub UI Foundation
+
+- Added local Hub package:
+  - `src/aresforge/hub/`
+  - `src/aresforge/hub/api.py`
+  - `src/aresforge/hub/server.py`
+  - `src/aresforge/hub/static/index.html`
+  - `src/aresforge/hub/static/app.js`
+  - `src/aresforge/hub/static/styles.css`
+- Added local Hub command:
+  - `python -m aresforge serve-hub [--host <host>] [--port <port>] [--open-browser]`
+- Default Hub host/port behavior:
+  - host defaults to `127.0.0.1`
+  - port defaults to `8765`
+  - browser auto-open is off by default and only opens localhost when `--open-browser` is supplied
+- Added local API shell endpoints:
+  - `GET /api/health`
+  - `GET /api/summary`
+  - `GET /api/docs/status`
+- Added local dashboard helper:
+  - `src/aresforge/operator/local_project_dashboard.py`
+- M37 Hub scope:
+  - server + API shell + static frontend shell
+  - persistent navigation (Home/Projects/Repos/Queue/Agents/Handoff/Orchestration/Escalation/Reports/Settings)
+  - Home summary cards and warnings/actions using local files where available
+  - docs status endpoint and Settings boundary confirmations
+  - placeholder sections for M38-M40 surfaces
+- M37 safety posture:
+  - local-first and local-only serving path
+  - binds to `127.0.0.1` by default
+  - no `gh`
+  - no GitHub API calls
+  - no network service calls
+  - no local LLM calls
+  - no cloud LLM calls
+  - no Codex calls
+  - no ChatGPT calls
+  - no Ollama calls
+  - no external API calls
+  - no agent execution
+  - no live GitHub sync
+  - no authentication implementation yet
+  - no production deployment implementation yet
 
 ## M36 Cloud LLM Escalation Planner
 
@@ -167,20 +211,18 @@ Implement and document local-only, plan-only escalation planning that classifies
 
 ## Next-Phase Roadmap (Planned)
 
-- Local LLM agent handoff profiles.
-- Multi-agent orchestration planning.
-- Escalation to cloud LLMs.
-- Project dashboard and local project management reporting.
-- Optional later GitHub sync execution.
-- Optional later web dashboard UI.
-- Optional later background daemon or scheduler.
+- M38: project/repo/queue management screens and workflows.
+- M39: agent/orchestration/escalation/handoff screens.
+- M40: reporting/dashboard polish and operator workflows.
 
 ## Known Limitations (Current Foundation Batch)
 
 - No actual LLM invocation yet.
 - No cloud LLM API integration yet.
 - No GitHub sync execution yet.
-- No web dashboard UI yet.
+- Hub UI is a foundation shell only; full CRUD management screens are deferred to M38.
+- Full agent/orchestration/escalation/handoff screens are deferred to M39.
+- Full reporting and dashboard polish are deferred to M40.
 - No cross-machine coordination yet.
 - No background daemon/scheduler yet.
 

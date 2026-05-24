@@ -162,6 +162,7 @@ from aresforge.operator.local_agent_profiles import (
 )
 from aresforge.operator.local_agent_orchestration import generate_agent_orchestration_plan
 from aresforge.operator.local_llm_escalation import generate_llm_escalation_plan
+from aresforge.hub.server import serve_hub
 from aresforge.operator.milestone_reconciliation_planner import plan_milestone_final_reconciliation
 from aresforge.operator.preflight_snapshot import (
     diff_preflight_snapshots,
@@ -1133,6 +1134,26 @@ def build_parser() -> argparse.ArgumentParser:
         "--force",
         action="store_true",
         help="Overwrite existing output file.",
+    )
+    serve_hub_parser = subparsers.add_parser(
+        "serve-hub",
+        help="Serve the local AresForge Hub UI and local API shell.",
+    )
+    serve_hub_parser.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help="Local bind host (defaults to 127.0.0.1).",
+    )
+    serve_hub_parser.add_argument(
+        "--port",
+        type=int,
+        default=8765,
+        help="Local bind port (defaults to 8765).",
+    )
+    serve_hub_parser.add_argument(
+        "--open-browser",
+        action="store_true",
+        help="Open the local Hub URL in a browser after server startup.",
     )
     preflight_snapshot_parser = subparsers.add_parser(
         "generate-preflight-baseline-snapshot",
@@ -2496,6 +2517,16 @@ def main(argv: list[str] | None = None) -> int:
         if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
             print(payload["stdout"])
             return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "serve-hub":
+        payload = serve_hub(
+            config,
+            host=args.host,
+            port=args.port,
+            open_browser=bool(args.open_browser),
+        )
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 

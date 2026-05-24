@@ -34,9 +34,68 @@ Foundation status:
 - No actual LLM invocation yet.
 - No cloud LLM API integration yet.
 - No GitHub sync execution yet.
-- No web dashboard UI yet.
+- Hub UI foundation exists, but full management/reporting workflows are not implemented yet.
 - No cross-machine coordination yet.
 - No background daemon/scheduler yet.
+
+## M37 AresForge Hub UI Foundation
+
+Purpose:
+
+- Establish the local AresForge Hub foundation as the main local entry point for AresForge.
+- Provide a lightweight local server, API shell, and static frontend shell without external dependencies.
+
+Command:
+
+- `python -m aresforge serve-hub [--host <host>] [--port <port>] [--open-browser]`
+
+Command examples:
+
+- `python -m aresforge serve-hub`
+- `python -m aresforge serve-hub --port 8765`
+- `python -m aresforge serve-hub --open-browser`
+
+Defaults:
+
+- host: `127.0.0.1`
+- port: `8765`
+- browser auto-open: disabled unless `--open-browser` is supplied
+
+M37 Hub surface:
+
+- local API shell endpoints:
+   - `GET /api/health`
+   - `GET /api/summary`
+   - `GET /api/docs/status`
+- local static frontend shell with navigation:
+   - Home, Projects, Repos, Queue, Agents, Handoff, Orchestration, Escalation, Reports, Settings
+- Home renders local summary data and empty states when optional files are missing.
+- Settings shows local-only boundary confirmations.
+- non-Home sections are intentional placeholders for M38-M40.
+
+Boundary guarantees:
+
+- local-first, local-only command surface
+- binds to `127.0.0.1` by default
+- no `gh` calls
+- no GitHub API calls
+- no network service calls
+- no local LLM calls
+- no cloud LLM calls
+- no Codex calls
+- no ChatGPT calls
+- no Ollama calls
+- no external API calls
+- no authentication implementation yet
+- no production deployment implementation yet
+- no agent execution yet
+- no live GitHub sync yet
+
+Milestone split after M37:
+
+- M38: full project/repo/queue management screens
+- M39: full agent/orchestration/escalation/handoff screens
+- M40: reporting/dashboard polish and operator workflow expansion
 
 ## Final Validation Checklist (Local-Only)
 

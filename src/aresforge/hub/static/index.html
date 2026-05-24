@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AresForge Hub</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <h1>AresForge Hub</h1>
+      <p class="subtitle">Local-first control plane foundation (M37)</p>
+      <p class="boundary-notice">
+        Local-only boundary: no GitHub, no gh, no network services, no local/cloud LLM calls,
+        no Codex/ChatGPT/Ollama calls.
+      </p>
+    </header>
+
+    <div class="layout">
+      <nav class="sidenav" aria-label="Primary Navigation">
+        <button class="nav-item active" data-section="home">Home</button>
+        <button class="nav-item" data-section="projects">Projects</button>
+        <button class="nav-item" data-section="repos">Repos</button>
+        <button class="nav-item" data-section="queue">Queue</button>
+        <button class="nav-item" data-section="agents">Agents</button>
+        <button class="nav-item" data-section="handoff">Handoff</button>
+        <button class="nav-item" data-section="orchestration">Orchestration</button>
+        <button class="nav-item" data-section="escalation">Escalation</button>
+        <button class="nav-item" data-section="reports">Reports</button>
+        <button class="nav-item" data-section="settings">Settings</button>
+      </nav>
+
+      <main class="content">
+        <section id="panel-home" class="panel active" data-panel="home">
+          <h2>Home</h2>
+          <p>Summary of the local AresForge control plane.</p>
+          <div class="cards" id="summary-cards">
+            <article class="card"><h3>Projects</h3><p id="project-count">0</p></article>
+            <article class="card"><h3>Repos</h3><p id="repo-count">0</p></article>
+            <article class="card"><h3>Queue Items</h3><p id="queue-total">0</p></article>
+            <article class="card"><h3>Agents</h3><p id="agent-count">0</p></article>
+          </div>
+
+          <section class="subpanel">
+            <h3>Queue Status</h3>
+            <ul id="queue-status-list" class="list"></ul>
+            <p id="queue-empty-state" class="empty">No queue status data yet.</p>
+          </section>
+
+          <section class="subpanel">
+            <h3>Warnings</h3>
+            <ul id="warnings-list" class="list"></ul>
+            <p id="warnings-empty-state" class="empty">No warnings.</p>
+          </section>
+
+          <section class="subpanel">
+            <h3>Next Recommended Actions</h3>
+            <ul id="actions-list" class="list"></ul>
+            <p id="actions-empty-state" class="empty">No actions suggested.</p>
+          </section>
+        </section>
+
+        <section id="panel-projects" class="panel" data-panel="projects">
+          <h2>Projects</h2>
+          <p class="placeholder">M38 will add local project management screens and workflows.</p>
+        </section>
+
+        <section id="panel-repos" class="panel" data-panel="repos">
+          <h2>Repos</h2>
+          <p class="placeholder">M38 will add local managed-repo screens and workflows.</p>
+        </section>
+
+        <section id="panel-queue" class="panel" data-panel="queue">
+          <h2>Queue</h2>
+          <p class="placeholder">M38 will add queue management and tracking screens.</p>
+        </section>
+
+        <section id="panel-agents" class="panel" data-panel="agents">
+          <h2>Agents</h2>
+          <p class="placeholder">M39 will add agent profile management screens.</p>
+        </section>
+
+        <section id="panel-handoff" class="panel" data-panel="handoff">
+          <h2>Handoff</h2>
+          <p class="placeholder">M39 will add handoff target and packet screens.</p>
+        </section>
+
+        <section id="panel-orchestration" class="panel" data-panel="orchestration">
+          <h2>Orchestration</h2>
+          <p class="placeholder">M39 will add orchestration planning detail screens.</p>
+        </section>
+
+        <section id="panel-escalation" class="panel" data-panel="escalation">
+          <h2>Escalation</h2>
+          <p class="placeholder">M39 will add escalation planning detail screens.</p>
+        </section>
+
+        <section id="panel-reports" class="panel" data-panel="reports">
+          <h2>Reports</h2>
+          <p class="placeholder">M40 will add reporting and dashboard polish.</p>
+        </section>
+
+        <section id="panel-settings" class="panel" data-panel="settings">
+          <h2>Settings</h2>
+          <p>Boundary confirmations:</p>
+          <ul id="boundary-list" class="list"></ul>
+          <p id="boundary-empty-state" class="empty">No boundary confirmations available.</p>
+        </section>
+      </main>
+    </div>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

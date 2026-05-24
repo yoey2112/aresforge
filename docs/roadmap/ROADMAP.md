@@ -2,6 +2,40 @@
 
 ## Current Milestones
 
+### M37 - AresForge Hub UI Foundation
+
+Status: Completed (local-first Hub foundation only).
+
+Delivered M37 outcomes:
+
+- local Hub package and static frontend shell under `src/aresforge/hub/`
+- local Hub server command: `python -m aresforge serve-hub [--host <host>] [--port <port>] [--open-browser]`
+- local API shell endpoints: `GET /api/health`, `GET /api/summary`, `GET /api/docs/status`
+- persistent Hub navigation and Home summary view with local empty-state handling
+- Settings boundary confirmations and placeholder sections for future milestones
+- lightweight local dashboard helper for summary/docs/warnings/next-actions aggregation
+
+M37 safety posture:
+
+- local-only serving and API surface
+- binds to `127.0.0.1` by default
+- no GitHub calls
+- no `gh` calls
+- no network service calls
+- no local/cloud LLM calls
+- no Codex/ChatGPT/Ollama calls
+- no external API calls
+- no authentication implementation yet
+- no production deployment implementation yet
+- no agent execution yet
+- no live GitHub sync yet
+
+Upcoming milestone split:
+
+- M38: project/repo/queue management screens
+- M39: agent/orchestration/escalation/handoff screens
+- M40: reporting/dashboard polish and operator workflows
+
 ### M36 - Cloud LLM Escalation Planner
 
 Status: Completed (local-only, plan-only advisory classification).

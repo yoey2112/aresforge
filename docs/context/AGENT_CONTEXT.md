@@ -2,11 +2,11 @@
 
 ## Purpose
 
-Provide minimum operating context for M36 local escalation planning with a local-first, self-managed operator model.
+Provide minimum operating context for M37 Hub UI foundation with a local-first, self-managed operator model.
 
 ## Current Operating Model
 
-- Active milestone context: M36 cloud/local/Codex/human escalation planner.
+- Active milestone context: M37 AresForge Hub UI foundation.
 - AresForge now has a local-first foundation for self-managed operation.
 - GitHub is optional/syncable and not mandatory for local planning.
 - M26 added local handoff package generation.
@@ -19,6 +19,7 @@ Provide minimum operating context for M36 local escalation planning with a local
 - M34 added local agent profiles and handoff target descriptors.
 - M35 added local multi-agent orchestration planning (assignment + sequencing + handoff prompts).
 - M36 added local escalation planning that classifies queue/orchestration work for local LLM, Codex, cloud advisory, human-required, and blocked/clarification paths.
+- M37 added a local Hub server/API/frontend foundation intended to become the primary local entry point for AresForge.
 - Foundation-batch boundaries (M26-M30):
   - no `gh`
   - no GitHub API calls
@@ -56,6 +57,7 @@ Provide minimum operating context for M36 local escalation planning with a local
   - `python -m aresforge inspect-handoff-target --target-id <id> [--profiles-path <path>] [--format json|markdown]`
   - `python -m aresforge plan-agent-orchestration [--project-id <id>] [--repo-id <id>] [--status <status>] [--queue-path <path>] [--profiles-path <path>] [--registry-path <path>] [--output <path>] [--format json|markdown] [--force]`
   - `python -m aresforge plan-llm-escalation [--item-id <id>] [--project-id <id>] [--repo-id <id>] [--status <status>] [--queue-path <path>] [--profiles-path <path>] [--orchestration-plan <path>] [--output <path>] [--format json|markdown] [--force]`
+  - `python -m aresforge serve-hub [--host <host>] [--port <port>] [--open-browser]`
 - M33 boundary confirmations:
   - queue is local-only and can track work without GitHub issues
   - no `gh`
@@ -91,12 +93,21 @@ Provide minimum operating context for M36 local escalation planning with a local
   - no ChatGPT calls
   - no `gh`, no GitHub API calls, no network access
   - reads M33 queue and M34 profiles where available and optional M35 orchestration artifact input when supplied
+- M37 boundary confirmations:
+  - local-first local UI serving path
+  - binds to `127.0.0.1` by default
+  - no `gh`, no GitHub API calls, no network service calls
+  - no local LLM calls, no cloud LLM calls
+  - no Codex calls, no ChatGPT calls, no Ollama calls
+  - no external API calls
+  - no agent execution
+  - no live GitHub sync
+  - no authentication implementation yet
+  - no production deployment implementation yet
 - Next-phase planning focus:
-  - local LLM agent handoff profiles
-  - multi-agent orchestration planning
-  - cloud LLM escalation planning
-  - project dashboard and local project management reporting
-  - optional later GitHub sync execution and optional later web UI/daemon support
+  - M38: project/repo/queue management screens and workflows
+  - M39: agent/orchestration/escalation/handoff screens
+  - M40: reporting/dashboard polish and operator workflows
 
 ## Canonical Documents
 
@@ -171,6 +182,6 @@ Provide minimum operating context for M36 local escalation planning with a local
 - No actual LLM invocation yet.
 - No cloud LLM API integration yet.
 - No GitHub sync execution yet.
-- No web dashboard UI yet.
+- Hub UI foundation exists, but full management/reporting workflows are not implemented yet.
 - No cross-machine coordination yet.
 - No background daemon/scheduler yet.

@@ -1,0 +1,150 @@
+:root {
+  --bg: #f3f5f7;
+  --panel: #ffffff;
+  --ink: #132237;
+  --muted: #51627a;
+  --accent: #0f766e;
+  --accent-strong: #0b5b55;
+  --border: #d4dde7;
+  --warning: #9a3412;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 15% 15%, #dceff4 0%, transparent 40%),
+    radial-gradient(circle at 80% 10%, #f6e7cc 0%, transparent 35%),
+    var(--bg);
+  min-height: 100vh;
+}
+
+.topbar {
+  padding: 1.4rem 1.2rem 1rem;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(4px);
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.7rem;
+}
+
+.subtitle {
+  margin: 0.2rem 0 0;
+  color: var(--muted);
+}
+
+.boundary-notice {
+  margin: 0.7rem 0 0;
+  color: var(--warning);
+  font-size: 0.95rem;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  min-height: calc(100vh - 120px);
+}
+
+.sidenav {
+  border-right: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.75);
+  padding: 1rem;
+  display: grid;
+  gap: 0.45rem;
+  align-content: start;
+}
+
+.nav-item {
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--ink);
+  padding: 0.55rem 0.65rem;
+  border-radius: 10px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.nav-item.active,
+.nav-item:hover {
+  border-color: var(--accent);
+  color: var(--accent-strong);
+}
+
+.content {
+  padding: 1.2rem;
+}
+
+.panel {
+  display: none;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1rem;
+}
+
+.panel.active {
+  display: block;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 0.7rem;
+}
+
+.card {
+  background: #f9fcff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.7rem;
+}
+
+.card h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--muted);
+}
+
+.card p {
+  margin: 0.4rem 0 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.subpanel {
+  margin-top: 1rem;
+}
+
+.list {
+  margin: 0.3rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.empty {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.placeholder {
+  color: var(--muted);
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidenav {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  }
+}
