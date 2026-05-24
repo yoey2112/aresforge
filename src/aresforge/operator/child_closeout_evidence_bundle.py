@@ -64,6 +64,14 @@ def generate_child_closeout_evidence_bundle(
         child_issue=child_issue,
     )
     canonical_marker_text = str(canonical.get("canonical_marker_text") or "")
+    canonical_marker = canonical.get("canonical_marker") if isinstance(canonical.get("canonical_marker"), dict) else {}
+    missing_fields = canonical_marker.get("missing_required_fields")
+    invalid_reasons = canonical_marker.get("invalid_reasons")
+    missing_fields_list = list(missing_fields) if isinstance(missing_fields, (list, tuple)) else []
+    invalid_reasons_list = list(invalid_reasons) if isinstance(invalid_reasons, (list, tuple)) else []
+    marker_state = canonical_marker.get("marker_state") if isinstance(canonical_marker.get("marker_state"), str) else "unknown"
+    marker_complete = marker_state == "ready" and not missing_fields_list and not invalid_reasons_list
+
     evidence_comment_body = render_evidence_bundle_text(bundle)
     evidence_comment_body += "\n### Canonical Marker\n\n"
     evidence_comment_body += canonical_marker_text if canonical_marker_text else "<missing>\n"
@@ -77,8 +85,15 @@ def generate_child_closeout_evidence_bundle(
         "child_state": issue.get("state"),
         "child_title": issue.get("title"),
         "child_url": issue.get("url"),
-        "canonical_marker": canonical.get("canonical_marker"),
+        "canonical_marker": canonical_marker,
         "canonical_marker_text": canonical_marker_text,
+        "canonical_marker_completeness": {
+            "state": marker_state,
+            "missing_required_fields": missing_fields_list,
+            "invalid_reasons": invalid_reasons_list,
+            "marker_complete": marker_complete,
+            "post_hoc_marker_repair_required": not marker_complete,
+        },
         "evidence_comment_body": evidence_comment_body,
         "expected_validation_summary_section": list(bundle.validation_lines),
         "targeted_closeout_guidance": [
