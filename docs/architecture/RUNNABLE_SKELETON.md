@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Describe the implemented human-triggered operator surface through M23 milestone lineage/evidence mapping preflight orchestration.
+Describe the implemented human-triggered operator surface through M24 canonical evidence marker workflow orchestration.
 
 ## Operator Shape
 
@@ -10,7 +10,7 @@ Command entrypoint:
 
 - `python -m aresforge`
 
-## Current Additions (M23 Included)
+## Current Additions (M24 Included)
 
 - `inspect-evidence-bundle-automation-contract`
 - `generate-child-closeout-evidence-bundle`
@@ -36,6 +36,22 @@ Command entrypoint:
 - `inspect-pr-mapping-preflight`
 - `generate-closeout-preflight-repair-guidance`
 - `inspect-milestone-closeout-preflight`
+
+- `inspect-canonical-evidence-marker-contract`
+- `generate-child-evidence-marker-template`
+- `generate-pr-evidence-marker-template`
+- `generate-parent-closeout-marker-template`
+- `generate-preflight-baseline-snapshot`
+- `diff-preflight-snapshots`
+
+## M24 Capability Contract Alignment
+
+- Contract authority: `docs/architecture/CANONICAL_EVIDENCE_MARKER_CONTRACT.md`.
+- Canonical marker templates are deterministic and read-only by default.
+- Snapshot generation and diff classification are read-only and audit-focused.
+- Canonical markers are integrated into child/PR/parent evidence bundle outputs.
+- Preflight parsing prefers canonical markers and preserves backward-compatible fallback parsing.
+- Parent closeout remains readiness-gated and separate from marker/snapshot command execution.
 
 ## M23 Capability Contract Alignment
 
@@ -71,26 +87,28 @@ Command entrypoint:
 - no background jobs, polling loops, or schedulers
 - parent issue remains open until children are closed/accounted and parent readiness checks pass
 
-## Current Validation Bundle (M23)
+## Current Validation Bundle (M24)
 
 - `git diff --check`
 - `python -m pytest`
 - `python -m aresforge inspect-repo-governance`
-- `python -m aresforge inspect-milestone-dashboard --parent-issue 381`
-- `python -m aresforge inspect-milestone-state --parent-issue 381`
-- `python -m aresforge check-milestone-evidence-readiness --parent-issue 381`
-- `python -m aresforge inspect-parent-closeout-readiness --parent-issue 381`
-- `python -m aresforge inspect-milestone-closeout-preflight --parent-issue 381`
-- `python -m aresforge generate-parent-closeout-evidence-bundle --parent-issue 381`
+- `python -m aresforge inspect-milestone-dashboard --parent-issue 400`
+- `python -m aresforge inspect-milestone-state --parent-issue 400`
+- `python -m aresforge check-milestone-evidence-readiness --parent-issue 400`
+- `python -m aresforge inspect-parent-closeout-readiness --parent-issue 400`
+- `python -m aresforge inspect-milestone-closeout-preflight --parent-issue 400`
+- `python -m aresforge inspect-canonical-evidence-marker-contract`
+- `python -m aresforge generate-parent-closeout-marker-template --parent-issue 400`
+- `python -m aresforge generate-parent-closeout-evidence-bundle --parent-issue 400`
 
 ## Known Limitations
 
 - Parent closeout execution remains manually triggered and intentionally conservative.
 - Governance milestone naming warning remains non-blocking and unresolved.
-- Issue milestone assignment gaps are surfaced as warnings but do not block M23 child execution.
+- Issue milestone assignment gaps are surfaced as warnings but do not block M24 child execution.
 
-## Follow-Up Candidates (M24)
+## Follow-Up Candidates (Post-M24)
 
-1. Add canonical child evidence marker templates to reduce parsing ambiguity.
-2. Add stronger linked/merged PR extraction to reduce mapping ambiguity warnings.
-3. Add baseline snapshot comparison for closeout preflight drift.
+1. Extend reconciliation evidence automation for parent closeout issue comments.
+2. Add richer diff severity scoring for snapshot comparison output.
+3. Add explicit stale-warning triage guidance for milestone assignment gaps.
