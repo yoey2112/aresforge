@@ -439,11 +439,35 @@ M32 safety posture:
 - no network access
 - no queue/orchestration execution introduced in this milestone
 
+### M33 - Local Project Queue And Work Tracking
+
+Status: Implemented.
+
+Delivered M33 outcomes:
+
+- Added local queue defaults under `.aresforge/queue/work_items.json`.
+- Implemented local-only queue lifecycle commands for initialization, add/update item mutation, and queue/item inspection.
+- Added queue schema with deterministic work item fields for status, priority, type, dependencies, blocking relationships, and future agent assignment metadata.
+- Added queue validation gates for status, priority, and item type values.
+- Added clear error paths for missing queue file and missing queue item updates.
+- Added warning-only dependency-link checks for future item references.
+- Added local registry validation reuse: queue item add validates `project_id` and `repo_id` against M32 registry when available or explicitly supplied.
+- Integrated queue summary into M26 local handoff package when queue exists.
+- Added unit and CLI coverage for queue lifecycle, filtering, markdown/json inspection output, validation behavior, and handoff integration.
+
+M33 safety posture:
+
+- local-only command surface
+- no `gh`
+- no GitHub API calls
+- no network access
+- no LLM calls
+- `assigned_agent` persisted as metadata only; no agent orchestration execution introduced in this milestone
+
 ## Next Phase Roadmap (Planned)
 
 The next phase shifts from single-repo local foundation hardening to multi-project and multi-agent project-management capabilities.
 
-- Local project queue and tracking.
 - Local LLM agent handoff profiles.
 - Multi-agent orchestration planning.
 - Escalation to cloud LLMs.
@@ -454,7 +478,6 @@ The next phase shifts from single-repo local foundation hardening to multi-proje
 
 ## Known Limitations (Current Foundation Batch)
 
-- No local queue/tracking yet unless implemented later.
 - No actual LLM invocation yet.
 - No cloud LLM API integration yet.
 - No GitHub sync execution yet.

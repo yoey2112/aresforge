@@ -2,11 +2,11 @@
 
 ## Purpose
 
-Provide minimum operating context for M32 local managed-project registry implementation with a local-first, self-managed operator model.
+Provide minimum operating context for M33 local project queue implementation with a local-first, self-managed operator model.
 
 ## Current Operating Model
 
-- Active milestone context: M32 local managed-project registry foundation.
+- Active milestone context: M33 local project queue and work tracking.
 - AresForge now has a local-first foundation for self-managed operation.
 - GitHub is optional/syncable and not mandatory for local planning.
 - M26 added local handoff package generation.
@@ -15,6 +15,7 @@ Provide minimum operating context for M32 local managed-project registry impleme
 - M29 added plan-only offline-to-GitHub sync planning.
 - M30 added local self-managed milestone lifecycle support.
 - M32 added local managed-project/multi-repo registry support.
+- M33 added local project queue/work tracking support.
 - Foundation-batch boundaries (M26-M30):
   - no `gh`
   - no GitHub API calls
@@ -39,8 +40,20 @@ Provide minimum operating context for M32 local managed-project registry impleme
   - `python -m aresforge inspect-managed-project-registry [--registry-path <path>] [--format json|markdown]`
   - `python -m aresforge inspect-managed-project --project-id <id> [--registry-path <path>] [--format json|markdown]`
   - `python -m aresforge inspect-managed-repo --project-id <id> --repo-id <id> [--registry-path <path>] [--format json|markdown]`
+  - `python -m aresforge init-project-queue [--path <path>] [--force]`
+  - `python -m aresforge add-queue-item --item-id <id> --project-id <id> --repo-id <id> --title <title> [--queue-path <path>] [--registry-path <path>] [--description <text>] [--status <status>] [--priority <priority>] [--type <type>] [--tag <tag>]... [--depends-on <item_id>]... [--blocked-by <item_id>]... [--assigned-agent <agent_id>] [--source <source>] [--notes <text>]`
+  - `python -m aresforge update-queue-item --item-id <id> [--queue-path <path>] [--project-id <id>] [--repo-id <id>] [--status <status>] [--priority <priority>] [--type <type>] [--title <title>] [--description <text>] [--tag <tag>]... [--depends-on <item_id>]... [--blocked-by <item_id>]... [--assigned-agent <agent_id>] [--source <source>] [--notes <text>]`
+  - `python -m aresforge inspect-project-queue [--queue-path <path>] [--project-id <id>] [--repo-id <id>] [--status <status>] [--type <type>] [--assigned-agent <agent_id>] [--format json|markdown]`
+  - `python -m aresforge inspect-queue-item --item-id <id> [--queue-path <path>] [--format json|markdown]`
+- M33 boundary confirmations:
+  - queue is local-only and can track work without GitHub issues
+  - no `gh`
+  - no GitHub API calls
+  - no network access
+  - no LLM calls
+  - `assigned_agent` is data-only for future orchestration and does not execute agents
+  - M32 registry validation is local-only when registry exists or `--registry-path` is supplied
 - Next-phase planning focus:
-  - local project queue and tracking
   - local LLM agent handoff profiles
   - multi-agent orchestration planning
   - cloud LLM escalation planning
@@ -117,7 +130,6 @@ Provide minimum operating context for M32 local managed-project registry impleme
 
 ## Known Limitations
 
-- No local queue/tracking yet unless implemented later.
 - No actual LLM invocation yet.
 - No cloud LLM API integration yet.
 - No GitHub sync execution yet.

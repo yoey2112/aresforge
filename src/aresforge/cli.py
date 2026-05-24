@@ -138,6 +138,16 @@ from aresforge.operator.managed_project_registry_local import (
     register_managed_project,
     register_managed_repo,
 )
+from aresforge.operator.local_project_queue import (
+    QUEUE_ITEM_TYPES,
+    QUEUE_PRIORITIES,
+    QUEUE_STATUSES,
+    add_queue_item,
+    init_project_queue,
+    inspect_project_queue,
+    inspect_queue_item,
+    update_queue_item,
+)
 from aresforge.operator.milestone_reconciliation_planner import plan_milestone_final_reconciliation
 from aresforge.operator.preflight_snapshot import (
     diff_preflight_snapshots,
@@ -899,6 +909,81 @@ def build_parser() -> argparse.ArgumentParser:
     inspect_managed_repo_parser.add_argument("--repo-id", required=True)
     inspect_managed_repo_parser.add_argument("--registry-path")
     inspect_managed_repo_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="json",
+    )
+    init_project_queue_parser = subparsers.add_parser(
+        "init-project-queue",
+        help="Initialize local project queue under .aresforge/queue.",
+    )
+    init_project_queue_parser.add_argument("--path")
+    init_project_queue_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite existing project queue file.",
+    )
+    add_queue_item_parser = subparsers.add_parser(
+        "add-queue-item",
+        help="Add or update one local project queue item by item_id.",
+    )
+    add_queue_item_parser.add_argument("--item-id", required=True)
+    add_queue_item_parser.add_argument("--project-id", required=True)
+    add_queue_item_parser.add_argument("--repo-id", required=True)
+    add_queue_item_parser.add_argument("--title", required=True)
+    add_queue_item_parser.add_argument("--queue-path")
+    add_queue_item_parser.add_argument("--registry-path")
+    add_queue_item_parser.add_argument("--description")
+    add_queue_item_parser.add_argument("--status", choices=list(QUEUE_STATUSES))
+    add_queue_item_parser.add_argument("--priority", choices=list(QUEUE_PRIORITIES))
+    add_queue_item_parser.add_argument("--type", choices=list(QUEUE_ITEM_TYPES))
+    add_queue_item_parser.add_argument("--tag", action="append", default=[])
+    add_queue_item_parser.add_argument("--depends-on", action="append", default=[])
+    add_queue_item_parser.add_argument("--blocked-by", action="append", default=[])
+    add_queue_item_parser.add_argument("--assigned-agent")
+    add_queue_item_parser.add_argument("--source")
+    add_queue_item_parser.add_argument("--notes")
+    update_queue_item_parser = subparsers.add_parser(
+        "update-queue-item",
+        help="Update selected fields for one local project queue item.",
+    )
+    update_queue_item_parser.add_argument("--item-id", required=True)
+    update_queue_item_parser.add_argument("--queue-path")
+    update_queue_item_parser.add_argument("--project-id")
+    update_queue_item_parser.add_argument("--repo-id")
+    update_queue_item_parser.add_argument("--status", choices=list(QUEUE_STATUSES))
+    update_queue_item_parser.add_argument("--priority", choices=list(QUEUE_PRIORITIES))
+    update_queue_item_parser.add_argument("--type", choices=list(QUEUE_ITEM_TYPES))
+    update_queue_item_parser.add_argument("--title")
+    update_queue_item_parser.add_argument("--description")
+    update_queue_item_parser.add_argument("--tag", action="append")
+    update_queue_item_parser.add_argument("--depends-on", action="append")
+    update_queue_item_parser.add_argument("--blocked-by", action="append")
+    update_queue_item_parser.add_argument("--assigned-agent")
+    update_queue_item_parser.add_argument("--source")
+    update_queue_item_parser.add_argument("--notes")
+    inspect_project_queue_parser = subparsers.add_parser(
+        "inspect-project-queue",
+        help="Inspect local project queue with optional filtering.",
+    )
+    inspect_project_queue_parser.add_argument("--queue-path")
+    inspect_project_queue_parser.add_argument("--project-id")
+    inspect_project_queue_parser.add_argument("--repo-id")
+    inspect_project_queue_parser.add_argument("--status", choices=list(QUEUE_STATUSES))
+    inspect_project_queue_parser.add_argument("--type", choices=list(QUEUE_ITEM_TYPES))
+    inspect_project_queue_parser.add_argument("--assigned-agent")
+    inspect_project_queue_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="json",
+    )
+    inspect_queue_item_parser = subparsers.add_parser(
+        "inspect-queue-item",
+        help="Inspect one local project queue item by item_id.",
+    )
+    inspect_queue_item_parser.add_argument("--item-id", required=True)
+    inspect_queue_item_parser.add_argument("--queue-path")
+    inspect_queue_item_parser.add_argument(
         "--format",
         choices=["json", "markdown"],
         default="json",
@@ -2018,6 +2103,90 @@ def main(argv: list[str] | None = None) -> int:
             project_id=args.project_id,
             repo_id=args.repo_id,
             registry_path=args.registry_path,
+            output_format=args.format,
+        )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "init-project-queue":
+        payload = init_project_queue(
+            config,
+            path=args.path,
+            force=bool(args.force),
+        )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "add-queue-item":
+        payload = add_queue_item(
+            config,
+            item_id=args.item_id,
+            project_id=args.project_id,
+            repo_id=args.repo_id,
+            title=args.title,
+            queue_path=args.queue_path,
+            registry_path=args.registry_path,
+            description=args.description,
+            status=args.status,
+            priority=args.priority,
+            item_type=args.type,
+            tags=list(args.tag),
+            dependencies=list(args.depends_on),
+            blocked_by=list(args.blocked_by),
+            assigned_agent=args.assigned_agent,
+            source=args.source,
+            notes=args.notes,
+        )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "update-queue-item":
+        payload = update_queue_item(
+            config,
+            item_id=args.item_id,
+            queue_path=args.queue_path,
+            project_id=args.project_id,
+            repo_id=args.repo_id,
+            status=args.status,
+            priority=args.priority,
+            item_type=args.type,
+            title=args.title,
+            description=args.description,
+            tags=list(args.tag) if args.tag is not None else None,
+            dependencies=list(args.depends_on) if args.depends_on is not None else None,
+            blocked_by=list(args.blocked_by) if args.blocked_by is not None else None,
+            assigned_agent=args.assigned_agent,
+            source=args.source,
+            notes=args.notes,
+        )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-project-queue":
+        payload = inspect_project_queue(
+            config,
+            queue_path=args.queue_path,
+            project_id=args.project_id,
+            repo_id=args.repo_id,
+            status=args.status,
+            item_type=args.type,
+            assigned_agent=args.assigned_agent,
+            output_format=args.format,
+        )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-queue-item":
+        payload = inspect_queue_item(
+            config,
+            item_id=args.item_id,
+            queue_path=args.queue_path,
             output_format=args.format,
         )
         if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):

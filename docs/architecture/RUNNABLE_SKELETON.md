@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Describe the implemented human-triggered operator surface through M31 foundation reconciliation and next-phase planning.
+Describe the implemented human-triggered operator surface through M33 local project queue and work tracking.
 
 ## Operator Shape
 
@@ -29,10 +29,29 @@ Command entrypoint:
 
 - Added local managed-project registry under `.aresforge/projects/projects.json`.
 - Supports multiple projects and repos with local metadata and deterministic inspect output.
+- M33 queue registration reuses this registry for local `project_id`/`repo_id` validation when available.
 - Local-only boundary:
   - no `gh`
   - no GitHub API calls
   - no network access
+
+## M33 Local Project Queue
+
+- Added local queue storage under `.aresforge/queue/work_items.json`.
+- Queue tracks local work items without GitHub issues and supports cross-project/repo linking through `project_id` and `repo_id`.
+- Commands:
+  - `python -m aresforge init-project-queue [--path <path>] [--force]`
+  - `python -m aresforge add-queue-item --item-id <id> --project-id <id> --repo-id <id> --title <title> [--queue-path <path>] [--registry-path <path>] [--description <text>] [--status <status>] [--priority <priority>] [--type <type>] [--tag <tag>]... [--depends-on <item_id>]... [--blocked-by <item_id>]... [--assigned-agent <agent_id>] [--source <source>] [--notes <text>]`
+  - `python -m aresforge update-queue-item --item-id <id> [--queue-path <path>] [--project-id <id>] [--repo-id <id>] [--status <status>] [--priority <priority>] [--type <type>] [--title <title>] [--description <text>] [--tag <tag>]... [--depends-on <item_id>]... [--blocked-by <item_id>]... [--assigned-agent <agent_id>] [--source <source>] [--notes <text>]`
+  - `python -m aresforge inspect-project-queue [--queue-path <path>] [--project-id <id>] [--repo-id <id>] [--status <status>] [--type <type>] [--assigned-agent <agent_id>] [--format json|markdown]`
+  - `python -m aresforge inspect-queue-item --item-id <id> [--queue-path <path>] [--format json|markdown]`
+- Queue supports dependency references with warning-only handling for future IDs.
+- `assigned_agent` is stored for future orchestration and does not execute agents in M33.
+- Local-only boundary:
+  - no `gh`
+  - no GitHub API calls
+  - no network access
+  - no LLM calls
 
 ## Current Additions (M25 Included)
 
@@ -124,6 +143,7 @@ Offline state-file command surface:
 - Includes local project-state summary from `.aresforge/state/project_state.json` when available.
 - Emits a warning and still succeeds when local project-state file is missing.
 - Includes managed-project registry summary from `.aresforge/projects/projects.json` when available.
+- Includes local project queue summary from `.aresforge/queue/work_items.json` when available.
 
 ## M27 Local Project State Ledger Surface
 
@@ -137,7 +157,7 @@ Offline state-file command surface:
   - `python -m aresforge append-operation-log [--state-path <path>] --event-type <type> --summary <summary> [--details <json>]`
   - `python -m aresforge inspect-operation-log [--state-path <path>] [--limit <n>]`
 - Local-only boundary: no `gh`, no GitHub API calls, no network dependency.
-- Scope boundary: M27 project state is per current repo/session context; M32 registry tracks many projects/repos.
+- Scope boundary: M27 project state is per current repo/session context; M32 registry tracks many projects/repos; M33 queue tracks local work progression.
 
 ## M28 Documentation Reconciliation Surface
 
@@ -256,7 +276,6 @@ Offline state-file command surface:
 
 ## Known Limitations
 
-- No local queue/tracking yet unless implemented later.
 - No actual LLM invocation yet.
 - No cloud LLM API integration yet.
 - No GitHub sync execution yet.
@@ -266,11 +285,10 @@ Offline state-file command surface:
 
 ## Next-Phase Roadmap (Planned)
 
-1. Local project queue and tracking.
-2. Local LLM agent handoff profiles.
-3. Multi-agent orchestration planning.
-4. Escalation to cloud LLMs.
-5. Project dashboard and local project management reporting.
-6. Optional later GitHub sync execution.
-7. Optional later web dashboard UI.
-8. Optional later background daemon or scheduler.
+1. Local LLM agent handoff profiles.
+2. Multi-agent orchestration planning.
+3. Escalation to cloud LLMs.
+4. Project dashboard and local project management reporting.
+5. Optional later GitHub sync execution.
+6. Optional later web dashboard UI.
+7. Optional later background daemon or scheduler.

@@ -12,13 +12,13 @@ Foundation status:
 - M29 added plan-only offline-to-GitHub sync planning.
 - M30 added local self-managed milestone lifecycle support.
 - M32 added local managed-project registry support for multi-project/multi-repo tracking.
+- M33 added local project queue/work tracking for local issue-free planning across projects/repos.
 - No new functionality in this foundation batch calls GitHub APIs.
 - No new functionality in this foundation batch calls LLM APIs.
 - The system is ready to move into multi-project and multi-agent project-management capabilities.
 
 ## Next-Phase Roadmap (Planned)
 
-- Local project queue and tracking.
 - Local LLM agent handoff profiles.
 - Multi-agent orchestration planning.
 - Escalation to cloud LLMs.
@@ -29,7 +29,6 @@ Foundation status:
 
 ## Known Limitations (Current Foundation Batch)
 
-- No local queue/tracking yet unless implemented later.
 - No actual LLM invocation yet.
 - No cloud LLM API integration yet.
 - No GitHub sync execution yet.
@@ -138,6 +137,47 @@ M26/M27/M30 linkage:
 - M26 `generate-handoff-package` includes managed-project registry summary when registry exists.
 - M27 local project state remains per current repo/session context, while M32 registry tracks many projects/repos.
 - M30 milestones can later be associated with managed `project_id` / `repo_id`.
+- M33 queue add-item validates `project_id` and `repo_id` locally against M32 registry when registry exists or `--registry-path` is supplied.
+
+## M33 Local Project Queue And Work Tracking
+
+Purpose:
+
+- Track local work items across managed projects/repos without GitHub issues.
+- Provide a local foundation for future handoff profiles, multi-agent orchestration planning, escalation planning, and dashboards.
+
+Defaults:
+
+- queue directory: `.aresforge/queue/`
+- queue file: `.aresforge/queue/work_items.json`
+
+Commands:
+
+- `python -m aresforge init-project-queue [--path <path>] [--force]`
+- `python -m aresforge add-queue-item --item-id <id> --project-id <id> --repo-id <id> --title <title> [--queue-path <path>] [--registry-path <path>] [--description <text>] [--status <status>] [--priority <priority>] [--type <type>] [--tag <tag>]... [--depends-on <item_id>]... [--blocked-by <item_id>]... [--assigned-agent <agent_id>] [--source <source>] [--notes <text>]`
+- `python -m aresforge update-queue-item --item-id <id> [--queue-path <path>] [--project-id <id>] [--repo-id <id>] [--status <status>] [--priority <priority>] [--type <type>] [--title <title>] [--description <text>] [--tag <tag>]... [--depends-on <item_id>]... [--blocked-by <item_id>]... [--assigned-agent <agent_id>] [--source <source>] [--notes <text>]`
+- `python -m aresforge inspect-project-queue [--queue-path <path>] [--project-id <id>] [--repo-id <id>] [--status <status>] [--type <type>] [--assigned-agent <agent_id>] [--format json|markdown]`
+- `python -m aresforge inspect-queue-item --item-id <id> [--queue-path <path>] [--format json|markdown]`
+
+Behavior guarantees:
+
+- local-only command surface
+- no `gh` calls
+- no GitHub API calls
+- no network access
+- no LLM calls
+- `init-project-queue` creates missing directories and refuses overwrite unless `--force`
+- `add-queue-item` is idempotent by `item_id`
+- `update-queue-item` updates only supplied fields
+- inspect commands default to stable JSON and can render readable markdown
+- dependency references can target future items and produce warning-only guidance
+- `assigned_agent` is stored for future orchestration and does not execute agents in M33
+
+M26/M27/M32 linkage:
+
+- M26 `generate-handoff-package` includes local project queue summary when queue exists.
+- M27 local project state captures current repo/session state, while M33 queue tracks local work progression.
+- M32 managed-project registry provides local project/repo validation for queue item registration.
 
 ## M30 Self-Managed Local Milestone Lifecycle
 

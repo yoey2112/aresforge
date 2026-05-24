@@ -2,11 +2,29 @@
 
 ## Current Phase
 
-M32 local managed-project registry foundation.
+M33 local project queue and work tracking.
 
 ## Current Goal
 
-Implement and document a local-only managed-project registry so AresForge can track multiple projects and repos without GitHub API dependency.
+Implement and document a local-only project queue so AresForge can track work items across managed projects and repos without GitHub issues.
+
+## M33 Local Project Queue And Work Tracking
+
+- Added a local project queue under `.aresforge/queue/work_items.json`.
+- Queue schema stores `schema_version`, `updated_at`, and `work_items`.
+- Work items support local planning fields for cross-project tracking, including `project_id`, `repo_id`, dependency links, and `assigned_agent`.
+- New local-only command surface:
+  - `python -m aresforge init-project-queue [--path <path>] [--force]`
+  - `python -m aresforge add-queue-item --item-id <id> --project-id <id> --repo-id <id> --title <title> [--queue-path <path>] [--registry-path <path>] [--description <text>] [--status <status>] [--priority <priority>] [--type <type>] [--tag <tag>]... [--depends-on <item_id>]... [--blocked-by <item_id>]... [--assigned-agent <agent_id>] [--source <source>] [--notes <text>]`
+  - `python -m aresforge update-queue-item --item-id <id> [--queue-path <path>] [--project-id <id>] [--repo-id <id>] [--status <status>] [--priority <priority>] [--type <type>] [--title <title>] [--description <text>] [--tag <tag>]... [--depends-on <item_id>]... [--blocked-by <item_id>]... [--assigned-agent <agent_id>] [--source <source>] [--notes <text>]`
+  - `python -m aresforge inspect-project-queue [--queue-path <path>] [--project-id <id>] [--repo-id <id>] [--status <status>] [--type <type>] [--assigned-agent <agent_id>] [--format json|markdown]`
+  - `python -m aresforge inspect-queue-item --item-id <id> [--queue-path <path>] [--format json|markdown]`
+- M33 local validation behavior:
+  - optional M32 registry validation for `project_id` + `repo_id` bindings
+  - missing dependency references are saved with warnings for future linkage
+  - queue remains local-only and does not call GitHub APIs, `gh`, network services, or LLM services
+- M26 handoff generation now includes local project queue summary when queue exists.
+- `assigned_agent` is stored for future orchestration and does not execute agents in M33.
 
 ## M32 Multi-Project / Multi-Repo Local Registry
 
@@ -20,6 +38,7 @@ Implement and document a local-only managed-project registry so AresForge can tr
   - `python -m aresforge inspect-managed-project --project-id <id> [--registry-path <path>] [--format json|markdown]`
   - `python -m aresforge inspect-managed-repo --project-id <id> --repo-id <id> [--registry-path <path>] [--format json|markdown]`
 - M26 handoff generation now includes managed-project registry summary when the registry exists.
+- M33 queue item registration now uses this registry for local `project_id` / `repo_id` validation when available.
 - M32 boundary confirmation:
   - local-only
   - no `gh`
@@ -40,7 +59,6 @@ Implement and document a local-only managed-project registry so AresForge can tr
 
 ## Next-Phase Roadmap (Planned)
 
-- Local project queue and tracking.
 - Local LLM agent handoff profiles.
 - Multi-agent orchestration planning.
 - Escalation to cloud LLMs.
@@ -51,7 +69,6 @@ Implement and document a local-only managed-project registry so AresForge can tr
 
 ## Known Limitations (Current Foundation Batch)
 
-- No local queue/tracking yet unless implemented later.
 - No actual LLM invocation yet.
 - No cloud LLM API integration yet.
 - No GitHub sync execution yet.
@@ -138,6 +155,7 @@ Implement and document a local-only managed-project registry so AresForge can tr
 - Scope clarification:
   - M27 local project state tracks the current repo/session context.
   - M32 managed-project registry tracks many projects and repos in local-first control-plane context.
+  - M33 local project queue tracks local work progression across project/repo inventory.
 
 ## M26 Local Handoff Package Generator
 

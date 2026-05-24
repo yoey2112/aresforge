@@ -9,6 +9,7 @@ from typing import Any
 
 from aresforge.config import AppConfig
 from aresforge.operator.managed_project_registry_local import managed_project_registry_summary_for_handoff
+from aresforge.operator.local_project_queue import project_queue_summary_for_handoff
 from aresforge.operator.local_project_state import project_state_summary_for_handoff
 
 COMMAND_NAME = "generate-handoff-package"
@@ -261,6 +262,7 @@ def _build_payload(
     ]
     project_state_summary = project_state_summary_for_handoff(config)
     managed_project_registry_summary = managed_project_registry_summary_for_handoff(config)
+    project_queue_summary = project_queue_summary_for_handoff(config)
     latest_doc_reconciliation_plan = _latest_doc_reconciliation_plan(repo_root)
     latest_github_sync_plan = _latest_github_sync_plan(repo_root)
     project_state_warnings: list[str] = []
@@ -275,6 +277,10 @@ def _build_payload(
     if isinstance(managed_project_registry_summary, dict) and "error" in managed_project_registry_summary:
         project_state_warnings.append(
             "Managed project registry exists but could not be parsed."
+        )
+    if isinstance(project_queue_summary, dict) and "error" in project_queue_summary:
+        project_state_warnings.append(
+            "Local project queue exists but could not be parsed."
         )
 
     payload: dict[str, Any] = {
@@ -294,6 +300,7 @@ def _build_payload(
         "source_docs": [doc.path for doc in docs],
         "project_state_summary": project_state_summary,
         "managed_project_registry_summary": managed_project_registry_summary,
+        "project_queue_summary": project_queue_summary,
         "active_local_milestone": (
             project_state_summary.get("current_milestone")
             if isinstance(project_state_summary, dict)
@@ -389,6 +396,21 @@ def _render_markdown(payload: dict[str, Any]) -> str:
         lines.append(f"- repo_count: {managed_summary.get('repo_count')}")
     else:
         lines.append("- No managed project registry summary available.")
+
+    lines.extend(["", "## Local Project Queue Summary"])
+    queue_summary = payload.get("project_queue_summary")
+    if isinstance(queue_summary, dict):
+        lines.append(f"- path: {queue_summary.get('path')}")
+        lines.append(f"- schema_version: {queue_summary.get('schema_version')}")
+        lines.append(f"- updated_at: {queue_summary.get('updated_at')}")
+        lines.append(f"- item_count: {queue_summary.get('item_count')}")
+        status_counts = queue_summary.get('status_counts')
+        if isinstance(status_counts, dict):
+            lines.append("- status_counts:")
+            for key in sorted(status_counts.keys()):
+                lines.append(f"  - {key}: {status_counts.get(key)}")
+    else:
+        lines.append("- No local project queue summary available.")
 
     lines.extend(["", "## Latest Doc Reconciliation Plan"])
     latest_plan = payload.get("latest_doc_reconciliation_plan")

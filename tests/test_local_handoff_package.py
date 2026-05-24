@@ -10,6 +10,7 @@ from aresforge.operator.managed_project_registry_local import (
     register_managed_repo,
 )
 from aresforge.operator.local_project_state import init_project_state, update_project_state
+from aresforge.operator.local_project_queue import init_project_queue, add_queue_item
 
 
 def _config(tmp_path: Path) -> AppConfig:
@@ -206,3 +207,31 @@ def test_generate_handoff_package_includes_managed_project_registry_summary(monk
     assert isinstance(summary, dict)
     assert summary['project_count'] == 1
     assert summary['repo_count'] == 1
+
+
+def test_generate_handoff_package_includes_project_queue_summary(monkeypatch, tmp_path: Path) -> None:
+    _write_source_docs(tmp_path)
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert (
+        add_queue_item(
+            config,
+            item_id='m33-1',
+            project_id='p1',
+            repo_id='r1',
+            title='Track queue integration',
+            status='ready',
+        )['ok']
+        is True
+    )
+    monkeypatch.setattr(
+        subprocess,
+        'run',
+        lambda command, **_kwargs: subprocess.CompletedProcess(command, 0, stdout='x\n', stderr=''),
+    )
+    payload = generate_handoff_package(config, output_format='json')
+    assert payload['ok'] is True
+    summary = payload['payload']['project_queue_summary']
+    assert isinstance(summary, dict)
+    assert summary['item_count'] == 1
+    assert summary['status_counts']['ready'] == 1
