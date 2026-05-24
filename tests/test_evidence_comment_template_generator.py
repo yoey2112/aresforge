@@ -107,7 +107,7 @@ def test_generate_evidence_comment_template_is_read_only_and_issue_specific(
     )
     monkeypatch.setattr(
         "aresforge.operator.evidence_comment_template_generator.generate_child_evidence_marker_template",
-        lambda _config, parent_issue, child_issue: {
+        lambda _config, parent_issue, child_issue, **kwargs: {
             "canonical_marker_text": (
                 "[ARESFORGE_CANONICAL_EVIDENCE_MARKER]\n"
                 "marker_type: child_evidence\n"

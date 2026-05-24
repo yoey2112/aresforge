@@ -145,7 +145,7 @@ def test_generate_pr_evidence_bundle_reports_complete_marker_state(monkeypatch, 
     )
     monkeypatch.setattr(
         "aresforge.operator.pr_evidence_marker_template.generate_pr_evidence_marker_template",
-        lambda _config, issue_number, pr_number: {
+        lambda _config, issue_number, pr_number, **kwargs: {
             "canonical_marker_text": "[ARESFORGE_CANONICAL_EVIDENCE_MARKER]\nmarker_state: ready\n[/ARESFORGE_CANONICAL_EVIDENCE_MARKER]\n",
             "canonical_marker": {
                 "marker_type": "pr_evidence",

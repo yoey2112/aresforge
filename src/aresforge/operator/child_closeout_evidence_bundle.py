@@ -16,6 +16,7 @@ def generate_child_closeout_evidence_bundle(
     *,
     parent_issue: int,
     child_issue: int,
+    marker_context: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     issue_payload = fetch_issue_details(config, child_issue)
     if not issue_payload.get("ok"):
@@ -58,10 +59,19 @@ def generate_child_closeout_evidence_bundle(
             "- Do not close multiple issues in one command.",
         ),
     )
+    context = marker_context if isinstance(marker_context, dict) else {}
     canonical = generate_child_evidence_marker_template(
         config,
         parent_issue=parent_issue,
         child_issue=child_issue,
+        branch=_context_value(context, "branch"),
+        commit=_context_value(context, "commit"),
+        pr=_context_value(context, "pr"),
+        validation_summary=_context_value(context, "validation_summary"),
+        safety_notes=_context_value(context, "safety_notes"),
+        closeout_status=_context_value(context, "closeout_status"),
+        evidence_comment_status=_context_value(context, "evidence_comment_status"),
+        merge_status=_context_value(context, "merge_status"),
     )
     canonical_marker_text = str(canonical.get("canonical_marker_text") or "")
     canonical_marker = canonical.get("canonical_marker") if isinstance(canonical.get("canonical_marker"), dict) else {}
@@ -103,4 +113,12 @@ def generate_child_closeout_evidence_bundle(
         ],
         "safety_notes": list(bundle.safety_notes),
     }
+
+
+def _context_value(context: dict[str, str], key: str) -> str | None:
+    value = context.get(key)
+    if value is None:
+        return None
+    text = str(value).strip()
+    return text or None
 
