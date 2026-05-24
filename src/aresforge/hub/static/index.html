@@ -290,6 +290,47 @@
               <button id="queue-filter-active-project" type="button">Filter To Active Project</button>
             </div>
           </section>
+
+          <section class="subpanel active-project-panel">
+            <h3>Active Project Intake</h3>
+            <p class="message-note">Capture a task, feature, direction, bug, documentation item, or validation item for the selected active project.</p>
+            <p id="intake-message" class="message"></p>
+            <form id="intake-form" class="form-grid">
+              <label>Item ID Optional<input id="intake-item-id" name="item_id" placeholder="auto-generated when blank" /></label>
+              <label>Title<input id="intake-title" name="title" required /></label>
+              <label>Type
+                <select id="intake-type" name="intake_type">
+                  <option value="task">task</option>
+                  <option value="feature">feature</option>
+                  <option value="direction">direction</option>
+                  <option value="bug">bug</option>
+                  <option value="documentation">documentation</option>
+                  <option value="validation">validation</option>
+                </select>
+              </label>
+              <label>Priority
+                <select id="intake-priority" name="priority">
+                  <option value="normal">normal</option>
+                  <option value="low">low</option>
+                  <option value="high">high</option>
+                  <option value="urgent">urgent</option>
+                </select>
+              </label>
+              <label>Status
+                <select id="intake-status" name="status">
+                  <option value="proposed">proposed</option>
+                  <option value="ready">ready</option>
+                  <option value="blocked">blocked</option>
+                </select>
+              </label>
+              <label>Assigned Agent<input id="intake-assigned-agent" name="assigned_agent" placeholder="optional" /></label>
+              <label>Tags (comma-separated)<input id="intake-tags" name="tags" /></label>
+              <label class="full">Direction / Details<textarea id="intake-description" name="description"></textarea></label>
+              <label class="full">Notes<textarea id="intake-notes" name="notes"></textarea></label>
+              <button id="intake-submit" type="submit">Add To Active Project Queue</button>
+            </form>
+          </section>
+
           <section class="subpanel">
             <h3>Filters</h3>
             <form id="queue-filter-form" class="form-inline">

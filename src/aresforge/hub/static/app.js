@@ -66,6 +66,19 @@ function parseCommaList(value) {
     .filter((item, index, all) => item && all.indexOf(item) === index);
 }
 
+function slugify(value) {
+  const slug = String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 48);
+  return slug || "item";
+}
+
+function generatedQueueItemId(title) {
+  return `m44-${slugify(title)}-${Date.now().toString(36)}`;
+}
+
 function toQuery(params) {
   const query = new URLSearchParams();
   Object.keys(params || {}).forEach((key) => {
@@ -960,6 +973,51 @@ function buildQueuePayload() {
   });
 }
 
+function buildIntakePayload() {
+  const title = byId("intake-title").value.trim();
+  const intakeType = byId("intake-type").value.trim() || "task";
+  const itemType = intakeType === "direction" ? "task" : intakeType;
+  const tags = parseCommaList(byId("intake-tags").value);
+  if (intakeType === "direction" && tags.indexOf("direction") === -1) {
+    tags.push("direction");
+  }
+  if (tags.indexOf("active-project-intake") === -1) {
+    tags.push("active-project-intake");
+  }
+
+  return prunePayload({
+    item_id: byId("intake-item-id").value.trim() || generatedQueueItemId(title),
+    project_id: activeProjectId(),
+    repo_id: activeRepoId(),
+    title,
+    description: byId("intake-description").value.trim(),
+    status: byId("intake-status").value.trim() || "proposed",
+    priority: byId("intake-priority").value.trim() || "normal",
+    item_type: itemType,
+    tags,
+    assigned_agent: byId("intake-assigned-agent").value.trim(),
+    source: `hub-active-project-intake:${intakeType}`,
+    notes: byId("intake-notes").value.trim(),
+  });
+}
+
+function clearIntakeForm() {
+  ["intake-item-id", "intake-title", "intake-assigned-agent", "intake-tags", "intake-description", "intake-notes"].forEach((id) => {
+    if (byId(id)) {
+      byId(id).value = "";
+    }
+  });
+  if (byId("intake-type")) {
+    byId("intake-type").value = "task";
+  }
+  if (byId("intake-priority")) {
+    byId("intake-priority").value = "normal";
+  }
+  if (byId("intake-status")) {
+    byId("intake-status").value = "proposed";
+  }
+}
+
 function buildAgentPayload() {
   const escalationRaw = byId("agent-escalation-allowed").value.trim();
   let escalationAllowed;
@@ -1143,6 +1201,51 @@ function bindForms() {
       setMessage("queue-message", "Queue item saved.", "success");
     } catch (error) {
       setMessage("queue-message", String(error.message || error), "error");
+    }
+  });
+
+  on("intake-form", "submit", async (event) => {
+    event.preventDefault();
+    const intakeSubmit = byId("intake-submit");
+    const originalIntakeSubmitLabel = intakeSubmit ? intakeSubmit.textContent : "";
+    if (!activeProjectId()) {
+      setMessage("intake-message", "Select an active project before adding intake work.", "warn");
+      return;
+    }
+    if (!activeRepoId()) {
+      setMessage("intake-message", "The active project has no default repo. Add or select a primary repo first.", "warn");
+      return;
+    }
+    try {
+      if (intakeSubmit) {
+        intakeSubmit.disabled = true;
+        intakeSubmit.textContent = "Adding...";
+      }
+      setMessage("intake-message", "Adding intake item to active project queue...", "loading");
+      const payload = await fetchJson("/api/queue", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildIntakePayload()),
+      });
+      clearIntakeForm();
+      state.queueFilters.project_id = activeProjectId();
+      state.queueFilters.repo_id = activeRepoId();
+      if (byId("filter-project-id")) {
+        byId("filter-project-id").value = activeProjectId();
+      }
+      if (byId("filter-repo-id")) {
+        byId("filter-repo-id").value = activeRepoId();
+      }
+      await loadQueue();
+      await refreshSummaryAndReport();
+      setMessage("intake-message", `Added ${payload.item.item_id} to active project queue.`, "success");
+    } catch (error) {
+      setMessage("intake-message", String(error.message || error), "error");
+    } finally {
+      if (intakeSubmit) {
+        intakeSubmit.disabled = false;
+        intakeSubmit.textContent = originalIntakeSubmitLabel || "Add To Active Project Queue";
+      }
     }
   });
 

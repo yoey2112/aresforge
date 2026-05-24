@@ -208,6 +208,10 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "Filter To Active Project" in index_text
     assert "Active Project Report Focus" in index_text
     assert "settings-active-project-path" in index_text
+    assert "Active Project Intake" in index_text
+    assert "Add To Active Project Queue" in index_text
+    assert "Direction / Details" in index_text
+    assert "active-project-intake" not in index_text
 
 
 def test_app_js_references_m39_api_endpoints_and_forms() -> None:
@@ -239,6 +243,7 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
         "repo-form",
         "queue-form",
         "queue-filter-form",
+        "intake-form",
         "agent-form",
         "handoff-target-form",
         "orchestration-form",
@@ -259,6 +264,7 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
         "active-project-set",
         "queue-use-active-project",
         "queue-filter-active-project",
+        "intake-submit",
     ):
         assert action_id in app_text
 
@@ -1010,3 +1016,23 @@ def test_boundary_confirmations_remain_present_for_m39_endpoints(tmp_path: Path)
     ):
         assert payload["local_only"] is True
         assert payload["boundary_confirmations"]
+
+
+def test_m44_active_project_intake_static_contract() -> None:
+    index_text = (_static_dir() / "index.html").read_text(encoding="utf-8")
+    app_text = (_static_dir() / "app.js").read_text(encoding="utf-8")
+
+    assert "Active Project Intake" in index_text
+    assert "intake-form" in index_text
+    assert "intake-title" in index_text
+    assert "intake-type" in index_text
+    assert "intake-priority" in index_text
+    assert "intake-status" in index_text
+    assert "Add To Active Project Queue" in index_text
+
+    assert "buildIntakePayload" in app_text
+    assert "generatedQueueItemId" in app_text
+    assert "hub-active-project-intake" in app_text
+    assert "active-project-intake" in app_text
+    assert 'intakeType === "direction" ? "task" : intakeType' in app_text
+    assert 'fetchJson("/api/queue"' in app_text
