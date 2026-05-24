@@ -12,6 +12,8 @@ Provide minimum operating context for safe M25 automatic canonical marker emissi
 - Child execution remains one-branch, one-PR, one-evidence-comment, one-targeted-closeout.
 - Parent closeout remains blocked until all children are closed/accounted and readiness checks explicitly pass.
 - GitHub issue truth remains authoritative; local run/handoff artifacts are advisory support only.
+- Offline state-file parent closeout readiness workflow is implemented and pushed through `40de9fe`; use it as the preferred path during GitHub GraphQL/API rate-limit windows.
+- With `--state-file <path>`, supported readiness/evidence commands execute local-only without `gh` or GitHub API calls.
 
 ## Canonical Documents
 
@@ -31,6 +33,16 @@ Provide minimum operating context for safe M25 automatic canonical marker emissi
 - `python -m aresforge generate-parent-closeout-evidence-bundle --parent-issue <parent>`
 - `python -m aresforge generate-evidence-comment-template --issue <issue>`
 - `python -m aresforge check-closeout-readiness-by-construction --parent-issue <parent>`
+
+## Offline State-File Commands
+
+- `python -m aresforge inspect-milestone-state --parent-issue <n> --state-file <path>`
+- `python -m aresforge check-milestone-evidence-readiness --parent-issue <n> --state-file <path>`
+- `python -m aresforge inspect-parent-closeout-readiness --parent-issue <n> --state-file <path>`
+- `python -m aresforge generate-parent-closeout-evidence-bundle --parent-issue <n> --state-file <path>`
+- `python -m aresforge check-closeout-readiness-by-construction --parent-issue <n> --state-file <path>`
+- Example fixture: `tests/fixtures/offline_state/parent_closeout_ready.json`.
+- Validation checkpoint: `python -m pytest` passed with `502` tests.
 
 ## M25 Child/PR Mapping
 

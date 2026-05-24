@@ -46,11 +46,23 @@ Command entrypoint:
 
 - `inspect-automatic-canonical-evidence-emission-contract`
 - `check-closeout-readiness-by-construction`
+- offline/local state-file mode supported for milestone/parent readiness and parent evidence generation commands via `--state-file <path>`
 - canonical marker completeness payloads in:
   - child closeout evidence bundle generation
   - PR evidence bundle generation
   - parent closeout evidence bundle generation
   - closeout comment template generation
+
+Offline state-file command surface:
+
+- `python -m aresforge inspect-milestone-state --parent-issue <n> --state-file <path>`
+- `python -m aresforge check-milestone-evidence-readiness --parent-issue <n> --state-file <path>`
+- `python -m aresforge inspect-parent-closeout-readiness --parent-issue <n> --state-file <path>`
+- `python -m aresforge generate-parent-closeout-evidence-bundle --parent-issue <n> --state-file <path>`
+- `python -m aresforge check-closeout-readiness-by-construction --parent-issue <n> --state-file <path>`
+- This local/offline path avoids `gh` and GitHub API calls when `--state-file` is provided.
+- Reference fixture: `tests/fixtures/offline_state/parent_closeout_ready.json`.
+- Implemented/pushed through commit `40de9fe`; preferred during GitHub GraphQL/API rate-limit windows.
 
 ## M25 Capability Contract Alignment
 

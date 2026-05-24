@@ -241,6 +241,9 @@ Delivered M25 outcomes:
 - `check-closeout-readiness-by-construction` read-only readiness gate
 - regression fixtures proving complete generated marker paths do not require post-hoc marker repair
 - operator documentation updates for automatic marker workflow
+- local/offline state-file parent closeout readiness workflow implemented and pushed through `40de9fe`
+- local-only `--state-file` command path for rate-limit-window execution without `gh`/GitHub API calls
+- sample offline-ready fixture at `tests/fixtures/offline_state/parent_closeout_ready.json`
 
 M25 safety posture:
 
@@ -262,6 +265,16 @@ M25 standard validation bundle:
 - `python -m aresforge check-milestone-evidence-readiness --parent-issue 421`
 - `python -m aresforge inspect-parent-closeout-readiness --parent-issue 421`
 - `python -m aresforge generate-parent-closeout-evidence-bundle --parent-issue 421`
+
+M25 offline state-file readiness path:
+
+- Preferred during GitHub GraphQL/API rate-limit windows.
+- `python -m aresforge inspect-milestone-state --parent-issue <n> --state-file <path>`
+- `python -m aresforge check-milestone-evidence-readiness --parent-issue <n> --state-file <path>`
+- `python -m aresforge inspect-parent-closeout-readiness --parent-issue <n> --state-file <path>`
+- `python -m aresforge generate-parent-closeout-evidence-bundle --parent-issue <n> --state-file <path>`
+- `python -m aresforge check-closeout-readiness-by-construction --parent-issue <n> --state-file <path>`
+- Docs/sample checkpoint validation: `python -m pytest` passed (`502` tests).
 
 M25 head tracking:
 

@@ -21,6 +21,20 @@ Complete M25 source-of-truth reconciliation child issue `#430` (last child), the
   - `#428` CLOSED via PR `#437`
   - `#429` CLOSED via PR `#438`
   - `#430` OPEN (final source-of-truth reconciliation; sequenced last)
+- Offline state-file parent closeout readiness workflow is implemented and pushed on `main` through commit `40de9fe`.
+
+## Offline State-File Closeout Readiness (Local-Only)
+
+- Preferred path during GitHub GraphQL/API rate-limit windows.
+- When `--state-file <path>` is provided, these commands run local/offline and avoid `gh` and GitHub API calls.
+- Supported commands:
+  - `python -m aresforge inspect-milestone-state --parent-issue <n> --state-file <path>`
+  - `python -m aresforge check-milestone-evidence-readiness --parent-issue <n> --state-file <path>`
+  - `python -m aresforge inspect-parent-closeout-readiness --parent-issue <n> --state-file <path>`
+  - `python -m aresforge generate-parent-closeout-evidence-bundle --parent-issue <n> --state-file <path>`
+  - `python -m aresforge check-closeout-readiness-by-construction --parent-issue <n> --state-file <path>`
+- Example fixture: `tests/fixtures/offline_state/parent_closeout_ready.json`.
+- Validation checkpoint for docs/sample addition passed: `python -m pytest` (`502` tests).
 
 ## M25 Command Surface
 
