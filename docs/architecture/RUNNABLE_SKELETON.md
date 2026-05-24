@@ -10,6 +10,38 @@ Command entrypoint:
 
 - `python -m aresforge`
 
+## M42 First-Run Bootstrap And Seed Wizard
+
+- Added local bootstrap operator:
+  - `src/aresforge/operator/local_bootstrap_wizard.py`
+- Added local bootstrap CLI commands:
+  - `python -m aresforge inspect-bootstrap-status [--repo-path <path>]`
+  - `python -m aresforge plan-bootstrap [--repo-path <path>] [--format json|markdown] [--seed-sample-work]`
+  - `python -m aresforge apply-bootstrap [--repo-path <path>] [--force] [--seed-sample-work] [--format json|markdown]`
+- Added local Hub bootstrap endpoints:
+  - `GET /api/bootstrap/status`
+  - `GET /api/bootstrap/plan`
+  - `POST /api/bootstrap/apply`
+- Added Hub Bootstrap setup section for first-run initialization and seed workflows.
+
+Bootstrap seeds:
+
+- local state files under `.aresforge/` (state/projects/queue/agents)
+- managed `aresforge` project and primary repo linkage
+- local GitHub metadata fields for AresForge project/repo
+- default agent profiles and handoff targets (M34 defaults)
+- optional sample queue milestones for next work phase (`m43`-`m46`)
+
+M42 local boundary:
+
+- local-only, file-backed setup flow
+- no GitHub API calls
+- no `gh` calls
+- no GraphQL/REST calls
+- no network service calls
+- no live GitHub discovery or validation
+- no local/cloud/Codex/ChatGPT/Ollama model invocation
+
 ## M41 GitHub-Linked Project/Repo Model
 
 - Managed project/repo registry now supports local GitHub identity metadata at both project and repo levels.

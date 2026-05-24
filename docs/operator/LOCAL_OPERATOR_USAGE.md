@@ -38,6 +38,40 @@ Foundation status:
 - No cross-machine coordination yet.
 - No background daemon/scheduler yet.
 
+## M42 First-Run Bootstrap And Seed Wizard
+
+Purpose:
+
+- Provide a first-run local setup flow for Hub and CLI.
+- Initialize missing local state files and seed useful defaults.
+- Keep setup local-only and file-backed.
+
+Commands:
+
+- `python -m aresforge inspect-bootstrap-status`
+- `python -m aresforge plan-bootstrap`
+- `python -m aresforge apply-bootstrap`
+- `python -m aresforge apply-bootstrap --seed-sample-work`
+- `python -m aresforge serve-hub`
+
+Hub usage:
+
+- Open `http://127.0.0.1:8765`
+- Use Bootstrap/Setup to initialize local state.
+- Review Projects, Queue, Agents, and Reports after setup.
+
+M42 boundary guarantees:
+
+- local-only and file-backed
+- no GitHub API calls
+- no `gh` calls
+- no GraphQL/REST calls
+- no network service calls
+- no local/cloud/Codex/ChatGPT/Ollama calls
+- no external API calls
+- no live GitHub discovery/validation
+- future work may add additional repo import/connect flows, but M42 does not perform live GitHub discovery
+
 ## M37 AresForge Hub UI Foundation
 
 Purpose:

@@ -19,6 +19,7 @@
     <div class="layout">
       <nav class="sidenav" aria-label="Primary Navigation">
         <button class="nav-item active" data-section="home">Home</button>
+        <button class="nav-item" data-section="bootstrap">Bootstrap</button>
         <button class="nav-item" data-section="projects">Projects</button>
         <button class="nav-item" data-section="repos">Repos</button>
         <button class="nav-item" data-section="queue">Queue</button>
@@ -93,6 +94,52 @@
             <h3>Quick Workflow Cards</h3>
             <div id="home-workflow-cards" class="cards"></div>
             <p id="home-workflow-cards-empty" class="empty">No workflow guidance available.</p>
+          </section>
+
+          <section class="subpanel">
+            <h3>First-Run Setup</h3>
+            <p id="home-bootstrap-status" class="empty">Bootstrap status unavailable.</p>
+            <div class="quick-actions">
+              <button id="home-open-bootstrap" type="button">Open Bootstrap Setup</button>
+            </div>
+          </section>
+        </section>
+
+        <section id="panel-bootstrap" class="panel" data-panel="bootstrap">
+          <h2>Bootstrap Setup</h2>
+          <p>Initialize local AresForge control-plane files, seed defaults, and review plan-before-apply.</p>
+          <p class="boundary-banner">Local-only boundary: file-backed setup only. No GitHub APIs, no gh, no network services, and no model invocation.</p>
+          <p id="bootstrap-message" class="message"></p>
+
+          <section class="subpanel">
+            <h3>Bootstrap Status</h3>
+            <ul id="bootstrap-status-list" class="list"></ul>
+            <p id="bootstrap-status-empty" class="empty">Bootstrap status not loaded.</p>
+            <ul id="bootstrap-warnings" class="list"></ul>
+            <p id="bootstrap-warnings-empty" class="empty">No bootstrap warnings.</p>
+          </section>
+
+          <section class="subpanel">
+            <h3>Plan Preview</h3>
+            <div class="quick-actions">
+              <label class="inline-checkbox"><input id="bootstrap-force" type="checkbox" /> Force overwrite where safe</label>
+              <label class="inline-checkbox"><input id="bootstrap-seed-sample-work" type="checkbox" /> Seed sample work queue</label>
+            </div>
+            <div class="quick-actions">
+              <button id="bootstrap-refresh-status" type="button">Refresh Bootstrap Status</button>
+              <button id="bootstrap-refresh-plan" type="button">Refresh Bootstrap Plan</button>
+              <button id="bootstrap-apply" type="button">Apply Bootstrap</button>
+            </div>
+            <ul id="bootstrap-plan-actions" class="list"></ul>
+            <p id="bootstrap-plan-actions-empty" class="empty">No bootstrap plan actions yet.</p>
+            <ul id="bootstrap-plan-summary" class="list"></ul>
+            <p id="bootstrap-plan-summary-empty" class="empty">No bootstrap plan summary yet.</p>
+          </section>
+
+          <section class="subpanel">
+            <h3>Apply Result</h3>
+            <ul id="bootstrap-apply-result" class="list"></ul>
+            <p id="bootstrap-apply-result-empty" class="empty">No bootstrap apply result yet.</p>
           </section>
         </section>
 

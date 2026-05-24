@@ -10,6 +10,8 @@ import webbrowser
 
 from aresforge.config import AppConfig
 from aresforge.hub.api import (
+    get_bootstrap_plan,
+    get_bootstrap_status,
     get_agent,
     get_agents,
     get_docs_status,
@@ -34,6 +36,7 @@ from aresforge.hub.api import (
     get_summary,
     patch_queue_item,
     post_agent,
+    post_bootstrap_apply,
     post_escalation_plan,
     post_handoff_target,
     post_orchestration_plan,
@@ -116,6 +119,34 @@ def _build_handler(config: AppConfig, static_root: Path) -> type[BaseHTTPRequest
                 return True
             if method == "GET" and path == "/api/summary":
                 _render_json(self, HTTPStatus.OK, get_summary(config))
+                return True
+            if method == "GET" and path == "/api/bootstrap/status":
+                _render_json(self, HTTPStatus.OK, get_bootstrap_status(config))
+                return True
+            if method == "GET" and path == "/api/bootstrap/plan":
+                payload = get_bootstrap_plan(
+                    config,
+                    {
+                        "seed_sample_work": query_values.get("seed_sample_work", [None])[0],
+                    },
+                )
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+            if method == "POST" and path == "/api/bootstrap/apply":
+                if body is None:
+                    _render_json(
+                        self,
+                        HTTPStatus.BAD_REQUEST,
+                        {
+                            "ok": False,
+                            "local_only": True,
+                            "error": "invalid_json_body",
+                            "message": "Request body must be a JSON object.",
+                        },
+                    )
+                    return True
+                payload = post_bootstrap_apply(config, body)
+                _render_json(self, _status_from_payload(payload), payload)
                 return True
             if method == "GET" and path == "/api/docs/status":
                 _render_json(self, HTTPStatus.OK, get_docs_status(config))

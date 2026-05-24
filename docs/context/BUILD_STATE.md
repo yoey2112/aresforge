@@ -2,11 +2,42 @@
 
 ## Current Phase
 
-M41 GitHub-linked project/repo model in the local AresForge Hub and managed registry.
+M42 first-run bootstrap and seed wizard for local AresForge Hub setup.
 
 ## Current Goal
 
-Implement and document M41 so managed projects and repos carry explicit local GitHub identity metadata, primary repo linkage, and local-only git-link inspection across CLI, API, Hub UI, reports, and operator docs.
+Implement and document M42 so the Hub can inspect local setup readiness, generate a plan-only bootstrap preview, and apply local file-backed bootstrap seeding for first-run operator workflows.
+
+## M42 First-Run Bootstrap And Seed Wizard (Local-Only)
+
+- Added local bootstrap operator module:
+  - `src/aresforge/operator/local_bootstrap_wizard.py`
+- Added local bootstrap CLI commands:
+  - `python -m aresforge inspect-bootstrap-status [--repo-path <path>]`
+  - `python -m aresforge plan-bootstrap [--repo-path <path>] [--format json|markdown] [--seed-sample-work]`
+  - `python -m aresforge apply-bootstrap [--repo-path <path>] [--force] [--seed-sample-work] [--format json|markdown]`
+- Added local Hub bootstrap API endpoints:
+  - `GET /api/bootstrap/status`
+  - `GET /api/bootstrap/plan`
+  - `POST /api/bootstrap/apply`
+- Added Hub Bootstrap setup section for status, plan preview, force/sample toggles, and apply actions.
+- Bootstrap initializes missing local state files under `.aresforge/`:
+  - `.aresforge/state/project_state.json`
+  - `.aresforge/projects/projects.json`
+  - `.aresforge/queue/work_items.json`
+  - `.aresforge/agents/agents.json`
+- Bootstrap registers AresForge as a managed project/repo with local GitHub metadata.
+- Bootstrap seeds default agent profiles/handoff targets and optional sample next-phase queue milestones.
+
+M42 safety posture:
+
+- local-only and file-backed
+- no GitHub API calls
+- no `gh` calls
+- no GraphQL/REST calls
+- no network service calls
+- no live GitHub validation/discovery
+- no local/cloud/Codex/ChatGPT/Ollama model invocation
 
 ## M41 GitHub-Linked Project/Repo Model (Local-Only)
 

@@ -2,6 +2,43 @@
 
 ## Current Milestones
 
+### M42 - First-Run Bootstrap And Seed Wizard For Hub
+
+Status: Completed (local-only first-run setup experience and bootstrap API/CLI/operator support).
+
+Delivered M42 outcomes:
+
+- new local bootstrap operator module:
+  - `src/aresforge/operator/local_bootstrap_wizard.py`
+- new local bootstrap CLI commands:
+  - `inspect-bootstrap-status`
+  - `plan-bootstrap`
+  - `apply-bootstrap`
+- new local Hub bootstrap endpoints:
+  - `GET /api/bootstrap/status`
+  - `GET /api/bootstrap/plan`
+  - `POST /api/bootstrap/apply`
+- new Hub Bootstrap setup section with:
+  - first-run setup status signals
+  - plan preview before apply
+  - force and sample-work toggles
+  - apply action and changed/already-existing feedback
+- bootstrap initialization/seed coverage:
+  - initializes local state files under `.aresforge/`
+  - registers `aresforge` managed project/repo with local GitHub metadata
+  - seeds default M34 agent profiles and handoff targets idempotently
+  - optionally seeds sample next-phase queue milestones (`m43`-`m46`)
+
+M42 safety posture:
+
+- local-only and file-backed
+- no GitHub API calls
+- no `gh` calls
+- no GraphQL or REST calls
+- no network service calls
+- no live GitHub validation/discovery
+- no local/cloud/Codex/ChatGPT/Ollama model invocation
+
 ### M41 - GitHub-Linked Project/Repo Model In Hub
 
 Status: Completed (local-only GitHub identity model and local git-link inspection support).

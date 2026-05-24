@@ -163,6 +163,11 @@ from aresforge.operator.local_agent_profiles import (
 )
 from aresforge.operator.local_agent_orchestration import generate_agent_orchestration_plan
 from aresforge.operator.local_llm_escalation import generate_llm_escalation_plan
+from aresforge.operator.local_bootstrap_wizard import (
+    apply_bootstrap,
+    inspect_bootstrap_status,
+    plan_bootstrap,
+)
 from aresforge.hub.server import serve_hub
 from aresforge.operator.milestone_reconciliation_planner import plan_milestone_final_reconciliation
 from aresforge.operator.preflight_snapshot import (
@@ -1159,6 +1164,49 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Overwrite existing output file.",
     )
+    inspect_bootstrap_status_parser = subparsers.add_parser(
+        "inspect-bootstrap-status",
+        help="Inspect first-run local bootstrap readiness and state coverage.",
+    )
+    inspect_bootstrap_status_parser.add_argument("--repo-path")
+
+    plan_bootstrap_parser = subparsers.add_parser(
+        "plan-bootstrap",
+        help="Generate a local-only bootstrap action plan.",
+    )
+    plan_bootstrap_parser.add_argument("--repo-path")
+    plan_bootstrap_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="json",
+    )
+    plan_bootstrap_parser.add_argument(
+        "--seed-sample-work",
+        action="store_true",
+        help="Include sample queue milestone seeds in plan output.",
+    )
+
+    apply_bootstrap_parser = subparsers.add_parser(
+        "apply-bootstrap",
+        help="Apply first-run local bootstrap initialization and seeding actions.",
+    )
+    apply_bootstrap_parser.add_argument("--repo-path")
+    apply_bootstrap_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Enable force mode for bootstrap apply safeguards.",
+    )
+    apply_bootstrap_parser.add_argument(
+        "--seed-sample-work",
+        action="store_true",
+        help="Seed sample queue milestones even when queue already has items.",
+    )
+    apply_bootstrap_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="json",
+    )
+
     serve_hub_parser = subparsers.add_parser(
         "serve-hub",
         help="Serve the local AresForge Hub UI and local API shell.",
@@ -2562,6 +2610,41 @@ def main(argv: list[str] | None = None) -> int:
             output=args.output,
             output_format=args.format,
             force=bool(args.force),
+        )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-bootstrap-status":
+        payload = inspect_bootstrap_status(
+            config,
+            repo_path=args.repo_path,
+        )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "plan-bootstrap":
+        payload = plan_bootstrap(
+            config,
+            repo_path=args.repo_path,
+            seed_sample_work=bool(args.seed_sample_work),
+            output_format=args.format,
+        )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "apply-bootstrap":
+        payload = apply_bootstrap(
+            config,
+            repo_path=args.repo_path,
+            force=bool(args.force),
+            seed_sample_work=bool(args.seed_sample_work),
+            output_format=args.format,
         )
         if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
             print(payload["stdout"])

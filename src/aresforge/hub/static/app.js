@@ -169,6 +169,8 @@ function renderWorkflowCards(containerId, emptyId, workflows) {
 const state = {
   projects: [],
   selectedProjectId: "",
+  bootstrapStatus: null,
+  bootstrapPlan: null,
   queueFilters: {
     project_id: "",
     repo_id: "",
@@ -179,6 +181,89 @@ const state = {
   report: null,
   exportText: "",
 };
+
+function renderBootstrapStatus(payload) {
+  state.bootstrapStatus = payload || null;
+  const files = (payload && payload.files) || {};
+  const lines = [
+    `bootstrap_ready: ${Boolean(payload && payload.bootstrap_ready)}`,
+    `project_state_exists: ${Boolean(files.project_state)}`,
+    `registry_exists: ${Boolean(files.managed_project_registry)}`,
+    `queue_exists: ${Boolean(files.project_queue)}`,
+    `agent_profiles_exists: ${Boolean(files.agent_profiles)}`,
+    `aresforge_project_registered: ${Boolean((payload && payload.seeded_projects || []).includes("aresforge"))}`,
+    `aresforge_github_link_present: ${Boolean((payload && payload.seeded_repos || []).includes("aresforge"))}`,
+  ];
+  setList("bootstrap-status-list", "bootstrap-status-empty", lines);
+  setList("bootstrap-warnings", "bootstrap-warnings-empty", (payload && payload.warnings) || []);
+  const homeStatus = byId("home-bootstrap-status");
+  if (homeStatus) {
+    if (payload && payload.bootstrap_ready) {
+      homeStatus.textContent = "Bootstrap complete. Local setup is ready.";
+    } else {
+      const next = (payload && payload.recommended_next_actions && payload.recommended_next_actions[0]) || "Run Bootstrap Setup.";
+      homeStatus.textContent = `Setup incomplete. ${next}`;
+    }
+  }
+}
+
+function renderBootstrapPlan(payload) {
+  state.bootstrapPlan = payload || null;
+  const actions = ((payload && payload.actions) || []).map((action) => `${action.id || "action"}: ${action.description || ""}`);
+  setList("bootstrap-plan-actions", "bootstrap-plan-actions-empty", actions);
+  const summary = [
+    `would_initialize: ${((payload && payload.would_initialize) || []).join(", ") || "none"}`,
+    `would_seed_projects: ${((payload && payload.would_seed_projects) || []).join(", ") || "none"}`,
+    `would_seed_repos: ${((payload && payload.would_seed_repos) || []).join(", ") || "none"}`,
+    `would_seed_agents: ${((payload && payload.would_seed_agents) || []).join(", ") || "none"}`,
+    `would_seed_handoff_targets: ${((payload && payload.would_seed_handoff_targets) || []).join(", ") || "none"}`,
+    `would_seed_queue_items: ${((payload && payload.would_seed_queue_items) || []).join(", ") || "none"}`,
+  ];
+  setList("bootstrap-plan-summary", "bootstrap-plan-summary-empty", summary);
+}
+
+function renderBootstrapApply(payload) {
+  const lines = [
+    `bootstrap_ready: ${Boolean(payload && payload.bootstrap_ready)}`,
+    `initialized_files: ${((payload && payload.initialized_files) || []).join(", ") || "none"}`,
+    `applied_actions: ${((payload && payload.applied_actions) || []).join(", ") || "none"}`,
+    `already_existing_actions: ${((payload && payload.already_existing_actions) || []).join(", ") || "none"}`,
+    `seeded_queue_items: ${((payload && payload.seeded_queue_items) || []).join(", ") || "none"}`,
+  ];
+  setList("bootstrap-apply-result", "bootstrap-apply-result-empty", lines.concat((payload && payload.warnings) || []));
+}
+
+async function loadBootstrapStatus() {
+  setMessage("bootstrap-message", "Loading bootstrap status...", "loading");
+  const payload = await fetchJson("/api/bootstrap/status", { method: "GET" });
+  renderBootstrapStatus(payload);
+  setMessage("bootstrap-message", "Bootstrap status loaded.", "success");
+  return payload;
+}
+
+async function loadBootstrapPlan() {
+  setMessage("bootstrap-message", "Loading bootstrap plan...", "loading");
+  const seedSampleWork = byId("bootstrap-seed-sample-work") && byId("bootstrap-seed-sample-work").checked;
+  const payload = await fetchJson(`/api/bootstrap/plan${toQuery({ seed_sample_work: seedSampleWork ? "true" : "false" })}`, { method: "GET" });
+  renderBootstrapPlan(payload);
+  setMessage("bootstrap-message", "Bootstrap plan loaded.", "success");
+  return payload;
+}
+
+async function applyBootstrap() {
+  setMessage("bootstrap-message", "Applying bootstrap locally...", "loading");
+  const payload = await fetchJson("/api/bootstrap/apply", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      force: Boolean(byId("bootstrap-force") && byId("bootstrap-force").checked),
+      seed_sample_work: Boolean(byId("bootstrap-seed-sample-work") && byId("bootstrap-seed-sample-work").checked),
+    }),
+  });
+  renderBootstrapApply(payload);
+  setMessage("bootstrap-message", "Bootstrap apply completed.", "success");
+  return payload;
+}
 
 function renderProjects(projects) {
   const lines = (projects || []).map((project) => {
@@ -531,6 +616,9 @@ function renderReportSummary(report) {
     `missing_local_state_files: ${(actionCenter.missing_local_state_files || []).length}`,
   ]);
   renderWorkflowCards("home-workflow-cards", "home-workflow-cards-empty", (report.operator_workflows || []).slice(0, 6));
+  if (state.bootstrapStatus) {
+    renderBootstrapStatus(state.bootstrapStatus);
+  }
 
   setList("reports-project-repo-summary", "reports-project-repo-summary-empty", [
     `project_count: ${projectSummary.project_count || 0}`,
@@ -1010,6 +1098,42 @@ function bindForms() {
     }
   });
 
+  on("home-open-bootstrap", "click", () => {
+    activateSection("bootstrap");
+  });
+
+  on("bootstrap-refresh-status", "click", async () => {
+    try {
+      await loadBootstrapStatus();
+      await refreshSummaryAndReport();
+    } catch (error) {
+      setMessage("bootstrap-message", String(error.message || error), "error");
+    }
+  });
+
+  on("bootstrap-refresh-plan", "click", async () => {
+    try {
+      await loadBootstrapPlan();
+    } catch (error) {
+      setMessage("bootstrap-message", String(error.message || error), "error");
+    }
+  });
+
+  on("bootstrap-apply", "click", async () => {
+    try {
+      await applyBootstrap();
+      await loadBootstrapStatus();
+      await loadBootstrapPlan();
+      await loadProjects();
+      await loadQueue();
+      await loadAgents();
+      await loadHandoffTargets();
+      await refreshSummaryAndReport();
+    } catch (error) {
+      setMessage("bootstrap-message", String(error.message || error), "error");
+    }
+  });
+
   on("reports-copy-json", "click", async () => {
     try {
       const copied = await copyExportText();
@@ -1069,6 +1193,13 @@ async function init() {
   } catch (error) {
     setMessage("reports-message", String(error.message || error), "error");
     setList("warnings-list", "warnings-empty-state", ["Hub report API is unavailable."]);
+  }
+
+  try {
+    await loadBootstrapStatus();
+    await loadBootstrapPlan();
+  } catch (error) {
+    setMessage("bootstrap-message", String(error.message || error), "error");
   }
 
   try {

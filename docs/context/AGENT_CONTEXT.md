@@ -2,11 +2,11 @@
 
 ## Purpose
 
-Provide minimum operating context for M41 GitHub-linked project/repo identity management with a local-first, self-managed operator model.
+Provide minimum operating context for M42 first-run bootstrap/setup with a local-first, self-managed operator model.
 
 ## Current Operating Model
 
-- Active milestone context: M41 GitHub-linked project/repo model in local registry and Hub.
+- Active milestone context: M42 first-run bootstrap and seed wizard in local registry and Hub.
 - AresForge now has a local-first foundation for self-managed operation.
 - GitHub is optional/syncable and not mandatory for local planning.
 - M26 added local handoff package generation.
@@ -24,6 +24,7 @@ Provide minimum operating context for M41 GitHub-linked project/repo identity ma
 - M39 adds interactive local Hub screens and API workflows for M34 local agent profiles/handoff targets, M26 handoff preview, M35 orchestration planning, and M36 escalation planning.
 - M40 adds unified local control-plane reporting, readiness indicators, action-center guidance, and operator workflow cards in Hub Home/Reports/Settings.
 - M41 adds explicit local GitHub identity for managed projects/repos, primary repo linkage, local git-link inspection, and Hub GitHub linkage readiness/reporting surfaces.
+- M42 adds first-run bootstrap status/plan/apply support for local file initialization and default seed data.
 - Foundation-batch boundaries (M26-M30):
   - no `gh`
   - no GitHub API calls
@@ -50,6 +51,9 @@ Provide minimum operating context for M41 GitHub-linked project/repo identity ma
   - `python -m aresforge inspect-managed-project --project-id <id> [--registry-path <path>] [--format json|markdown]`
   - `python -m aresforge inspect-managed-repo --project-id <id> --repo-id <id> [--registry-path <path>] [--format json|markdown]`
   - `python -m aresforge inspect-managed-repo-github-link --project-id <id> --repo-id <id> [--registry-path <path>] [--inspect-local-git] [--format json|markdown]`
+  - `python -m aresforge inspect-bootstrap-status [--repo-path <path>]`
+  - `python -m aresforge plan-bootstrap [--repo-path <path>] [--format json|markdown] [--seed-sample-work]`
+  - `python -m aresforge apply-bootstrap [--repo-path <path>] [--force] [--seed-sample-work] [--format json|markdown]`
   - `python -m aresforge init-project-queue [--path <path>] [--force]`
   - `python -m aresforge add-queue-item --item-id <id> --project-id <id> --repo-id <id> --title <title> [--queue-path <path>] [--registry-path <path>] [--description <text>] [--status <status>] [--priority <priority>] [--type <type>] [--tag <tag>]... [--depends-on <item_id>]... [--blocked-by <item_id>]... [--assigned-agent <agent_id>] [--source <source>] [--notes <text>]`
   - `python -m aresforge update-queue-item --item-id <id> [--queue-path <path>] [--project-id <id>] [--repo-id <id>] [--status <status>] [--priority <priority>] [--type <type>] [--title <title>] [--description <text>] [--tag <tag>]... [--depends-on <item_id>]... [--blocked-by <item_id>]... [--assigned-agent <agent_id>] [--source <source>] [--notes <text>]`
@@ -136,6 +140,14 @@ Provide minimum operating context for M41 GitHub-linked project/repo identity ma
   - no GraphQL/REST calls
   - no network service calls
   - no live GitHub validation
+- M42 boundary confirmations:
+  - bootstrap is local-only and file-backed
+  - no GitHub API calls
+  - no `gh` calls
+  - no GraphQL/REST calls
+  - no network service calls
+  - no local/cloud/Codex/ChatGPT/Ollama calls
+  - no live GitHub discovery/validation
 - M39 boundary confirmations:
   - local-first, file-backed agent/handoff/orchestration/escalation management via Hub API and static UI
   - no `gh`, no GitHub API calls, no network services

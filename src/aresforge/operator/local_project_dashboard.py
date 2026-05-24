@@ -19,6 +19,7 @@ from aresforge.operator.local_llm_escalation import (
     generate_llm_escalation_plan,
 )
 from aresforge.operator.local_project_queue import resolve_project_queue_path
+from aresforge.operator.local_bootstrap_wizard import inspect_bootstrap_status
 from aresforge.operator.managed_project_registry_local import resolve_managed_project_registry_path
 
 KEY_DOCS: tuple[str, ...] = (
@@ -205,6 +206,7 @@ def _operator_workflows() -> list[dict[str, Any]]:
 
 def summarize_local_project_dashboard(config: AppConfig) -> dict[str, Any]:
     warnings: list[str] = []
+    bootstrap_status = inspect_bootstrap_status(config, repo_path=config.repo_root)
 
     registry_path = resolve_managed_project_registry_path(config.repo_root, None)
     queue_path = resolve_project_queue_path(config.repo_root, None)
@@ -483,6 +485,8 @@ def summarize_local_project_dashboard(config: AppConfig) -> dict[str, Any]:
         recommended_next_actions.append("Link projects to GitHub owner/repo/url metadata.")
     if github_summary["missing_primary_repo_count"] > 0:
         recommended_next_actions.append("Assign primary repo IDs for projects with repos.")
+    if not bool(bootstrap_status.get("bootstrap_ready", False)):
+        recommended_next_actions.append("Complete first-run Bootstrap/Setup to initialize local control-plane state.")
     if not recommended_next_actions:
         recommended_next_actions.append("Review reports and continue local plan-only workflows.")
 
@@ -499,6 +503,7 @@ def summarize_local_project_dashboard(config: AppConfig) -> dict[str, Any]:
             and github_summary["unlinked_repo_count"] == 0
             and github_summary["missing_primary_repo_count"] == 0
         ),
+        "bootstrap_ready": bool(bootstrap_status.get("bootstrap_ready", False)),
         "hub_ready": False,
         "overall_status": "needs_attention",
     }
@@ -527,6 +532,8 @@ def summarize_local_project_dashboard(config: AppConfig) -> dict[str, Any]:
         "human_required_items": escalation_counts["human_required_count"],
         "missing_docs": missing_docs,
         "missing_local_state_files": missing_local_state_files,
+        "bootstrap_missing_files": list(bootstrap_status.get("missing_files", [])),
+        "bootstrap_recommended_actions": list(bootstrap_status.get("recommended_next_actions", [])),
         "projects_missing_github_link": projects_missing_github_link,
         "projects_missing_primary_repo": missing_primary_repo_projects,
         "repos_missing_github_identity": repos_missing_github_link,
@@ -597,6 +604,15 @@ def summarize_local_project_dashboard(config: AppConfig) -> dict[str, Any]:
         "warnings": sorted(set(warnings)),
         "risks": risks,
         "recommended_next_actions": recommended_next_actions,
+        "bootstrap_ready": bool(bootstrap_status.get("bootstrap_ready", False)),
+        "bootstrap_missing_files": list(bootstrap_status.get("missing_files", [])),
+        "bootstrap_recommended_actions": list(bootstrap_status.get("recommended_next_actions", [])),
+        "first_run_ready": bool(bootstrap_status.get("bootstrap_ready", False)),
+        "setup_next_action": (
+            list(bootstrap_status.get("recommended_next_actions", []))[0]
+            if list(bootstrap_status.get("recommended_next_actions", []))
+            else "Continue local operator workflows."
+        ),
         "operator_workflows": _operator_workflows(),
         "boundary_confirmations": boundary_confirmations,
         "paths": {

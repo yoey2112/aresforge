@@ -3,6 +3,8 @@ from pathlib import Path
 
 from aresforge.config import AppConfig
 from aresforge.hub.api import (
+    get_bootstrap_plan,
+    get_bootstrap_status,
     get_agent,
     get_agents,
     get_docs_status,
@@ -27,6 +29,7 @@ from aresforge.hub.api import (
     get_summary,
     patch_queue_item,
     post_agent,
+    post_bootstrap_apply,
     post_escalation_plan,
     post_handoff_target,
     post_orchestration_plan,
@@ -38,6 +41,7 @@ from aresforge.hub.api import (
 
 NAV_LABELS = [
     "Home",
+    "Bootstrap",
     "Projects",
     "Repos",
     "Queue",
@@ -193,6 +197,10 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "GitHub Repo" in index_text
     assert "Inspect local git during save" in index_text
     assert "Inspect Local Git Link For Repo ID" in index_text
+    assert "Bootstrap Setup" in index_text
+    assert "Apply Bootstrap" in index_text
+    assert "Seed sample work queue" in index_text
+    assert "Force overwrite where safe" in index_text
 
 
 def test_app_js_references_m39_api_endpoints_and_forms() -> None:
@@ -201,6 +209,9 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
         "/api/projects",
         "/api/projects/",
         "/github-link",
+        "/api/bootstrap/status",
+        "/api/bootstrap/plan",
+        "/api/bootstrap/apply",
         "/api/queue",
         "/api/settings",
         "/api/agents",
@@ -227,6 +238,9 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
     ):
         assert form_id in app_text
     for action_id in (
+        "bootstrap-refresh-status",
+        "bootstrap-refresh-plan",
+        "bootstrap-apply",
         "reports-refresh",
         "reports-copy-json",
         "reports-export-json",
@@ -236,6 +250,28 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
         "home-refresh-summary",
     ):
         assert action_id in app_text
+
+
+def test_bootstrap_api_status_plan_apply(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+
+    status = get_bootstrap_status(config)
+    assert status["ok"] is True
+    assert status["local_only"] is True
+    assert "boundary_confirmations" in status
+
+    plan = get_bootstrap_plan(config, {"seed_sample_work": "true"})
+    assert plan["ok"] is True
+    assert plan["plan_only"] is True
+    assert "actions" in plan
+    assert "boundary_confirmations" in plan
+
+    applied = post_bootstrap_apply(config, {"force": False, "seed_sample_work": True})
+    assert applied["ok"] is True
+    assert applied["local_only"] is True
+    assert "warnings" in applied
+    assert "boundary_confirmations" in applied
+    assert "m43-hub-stabilization" in applied["seeded_queue_items"]
 
 
 def test_reports_and_settings_sections_contain_m40_concepts() -> None:

@@ -31,6 +31,11 @@ from aresforge.operator.local_agent_profiles import (
 from aresforge.operator.local_handoff_package import generate_handoff_package
 from aresforge.operator.local_agent_orchestration import generate_agent_orchestration_plan
 from aresforge.operator.local_llm_escalation import generate_llm_escalation_plan
+from aresforge.operator.local_bootstrap_wizard import (
+    apply_bootstrap,
+    inspect_bootstrap_status,
+    plan_bootstrap,
+)
 from aresforge.operator.managed_project_registry_local import (
     PROJECT_STATUSES,
     REPO_ROLES,
@@ -383,6 +388,90 @@ def get_summary(config: AppConfig) -> dict[str, Any]:
         {
             "ok": True,
             "service": SERVICE_NAME,
+        }
+    )
+    return payload
+
+
+def get_bootstrap_status(config: AppConfig) -> dict[str, Any]:
+    payload = inspect_bootstrap_status(config, repo_path=config.repo_root)
+    payload.update(
+        {
+            "service": SERVICE_NAME,
+            "local_only": True,
+            "warnings": payload.get("warnings", []),
+            "boundary_confirmations": list(
+                dict.fromkeys(list(payload.get("boundary_confirmations", [])) + list(_BOUNDARY_CONFIRMATIONS))
+            ),
+        }
+    )
+    return payload
+
+
+def get_bootstrap_plan(config: AppConfig, params: dict[str, str | None]) -> dict[str, Any]:
+    seed_value = str(params.get("seed_sample_work") or "false").strip().lower()
+    seed_sample_work = seed_value in {"1", "true", "yes", "on"}
+    result = plan_bootstrap(
+        config,
+        repo_path=config.repo_root,
+        seed_sample_work=seed_sample_work,
+        output_format="json",
+    )
+    if not result.get("ok", False):
+        details = dict(result.get("details", {}))
+        return _api_error(
+            str(result.get("error", "bootstrap_plan_failed")),
+            str(details.get("message", "Failed to generate bootstrap plan.")),
+            details=details,
+        )
+    payload = result.get("payload", {}) if isinstance(result.get("payload"), dict) else {}
+    payload.update(
+        {
+            "ok": True,
+            "service": SERVICE_NAME,
+            "local_only": True,
+            "plan_only": True,
+            "warnings": payload.get("warnings", []),
+            "boundary_confirmations": list(
+                dict.fromkeys(list(payload.get("boundary_confirmations", [])) + list(_BOUNDARY_CONFIRMATIONS))
+            ),
+        }
+    )
+    return payload
+
+
+def post_bootstrap_apply(config: AppConfig, body: dict[str, Any]) -> dict[str, Any]:
+    valid_force, force_error = _require_boolean_field(body, "force")
+    if not valid_force:
+        return force_error or _api_error("invalid_force", "force must be a boolean value.")
+    valid_seed, seed_error = _require_boolean_field(body, "seed_sample_work")
+    if not valid_seed:
+        return seed_error or _api_error("invalid_seed_sample_work", "seed_sample_work must be a boolean value.")
+
+    result = apply_bootstrap(
+        config,
+        repo_path=config.repo_root,
+        force=bool(body.get("force", False)),
+        seed_sample_work=bool(body.get("seed_sample_work", False)),
+        output_format="json",
+    )
+    if not result.get("ok", False):
+        details = dict(result.get("details", {}))
+        return _api_error(
+            str(result.get("error", "bootstrap_apply_failed")),
+            str(details.get("message", "Failed to apply bootstrap.")),
+            details=details,
+        )
+    payload = result.get("payload", {}) if isinstance(result.get("payload"), dict) else {}
+    payload.update(
+        {
+            "ok": True,
+            "service": SERVICE_NAME,
+            "local_only": True,
+            "warnings": payload.get("warnings", []),
+            "boundary_confirmations": list(
+                dict.fromkeys(list(payload.get("boundary_confirmations", [])) + list(_BOUNDARY_CONFIRMATIONS))
+            ),
         }
     )
     return payload
