@@ -80,6 +80,13 @@ def generate_pr_evidence_bundle(
         pr_number=pr_number,
     )
     canonical_marker_text = str(canonical.get("canonical_marker_text") or "")
+    canonical_marker = canonical.get("canonical_marker") if isinstance(canonical.get("canonical_marker"), dict) else {}
+    missing_fields = canonical_marker.get("missing_required_fields")
+    invalid_reasons = canonical_marker.get("invalid_reasons")
+    missing_fields_list = list(missing_fields) if isinstance(missing_fields, (list, tuple)) else []
+    invalid_reasons_list = list(invalid_reasons) if isinstance(invalid_reasons, (list, tuple)) else []
+    marker_state = canonical_marker.get("marker_state") if isinstance(canonical_marker.get("marker_state"), str) else "unknown"
+    marker_complete = marker_state == "ready" and not missing_fields_list and not invalid_reasons_list
 
     pr_body_text = render_evidence_bundle_text(
         EvidenceBundleInput(
@@ -126,8 +133,15 @@ def generate_pr_evidence_bundle(
             "merge_commit": pr.get("merge_commit"),
             "files_changed": list(files_lines),
         },
-        "canonical_marker": canonical.get("canonical_marker"),
+        "canonical_marker": canonical_marker,
         "canonical_marker_text": canonical_marker_text,
+        "canonical_marker_completeness": {
+            "state": marker_state,
+            "missing_required_fields": missing_fields_list,
+            "invalid_reasons": invalid_reasons_list,
+            "marker_complete": marker_complete,
+            "post_hoc_marker_repair_required": not marker_complete,
+        },
         "pr_body_text": pr_body_text,
         "targeted_pr_update_guidance": [
             f"1. Save reviewed body text to a local file for PR #{pr_number} (for example artifacts/pr-{pr_number}-body.md).",
