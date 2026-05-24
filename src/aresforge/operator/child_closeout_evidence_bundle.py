@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from aresforge.config import AppConfig
+from aresforge.operator.child_evidence_marker_template import generate_child_evidence_marker_template
 from aresforge.operator.evidence_bundle import EvidenceBundleInput, render_evidence_bundle_text
 from aresforge.operator.ready_issue_intake import fetch_issue_details
 from aresforge.operator.validation_summary import ValidationEntryInput, build_validation_summary
@@ -57,7 +58,15 @@ def generate_child_closeout_evidence_bundle(
             "- Do not close multiple issues in one command.",
         ),
     )
+    canonical = generate_child_evidence_marker_template(
+        config,
+        parent_issue=parent_issue,
+        child_issue=child_issue,
+    )
+    canonical_marker_text = str(canonical.get("canonical_marker_text") or "")
     evidence_comment_body = render_evidence_bundle_text(bundle)
+    evidence_comment_body += "\n### Canonical Marker\n\n"
+    evidence_comment_body += canonical_marker_text if canonical_marker_text else "<missing>\n"
 
     return {
         "command": COMMAND_NAME,
@@ -68,6 +77,8 @@ def generate_child_closeout_evidence_bundle(
         "child_state": issue.get("state"),
         "child_title": issue.get("title"),
         "child_url": issue.get("url"),
+        "canonical_marker": canonical.get("canonical_marker"),
+        "canonical_marker_text": canonical_marker_text,
         "evidence_comment_body": evidence_comment_body,
         "expected_validation_summary_section": list(bundle.validation_lines),
         "targeted_closeout_guidance": [

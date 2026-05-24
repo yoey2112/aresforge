@@ -14,6 +14,7 @@ from aresforge.operator.lineage_mapping_signals import (
     aggregate_lineage_mapping_signals,
 )
 from aresforge.operator.milestone_state_inspector import inspect_milestone_state
+from aresforge.operator.canonical_evidence_markers import parse_canonical_evidence_marker
 from aresforge.operator.ready_issue_intake import fetch_issue_details
 
 
@@ -111,15 +112,30 @@ def _inspect_child(
     )
     combined = f"{body}\n{joined_comments}"
 
-    markers = {
-        "evidence_marker": bool(_EVIDENCE_MARKER_PATTERN.search(combined)),
-        "branch": bool(_BRANCH_PATTERN.search(combined)),
-        "commit": bool(_COMMIT_PATTERN.search(combined)),
-        "pr": bool(_PR_PATTERN.search(combined)),
-        "validation": bool(_VALIDATION_PATTERN.search(combined)),
-        "safety_notes": bool(_SAFETY_PATTERN.search(combined)),
-    }
-    missing_fields = sorted(name for name, present in markers.items() if not present)
+    canonical = _extract_canonical_child_marker(combined)
+
+    if canonical is not None:
+        markers = {
+            "evidence_marker": True,
+            "branch": _has_required(canonical.get("required_fields"), "branch"),
+            "commit": _has_required(canonical.get("required_fields"), "commit"),
+            "pr": _has_required(canonical.get("required_fields"), "pr"),
+            "validation": _has_required(canonical.get("required_fields"), "validation_summary"),
+            "safety_notes": _has_required(canonical.get("required_fields"), "safety_notes"),
+        }
+        missing_fields = sorted(name for name, present in markers.items() if not present)
+        marker_source = "canonical_marker"
+    else:
+        markers = {
+            "evidence_marker": bool(_EVIDENCE_MARKER_PATTERN.search(combined)),
+            "branch": bool(_BRANCH_PATTERN.search(combined)),
+            "commit": bool(_COMMIT_PATTERN.search(combined)),
+            "pr": bool(_PR_PATTERN.search(combined)),
+            "validation": bool(_VALIDATION_PATTERN.search(combined)),
+            "safety_notes": bool(_SAFETY_PATTERN.search(combined)),
+        }
+        missing_fields = sorted(name for name, present in markers.items() if not present)
+        marker_source = "legacy_pattern_scan"
 
     warnings: list[str] = []
     if not bool(payload.get("ok")):
@@ -167,6 +183,7 @@ def _inspect_child(
             "issue_number": issue_number,
             "title": title,
             "state": state,
+            "marker_source": marker_source,
             "signal_status": status,
             "signal_case": signal_case,
             "markers": markers,
@@ -174,6 +191,20 @@ def _inspect_child(
         },
         warnings,
     )
+
+
+def _extract_canonical_child_marker(text: str) -> dict[str, Any] | None:
+    marker = parse_canonical_evidence_marker(text).to_dict()
+    if marker.get("marker_type") != "child_evidence":
+        return None
+    return marker
+
+
+def _has_required(required_fields: Any, field_name: str) -> bool:
+    if not isinstance(required_fields, dict):
+        return False
+    value = required_fields.get(field_name)
+    return isinstance(value, str) and bool(value.strip())
 
 
 def _required_actions(*, aggregate: dict[str, Any]) -> list[str]:

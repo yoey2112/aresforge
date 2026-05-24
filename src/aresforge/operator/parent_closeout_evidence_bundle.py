@@ -6,6 +6,7 @@ from aresforge.config import AppConfig
 from aresforge.operator.evidence_bundle import EvidenceBundleInput, render_evidence_bundle_text
 from aresforge.operator.evidence_completeness_checker import check_milestone_evidence_readiness
 from aresforge.operator.milestone_state_inspector import inspect_milestone_state
+from aresforge.operator.parent_closeout_marker_template import generate_parent_closeout_marker_template
 from aresforge.operator.parent_closeout_readiness import inspect_parent_closeout_readiness
 from aresforge.operator.validation_summary import ValidationEntryInput, build_validation_summary
 
@@ -74,6 +75,12 @@ def generate_parent_closeout_evidence_bundle(config: AppConfig, *, parent_issue:
             ),
         ]
     )
+    canonical = generate_parent_closeout_marker_template(
+        config,
+        parent_issue=parent_issue,
+    )
+    canonical_marker_text = str(canonical.get("canonical_marker_text") or "")
+
     evidence_comment_body = render_evidence_bundle_text(
         EvidenceBundleInput(
             summary_lines=(
@@ -105,6 +112,8 @@ def generate_parent_closeout_evidence_bundle(config: AppConfig, *, parent_issue:
             ),
         )
     )
+    evidence_comment_body += "\n### Canonical Marker\n\n"
+    evidence_comment_body += canonical_marker_text if canonical_marker_text else "<missing>\n"
 
     return {
         "command": COMMAND_NAME,
@@ -127,6 +136,8 @@ def generate_parent_closeout_evidence_bundle(config: AppConfig, *, parent_issue:
             "parent_closeout_ready": parent_closeout_ready,
             "blocked_reasons": blocked_reasons,
         },
+        "canonical_marker": canonical.get("canonical_marker"),
+        "canonical_marker_text": canonical_marker_text,
         "parent_evidence_comment_body": evidence_comment_body,
         "targeted_parent_closeout_guidance": _targeted_guidance(
             parent_issue=parent_issue,

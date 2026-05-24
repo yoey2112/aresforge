@@ -45,6 +45,8 @@ def test_generate_child_closeout_evidence_bundle_is_read_only(monkeypatch, tmp_p
     assert payload["parent_issue"] == 362
     assert payload["child_issue"] == 365
     assert "### Validation" in payload["evidence_comment_body"]
+    assert "### Canonical Marker" in payload["evidence_comment_body"]
+    assert payload["canonical_marker"]["marker_type"] == "child_evidence"
     assert "### Safety posture" in payload["evidence_comment_body"]
     assert "```" not in payload["evidence_comment_body"]
 

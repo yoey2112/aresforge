@@ -66,6 +66,8 @@ def test_generate_pr_evidence_bundle_dry_run(monkeypatch, tmp_path: Path) -> Non
     assert "### Validation" in payload["pr_body_text"]
     assert "### Safety posture" in payload["pr_body_text"]
     assert "### Notes/warnings" in payload["pr_body_text"]
+    assert "### Canonical Marker" in payload["pr_body_text"]
+    assert payload["canonical_marker"]["marker_type"] == "pr_evidence"
     assert "gh pr edit 376 --body-file artifacts/pr-376-body.md" in payload["targeted_pr_update_guidance"][1]
 
 

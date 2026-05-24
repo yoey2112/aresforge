@@ -168,6 +168,7 @@ def _inspect_child(
             "normalized_merge_status": mapping.get("merge_status"),
             "normalized_evidence_status": mapping.get("evidence_status"),
             "mapping_source": mapping.get("source"),
+            "canonical_preferred": mapping.get("source") == "canonical_marker",
             "signal_status": status,
             "signal_case": signal_case,
             "mapping_state": mapping_state,

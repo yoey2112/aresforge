@@ -119,3 +119,49 @@ def test_child_evidence_marker_preflight_incomplete(monkeypatch, tmp_path: Path)
     assert payload["evidence_summary"]["aggregate_state"] == "warning"
     assert "evidence.child_marker.385:incomplete" in payload["warning_reasons"]
     assert set(payload["children"][0]["missing_fields"]) == {"commit", "safety_notes", "validation"}
+
+
+def test_child_evidence_marker_preflight_prefers_canonical_marker_when_present(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    config = _config(tmp_path)
+    canonical = "\n".join(
+        [
+            "[ARESFORGE_CANONICAL_EVIDENCE_MARKER]",
+            "marker_type: child_evidence",
+            "marker_state: ready",
+            "required.parent_issue: #381",
+            "required.child_issue: #385",
+            "required.branch: m24-385",
+            "required.commit: abc1234",
+            "required.pr: #393",
+            "required.validation_summary: pytest pass",
+            "required.safety_notes: read-only",
+            "missing_required_fields: <none>",
+            "invalid_reasons: <none>",
+            "[/ARESFORGE_CANONICAL_EVIDENCE_MARKER]",
+        ]
+    )
+    monkeypatch.setattr(
+        child_evidence_marker_preflight,
+        "inspect_milestone_state",
+        lambda _config, parent_issue: {
+            "ok": True,
+            "parent_issue": {"issue_number": parent_issue, "state": "OPEN"},
+            "child_issues": [{"issue_number": 385, "title": "evidence", "state": "OPEN"}],
+        },
+    )
+    monkeypatch.setattr(
+        child_evidence_marker_preflight,
+        "fetch_issue_details",
+        lambda _config, issue_number: {
+            "ok": True,
+            "issue": {"number": issue_number, "body": canonical, "comments": []},
+        },
+    )
+
+    payload = child_evidence_marker_preflight.inspect_child_evidence_marker_preflight(config, parent_issue=381)
+
+    assert payload["evidence_summary"]["aggregate_state"] == "ready"
+    assert payload["children"][0]["marker_source"] == "canonical_marker"

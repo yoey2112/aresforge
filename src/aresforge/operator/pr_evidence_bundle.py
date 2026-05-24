@@ -72,6 +72,15 @@ def generate_pr_evidence_bundle(
         ]
     )
 
+    from aresforge.operator.pr_evidence_marker_template import generate_pr_evidence_marker_template
+
+    canonical = generate_pr_evidence_marker_template(
+        config,
+        issue_number=issue_number,
+        pr_number=pr_number,
+    )
+    canonical_marker_text = str(canonical.get("canonical_marker_text") or "")
+
     pr_body_text = render_evidence_bundle_text(
         EvidenceBundleInput(
             summary_lines=(
@@ -96,6 +105,8 @@ def generate_pr_evidence_bundle(
             ),
         )
     )
+    pr_body_text += "\n### Canonical Marker\n\n"
+    pr_body_text += canonical_marker_text if canonical_marker_text else "<missing>\n"
 
     return {
         "command": COMMAND_NAME,
@@ -115,6 +126,8 @@ def generate_pr_evidence_bundle(
             "merge_commit": pr.get("merge_commit"),
             "files_changed": list(files_lines),
         },
+        "canonical_marker": canonical.get("canonical_marker"),
+        "canonical_marker_text": canonical_marker_text,
         "pr_body_text": pr_body_text,
         "targeted_pr_update_guidance": [
             f"1. Save reviewed body text to a local file for PR #{pr_number} (for example artifacts/pr-{pr_number}-body.md).",

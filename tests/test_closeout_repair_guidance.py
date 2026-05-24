@@ -71,6 +71,7 @@ def test_generate_closeout_preflight_repair_guidance_sections_and_read_only(
     assert "child_repair" in payload["guidance"]
     assert "pr_mapping_repair" in payload["guidance"]
     assert "evidence_marker_repair" in payload["guidance"]
+    assert "canonical_marker_repair" in payload["guidance"]
 
 
 def test_generate_closeout_preflight_repair_guidance_is_copy_paste_safe_text(
@@ -102,6 +103,7 @@ def test_generate_closeout_preflight_repair_guidance_is_copy_paste_safe_text(
 
     assert "```" not in text
     assert "PowerShell example" in text
+    assert "Generate canonical child marker templates" in text
     assert "guidance only, no mutation executed" in text
 
 
