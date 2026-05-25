@@ -2073,6 +2073,232 @@ def render_move_work_item_queue_markdown(payload: dict[str, Any]) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
+def _map_execution_dossier_status(
+    *,
+    work_item: dict[str, Any] | None,
+    readiness_status: str,
+    roadmap_links: list[dict[str, Any]],
+) -> str:
+    if work_item is None:
+        return "missing"
+    work_item_status = work_item.get("status")
+    if work_item_status == "cancelled" or any(
+        link.get("roadmap_task_status") == "cancelled" for link in roadmap_links
+    ):
+        return "cancelled"
+    if work_item_status == "complete":
+        return "complete"
+    if work_item_status == "active":
+        return "active"
+    if readiness_status == "blocked":
+        return "blocked"
+    if readiness_status == "ready":
+        return "ready_to_start"
+    return "not_ready"
+
+
+def build_work_item_execution_dossier(conn: Connection, work_item_id: str) -> dict[str, Any]:
+    readiness = inspect_work_item_readiness(conn, work_item_id)
+    lifecycle = inspect_work_item_lifecycle(conn, work_item_id)
+    work_item = readiness.get("work_item")
+    readiness_status = str(readiness.get("readiness_status") or "missing")
+    roadmap_links = list(readiness.get("roadmap_links") or [])
+    project_id = (
+        readiness.get("project_id")
+        or (work_item or {}).get("project_id")
+        or DEFAULT_PROJECT_ID
+    )
+    dossier_status = _map_execution_dossier_status(
+        work_item=work_item,
+        readiness_status=readiness_status,
+        roadmap_links=roadmap_links,
+    )
+    blockers = list(readiness.get("blockers") or [])
+    warnings = list(readiness.get("warnings") or [])
+    current_queue = None
+    queue_transition_options: list[dict[str, Any]] = []
+    if work_item is not None:
+        current_queue_id = work_item.get("queue_id")
+        if current_queue_id:
+            current_queue = inspect_queue(conn, current_queue_id)
+            allowed_next_queues = sorted(list(work_item.get("queue_allowed_next_queues") or []))
+            for target_queue_id in allowed_next_queues:
+                plan = plan_work_item_queue_transition(conn, work_item_id, target_queue_id)
+                queue_transition_options.append(
+                    {
+                        "target_queue_id": target_queue_id,
+                        "can_transition": bool(plan.get("can_transition")),
+                        "transition_status": plan.get("transition_status"),
+                        "reason": plan.get("reason"),
+                        "next_safe_action": plan.get("next_safe_action"),
+                    }
+                )
+
+    roadmap_tasks = [
+        {
+            "roadmap_task_id": link.get("roadmap_task_id"),
+            "roadmap_task_title": link.get("roadmap_task_title"),
+            "roadmap_task_status": link.get("roadmap_task_status"),
+            "link_status": link.get("status"),
+        }
+        for link in sorted(roadmap_links, key=lambda row: (str(row.get("roadmap_task_id") or ""), str(row.get("id") or "")))
+    ]
+    dependency_summary = readiness.get("dependency_summary") or {
+        "total_dependencies": 0,
+        "unsatisfied_dependencies": [],
+    }
+    lifecycle_roadmap_events = list(lifecycle.get("roadmap_events") or []) if bool(lifecycle.get("ok")) else []
+    lifecycle_audit_events = list(lifecycle.get("audit_events") or []) if bool(lifecycle.get("ok")) else []
+    related_events = {
+        "audit_event_count": len(lifecycle_audit_events),
+        "roadmap_event_count": len(lifecycle_roadmap_events),
+        "audit_events": lifecycle_audit_events,
+        "roadmap_events": lifecycle_roadmap_events,
+    }
+
+    next_safe_action = str(readiness.get("next_safe_action") or "Inspect work item lifecycle and readiness.")
+    if dossier_status == "active":
+        next_safe_action = "Inspect queue readiness or continue work item lifecycle."
+    elif dossier_status in ("complete", "cancelled"):
+        next_safe_action = "No action required unless reopening is approved."
+
+    title = (work_item or {}).get("title") or "Unknown work item"
+    queue_id = (work_item or {}).get("queue_id") or "none"
+    dependency_line = "No unsatisfied roadmap dependencies."
+    unsatisfied = list(dependency_summary.get("unsatisfied_dependencies") or [])
+    if unsatisfied:
+        dependency_line = f"Unsatisfied roadmap dependencies: {len(unsatisfied)}."
+    status_line = f"Work item is {dossier_status.replace('_', ' ')}."
+    if dossier_status == "active" and queue_id != "none":
+        status_line = f"Work item is active in {queue_id}."
+    operator_summary = {
+        "title": title,
+        "status_line": status_line,
+        "queue_line": f"Current queue: {queue_id}.",
+        "readiness_line": f"Readiness is {readiness_status}.",
+        "dependency_line": dependency_line,
+        "event_line": (
+            f"Related events: {related_events['audit_event_count']} audit, "
+            f"{related_events['roadmap_event_count']} roadmap."
+        ),
+        "recommended_next_step": f"Next safe action: {next_safe_action}",
+    }
+
+    suggested_operator_prompt = "\n".join(
+        [
+            f"Continue AresForge work item {work_item_id}.",
+            f"Title: {title}",
+            f"Current queue: {queue_id}",
+            f"Readiness status: {readiness_status}",
+            f"Dossier status: {dossier_status}",
+            f"Next safe action: {next_safe_action}",
+            "Constraints: work locally only; do not call GitHub; do not execute agents; do not implement Hub UI unless explicitly asked.",
+            "Read first: src/aresforge/db/repository.py, src/aresforge/cli.py, tests/test_roadmap_db_control.py, tests/test_cli.py, docs/context/BUILD_STATE.md",
+        ]
+    )
+
+    ok = dossier_status != "missing"
+    return {
+        "ok": ok,
+        "work_item_id": work_item_id,
+        "project_id": project_id,
+        "dossier_status": dossier_status,
+        "next_safe_action": next_safe_action,
+        "warnings": warnings,
+        "blockers": blockers,
+        "work_item": work_item,
+        "readiness": readiness,
+        "lifecycle": lifecycle if bool(lifecycle.get("ok")) else None,
+        "current_queue": current_queue,
+        "queue_transition_options": queue_transition_options,
+        "roadmap_links": roadmap_links,
+        "roadmap_tasks": roadmap_tasks,
+        "dependency_summary": dependency_summary,
+        "related_events": related_events,
+        "operator_summary": operator_summary,
+        "suggested_operator_prompt": suggested_operator_prompt,
+    }
+
+
+def render_work_item_execution_dossier_markdown(payload: dict[str, Any]) -> str:
+    work_item = payload.get("work_item") or {}
+    readiness = payload.get("readiness") or {}
+    current_queue = payload.get("current_queue") or {}
+    dependency_summary = payload.get("dependency_summary") or {}
+    lines = [
+        "# Work Item Execution Dossier",
+        "",
+        f"- Work item ID: `{payload.get('work_item_id', '')}`",
+        f"- Dossier status: `{payload.get('dossier_status', '')}`",
+        f"- Work item status: `{work_item.get('status', 'missing')}`",
+        f"- Current queue: `{work_item.get('queue_id') or current_queue.get('id', 'none')}`",
+        f"- Readiness status: `{readiness.get('readiness_status', 'missing')}`",
+        f"- Ready: `{readiness.get('ready', False)}`",
+        f"- Next safe action: {payload.get('next_safe_action', '')}",
+        "",
+        "## Operator Summary",
+    ]
+    summary = payload.get("operator_summary") or {}
+    if summary:
+        lines.append(f"- {summary.get('status_line', '')}")
+        lines.append(f"- {summary.get('queue_line', '')}")
+        lines.append(f"- {summary.get('readiness_line', '')}")
+        lines.append(f"- {summary.get('dependency_line', '')}")
+        lines.append(f"- {summary.get('event_line', '')}")
+        lines.append(f"- {summary.get('recommended_next_step', '')}")
+    else:
+        lines.append("- none")
+    lines.extend(["", "## Blockers"])
+    blockers = payload.get("blockers", [])
+    if blockers:
+        for blocker in blockers:
+            lines.append(f"- `{blocker.get('code', 'unknown')}` {json.dumps(blocker, sort_keys=True)}")
+    else:
+        lines.append("- none")
+    lines.extend(["", "## Warnings"])
+    warnings = payload.get("warnings", [])
+    if warnings:
+        for warning in warnings:
+            lines.append(f"- `{warning.get('code', 'warning')}` {json.dumps(warning, sort_keys=True)}")
+    else:
+        lines.append("- none")
+    lines.extend(["", "## Roadmap Links"])
+    roadmap_links = payload.get("roadmap_links", [])
+    if roadmap_links:
+        for link in roadmap_links:
+            lines.append(
+                f"- task=`{link.get('roadmap_task_id', '')}` title=`{link.get('roadmap_task_title', '')}` task_status=`{link.get('roadmap_task_status', '')}`"
+            )
+    else:
+        lines.append("- none")
+    lines.extend(["", "## Dependencies"])
+    lines.append(f"- Total dependencies: `{dependency_summary.get('total_dependencies', 0)}`")
+    unsatisfied = dependency_summary.get("unsatisfied_dependencies", [])
+    if unsatisfied:
+        for dep in unsatisfied:
+            lines.append(
+                f"- task=`{dep.get('task_id', '')}` depends_on=`{dep.get('depends_on_task_id', '')}` status=`{dep.get('status', '')}`"
+            )
+    else:
+        lines.append("- Unsatisfied dependencies: none")
+    lines.extend(["", "## Queue Transition Options"])
+    options = payload.get("queue_transition_options", [])
+    if options:
+        for option in options:
+            lines.append(
+                f"- target=`{option.get('target_queue_id', '')}` can_transition=`{option.get('can_transition', False)}` status=`{option.get('transition_status', '')}` reason=`{option.get('reason', '')}` next=`{option.get('next_safe_action', '')}`"
+            )
+    else:
+        lines.append("- none")
+    lines.extend(["", "## Related Events"])
+    related_events = payload.get("related_events") or {}
+    lines.append(f"- Audit events: `{related_events.get('audit_event_count', 0)}`")
+    lines.append(f"- Roadmap events: `{related_events.get('roadmap_event_count', 0)}`")
+    lines.extend(["", "## Suggested Operator Prompt"])
+    lines.append(payload.get("suggested_operator_prompt", ""))
+    return "\n".join(lines).rstrip() + "\n"
+
+
 def inspect_state(conn: Connection) -> dict[str, Any]:
     with conn.cursor() as cur:
         counts: dict[str, int] = {}

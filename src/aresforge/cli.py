@@ -32,6 +32,7 @@ from aresforge.db.repository import (
     inspect_queue_readiness,
     inspect_work_item_readiness,
     inspect_work_item_lifecycle,
+    build_work_item_execution_dossier,
     start_work_item_if_ready,
     plan_work_item_queue_transition,
     move_work_item_queue_if_allowed,
@@ -42,6 +43,7 @@ from aresforge.db.repository import (
     render_queue_work_state_markdown,
     render_work_item_readiness_markdown,
     render_work_item_lifecycle_markdown,
+    render_work_item_execution_dossier_markdown,
     render_start_work_item_markdown,
     render_work_item_queue_transition_plan_markdown,
     render_move_work_item_queue_markdown,
@@ -402,6 +404,16 @@ def build_parser() -> argparse.ArgumentParser:
     )
     inspect_work_item_lifecycle_parser.add_argument("--work-item-id", required=True)
     inspect_work_item_lifecycle_parser.add_argument(
+        "--format",
+        choices=("json", "markdown"),
+        default="json",
+    )
+    build_execution_dossier_parser = subparsers.add_parser(
+        "build-work-item-execution-dossier",
+        help="Build a read-only local execution dossier for one work item.",
+    )
+    build_execution_dossier_parser.add_argument("--work-item-id", required=True)
+    build_execution_dossier_parser.add_argument(
         "--format",
         choices=("json", "markdown"),
         default="json",
@@ -2161,6 +2173,15 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         emit_json(payload)
         return 0
+
+    if args.command == "build-work-item-execution-dossier":
+        with connect(config) as conn:
+            payload = build_work_item_execution_dossier(conn, args.work_item_id)
+        if args.format == "markdown":
+            print(render_work_item_execution_dossier_markdown(payload))
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
 
     if args.command == "inspect-queue-work-state":
         with connect(config) as conn:

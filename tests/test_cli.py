@@ -40,6 +40,7 @@ def test_cli_has_expected_commands() -> None:
         "plan-work-item-queue-transition",
         "move-work-item-queue",
         "inspect-work-item-lifecycle",
+        "build-work-item-execution-dossier",
         "inspect-queue-work-state",
         "inspect-work-item-readiness",
         "inspect-queue-readiness",
@@ -4010,6 +4011,51 @@ def test_inspect_work_item_readiness_dispatch_json(
     payload = json.loads(capsys.readouterr().out)
     assert exit_code == 0
     assert payload == readiness_payload
+
+
+def test_build_work_item_execution_dossier_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    dossier_payload = {
+        "ok": True,
+        "work_item_id": "work-1",
+        "dossier_status": "active",
+        "next_safe_action": "Inspect queue readiness or continue work item lifecycle.",
+    }
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(cli, "build_work_item_execution_dossier", lambda _conn, _work_item_id: dossier_payload)
+
+    exit_code = cli.main(
+        ["build-work-item-execution-dossier", "--work-item-id", "work-1", "--format", "json"]
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload == dossier_payload
+
+
+def test_build_work_item_execution_dossier_dispatch_markdown(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    dossier_payload = {
+        "ok": False,
+        "work_item_id": "work-missing",
+        "dossier_status": "missing",
+        "next_safe_action": "Create or inspect the local work item before starting.",
+    }
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(cli, "build_work_item_execution_dossier", lambda _conn, _work_item_id: dossier_payload)
+    monkeypatch.setattr(
+        cli,
+        "render_work_item_execution_dossier_markdown",
+        lambda _payload: "# Work Item Execution Dossier\n",
+    )
+
+    exit_code = cli.main(
+        ["build-work-item-execution-dossier", "--work-item-id", "work-missing", "--format", "markdown"]
+    )
+    output = capsys.readouterr().out
+    assert exit_code == 1
+    assert output == "# Work Item Execution Dossier\n\n"
 
 
 def test_inspect_queue_readiness_dispatch_markdown(

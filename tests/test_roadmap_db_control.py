@@ -14,6 +14,7 @@ from aresforge.db.repository import (
     inspect_work_item_readiness,
     move_work_item_queue_if_allowed,
     plan_work_item_queue_transition,
+    build_work_item_execution_dossier,
     render_start_work_item_markdown,
     render_move_work_item_queue_markdown,
     render_queue_work_state_markdown,
@@ -22,6 +23,7 @@ from aresforge.db.repository import (
     render_work_item_queue_transition_plan_markdown,
     render_work_item_readiness_markdown,
     render_work_item_lifecycle_markdown,
+    render_work_item_execution_dossier_markdown,
     render_roadmap_markdown,
     render_roadmap_work_item_links_markdown,
     start_work_item_if_ready,
@@ -434,6 +436,18 @@ def test_cli_parser_recognizes_roadmap_commands_and_formats() -> None:
     assert move_queue_markdown_args.details_file == "details.json"
     assert move_queue_markdown_args.format == "markdown"
 
+    dossier_json_args = parser.parse_args(
+        ["build-work-item-execution-dossier", "--work-item-id", "work-1", "--format", "json"]
+    )
+    assert dossier_json_args.command == "build-work-item-execution-dossier"
+    assert dossier_json_args.format == "json"
+
+    dossier_markdown_args = parser.parse_args(
+        ["build-work-item-execution-dossier", "--work-item-id", "work-1", "--format", "markdown"]
+    )
+    assert dossier_markdown_args.command == "build-work-item-execution-dossier"
+    assert dossier_markdown_args.format == "markdown"
+
 
 class _MissingRoadmapTaskCursor:
     def __enter__(self) -> _MissingRoadmapTaskCursor:
@@ -759,6 +773,180 @@ def test_render_move_work_item_queue_markdown_is_deterministic() -> None:
     assert "- Previous queue: `queue-planning`" in markdown
     assert "- New queue: `queue-triage`" in markdown
 
+
+def test_render_work_item_execution_dossier_markdown_is_deterministic() -> None:
+    payload = {
+        "ok": True,
+        "work_item_id": "work-1",
+        "dossier_status": "active",
+        "next_safe_action": "Inspect queue readiness or continue work item lifecycle.",
+        "work_item": {"id": "work-1", "status": "active", "queue_id": "queue-triage"},
+        "readiness": {"readiness_status": "already_active", "ready": False},
+        "operator_summary": {
+            "status_line": "Work item is active in queue-triage.",
+            "queue_line": "Current queue: queue-triage.",
+            "readiness_line": "Readiness is already_active.",
+            "dependency_line": "No unsatisfied roadmap dependencies.",
+            "event_line": "Related events: 1 audit, 1 roadmap.",
+            "recommended_next_step": "Next safe action: Inspect queue readiness or continue work item lifecycle.",
+        },
+        "blockers": [],
+        "warnings": [],
+        "roadmap_links": [],
+        "dependency_summary": {"total_dependencies": 0, "unsatisfied_dependencies": []},
+        "queue_transition_options": [
+            {
+                "target_queue_id": "queue-blocked",
+                "can_transition": True,
+                "transition_status": "ready",
+                "reason": "transition_allowed",
+                "next_safe_action": "Move work item to target queue.",
+            }
+        ],
+        "related_events": {"audit_event_count": 1, "roadmap_event_count": 1},
+        "suggested_operator_prompt": "Continue AresForge work item work-1.",
+    }
+    markdown = render_work_item_execution_dossier_markdown(payload)
+    assert "# Work Item Execution Dossier" in markdown
+    assert "- Dossier status: `active`" in markdown
+    assert "## Queue Transition Options" in markdown
+    assert "target=`queue-blocked`" in markdown
+    assert "## Suggested Operator Prompt" in markdown
+
+
+def test_build_work_item_execution_dossier_missing_is_non_mutating(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        repository_module,
+        "inspect_work_item_readiness",
+        lambda *_args, **_kwargs: {
+            "ok": False,
+            "work_item_id": "work-missing",
+            "project_id": "project-aresforge",
+            "readiness_status": "missing",
+            "ready": False,
+            "next_safe_action": "Create or inspect the local work item before starting.",
+            "blockers": [{"code": "work_item_not_found"}],
+            "warnings": [],
+            "work_item": None,
+            "roadmap_links": [],
+            "dependency_summary": {"total_dependencies": 0, "unsatisfied_dependencies": []},
+        },
+    )
+    monkeypatch.setattr(
+        repository_module,
+        "inspect_work_item_lifecycle",
+        lambda *_args, **_kwargs: {"ok": False, "error": "work_item_not_found"},
+    )
+    payload = build_work_item_execution_dossier(_FakeConnection(), "work-missing")
+    assert payload["ok"] is False
+    assert payload["dossier_status"] == "missing"
+    assert payload["queue_transition_options"] == []
+
+
+def test_build_work_item_execution_dossier_active_maps_status_and_queue_options_sorted(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        repository_module,
+        "inspect_work_item_readiness",
+        lambda *_args, **_kwargs: {
+            "ok": True,
+            "work_item_id": "work-1",
+            "project_id": "project-aresforge",
+            "readiness_status": "already_active",
+            "ready": False,
+            "next_safe_action": "Continue or inspect active work item.",
+            "blockers": [],
+            "warnings": [],
+            "work_item": {
+                "id": "work-1",
+                "title": "Active work",
+                "status": "active",
+                "queue_id": "queue-triage",
+                "queue_allowed_next_queues": ["queue-blocked", "queue-implementation"],
+            },
+            "roadmap_links": [
+                {
+                    "id": "rwil-1",
+                    "roadmap_task_id": "rt-1",
+                    "roadmap_task_title": "Task",
+                    "roadmap_task_status": "planned",
+                    "status": "active",
+                }
+            ],
+            "dependency_summary": {"total_dependencies": 0, "unsatisfied_dependencies": []},
+        },
+    )
+    monkeypatch.setattr(
+        repository_module,
+        "inspect_work_item_lifecycle",
+        lambda *_args, **_kwargs: {
+            "ok": True,
+            "roadmap_events": [{"id": "re-1"}],
+            "audit_events": [{"id": "ae-1"}],
+        },
+    )
+    monkeypatch.setattr(repository_module, "inspect_queue", lambda *_args, **_kwargs: {"id": "queue-triage"})
+
+    def fake_plan(_conn: object, _work_item_id: str, target_queue_id: str) -> dict[str, object]:
+        return {
+            "can_transition": target_queue_id != "queue-blocked",
+            "transition_status": "blocked" if target_queue_id == "queue-blocked" else "ready",
+            "reason": "target_queue_not_allowed" if target_queue_id == "queue-blocked" else "transition_allowed",
+            "next_safe_action": "Choose one of the allowed next queues."
+            if target_queue_id == "queue-blocked"
+            else "Move work item to target queue.",
+        }
+
+    monkeypatch.setattr(repository_module, "plan_work_item_queue_transition", fake_plan)
+
+    payload = build_work_item_execution_dossier(_FakeConnection(), "work-1")
+    assert payload["ok"] is True
+    assert payload["dossier_status"] == "active"
+    assert [row["target_queue_id"] for row in payload["queue_transition_options"]] == [
+        "queue-blocked",
+        "queue-implementation",
+    ]
+
+
+def test_build_work_item_execution_dossier_ready_maps_to_ready_to_start(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        repository_module,
+        "inspect_work_item_readiness",
+        lambda *_args, **_kwargs: {
+            "ok": True,
+            "work_item_id": "work-2",
+            "project_id": "project-aresforge",
+            "readiness_status": "ready",
+            "ready": True,
+            "next_safe_action": "Start work item or assign to operator.",
+            "blockers": [],
+            "warnings": [],
+            "work_item": {
+                "id": "work-2",
+                "title": "Ready work",
+                "status": "queued",
+                "queue_id": "queue-planning",
+                "queue_allowed_next_queues": [],
+            },
+            "roadmap_links": [],
+            "dependency_summary": {"total_dependencies": 0, "unsatisfied_dependencies": []},
+        },
+    )
+    monkeypatch.setattr(
+        repository_module,
+        "inspect_work_item_lifecycle",
+        lambda *_args, **_kwargs: {"ok": True, "roadmap_events": [], "audit_events": []},
+    )
+    payload = build_work_item_execution_dossier(_FakeConnection(), "work-2")
+    assert payload["dossier_status"] == "ready_to_start"
+    assert "```" not in payload["suggested_operator_prompt"]
+    assert "work locally only" in payload["suggested_operator_prompt"]
+    assert "do not call GitHub" in payload["suggested_operator_prompt"]
 
 def test_start_work_item_if_ready_missing_is_non_mutating(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(

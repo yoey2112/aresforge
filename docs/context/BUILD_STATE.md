@@ -8,6 +8,13 @@
 - Planning remains read-only and deterministic.
 - Queue move remains local-only, does not execute agents, and does not call GitHub.
 
+## M8 Local Execution Dossier
+
+- Added local read-only execution dossier packaging for one work item:
+  - `python -m aresforge build-work-item-execution-dossier --work-item-id <id> [--format json|markdown]`
+- The dossier packages readiness, lifecycle, queue context, roadmap links, dependencies, related events, and a suggested operator prompt.
+- M8 remains local-only and read-only. It does not execute agents, mutate GitHub, or implement Hub UI.
+
 ## M46 Project Factory Source-of-Truth Realignment
 
 Current state on `main` includes M43-M45 and establishes a local-first Hub control plane plus a partial project-factory shell:
