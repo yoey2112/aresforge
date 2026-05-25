@@ -8,6 +8,7 @@ from aresforge.hub.api import (
     get_project_factory_agent_dispatch_plan,
     get_project_factory_documentation_closeout_plan,
     get_project_factory_execution_phase_approval,
+    get_project_factory_execution_readiness,
     get_project_factory_validation_execution_plan,
     get_project_factory_github_apply_plan,
     get_project_factory_milestone_issue_plan,
@@ -634,3 +635,15 @@ def test_execution_phase_approval_api_flows(tmp_path: Path) -> None:
     approved = post_project_factory_execution_phase_approval_approve(config, {})
     assert approved["ok"] is True
     assert approved["execution_phase_approval"]["lifecycle_state"] == "execution_phase_approval_approved"
+
+
+def test_execution_readiness_api_route_returns_stable_json(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    no_active = get_project_factory_execution_readiness(config, {})
+    assert no_active["ok"] is True
+    assert no_active["overall_status"] == "blocked"
+    post_project_factory_new_project(config, {"name": "Readiness API", "root_path": str(tmp_path / "workspace")})
+    payload = get_project_factory_execution_readiness(config, {})
+    assert payload["ok"] is True
+    assert "artifact_summary" in payload
+    assert "lane_summary" in payload

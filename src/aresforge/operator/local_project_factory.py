@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from aresforge.config import AppConfig
-from aresforge.operator.local_active_project import set_active_project
+from aresforge.operator.local_active_project import inspect_active_project, set_active_project
 from aresforge.operator.local_project_queue import add_queue_item, init_project_queue, resolve_project_queue_path
 from aresforge.operator.managed_project_registry_local import (
     init_managed_project_registry,
@@ -78,6 +78,24 @@ _MILESTONE_ISSUE_AGENT_TYPES: tuple[str, ...] = (
     "validation",
     "release",
     "operator",
+)
+_EXECUTION_READINESS_ARTIFACTS: tuple[tuple[str, str], ...] = (
+    ("factory_dossier", "factory_dossier"),
+    ("scope_package", "scope_package"),
+    ("architecture_contract", "architecture_contract"),
+    ("milestone_issue_plan", "milestone_issue_plan"),
+    ("github_apply_plan", "github_apply_plan"),
+    ("agent_dispatch_plan", "agent_dispatch_plan"),
+    ("validation_execution_plan", "validation_execution_plan"),
+    ("documentation_closeout_plan", "documentation_closeout_plan"),
+    ("execution_phase_approval", "execution_phase_approval"),
+)
+_EXECUTION_READINESS_LANES: tuple[str, ...] = (
+    "github_mutation_execution",
+    "validation_command_execution",
+    "documentation_update_execution",
+    "agent_model_execution",
+    "project_closeout_execution",
 )
 
 
@@ -2507,6 +2525,137 @@ def read_project_execution_phase_approval(config: AppConfig, project_id: str) ->
     }
 
 
+def read_project_execution_readiness(config: AppConfig, project_id: str) -> dict[str, Any]:
+    normalized_project_id = str(project_id or "").strip()
+    active_payload = inspect_active_project(config)
+    active_project_id = str(active_payload.get("active_project_id", "")).strip()
+    active_project = active_payload.get("active_project", {}) if isinstance(active_payload.get("active_project"), dict) else {}
+
+    dossier_payload = read_project_factory_dossier(config, normalized_project_id)
+    scope_payload = read_project_scope_package(config, normalized_project_id)
+    architecture_payload = read_project_architecture_contract(config, normalized_project_id)
+    milestone_payload = read_project_milestone_issue_plan(config, normalized_project_id)
+    github_payload = read_project_github_apply_plan(config, normalized_project_id)
+    dispatch_payload = read_project_agent_dispatch_plan(config, normalized_project_id)
+    validation_payload = read_project_validation_execution_plan(config, normalized_project_id)
+    closeout_payload = read_project_documentation_closeout_plan(config, normalized_project_id)
+    execution_payload = read_project_execution_phase_approval(config, normalized_project_id)
+
+    artifact_summary = {
+        "factory_dossier": _artifact_summary_entry(
+            key="factory_dossier",
+            exists=bool(dossier_payload.get("dossier_exists", False)),
+            lifecycle_state=str((dossier_payload.get("dossier", {}) or {}).get("lifecycle_state", "")).strip(),
+            approved=False,
+            path=str(dossier_payload.get("dossier_path", "")),
+        ),
+        "scope_package": _artifact_summary_entry(
+            key="scope_package",
+            exists=bool(scope_payload.get("scope_package_exists", False)),
+            lifecycle_state=str((scope_payload.get("scope_package", {}) or {}).get("lifecycle_state", "")).strip(),
+            approved=str((scope_payload.get("scope_package", {}) or {}).get("lifecycle_state", "")).strip() == "scope_approved",
+            path=str(scope_payload.get("scope_package_path", "")),
+        ),
+        "architecture_contract": _artifact_summary_entry(
+            key="architecture_contract",
+            exists=bool(architecture_payload.get("architecture_contract_exists", False)),
+            lifecycle_state=str((architecture_payload.get("architecture_contract", {}) or {}).get("lifecycle_state", "")).strip(),
+            approved=str((architecture_payload.get("architecture_contract", {}) or {}).get("lifecycle_state", "")).strip() == "architecture_approved",
+            path=str(architecture_payload.get("architecture_contract_path", "")),
+        ),
+        "milestone_issue_plan": _artifact_summary_entry(
+            key="milestone_issue_plan",
+            exists=bool(milestone_payload.get("milestone_issue_plan_exists", False)),
+            lifecycle_state=str((milestone_payload.get("milestone_issue_plan", {}) or {}).get("lifecycle_state", "")).strip(),
+            approved=str((milestone_payload.get("milestone_issue_plan", {}) or {}).get("lifecycle_state", "")).strip() == "milestone_issue_plan_approved",
+            path=str(milestone_payload.get("milestone_issue_plan_path", "")),
+        ),
+        "github_apply_plan": _artifact_summary_entry(
+            key="github_apply_plan",
+            exists=bool(github_payload.get("github_apply_plan_exists", False)),
+            lifecycle_state=str((github_payload.get("github_apply_plan", {}) or {}).get("lifecycle_state", "")).strip(),
+            approved=str((github_payload.get("github_apply_plan", {}) or {}).get("lifecycle_state", "")).strip() == "github_apply_plan_approved",
+            path=str(github_payload.get("github_apply_plan_path", "")),
+        ),
+        "agent_dispatch_plan": _artifact_summary_entry(
+            key="agent_dispatch_plan",
+            exists=bool(dispatch_payload.get("agent_dispatch_plan_exists", False)),
+            lifecycle_state=str((dispatch_payload.get("agent_dispatch_plan", {}) or {}).get("lifecycle_state", "")).strip(),
+            approved=str((dispatch_payload.get("agent_dispatch_plan", {}) or {}).get("lifecycle_state", "")).strip() == "agent_dispatch_plan_approved",
+            path=str(dispatch_payload.get("agent_dispatch_plan_path", "")),
+        ),
+        "validation_execution_plan": _artifact_summary_entry(
+            key="validation_execution_plan",
+            exists=bool(validation_payload.get("validation_execution_plan_exists", False)),
+            lifecycle_state=str((validation_payload.get("validation_execution_plan", {}) or {}).get("lifecycle_state", "")).strip(),
+            approved=str((validation_payload.get("validation_execution_plan", {}) or {}).get("lifecycle_state", "")).strip() == "validation_execution_plan_approved",
+            path=str(validation_payload.get("validation_execution_plan_path", "")),
+        ),
+        "documentation_closeout_plan": _artifact_summary_entry(
+            key="documentation_closeout_plan",
+            exists=bool(closeout_payload.get("documentation_closeout_plan_exists", False)),
+            lifecycle_state=str((closeout_payload.get("documentation_closeout_plan", {}) or {}).get("lifecycle_state", "")).strip(),
+            approved=str((closeout_payload.get("documentation_closeout_plan", {}) or {}).get("lifecycle_state", "")).strip() == "documentation_closeout_plan_approved",
+            path=str(closeout_payload.get("documentation_closeout_plan_path", "")),
+        ),
+        "execution_phase_approval": _artifact_summary_entry(
+            key="execution_phase_approval",
+            exists=bool(execution_payload.get("execution_phase_approval_exists", False)),
+            lifecycle_state=str((execution_payload.get("execution_phase_approval", {}) or {}).get("lifecycle_state", "")).strip(),
+            approved=str((execution_payload.get("execution_phase_approval", {}) or {}).get("lifecycle_state", "")).strip() == "execution_phase_approval_approved",
+            path=str(execution_payload.get("execution_phase_approval_path", "")),
+        ),
+    }
+
+    lane_summary = _build_lane_summary(execution_payload.get("execution_phase_approval", {}))
+    blockers: list[str] = []
+    warnings: list[str] = []
+    required_missing = [key for key in ("factory_dossier", "scope_package", "architecture_contract", "milestone_issue_plan", "github_apply_plan", "agent_dispatch_plan", "validation_execution_plan", "documentation_closeout_plan") if not artifact_summary[key]["exists"]]
+    if required_missing:
+        blockers.append(f"Missing required artifacts: {', '.join(required_missing)}.")
+    for artifact in artifact_summary.values():
+        blockers.extend(list(artifact.get("blockers", [])))
+        warnings.extend(list(artifact.get("warnings", [])))
+    for lane in lane_summary.values():
+        blockers.extend(list(lane.get("blockers", [])))
+        warnings.extend(list(lane.get("warnings", [])))
+
+    execution_artifact = artifact_summary["execution_phase_approval"]
+    lane_approved_count = sum(1 for lane in lane_summary.values() if lane.get("approved", False))
+    if required_missing:
+        overall_status = "blocked"
+        overall_summary = "Execution readiness is blocked because required planning artifacts are missing."
+        next_safe_action = "prepare_missing_factory_artifacts"
+    elif not execution_artifact["exists"] or not execution_artifact["approved"]:
+        overall_status = "pending_approval"
+        overall_summary = "Execution readiness is pending execution phase approval."
+        next_safe_action = "prepare_or_approve_execution_phase_approval"
+    elif lane_approved_count == 0:
+        overall_status = "plan_only_approved"
+        overall_summary = "Execution phase approval is approved, but all execution lanes remain blocked."
+        next_safe_action = "approve_at_least_one_execution_lane_or_keep_plan_only"
+    else:
+        overall_status = "execution_lanes_approved"
+        overall_summary = "Execution readiness includes one or more approved execution lanes."
+        next_safe_action = "execute_only_explicitly_approved_lanes"
+
+    return {
+        "ok": True,
+        "local_only": True,
+        "project_id": normalized_project_id,
+        "project_name": str(active_project.get("name", "")).strip() if str(active_project_id) == normalized_project_id else str((dossier_payload.get("dossier", {}) or {}).get("name", "")).strip(),
+        "active_project": bool(active_project_id and active_project_id == normalized_project_id),
+        "overall_status": overall_status,
+        "overall_summary": overall_summary,
+        "next_safe_action": next_safe_action,
+        "blockers": sorted(set(blockers)),
+        "warnings": sorted(set(warnings)),
+        "artifact_summary": artifact_summary,
+        "lane_summary": lane_summary,
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+    }
+
+
 def prepare_project_execution_phase_approval(config: AppConfig, project_id: str) -> dict[str, Any]:
     normalized_project_id = str(project_id or "").strip()
     closeout_result = read_project_documentation_closeout_plan(config, normalized_project_id)
@@ -3174,6 +3323,52 @@ def _append_execution_phase_approval_audit_entry(
         }
     )
     execution_phase_approval["audit_trail"] = audit_entries
+
+
+def _artifact_summary_entry(*, key: str, exists: bool, lifecycle_state: str, approved: bool, path: str) -> dict[str, Any]:
+    blockers: list[str] = []
+    warnings: list[str] = []
+    if not exists:
+        blockers.append(f"{key} artifact is missing.")
+    elif key == "execution_phase_approval" and not approved:
+        warnings.append("Execution phase approval exists but is not approved yet.")
+    return {
+        "exists": bool(exists),
+        "lifecycle_state": lifecycle_state,
+        "approved": bool(approved),
+        "path": path,
+        "blockers": blockers,
+        "warnings": warnings,
+    }
+
+
+def _build_lane_summary(execution_phase_approval: Any) -> dict[str, dict[str, Any]]:
+    approval = execution_phase_approval if isinstance(execution_phase_approval, dict) else {}
+    lanes = [item for item in approval.get("execution_lanes", []) if isinstance(item, dict)]
+    lane_map = {str(lane.get("lane_id", "")).strip(): lane for lane in lanes}
+    summary: dict[str, dict[str, Any]] = {}
+    for lane_id in _EXECUTION_READINESS_LANES:
+        lane = lane_map.get(lane_id, {})
+        status = str(lane.get("status", "")).strip() or "blocked"
+        approved = status == "approved"
+        acknowledgement_present = bool(str(lane.get("acknowledgement_text", "")).strip())
+        blockers: list[str] = []
+        warnings: list[str] = _normalize_text_list(lane.get("warnings"))
+        if not lane:
+            blockers.append("Lane entry missing from execution phase approval.")
+        elif approved and not acknowledgement_present:
+            blockers.append("Lane is approved but acknowledgement_text is missing.")
+        next_safe_action = "add_lane_and_keep_blocked" if not lane else ("execute_lane_with_controls" if approved else "keep_lane_blocked_or_explicitly_approve")
+        summary[lane_id] = {
+            "status": status,
+            "approved": approved,
+            "acknowledgement_present": acknowledgement_present,
+            "summary": str(lane.get("summary", "")).strip(),
+            "warnings": sorted(set(warnings)),
+            "blockers": sorted(set(blockers)),
+            "next_safe_action": next_safe_action,
+        }
+    return summary
 
 
 def _error(error: str, details: dict[str, Any]) -> dict[str, Any]:

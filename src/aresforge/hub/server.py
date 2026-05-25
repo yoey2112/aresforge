@@ -28,6 +28,7 @@ from aresforge.hub.api import (
     get_project_factory_agent_dispatch_plan,
     get_project_factory_documentation_closeout_plan,
     get_project_factory_execution_phase_approval,
+    get_project_factory_execution_readiness,
     get_project_factory_validation_execution_plan,
     get_project_factory_github_apply_plan,
     get_project_factory_milestone_issue_plan,
@@ -732,6 +733,15 @@ def _build_handler(config: AppConfig, static_root: Path) -> type[BaseHTTPRequest
                 return True
             if method == "GET" and path == "/api/project-factory/execution-phase-approval":
                 payload = get_project_factory_execution_phase_approval(
+                    config,
+                    {
+                        "project_id": query_values.get("project_id", [None])[0],
+                    },
+                )
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+            if method == "GET" and path == "/api/project-factory/execution-readiness":
+                payload = get_project_factory_execution_readiness(
                     config,
                     {
                         "project_id": query_values.get("project_id", [None])[0],

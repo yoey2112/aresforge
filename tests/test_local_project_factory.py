@@ -27,6 +27,7 @@ from aresforge.operator.local_project_factory import (
     read_project_factory_dossier,
     read_project_documentation_closeout_plan,
     read_project_execution_phase_approval,
+    read_project_execution_readiness,
     read_project_github_apply_plan,
     read_project_validation_execution_plan,
     read_project_milestone_issue_plan,
@@ -1071,3 +1072,93 @@ def test_execution_phase_approval_lifecycle_and_validations(tmp_path: Path) -> N
     assert approved["execution_phase_approval"]["lifecycle_state"] == "execution_phase_approval_approved"
     dossier = read_project_factory_dossier(config, project_id)
     assert dossier["dossier"]["lifecycle_state"] == "execution_phase_approval_approved"
+
+
+def test_execution_readiness_reports_blocked_when_required_artifacts_missing(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    created = start_new_project_factory(config, _payload(tmp_path))
+    project_id = str(created["project"]["project_id"])
+    payload = read_project_execution_readiness(config, project_id)
+    assert payload["ok"] is True
+    assert payload["overall_status"] == "blocked"
+    assert "artifact_summary" in payload
+    assert "lane_summary" in payload
+
+
+def test_execution_readiness_reports_pending_approval_when_execution_gate_missing_or_not_approved(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    project_id = _seed_github_apply_plan_approved(config, tmp_path)
+    prepare_project_agent_dispatch_plan(config, project_id)
+    update_project_agent_dispatch_plan(config, project_id, {"dispatch_summary": "summary", "approval_conditions": ["approval"]})
+    approve_project_agent_dispatch_plan(config, project_id, {})
+    prepare_project_validation_execution_plan(config, project_id)
+    update_project_validation_execution_plan(config, project_id, {"validation_summary": "summary", "approval_conditions": ["approval"]})
+    approve_project_validation_execution_plan(config, project_id, {})
+    prepare_project_documentation_closeout_plan(config, project_id)
+    update_project_documentation_closeout_plan(config, project_id, {"closeout_summary": "summary", "approval_conditions": ["closeout approval"]})
+    approve_project_documentation_closeout_plan(config, project_id, {})
+    payload = read_project_execution_readiness(config, project_id)
+    assert payload["overall_status"] == "pending_approval"
+    prepare_project_execution_phase_approval(config, project_id)
+    payload_after_prepare = read_project_execution_readiness(config, project_id)
+    assert payload_after_prepare["overall_status"] == "pending_approval"
+
+
+def test_execution_readiness_reports_plan_only_approved_when_all_lanes_blocked(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    project_id = _seed_github_apply_plan_approved(config, tmp_path)
+    prepare_project_agent_dispatch_plan(config, project_id)
+    update_project_agent_dispatch_plan(config, project_id, {"dispatch_summary": "summary", "approval_conditions": ["approval"]})
+    approve_project_agent_dispatch_plan(config, project_id, {})
+    prepare_project_validation_execution_plan(config, project_id)
+    update_project_validation_execution_plan(config, project_id, {"validation_summary": "summary", "approval_conditions": ["approval"]})
+    approve_project_validation_execution_plan(config, project_id, {})
+    prepare_project_documentation_closeout_plan(config, project_id)
+    update_project_documentation_closeout_plan(config, project_id, {"closeout_summary": "summary", "approval_conditions": ["closeout approval"]})
+    approve_project_documentation_closeout_plan(config, project_id, {})
+    prepare_project_execution_phase_approval(config, project_id)
+    update_project_execution_phase_approval(config, project_id, {"overall_acknowledgement": "All lanes remain blocked."})
+    approve_project_execution_phase_approval(config, project_id, {})
+    payload = read_project_execution_readiness(config, project_id)
+    assert payload["overall_status"] == "plan_only_approved"
+
+
+def test_execution_readiness_reports_execution_lanes_approved_with_expected_keys(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    project_id = _seed_github_apply_plan_approved(config, tmp_path)
+    prepare_project_agent_dispatch_plan(config, project_id)
+    update_project_agent_dispatch_plan(config, project_id, {"dispatch_summary": "summary", "approval_conditions": ["approval"]})
+    approve_project_agent_dispatch_plan(config, project_id, {})
+    prepare_project_validation_execution_plan(config, project_id)
+    update_project_validation_execution_plan(config, project_id, {"validation_summary": "summary", "approval_conditions": ["approval"]})
+    approve_project_validation_execution_plan(config, project_id, {})
+    prepare_project_documentation_closeout_plan(config, project_id)
+    update_project_documentation_closeout_plan(config, project_id, {"closeout_summary": "summary", "approval_conditions": ["closeout approval"]})
+    approve_project_documentation_closeout_plan(config, project_id, {})
+    prepare_project_execution_phase_approval(config, project_id)
+    update_project_execution_phase_approval(
+        config,
+        project_id,
+        {"execution_lanes": [{"lane_id": "github_mutation_execution", "status": "approved", "acknowledgement_text": "Approved lane acknowledgement."}]},
+    )
+    approve_project_execution_phase_approval(config, project_id, {})
+    payload = read_project_execution_readiness(config, project_id)
+    assert payload["overall_status"] == "execution_lanes_approved"
+    assert set(payload["artifact_summary"].keys()) == {
+        "factory_dossier",
+        "scope_package",
+        "architecture_contract",
+        "milestone_issue_plan",
+        "github_apply_plan",
+        "agent_dispatch_plan",
+        "validation_execution_plan",
+        "documentation_closeout_plan",
+        "execution_phase_approval",
+    }
+    assert set(payload["lane_summary"].keys()) == {
+        "github_mutation_execution",
+        "validation_command_execution",
+        "documentation_update_execution",
+        "agent_model_execution",
+        "project_closeout_execution",
+    }

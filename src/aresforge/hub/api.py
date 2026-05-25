@@ -59,6 +59,7 @@ from aresforge.operator.local_project_factory import (
     prepare_project_scope_package,
     read_project_architecture_contract,
     read_project_documentation_closeout_plan,
+    read_project_execution_readiness,
     read_project_execution_phase_approval,
     read_project_agent_dispatch_plan,
     read_project_validation_execution_plan,
@@ -1729,6 +1730,38 @@ def get_project_factory_execution_phase_approval(config: AppConfig, params: dict
                 ),
             }
     payload = read_project_execution_phase_approval(config, project_id)
+    payload["warnings"] = sorted(set(list(payload.get("warnings", [])) + warnings))
+    payload["boundary_confirmations"] = list(dict.fromkeys(list(payload.get("boundary_confirmations", [])) + list(_BOUNDARY_CONFIRMATIONS)))
+    return payload
+
+
+def get_project_factory_execution_readiness(config: AppConfig, params: dict[str, str | None]) -> dict[str, Any]:
+    requested_project_id = str(params.get("project_id", "") or "").strip()
+    project_id = requested_project_id
+    warnings: list[str] = []
+    if not project_id:
+        active_payload = inspect_active_project(config)
+        project_id = str(active_payload.get("active_project_id", "")).strip()
+        if not project_id:
+            warnings.append("No active project selected. Select or create a project to view execution readiness.")
+            return {
+                "ok": True,
+                "local_only": True,
+                "project_id": "",
+                "project_name": "",
+                "active_project": False,
+                "overall_status": "blocked",
+                "overall_summary": "Execution readiness is blocked until a project is selected.",
+                "next_safe_action": "select_or_create_active_project",
+                "blockers": ["No active project is selected."],
+                "warnings": sorted(set(warnings + list(active_payload.get("warnings", [])))),
+                "artifact_summary": {},
+                "lane_summary": {},
+                "boundary_confirmations": list(
+                    dict.fromkeys(list(_BOUNDARY_CONFIRMATIONS) + list(active_payload.get("boundary_confirmations", [])))
+                ),
+            }
+    payload = read_project_execution_readiness(config, project_id)
     payload["warnings"] = sorted(set(list(payload.get("warnings", [])) + warnings))
     payload["boundary_confirmations"] = list(dict.fromkeys(list(payload.get("boundary_confirmations", [])) + list(_BOUNDARY_CONFIRMATIONS)))
     return payload

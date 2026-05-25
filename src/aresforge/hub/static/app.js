@@ -203,6 +203,7 @@ const state = {
   validationExecutionPlan: null,
   documentationCloseoutPlan: null,
   executionPhaseApproval: null,
+  executionReadiness: null,
 };
 
 function renderBootstrapStatus(payload) {
@@ -1298,6 +1299,34 @@ function renderExecutionPhaseApproval(payload) {
   }
 }
 
+function renderExecutionReadiness(payload) {
+  state.executionReadiness = payload || null;
+  const statusLine = byId("home-execution-readiness-overall-status");
+  const nextActionLine = byId("home-execution-readiness-next-safe-action");
+  const overallStatus = String((payload && payload.overall_status) || "blocked");
+  const nextSafeAction = String((payload && payload.next_safe_action) || "select_or_create_active_project");
+  if (statusLine) {
+    statusLine.textContent = `overall_status: ${overallStatus}`;
+  }
+  if (nextActionLine) {
+    nextActionLine.textContent = `next_safe_action: ${nextSafeAction}`;
+  }
+  setList("home-execution-readiness-blockers", "home-execution-readiness-blockers-empty", (payload && payload.blockers) || []);
+  setList("home-execution-readiness-warnings", "home-execution-readiness-warnings-empty", (payload && payload.warnings) || []);
+  const artifacts = (payload && payload.artifact_summary) || {};
+  const artifactLines = Object.keys(artifacts).sort().map((key) => {
+    const item = artifacts[key] || {};
+    return `${key}: exists=${Boolean(item.exists)} approved=${Boolean(item.approved)} lifecycle=${item.lifecycle_state || "not_started"}`;
+  });
+  setList("home-execution-readiness-artifacts", "home-execution-readiness-artifacts-empty", artifactLines);
+  const lanes = (payload && payload.lane_summary) || {};
+  const laneLines = Object.keys(lanes).sort().map((key) => {
+    const lane = lanes[key] || {};
+    return `${key}: status=${lane.status || "blocked"} approved=${Boolean(lane.approved)} acknowledgement_present=${Boolean(lane.acknowledgement_present)}`;
+  });
+  setList("home-execution-readiness-lanes", "home-execution-readiness-lanes-empty", laneLines);
+}
+
 async function loadScopePackage(projectId) {
   const query = toQuery({ project_id: projectId || "" });
   const payload = await fetchJson(`/api/project-factory/scope-package${query}`, { method: "GET" });
@@ -1351,6 +1380,13 @@ async function loadExecutionPhaseApproval(projectId) {
   const query = toQuery({ project_id: projectId || "" });
   const payload = await fetchJson(`/api/project-factory/execution-phase-approval${query}`, { method: "GET" });
   renderExecutionPhaseApproval(payload);
+  return payload;
+}
+
+async function loadExecutionReadiness(projectId) {
+  const query = toQuery({ project_id: projectId || "" });
+  const payload = await fetchJson(`/api/project-factory/execution-readiness${query}`, { method: "GET" });
+  renderExecutionReadiness(payload);
   return payload;
 }
 
@@ -2430,9 +2466,18 @@ function bindForms() {
   on("home-refresh-summary", "click", async () => {
     try {
       await refreshSummaryAndReport();
+      await loadExecutionReadiness(activeProjectId());
       setMessage("reports-message", "Summary refreshed.", "success");
     } catch (error) {
       setMessage("reports-message", String(error.message || error), "error");
+    }
+  });
+  on("home-refresh-execution-readiness", "click", async () => {
+    try {
+      await loadExecutionReadiness(activeProjectId());
+      setMessage("projects-message", "Execution readiness refreshed.", "success");
+    } catch (error) {
+      setMessage("projects-message", String(error.message || error), "error");
     }
   });
 
@@ -2853,6 +2898,7 @@ function bindForms() {
       setMessage("projects-message", "Approving local Execution Phase Approval...", "loading");
       await approveExecutionPhaseApproval();
       await loadExecutionPhaseApproval(activeProjectId());
+      await loadExecutionReadiness(activeProjectId());
       await loadProjectFactoryDossier(activeProjectId());
       await refreshSummaryAndReport();
       setMessage("projects-message", "Execution phase approval approved.", "success");
@@ -2929,6 +2975,11 @@ async function init() {
     await loadExecutionPhaseApproval(activeProjectId());
   } catch (_error) {
     renderExecutionPhaseApproval({ ok: true, execution_phase_approval_exists: false, execution_phase_approval: {} });
+  }
+  try {
+    await loadExecutionReadiness(activeProjectId());
+  } catch (_error) {
+    renderExecutionReadiness({ ok: true, overall_status: "blocked", next_safe_action: "select_or_create_active_project", blockers: [], warnings: [], artifact_summary: {}, lane_summary: {} });
   }
 
   try {
