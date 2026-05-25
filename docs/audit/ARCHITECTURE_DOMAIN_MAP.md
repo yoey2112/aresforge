@@ -1,0 +1,561 @@
+# ARCHITECTURE_DOMAIN_MAP
+
+## core_runtime
+- `src/aresforge/__init__.py`: __all__ = ["__version__"]
+- `src/aresforge/__main__.py`: from aresforge.cli import main
+- `src/aresforge/artifacts/__init__.py`: """Artifact helpers for AresForge."""
+- `src/aresforge/artifacts/store.py`: from __future__ import annotations
+- Missing/weak signals: none obvious from static scan.
+
+## config
+- `src/aresforge/config.py`: from __future__ import annotations
+- Missing/weak signals: none obvious from static scan.
+
+## database
+- `migrations/0001_initial_schema.sql`: CREATE TABLE IF NOT EXISTS projects (
+- `migrations/0002_m15_autonomous_run_queue.sql`: CREATE TABLE IF NOT EXISTS autonomous_runs (
+- `migrations/0003_m16_autonomous_run_pr_linkage.sql`: ALTER TABLE autonomous_runs
+- `src/aresforge/db/__init__.py`: Database connectivity, migrations, and repositories.
+- `src/aresforge/db/connection.py`: Database connectivity, migrations, and repositories.
+- `src/aresforge/db/migrations.py`: Database connectivity, migrations, and repositories.
+- `src/aresforge/db/repository.py`: Database connectivity, migrations, and repositories.
+- Missing/weak signals: none obvious from static scan.
+
+## cli
+- `src/aresforge/cli.py`: CLI command registration and dispatch entrypoint.
+- Missing/weak signals: `src/aresforge/cli.py`
+
+## hub_backend
+- `src/aresforge/hub/__init__.py`: Hub backend/frontend serving and route handling.
+- `src/aresforge/hub/api.py`: Hub backend/frontend serving and route handling.
+- `src/aresforge/hub/server.py`: Hub backend/frontend serving and route handling.
+- `src/aresforge/routing/__init__.py`: """Routing primitives for AresForge."""
+- `src/aresforge/routing/routes.py`: from __future__ import annotations
+- Missing/weak signals: `src/aresforge/hub/api.py`
+
+## hub_frontend
+- `src/aresforge/hub/static/app.js`: Hub backend/frontend serving and route handling.
+- `src/aresforge/hub/static/index.html`: Hub backend/frontend serving and route handling.
+- `src/aresforge/hub/static/styles.css`: Hub backend/frontend serving and route handling.
+- Missing/weak signals: `src/aresforge/hub/static/app.js`, `src/aresforge/hub/static/index.html`, `src/aresforge/hub/static/styles.css`
+
+## project_registry
+- `src/aresforge/operator/managed_project_registry_local.py`: Local operator workflow/inspection logic.
+- Missing/weak signals: none obvious from static scan.
+
+## project_factory
+- `src/aresforge/operator/local_project_factory.py`: Local operator workflow/inspection logic.
+- Missing/weak signals: `src/aresforge/operator/local_project_factory.py`
+
+## active_project
+- `src/aresforge/operator/local_active_project.py`: Local operator workflow/inspection logic.
+- Missing/weak signals: none obvious from static scan.
+
+## queue
+- `src/aresforge/operator/local_project_queue.py`: Local operator workflow/inspection logic.
+- Missing/weak signals: none obvious from static scan.
+
+## agents
+- `src/aresforge/operator/agent_queue_planning.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/local_agent_orchestration.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/local_agent_profiles.py`: Local operator workflow/inspection logic.
+- Missing/weak signals: `src/aresforge/operator/agent_queue_planning.py`, `src/aresforge/operator/local_agent_orchestration.py`, `src/aresforge/operator/local_agent_profiles.py`
+
+## orchestration
+- `src/aresforge/operator/__init__.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/artifact_discovery.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/automatic_canonical_evidence_emission_contract.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/automation_readiness_report.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/autonomous_cycle.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/batch_closeout_planner.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/batch_readiness_report.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/canonical_evidence_marker_contract.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/canonical_evidence_markers.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/child_closeout_evidence_bundle.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/child_closeout_script_generator.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/child_evidence_marker_preflight.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/child_evidence_marker_template.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/child_execution_gates.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/closeout_planning_drift.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/closeout_readiness_by_construction.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/closeout_repair_guidance.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/evidence_bundle.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/evidence_bundle_automation_contract.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/evidence_bundle_simulation.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/evidence_comment_template_generator.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/evidence_completeness_checker.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/evidence_mapping_parser.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/evidence_templates.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/inspection_reports.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/lineage_mapping_signals.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/local_bootstrap_wizard.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/local_doc_reconciliation.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/local_github_sync_planner.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/local_handoff_package.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/local_llm_escalation.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/local_milestone_lifecycle.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/local_project_dashboard.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/local_project_state.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/local_review.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/managed_repo_governance_demo.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/managed_repo_readiness_report.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/managed_repo_registry.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/milestone_closeout_preflight.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/milestone_closeout_preflight_contract.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/milestone_dashboard.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/milestone_execution_queue_planner.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/milestone_reconciliation_planner.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/milestone_state_inspector.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/offline_state_template.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/parent_child_linkage_preflight.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/parent_closeout_evidence_bundle.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/parent_closeout_marker_template.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/parent_closeout_readiness.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/planning_state.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/pr_body_update_helper.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/pr_evidence_bundle.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/pr_evidence_extraction.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/pr_evidence_marker_template.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/pr_mapping_preflight.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/preflight_snapshot.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/project_state_summary.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/qa_closeout_pr.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/qa_pr_validation.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/ready_issue_batch.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/ready_issue_intake.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/ready_issue_pipeline.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/ready_issue_planning.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/registry_inspection.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/repo_assessment.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/repo_bootstrap_contract.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/repo_bootstrap_plan.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/repo_governance.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/self_managed_issue_script_generator.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/self_managed_milestone_execution_contract.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/self_managed_milestone_handoff.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/self_managed_milestone_planner.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/self_managed_milestone_simulation.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/sequential_child_closeout_flow.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/sequential_closeout_execution_package.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/sequential_handoff_package.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/sequential_recovery_planner.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/sequential_run_state.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/service.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/sprint_issue_planner.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/sprint_issue_script_generator.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/validate_pr_end_to_end.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/validation_summary.py`: Local operator workflow/inspection logic.
+- Missing/weak signals: `src/aresforge/operator/automatic_canonical_evidence_emission_contract.py`, `src/aresforge/operator/automation_readiness_report.py`, `src/aresforge/operator/batch_closeout_planner.py`, `src/aresforge/operator/batch_readiness_report.py`, `src/aresforge/operator/canonical_evidence_marker_contract.py`, `src/aresforge/operator/child_closeout_evidence_bundle.py`, `src/aresforge/operator/child_closeout_script_generator.py`, `src/aresforge/operator/child_evidence_marker_preflight.py`
+
+## llm_integration
+- `src/aresforge/integrations/__init__.py`: """External and local integration adapters for AresForge."""
+- `src/aresforge/integrations/ollama.py`: from __future__ import annotations
+- Missing/weak signals: none obvious from static scan.
+
+## github_integration
+- `src/aresforge/operator/github_issue_close_executor.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/github_issue_comment_executor.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/github_mutation_audit_log.py`: Local operator workflow/inspection logic.
+- `src/aresforge/operator/github_mutation_planner.py`: Local operator workflow/inspection logic.
+- Missing/weak signals: `src/aresforge/operator/github_mutation_audit_log.py`
+
+## documentation_system
+- No files detected in this domain.
+- Missing/weak signals: no concrete implementation footprint found.
+
+## validation_evidence
+- `src/aresforge/validation/__init__.py`: from .registry import (
+- `src/aresforge/validation/registry.py`: from __future__ import annotations
+- Missing/weak signals: `src/aresforge/validation/__init__.py`, `src/aresforge/validation/registry.py`
+
+## scripts
+- `scripts/Invoke-AresForgePrLifecycle.ps1`: [CmdletBinding()]
+- Missing/weak signals: `scripts/Invoke-AresForgePrLifecycle.ps1`
+
+## tests
+- `tests/fixtures/m12-manual-closeout-comments.json`: Automated verification coverage.
+- `tests/fixtures/m12-sprint-definition.json`: Automated verification coverage.
+- `tests/fixtures/m12-verification-failure-observed.json`: Automated verification coverage.
+- `tests/fixtures/m25-readiness-by-construction-regression.json`: Automated verification coverage.
+- `tests/fixtures/m8-sprint-definition.json`: Automated verification coverage.
+- `tests/fixtures/offline_state/parent_closeout_ready.json`: Automated verification coverage.
+- `tests/test_agent_queue_planning.py`: Automated verification coverage.
+- `tests/test_agent_registry.py`: Automated verification coverage.
+- `tests/test_artifact_discovery.py`: Automated verification coverage.
+- `tests/test_artifacts.py`: Automated verification coverage.
+- `tests/test_automatic_canonical_evidence_emission_contract.py`: Automated verification coverage.
+- `tests/test_autonomous_cycle.py`: Automated verification coverage.
+- `tests/test_batch_closeout_planner.py`: Automated verification coverage.
+- `tests/test_batch_readiness_report.py`: Automated verification coverage.
+- `tests/test_canonical_evidence_marker_contract.py`: Automated verification coverage.
+- `tests/test_canonical_evidence_markers.py`: Automated verification coverage.
+- `tests/test_child_closeout_evidence_bundle.py`: Automated verification coverage.
+- `tests/test_child_closeout_script_generator.py`: Automated verification coverage.
+- `tests/test_child_evidence_marker_preflight.py`: Automated verification coverage.
+- `tests/test_child_evidence_marker_template.py`: Automated verification coverage.
+- `tests/test_child_execution_gates.py`: Automated verification coverage.
+- `tests/test_cli.py`: Automated verification coverage.
+- `tests/test_cli_doc_reconciliation.py`: Automated verification coverage.
+- `tests/test_cli_github_sync_planner.py`: Automated verification coverage.
+- `tests/test_cli_handoff_package.py`: Automated verification coverage.
+- `tests/test_cli_hub_server.py`: Automated verification coverage.
+- `tests/test_cli_local_agent_orchestration.py`: Automated verification coverage.
+- `tests/test_cli_local_agent_profiles.py`: Automated verification coverage.
+- `tests/test_cli_local_bootstrap_wizard.py`: Automated verification coverage.
+- `tests/test_cli_local_llm_escalation.py`: Automated verification coverage.
+- `tests/test_cli_local_milestone_lifecycle.py`: Automated verification coverage.
+- `tests/test_cli_local_project_queue.py`: Automated verification coverage.
+- `tests/test_cli_m6_commands.py`: Automated verification coverage.
+- `tests/test_cli_managed_project_registry.py`: Automated verification coverage.
+- `tests/test_cli_project_state_ledger.py`: Automated verification coverage.
+- `tests/test_closeout_planning_drift.py`: Automated verification coverage.
+- `tests/test_closeout_readiness_by_construction.py`: Automated verification coverage.
+- `tests/test_closeout_repair_guidance.py`: Automated verification coverage.
+- `tests/test_config_and_migrations.py`: Automated verification coverage.
+- `tests/test_evidence_bundle.py`: Automated verification coverage.
+- `tests/test_evidence_bundle_automation_contract.py`: Automated verification coverage.
+- `tests/test_evidence_bundle_simulation.py`: Automated verification coverage.
+- `tests/test_evidence_comment_template_generator.py`: Automated verification coverage.
+- `tests/test_evidence_completeness_checker.py`: Automated verification coverage.
+- `tests/test_evidence_mapping_parser.py`: Automated verification coverage.
+- `tests/test_github_issue_close_executor.py`: Automated verification coverage.
+- `tests/test_github_issue_comment_executor.py`: Automated verification coverage.
+- `tests/test_github_mutation_audit_log.py`: Automated verification coverage.
+- `tests/test_github_mutation_planner.py`: Automated verification coverage.
+- `tests/test_hub_active_project_api.py`: Automated verification coverage.
+- `tests/test_hub_project_factory_api.py`: Automated verification coverage.
+- `tests/test_hub_ui_foundation.py`: Automated verification coverage.
+- `tests/test_lineage_mapping_signals.py`: Automated verification coverage.
+- `tests/test_local_active_project.py`: Automated verification coverage.
+- `tests/test_local_agent_orchestration.py`: Automated verification coverage.
+- `tests/test_local_agent_profiles.py`: Automated verification coverage.
+- `tests/test_local_bootstrap_wizard.py`: Automated verification coverage.
+- `tests/test_local_doc_reconciliation.py`: Automated verification coverage.
+- `tests/test_local_github_sync_planner.py`: Automated verification coverage.
+- `tests/test_local_handoff_package.py`: Automated verification coverage.
+- `tests/test_local_llm_escalation.py`: Automated verification coverage.
+- `tests/test_local_milestone_lifecycle.py`: Automated verification coverage.
+- `tests/test_local_project_dashboard.py`: Automated verification coverage.
+- `tests/test_local_project_factory.py`: Automated verification coverage.
+- `tests/test_local_project_queue.py`: Automated verification coverage.
+- `tests/test_local_project_state.py`: Automated verification coverage.
+- `tests/test_local_review.py`: Automated verification coverage.
+- `tests/test_managed_project_registry.py`: Automated verification coverage.
+- `tests/test_managed_repo_governance_demo.py`: Automated verification coverage.
+- `tests/test_managed_repo_readiness_report.py`: Automated verification coverage.
+- `tests/test_managed_repo_registry.py`: Automated verification coverage.
+- `tests/test_milestone_closeout_preflight.py`: Automated verification coverage.
+- `tests/test_milestone_closeout_preflight_contract.py`: Automated verification coverage.
+- `tests/test_milestone_dashboard.py`: Automated verification coverage.
+- `tests/test_milestone_execution_queue_planner.py`: Automated verification coverage.
+- `tests/test_milestone_reconciliation_planner.py`: Automated verification coverage.
+- `tests/test_milestone_state_inspector.py`: Automated verification coverage.
+- `tests/test_offline_state_example_fixture.py`: Automated verification coverage.
+- `tests/test_offline_state_template.py`: Automated verification coverage.
+- `tests/test_parent_child_linkage_preflight.py`: Automated verification coverage.
+- `tests/test_parent_closeout_evidence_bundle.py`: Automated verification coverage.
+- `tests/test_parent_closeout_marker_template.py`: Automated verification coverage.
+- `tests/test_parent_closeout_readiness.py`: Automated verification coverage.
+- `tests/test_planning_state.py`: Automated verification coverage.
+- `tests/test_pr_body_update_helper.py`: Automated verification coverage.
+- `tests/test_pr_evidence_bundle.py`: Automated verification coverage.
+- `tests/test_pr_evidence_extraction.py`: Automated verification coverage.
+- `tests/test_pr_evidence_marker_template.py`: Automated verification coverage.
+- `tests/test_pr_mapping_preflight.py`: Automated verification coverage.
+- `tests/test_preflight_snapshot.py`: Automated verification coverage.
+- `tests/test_project_factory_workflow_docs.py`: Automated verification coverage.
+- `tests/test_project_state_summary.py`: Automated verification coverage.
+- `tests/test_qa_closeout_pr.py`: Automated verification coverage.
+- `tests/test_qa_review_pr.py`: Automated verification coverage.
+- `tests/test_ready_issue_batch.py`: Automated verification coverage.
+- `tests/test_ready_issue_intake.py`: Automated verification coverage.
+- `tests/test_ready_issue_pipeline.py`: Automated verification coverage.
+- `tests/test_ready_issue_planning.py`: Automated verification coverage.
+- `tests/test_registry_inspection.py`: Automated verification coverage.
+- `tests/test_registry_validation.py`: Automated verification coverage.
+- `tests/test_repo_assessment.py`: Automated verification coverage.
+- `tests/test_repo_bootstrap_contract.py`: Automated verification coverage.
+- `tests/test_repo_bootstrap_plan.py`: Automated verification coverage.
+- `tests/test_repo_governance.py`: Automated verification coverage.
+- `tests/test_self_managed_issue_script_generator.py`: Automated verification coverage.
+- `tests/test_self_managed_milestone_execution_contract.py`: Automated verification coverage.
+- `tests/test_self_managed_milestone_handoff.py`: Automated verification coverage.
+- `tests/test_self_managed_milestone_planner.py`: Automated verification coverage.
+- `tests/test_self_managed_milestone_simulation.py`: Automated verification coverage.
+- `tests/test_sequential_child_closeout_flow.py`: Automated verification coverage.
+- `tests/test_sequential_closeout_execution_package.py`: Automated verification coverage.
+- `tests/test_sequential_handoff_package.py`: Automated verification coverage.
+- `tests/test_sequential_recovery_planner.py`: Automated verification coverage.
+- `tests/test_sequential_run_state.py`: Automated verification coverage.
+- `tests/test_sprint_issue_planner.py`: Automated verification coverage.
+- `tests/test_sprint_issue_script_generator.py`: Automated verification coverage.
+- `tests/test_validate_pr_end_to_end.py`: Automated verification coverage.
+- `tests/test_validation_summary.py`: Automated verification coverage.
+- Missing/weak signals: none obvious from static scan.
+
+## docs
+- `docs/agents/AGENT_SKILLS_MODEL.md`: Project documentation and design narrative.
+- `docs/agents/CLOSEOUT_EVIDENCE_PACKAGE_TEMPLATE.md`: Project documentation and design narrative.
+- `docs/agents/DOCUMENTATION_AGENTS.md`: Project documentation and design narrative.
+- `docs/agents/DOCUMENTATION_FRESHNESS_CHECKS.md`: Project documentation and design narrative.
+- `docs/agents/DOCUMENTATION_SYNC_EVIDENCE_PACKAGES.md`: Project documentation and design narrative.
+- `docs/agents/DOCUMENTATION_SYNC_HANDOFF_TEMPLATE.md`: Project documentation and design narrative.
+- `docs/agents/PR_EVIDENCE_PACKAGE_TEMPLATE.md`: Project documentation and design narrative.
+- `docs/architecture/AGENT_QUEUE_ORCHESTRATION_CONTRACT.md`: Project documentation and design narrative.
+- `docs/architecture/AGENT_REGISTRY_SCHEMA.md`: Project documentation and design narrative.
+- `docs/architecture/AUTOMATIC_CANONICAL_EVIDENCE_EMISSION_CONTRACT.md`: Project documentation and design narrative.
+- `docs/architecture/CANONICAL_EVIDENCE_MARKER_CONTRACT.md`: Project documentation and design narrative.
+- `docs/architecture/CLOSEOUT_CHILD_LINK_DISCOVERY_CONTRACT.md`: Project documentation and design narrative.
+- `docs/architecture/CLOSEOUT_EVIDENCE_RECOGNITION_CONTRACT.md`: Project documentation and design narrative.
+- `docs/architecture/CODEX_BATCH_EXECUTION_WORKFLOW.md`: Project documentation and design narrative.
+- `docs/architecture/CONTROLLED_AUTONOMOUS_GITHUB_EXECUTION_CONTRACT.md`: Project documentation and design narrative.
+- `docs/architecture/EVIDENCE_BUNDLE_AUTOMATION_CONTRACT.md`: Project documentation and design narrative.
+- `docs/architecture/ISSUE_LIFECYCLE_AGENT_PIPELINE.md`: Project documentation and design narrative.
+- `docs/architecture/LOCAL_OPERATOR_WORKFLOW.md`: Project documentation and design narrative.
+- `docs/architecture/LOCAL_STATE_STORE.md`: Project documentation and design narrative.
+- `docs/architecture/M21_SELF_MANAGED_EXECUTION_CONTRACT.md`: Project documentation and design narrative.
+- `docs/architecture/MANAGED_REPOSITORY_BOOTSTRAP_CONTRACT.md`: Project documentation and design narrative.
+- `docs/architecture/MANAGED_REPOSITORY_REGISTRY.md`: Project documentation and design narrative.
+- `docs/architecture/MILESTONE_CLOSEOUT_PREFLIGHT_CONTRACT.md`: Project documentation and design narrative.
+- `docs/architecture/MILESTONE_EXECUTION_PLAN_CONTRACT.md`: Project documentation and design narrative.
+- `docs/architecture/MODEL_REGISTRY_SCHEMA.md`: Project documentation and design narrative.
+- `docs/architecture/MODEL_ROUTING_STRATEGY.md`: Project documentation and design narrative.
+- `docs/architecture/OPERATOR_APPROVED_GITHUB_MUTATION_ORCHESTRATION_CONTRACT.md`: Project documentation and design narrative.
+- `docs/architecture/PERSISTED_LOCAL_PLANNING_STATE.md`: Project documentation and design narrative.
+- `docs/architecture/PLANNING_STATE_CLOSEOUT_COMPARISON_CONTRACT.md`: Project documentation and design narrative.
+- `docs/architecture/PROJECT_FACTORY_WORKFLOW.md`: Project documentation and design narrative.
+- `docs/architecture/PROJECT_REGISTRY_SCHEMA.md`: Project documentation and design narrative.
+- `docs/architecture/QUEUE_REGISTRY_SCHEMA.md`: Project documentation and design narrative.
+- `docs/architecture/REGISTRY_AND_QUEUE_ARCHITECTURE.md`: Project documentation and design narrative.
+- `docs/architecture/REPOSITORY_GOVERNANCE_CONTRACT.md`: Project documentation and design narrative.
+- `docs/architecture/RUNNABLE_SKELETON.md`: Project documentation and design narrative.
+- `docs/architecture/SELF_MANAGED_MILESTONE_PLANNING_CONTRACT.md`: Project documentation and design narrative.
+- `docs/architecture/SEQUENTIAL_MILESTONE_EXECUTION_CONTRACT.md`: Project documentation and design narrative.
+- `docs/architecture/SEQUENTIAL_RUN_STATE_SCHEMA.md`: Project documentation and design narrative.
+- `docs/architecture/SPRINT_ISSUE_CREATION_PLANNING_CONTRACT.md`: Project documentation and design narrative.
+- `docs/architecture/STRUCTURED_SPRINT_ISSUE_DEFINITION_CONTRACT.md`: Project documentation and design narrative.
+- `docs/architecture/SYSTEM_OVERVIEW.md`: Project documentation and design narrative.
+- `docs/context/AGENT_CONTEXT.md`: Project documentation and design narrative.
+- `docs/context/BUILD_STATE.md`: Project documentation and design narrative.
+- `docs/context/PROJECT_CONTEXT.md`: Project documentation and design narrative.
+- `docs/governance/PR_VALIDATION_MODEL.md`: Project documentation and design narrative.
+- `docs/governance/SELF_MANAGEMENT_MODEL.md`: Project documentation and design narrative.
+- `docs/history/M0_M2_COMPLETED_WORK_SUMMARY.md`: Project documentation and design narrative.
+- `docs/learning/ERROR_PATTERNS.md`: Project documentation and design narrative.
+- `docs/operator/BATCH_READY_ISSUE_OPERATIONS.md`: Project documentation and design narrative.
+- `docs/operator/HARDENED_SPRINT_ISSUE_CREATION_TEMPLATE.md`: Project documentation and design narrative.
+- `docs/operator/LOCAL_OPERATOR_USAGE.md`: Project documentation and design narrative.
+- `docs/planning/FUTURE_FEATURE_IDEAS.md`: Project documentation and design narrative.
+- `docs/prompts/CODEX_PROMPT_PACKAGE_TEMPLATE.md`: Project documentation and design narrative.
+- `docs/prompts/CODEX_PROMPT_STANDARD.md`: Project documentation and design narrative.
+- `docs/roadmap/ROADMAP.md`: Project documentation and design narrative.
+- `docs/validation/GITHUB_CAPABILITY_VALIDATION.md`: Project documentation and design narrative.
+- `docs/validation/OLLAMA_GITHUB_OPERATION_REVIEW.md`: Project documentation and design narrative.
+- Missing/weak signals: none obvious from static scan.
+
+## artifacts
+- `artifacts/codex_handoffs/README.md`: # Codex Handoff Artifacts
+- `artifacts/codex_handoffs/generated/20260520T000257Z-issue-81-codex-handoff.json`: {
+- `artifacts/codex_handoffs/generated/20260520T000257Z-issue-81-codex-handoff.md`: # Issue 81 Codex handoff
+- `artifacts/codex_handoffs/generated/20260520T165259Z-issue-112-validation-handoff.json`: {
+- `artifacts/codex_handoffs/generated/20260520T165259Z-issue-112-validation-handoff.md`: # Issue 112 validation handoff
+- `artifacts/codex_handoffs/generated/20260520T165416Z-issue-112-validation-handoff.json`: {
+- `artifacts/codex_handoffs/generated/20260520T165416Z-issue-112-validation-handoff.md`: # Issue 112 validation handoff
+- `artifacts/codex_handoffs/generated/20260522T161907Z-m15-define-self-managed-milestone-planning-contract-handoff.json`: {
+- `artifacts/codex_handoffs/generated/20260522T161907Z-m15-define-self-managed-milestone-planning-contract-handoff.md`: # M15: Define self-managed milestone planning contract handoff
+- `artifacts/codex_handoffs/generated/20260522T163054Z-m15-database-backed-self-managed-milestone-planner-and-run-queue-initializer-handoff.json`: {
+- `artifacts/codex_handoffs/generated/20260522T163054Z-m15-database-backed-self-managed-milestone-planner-and-run-queue-initializer-handoff.md`: # M15: Database-backed self-managed milestone planner and run queue initializer handoff
+- `artifacts/codex_handoffs/generated/20260522T164303Z-m15-generate-human-gated-issue-scripts-and-advance-db-backed-run-queue-handoff.json`: {
+- `artifacts/codex_handoffs/generated/20260522T164303Z-m15-generate-human-gated-issue-scripts-and-advance-db-backed-run-queue-handoff.md`: # M15: Generate human-gated issue scripts and advance DB-backed run queue handoff
+- `artifacts/codex_handoffs/generated/20260522T165419Z-m15-reconcile-source-of-truth-docs-for-self-managed-milestone-planning-handoff.json`: {
+- `artifacts/codex_handoffs/generated/20260522T165419Z-m15-reconcile-source-of-truth-docs-for-self-managed-milestone-planning-handoff.md`: # M15: Reconcile source-of-truth docs for self-managed milestone planning handoff
+- `artifacts/evidence/README.md`: # Evidence Artifacts
+- `artifacts/evidence/generated/20260520T000257Z-issue-81-evidence-package.json`: {
+- `artifacts/evidence/generated/20260520T000257Z-issue-81-evidence-package.md`: # Issue 81 evidence package
+- `artifacts/evidence/generated/20260520T165259Z-issue-112-validation-evidence.json`: {
+- `artifacts/evidence/generated/20260520T165259Z-issue-112-validation-evidence.md`: # Issue 112 validation evidence
+- `artifacts/evidence/generated/20260520T165416Z-issue-112-validation-evidence.json`: {
+- `artifacts/evidence/generated/20260520T165416Z-issue-112-validation-evidence.md`: # Issue 112 validation evidence
+- `artifacts/evidence/generated/20260520T175506Z-issue-118-pr-124-validation-evidence.json`: {
+- `artifacts/evidence/generated/20260520T175506Z-issue-118-pr-124-validation-evidence.md`: # Issue 118 PR 124 validation evidence
+- `artifacts/evidence/generated/20260520T180400Z-issue-119-pr-125-validation-evidence.json`: {
+- `artifacts/evidence/generated/20260520T180400Z-issue-119-pr-125-validation-evidence.md`: # Issue 119 PR 125 validation evidence
+- `artifacts/evidence/generated/20260520T181200Z-issue-120-pr-126-validation-evidence.json`: {
+- `artifacts/evidence/generated/20260520T181200Z-issue-120-pr-126-validation-evidence.md`: # Issue 120 PR 126 validation evidence
+- `artifacts/evidence/generated/20260520T182832Z-issue-127-validation-evidence-for-batch-ready-issue-operations.json`: {
+- `artifacts/evidence/generated/20260520T182832Z-issue-127-validation-evidence-for-batch-ready-issue-operations.md`: # Issue 127 validation evidence for batch ready issue operations
+- `artifacts/evidence/generated/20260520T185120Z-issue-129-pr-130-validation-evidence-for-project-state-summary-command.json`: {
+- `artifacts/evidence/generated/20260520T185120Z-issue-129-pr-130-validation-evidence-for-project-state-summary-command.md`: # Issue #129 PR #130 validation evidence for project state summary command
+- `artifacts/evidence/generated/20260520T190045Z-issue-131-reusable-repo-governance-inspection.json`: {
+- `artifacts/evidence/generated/20260520T190045Z-issue-131-reusable-repo-governance-inspection.md`: # issue-131-reusable-repo-governance-inspection
+- `artifacts/evidence/generated/20260520T190116Z-pr-137-issue-131-reusable-repo-governance-inspection.json`: {
+- `artifacts/evidence/generated/20260520T190116Z-pr-137-issue-131-reusable-repo-governance-inspection.md`: # pr-137-issue-131-reusable-repo-governance-inspection
+- `artifacts/evidence/generated/20260520T191123Z-issue-132-pr-139-managed-repo-bootstrap-contract.json`: {
+- `artifacts/evidence/generated/20260520T191123Z-issue-132-pr-139-managed-repo-bootstrap-contract.md`: # issue-132-pr-139-managed-repo-bootstrap-contract
+- `artifacts/evidence/generated/20260520T191957Z-issue-133-pr-140-managed-repo-registry-extension.json`: {
+- `artifacts/evidence/generated/20260520T191957Z-issue-133-pr-140-managed-repo-registry-extension.md`: # issue-133-pr-140-managed-repo-registry-extension
+- `artifacts/evidence/generated/20260520T192849Z-issue-134-pr-141-managed-repo-readiness-report.json`: {
+- `artifacts/evidence/generated/20260520T192849Z-issue-134-pr-141-managed-repo-readiness-report.md`: # issue-134-pr-141-managed-repo-readiness-report
+- `artifacts/evidence/generated/20260520T193711Z-issue-135-pr-142-bootstrap-plan-generator-evidence.json`: {
+- `artifacts/evidence/generated/20260520T193711Z-issue-135-pr-142-bootstrap-plan-generator-evidence.md`: # issue-135-pr-142-bootstrap-plan-generator-evidence
+- `artifacts/evidence/generated/20260520T194852Z-issue-136-pr-143-managed-repo-governance-demo-evidence.json`: {
+- `artifacts/evidence/generated/20260520T194852Z-issue-136-pr-143-managed-repo-governance-demo-evidence.md`: # issue-136 pr-143 managed-repo-governance-demo evidence
+- `artifacts/evidence/generated/20260520T200041Z-issue-138-pr-144-governance-stack-source-of-truth-reconciliation-evidence.json`: {
+- `artifacts/evidence/generated/20260520T200041Z-issue-138-pr-144-governance-stack-source-of-truth-reconciliation-evidence.md`: # issue-138 pr-144 governance-stack-source-of-truth-reconciliation evidence
+- `artifacts/evidence/generated/20260520T215121Z-issue-158-final-closeout-evidence-pr-161.json`: {
+- `artifacts/evidence/generated/20260520T215121Z-issue-158-final-closeout-evidence-pr-161.md`: # Issue 158 final closeout evidence PR 161
+- `artifacts/evidence/generated/20260520T220053Z-issue-156-final-closeout-evidence-pr-162.json`: {
+- `artifacts/evidence/generated/20260520T220053Z-issue-156-final-closeout-evidence-pr-162.md`: # Issue 156 final closeout evidence PR 162
+- `artifacts/evidence/generated/20260522T163746Z-m15-self-managed-milestone-plan-read-only.json`: {
+- `artifacts/evidence/generated/20260522T163746Z-m15-self-managed-milestone-plan-read-only.md`: # M15 self-managed milestone plan read-only
+- `artifacts/evidence/generated/20260522T163756Z-m15-self-managed-milestone-plan-local-write.json`: {
+- `artifacts/evidence/generated/20260522T163756Z-m15-self-managed-milestone-plan-local-write.md`: # M15 self-managed milestone plan local-write
+- `artifacts/evidence/generated/20260522T163805Z-m15-self-managed-milestone-plan-local-write.json`: {
+- `artifacts/evidence/generated/20260522T163805Z-m15-self-managed-milestone-plan-local-write.md`: # M15 self-managed milestone plan local-write
+- `artifacts/evidence/generated/20260522T164004Z-m15-self-managed-milestone-plan-read-only.json`: {
+- `artifacts/evidence/generated/20260522T164004Z-m15-self-managed-milestone-plan-read-only.md`: # M15 self-managed milestone plan read-only
+- `artifacts/evidence/generated/20260522T164008Z-m15-self-managed-milestone-plan-local-write.json`: {
+- `artifacts/evidence/generated/20260522T164008Z-m15-self-managed-milestone-plan-local-write.md`: # M15 self-managed milestone plan local-write
+- `artifacts/evidence/generated/20260522T164102Z-m15-self-managed-milestone-plan-read-only.json`: {
+- `artifacts/evidence/generated/20260522T164102Z-m15-self-managed-milestone-plan-read-only.md`: # M15 self-managed milestone plan read-only
+- `artifacts/evidence/generated/20260522T164105Z-m15-self-managed-milestone-plan-local-write.json`: {
+- `artifacts/evidence/generated/20260522T164105Z-m15-self-managed-milestone-plan-local-write.md`: # M15 self-managed milestone plan local-write
+- `artifacts/evidence/generated/20260522T164802Z-m15-self-managed-issue-script-read-only.json`: {
+- `artifacts/evidence/generated/20260522T164802Z-m15-self-managed-issue-script-read-only.md`: # M15 self-managed issue script read-only
+- `artifacts/evidence/generated/20260522T164802Z-m15-self-managed-milestone-plan-read-only.json`: {
+- `artifacts/evidence/generated/20260522T164802Z-m15-self-managed-milestone-plan-read-only.md`: # M15 self-managed milestone plan read-only
+- `artifacts/evidence/generated/20260522T164826Z-m15-self-managed-issue-script-read-only.json`: {
+- `artifacts/evidence/generated/20260522T164826Z-m15-self-managed-issue-script-read-only.md`: # M15 self-managed issue script read-only
+- `artifacts/evidence/generated/20260522T164826Z-m15-self-managed-milestone-plan-read-only.json`: {
+- `artifacts/evidence/generated/20260522T164826Z-m15-self-managed-milestone-plan-read-only.md`: # M15 self-managed milestone plan read-only
+- `artifacts/evidence/generated/20260522T164859Z-m15-self-managed-issue-script-read-only.json`: {
+- `artifacts/evidence/generated/20260522T164859Z-m15-self-managed-issue-script-read-only.md`: # M15 self-managed issue script read-only
+- `artifacts/evidence/generated/20260522T164859Z-m15-self-managed-milestone-plan-read-only.json`: {
+- `artifacts/evidence/generated/20260522T164859Z-m15-self-managed-milestone-plan-read-only.md`: # M15 self-managed milestone plan read-only
+- `artifacts/evidence/generated/20260522T164900Z-m15-self-managed-milestone-plan-local-write.json`: {
+- `artifacts/evidence/generated/20260522T164900Z-m15-self-managed-milestone-plan-local-write.md`: # M15 self-managed milestone plan local-write
+- `artifacts/evidence/generated/20260522T165158Z-m15-self-managed-milestone-plan-read-only.json`: {
+- `artifacts/evidence/generated/20260522T165158Z-m15-self-managed-milestone-plan-read-only.md`: # M15 self-managed milestone plan read-only
+- `artifacts/evidence/generated/20260522T165202Z-m15-self-managed-milestone-plan-local-write.json`: {
+- `artifacts/evidence/generated/20260522T165202Z-m15-self-managed-milestone-plan-local-write.md`: # M15 self-managed milestone plan local-write
+- `artifacts/evidence/generated/20260522T165206Z-m15-self-managed-issue-script-read-only.json`: {
+- `artifacts/evidence/generated/20260522T165206Z-m15-self-managed-issue-script-read-only.md`: # M15 self-managed issue script read-only
+- `artifacts/evidence/generated/20260522T165206Z-m15-self-managed-milestone-plan-read-only.json`: {
+- `artifacts/evidence/generated/20260522T165206Z-m15-self-managed-milestone-plan-read-only.md`: # M15 self-managed milestone plan read-only
+- `artifacts/evidence/generated/20260522T165210Z-m15-self-managed-issue-script-read-only.json`: {
+- `artifacts/evidence/generated/20260522T165210Z-m15-self-managed-issue-script-read-only.md`: # M15 self-managed issue script read-only
+- `artifacts/evidence/generated/20260522T165210Z-m15-self-managed-milestone-plan-read-only.json`: {
+- `artifacts/evidence/generated/20260522T165210Z-m15-self-managed-milestone-plan-read-only.md`: # M15 self-managed milestone plan read-only
+- `artifacts/evidence/generated/20260522T165326Z-m15-self-managed-milestone-plan-read-only.json`: {
+- `artifacts/evidence/generated/20260522T165326Z-m15-self-managed-milestone-plan-read-only.md`: # M15 self-managed milestone plan read-only
+- `artifacts/evidence/generated/20260522T165330Z-m15-self-managed-milestone-plan-local-write.json`: {
+- `artifacts/evidence/generated/20260522T165330Z-m15-self-managed-milestone-plan-local-write.md`: # M15 self-managed milestone plan local-write
+- `artifacts/evidence/generated/20260522T165334Z-m15-self-managed-issue-script-read-only.json`: {
+- `artifacts/evidence/generated/20260522T165334Z-m15-self-managed-issue-script-read-only.md`: # M15 self-managed issue script read-only
+- `artifacts/evidence/generated/20260522T165334Z-m15-self-managed-milestone-plan-read-only.json`: {
+- `artifacts/evidence/generated/20260522T165334Z-m15-self-managed-milestone-plan-read-only.md`: # M15 self-managed milestone plan read-only
+- `artifacts/evidence/generated/20260522T165732Z-m15-self-managed-milestone-plan-read-only.json`: {
+- `artifacts/evidence/generated/20260522T165732Z-m15-self-managed-milestone-plan-read-only.md`: # M15 self-managed milestone plan read-only
+- `artifacts/evidence/generated/20260522T165743Z-m15-self-managed-issue-script-read-only.json`: {
+- `artifacts/evidence/generated/20260522T165743Z-m15-self-managed-issue-script-read-only.md`: # M15 self-managed issue script read-only
+- `artifacts/evidence/generated/20260522T165743Z-m15-self-managed-milestone-plan-local-write.json`: {
+- `artifacts/evidence/generated/20260522T165743Z-m15-self-managed-milestone-plan-local-write.md`: # M15 self-managed milestone plan local-write
+- `artifacts/evidence/generated/20260522T165743Z-m15-self-managed-milestone-plan-read-only.json`: {
+- `artifacts/evidence/generated/20260522T165743Z-m15-self-managed-milestone-plan-read-only.md`: # M15 self-managed milestone plan read-only
+- `artifacts/evidence/generated/20260522T165910Z-m15-self-managed-milestone-plan-read-only.json`: {
+- `artifacts/evidence/generated/20260522T165910Z-m15-self-managed-milestone-plan-read-only.md`: # M15 self-managed milestone plan read-only
+- `artifacts/evidence/generated/20260522T165913Z-m15-self-managed-milestone-plan-local-write.json`: {
+- `artifacts/evidence/generated/20260522T165913Z-m15-self-managed-milestone-plan-local-write.md`: # M15 self-managed milestone plan local-write
+- `artifacts/evidence/generated/20260522T165917Z-m15-self-managed-issue-script-read-only.json`: {
+- `artifacts/evidence/generated/20260522T165917Z-m15-self-managed-issue-script-read-only.md`: # M15 self-managed issue script read-only
+- `artifacts/evidence/generated/20260522T165917Z-m15-self-managed-milestone-plan-read-only.json`: {
+- `artifacts/evidence/generated/20260522T165917Z-m15-self-managed-milestone-plan-read-only.md`: # M15 self-managed milestone plan read-only
+- `artifacts/evidence/generated/20260522T170014Z-m15-self-managed-milestone-plan-read-only.json`: {
+- `artifacts/evidence/generated/20260522T170014Z-m15-self-managed-milestone-plan-read-only.md`: # M15 self-managed milestone plan read-only
+- `artifacts/evidence/generated/20260522T170018Z-m15-self-managed-issue-script-read-only.json`: {
+- `artifacts/evidence/generated/20260522T170018Z-m15-self-managed-issue-script-read-only.md`: # M15 self-managed issue script read-only
+- `artifacts/evidence/generated/20260522T170018Z-m15-self-managed-milestone-plan-read-only.json`: {
+- `artifacts/evidence/generated/20260522T170018Z-m15-self-managed-milestone-plan-read-only.md`: # M15 self-managed milestone plan read-only
+- `artifacts/evidence/generated/20260522T173952Z-autonomous-run-run-m16-259-3b3ac68ce1.json`: {
+- `artifacts/evidence/generated/20260522T173952Z-autonomous-run-run-m16-259-3b3ac68ce1.md`: # Autonomous run run-m16-259-3b3ac68ce1
+- `artifacts/evidence/generated/20260522T174006Z-autonomous-run-run-m16-260-e2e24000e4.json`: {
+- `artifacts/evidence/generated/20260522T174006Z-autonomous-run-run-m16-260-e2e24000e4.md`: # Autonomous run run-m16-260-e2e24000e4
+- `artifacts/evidence/generated/20260522T174016Z-autonomous-run-run-m16-261-a9017ec308.json`: {
+- `artifacts/evidence/generated/20260522T174016Z-autonomous-run-run-m16-261-a9017ec308.md`: # Autonomous run run-m16-261-a9017ec308
+- `artifacts/evidence/generated/20260522T174016Z-autonomous-run-run-m16-262-23b486bbb9.json`: {
+- `artifacts/evidence/generated/20260522T174016Z-autonomous-run-run-m16-262-23b486bbb9.md`: # Autonomous run run-m16-262-23b486bbb9
+- `artifacts/evidence/generated/20260522T174016Z-autonomous-run-run-m16-263-87ab2071e7.json`: {
+- `artifacts/evidence/generated/20260522T174016Z-autonomous-run-run-m16-263-87ab2071e7.md`: # Autonomous run run-m16-263-87ab2071e7
+- `artifacts/evidence/generated/20260522T174536Z-autonomous-run-run-m16-261-8bb4fcb80c.json`: {
+- `artifacts/evidence/generated/20260522T174536Z-autonomous-run-run-m16-261-8bb4fcb80c.md`: # Autonomous run run-m16-261-8bb4fcb80c
+- `artifacts/evidence/generated/20260522T174610Z-autonomous-run-run-m16-262-3e050d9ef9.json`: {
+- `artifacts/evidence/generated/20260522T174610Z-autonomous-run-run-m16-262-3e050d9ef9.md`: # Autonomous run run-m16-262-3e050d9ef9
+- `artifacts/evidence/generated/20260522T175157Z-autonomous-run-run-m16-262-9145abdb43.json`: {
+- `artifacts/evidence/generated/20260522T175157Z-autonomous-run-run-m16-262-9145abdb43.md`: # Autonomous run run-m16-262-9145abdb43
+- `artifacts/evidence/generated/20260522T175251Z-autonomous-run-run-m16-262-0bf31d83bc.json`: {
+- `artifacts/evidence/generated/20260522T175251Z-autonomous-run-run-m16-262-0bf31d83bc.md`: # Autonomous run run-m16-262-0bf31d83bc
+- `artifacts/evidence/generated/20260522T175940Z-autonomous-run-run-m16-262-2cfd176882.json`: {
+- `artifacts/evidence/generated/20260522T175940Z-autonomous-run-run-m16-262-2cfd176882.md`: # Autonomous run run-m16-262-2cfd176882
+- `artifacts/evidence/generated/20260522T180409Z-autonomous-run-run-m16-262-bf416386e1.json`: {
+- `artifacts/evidence/generated/20260522T180409Z-autonomous-run-run-m16-262-bf416386e1.md`: # Autonomous run run-m16-262-bf416386e1
+- `artifacts/evidence/generated/20260522T180705Z-autonomous-run-run-m16-262-d85f210ca7.json`: {
+- `artifacts/evidence/generated/20260522T180705Z-autonomous-run-run-m16-262-d85f210ca7.md`: # Autonomous run run-m16-262-d85f210ca7
+- `artifacts/evidence/generated/20260522T214303Z-m19-sequential-handoff-package-parent-309.json`: {
+- `artifacts/evidence/generated/20260522T214303Z-m19-sequential-handoff-package-parent-309.md`: # Sequential Handoff Package
+- `artifacts/evidence/generated/m24-400-docs-snapshot.json`: {
+- `artifacts/evidence/generated/m24-400-final-baseline.json`: {
+- `artifacts/local_reviews/generated/20260520T182832Z-local-review-project-aresforge-model-ollama-default.json`: {
+- `artifacts/local_reviews/generated/20260520T182832Z-local-review-project-aresforge-model-ollama-default.md`: # Local Review Package
+- `artifacts/mutation_audit/github-mutation-audit-log.jsonl`: {"logged_at": "2026-05-23T16:55:40.432560Z", "record": {"command": "plan-github-mutation", "mutation_intent": "issue_com
+- `artifacts/prompts/README.md`: # Prompt Artifacts
+- `artifacts/prompts/generated/20260520T000257Z-issue-81-prompt-package.json`: {
+- `artifacts/prompts/generated/20260520T000257Z-issue-81-prompt-package.md`: # Issue 81 prompt package
+- `artifacts/prompts/generated/m18_issue_bodies_tmp/child1.md`: Summary
+- `artifacts/prompts/generated/m18_issue_bodies_tmp/child2.md`: Summary
+- `artifacts/prompts/generated/m18_issue_bodies_tmp/child3.md`: Summary
+- `artifacts/prompts/generated/m18_issue_bodies_tmp/child4.md`: Summary
+- `artifacts/prompts/generated/m18_issue_bodies_tmp/child5.md`: Summary
+- `artifacts/prompts/generated/m18_issue_bodies_tmp/child6.md`: Summary
+- `artifacts/prompts/generated/m18_issue_bodies_tmp/child7.md`: Summary
+- `artifacts/prompts/generated/m18_issue_bodies_tmp/create_m18_issues.ps1`: $ErrorActionPreference = "Stop"
+- `artifacts/prompts/generated/m18_issue_bodies_tmp/parent.md`: Summary
+- `artifacts/prompts/generated/m18_issue_bodies_tmp/parent_children_comment.md`: M18 child issues created:
+- `artifacts/ready_issue_batches/generated/20260520T182152Z-ready-issue-batch.json`: {
+- `artifacts/ready_issue_batches/generated/20260520T182152Z-ready-issue-batch.md`: # Ready Issue Batch Plan
+- `artifacts/ready_issue_batches/generated/20260522T161845Z-ready-issue-batch.json`: {
+- `artifacts/ready_issue_batches/generated/20260522T161845Z-ready-issue-batch.md`: # Ready Issue Batch Plan
+- `artifacts/ready_issue_batches/generated/20260522T163054Z-ready-issue-batch.json`: {
+- `artifacts/ready_issue_batches/generated/20260522T163054Z-ready-issue-batch.md`: # Ready Issue Batch Plan
+- `artifacts/ready_issue_batches/generated/20260522T164234Z-ready-issue-batch.json`: {
+- `artifacts/ready_issue_batches/generated/20260522T164234Z-ready-issue-batch.md`: # Ready Issue Batch Plan
+- `artifacts/ready_issue_batches/generated/20260522T165419Z-ready-issue-batch.json`: {
+- `artifacts/ready_issue_batches/generated/20260522T165419Z-ready-issue-batch.md`: # Ready Issue Batch Plan
+- `artifacts/samples/m6-agent-queue-input.json`: {
+- Missing/weak signals: none obvious from static scan.
+
+## configuration
+- `config/README.md`: # Local Configuration
+- `config/managed_repositories.json`: {
+- `docker-compose.yml`: services:
+- `pyproject.toml`: [build-system]
+- Missing/weak signals: `config/README.md`, `config/managed_repositories.json`, `docker-compose.yml`, `pyproject.toml`
+
+## unknown
+- `.agent/AGENT_REGISTRY.md`: # AresForge Agent Registry
+- `.agent/skills/build-state-update/SKILL.md`: # Build State Update Skill
+- `.agent/skills/documentation-sync/SKILL.md`: # Documentation Sync Skill
+- `.agent/skills/github-operations/SKILL.md`: # GitHub Operations Skill
+- `.agent/skills/issue-planning/SKILL.md`: # Issue Planning Skill
+- `.agent/skills/ollama-evidence-review/SKILL.md`: # Ollama Evidence Review Skill
+- `.agent/skills/pr-validation/SKILL.md`: # PR Validation Skill
+- `.aresforge/state/project_state.json`: {
+- `.env.example`: ARESFORGE_REPO_ROOT=C:\Projects\aresforge
+- `.gitignore`: .venv/
+- `README.md`: ﻿# AresForge
+- `src/aresforge.egg-info/PKG-INFO`: Metadata-Version: 2.4
+- `src/aresforge.egg-info/SOURCES.txt`: README.md
+- `src/aresforge.egg-info/dependency_links.txt`: Purpose inference unavailable.
+- `src/aresforge.egg-info/entry_points.txt`: [console_scripts]
+- `src/aresforge.egg-info/requires.txt`: psycopg[binary]<4.0,>=3.2
+- `src/aresforge.egg-info/top_level.txt`: aresforge
+- Missing/weak signals: `.agent/AGENT_REGISTRY.md`, `.agent/skills/build-state-update/SKILL.md`, `.agent/skills/documentation-sync/SKILL.md`, `.agent/skills/github-operations/SKILL.md`, `.agent/skills/issue-planning/SKILL.md`, `.agent/skills/ollama-evidence-review/SKILL.md`, `.agent/skills/pr-validation/SKILL.md`, `.aresforge/state/project_state.json`

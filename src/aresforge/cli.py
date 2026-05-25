@@ -198,6 +198,7 @@ from aresforge.operator.self_managed_milestone_simulation import (
 from aresforge.operator.repo_bootstrap_contract import inspect_repo_bootstrap_contract
 from aresforge.operator.repo_bootstrap_plan import plan_repo_bootstrap
 from aresforge.operator.repo_governance import inspect_repo_governance
+from aresforge.operator.repo_assessment import AssessmentOptions, assess_repository
 from aresforge.operator.evidence_bundle_automation_contract import (
     inspect_evidence_bundle_automation_contract,
 )
@@ -1425,6 +1426,42 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser(
         "inspect-repo-governance",
         help="Inspect reusable label and milestone governance for the configured repository.",
+    )
+    assess_repo_parser = subparsers.add_parser(
+        "assess-repo",
+        help="Run local-only read-only repository architecture and file-role assessment.",
+    )
+    assess_repo_parser.add_argument(
+        "--repo-path",
+        help="Repository path to assess. Defaults to AppConfig repo_root.",
+    )
+    assess_repo_parser.add_argument(
+        "--output",
+        default="docs/audit",
+        help="Output directory for assessment artifacts (default: docs/audit).",
+    )
+    assess_repo_parser.add_argument(
+        "--format",
+        choices=["json", "markdown", "both"],
+        default="both",
+        help="Output format (default: both).",
+    )
+    assess_repo_parser.add_argument(
+        "--include-tests",
+        type=parse_boolean_flag,
+        default=True,
+        help="Include tests/ files (true|false). Default true.",
+    )
+    assess_repo_parser.add_argument(
+        "--include-docs",
+        type=parse_boolean_flag,
+        default=True,
+        help="Include docs/ files (true|false). Default true.",
+    )
+    assess_repo_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite assessment outputs if they already exist.",
     )
     subparsers.add_parser(
         "inspect-evidence-bundle-automation-contract",
@@ -2821,6 +2858,25 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "inspect-repo-governance":
         emit_json(inspect_repo_governance(config))
         return 0
+
+    if args.command == "assess-repo":
+        repo_path = Path(args.repo_path).resolve() if args.repo_path else config.repo_root
+        output_path = Path(args.output)
+        if not output_path.is_absolute():
+            output_path = (repo_path / output_path).resolve()
+        payload = assess_repository(
+            config,
+            options=AssessmentOptions(
+                repo_path=repo_path,
+                output_path=output_path,
+                format=args.format,
+                include_tests=bool(args.include_tests),
+                include_docs=bool(args.include_docs),
+                force=bool(args.force),
+            ),
+        )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
 
     if args.command == "inspect-evidence-bundle-automation-contract":
         payload = inspect_evidence_bundle_automation_contract(config)

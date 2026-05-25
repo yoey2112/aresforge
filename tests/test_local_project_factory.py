@@ -1089,10 +1089,18 @@ def test_execution_readiness_reports_pending_approval_when_execution_gate_missin
     config = _config(tmp_path)
     project_id = _seed_github_apply_plan_approved(config, tmp_path)
     prepare_project_agent_dispatch_plan(config, project_id)
-    update_project_agent_dispatch_plan(config, project_id, {"dispatch_summary": "summary", "approval_conditions": ["approval"]})
+    update_project_agent_dispatch_plan(
+        config,
+        project_id,
+        {"dispatch_summary": "summary", "approval_conditions": ["Agent execution approval required."]},
+    )
     approve_project_agent_dispatch_plan(config, project_id, {})
     prepare_project_validation_execution_plan(config, project_id)
-    update_project_validation_execution_plan(config, project_id, {"validation_summary": "summary", "approval_conditions": ["approval"]})
+    update_project_validation_execution_plan(
+        config,
+        project_id,
+        {"validation_summary": "summary", "approval_conditions": ["Validation execution approval required."]},
+    )
     approve_project_validation_execution_plan(config, project_id, {})
     prepare_project_documentation_closeout_plan(config, project_id)
     update_project_documentation_closeout_plan(config, project_id, {"closeout_summary": "summary", "approval_conditions": ["closeout approval"]})
@@ -1108,10 +1116,18 @@ def test_execution_readiness_reports_plan_only_approved_when_all_lanes_blocked(t
     config = _config(tmp_path)
     project_id = _seed_github_apply_plan_approved(config, tmp_path)
     prepare_project_agent_dispatch_plan(config, project_id)
-    update_project_agent_dispatch_plan(config, project_id, {"dispatch_summary": "summary", "approval_conditions": ["approval"]})
+    update_project_agent_dispatch_plan(
+        config,
+        project_id,
+        {"dispatch_summary": "summary", "approval_conditions": ["Agent execution approval required."]},
+    )
     approve_project_agent_dispatch_plan(config, project_id, {})
     prepare_project_validation_execution_plan(config, project_id)
-    update_project_validation_execution_plan(config, project_id, {"validation_summary": "summary", "approval_conditions": ["approval"]})
+    update_project_validation_execution_plan(
+        config,
+        project_id,
+        {"validation_summary": "summary", "approval_conditions": ["Validation execution approval required."]},
+    )
     approve_project_validation_execution_plan(config, project_id, {})
     prepare_project_documentation_closeout_plan(config, project_id)
     update_project_documentation_closeout_plan(config, project_id, {"closeout_summary": "summary", "approval_conditions": ["closeout approval"]})
@@ -1127,10 +1143,18 @@ def test_execution_readiness_reports_execution_lanes_approved_with_expected_keys
     config = _config(tmp_path)
     project_id = _seed_github_apply_plan_approved(config, tmp_path)
     prepare_project_agent_dispatch_plan(config, project_id)
-    update_project_agent_dispatch_plan(config, project_id, {"dispatch_summary": "summary", "approval_conditions": ["approval"]})
+    update_project_agent_dispatch_plan(
+        config,
+        project_id,
+        {"dispatch_summary": "summary", "approval_conditions": ["Agent execution approval required."]},
+    )
     approve_project_agent_dispatch_plan(config, project_id, {})
     prepare_project_validation_execution_plan(config, project_id)
-    update_project_validation_execution_plan(config, project_id, {"validation_summary": "summary", "approval_conditions": ["approval"]})
+    update_project_validation_execution_plan(
+        config,
+        project_id,
+        {"validation_summary": "summary", "approval_conditions": ["Validation execution approval required."]},
+    )
     approve_project_validation_execution_plan(config, project_id, {})
     prepare_project_documentation_closeout_plan(config, project_id)
     update_project_documentation_closeout_plan(config, project_id, {"closeout_summary": "summary", "approval_conditions": ["closeout approval"]})

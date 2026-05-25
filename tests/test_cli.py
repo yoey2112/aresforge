@@ -39,6 +39,7 @@ def test_cli_has_expected_commands() -> None:
         "automation-readiness-report",
         "project-state-summary",
         "inspect-repo-governance",
+        "assess-repo",
         "inspect-evidence-bundle-automation-contract",
         "inspect-milestone-closeout-preflight-contract",
         "inspect-canonical-evidence-marker-contract",
@@ -217,6 +218,13 @@ def test_cli_inspection_commands_require_expected_ids() -> None:
     assert project_state_summary_args.command == "project-state-summary"
     governance_args = parser.parse_args(["inspect-repo-governance"])
     assert governance_args.command == "inspect-repo-governance"
+    assess_repo_args = parser.parse_args(["assess-repo"])
+    assert assess_repo_args.command == "assess-repo"
+    assert assess_repo_args.output == "docs/audit"
+    assert assess_repo_args.format == "both"
+    assert assess_repo_args.include_tests is True
+    assert assess_repo_args.include_docs is True
+    assert assess_repo_args.force is False
     evidence_contract_args = parser.parse_args(["inspect-evidence-bundle-automation-contract"])
     assert evidence_contract_args.command == "inspect-evidence-bundle-automation-contract"
     milestone_preflight_contract_args = parser.parse_args(["inspect-milestone-closeout-preflight-contract"])
@@ -859,6 +867,7 @@ def test_command_requires_directories_only_for_commands_that_write_artifacts() -
     )
     assert command_requires_directories(parser.parse_args(["automation-readiness-report"])) is False
     assert command_requires_directories(parser.parse_args(["inspect-repo-governance"])) is False
+    assert command_requires_directories(parser.parse_args(["assess-repo"])) is False
     assert command_requires_directories(parser.parse_args(["inspect-milestone-closeout-preflight-contract"])) is False
     assert command_requires_directories(parser.parse_args(["inspect-canonical-evidence-marker-contract"])) is False
     assert command_requires_directories(parser.parse_args(["inspect-repo-bootstrap-contract"])) is False
