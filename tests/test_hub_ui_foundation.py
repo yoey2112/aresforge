@@ -209,6 +209,9 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "Project Factory Dossier" in index_text
     assert "Scope Project Kickoff" in index_text
     assert "Prepare Scope Package" in index_text
+    assert "Scope Authoring" in index_text
+    assert "Save Scope Draft" in index_text
+    assert "Approve Scope" in index_text
     assert "wizard-project-name" in index_text
     assert "wizard-project-id" in index_text
     assert "wizard-project-type" in index_text
@@ -240,6 +243,7 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
         "/api/project-factory/new-project",
         "/api/project-factory/dossier",
         "/api/project-factory/scope-package",
+        "/api/project-factory/scope-package/approve",
         "/api/projects/",
         "/github-link",
         "/api/bootstrap/status",
@@ -262,6 +266,7 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
     for form_id in (
         "project-form",
         "new-project-wizard-form",
+        "scope-authoring-form",
         "repo-form",
         "queue-form",
         "queue-filter-form",
@@ -289,8 +294,14 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
         "queue-use-active-project",
         "queue-filter-active-project",
         "intake-submit",
+        "scope-save-draft",
+        "scope-approve",
     ):
         assert action_id in app_text
+    assert "parseLineList" in app_text
+    assert "toTextareaList" in app_text
+    assert "renderScopeAuthoring" in app_text
+    assert "buildScopeAuthoringPayload" in app_text
 
 
 def test_bootstrap_api_status_plan_apply(tmp_path: Path) -> None:

@@ -4,9 +4,12 @@ from pathlib import Path
 
 from aresforge.config import AppConfig
 from aresforge.hub.api import (
+    get_project_factory_scope_package,
+    patch_project_factory_scope_package,
     get_project_factory_dossier,
     post_active_project,
     post_project_factory_new_project,
+    post_project_factory_scope_package_approve,
     post_project_factory_scope_package,
 )
 
@@ -152,3 +155,54 @@ def test_post_project_factory_scope_package_returns_404_for_missing_dossier(tmp_
     payload = post_project_factory_scope_package(config, {"project_id": "missing-project"})
     assert payload["ok"] is False
     assert payload["_status"] == 404
+
+
+def test_get_scope_package_falls_back_to_active_project(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    created = post_project_factory_new_project(config, {"name": "Scope Read", "root_path": str(tmp_path / "workspace")})
+    assert created["ok"] is True
+    post_project_factory_scope_package(config, {})
+    payload = get_project_factory_scope_package(config, {})
+    assert payload["ok"] is True
+    assert payload["scope_package_exists"] is True
+    assert payload["project_id"] == created["active_project_id"]
+
+
+def test_get_scope_package_with_no_active_project_returns_friendly_state(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    payload = get_project_factory_scope_package(config, {})
+    assert payload["ok"] is True
+    assert payload["scope_package_exists"] is False
+    assert payload["warnings"]
+
+
+def test_patch_scope_package_updates_scope(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    post_project_factory_new_project(config, {"name": "Scope Patch", "root_path": str(tmp_path / "workspace")})
+    post_project_factory_scope_package(config, {})
+    payload = patch_project_factory_scope_package(
+        config,
+        {"requirements": ["r1"], "acceptance_criteria": ["a1"], "notes": "n1"},
+    )
+    assert payload["ok"] is True
+    assert payload["scope_package"]["requirements"] == ["r1"]
+    assert payload["scope_package"]["lifecycle_state"] == "scope_draft_updated"
+
+
+def test_post_scope_approve_validates_required_fields(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    post_project_factory_new_project(config, {"name": "Scope Approve", "root_path": str(tmp_path / "workspace")})
+    post_project_factory_scope_package(config, {})
+    payload = post_project_factory_scope_package_approve(config, {})
+    assert payload["ok"] is False
+    assert payload["_status"] == 400
+
+
+def test_post_scope_approve_succeeds_for_valid_scope(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    post_project_factory_new_project(config, {"name": "Scope Approve Valid", "root_path": str(tmp_path / "workspace")})
+    post_project_factory_scope_package(config, {})
+    patch_project_factory_scope_package(config, {"requirements": ["r1"], "acceptance_criteria": ["a1"]})
+    payload = post_project_factory_scope_package_approve(config, {})
+    assert payload["ok"] is True
+    assert payload["scope_package"]["lifecycle_state"] == "scope_approved"

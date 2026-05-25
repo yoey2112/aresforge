@@ -5,12 +5,15 @@ from pathlib import Path
 
 from aresforge.config import AppConfig
 from aresforge.operator.local_project_factory import (
+    approve_project_scope_package,
     inspect_project_factory_dossier,
     prepare_project_scope_package,
     read_project_factory_dossier,
+    read_project_scope_package,
     resolve_project_factory_dossier_path,
     resolve_project_scope_package_path,
     start_new_project_factory,
+    update_project_scope_package,
 )
 
 
@@ -168,3 +171,81 @@ def test_prepare_project_scope_package_rejects_missing_dossier(tmp_path: Path) -
     payload = prepare_project_scope_package(config, "missing")
     assert payload["ok"] is False
     assert payload["error"] == "project_factory_dossier_not_found"
+
+
+def test_read_missing_scope_package_returns_friendly_payload(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    payload = read_project_scope_package(config, "missing-project")
+    assert payload["ok"] is True
+    assert payload["scope_package_exists"] is False
+
+
+def test_update_scope_package_writes_fields_audit_and_lifecycle(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    created = start_new_project_factory(config, _payload(tmp_path))
+    project_id = str(created["project"]["project_id"])
+    prepare_project_scope_package(config, project_id)
+    payload = update_project_scope_package(
+        config,
+        project_id,
+        {
+            "requirements": ["r1"],
+            "acceptance_criteria": ["a1"],
+            "notes": "local notes",
+        },
+    )
+    assert payload["ok"] is True
+    scope = payload["scope_package"]
+    assert scope["requirements"] == ["r1"]
+    assert scope["acceptance_criteria"] == ["a1"]
+    assert scope["notes"] == "local notes"
+    assert scope["lifecycle_state"] == "scope_draft_updated"
+    assert any(entry.get("event_type") == "scope_draft_updated" for entry in scope.get("audit_trail", []))
+
+
+def test_approve_scope_fails_without_requirements(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    created = start_new_project_factory(config, _payload(tmp_path))
+    project_id = str(created["project"]["project_id"])
+    prepare_project_scope_package(config, project_id)
+    update_project_scope_package(config, project_id, {"acceptance_criteria": ["a1"]})
+    payload = approve_project_scope_package(config, project_id, {})
+    assert payload["ok"] is False
+    assert payload["error"] == "scope_approval_validation_failed"
+
+
+def test_approve_scope_fails_without_acceptance_criteria(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    created = start_new_project_factory(config, _payload(tmp_path))
+    project_id = str(created["project"]["project_id"])
+    prepare_project_scope_package(config, project_id)
+    update_project_scope_package(config, project_id, {"requirements": ["r1"]})
+    payload = approve_project_scope_package(config, project_id, {})
+    assert payload["ok"] is False
+    assert payload["error"] == "scope_approval_validation_failed"
+
+
+def test_approve_scope_succeeds_and_transitions_scope_and_dossier(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    created = start_new_project_factory(config, _payload(tmp_path))
+    project_id = str(created["project"]["project_id"])
+    prepare_project_scope_package(config, project_id)
+    update_project_scope_package(config, project_id, {"requirements": ["r1"], "acceptance_criteria": ["a1"]})
+    payload = approve_project_scope_package(config, project_id, {})
+    assert payload["ok"] is True
+    assert payload["scope_package"]["lifecycle_state"] == "scope_approved"
+    dossier = read_project_factory_dossier(config, project_id)
+    assert dossier["dossier"]["lifecycle_state"] == "scope_approved"
+    assert dossier["dossier"]["next_recommended_action"] == "prepare_architecture_contract"
+
+
+def test_scope_audit_trail_preserves_existing_entries(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    created = start_new_project_factory(config, _payload(tmp_path))
+    project_id = str(created["project"]["project_id"])
+    prepare_project_scope_package(config, project_id)
+    first_update = update_project_scope_package(config, project_id, {"requirements": ["r1"]})
+    first_count = len(first_update["scope_package"].get("audit_trail", []))
+    second_update = update_project_scope_package(config, project_id, {"acceptance_criteria": ["a1"]})
+    second_count = len(second_update["scope_package"].get("audit_trail", []))
+    assert second_count > first_count

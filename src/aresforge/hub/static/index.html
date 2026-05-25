@@ -116,6 +116,28 @@
           </section>
 
           <section class="subpanel">
+            <h3>Scope Authoring</h3>
+            <p id="home-scope-authoring-message" class="message-note">Edit local scope draft fields, then approve to unlock architecture design planning.</p>
+            <p id="home-scope-authoring-state" class="message-note">Scope lifecycle state: not_started</p>
+            <form id="scope-authoring-form" class="form-grid">
+              <label class="full">Requirements<textarea id="scope-requirements" placeholder="One requirement per line"></textarea></label>
+              <label class="full">Constraints<textarea id="scope-constraints" placeholder="One constraint per line"></textarea></label>
+              <label class="full">Assumptions<textarea id="scope-assumptions" placeholder="One assumption per line"></textarea></label>
+              <label class="full">Acceptance Criteria<textarea id="scope-acceptance-criteria" placeholder="One criterion per line"></textarea></label>
+              <label class="full">Risks<textarea id="scope-risks" placeholder="One risk per line"></textarea></label>
+              <label class="full">Out Of Scope<textarea id="scope-out-of-scope" placeholder="One out-of-scope item per line"></textarea></label>
+              <label class="full">Stakeholders<textarea id="scope-stakeholders" placeholder="One stakeholder per line"></textarea></label>
+              <label class="full">Notes<textarea id="scope-notes"></textarea></label>
+              <div class="quick-actions">
+                <button id="scope-save-draft" type="button">Save Scope Draft</button>
+                <button id="scope-approve" type="button">Approve Scope</button>
+              </div>
+            </form>
+            <ul id="home-scope-audit-trail" class="list"></ul>
+            <p id="home-scope-audit-trail-empty" class="empty">No scope audit trail entries yet.</p>
+          </section>
+
+          <section class="subpanel">
             <h3>Current Active Work</h3>
             <ul id="home-current-active-work" class="list"></ul>
             <p id="home-current-active-work-empty" class="empty">No active project work items yet.</p>

@@ -40,8 +40,11 @@ from aresforge.operator.local_bootstrap_wizard import (
 from aresforge.operator.local_project_factory import (
     GITHUB_MODES,
     PROJECT_TYPES,
+    approve_project_scope_package,
     inspect_project_factory_dossier,
     prepare_project_scope_package,
+    read_project_scope_package,
+    update_project_scope_package,
     start_new_project_factory,
 )
 from aresforge.operator.managed_project_registry_local import (
@@ -766,6 +769,38 @@ def get_project_factory_dossier(config: AppConfig, params: dict[str, str | None]
     return payload
 
 
+def get_project_factory_scope_package(config: AppConfig, params: dict[str, str | None]) -> dict[str, Any]:
+    requested_project_id = str(params.get("project_id", "") or "").strip()
+    project_id = requested_project_id
+    warnings: list[str] = []
+    if not project_id:
+        active_payload = inspect_active_project(config)
+        project_id = str(active_payload.get("active_project_id", "")).strip()
+        if not project_id:
+            warnings.append("No active project selected. Use Prepare Scope Package first.")
+            return {
+                "ok": True,
+                "local_only": True,
+                "project_id": "",
+                "scope_package_path": "",
+                "scope_package_exists": False,
+                "scope_package": {},
+                "warnings": sorted(set(warnings + list(active_payload.get("warnings", [])))),
+                "boundary_confirmations": list(
+                    dict.fromkeys(
+                        list(_BOUNDARY_CONFIRMATIONS) + list(active_payload.get("boundary_confirmations", []))
+                    )
+                ),
+            }
+
+    payload = read_project_scope_package(config, project_id)
+    payload["warnings"] = sorted(set(list(payload.get("warnings", [])) + warnings))
+    payload["boundary_confirmations"] = list(
+        dict.fromkeys(list(payload.get("boundary_confirmations", [])) + list(_BOUNDARY_CONFIRMATIONS))
+    )
+    return payload
+
+
 def post_project_factory_scope_package(config: AppConfig, body: dict[str, Any]) -> dict[str, Any]:
     requested_project_id = str(body.get("project_id", "")).strip()
     project_id = requested_project_id
@@ -788,6 +823,80 @@ def post_project_factory_scope_package(config: AppConfig, body: dict[str, Any]) 
         return _api_error(
             error,
             str(details.get("message", "Failed to prepare local scope package placeholder.")),
+            details=details,
+            status=status,
+        )
+
+    result["boundary_confirmations"] = list(
+        dict.fromkeys(list(result.get("boundary_confirmations", [])) + list(_BOUNDARY_CONFIRMATIONS))
+    )
+    return result
+
+
+def patch_project_factory_scope_package(config: AppConfig, body: dict[str, Any]) -> dict[str, Any]:
+    requested_project_id = str(body.get("project_id", "")).strip()
+    project_id = requested_project_id
+    if not project_id:
+        active_payload = inspect_active_project(config)
+        project_id = str(active_payload.get("active_project_id", "")).strip()
+        if not project_id:
+            return _api_error(
+                "active_project_required",
+                "project_id is required when no active project is selected.",
+                details={"required_fields": ["project_id"], "active_project_selected": False},
+                status=400,
+            )
+
+    editable_payload = {
+        "requirements": body.get("requirements"),
+        "constraints": body.get("constraints"),
+        "assumptions": body.get("assumptions"),
+        "acceptance_criteria": body.get("acceptance_criteria"),
+        "risks": body.get("risks"),
+        "out_of_scope": body.get("out_of_scope"),
+        "stakeholders": body.get("stakeholders"),
+        "notes": body.get("notes"),
+    }
+    result = update_project_scope_package(config, project_id, editable_payload)
+    if not result.get("ok", False):
+        error = str(result.get("error", "scope_package_update_failed"))
+        details = dict(result.get("details", {}))
+        status = 404 if error == "scope_package_not_found" else 400
+        return _api_error(
+            error,
+            str(details.get("message", "Failed to update local scope draft.")),
+            details=details,
+            status=status,
+        )
+
+    result["boundary_confirmations"] = list(
+        dict.fromkeys(list(result.get("boundary_confirmations", [])) + list(_BOUNDARY_CONFIRMATIONS))
+    )
+    return result
+
+
+def post_project_factory_scope_package_approve(config: AppConfig, body: dict[str, Any]) -> dict[str, Any]:
+    requested_project_id = str(body.get("project_id", "")).strip()
+    project_id = requested_project_id
+    if not project_id:
+        active_payload = inspect_active_project(config)
+        project_id = str(active_payload.get("active_project_id", "")).strip()
+        if not project_id:
+            return _api_error(
+                "active_project_required",
+                "project_id is required when no active project is selected.",
+                details={"required_fields": ["project_id"], "active_project_selected": False},
+                status=400,
+            )
+
+    result = approve_project_scope_package(config, project_id, {"approved_by": body.get("approved_by")})
+    if not result.get("ok", False):
+        error = str(result.get("error", "scope_package_approval_failed"))
+        details = dict(result.get("details", {}))
+        status = 404 if error == "scope_package_not_found" else 400
+        return _api_error(
+            error,
+            str(details.get("message", "Failed to approve local scope package.")),
             details=details,
             status=status,
         )

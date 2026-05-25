@@ -40,6 +40,15 @@ _BOUNDARY_CONFIRMATIONS: tuple[str, ...] = (
     "No agent execution.",
     "No model invocation.",
 )
+_SCOPE_EDITABLE_LIST_FIELDS: tuple[str, ...] = (
+    "requirements",
+    "constraints",
+    "assumptions",
+    "acceptance_criteria",
+    "risks",
+    "out_of_scope",
+    "stakeholders",
+)
 
 
 def resolve_project_factory_dossier_path(repo_root: Path, project_id: str) -> Path:
@@ -119,7 +128,19 @@ def inspect_project_factory_dossier(config: AppConfig, project_id: str) -> dict[
     lifecycle_state = str(payload.get("lifecycle_state", "")).strip()
     dossier = payload.get("dossier", {}) if isinstance(payload.get("dossier"), dict) else {}
     github_mode = str(dossier.get("github_mode", "")).strip() or "create-later"
-    payload["workflow_steps"] = _build_workflow_steps(lifecycle_state=lifecycle_state, github_mode=github_mode)
+    scope_lifecycle_state = ""
+    scope_payload = read_project_scope_package(config, project_id)
+    if scope_payload.get("scope_package_exists", False):
+        scope_package = scope_payload.get("scope_package", {})
+        if isinstance(scope_package, dict):
+            scope_lifecycle_state = str(scope_package.get("lifecycle_state", "")).strip()
+    effective_lifecycle_state = lifecycle_state
+    if scope_lifecycle_state == "scope_approved" and lifecycle_state != "scope_approved":
+        effective_lifecycle_state = "scope_approved"
+    payload["workflow_steps"] = _build_workflow_steps(
+        lifecycle_state=effective_lifecycle_state,
+        github_mode=github_mode,
+    )
     return payload
 
 
@@ -164,11 +185,26 @@ def prepare_project_scope_package(config: AppConfig, project_id: str) -> dict[st
             "initial_requirements": str(dossier.get("initial_requirements", "")).strip(),
         },
         "scope_status": "not_started",
+        "requirements": [],
+        "constraints": [],
+        "assumptions": [],
+        "acceptance_criteria": [],
+        "risks": [],
+        "out_of_scope": [],
+        "stakeholders": [],
+        "notes": "",
         "model_execution_status": "not_requested",
         "github_mutation_status": "not_requested",
         "next_recommended_action": "approve_scope_generation_or_edit_scope_locally",
         "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+        "audit_trail": [],
     }
+    _append_scope_audit_entry(
+        scope_package,
+        event_type="scope_package_prepared",
+        lifecycle_state="scope_package_prepared",
+        summary="Scope package prepared locally from project factory dossier.",
+    )
     scope_path.write_text(json.dumps(scope_package, indent=2) + "\n", encoding="utf-8")
 
     current_lifecycle_state = str(dossier.get("lifecycle_state", "")).strip()
@@ -201,6 +237,169 @@ def prepare_project_scope_package(config: AppConfig, project_id: str) -> dict[st
                 list(_BOUNDARY_CONFIRMATIONS) + list(updated_inspection.get("boundary_confirmations", []))
             )
         ),
+    }
+
+
+def read_project_scope_package(config: AppConfig, project_id: str) -> dict[str, Any]:
+    normalized_project_id = str(project_id or "").strip()
+    scope_path = resolve_project_scope_package_path(config.repo_root, normalized_project_id)
+    warnings: list[str] = []
+    if not scope_path.exists():
+        warnings.append(f"Scope package not found for project: {normalized_project_id}")
+        return {
+            "ok": True,
+            "local_only": True,
+            "project_id": normalized_project_id,
+            "scope_package_path": str(scope_path),
+            "scope_package_exists": False,
+            "scope_package": {},
+            "warnings": warnings,
+            "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+        }
+
+    try:
+        loaded = json.loads(scope_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        warnings.append(f"Scope package could not be parsed: {exc}")
+        loaded = {}
+
+    if not isinstance(loaded, dict):
+        warnings.append("Scope package has invalid schema; expected JSON object.")
+        loaded = {}
+
+    return {
+        "ok": True,
+        "local_only": True,
+        "project_id": normalized_project_id,
+        "scope_package_path": str(scope_path),
+        "scope_package_exists": bool(loaded),
+        "scope_package": loaded,
+        "warnings": sorted(set(warnings)),
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+    }
+
+
+def update_project_scope_package(config: AppConfig, project_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+    scope_result = read_project_scope_package(config, project_id)
+    normalized_project_id = str(scope_result.get("project_id", "")).strip()
+    if not scope_result.get("scope_package_exists", False):
+        return _error(
+            "scope_package_not_found",
+            {
+                "message": "Scope package must be prepared before updating scope draft fields.",
+                "project_id": normalized_project_id,
+                "scope_package_path": scope_result.get("scope_package_path", ""),
+            },
+        )
+
+    scope_package = dict(scope_result.get("scope_package", {}))
+    now = _now_iso()
+    for field in _SCOPE_EDITABLE_LIST_FIELDS:
+        if field in payload:
+            scope_package[field] = _normalize_text_list(payload.get(field))
+    if "notes" in payload:
+        scope_package["notes"] = str(payload.get("notes", "")).strip()
+
+    scope_package["lifecycle_state"] = "scope_draft_updated"
+    scope_package["updated_at"] = now
+    scope_package["model_execution_status"] = "not_requested"
+    scope_package["github_mutation_status"] = "not_requested"
+    scope_package["next_recommended_action"] = "approve_scope_or_continue_editing"
+    _append_scope_audit_entry(
+        scope_package,
+        event_type="scope_draft_updated",
+        lifecycle_state="scope_draft_updated",
+        summary="Scope draft fields were updated locally.",
+    )
+
+    scope_path = resolve_project_scope_package_path(config.repo_root, normalized_project_id)
+    scope_path.write_text(json.dumps(scope_package, indent=2) + "\n", encoding="utf-8")
+
+    dossier_result = read_project_factory_dossier(config, normalized_project_id)
+    dossier = dict(dossier_result.get("dossier", {})) if dossier_result.get("dossier_exists", False) else {}
+    if dossier:
+        dossier["lifecycle_state"] = "scope_draft_updated"
+        dossier["next_recommended_action"] = "approve_scope_or_continue_editing"
+        dossier["updated_at"] = now
+        create_project_factory_dossier(config, dossier)
+
+    return {
+        "ok": True,
+        "local_only": True,
+        "project_id": normalized_project_id,
+        "scope_package": scope_package,
+        "scope_package_path": str(scope_path),
+        "dossier_path": str(resolve_project_factory_dossier_path(config.repo_root, normalized_project_id)),
+        "warnings": sorted(set(scope_result.get("warnings", []))),
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+    }
+
+
+def approve_project_scope_package(config: AppConfig, project_id: str, approval_payload: dict[str, Any]) -> dict[str, Any]:
+    scope_result = read_project_scope_package(config, project_id)
+    normalized_project_id = str(scope_result.get("project_id", "")).strip()
+    if not scope_result.get("scope_package_exists", False):
+        return _error(
+            "scope_package_not_found",
+            {
+                "message": "Scope package must be prepared before approval.",
+                "project_id": normalized_project_id,
+                "scope_package_path": scope_result.get("scope_package_path", ""),
+            },
+        )
+
+    scope_package = dict(scope_result.get("scope_package", {}))
+    requirements = _normalize_text_list(scope_package.get("requirements"))
+    acceptance_criteria = _normalize_text_list(scope_package.get("acceptance_criteria"))
+    if not requirements:
+        return _error(
+            "scope_approval_validation_failed",
+            {"message": "Scope approval requires at least one requirement."},
+        )
+    if not acceptance_criteria:
+        return _error(
+            "scope_approval_validation_failed",
+            {"message": "Scope approval requires at least one acceptance criterion."},
+        )
+
+    now = _now_iso()
+    scope_package["requirements"] = requirements
+    scope_package["acceptance_criteria"] = acceptance_criteria
+    scope_package["lifecycle_state"] = "scope_approved"
+    scope_package["scope_status"] = "approved"
+    scope_package["updated_at"] = now
+    scope_package["approved_at"] = now
+    scope_package["approved_by"] = str(approval_payload.get("approved_by", "")).strip() or "local_operator"
+    scope_package["model_execution_status"] = "not_requested"
+    scope_package["github_mutation_status"] = "not_requested"
+    scope_package["next_recommended_action"] = "prepare_architecture_contract"
+    _append_scope_audit_entry(
+        scope_package,
+        event_type="scope_approved",
+        lifecycle_state="scope_approved",
+        summary="Scope package approved locally and ready for architecture contract preparation.",
+    )
+
+    scope_path = resolve_project_scope_package_path(config.repo_root, normalized_project_id)
+    scope_path.write_text(json.dumps(scope_package, indent=2) + "\n", encoding="utf-8")
+
+    dossier_result = read_project_factory_dossier(config, normalized_project_id)
+    dossier = dict(dossier_result.get("dossier", {})) if dossier_result.get("dossier_exists", False) else {}
+    if dossier:
+        dossier["lifecycle_state"] = "scope_approved"
+        dossier["next_recommended_action"] = "prepare_architecture_contract"
+        dossier["updated_at"] = now
+        create_project_factory_dossier(config, dossier)
+
+    return {
+        "ok": True,
+        "local_only": True,
+        "project_id": normalized_project_id,
+        "scope_package": scope_package,
+        "scope_package_path": str(scope_path),
+        "dossier_path": str(resolve_project_factory_dossier_path(config.repo_root, normalized_project_id)),
+        "warnings": sorted(set(scope_result.get("warnings", []))),
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
     }
 
 
@@ -401,6 +600,42 @@ def _normalize_tags(values: Any) -> list[str]:
     return tags
 
 
+def _normalize_text_list(values: Any) -> list[str]:
+    if not isinstance(values, list):
+        return []
+    normalized: list[str] = []
+    for value in values:
+        item = str(value).strip()
+        if item and item not in normalized:
+            normalized.append(item)
+    return normalized
+
+
+def _append_scope_audit_entry(
+    scope_package: dict[str, Any],
+    *,
+    event_type: str,
+    lifecycle_state: str,
+    summary: str,
+) -> None:
+    audit_entries = scope_package.get("audit_trail")
+    if not isinstance(audit_entries, list):
+        audit_entries = []
+    audit_entries.append(
+        {
+            "timestamp": _now_iso(),
+            "event_type": event_type,
+            "lifecycle_state": lifecycle_state,
+            "actor": "local_operator",
+            "summary": summary,
+            "local_only": True,
+            "github_mutation_status": "not_requested",
+            "model_execution_status": "not_requested",
+        }
+    )
+    scope_package["audit_trail"] = audit_entries
+
+
 def _error(error: str, details: dict[str, Any]) -> dict[str, Any]:
     return {
         "ok": False,
@@ -420,6 +655,9 @@ def _build_workflow_steps(*, lifecycle_state: str, github_mode: str) -> list[dic
     repo_step_status = "current" if normalized_state == "intake_created" and normalized_github_mode == "link-existing" else "pending"
     scope_step_status = "current" if normalized_state == "intake_created" else "pending"
     if normalized_state == "scope_package_prepared":
+        repo_step_status = "completed" if normalized_github_mode == "link-existing" else "pending"
+        scope_step_status = "completed"
+    if normalized_state == "scope_approved":
         repo_step_status = "completed" if normalized_github_mode == "link-existing" else "pending"
         scope_step_status = "completed"
 
@@ -451,7 +689,7 @@ def _build_workflow_steps(*, lifecycle_state: str, github_mode: str) -> list[dic
         {
             "step_id": "architecture_design",
             "label": "Architecture Design",
-            "status": "pending",
+            "status": "current" if normalized_state == "scope_approved" else "pending",
             "local_only": True,
             "gate_type": "model_execution_approval",
             "description": "Architecture and design planning phase.",

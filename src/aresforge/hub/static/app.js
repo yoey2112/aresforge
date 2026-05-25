@@ -195,6 +195,7 @@ const state = {
   report: null,
   exportText: "",
   projectFactoryDossier: null,
+  scopePackage: null,
 };
 
 function renderBootstrapStatus(payload) {
@@ -337,6 +338,23 @@ function renderActiveProjectSummary(payload) {
   }
 }
 
+function parseLineList(value) {
+  if (!value || typeof value !== "string") {
+    return [];
+  }
+  return value
+    .split(/\r?\n/)
+    .map((item) => item.trim())
+    .filter((item, index, all) => item && all.indexOf(item) === index);
+}
+
+function toTextareaList(value) {
+  if (!Array.isArray(value)) {
+    return "";
+  }
+  return value.map((item) => String(item || "").trim()).filter(Boolean).join("\n");
+}
+
 function renderActiveProjectWorkbench(report) {
   const activeProjectSummary = (report && report.active_project_summary) || {};
   const readiness = (report && report.readiness_indicators) || {};
@@ -433,6 +451,10 @@ function renderProjectFactoryDossier(payload) {
     `next_recommended_action: ${payload && payload.next_recommended_action ? payload.next_recommended_action : "create_project_via_new_project_wizard"}`,
     `initial_requirements: ${(dossier && dossier.initial_requirements) || "none yet"}`,
   ]);
+  const scopeState = byId("home-scope-authoring-state");
+  if (scopeState) {
+    scopeState.textContent = `Scope lifecycle state: ${payload && payload.lifecycle_state ? payload.lifecycle_state : "not_started"}`;
+  }
 }
 
 function renderWorkflowTimeline(steps) {
@@ -712,6 +734,91 @@ async function prepareScopePackage() {
   return payload;
 }
 
+function buildScopeAuthoringPayload() {
+  return prunePayload({
+    project_id: activeProjectId(),
+    requirements: parseLineList(byId("scope-requirements").value),
+    constraints: parseLineList(byId("scope-constraints").value),
+    assumptions: parseLineList(byId("scope-assumptions").value),
+    acceptance_criteria: parseLineList(byId("scope-acceptance-criteria").value),
+    risks: parseLineList(byId("scope-risks").value),
+    out_of_scope: parseLineList(byId("scope-out-of-scope").value),
+    stakeholders: parseLineList(byId("scope-stakeholders").value),
+    notes: byId("scope-notes").value.trim(),
+  });
+}
+
+function renderScopeAuthoring(payload) {
+  state.scopePackage = payload || null;
+  const message = byId("home-scope-authoring-message");
+  const stateLine = byId("home-scope-authoring-state");
+  const scopeExists = Boolean(payload && payload.scope_package_exists);
+  const scopePackage = (payload && payload.scope_package) || {};
+  if (!scopeExists) {
+    byId("scope-requirements").value = "";
+    byId("scope-constraints").value = "";
+    byId("scope-assumptions").value = "";
+    byId("scope-acceptance-criteria").value = "";
+    byId("scope-risks").value = "";
+    byId("scope-out-of-scope").value = "";
+    byId("scope-stakeholders").value = "";
+    byId("scope-notes").value = "";
+    setList("home-scope-audit-trail", "home-scope-audit-trail-empty", []);
+    if (message) {
+      message.textContent = "No scope package found. Use Prepare Scope Package first for the active project.";
+    }
+    if (stateLine) {
+      stateLine.textContent = "Scope lifecycle state: not_started";
+    }
+    return;
+  }
+
+  byId("scope-requirements").value = toTextareaList(scopePackage.requirements);
+  byId("scope-constraints").value = toTextareaList(scopePackage.constraints);
+  byId("scope-assumptions").value = toTextareaList(scopePackage.assumptions);
+  byId("scope-acceptance-criteria").value = toTextareaList(scopePackage.acceptance_criteria);
+  byId("scope-risks").value = toTextareaList(scopePackage.risks);
+  byId("scope-out-of-scope").value = toTextareaList(scopePackage.out_of_scope);
+  byId("scope-stakeholders").value = toTextareaList(scopePackage.stakeholders);
+  byId("scope-notes").value = String(scopePackage.notes || "");
+  setList(
+    "home-scope-audit-trail",
+    "home-scope-audit-trail-empty",
+    (scopePackage.audit_trail || []).map((entry) => `${entry.timestamp || "-"} | ${entry.event_type || "-"} | state=${entry.lifecycle_state || "-"} | actor=${entry.actor || "-"}`)
+  );
+  if (message) {
+    message.textContent = "Scope authoring is local-only. No GitHub or model execution is triggered.";
+  }
+  if (stateLine) {
+    stateLine.textContent = `Scope lifecycle state: ${scopePackage.lifecycle_state || "not_started"}`;
+  }
+}
+
+async function loadScopePackage(projectId) {
+  const query = toQuery({ project_id: projectId || "" });
+  const payload = await fetchJson(`/api/project-factory/scope-package${query}`, { method: "GET" });
+  renderScopeAuthoring(payload);
+  return payload;
+}
+
+async function saveScopeDraft() {
+  const payload = await fetchJson("/api/project-factory/scope-package", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(buildScopeAuthoringPayload()),
+  });
+  return payload;
+}
+
+async function approveScope() {
+  const payload = await fetchJson("/api/project-factory/scope-package/approve", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(prunePayload({ project_id: activeProjectId() })),
+  });
+  return payload;
+}
+
 async function setActiveProject(projectId) {
   const payload = await fetchJson("/api/projects/active", {
     method: "POST",
@@ -733,6 +840,7 @@ async function loadProjects() {
   renderProjects(state.projects);
   refreshProjectSelectors(state.projects);
   await loadProjectFactoryDossier(activeProjectId());
+  await loadScopePackage(activeProjectId());
   setMessage("projects-message", payload.warnings && payload.warnings.length ? payload.warnings.join(" | ") : "Projects loaded.", payload.warnings && payload.warnings.length ? "warn" : "success");
 }
 
@@ -1218,6 +1326,10 @@ function buildHandoffTargetPayload() {
 }
 
 function bindForms() {
+  on("scope-authoring-form", "submit", (event) => {
+    event.preventDefault();
+  });
+
   on("project-form", "submit", async (event) => {
     event.preventDefault();
     try {
@@ -1248,6 +1360,7 @@ function bindForms() {
       await loadProjects();
       await refreshSummaryAndReport();
       await loadProjectFactoryDossier(activeProjectId());
+      await loadScopePackage(activeProjectId());
       applyActiveProjectDefaultsToQueueForm();
       setMessage("projects-message", `Active project set to ${projectId}.`, "success");
     } catch (error) {
@@ -1424,6 +1537,7 @@ function bindForms() {
       });
       await loadProjects();
       await loadProjectFactoryDossier(payload.active_project_id || activeProjectId());
+      await loadScopePackage(payload.active_project_id || activeProjectId());
       applyActiveProjectDefaultsToQueueForm();
       await loadQueue();
       await refreshSummaryAndReport();
@@ -1661,8 +1775,35 @@ function bindForms() {
       setMessage("projects-message", "Preparing local scope package placeholder...", "loading");
       await prepareScopePackage();
       await loadProjectFactoryDossier(activeProjectId());
+      await loadScopePackage(activeProjectId());
       await refreshSummaryAndReport();
       setMessage("projects-message", "Scope package prepared locally.", "success");
+    } catch (error) {
+      setMessage("projects-message", String(error.message || error), "error");
+    }
+  });
+
+  on("scope-save-draft", "click", async () => {
+    try {
+      setMessage("projects-message", "Saving local scope draft...", "loading");
+      await saveScopeDraft();
+      await loadScopePackage(activeProjectId());
+      await loadProjectFactoryDossier(activeProjectId());
+      await refreshSummaryAndReport();
+      setMessage("projects-message", "Scope draft saved.", "success");
+    } catch (error) {
+      setMessage("projects-message", String(error.message || error), "error");
+    }
+  });
+
+  on("scope-approve", "click", async () => {
+    try {
+      setMessage("projects-message", "Approving local scope package...", "loading");
+      await approveScope();
+      await loadScopePackage(activeProjectId());
+      await loadProjectFactoryDossier(activeProjectId());
+      await refreshSummaryAndReport();
+      setMessage("projects-message", "Scope approved.", "success");
     } catch (error) {
       setMessage("projects-message", String(error.message || error), "error");
     }
@@ -1693,6 +1834,12 @@ async function init() {
     await loadProjects();
   } catch (error) {
     setMessage("projects-message", String(error.message || error), "error");
+  }
+
+  try {
+    await loadScopePackage(activeProjectId());
+  } catch (_error) {
+    renderScopeAuthoring({ ok: true, scope_package_exists: false, scope_package: {} });
   }
 
   try {
