@@ -337,6 +337,16 @@ M2 now adds DB-backed roadmap mutation and event-inspection CLI support while pr
 
 M2 details metadata input supports either `--details-json` (strict JSON object) or Windows-safe `--details-file` (UTF-8 JSON object file path).
 
+## 20. M3 roadmap-to-work-item bridge status note
+
+M3 adds a local Postgres-backed bridge from roadmap tasks to local work items:
+
+- migration `migrations/0005_roadmap_work_item_bridge.sql` introducing `roadmap_work_item_links`
+- `create-work-item-from-roadmap-task` to create/link local work from roadmap tasks with idempotent active-link behavior
+- `inspect-roadmap-work-item-links --format json|markdown` for read-only bridge inspection
+
+This milestone remains within current freeze boundaries: no Hub UI mutation implementation, no agent execution, no LLM routing, and no GitHub sync/mutation execution.
+
 ### What was decided
 
 - AresForge should move toward Postgres as the authoritative live structured state layer for roadmap, control, validation, and completion tracking

@@ -5,9 +5,11 @@ from aresforge.db.repository import (
     ROADMAP_ALLOWED_STATUSES,
     ROADMAP_SEED_AREAS,
     ROADMAP_SEED_MILESTONES,
+    create_work_item_from_roadmap_task,
     inspect_roadmap_db,
     render_roadmap_events_markdown,
     render_roadmap_markdown,
+    render_roadmap_work_item_links_markdown,
     update_roadmap_task_status,
 )
 
@@ -97,6 +99,7 @@ def test_render_roadmap_events_markdown_contains_stable_headings_and_event_rows(
 class _FakeCursor:
     def __init__(self) -> None:
         self._rows: list[dict[str, object]] = []
+        self._row: dict[str, object] | None = None
 
     def __enter__(self) -> _FakeCursor:
         return self
@@ -105,25 +108,42 @@ class _FakeCursor:
         return None
 
     def execute(self, sql: str, _params: object = None) -> None:
+        if "to_regclass('public.roadmap_work_item_links')" in sql:
+            self._row = {"table_name": "roadmap_work_item_links"}
+            self._rows = []
+            return
         if "FROM roadmap_areas" in sql:
             self._rows = [{"id": "a1", "project_id": "project-aresforge", "name": "Area", "description": "", "status": "planned", "sort_order": 1, "metadata": {}, "created_at": "", "updated_at": ""}]
+            self._row = None
             return
         if "FROM roadmap_milestones" in sql:
             self._rows = [{"id": "m1", "project_id": "project-aresforge", "area_id": "a1", "name": "Milestone", "description": "", "status": "planned", "sort_order": 1, "metadata": {}, "created_at": "", "updated_at": ""}]
+            self._row = None
             return
         if "FROM roadmap_tasks" in sql:
             self._rows = [{"id": "t1", "project_id": "project-aresforge", "milestone_id": "m1", "title": "Task", "description": "", "status": "planned", "priority": "normal", "sort_order": 1, "metadata": {}, "created_at": "", "updated_at": ""}]
+            self._row = None
             return
         if "FROM roadmap_task_dependencies" in sql:
             self._rows = [{"task_id": "t1", "depends_on_task_id": "t0", "dependency_type": "blocks", "metadata": {}, "created_at": ""}]
+            self._row = None
             return
         if "FROM roadmap_events" in sql:
             self._rows = [{"id": "e1", "project_id": "project-aresforge", "area_id": None, "milestone_id": None, "task_id": None, "event_type": "roadmap_seed", "actor": "aresforge-cli", "summary": "Seed", "details": {}, "created_at": ""}]
+            self._row = None
+            return
+        if "FROM roadmap_work_item_links" in sql:
+            self._rows = [{"id": "l1"}]
+            self._row = None
             return
         self._rows = []
+        self._row = None
 
     def fetchall(self) -> list[dict[str, object]]:
         return self._rows
+
+    def fetchone(self) -> dict[str, object] | None:
+        return self._row
 
 
 class _FakeConnection:
@@ -142,6 +162,7 @@ def test_inspect_roadmap_db_payload_shape_is_deterministic() -> None:
         "tasks": 1,
         "task_dependencies": 1,
         "events": 1,
+        "roadmap_work_item_links": 1,
     }
     assert list(payload.keys()) == [
         "ok",
@@ -217,3 +238,78 @@ def test_cli_parser_recognizes_roadmap_commands_and_formats() -> None:
     inspect_events_markdown_args = parser.parse_args(["inspect-roadmap-events", "--format", "markdown"])
     assert inspect_events_markdown_args.command == "inspect-roadmap-events"
     assert inspect_events_markdown_args.format == "markdown"
+
+    create_work_item_from_task_args = parser.parse_args(
+        [
+            "create-work-item-from-roadmap-task",
+            "--task-id",
+            "rt-01-starter",
+            "--details-file",
+            "details.json",
+        ]
+    )
+    assert create_work_item_from_task_args.command == "create-work-item-from-roadmap-task"
+    assert create_work_item_from_task_args.details_file == "details.json"
+
+    inspect_links_json_args = parser.parse_args(["inspect-roadmap-work-item-links", "--format", "json"])
+    assert inspect_links_json_args.command == "inspect-roadmap-work-item-links"
+    assert inspect_links_json_args.format == "json"
+
+    inspect_links_markdown_args = parser.parse_args(["inspect-roadmap-work-item-links", "--format", "markdown"])
+    assert inspect_links_markdown_args.command == "inspect-roadmap-work-item-links"
+    assert inspect_links_markdown_args.format == "markdown"
+
+
+class _MissingRoadmapTaskCursor:
+    def __enter__(self) -> _MissingRoadmapTaskCursor:
+        return self
+
+    def __exit__(self, exc_type, exc, tb) -> None:
+        return None
+
+    def execute(self, _sql: str, _params: object = None) -> None:
+        return None
+
+    def fetchone(self) -> None:
+        return None
+
+
+class _MissingRoadmapTaskConnection:
+    def cursor(self) -> _MissingRoadmapTaskCursor:
+        return _MissingRoadmapTaskCursor()
+
+
+def test_create_work_item_from_roadmap_task_returns_task_not_found_when_missing() -> None:
+    payload = create_work_item_from_roadmap_task(
+        _MissingRoadmapTaskConnection(),
+        roadmap_task_id="rt-missing",
+    )
+    assert payload == {
+        "ok": False,
+        "error": "roadmap_task_not_found",
+        "roadmap_task_id": "rt-missing",
+    }
+
+
+def test_render_roadmap_work_item_links_markdown_is_deterministic() -> None:
+    payload = {
+        "ok": True,
+        "project_id": "project-aresforge",
+        "link_count": 1,
+        "links": [
+            {
+                "id": "rwil-1",
+                "roadmap_task_id": "rt-01-starter",
+                "work_item_id": "work-1",
+                "status": "active",
+                "queue_id": "queue-planning",
+                "roadmap_task_title": "Plan foundational state authority",
+                "work_item_title": "Plan foundational state authority",
+            }
+        ],
+    }
+    markdown = render_roadmap_work_item_links_markdown(payload)
+    assert "# Roadmap Work Item Links" in markdown
+    assert "- Project ID: `project-aresforge`" in markdown
+    assert "- Link count: `1`" in markdown
+    assert "task=`rt-01-starter` -> work_item=`work-1`" in markdown

@@ -27,10 +27,13 @@ from aresforge.db.repository import (
     list_work_items,
     inspect_roadmap_db,
     inspect_roadmap_events,
+    inspect_roadmap_work_item_links,
     render_roadmap_markdown,
     render_roadmap_events_markdown,
+    render_roadmap_work_item_links_markdown,
     seed_aresforge_roadmap,
     add_roadmap_event,
+    create_work_item_from_roadmap_task,
     update_roadmap_area_status,
     update_roadmap_milestone_status,
     update_roadmap_task_status,
@@ -319,6 +322,28 @@ def build_parser() -> argparse.ArgumentParser:
     inspect_roadmap_events_parser.add_argument("--project-id", default=DEFAULT_PROJECT_ID)
     inspect_roadmap_events_parser.add_argument("--limit", type=int, default=20)
     inspect_roadmap_events_parser.add_argument(
+        "--format",
+        choices=("json", "markdown"),
+        default="json",
+    )
+    create_work_item_from_roadmap_task_parser = subparsers.add_parser(
+        "create-work-item-from-roadmap-task",
+        help="Create and link one local work item from a roadmap task.",
+    )
+    create_work_item_from_roadmap_task_parser.add_argument("--task-id", required=True)
+    create_work_item_from_roadmap_task_parser.add_argument("--queue-id")
+    create_work_item_from_roadmap_task_parser.add_argument("--priority", default="normal")
+    create_work_item_from_roadmap_task_parser.add_argument("--summary")
+    create_work_item_from_roadmap_task_parser.add_argument("--details-json")
+    create_work_item_from_roadmap_task_parser.add_argument("--details-file")
+    inspect_roadmap_work_item_links_parser = subparsers.add_parser(
+        "inspect-roadmap-work-item-links",
+        help="Inspect roadmap-to-work-item bridge links without mutating state.",
+    )
+    inspect_roadmap_work_item_links_parser.add_argument("--project-id", default=DEFAULT_PROJECT_ID)
+    inspect_roadmap_work_item_links_parser.add_argument("--task-id")
+    inspect_roadmap_work_item_links_parser.add_argument("--work-item-id")
+    inspect_roadmap_work_item_links_parser.add_argument(
         "--format",
         choices=("json", "markdown"),
         default="json",
@@ -1916,6 +1941,7 @@ def main(argv: list[str] | None = None) -> int:
         "update-roadmap-milestone-status",
         "update-roadmap-area-status",
         "add-roadmap-event",
+        "create-work-item-from-roadmap-task",
     ):
         details, details_error = parse_details_input(
             getattr(args, "details_json", None),
@@ -1954,16 +1980,26 @@ def main(argv: list[str] | None = None) -> int:
                     details=details,
                 )
             else:
-                payload = add_roadmap_event(
-                    conn,
-                    project_id=args.project_id,
-                    event_type=args.event_type,
-                    summary=args.summary,
-                    details=details,
-                    area_id=args.area_id,
-                    milestone_id=args.milestone_id,
-                    task_id=args.task_id,
-                )
+                if args.command == "add-roadmap-event":
+                    payload = add_roadmap_event(
+                        conn,
+                        project_id=args.project_id,
+                        event_type=args.event_type,
+                        summary=args.summary,
+                        details=details,
+                        area_id=args.area_id,
+                        milestone_id=args.milestone_id,
+                        task_id=args.task_id,
+                    )
+                else:
+                    payload = create_work_item_from_roadmap_task(
+                        conn,
+                        roadmap_task_id=args.task_id,
+                        queue_id=args.queue_id,
+                        priority=args.priority,
+                        summary=args.summary,
+                        details=details,
+                    )
         emit_json({"ok": bool(payload.get("ok")), "applied_migrations": applied, "bootstrap": "ok", **payload})
         return 0 if bool(payload.get("ok")) else 1
 
@@ -1984,6 +2020,20 @@ def main(argv: list[str] | None = None) -> int:
             return 1
         if args.format == "markdown":
             print(render_roadmap_events_markdown(payload))
+            return 0
+        emit_json(payload)
+        return 0
+
+    if args.command == "inspect-roadmap-work-item-links":
+        with connect(config) as conn:
+            payload = inspect_roadmap_work_item_links(
+                conn,
+                project_id=args.project_id,
+                roadmap_task_id=args.task_id,
+                work_item_id=args.work_item_id,
+            )
+        if args.format == "markdown":
+            print(render_roadmap_work_item_links_markdown(payload))
             return 0
         emit_json(payload)
         return 0

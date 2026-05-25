@@ -1319,6 +1319,18 @@ def inspect_roadmap_db(conn: Connection) -> dict[str, Any]:
             """
         )
         events = list(cur.fetchall())
+        cur.execute("SELECT to_regclass('public.roadmap_work_item_links') AS table_name")
+        links_table = cur.fetchone()
+        if links_table is not None and links_table.get("table_name"):
+            cur.execute(
+                """
+                SELECT id
+                FROM roadmap_work_item_links
+                """
+            )
+            links = list(cur.fetchall())
+        else:
+            links = []
     return {
         "ok": True,
         "project_id": DEFAULT_PROJECT_ID,
@@ -1328,6 +1340,7 @@ def inspect_roadmap_db(conn: Connection) -> dict[str, Any]:
             "tasks": len(tasks),
             "task_dependencies": len(dependencies),
             "events": len(events),
+            "roadmap_work_item_links": len(links),
         },
         "areas": areas,
         "milestones": milestones,
@@ -1584,6 +1597,230 @@ def inspect_roadmap_events(
         "event_count": len(events),
         "events": events,
     }
+
+
+def create_work_item_from_roadmap_task(
+    conn: Connection,
+    roadmap_task_id: str,
+    queue_id: str | None = None,
+    priority: str = "normal",
+    actor: str = "aresforge-cli",
+    summary: str | None = None,
+    details: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    normalized_details = _normalize_roadmap_details(details)
+    candidate_queue_ids = [queue_id] if queue_id else ["queue-planning", "queue-intake"]
+
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT id, project_id, milestone_id, title, description, status, priority, sort_order, metadata, created_at, updated_at
+            FROM roadmap_tasks
+            WHERE id = %s
+            """,
+            (roadmap_task_id,),
+        )
+        task = cur.fetchone()
+        if task is None:
+            return {"ok": False, "error": "roadmap_task_not_found", "roadmap_task_id": roadmap_task_id}
+        if task["status"] == "cancelled":
+            return {"ok": False, "error": "roadmap_task_cancelled", "roadmap_task_id": roadmap_task_id}
+
+        cur.execute(
+            """
+            SELECT rwil.id, rwil.project_id, rwil.roadmap_task_id, rwil.work_item_id, rwil.link_type, rwil.status, rwil.metadata, rwil.created_at, rwil.updated_at,
+                   wi.queue_id
+            FROM roadmap_work_item_links rwil
+            JOIN work_items wi ON wi.id = rwil.work_item_id
+            WHERE rwil.roadmap_task_id = %s
+              AND rwil.status = 'active'
+            ORDER BY rwil.created_at DESC, rwil.id DESC
+            LIMIT 1
+            """,
+            (roadmap_task_id,),
+        )
+        existing_link = cur.fetchone()
+        if existing_link is not None:
+            return {
+                "ok": True,
+                "created": False,
+                "existing": True,
+                "roadmap_task_id": roadmap_task_id,
+                "work_item_id": existing_link["work_item_id"],
+                "link_id": existing_link["id"],
+                "queue_id": existing_link["queue_id"],
+            }
+
+        resolved_queue_id: str | None = None
+        for candidate_queue_id in candidate_queue_ids:
+            if candidate_queue_id is None:
+                continue
+            cur.execute("SELECT id FROM queues WHERE id = %s", (candidate_queue_id,))
+            queue_row = cur.fetchone()
+            if queue_row is not None:
+                resolved_queue_id = queue_row["id"]
+                break
+        if resolved_queue_id is None:
+            return {
+                "ok": False,
+                "error": "queue_not_found",
+                "queue_id": queue_id or "queue-planning",
+            }
+
+        work_item_id = _new_id("work")
+        work_item_metadata = {
+            "source": "roadmap_task",
+            "roadmap_task_id": task["id"],
+            "roadmap_milestone_id": task["milestone_id"],
+            "roadmap_task_status": task["status"],
+        }
+        cur.execute(
+            """
+            INSERT INTO work_items (
+                id, project_id, queue_id, agent_id, model_id, prompt_id,
+                title, description, status, priority, route_status, metadata
+            ) VALUES (
+                %s, %s, %s, %s, %s, %s,
+                %s, %s, %s, %s, %s, %s::jsonb
+            )
+            RETURNING id, project_id, queue_id, agent_id, model_id, prompt_id,
+                      title, description, status, priority, route_status, metadata, created_at, updated_at
+            """,
+            (
+                work_item_id,
+                task["project_id"],
+                resolved_queue_id,
+                None,
+                None,
+                None,
+                task["title"],
+                task["description"],
+                "queued",
+                priority,
+                "queued",
+                json.dumps(work_item_metadata),
+            ),
+        )
+        work_item = cur.fetchone()
+
+        link_id = _new_id("roadmap-work-link")
+        cur.execute(
+            """
+            INSERT INTO roadmap_work_item_links (
+                id, project_id, roadmap_task_id, work_item_id, link_type, status, metadata
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s::jsonb)
+            RETURNING id, project_id, roadmap_task_id, work_item_id, link_type, status, metadata, created_at, updated_at
+            """,
+            (
+                link_id,
+                task["project_id"],
+                task["id"],
+                work_item_id,
+                "implements",
+                "active",
+                json.dumps({}),
+            ),
+        )
+        link = cur.fetchone()
+
+        event_summary = summary or "Created local work item from roadmap task."
+        event_details: dict[str, Any] = {
+            "roadmap_task_id": task["id"],
+            "work_item_id": work_item_id,
+            "queue_id": resolved_queue_id,
+            "link_id": link_id,
+            **normalized_details,
+        }
+        event_payload = add_roadmap_event(
+            conn,
+            project_id=task["project_id"],
+            event_type="roadmap_task_work_item_created",
+            actor=actor,
+            summary=event_summary,
+            details=event_details,
+            milestone_id=task["milestone_id"],
+            task_id=task["id"],
+        )
+        if not bool(event_payload.get("ok")):
+            return event_payload
+
+    return {
+        "ok": True,
+        "created": True,
+        "existing": False,
+        "project_id": task["project_id"],
+        "roadmap_task_id": task["id"],
+        "work_item_id": work_item_id,
+        "link_id": link_id,
+        "queue_id": resolved_queue_id,
+        "event_id": event_payload["event_id"],
+        "work_item": work_item,
+        "link": link,
+    }
+
+
+def inspect_roadmap_work_item_links(
+    conn: Connection,
+    project_id: str = DEFAULT_PROJECT_ID,
+    roadmap_task_id: str | None = None,
+    work_item_id: str | None = None,
+) -> dict[str, Any]:
+    conditions = ["rwil.project_id = %s"]
+    params: list[Any] = [project_id]
+    if roadmap_task_id:
+        conditions.append("rwil.roadmap_task_id = %s")
+        params.append(roadmap_task_id)
+    if work_item_id:
+        conditions.append("rwil.work_item_id = %s")
+        params.append(work_item_id)
+    where_clause = " AND ".join(conditions)
+
+    with conn.cursor() as cur:
+        cur.execute(
+            f"""
+            SELECT rwil.id, rwil.project_id, rwil.roadmap_task_id, rwil.work_item_id, rwil.link_type, rwil.status,
+                   rwil.metadata, rwil.created_at, rwil.updated_at,
+                   rt.title AS roadmap_task_title, rt.status AS roadmap_task_status,
+                   wi.title AS work_item_title, wi.status AS work_item_status, wi.queue_id
+            FROM roadmap_work_item_links rwil
+            JOIN roadmap_tasks rt ON rt.id = rwil.roadmap_task_id
+            JOIN work_items wi ON wi.id = rwil.work_item_id
+            WHERE {where_clause}
+            ORDER BY rwil.created_at DESC, rwil.id DESC
+            """,
+            params,
+        )
+        links = list(cur.fetchall())
+
+    return {
+        "ok": True,
+        "project_id": project_id,
+        "roadmap_task_id": roadmap_task_id,
+        "work_item_id": work_item_id,
+        "link_count": len(links),
+        "links": links,
+    }
+
+
+def render_roadmap_work_item_links_markdown(payload: dict[str, Any]) -> str:
+    links = payload.get("links", [])
+    lines = [
+        "# Roadmap Work Item Links",
+        "",
+        f"- Project ID: `{payload.get('project_id', '')}`",
+        f"- Link count: `{payload.get('link_count', len(links))}`",
+        "",
+    ]
+    for link in links:
+        lines.append(
+            f"- `{link['id']}` task=`{link['roadmap_task_id']}` -> work_item=`{link['work_item_id']}` status=`{link['status']}` queue=`{link.get('queue_id', '')}`"
+        )
+        if link.get("roadmap_task_title"):
+            lines.append(f"  - Task: {link['roadmap_task_title']}")
+        if link.get("work_item_title"):
+            lines.append(f"  - Work Item: {link['work_item_title']}")
+    return "\n".join(lines).rstrip() + "\n"
 
 
 def render_roadmap_markdown(payload: dict[str, Any]) -> str:

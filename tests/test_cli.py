@@ -34,6 +34,8 @@ def test_cli_has_expected_commands() -> None:
         "update-roadmap-area-status",
         "add-roadmap-event",
         "inspect-roadmap-events",
+        "create-work-item-from-roadmap-task",
+        "inspect-roadmap-work-item-links",
         "inspect-project-state",
         "inspect-db-state",
         "inspect-project",
@@ -625,6 +627,85 @@ def test_cli_add_roadmap_event_dispatch_parses_details_file(
     payload = json.loads(capsys.readouterr().out)
     assert exit_code == 0
     assert seen["details"] == {"source": "unit-test"}
+    assert payload["ok"] is True
+
+
+def test_cli_create_work_item_from_roadmap_task_dispatch_parses_details_file(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], tmp_path: Path
+) -> None:
+    config = AppConfig(
+        repo_root=tmp_path,
+        db_host="127.0.0.1",
+        db_port=5433,
+        db_name="aresforge",
+        db_user="aresforge",
+        db_password="aresforge",
+        ollama_base_url="http://127.0.0.1:11434",
+        ollama_model="qwen2.5:32b",
+        artifact_root=tmp_path / "artifacts",
+        prompts_dir=tmp_path / "artifacts" / "prompts" / "generated",
+        evidence_dir=tmp_path / "artifacts" / "evidence" / "generated",
+        codex_handoffs_dir=tmp_path / "artifacts" / "codex_handoffs" / "generated",
+        github_owner="yoey2112",
+        github_repo="aresforge",
+    )
+    details_path = tmp_path / "details.json"
+    details_path.write_text('{"source":"unit-test","mode":"local-only"}', encoding="utf-8")
+    seen: dict[str, object] = {}
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: config)
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(cli, "apply_migrations", lambda _conn, _dir: [])
+    monkeypatch.setattr(cli, "bootstrap_reference_data", lambda _conn, _config: None)
+
+    def fake_create_work_item_from_roadmap_task(
+        _conn: object,
+        roadmap_task_id: str,
+        queue_id: str | None = None,
+        priority: str = "normal",
+        actor: str = "aresforge-cli",
+        summary: str | None = None,
+        details: dict[str, object] | None = None,
+    ) -> dict[str, object]:
+        seen["roadmap_task_id"] = roadmap_task_id
+        seen["queue_id"] = queue_id
+        seen["priority"] = priority
+        seen["summary"] = summary
+        seen["details"] = details
+        return {
+            "ok": True,
+            "created": True,
+            "existing": False,
+            "roadmap_task_id": roadmap_task_id,
+            "work_item_id": "work-123",
+            "link_id": "rwil-123",
+            "queue_id": queue_id or "queue-planning",
+            "event_id": "roadmap-event-123",
+            "work_item": {"id": "work-123"},
+            "link": {"id": "rwil-123"},
+        }
+
+    monkeypatch.setattr(cli, "create_work_item_from_roadmap_task", fake_create_work_item_from_roadmap_task)
+    exit_code = cli.main(
+        [
+            "create-work-item-from-roadmap-task",
+            "--task-id",
+            "rt-02-starter",
+            "--queue-id",
+            "queue-planning",
+            "--priority",
+            "high",
+            "--summary",
+            "Bridge roadmap task into local work queue.",
+            "--details-file",
+            str(details_path),
+        ]
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert seen["roadmap_task_id"] == "rt-02-starter"
+    assert seen["queue_id"] == "queue-planning"
+    assert seen["priority"] == "high"
+    assert seen["details"] == {"source": "unit-test", "mode": "local-only"}
     assert payload["ok"] is True
 
 
