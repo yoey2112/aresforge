@@ -32,6 +32,7 @@ from aresforge.db.repository import (
     inspect_queue_readiness,
     inspect_work_item_readiness,
     inspect_work_item_lifecycle,
+    start_work_item_if_ready,
     render_roadmap_markdown,
     render_roadmap_events_markdown,
     render_queue_readiness_markdown,
@@ -39,6 +40,7 @@ from aresforge.db.repository import (
     render_queue_work_state_markdown,
     render_work_item_readiness_markdown,
     render_work_item_lifecycle_markdown,
+    render_start_work_item_markdown,
     seed_aresforge_roadmap,
     add_roadmap_event,
     create_work_item_from_roadmap_task,
@@ -354,6 +356,18 @@ def build_parser() -> argparse.ArgumentParser:
     update_work_item_status_parser.add_argument("--summary")
     update_work_item_status_parser.add_argument("--details-json")
     update_work_item_status_parser.add_argument("--details-file")
+    start_work_item_parser = subparsers.add_parser(
+        "start-work-item",
+        help="Start one local work item only when readiness gates pass.",
+    )
+    start_work_item_parser.add_argument("--work-item-id", required=True)
+    start_work_item_parser.add_argument("--actor", default="local-operator")
+    start_work_item_parser.add_argument("--details-file")
+    start_work_item_parser.add_argument(
+        "--format",
+        choices=("json", "markdown"),
+        default="json",
+    )
     inspect_work_item_lifecycle_parser = subparsers.add_parser(
         "inspect-work-item-lifecycle",
         help="Inspect one local work item lifecycle with links and events.",
@@ -2139,6 +2153,25 @@ def main(argv: list[str] | None = None) -> int:
         if args.format == "markdown":
             print(render_work_item_readiness_markdown(payload))
             return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "start-work-item":
+        details, details_error = parse_details_input(None, getattr(args, "details_file", None))
+        if details_error is not None:
+            emit_json(details_error)
+            return 1
+        assert details is not None
+        with connect(config) as conn:
+            payload = start_work_item_if_ready(
+                conn,
+                args.work_item_id,
+                actor=args.actor,
+                details=details,
+            )
+        if args.format == "markdown":
+            print(render_start_work_item_markdown(payload))
+            return 0 if bool(payload.get("ok")) else 1
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 

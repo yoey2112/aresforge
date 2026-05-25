@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import pytest
+
 from aresforge.cli import build_parser
+from aresforge.db import repository as repository_module
 from aresforge.db.repository import (
     ROADMAP_ALLOWED_STATUSES,
     ROADMAP_SEED_AREAS,
@@ -9,6 +12,7 @@ from aresforge.db.repository import (
     create_work_item_from_roadmap_task,
     inspect_roadmap_db,
     inspect_work_item_readiness,
+    render_start_work_item_markdown,
     render_queue_work_state_markdown,
     render_queue_readiness_markdown,
     render_roadmap_events_markdown,
@@ -16,6 +20,7 @@ from aresforge.db.repository import (
     render_work_item_lifecycle_markdown,
     render_roadmap_markdown,
     render_roadmap_work_item_links_markdown,
+    start_work_item_if_ready,
     update_work_item_status,
     update_roadmap_task_status,
 )
@@ -334,6 +339,35 @@ def test_cli_parser_recognizes_roadmap_commands_and_formats() -> None:
     assert inspect_queue_readiness_markdown_args.command == "inspect-queue-readiness"
     assert inspect_queue_readiness_markdown_args.format == "markdown"
 
+    start_work_item_json_args = parser.parse_args(
+        ["start-work-item", "--work-item-id", "work-1", "--format", "json"]
+    )
+    assert start_work_item_json_args.command == "start-work-item"
+    assert start_work_item_json_args.format == "json"
+
+    start_work_item_markdown_args = parser.parse_args(
+        ["start-work-item", "--work-item-id", "work-1", "--format", "markdown"]
+    )
+    assert start_work_item_markdown_args.command == "start-work-item"
+    assert start_work_item_markdown_args.format == "markdown"
+
+    start_work_item_details_args = parser.parse_args(
+        [
+            "start-work-item",
+            "--work-item-id",
+            "work-1",
+            "--actor",
+            "local-test",
+            "--details-file",
+            "details.json",
+            "--format",
+            "json",
+        ]
+    )
+    assert start_work_item_details_args.command == "start-work-item"
+    assert start_work_item_details_args.actor == "local-test"
+    assert start_work_item_details_args.details_file == "details.json"
+
 
 class _MissingRoadmapTaskCursor:
     def __enter__(self) -> _MissingRoadmapTaskCursor:
@@ -597,3 +631,134 @@ def test_render_queue_readiness_markdown_is_deterministic() -> None:
     assert "- `ready`: `1`" in markdown
     assert "## Next Ready Work Items" in markdown
     assert "## Blocked Work Items" in markdown
+
+
+def test_render_start_work_item_markdown_is_deterministic() -> None:
+    payload = {
+        "ok": False,
+        "changed": False,
+        "work_item_id": "work-1",
+        "readiness_status": "blocked",
+        "reason": "work_item_not_ready",
+        "next_safe_action": "Resolve blockers before starting.",
+        "readiness": {"blockers": [{"code": "unsatisfied_roadmap_dependencies"}]},
+        "roadmap_links": [{"id": "rwil-1", "roadmap_task_id": "rt-1", "status": "active"}],
+    }
+    markdown = render_start_work_item_markdown(payload)
+    assert "# Start Work Item" in markdown
+    assert "- Work item ID: `work-1`" in markdown
+    assert "- Changed: `False`" in markdown
+    assert "## Blockers" in markdown
+    assert "unsatisfied_roadmap_dependencies" in markdown
+    assert "## Roadmap Links" in markdown
+
+
+def test_start_work_item_if_ready_missing_is_non_mutating(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        repository_module,
+        "inspect_work_item_readiness",
+        lambda _conn, _work_item_id: {
+            "ok": False,
+            "work_item_id": "work-missing",
+            "readiness_status": "missing",
+            "ready": False,
+            "next_safe_action": "Create or inspect the local work item before starting.",
+            "blockers": [{"code": "work_item_not_found"}],
+            "roadmap_links": [],
+        },
+    )
+    payload = start_work_item_if_ready(_FakeConnection(), "work-missing")
+    assert payload["ok"] is False
+    assert payload["changed"] is False
+    assert payload["readiness_status"] == "missing"
+    assert payload["reason"] == "work_item_not_found"
+
+
+def test_start_work_item_if_ready_already_active_is_non_mutating(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        repository_module,
+        "inspect_work_item_readiness",
+        lambda _conn, _work_item_id: {
+            "ok": True,
+            "work_item_id": "work-1",
+            "readiness_status": "already_active",
+            "ready": False,
+            "next_safe_action": "Continue or inspect active work item.",
+            "blockers": [],
+            "roadmap_links": [],
+        },
+    )
+    payload = start_work_item_if_ready(_FakeConnection(), "work-1")
+    assert payload["ok"] is True
+    assert payload["changed"] is False
+    assert payload["readiness_status"] == "already_active"
+    assert payload["reason"] == "already_active"
+
+
+def test_start_work_item_if_ready_not_ready_missing_link_does_not_mutate(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        repository_module,
+        "inspect_work_item_readiness",
+        lambda _conn, _work_item_id: {
+            "ok": True,
+            "work_item_id": "work-2",
+            "readiness_status": "not_ready",
+            "ready": False,
+            "next_safe_action": "Create or restore a roadmap work item link before starting.",
+            "blockers": [{"code": "missing_roadmap_link"}],
+            "roadmap_links": [],
+        },
+    )
+    payload = start_work_item_if_ready(_FakeConnection(), "work-2")
+    assert payload["ok"] is False
+    assert payload["changed"] is False
+    assert payload["reason"] == "work_item_not_ready"
+
+
+def test_start_work_item_if_ready_ready_starts_and_logs_events(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        repository_module,
+        "inspect_work_item_readiness",
+        lambda _conn, _work_item_id: {
+            "ok": True,
+            "work_item_id": "work-3",
+            "project_id": "project-aresforge",
+            "readiness_status": "ready",
+            "ready": True,
+            "next_safe_action": "Start work item or assign to operator.",
+            "blockers": [],
+            "roadmap_links": [{"id": "rwil-1", "roadmap_task_id": "rt-1", "status": "active"}],
+        },
+    )
+    monkeypatch.setattr(
+        repository_module,
+        "update_work_item_status",
+        lambda *_args, **_kwargs: {
+            "ok": True,
+            "changed": True,
+            "previous_status": "queued",
+            "status": "active",
+            "work_item_id": "work-3",
+            "event_ids": ["audit-1", "roadmap-status-1"],
+            "work_item": {"id": "work-3", "status": "active"},
+        },
+    )
+    monkeypatch.setattr(
+        repository_module,
+        "add_roadmap_event",
+        lambda *_args, **_kwargs: {"ok": True, "event_id": "roadmap-started-1"},
+    )
+    payload = start_work_item_if_ready(
+        _FakeConnection(),
+        "work-3",
+        actor="local-test",
+        details={"source": "unit-test"},
+    )
+    assert payload["ok"] is True
+    assert payload["changed"] is True
+    assert payload["previous_status"] == "queued"
+    assert payload["new_status"] == "active"
+    assert payload["readiness_status"] == "ready"
+    assert payload["events"]["started_event_ids"] == ["roadmap-started-1"]

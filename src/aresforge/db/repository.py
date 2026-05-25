@@ -1141,6 +1141,143 @@ def update_work_item_status(
     }
 
 
+def start_work_item_if_ready(
+    conn: Connection,
+    work_item_id: str,
+    *,
+    actor: str = "local-operator",
+    details: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    readiness = inspect_work_item_readiness(conn, work_item_id)
+    readiness_status = readiness.get("readiness_status", "missing")
+    ready = bool(readiness.get("ready"))
+    normalized_details = _normalize_roadmap_details(details)
+
+    if readiness_status == "missing":
+        return {
+            "ok": False,
+            "changed": False,
+            "work_item_id": work_item_id,
+            "readiness_status": "missing",
+            "ready": False,
+            "reason": "work_item_not_found",
+            "next_safe_action": readiness.get("next_safe_action"),
+            "readiness": readiness,
+        }
+    if readiness_status == "already_active":
+        return {
+            "ok": True,
+            "changed": False,
+            "work_item_id": work_item_id,
+            "readiness_status": "already_active",
+            "ready": False,
+            "reason": "already_active",
+            "next_safe_action": readiness.get("next_safe_action"),
+            "roadmap_links": readiness.get("roadmap_links", []),
+            "readiness": readiness,
+        }
+    if readiness_status == "already_complete":
+        return {
+            "ok": True,
+            "changed": False,
+            "work_item_id": work_item_id,
+            "readiness_status": "already_complete",
+            "ready": False,
+            "reason": "already_complete",
+            "next_safe_action": readiness.get("next_safe_action"),
+            "roadmap_links": readiness.get("roadmap_links", []),
+            "readiness": readiness,
+        }
+    if readiness_status == "cancelled":
+        return {
+            "ok": True,
+            "changed": False,
+            "work_item_id": work_item_id,
+            "readiness_status": "cancelled",
+            "ready": False,
+            "reason": "cancelled",
+            "next_safe_action": readiness.get("next_safe_action"),
+            "roadmap_links": readiness.get("roadmap_links", []),
+            "readiness": readiness,
+        }
+    if not bool(readiness.get("ok")) or not ready or readiness_status != "ready":
+        return {
+            "ok": False,
+            "changed": False,
+            "work_item_id": work_item_id,
+            "readiness_status": readiness_status,
+            "ready": False,
+            "blocked": True,
+            "reason": "work_item_not_ready",
+            "next_safe_action": readiness.get("next_safe_action"),
+            "roadmap_links": readiness.get("roadmap_links", []),
+            "readiness": readiness,
+        }
+
+    status_payload = update_work_item_status(
+        conn,
+        work_item_id=work_item_id,
+        status="active",
+        actor=actor,
+        summary="Work item started.",
+        details=normalized_details,
+    )
+    if not bool(status_payload.get("ok")):
+        return {
+            "ok": False,
+            "changed": False,
+            "work_item_id": work_item_id,
+            "readiness_status": "ready",
+            "ready": True,
+            "reason": "start_work_item_failed",
+            "next_safe_action": "Inspect work item lifecycle and events.",
+            "readiness": readiness,
+            "status_payload": status_payload,
+        }
+
+    event_ids = list(status_payload.get("event_ids", []))
+    started_event_ids: list[str] = []
+    for link in readiness.get("roadmap_links", []):
+        roadmap_event = add_roadmap_event(
+            conn,
+            project_id=readiness.get("project_id", DEFAULT_PROJECT_ID),
+            event_type="work_item_started",
+            actor=actor,
+            summary=f"Work item started: {status_payload.get('previous_status', 'queued')} -> active",
+            details={
+                "work_item_id": work_item_id,
+                "roadmap_task_id": link.get("roadmap_task_id"),
+                "previous_status": status_payload.get("previous_status", "queued"),
+                "new_status": "active",
+                **normalized_details,
+            },
+            task_id=link.get("roadmap_task_id"),
+        )
+        if bool(roadmap_event.get("ok")):
+            started_event_ids.append(roadmap_event["event_id"])
+            event_ids.append(roadmap_event["event_id"])
+
+    return {
+        "ok": True,
+        "changed": bool(status_payload.get("changed")),
+        "work_item_id": work_item_id,
+        "previous_status": status_payload.get("previous_status", "queued"),
+        "new_status": "active",
+        "readiness_status": "ready",
+        "ready": True,
+        "reason": "started",
+        "next_safe_action": "Continue or inspect active work item.",
+        "roadmap_links": readiness.get("roadmap_links", []),
+        "events": {
+            "event_ids": event_ids,
+            "status_event_ids": status_payload.get("event_ids", []),
+            "started_event_ids": started_event_ids,
+        },
+        "readiness": readiness,
+        "work_item": status_payload.get("work_item"),
+    }
+
+
 def inspect_work_item_lifecycle(conn: Connection, work_item_id: str) -> dict[str, Any]:
     work_item = inspect_work_item(conn, work_item_id)
     if work_item is None:
@@ -1578,6 +1715,39 @@ def render_queue_readiness_markdown(payload: dict[str, Any]) -> str:
         for item in blocked_items:
             lines.append(
                 f"- `{item.get('work_item_id', '')}` blockers={json.dumps(item.get('blockers', []), sort_keys=True)}"
+            )
+    else:
+        lines.append("- none")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def render_start_work_item_markdown(payload: dict[str, Any]) -> str:
+    lines = [
+        "# Start Work Item",
+        "",
+        f"- Work item ID: `{payload.get('work_item_id', '')}`",
+        f"- Changed: `{payload.get('changed', False)}`",
+        f"- Previous status: `{payload.get('previous_status', '')}`",
+        f"- New status: `{payload.get('new_status', '')}`",
+        f"- Readiness status: `{payload.get('readiness_status', '')}`",
+        f"- Reason: `{payload.get('reason', '')}`",
+        f"- Next safe action: {payload.get('next_safe_action', '')}",
+        "",
+        "## Blockers",
+    ]
+    blockers = (payload.get("readiness") or {}).get("blockers", [])
+    if blockers:
+        for blocker in blockers:
+            lines.append(f"- `{blocker.get('code', 'unknown')}` {json.dumps(blocker, sort_keys=True)}")
+    else:
+        lines.append("- none")
+    lines.append("")
+    lines.append("## Roadmap Links")
+    roadmap_links = payload.get("roadmap_links", [])
+    if roadmap_links:
+        for link in roadmap_links:
+            lines.append(
+                f"- `{link.get('id', '')}` task=`{link.get('roadmap_task_id', '')}` link_status=`{link.get('status', '')}`"
             )
     else:
         lines.append("- none")

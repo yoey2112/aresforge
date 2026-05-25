@@ -366,6 +366,14 @@ M5 adds deterministic local readiness gate inspection for local work items and q
 
 Readiness inspection introduces explicit local readiness statuses (`ready`, `not_ready`, `blocked`, `already_active`, `already_complete`, `cancelled`, `missing`), validates roadmap-link presence for queued work, checks linked roadmap-task cancellation, and checks roadmap dependency completion before start.
 
+## 23. M6 work item start gate status note
+
+M6 adds a local mutation gate for starting queued work items only when M5 readiness allows it:
+
+- `start-work-item --work-item-id <id> [--actor <actor>] [--details-file <path>] [--format json|markdown]`
+
+The command evaluates M5 `inspect_work_item_readiness` first, only transitions `queued -> active` when readiness is `ready`, and remains local-only. It does not execute agents, route LLMs, or call GitHub APIs.
+
 ### What was decided
 
 - AresForge should move toward Postgres as the authoritative live structured state layer for roadmap, control, validation, and completion tracking
