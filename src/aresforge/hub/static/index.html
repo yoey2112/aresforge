@@ -243,6 +243,38 @@
             <ul id="home-agent-dispatch-audit-trail" class="list"></ul>
             <p id="home-agent-dispatch-audit-trail-empty" class="empty">No agent dispatch plan audit trail entries yet.</p>
           </section>
+          <section class="subpanel">
+            <h3>Validation Execution Plan</h3>
+            <p id="home-validation-execution-plan-message" class="message-note">This is a local validation plan only. It does not execute validation commands, agents, models, or GitHub actions.</p>
+            <p id="home-validation-execution-plan-state" class="message-note">Validation Execution Plan lifecycle state: not_started</p>
+            <p id="home-validation-execution-plan-status" class="message-note">validation_execution=not_requested | agent_execution=not_requested | model_execution=not_requested</p>
+            <form id="validation-execution-plan-form" class="form-grid">
+              <label class="full">Validation Summary<textarea id="validation-execution-summary"></textarea></label>
+              <label class="full">Operator Notes<textarea id="validation-execution-operator-notes"></textarea></label>
+              <label class="full">Sequencing Notes<textarea id="validation-execution-sequencing-notes" placeholder="One note per line"></textarea></label>
+              <label class="full">Dependency Notes<textarea id="validation-execution-dependency-notes" placeholder="One note per line"></textarea></label>
+              <label class="full">Approval Conditions<textarea id="validation-execution-approval-conditions" placeholder="One condition per line"></textarea></label>
+              <label class="full">Known Risks<textarea id="validation-execution-known-risks" placeholder="One risk per line"></textarea></label>
+              <label class="full">Manual Validation Notes<textarea id="validation-execution-manual-notes" placeholder="One note per line"></textarea></label>
+              <div class="quick-actions">
+                <button id="home-prepare-validation-execution-plan" type="button">Prepare Validation Execution Plan</button>
+                <button id="validation-execution-plan-save-draft" type="button">Save Validation Draft</button>
+                <button id="validation-execution-plan-approve" type="button">Approve Validation Plan</button>
+              </div>
+            </form>
+            <h4>Validation Item Preview</h4>
+            <pre id="home-validation-execution-items"></pre>
+            <p id="home-validation-execution-items-empty" class="empty">No validation items yet.</p>
+            <h4>Validation Group Summary Preview</h4>
+            <pre id="home-validation-execution-groups"></pre>
+            <p id="home-validation-execution-groups-empty" class="empty">No validation groups yet.</p>
+            <h4>Evidence Expectation Preview</h4>
+            <pre id="home-validation-execution-evidence"></pre>
+            <p id="home-validation-execution-evidence-empty" class="empty">No evidence expectations yet.</p>
+            <h4>Audit Trail Summary</h4>
+            <ul id="home-validation-execution-audit-trail" class="list"></ul>
+            <p id="home-validation-execution-audit-trail-empty" class="empty">No validation execution plan audit trail entries yet.</p>
+          </section>
 
           <section class="subpanel">
             <h3>Current Active Work</h3>

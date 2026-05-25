@@ -105,6 +105,10 @@ def resolve_project_agent_dispatch_plan_path(repo_root: Path, project_id: str) -
     return (repo_root / ".aresforge" / "projects" / project_id.strip() / "agent_dispatch_plan.json").resolve()
 
 
+def resolve_project_validation_execution_plan_path(repo_root: Path, project_id: str) -> Path:
+    return (repo_root / ".aresforge" / "projects" / project_id.strip() / "validation_execution_plan.json").resolve()
+
+
 def create_project_factory_dossier(config: AppConfig, payload: dict[str, Any]) -> dict[str, Any]:
     dossier_path = resolve_project_factory_dossier_path(config.repo_root, str(payload.get("project_id", "")).strip())
     dossier_path.parent.mkdir(parents=True, exist_ok=True)
@@ -231,6 +235,18 @@ def inspect_project_factory_dossier(config: AppConfig, project_id: str) -> dict[
         "agent_dispatch_plan_approved",
     }:
         effective_lifecycle_state = agent_dispatch_plan_lifecycle_state
+    validation_execution_plan_payload = read_project_validation_execution_plan(config, project_id)
+    validation_execution_plan_lifecycle_state = ""
+    if validation_execution_plan_payload.get("validation_execution_plan_exists", False):
+        validation_execution_plan = validation_execution_plan_payload.get("validation_execution_plan", {})
+        if isinstance(validation_execution_plan, dict):
+            validation_execution_plan_lifecycle_state = str(validation_execution_plan.get("lifecycle_state", "")).strip()
+    if validation_execution_plan_lifecycle_state in {
+        "validation_execution_plan_prepared",
+        "validation_execution_plan_draft_updated",
+        "validation_execution_plan_approved",
+    }:
+        effective_lifecycle_state = validation_execution_plan_lifecycle_state
     payload["workflow_steps"] = _build_workflow_steps(
         lifecycle_state=effective_lifecycle_state,
         github_mode=github_mode,
@@ -1793,6 +1809,343 @@ def approve_project_agent_dispatch_plan(config: AppConfig, project_id: str, appr
     }
 
 
+def read_project_validation_execution_plan(config: AppConfig, project_id: str) -> dict[str, Any]:
+    normalized_project_id = str(project_id or "").strip()
+    plan_path = resolve_project_validation_execution_plan_path(config.repo_root, normalized_project_id)
+    warnings: list[str] = []
+    if not plan_path.exists():
+        warnings.append(f"Validation execution plan not found for project: {normalized_project_id}")
+        return {
+            "ok": True,
+            "local_only": True,
+            "project_id": normalized_project_id,
+            "validation_execution_plan_path": str(plan_path),
+            "validation_execution_plan_exists": False,
+            "validation_execution_plan": {},
+            "warnings": warnings,
+            "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+        }
+    try:
+        loaded = json.loads(plan_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        warnings.append(f"Validation execution plan could not be parsed: {exc}")
+        loaded = {}
+    if not isinstance(loaded, dict):
+        warnings.append("Validation execution plan has invalid schema; expected JSON object.")
+        loaded = {}
+    return {
+        "ok": True,
+        "local_only": True,
+        "project_id": normalized_project_id,
+        "validation_execution_plan_path": str(plan_path),
+        "validation_execution_plan_exists": bool(loaded),
+        "validation_execution_plan": loaded,
+        "warnings": sorted(set(warnings)),
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+    }
+
+
+def prepare_project_validation_execution_plan(config: AppConfig, project_id: str) -> dict[str, Any]:
+    normalized_project_id = str(project_id or "").strip()
+    dispatch_result = read_project_agent_dispatch_plan(config, normalized_project_id)
+    if not dispatch_result.get("agent_dispatch_plan_exists", False):
+        return _error(
+            "agent_dispatch_plan_not_found",
+            {
+                "message": "Agent dispatch plan must be approved before preparing validation execution plan.",
+                "project_id": normalized_project_id,
+                "agent_dispatch_plan_path": dispatch_result.get("agent_dispatch_plan_path", ""),
+            },
+        )
+    dispatch_plan = dict(dispatch_result.get("agent_dispatch_plan", {}))
+    if str(dispatch_plan.get("lifecycle_state", "")).strip() != "agent_dispatch_plan_approved":
+        return _error(
+            "agent_dispatch_plan_not_approved",
+            {
+                "message": "Agent dispatch plan must be approved before preparing validation execution plan.",
+                "project_id": normalized_project_id,
+            },
+        )
+    now = _now_iso()
+    plan_path = resolve_project_validation_execution_plan_path(config.repo_root, normalized_project_id)
+    plan_path.parent.mkdir(parents=True, exist_ok=True)
+    existing_created_at = ""
+    if plan_path.exists():
+        try:
+            existing_raw = json.loads(plan_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            existing_raw = {}
+        if isinstance(existing_raw, dict):
+            existing_created_at = str(existing_raw.get("created_at", "")).strip()
+
+    dispatch_core = dispatch_plan.get("dispatch_plan", {}) if isinstance(dispatch_plan.get("dispatch_plan"), dict) else {}
+    dispatch_items = [item for item in dispatch_core.get("dispatch_items", []) if isinstance(item, dict)]
+    agent_queues = [item for item in dispatch_core.get("agent_queues", []) if isinstance(item, dict)]
+    input_payload = dispatch_plan.get("input", {}) if isinstance(dispatch_plan.get("input"), dict) else {}
+    metadata = input_payload.get("repo_project_metadata", {}) if isinstance(input_payload.get("repo_project_metadata"), dict) else {}
+    validation_items: list[dict[str, Any]] = []
+    for index, dispatch_item in enumerate(dispatch_items, start=1):
+        commands = _normalize_text_list(dispatch_item.get("validation_commands"))
+        validation_type = "manual_review"
+        if commands:
+            first = commands[0].lower()
+            if "pytest" in first or "unit" in first:
+                validation_type = "unit_tests"
+            elif "integration" in first:
+                validation_type = "integration_tests"
+            elif "lint" in first:
+                validation_type = "lint"
+            elif "format" in first or "black" in first or "prettier" in first:
+                validation_type = "formatting"
+        validation_items.append(
+            {
+                "validation_id": f"V{index}",
+                "dispatch_id": str(dispatch_item.get("dispatch_id", "")).strip(),
+                "local_issue_id": str(dispatch_item.get("local_issue_id", "")).strip(),
+                "title": str(dispatch_item.get("title", "")).strip(),
+                "validation_type": validation_type,
+                "priority": str(dispatch_item.get("priority", "")).strip() or "normal",
+                "validation_commands": commands,
+                "acceptance_criteria": _normalize_text_list(dispatch_item.get("acceptance_criteria")),
+                "expected_evidence": [
+                    "Command output logs captured locally." if commands else "Manual reviewer notes captured locally.",
+                    "Acceptance criteria checklist confirmation.",
+                ],
+                "execution_status": "not_executed",
+                "evidence_status": "not_collected",
+                "safety_notes": ["Local validation plan only; no validation execution performed."],
+            }
+        )
+    group_map: dict[str, dict[str, Any]] = {}
+    for item in validation_items:
+        validation_type = str(item.get("validation_type", "")).strip() or "manual_review"
+        group = group_map.setdefault(
+            validation_type,
+            {"group_id": f"G-{validation_type}", "title": validation_type.replace("_", " ").title(), "validation_type": validation_type, "item_count": 0, "validation_ids": []},
+        )
+        group["item_count"] += 1
+        group["validation_ids"].append(str(item.get("validation_id", "")).strip())
+    evidence_expectations: list[dict[str, Any]] = []
+    for item in validation_items:
+        validation_id = str(item.get("validation_id", "")).strip()
+        evidence_expectations.append(
+            {
+                "evidence_id": f"E-{validation_id}",
+                "validation_id": validation_id,
+                "evidence_type": "validation_record",
+                "description": f"Collect local evidence for {validation_id}.",
+                "required": True,
+                "status": "not_collected",
+            }
+        )
+    plan = {
+        "schema_version": "1.0",
+        "project_id": normalized_project_id,
+        "created_at": existing_created_at or now,
+        "updated_at": now,
+        "lifecycle_state": "validation_execution_plan_prepared",
+        "source": "local_project_factory",
+        "input": {
+            "approved_agent_dispatch_plan_summary": str(dispatch_plan.get("dispatch_summary", "")).strip(),
+            "dispatch_items": dispatch_items,
+            "agent_queues": agent_queues,
+            "repo_project_metadata": {
+                "github_owner": str(metadata.get("github_owner", "")).strip(),
+                "github_repo": str(metadata.get("github_repo", "")).strip(),
+                "github_url": str(metadata.get("github_url", "")).strip(),
+                "default_branch": str(metadata.get("default_branch", "")).strip(),
+                "github_mode": str(metadata.get("github_mode", "")).strip(),
+            },
+        },
+        "validation_plan": {
+            "validation_items": validation_items,
+            "validation_groups": list(group_map.values()),
+            "evidence_expectations": evidence_expectations,
+            "sequencing_notes": [],
+            "dependency_notes": [],
+        },
+        "validation_summary": "",
+        "operator_notes": "",
+        "sequencing_notes": [],
+        "dependency_notes": [],
+        "approval_conditions": ["Validation execution requires explicit operator approval."],
+        "known_risks": [],
+        "manual_validation_notes": [],
+        "local_only": True,
+        "validation_execution_status": "not_requested",
+        "agent_execution_status": "not_requested",
+        "model_execution_status": "not_requested",
+        "github_mutation_status": "not_requested",
+        "requires_explicit_validation_execution_approval": True,
+        "next_recommended_action": "review_validation_execution_plan",
+        "audit_trail": [],
+    }
+    _append_validation_execution_plan_audit_entry(
+        plan,
+        event_type="validation_execution_plan_prepared",
+        lifecycle_state="validation_execution_plan_prepared",
+        summary="Validation execution plan prepared locally from approved agent dispatch plan.",
+    )
+    plan_path.write_text(json.dumps(plan, indent=2) + "\n", encoding="utf-8")
+    dossier_result = read_project_factory_dossier(config, normalized_project_id)
+    dossier = dict(dossier_result.get("dossier", {})) if dossier_result.get("dossier_exists", False) else {}
+    if dossier:
+        dossier["lifecycle_state"] = "validation_execution_plan_prepared"
+        dossier["next_recommended_action"] = "review_validation_execution_plan"
+        dossier["updated_at"] = now
+        create_project_factory_dossier(config, dossier)
+    return {
+        "ok": True,
+        "local_only": True,
+        "project_id": normalized_project_id,
+        "validation_execution_plan": plan,
+        "validation_execution_plan_path": str(plan_path),
+        "dossier_path": str(resolve_project_factory_dossier_path(config.repo_root, normalized_project_id)),
+        "warnings": sorted(set(dispatch_result.get("warnings", []))),
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+    }
+
+
+def update_project_validation_execution_plan(config: AppConfig, project_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+    plan_result = read_project_validation_execution_plan(config, project_id)
+    normalized_project_id = str(plan_result.get("project_id", "")).strip()
+    if not plan_result.get("validation_execution_plan_exists", False):
+        return _error(
+            "validation_execution_plan_not_found",
+            {
+                "message": "Validation execution plan must be prepared before updating draft fields.",
+                "project_id": normalized_project_id,
+                "validation_execution_plan_path": plan_result.get("validation_execution_plan_path", ""),
+            },
+        )
+    plan = dict(plan_result.get("validation_execution_plan", {}))
+    now = _now_iso()
+    for field in ("validation_summary", "operator_notes"):
+        if field in payload:
+            plan[field] = str(payload.get(field, "")).strip()
+    for field in ("sequencing_notes", "dependency_notes", "approval_conditions", "known_risks", "manual_validation_notes"):
+        if field in payload:
+            plan[field] = _normalize_text_list(payload.get(field))
+    plan["lifecycle_state"] = "validation_execution_plan_draft_updated"
+    plan["updated_at"] = now
+    plan["local_only"] = True
+    plan["validation_execution_status"] = "not_requested"
+    plan["agent_execution_status"] = "not_requested"
+    plan["model_execution_status"] = "not_requested"
+    plan["github_mutation_status"] = "not_requested"
+    plan["requires_explicit_validation_execution_approval"] = True
+    validation_plan = plan.get("validation_plan", {}) if isinstance(plan.get("validation_plan"), dict) else {}
+    validation_plan["sequencing_notes"] = _normalize_text_list(plan.get("sequencing_notes"))
+    validation_plan["dependency_notes"] = _normalize_text_list(plan.get("dependency_notes"))
+    plan["validation_plan"] = validation_plan
+    plan["next_recommended_action"] = "approve_validation_execution_plan_or_continue_editing"
+    _append_validation_execution_plan_audit_entry(
+        plan,
+        event_type="validation_execution_plan_draft_updated",
+        lifecycle_state="validation_execution_plan_draft_updated",
+        summary="Validation execution plan draft fields were updated locally.",
+    )
+    plan_path = resolve_project_validation_execution_plan_path(config.repo_root, normalized_project_id)
+    plan_path.write_text(json.dumps(plan, indent=2) + "\n", encoding="utf-8")
+    dossier_result = read_project_factory_dossier(config, normalized_project_id)
+    dossier = dict(dossier_result.get("dossier", {})) if dossier_result.get("dossier_exists", False) else {}
+    if dossier:
+        dossier["lifecycle_state"] = "validation_execution_plan_draft_updated"
+        dossier["next_recommended_action"] = "approve_validation_execution_plan_or_continue_editing"
+        dossier["updated_at"] = now
+        create_project_factory_dossier(config, dossier)
+    return {
+        "ok": True,
+        "local_only": True,
+        "project_id": normalized_project_id,
+        "validation_execution_plan": plan,
+        "validation_execution_plan_path": str(plan_path),
+        "dossier_path": str(resolve_project_factory_dossier_path(config.repo_root, normalized_project_id)),
+        "warnings": sorted(set(plan_result.get("warnings", []))),
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+    }
+
+
+def approve_project_validation_execution_plan(config: AppConfig, project_id: str, approval_payload: dict[str, Any]) -> dict[str, Any]:
+    plan_result = read_project_validation_execution_plan(config, project_id)
+    normalized_project_id = str(plan_result.get("project_id", "")).strip()
+    if not plan_result.get("validation_execution_plan_exists", False):
+        return _error(
+            "validation_execution_plan_not_found",
+            {
+                "message": "Validation execution plan must be prepared before approval.",
+                "project_id": normalized_project_id,
+                "validation_execution_plan_path": plan_result.get("validation_execution_plan_path", ""),
+            },
+        )
+    plan = dict(plan_result.get("validation_execution_plan", {}))
+    summary = str(plan.get("validation_summary", "")).strip()
+    validation_plan = plan.get("validation_plan", {}) if isinstance(plan.get("validation_plan"), dict) else {}
+    validation_items = [item for item in validation_plan.get("validation_items", []) if isinstance(item, dict)]
+    evidence_expectations = [item for item in validation_plan.get("evidence_expectations", []) if isinstance(item, dict)]
+    approval_conditions = _normalize_text_list(plan.get("approval_conditions"))
+    if not summary:
+        return _error("validation_execution_plan_approval_validation_failed", {"message": "Validation plan approval requires a non-empty validation_summary."})
+    if not validation_items:
+        return _error("validation_execution_plan_approval_validation_failed", {"message": "Validation plan approval requires at least one validation item."})
+    required_item_fields = ("validation_id", "dispatch_id", "title", "validation_type", "execution_status")
+    for item in validation_items:
+        for field in required_item_fields:
+            if not str(item.get(field, "")).strip():
+                return _error("validation_execution_plan_approval_validation_failed", {"message": f"Validation item is missing required field: {field}."})
+        if str(item.get("execution_status", "")).strip() != "not_executed":
+            return _error("validation_execution_plan_approval_validation_failed", {"message": "All validation item execution_status values must remain not_executed."})
+        if str(item.get("evidence_status", "")).strip() != "not_collected":
+            return _error("validation_execution_plan_approval_validation_failed", {"message": "All validation item evidence_status values must remain not_collected."})
+    for item in evidence_expectations:
+        if str(item.get("status", "")).strip() != "not_collected":
+            return _error("validation_execution_plan_approval_validation_failed", {"message": "All evidence expectation statuses must remain not_collected."})
+    if not any("validation execution approval" in value.lower() or "validation execution requires explicit operator approval" in value.lower() for value in approval_conditions):
+        return _error(
+            "validation_execution_plan_approval_validation_failed",
+            {"message": "Approval conditions must explicitly mention validation execution approval."},
+        )
+    now = _now_iso()
+    plan["validation_summary"] = summary
+    plan["approval_conditions"] = approval_conditions
+    plan["lifecycle_state"] = "validation_execution_plan_approved"
+    plan["updated_at"] = now
+    plan["approved_at"] = now
+    plan["approved_by"] = str(approval_payload.get("approved_by", "")).strip() or "local_operator"
+    plan["local_only"] = True
+    plan["validation_execution_status"] = "not_requested"
+    plan["agent_execution_status"] = "not_requested"
+    plan["model_execution_status"] = "not_requested"
+    plan["github_mutation_status"] = "not_requested"
+    plan["requires_explicit_validation_execution_approval"] = True
+    plan["next_recommended_action"] = "prepare_documentation_closeout_plan"
+    _append_validation_execution_plan_audit_entry(
+        plan,
+        event_type="validation_execution_plan_approved",
+        lifecycle_state="validation_execution_plan_approved",
+        summary="Validation execution plan approved locally; no validation commands or execution performed.",
+    )
+    plan_path = resolve_project_validation_execution_plan_path(config.repo_root, normalized_project_id)
+    plan_path.write_text(json.dumps(plan, indent=2) + "\n", encoding="utf-8")
+    dossier_result = read_project_factory_dossier(config, normalized_project_id)
+    dossier = dict(dossier_result.get("dossier", {})) if dossier_result.get("dossier_exists", False) else {}
+    if dossier:
+        dossier["lifecycle_state"] = "validation_execution_plan_approved"
+        dossier["next_recommended_action"] = "prepare_documentation_closeout_plan"
+        dossier["updated_at"] = now
+        create_project_factory_dossier(config, dossier)
+    return {
+        "ok": True,
+        "local_only": True,
+        "project_id": normalized_project_id,
+        "validation_execution_plan": plan,
+        "validation_execution_plan_path": str(plan_path),
+        "dossier_path": str(resolve_project_factory_dossier_path(config.repo_root, normalized_project_id)),
+        "warnings": sorted(set(plan_result.get("warnings", []))),
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+    }
+
+
 def start_new_project_factory(config: AppConfig, payload: dict[str, Any]) -> dict[str, Any]:
     name = str(payload.get("name", "")).strip()
     if not name:
@@ -2128,6 +2481,33 @@ def _append_agent_dispatch_plan_audit_entry(
     agent_dispatch_plan["audit_trail"] = audit_entries
 
 
+def _append_validation_execution_plan_audit_entry(
+    validation_execution_plan: dict[str, Any],
+    *,
+    event_type: str,
+    lifecycle_state: str,
+    summary: str,
+) -> None:
+    audit_entries = validation_execution_plan.get("audit_trail")
+    if not isinstance(audit_entries, list):
+        audit_entries = []
+    audit_entries.append(
+        {
+            "timestamp": _now_iso(),
+            "event_type": event_type,
+            "lifecycle_state": lifecycle_state,
+            "actor": "local_operator",
+            "summary": summary,
+            "local_only": True,
+            "validation_execution_status": "not_requested",
+            "agent_execution_status": "not_requested",
+            "model_execution_status": "not_requested",
+            "github_mutation_status": "not_requested",
+        }
+    )
+    validation_execution_plan["audit_trail"] = audit_entries
+
+
 def _error(error: str, details: dict[str, Any]) -> dict[str, Any]:
     return {
         "ok": False,
@@ -2182,10 +2562,21 @@ def _build_workflow_steps(*, lifecycle_state: str, github_mode: str) -> list[dic
     if normalized_state in {"agent_dispatch_plan_prepared", "agent_dispatch_plan_draft_updated"}:
         github_apply_status = "completed"
         agent_dispatch_status = "current"
+    documentation_status = "pending"
     if normalized_state == "agent_dispatch_plan_approved":
         github_apply_status = "completed"
         agent_dispatch_status = "completed"
         validation_status = "current"
+    if normalized_state in {"validation_execution_plan_prepared", "validation_execution_plan_draft_updated"}:
+        github_apply_status = "completed"
+        agent_dispatch_status = "completed"
+        validation_status = "current"
+        documentation_status = "pending"
+    if normalized_state == "validation_execution_plan_approved":
+        github_apply_status = "completed"
+        agent_dispatch_status = "completed"
+        validation_status = "completed"
+        documentation_status = "current"
     elif normalized_state == "milestone_issue_plan_approved":
         github_apply_status = "current"
         agent_dispatch_status = "gated"
@@ -2254,12 +2645,12 @@ def _build_workflow_steps(*, lifecycle_state: str, github_mode: str) -> list[dic
             "status": validation_status,
             "local_only": True,
             "gate_type": "none",
-            "description": "Run local validation for delivered work.",
+            "description": "Validation planning is local-only and approved as plan-only unless explicitly executed later.",
         },
         {
             "step_id": "documentation",
             "label": "Documentation",
-            "status": "pending",
+            "status": documentation_status,
             "local_only": True,
             "gate_type": "none",
             "description": "Capture docs and evidence updates.",

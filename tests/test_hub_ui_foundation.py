@@ -230,6 +230,11 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "Save Dispatch Draft" in index_text
     assert "Approve Dispatch Plan" in index_text
     assert "This is a local dispatch plan only. It does not execute agents or models." in index_text
+    assert "Validation Execution Plan" in index_text
+    assert "Prepare Validation Execution Plan" in index_text
+    assert "Save Validation Draft" in index_text
+    assert "Approve Validation Plan" in index_text
+    assert "This is a local validation plan only. It does not execute validation commands, agents, models, or GitHub actions." in index_text
     assert "wizard-project-name" in index_text
     assert "wizard-project-id" in index_text
     assert "wizard-project-type" in index_text
@@ -270,6 +275,8 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
         "/api/project-factory/github-apply-plan/approve",
         "/api/project-factory/agent-dispatch-plan",
         "/api/project-factory/agent-dispatch-plan/approve",
+        "/api/project-factory/validation-execution-plan",
+        "/api/project-factory/validation-execution-plan/approve",
         "/api/projects/",
         "/github-link",
         "/api/bootstrap/status",
@@ -335,6 +342,9 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
         "home-prepare-agent-dispatch-plan",
         "agent-dispatch-plan-save-draft",
         "agent-dispatch-plan-approve",
+        "home-prepare-validation-execution-plan",
+        "validation-execution-plan-save-draft",
+        "validation-execution-plan-approve",
     ):
         assert action_id in app_text
     assert "parseLineList" in app_text
@@ -349,10 +359,15 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
     assert "buildGithubApplyPlanPayload" in app_text
     assert "renderAgentDispatchPlan" in app_text
     assert "buildAgentDispatchPlanPayload" in app_text
+    assert "renderValidationExecutionPlan" in app_text
+    assert "buildValidationExecutionPlanPayload" in app_text
     assert "home-github-apply-plan-milestones" in app_text
     assert "home-github-apply-plan-issues" in app_text
     assert "home-agent-dispatch-items" in app_text
     assert "home-agent-dispatch-queues" in app_text
+    assert "home-validation-execution-items" in app_text
+    assert "home-validation-execution-groups" in app_text
+    assert "home-validation-execution-evidence" in app_text
 
 
 def test_bootstrap_api_status_plan_apply(tmp_path: Path) -> None:

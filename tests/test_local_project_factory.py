@@ -5,6 +5,7 @@ from pathlib import Path
 
 from aresforge.config import AppConfig
 from aresforge.operator.local_project_factory import (
+    approve_project_validation_execution_plan,
     approve_project_agent_dispatch_plan,
     approve_project_architecture_contract,
     approve_project_github_apply_plan,
@@ -13,6 +14,7 @@ from aresforge.operator.local_project_factory import (
     inspect_project_factory_dossier,
     prepare_project_architecture_contract,
     prepare_project_agent_dispatch_plan,
+    prepare_project_validation_execution_plan,
     prepare_project_github_apply_plan,
     prepare_project_milestone_issue_plan,
     prepare_project_scope_package,
@@ -20,6 +22,7 @@ from aresforge.operator.local_project_factory import (
     read_project_agent_dispatch_plan,
     read_project_factory_dossier,
     read_project_github_apply_plan,
+    read_project_validation_execution_plan,
     read_project_milestone_issue_plan,
     read_project_scope_package,
     resolve_project_architecture_contract_path,
@@ -27,12 +30,14 @@ from aresforge.operator.local_project_factory import (
     resolve_project_factory_dossier_path,
     resolve_project_github_apply_plan_path,
     resolve_project_milestone_issue_plan_path,
+    resolve_project_validation_execution_plan_path,
     resolve_project_scope_package_path,
     start_new_project_factory,
     update_project_architecture_contract,
     update_project_agent_dispatch_plan,
     update_project_github_apply_plan,
     update_project_milestone_issue_plan,
+    update_project_validation_execution_plan,
     update_project_scope_package,
 )
 
@@ -718,3 +723,128 @@ def test_agent_dispatch_plan_lifecycle_and_validations(tmp_path: Path) -> None:
     dossier = read_project_factory_dossier(config, project_id_for_validation)
     assert dossier["dossier"]["lifecycle_state"] == "agent_dispatch_plan_approved"
     assert dossier["dossier"]["next_recommended_action"] == "prepare_validation_execution_plan"
+
+
+def test_validation_execution_plan_lifecycle_and_validations(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    missing = read_project_validation_execution_plan(config, "missing-project")
+    assert missing["ok"] is True
+    assert missing["validation_execution_plan_exists"] is False
+
+    created = start_new_project_factory(config, _payload(tmp_path))
+    missing_dispatch = prepare_project_validation_execution_plan(config, str(created["project"]["project_id"]))
+    assert missing_dispatch["ok"] is False
+    assert missing_dispatch["error"] == "agent_dispatch_plan_not_found"
+
+    project_id = _seed_github_apply_plan_approved(config, tmp_path)
+    prepare_project_agent_dispatch_plan(config, project_id)
+    unapproved_dispatch = prepare_project_validation_execution_plan(config, project_id)
+    assert unapproved_dispatch["ok"] is False
+    assert unapproved_dispatch["error"] == "agent_dispatch_plan_not_approved"
+
+    update_project_agent_dispatch_plan(
+        config,
+        project_id,
+        {"dispatch_summary": "summary", "approval_conditions": ["Agent execution approval is required before run."]},
+    )
+    approve_project_agent_dispatch_plan(config, project_id, {})
+    prepared = prepare_project_validation_execution_plan(config, project_id)
+    assert prepared["ok"] is True
+    plan_path = resolve_project_validation_execution_plan_path(tmp_path, project_id)
+    rendered = json.loads(plan_path.read_text(encoding="utf-8"))
+    assert rendered["lifecycle_state"] == "validation_execution_plan_prepared"
+    assert rendered["validation_plan"]["validation_items"]
+    assert rendered["validation_plan"]["validation_groups"]
+    assert rendered["validation_plan"]["evidence_expectations"]
+    assert rendered["validation_plan"]["validation_items"][0]["execution_status"] == "not_executed"
+    assert rendered["validation_plan"]["validation_items"][0]["evidence_status"] == "not_collected"
+
+    first_count = len(prepared["validation_execution_plan"].get("audit_trail", []))
+    updated = update_project_validation_execution_plan(
+        config,
+        project_id,
+        {
+            "validation_summary": "validation summary",
+            "approval_conditions": ["Validation execution approval is required before run."],
+            "manual_validation_notes": ["manual note"],
+        },
+    )
+    assert updated["ok"] is True
+    assert updated["validation_execution_plan"]["lifecycle_state"] == "validation_execution_plan_draft_updated"
+    assert len(updated["validation_execution_plan"].get("audit_trail", [])) > first_count
+    dossier = read_project_factory_dossier(config, project_id)
+    assert dossier["dossier"]["lifecycle_state"] == "validation_execution_plan_draft_updated"
+
+    missing_summary = approve_project_validation_execution_plan(config, project_id, {})
+    assert missing_summary["ok"] is True
+    assert missing_summary["validation_execution_plan"]["lifecycle_state"] == "validation_execution_plan_approved"
+
+    bad_project = _seed_github_apply_plan_approved(config, tmp_path)
+    prepare_project_agent_dispatch_plan(config, bad_project)
+    update_project_agent_dispatch_plan(
+        config,
+        bad_project,
+        {"dispatch_summary": "summary", "approval_conditions": ["Agent execution approval is required before run."]},
+    )
+    approve_project_agent_dispatch_plan(config, bad_project, {})
+    prepare_project_validation_execution_plan(config, bad_project)
+    no_summary = approve_project_validation_execution_plan(config, bad_project, {})
+    assert no_summary["ok"] is False
+    assert no_summary["error"] == "validation_execution_plan_approval_validation_failed"
+    update_project_validation_execution_plan(config, bad_project, {"validation_summary": "summary", "approval_conditions": ["needs review"]})
+    missing_condition = approve_project_validation_execution_plan(config, bad_project, {})
+    assert missing_condition["ok"] is False
+
+    path = resolve_project_validation_execution_plan_path(tmp_path, bad_project)
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    raw["validation_summary"] = "summary"
+    raw["approval_conditions"] = ["Validation execution approval is required before run."]
+    raw["validation_plan"]["validation_items"] = []
+    path.write_text(json.dumps(raw, indent=2) + "\n", encoding="utf-8")
+    no_items = approve_project_validation_execution_plan(config, bad_project, {})
+    assert no_items["ok"] is False
+
+    prepare_project_validation_execution_plan(config, bad_project)
+    updated_valid = update_project_validation_execution_plan(
+        config,
+        bad_project,
+        {"validation_summary": "summary", "approval_conditions": ["Validation execution approval is required before run."]},
+    )
+    tampered = updated_valid["validation_execution_plan"]
+    tampered["validation_plan"]["validation_items"][0]["execution_status"] = "executed"
+    path.write_text(json.dumps(tampered, indent=2) + "\n", encoding="utf-8")
+    executed_fail = approve_project_validation_execution_plan(config, bad_project, {})
+    assert executed_fail["ok"] is False
+
+    prepare_project_validation_execution_plan(config, bad_project)
+    updated_valid = update_project_validation_execution_plan(
+        config,
+        bad_project,
+        {"validation_summary": "summary", "approval_conditions": ["Validation execution approval is required before run."]},
+    )
+    tampered = updated_valid["validation_execution_plan"]
+    tampered["validation_plan"]["validation_items"][0]["evidence_status"] = "collected"
+    path.write_text(json.dumps(tampered, indent=2) + "\n", encoding="utf-8")
+    evidence_fail = approve_project_validation_execution_plan(config, bad_project, {})
+    assert evidence_fail["ok"] is False
+
+    prepare_project_validation_execution_plan(config, bad_project)
+    update_project_validation_execution_plan(
+        config,
+        bad_project,
+        {
+            "validation_summary": "Approved validation plan",
+            "approval_conditions": ["Validation execution approval is required before run."],
+            "sequencing_notes": ["s1"],
+            "dependency_notes": ["d1"],
+        },
+    )
+    approved = approve_project_validation_execution_plan(config, bad_project, {})
+    assert approved["ok"] is True
+    assert approved["validation_execution_plan"]["lifecycle_state"] == "validation_execution_plan_approved"
+    assert approved["validation_execution_plan"]["local_only"] is True
+    assert approved["validation_execution_plan"]["validation_execution_status"] == "not_requested"
+    assert approved["validation_execution_plan"]["audit_trail"]
+    dossier = read_project_factory_dossier(config, bad_project)
+    assert dossier["dossier"]["lifecycle_state"] == "validation_execution_plan_approved"
+    assert dossier["dossier"]["next_recommended_action"] == "prepare_documentation_closeout_plan"
