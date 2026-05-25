@@ -101,6 +101,10 @@ def resolve_project_github_apply_plan_path(repo_root: Path, project_id: str) -> 
     return (repo_root / ".aresforge" / "projects" / project_id.strip() / "github_apply_plan.json").resolve()
 
 
+def resolve_project_agent_dispatch_plan_path(repo_root: Path, project_id: str) -> Path:
+    return (repo_root / ".aresforge" / "projects" / project_id.strip() / "agent_dispatch_plan.json").resolve()
+
+
 def create_project_factory_dossier(config: AppConfig, payload: dict[str, Any]) -> dict[str, Any]:
     dossier_path = resolve_project_factory_dossier_path(config.repo_root, str(payload.get("project_id", "")).strip())
     dossier_path.parent.mkdir(parents=True, exist_ok=True)
@@ -215,6 +219,18 @@ def inspect_project_factory_dossier(config: AppConfig, project_id: str) -> dict[
         "github_apply_plan_approved",
     }:
         effective_lifecycle_state = github_apply_plan_lifecycle_state
+    agent_dispatch_plan_payload = read_project_agent_dispatch_plan(config, project_id)
+    agent_dispatch_plan_lifecycle_state = ""
+    if agent_dispatch_plan_payload.get("agent_dispatch_plan_exists", False):
+        agent_dispatch_plan = agent_dispatch_plan_payload.get("agent_dispatch_plan", {})
+        if isinstance(agent_dispatch_plan, dict):
+            agent_dispatch_plan_lifecycle_state = str(agent_dispatch_plan.get("lifecycle_state", "")).strip()
+    if agent_dispatch_plan_lifecycle_state in {
+        "agent_dispatch_plan_prepared",
+        "agent_dispatch_plan_draft_updated",
+        "agent_dispatch_plan_approved",
+    }:
+        effective_lifecycle_state = agent_dispatch_plan_lifecycle_state
     payload["workflow_steps"] = _build_workflow_steps(
         lifecycle_state=effective_lifecycle_state,
         github_mode=github_mode,
@@ -1469,6 +1485,314 @@ def approve_project_github_apply_plan(config: AppConfig, project_id: str, approv
     }
 
 
+def read_project_agent_dispatch_plan(config: AppConfig, project_id: str) -> dict[str, Any]:
+    normalized_project_id = str(project_id or "").strip()
+    plan_path = resolve_project_agent_dispatch_plan_path(config.repo_root, normalized_project_id)
+    warnings: list[str] = []
+    if not plan_path.exists():
+        warnings.append(f"Agent dispatch plan not found for project: {normalized_project_id}")
+        return {
+            "ok": True,
+            "local_only": True,
+            "project_id": normalized_project_id,
+            "agent_dispatch_plan_path": str(plan_path),
+            "agent_dispatch_plan_exists": False,
+            "agent_dispatch_plan": {},
+            "warnings": warnings,
+            "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+        }
+    try:
+        loaded = json.loads(plan_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        warnings.append(f"Agent dispatch plan could not be parsed: {exc}")
+        loaded = {}
+    if not isinstance(loaded, dict):
+        warnings.append("Agent dispatch plan has invalid schema; expected JSON object.")
+        loaded = {}
+    return {
+        "ok": True,
+        "local_only": True,
+        "project_id": normalized_project_id,
+        "agent_dispatch_plan_path": str(plan_path),
+        "agent_dispatch_plan_exists": bool(loaded),
+        "agent_dispatch_plan": loaded,
+        "warnings": sorted(set(warnings)),
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+    }
+
+
+def prepare_project_agent_dispatch_plan(config: AppConfig, project_id: str) -> dict[str, Any]:
+    normalized_project_id = str(project_id or "").strip()
+    github_apply_result = read_project_github_apply_plan(config, normalized_project_id)
+    if not github_apply_result.get("github_apply_plan_exists", False):
+        return _error(
+            "github_apply_plan_not_found",
+            {
+                "message": "GitHub apply plan must exist before preparing agent dispatch plan.",
+                "project_id": normalized_project_id,
+                "github_apply_plan_path": github_apply_result.get("github_apply_plan_path", ""),
+            },
+        )
+    github_apply_plan = dict(github_apply_result.get("github_apply_plan", {}))
+    if str(github_apply_plan.get("lifecycle_state", "")).strip() != "github_apply_plan_approved":
+        return _error(
+            "github_apply_plan_not_approved",
+            {
+                "message": "GitHub apply plan must be approved before preparing agent dispatch plan.",
+                "project_id": normalized_project_id,
+            },
+        )
+    now = _now_iso()
+    plan_path = resolve_project_agent_dispatch_plan_path(config.repo_root, normalized_project_id)
+    plan_path.parent.mkdir(parents=True, exist_ok=True)
+    existing_created_at = ""
+    if plan_path.exists():
+        try:
+            existing_raw = json.loads(plan_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            existing_raw = {}
+        if isinstance(existing_raw, dict):
+            existing_created_at = str(existing_raw.get("created_at", "")).strip()
+
+    mutation_intent = github_apply_plan.get("mutation_intent", {}) if isinstance(github_apply_plan.get("mutation_intent"), dict) else {}
+    milestone_intents = [item for item in mutation_intent.get("create_milestones", []) if isinstance(item, dict)]
+    issue_intents = [item for item in mutation_intent.get("create_issues", []) if isinstance(item, dict)]
+    dispatch_items: list[dict[str, Any]] = []
+    for index, issue in enumerate(issue_intents, start=1):
+        dispatch_items.append(
+            {
+                "dispatch_id": f"D{index}",
+                "local_issue_id": str(issue.get("local_issue_id", "")).strip(),
+                "local_milestone_id": str(issue.get("local_milestone_id", "")).strip(),
+                "title": str(issue.get("title", "")).strip(),
+                "issue_type": str(issue.get("issue_type", "")).strip() or "task",
+                "priority": str(issue.get("priority", "")).strip() or "normal",
+                "agent_type": str(issue.get("agent_type", "")).strip() or "operator",
+                "assigned_agent_profile_id": None,
+                "queue_status": "planned",
+                "execution_status": "not_executed",
+                "model_execution_status": "not_requested",
+                "github_issue_number": None,
+                "acceptance_criteria": _normalize_text_list(issue.get("acceptance_criteria")),
+                "validation_commands": _normalize_text_list(issue.get("validation_commands")),
+                "dependencies": _normalize_text_list(issue.get("dependencies")),
+                "planned_artifacts": [],
+                "safety_notes": ["Local dispatch plan only; no execution performed."],
+            }
+        )
+    queue_map: dict[str, dict[str, Any]] = {}
+    for item in dispatch_items:
+        agent_type = str(item.get("agent_type", "")).strip() or "operator"
+        bucket = queue_map.setdefault(
+            agent_type,
+            {"agent_type": agent_type, "item_count": 0, "high_priority_count": 0, "urgent_priority_count": 0, "dispatch_ids": []},
+        )
+        bucket["item_count"] += 1
+        priority = str(item.get("priority", "")).strip()
+        if priority == "high":
+            bucket["high_priority_count"] += 1
+        if priority == "urgent":
+            bucket["urgent_priority_count"] += 1
+        bucket["dispatch_ids"].append(str(item.get("dispatch_id", "")).strip())
+    agent_queues = list(queue_map.values())
+    input_payload = github_apply_plan.get("input", {}) if isinstance(github_apply_plan.get("input"), dict) else {}
+    plan = {
+        "schema_version": "1.0",
+        "project_id": normalized_project_id,
+        "created_at": existing_created_at or now,
+        "updated_at": now,
+        "lifecycle_state": "agent_dispatch_plan_prepared",
+        "source": "local_project_factory",
+        "input": {
+            "approved_github_apply_plan_summary": str(github_apply_plan.get("apply_summary", "")).strip(),
+            "issue_intents": issue_intents,
+            "milestone_intents": milestone_intents,
+            "repo_project_metadata": {
+                "github_owner": str(input_payload.get("github_owner", "")).strip(),
+                "github_repo": str(input_payload.get("github_repo", "")).strip(),
+                "github_url": str(input_payload.get("github_url", "")).strip(),
+                "default_branch": str(input_payload.get("default_branch", "")).strip(),
+                "github_mode": str(input_payload.get("github_mode", "")).strip(),
+            },
+        },
+        "dispatch_plan": {
+            "dispatch_items": dispatch_items,
+            "agent_queues": agent_queues,
+            "sequencing_notes": [],
+            "dependency_notes": [],
+        },
+        "dispatch_summary": "",
+        "operator_notes": "",
+        "sequencing_notes": [],
+        "dependency_notes": [],
+        "approval_conditions": ["Agent/model execution requires explicit operator approval."],
+        "known_risks": [],
+        "local_only": True,
+        "agent_execution_status": "not_requested",
+        "model_execution_status": "not_requested",
+        "github_mutation_status": "not_requested",
+        "requires_explicit_agent_execution_approval": True,
+        "next_recommended_action": "review_agent_dispatch_plan",
+        "audit_trail": [],
+    }
+    _append_agent_dispatch_plan_audit_entry(
+        plan,
+        event_type="agent_dispatch_plan_prepared",
+        lifecycle_state="agent_dispatch_plan_prepared",
+        summary="Agent dispatch plan prepared locally from approved GitHub apply plan.",
+    )
+    plan_path.write_text(json.dumps(plan, indent=2) + "\n", encoding="utf-8")
+    dossier_result = read_project_factory_dossier(config, normalized_project_id)
+    dossier = dict(dossier_result.get("dossier", {})) if dossier_result.get("dossier_exists", False) else {}
+    if dossier:
+        dossier["lifecycle_state"] = "agent_dispatch_plan_prepared"
+        dossier["next_recommended_action"] = "review_agent_dispatch_plan"
+        dossier["updated_at"] = now
+        create_project_factory_dossier(config, dossier)
+    return {
+        "ok": True,
+        "local_only": True,
+        "project_id": normalized_project_id,
+        "agent_dispatch_plan": plan,
+        "agent_dispatch_plan_path": str(plan_path),
+        "dossier_path": str(resolve_project_factory_dossier_path(config.repo_root, normalized_project_id)),
+        "warnings": sorted(set(github_apply_result.get("warnings", []))),
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+    }
+
+
+def update_project_agent_dispatch_plan(config: AppConfig, project_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+    plan_result = read_project_agent_dispatch_plan(config, project_id)
+    normalized_project_id = str(plan_result.get("project_id", "")).strip()
+    if not plan_result.get("agent_dispatch_plan_exists", False):
+        return _error(
+            "agent_dispatch_plan_not_found",
+            {
+                "message": "Agent dispatch plan must be prepared before updating draft fields.",
+                "project_id": normalized_project_id,
+                "agent_dispatch_plan_path": plan_result.get("agent_dispatch_plan_path", ""),
+            },
+        )
+    plan = dict(plan_result.get("agent_dispatch_plan", {}))
+    now = _now_iso()
+    for field in ("dispatch_summary", "operator_notes"):
+        if field in payload:
+            plan[field] = str(payload.get(field, "")).strip()
+    for field in ("sequencing_notes", "dependency_notes", "approval_conditions", "known_risks"):
+        if field in payload:
+            plan[field] = _normalize_text_list(payload.get(field))
+    plan["lifecycle_state"] = "agent_dispatch_plan_draft_updated"
+    plan["updated_at"] = now
+    plan["local_only"] = True
+    plan["agent_execution_status"] = "not_requested"
+    plan["model_execution_status"] = "not_requested"
+    plan["github_mutation_status"] = "not_requested"
+    plan["requires_explicit_agent_execution_approval"] = True
+    dispatch_plan = plan.get("dispatch_plan", {}) if isinstance(plan.get("dispatch_plan"), dict) else {}
+    dispatch_plan["sequencing_notes"] = _normalize_text_list(plan.get("sequencing_notes"))
+    dispatch_plan["dependency_notes"] = _normalize_text_list(plan.get("dependency_notes"))
+    plan["dispatch_plan"] = dispatch_plan
+    plan["next_recommended_action"] = "approve_agent_dispatch_plan_or_continue_editing"
+    _append_agent_dispatch_plan_audit_entry(
+        plan,
+        event_type="agent_dispatch_plan_draft_updated",
+        lifecycle_state="agent_dispatch_plan_draft_updated",
+        summary="Agent dispatch plan draft fields were updated locally.",
+    )
+    plan_path = resolve_project_agent_dispatch_plan_path(config.repo_root, normalized_project_id)
+    plan_path.write_text(json.dumps(plan, indent=2) + "\n", encoding="utf-8")
+    dossier_result = read_project_factory_dossier(config, normalized_project_id)
+    dossier = dict(dossier_result.get("dossier", {})) if dossier_result.get("dossier_exists", False) else {}
+    if dossier:
+        dossier["lifecycle_state"] = "agent_dispatch_plan_draft_updated"
+        dossier["next_recommended_action"] = "approve_agent_dispatch_plan_or_continue_editing"
+        dossier["updated_at"] = now
+        create_project_factory_dossier(config, dossier)
+    return {
+        "ok": True,
+        "local_only": True,
+        "project_id": normalized_project_id,
+        "agent_dispatch_plan": plan,
+        "agent_dispatch_plan_path": str(plan_path),
+        "dossier_path": str(resolve_project_factory_dossier_path(config.repo_root, normalized_project_id)),
+        "warnings": sorted(set(plan_result.get("warnings", []))),
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+    }
+
+
+def approve_project_agent_dispatch_plan(config: AppConfig, project_id: str, approval_payload: dict[str, Any]) -> dict[str, Any]:
+    plan_result = read_project_agent_dispatch_plan(config, project_id)
+    normalized_project_id = str(plan_result.get("project_id", "")).strip()
+    if not plan_result.get("agent_dispatch_plan_exists", False):
+        return _error(
+            "agent_dispatch_plan_not_found",
+            {
+                "message": "Agent dispatch plan must be prepared before approval.",
+                "project_id": normalized_project_id,
+                "agent_dispatch_plan_path": plan_result.get("agent_dispatch_plan_path", ""),
+            },
+        )
+    plan = dict(plan_result.get("agent_dispatch_plan", {}))
+    dispatch_summary = str(plan.get("dispatch_summary", "")).strip()
+    dispatch_plan = plan.get("dispatch_plan", {}) if isinstance(plan.get("dispatch_plan"), dict) else {}
+    dispatch_items = [item for item in dispatch_plan.get("dispatch_items", []) if isinstance(item, dict)]
+    approval_conditions = _normalize_text_list(plan.get("approval_conditions"))
+    if not dispatch_summary:
+        return _error("agent_dispatch_plan_approval_validation_failed", {"message": "Dispatch plan approval requires a non-empty dispatch_summary."})
+    if not dispatch_items:
+        return _error("agent_dispatch_plan_approval_validation_failed", {"message": "Dispatch plan approval requires at least one dispatch item."})
+    required_item_fields = ("dispatch_id", "title", "agent_type", "priority", "queue_status", "execution_status")
+    for item in dispatch_items:
+        for field in required_item_fields:
+            if not str(item.get(field, "")).strip():
+                return _error("agent_dispatch_plan_approval_validation_failed", {"message": f"Dispatch item is missing required field: {field}."})
+        if str(item.get("execution_status", "")).strip() != "not_executed":
+            return _error("agent_dispatch_plan_approval_validation_failed", {"message": "All dispatch item execution_status values must remain not_executed."})
+    if not any(("agent execution approval" in value.lower() or "model execution approval" in value.lower()) for value in approval_conditions):
+        return _error(
+            "agent_dispatch_plan_approval_validation_failed",
+            {"message": "Approval conditions must explicitly mention agent execution approval or model execution approval."},
+        )
+    now = _now_iso()
+    plan["dispatch_summary"] = dispatch_summary
+    plan["approval_conditions"] = approval_conditions
+    plan["lifecycle_state"] = "agent_dispatch_plan_approved"
+    plan["updated_at"] = now
+    plan["approved_at"] = now
+    plan["approved_by"] = str(approval_payload.get("approved_by", "")).strip() or "local_operator"
+    plan["local_only"] = True
+    plan["agent_execution_status"] = "not_requested"
+    plan["model_execution_status"] = "not_requested"
+    plan["github_mutation_status"] = "not_requested"
+    plan["requires_explicit_agent_execution_approval"] = True
+    plan["next_recommended_action"] = "prepare_validation_execution_plan"
+    _append_agent_dispatch_plan_audit_entry(
+        plan,
+        event_type="agent_dispatch_plan_approved",
+        lifecycle_state="agent_dispatch_plan_approved",
+        summary="Agent dispatch plan approved locally; no agent/model execution performed.",
+    )
+    plan_path = resolve_project_agent_dispatch_plan_path(config.repo_root, normalized_project_id)
+    plan_path.write_text(json.dumps(plan, indent=2) + "\n", encoding="utf-8")
+    dossier_result = read_project_factory_dossier(config, normalized_project_id)
+    dossier = dict(dossier_result.get("dossier", {})) if dossier_result.get("dossier_exists", False) else {}
+    if dossier:
+        dossier["lifecycle_state"] = "agent_dispatch_plan_approved"
+        dossier["next_recommended_action"] = "prepare_validation_execution_plan"
+        dossier["updated_at"] = now
+        create_project_factory_dossier(config, dossier)
+    return {
+        "ok": True,
+        "local_only": True,
+        "project_id": normalized_project_id,
+        "agent_dispatch_plan": plan,
+        "agent_dispatch_plan_path": str(plan_path),
+        "dossier_path": str(resolve_project_factory_dossier_path(config.repo_root, normalized_project_id)),
+        "warnings": sorted(set(plan_result.get("warnings", []))),
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+    }
+
+
 def start_new_project_factory(config: AppConfig, payload: dict[str, Any]) -> dict[str, Any]:
     name = str(payload.get("name", "")).strip()
     if not name:
@@ -1778,6 +2102,32 @@ def _append_github_apply_plan_audit_entry(
     github_apply_plan["audit_trail"] = audit_entries
 
 
+def _append_agent_dispatch_plan_audit_entry(
+    agent_dispatch_plan: dict[str, Any],
+    *,
+    event_type: str,
+    lifecycle_state: str,
+    summary: str,
+) -> None:
+    audit_entries = agent_dispatch_plan.get("audit_trail")
+    if not isinstance(audit_entries, list):
+        audit_entries = []
+    audit_entries.append(
+        {
+            "timestamp": _now_iso(),
+            "event_type": event_type,
+            "lifecycle_state": lifecycle_state,
+            "actor": "local_operator",
+            "summary": summary,
+            "local_only": True,
+            "agent_execution_status": "not_requested",
+            "model_execution_status": "not_requested",
+            "github_mutation_status": "not_requested",
+        }
+    )
+    agent_dispatch_plan["audit_trail"] = audit_entries
+
+
 def _error(error: str, details: dict[str, Any]) -> dict[str, Any]:
     return {
         "ok": False,
@@ -1823,11 +2173,19 @@ def _build_workflow_steps(*, lifecycle_state: str, github_mode: str) -> list[dic
         milestone_step_status = "completed"
     github_apply_status = "gated"
     agent_dispatch_status = "gated"
+    validation_status = "pending"
     if normalized_state in {"github_apply_plan_prepared", "github_apply_plan_draft_updated"}:
         github_apply_status = "current"
     if normalized_state == "github_apply_plan_approved":
         github_apply_status = "completed"
         agent_dispatch_status = "current"
+    if normalized_state in {"agent_dispatch_plan_prepared", "agent_dispatch_plan_draft_updated"}:
+        github_apply_status = "completed"
+        agent_dispatch_status = "current"
+    if normalized_state == "agent_dispatch_plan_approved":
+        github_apply_status = "completed"
+        agent_dispatch_status = "completed"
+        validation_status = "current"
     elif normalized_state == "milestone_issue_plan_approved":
         github_apply_status = "current"
         agent_dispatch_status = "gated"
@@ -1893,7 +2251,7 @@ def _build_workflow_steps(*, lifecycle_state: str, github_mode: str) -> list[dic
         {
             "step_id": "validation",
             "label": "Validation",
-            "status": "pending",
+            "status": validation_status,
             "local_only": True,
             "gate_type": "none",
             "description": "Run local validation for delivered work.",

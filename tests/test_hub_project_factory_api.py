@@ -5,10 +5,12 @@ from pathlib import Path
 from aresforge.config import AppConfig
 from aresforge.hub.api import (
     get_project_factory_architecture_contract,
+    get_project_factory_agent_dispatch_plan,
     get_project_factory_github_apply_plan,
     get_project_factory_milestone_issue_plan,
     get_project_factory_scope_package,
     patch_project_factory_architecture_contract,
+    patch_project_factory_agent_dispatch_plan,
     patch_project_factory_github_apply_plan,
     patch_project_factory_milestone_issue_plan,
     patch_project_factory_scope_package,
@@ -17,6 +19,8 @@ from aresforge.hub.api import (
     post_project_factory_architecture_contract,
     post_project_factory_github_apply_plan,
     post_project_factory_github_apply_plan_approve,
+    post_project_factory_agent_dispatch_plan,
+    post_project_factory_agent_dispatch_plan_approve,
     post_project_factory_architecture_contract_approve,
     post_project_factory_milestone_issue_plan,
     post_project_factory_milestone_issue_plan_approve,
@@ -426,3 +430,44 @@ def test_post_patch_approve_github_apply_plan(tmp_path: Path) -> None:
     assert approved["github_apply_plan"]["lifecycle_state"] == "github_apply_plan_approved"
     assert approved["github_apply_plan"]["local_only"] is True
     assert approved["github_apply_plan"]["github_execution_status"] == "not_executed"
+
+
+def test_agent_dispatch_plan_api_flows(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    friendly = get_project_factory_agent_dispatch_plan(config, {})
+    assert friendly["ok"] is True
+    assert friendly["agent_dispatch_plan_exists"] is False
+    assert friendly["warnings"]
+
+    _seed_architecture_approved(config, tmp_path)
+    post_project_factory_milestone_issue_plan(config, {})
+    patch_project_factory_milestone_issue_plan(config, {"planning_summary": "summary"})
+    post_project_factory_milestone_issue_plan_approve(config, {})
+    post_project_factory_github_apply_plan(config, {})
+    gate = post_project_factory_agent_dispatch_plan(config, {})
+    assert gate["ok"] is False
+    assert gate["_status"] == 409
+
+    patch_project_factory_github_apply_plan(
+        config,
+        {"apply_summary": "apply summary", "approval_conditions": ["Explicit approval required; execution remains gated."]},
+    )
+    post_project_factory_github_apply_plan_approve(config, {})
+    prepared = post_project_factory_agent_dispatch_plan(config, {})
+    assert prepared["ok"] is True
+
+    fetched = get_project_factory_agent_dispatch_plan(config, {})
+    assert fetched["ok"] is True
+    assert fetched["agent_dispatch_plan_exists"] is True
+
+    patched = patch_project_factory_agent_dispatch_plan(
+        config,
+        {"dispatch_summary": "dispatch summary", "approval_conditions": ["Agent execution approval is required before run."]},
+    )
+    assert patched["ok"] is True
+
+    invalid_approve = post_project_factory_agent_dispatch_plan_approve(config, {})
+    assert invalid_approve["ok"] is True
+    assert invalid_approve["agent_dispatch_plan"]["lifecycle_state"] == "agent_dispatch_plan_approved"
+    assert invalid_approve["agent_dispatch_plan"]["local_only"] is True
+    assert invalid_approve["agent_dispatch_plan"]["agent_execution_status"] == "not_requested"

@@ -215,6 +215,34 @@
             <ul id="home-github-apply-plan-audit-trail" class="list"></ul>
             <p id="home-github-apply-plan-audit-trail-empty" class="empty">No GitHub apply plan audit trail entries yet.</p>
           </section>
+          <section class="subpanel">
+            <h3>Agent Dispatch Plan</h3>
+            <p id="home-agent-dispatch-plan-message" class="message-note">This is a local dispatch plan only. It does not execute agents or models.</p>
+            <p id="home-agent-dispatch-plan-state" class="message-note">Agent Dispatch Plan lifecycle state: not_started</p>
+            <p id="home-agent-dispatch-plan-status" class="message-note">agent_execution=not_requested | model_execution=not_requested</p>
+            <form id="agent-dispatch-plan-form" class="form-grid">
+              <label class="full">Dispatch Summary<textarea id="agent-dispatch-summary"></textarea></label>
+              <label class="full">Operator Notes<textarea id="agent-dispatch-operator-notes"></textarea></label>
+              <label class="full">Sequencing Notes<textarea id="agent-dispatch-sequencing-notes" placeholder="One note per line"></textarea></label>
+              <label class="full">Dependency Notes<textarea id="agent-dispatch-dependency-notes" placeholder="One note per line"></textarea></label>
+              <label class="full">Approval Conditions<textarea id="agent-dispatch-approval-conditions" placeholder="One condition per line"></textarea></label>
+              <label class="full">Known Risks<textarea id="agent-dispatch-known-risks" placeholder="One risk per line"></textarea></label>
+              <div class="quick-actions">
+                <button id="home-prepare-agent-dispatch-plan" type="button">Prepare Agent Dispatch Plan</button>
+                <button id="agent-dispatch-plan-save-draft" type="button">Save Dispatch Draft</button>
+                <button id="agent-dispatch-plan-approve" type="button">Approve Dispatch Plan</button>
+              </div>
+            </form>
+            <h4>Dispatch Item Preview</h4>
+            <pre id="home-agent-dispatch-items"></pre>
+            <p id="home-agent-dispatch-items-empty" class="empty">No dispatch items yet.</p>
+            <h4>Agent Queue Summary Preview</h4>
+            <pre id="home-agent-dispatch-queues"></pre>
+            <p id="home-agent-dispatch-queues-empty" class="empty">No agent queue summary yet.</p>
+            <h4>Audit Trail Summary</h4>
+            <ul id="home-agent-dispatch-audit-trail" class="list"></ul>
+            <p id="home-agent-dispatch-audit-trail-empty" class="empty">No agent dispatch plan audit trail entries yet.</p>
+          </section>
 
           <section class="subpanel">
             <h3>Current Active Work</h3>

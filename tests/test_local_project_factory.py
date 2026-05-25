@@ -5,27 +5,32 @@ from pathlib import Path
 
 from aresforge.config import AppConfig
 from aresforge.operator.local_project_factory import (
+    approve_project_agent_dispatch_plan,
     approve_project_architecture_contract,
     approve_project_github_apply_plan,
     approve_project_milestone_issue_plan,
     approve_project_scope_package,
     inspect_project_factory_dossier,
     prepare_project_architecture_contract,
+    prepare_project_agent_dispatch_plan,
     prepare_project_github_apply_plan,
     prepare_project_milestone_issue_plan,
     prepare_project_scope_package,
     read_project_architecture_contract,
+    read_project_agent_dispatch_plan,
     read_project_factory_dossier,
     read_project_github_apply_plan,
     read_project_milestone_issue_plan,
     read_project_scope_package,
     resolve_project_architecture_contract_path,
+    resolve_project_agent_dispatch_plan_path,
     resolve_project_factory_dossier_path,
     resolve_project_github_apply_plan_path,
     resolve_project_milestone_issue_plan_path,
     resolve_project_scope_package_path,
     start_new_project_factory,
     update_project_architecture_contract,
+    update_project_agent_dispatch_plan,
     update_project_github_apply_plan,
     update_project_milestone_issue_plan,
     update_project_scope_package,
@@ -608,3 +613,108 @@ def test_update_and_approve_github_apply_plan_lifecycle_and_audit(tmp_path: Path
     assert approved["github_apply_plan"]["github_execution_status"] == "not_executed"
     dossier = read_project_factory_dossier(config, project_id_for_validation)
     assert dossier["dossier"]["lifecycle_state"] == "github_apply_plan_approved"
+
+
+def _seed_github_apply_plan_approved(config: AppConfig, tmp_path: Path) -> str:
+    project_id = _seed_milestone_issue_plan_approved(config, tmp_path)
+    prepare_project_github_apply_plan(config, project_id)
+    update_project_github_apply_plan(
+        config,
+        project_id,
+        {"apply_summary": "summary", "approval_conditions": ["Explicit approval required; execution remains gated until approved."]},
+    )
+    approve_project_github_apply_plan(config, project_id, {})
+    return project_id
+
+
+def test_agent_dispatch_plan_lifecycle_and_validations(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    missing = read_project_agent_dispatch_plan(config, "missing-project")
+    assert missing["ok"] is True
+    assert missing["agent_dispatch_plan_exists"] is False
+
+    created = start_new_project_factory(config, _payload(tmp_path))
+    missing_apply = prepare_project_agent_dispatch_plan(config, str(created["project"]["project_id"]))
+    assert missing_apply["ok"] is False
+    assert missing_apply["error"] == "github_apply_plan_not_found"
+
+    project_id = _seed_milestone_issue_plan_approved(config, tmp_path)
+    prepare_project_github_apply_plan(config, project_id)
+    unapproved = prepare_project_agent_dispatch_plan(config, project_id)
+    assert unapproved["ok"] is False
+    assert unapproved["error"] == "github_apply_plan_not_approved"
+
+    project_id = _seed_github_apply_plan_approved(config, tmp_path)
+    prepared = prepare_project_agent_dispatch_plan(config, project_id)
+    assert prepared["ok"] is True
+    plan_path = resolve_project_agent_dispatch_plan_path(tmp_path, project_id)
+    rendered = json.loads(plan_path.read_text(encoding="utf-8"))
+    assert rendered["lifecycle_state"] == "agent_dispatch_plan_prepared"
+    assert rendered["dispatch_plan"]["dispatch_items"]
+    assert rendered["dispatch_plan"]["agent_queues"]
+    assert rendered["dispatch_plan"]["dispatch_items"][0]["execution_status"] == "not_executed"
+    assert rendered["agent_execution_status"] == "not_requested"
+    assert rendered["model_execution_status"] == "not_requested"
+
+    first_count = len(prepared["agent_dispatch_plan"].get("audit_trail", []))
+    updated = update_project_agent_dispatch_plan(
+        config,
+        project_id,
+        {"dispatch_summary": "dispatch summary", "sequencing_notes": ["s1"], "approval_conditions": ["Agent execution approval is required before run."]},
+    )
+    assert updated["ok"] is True
+    assert updated["agent_dispatch_plan"]["lifecycle_state"] == "agent_dispatch_plan_draft_updated"
+    assert len(updated["agent_dispatch_plan"].get("audit_trail", [])) > first_count
+
+    project_id_for_validation = _seed_github_apply_plan_approved(config, tmp_path)
+    prepare_project_agent_dispatch_plan(config, project_id_for_validation)
+    missing_summary = approve_project_agent_dispatch_plan(config, project_id_for_validation, {})
+    assert missing_summary["ok"] is False
+    assert missing_summary["error"] == "agent_dispatch_plan_approval_validation_failed"
+
+    update_project_agent_dispatch_plan(config, project_id_for_validation, {"dispatch_summary": "summary"})
+    missing_condition = approve_project_agent_dispatch_plan(config, project_id_for_validation, {})
+    assert missing_condition["ok"] is False
+
+    refreshed = prepare_project_agent_dispatch_plan(config, project_id_for_validation)
+    invalid_no_items = update_project_agent_dispatch_plan(
+        config,
+        project_id_for_validation,
+        {"dispatch_summary": "summary", "approval_conditions": ["Model execution approval is required."], "known_risks": ["r1"]},
+    )
+    invalid_no_items["agent_dispatch_plan"]["dispatch_plan"]["dispatch_items"] = []
+    resolve_project_agent_dispatch_plan_path(tmp_path, project_id_for_validation).write_text(
+        json.dumps(invalid_no_items["agent_dispatch_plan"], indent=2) + "\n",
+        encoding="utf-8",
+    )
+    no_items = approve_project_agent_dispatch_plan(config, project_id_for_validation, {})
+    assert no_items["ok"] is False
+
+    refreshed_item_plan = refreshed["agent_dispatch_plan"]
+    refreshed_item_plan["dispatch_summary"] = "summary"
+    refreshed_item_plan["approval_conditions"] = ["Agent execution approval is required before dispatch run."]
+    refreshed_item_plan["dispatch_plan"]["dispatch_items"][0]["execution_status"] = "executed"
+    resolve_project_agent_dispatch_plan_path(tmp_path, project_id_for_validation).write_text(
+        json.dumps(refreshed_item_plan, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    invalid_executed = approve_project_agent_dispatch_plan(config, project_id_for_validation, {})
+    assert invalid_executed["ok"] is False
+
+    prepare_project_agent_dispatch_plan(config, project_id_for_validation)
+    update_project_agent_dispatch_plan(
+        config,
+        project_id_for_validation,
+        {
+            "dispatch_summary": "Approved dispatch plan",
+            "approval_conditions": ["Agent execution approval is required before run."],
+            "sequencing_notes": ["s1"],
+            "dependency_notes": ["d1"],
+        },
+    )
+    approved = approve_project_agent_dispatch_plan(config, project_id_for_validation, {})
+    assert approved["ok"] is True
+    assert approved["agent_dispatch_plan"]["lifecycle_state"] == "agent_dispatch_plan_approved"
+    dossier = read_project_factory_dossier(config, project_id_for_validation)
+    assert dossier["dossier"]["lifecycle_state"] == "agent_dispatch_plan_approved"
+    assert dossier["dossier"]["next_recommended_action"] == "prepare_validation_execution_plan"
