@@ -41,13 +41,17 @@ from aresforge.operator.local_project_factory import (
     GITHUB_MODES,
     PROJECT_TYPES,
     approve_project_architecture_contract,
+    approve_project_milestone_issue_plan,
     approve_project_scope_package,
     inspect_project_factory_dossier,
     prepare_project_architecture_contract,
+    prepare_project_milestone_issue_plan,
     prepare_project_scope_package,
     read_project_architecture_contract,
+    read_project_milestone_issue_plan,
     read_project_scope_package,
     update_project_architecture_contract,
+    update_project_milestone_issue_plan,
     update_project_scope_package,
     start_new_project_factory,
 )
@@ -1045,6 +1049,138 @@ def post_project_factory_architecture_contract_approve(config: AppConfig, body: 
             status=status,
         )
 
+    result["boundary_confirmations"] = list(
+        dict.fromkeys(list(result.get("boundary_confirmations", [])) + list(_BOUNDARY_CONFIRMATIONS))
+    )
+    return result
+
+
+def get_project_factory_milestone_issue_plan(config: AppConfig, params: dict[str, str | None]) -> dict[str, Any]:
+    requested_project_id = str(params.get("project_id", "") or "").strip()
+    project_id = requested_project_id
+    warnings: list[str] = []
+    if not project_id:
+        active_payload = inspect_active_project(config)
+        project_id = str(active_payload.get("active_project_id", "")).strip()
+        if not project_id:
+            warnings.append("No active project selected. Approve architecture first, then prepare milestone/issue plan.")
+            return {
+                "ok": True,
+                "local_only": True,
+                "project_id": "",
+                "milestone_issue_plan_path": "",
+                "milestone_issue_plan_exists": False,
+                "milestone_issue_plan": {},
+                "warnings": sorted(set(warnings + list(active_payload.get("warnings", [])))),
+                "boundary_confirmations": list(
+                    dict.fromkeys(
+                        list(_BOUNDARY_CONFIRMATIONS) + list(active_payload.get("boundary_confirmations", []))
+                    )
+                ),
+            }
+    payload = read_project_milestone_issue_plan(config, project_id)
+    payload["warnings"] = sorted(set(list(payload.get("warnings", [])) + warnings))
+    payload["boundary_confirmations"] = list(
+        dict.fromkeys(list(payload.get("boundary_confirmations", [])) + list(_BOUNDARY_CONFIRMATIONS))
+    )
+    return payload
+
+
+def post_project_factory_milestone_issue_plan(config: AppConfig, body: dict[str, Any]) -> dict[str, Any]:
+    requested_project_id = str(body.get("project_id", "")).strip()
+    project_id = requested_project_id
+    if not project_id:
+        active_payload = inspect_active_project(config)
+        project_id = str(active_payload.get("active_project_id", "")).strip()
+        if not project_id:
+            return _api_error(
+                "active_project_required",
+                "project_id is required when no active project is selected.",
+                details={"required_fields": ["project_id"], "active_project_selected": False},
+                status=400,
+            )
+    result = prepare_project_milestone_issue_plan(config, project_id)
+    if not result.get("ok", False):
+        error = str(result.get("error", "milestone_issue_plan_prepare_failed"))
+        details = dict(result.get("details", {}))
+        status = 404 if error == "architecture_contract_not_found" else 409 if error == "architecture_not_approved" else 400
+        return _api_error(
+            error,
+            str(details.get("message", "Failed to prepare local milestone/issue plan placeholder.")),
+            details=details,
+            status=status,
+        )
+    result["boundary_confirmations"] = list(
+        dict.fromkeys(list(result.get("boundary_confirmations", [])) + list(_BOUNDARY_CONFIRMATIONS))
+    )
+    return result
+
+
+def patch_project_factory_milestone_issue_plan(config: AppConfig, body: dict[str, Any]) -> dict[str, Any]:
+    requested_project_id = str(body.get("project_id", "")).strip()
+    project_id = requested_project_id
+    if not project_id:
+        active_payload = inspect_active_project(config)
+        project_id = str(active_payload.get("active_project_id", "")).strip()
+        if not project_id:
+            return _api_error(
+                "active_project_required",
+                "project_id is required when no active project is selected.",
+                details={"required_fields": ["project_id"], "active_project_selected": False},
+                status=400,
+            )
+    editable_payload = {
+        "planning_summary": body.get("planning_summary"),
+        "milestones": body.get("milestones"),
+        "issues": body.get("issues"),
+        "cross_cutting_tasks": body.get("cross_cutting_tasks"),
+        "validation_plan": body.get("validation_plan"),
+        "documentation_plan": body.get("documentation_plan"),
+        "release_notes": body.get("release_notes"),
+        "open_questions": body.get("open_questions"),
+        "github_apply_notes": body.get("github_apply_notes"),
+    }
+    result = update_project_milestone_issue_plan(config, project_id, editable_payload)
+    if not result.get("ok", False):
+        error = str(result.get("error", "milestone_issue_plan_update_failed"))
+        details = dict(result.get("details", {}))
+        status = 404 if error == "milestone_issue_plan_not_found" else 400
+        return _api_error(
+            error,
+            str(details.get("message", "Failed to update local milestone/issue plan draft.")),
+            details=details,
+            status=status,
+        )
+    result["boundary_confirmations"] = list(
+        dict.fromkeys(list(result.get("boundary_confirmations", [])) + list(_BOUNDARY_CONFIRMATIONS))
+    )
+    return result
+
+
+def post_project_factory_milestone_issue_plan_approve(config: AppConfig, body: dict[str, Any]) -> dict[str, Any]:
+    requested_project_id = str(body.get("project_id", "")).strip()
+    project_id = requested_project_id
+    if not project_id:
+        active_payload = inspect_active_project(config)
+        project_id = str(active_payload.get("active_project_id", "")).strip()
+        if not project_id:
+            return _api_error(
+                "active_project_required",
+                "project_id is required when no active project is selected.",
+                details={"required_fields": ["project_id"], "active_project_selected": False},
+                status=400,
+            )
+    result = approve_project_milestone_issue_plan(config, project_id, {"approved_by": body.get("approved_by")})
+    if not result.get("ok", False):
+        error = str(result.get("error", "milestone_issue_plan_approval_failed"))
+        details = dict(result.get("details", {}))
+        status = 404 if error == "milestone_issue_plan_not_found" else 400
+        return _api_error(
+            error,
+            str(details.get("message", "Failed to approve local milestone/issue plan.")),
+            details=details,
+            status=status,
+        )
     result["boundary_confirmations"] = list(
         dict.fromkeys(list(result.get("boundary_confirmations", [])) + list(_BOUNDARY_CONFIRMATIONS))
     )

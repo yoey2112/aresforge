@@ -6,18 +6,23 @@ from pathlib import Path
 from aresforge.config import AppConfig
 from aresforge.operator.local_project_factory import (
     approve_project_architecture_contract,
+    approve_project_milestone_issue_plan,
     approve_project_scope_package,
     inspect_project_factory_dossier,
     prepare_project_architecture_contract,
+    prepare_project_milestone_issue_plan,
     prepare_project_scope_package,
     read_project_architecture_contract,
     read_project_factory_dossier,
+    read_project_milestone_issue_plan,
     read_project_scope_package,
     resolve_project_architecture_contract_path,
     resolve_project_factory_dossier_path,
+    resolve_project_milestone_issue_plan_path,
     resolve_project_scope_package_path,
     start_new_project_factory,
     update_project_architecture_contract,
+    update_project_milestone_issue_plan,
     update_project_scope_package,
 )
 
@@ -370,3 +375,142 @@ def test_approve_architecture_succeeds_and_preserves_audit_entries(tmp_path: Pat
     dossier = read_project_factory_dossier(config, project_id)
     assert dossier["dossier"]["lifecycle_state"] == "architecture_approved"
     assert dossier["dossier"]["next_recommended_action"] == "prepare_milestone_issue_plan"
+
+
+def _seed_architecture_approved(config: AppConfig, tmp_path: Path) -> str:
+    created = start_new_project_factory(config, _payload(tmp_path))
+    project_id = str(created["project"]["project_id"])
+    prepare_project_scope_package(config, project_id)
+    update_project_scope_package(config, project_id, {"requirements": ["r1"], "acceptance_criteria": ["a1"]})
+    approve_project_scope_package(config, project_id, {})
+    prepare_project_architecture_contract(config, project_id)
+    update_project_architecture_contract(
+        config,
+        project_id,
+        {"architecture_summary": "summary", "system_components": ["api"], "testing_strategy": ["unit tests"]},
+    )
+    approve_project_architecture_contract(config, project_id, {})
+    return project_id
+
+
+def test_read_missing_milestone_issue_plan_returns_friendly_payload(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    payload = read_project_milestone_issue_plan(config, "missing-project")
+    assert payload["ok"] is True
+    assert payload["milestone_issue_plan_exists"] is False
+
+
+def test_prepare_milestone_issue_plan_fails_without_architecture_contract(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    created = start_new_project_factory(config, _payload(tmp_path))
+    payload = prepare_project_milestone_issue_plan(config, str(created["project"]["project_id"]))
+    assert payload["ok"] is False
+    assert payload["error"] == "architecture_contract_not_found"
+
+
+def test_prepare_milestone_issue_plan_fails_when_architecture_not_approved(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    created = start_new_project_factory(config, _payload(tmp_path))
+    project_id = str(created["project"]["project_id"])
+    prepare_project_scope_package(config, project_id)
+    update_project_scope_package(config, project_id, {"requirements": ["r1"], "acceptance_criteria": ["a1"]})
+    approve_project_scope_package(config, project_id, {})
+    prepare_project_architecture_contract(config, project_id)
+    payload = prepare_project_milestone_issue_plan(config, project_id)
+    assert payload["ok"] is False
+    assert payload["error"] == "architecture_not_approved"
+
+
+def test_prepare_milestone_issue_plan_succeeds_and_writes_file(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    project_id = _seed_architecture_approved(config, tmp_path)
+    payload = prepare_project_milestone_issue_plan(config, project_id)
+    assert payload["ok"] is True
+    plan_path = resolve_project_milestone_issue_plan_path(tmp_path, project_id)
+    rendered = json.loads(plan_path.read_text(encoding="utf-8"))
+    assert rendered["lifecycle_state"] == "milestone_issue_plan_prepared"
+    assert rendered["model_execution_status"] == "not_requested"
+    assert rendered["github_mutation_status"] == "not_requested"
+    assert rendered["milestones"]
+    assert rendered["issues"]
+    dossier = read_project_factory_dossier(config, project_id)
+    assert dossier["dossier"]["lifecycle_state"] == "milestone_issue_plan_prepared"
+    assert dossier["dossier"]["next_recommended_action"] == "edit_milestone_issue_plan"
+
+
+def test_update_milestone_issue_plan_writes_fields_and_audit_and_transitions(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    project_id = _seed_architecture_approved(config, tmp_path)
+    prepare_project_milestone_issue_plan(config, project_id)
+    payload = update_project_milestone_issue_plan(
+        config,
+        project_id,
+        {"planning_summary": "Plan summary", "cross_cutting_tasks": ["ct1"], "validation_plan": ["pytest -q"]},
+    )
+    assert payload["ok"] is True
+    plan = payload["milestone_issue_plan"]
+    assert plan["lifecycle_state"] == "milestone_issue_plan_draft_updated"
+    assert plan["planning_summary"] == "Plan summary"
+    assert any(entry.get("event_type") == "milestone_issue_plan_draft_updated" for entry in plan.get("audit_trail", []))
+    dossier = read_project_factory_dossier(config, project_id)
+    assert dossier["dossier"]["lifecycle_state"] == "milestone_issue_plan_draft_updated"
+
+
+def test_approve_milestone_issue_plan_validates_required_fields(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    project_id = _seed_architecture_approved(config, tmp_path)
+    prepare_project_milestone_issue_plan(config, project_id)
+
+    missing_summary = approve_project_milestone_issue_plan(config, project_id, {})
+    assert missing_summary["ok"] is False
+
+    update_project_milestone_issue_plan(config, project_id, {"planning_summary": "summary", "milestones": []})
+    missing_milestones = approve_project_milestone_issue_plan(config, project_id, {})
+    assert missing_milestones["ok"] is False
+
+    prepare_project_milestone_issue_plan(config, project_id)
+    update_project_milestone_issue_plan(config, project_id, {"planning_summary": "summary", "issues": []})
+    missing_issues = approve_project_milestone_issue_plan(config, project_id, {})
+    assert missing_issues["ok"] is False
+
+
+def test_approve_milestone_issue_plan_fails_when_issue_references_missing_milestone(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    project_id = _seed_architecture_approved(config, tmp_path)
+    prepare_project_milestone_issue_plan(config, project_id)
+    update_project_milestone_issue_plan(
+        config,
+        project_id,
+        {
+            "planning_summary": "summary",
+            "issues": [
+                {
+                    "issue_id": "I1",
+                    "milestone_id": "missing",
+                    "title": "x",
+                    "description": "x",
+                    "issue_type": "task",
+                    "priority": "normal",
+                    "agent_type": "backend",
+                }
+            ],
+        },
+    )
+    payload = approve_project_milestone_issue_plan(config, project_id, {})
+    assert payload["ok"] is False
+
+
+def test_approve_milestone_issue_plan_succeeds_and_preserves_audit_entries(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    project_id = _seed_architecture_approved(config, tmp_path)
+    prepared = prepare_project_milestone_issue_plan(config, project_id)
+    first_count = len(prepared["milestone_issue_plan"].get("audit_trail", []))
+    draft = update_project_milestone_issue_plan(config, project_id, {"planning_summary": "summary"})
+    approved = approve_project_milestone_issue_plan(config, project_id, {})
+    assert approved["ok"] is True
+    assert approved["milestone_issue_plan"]["lifecycle_state"] == "milestone_issue_plan_approved"
+    assert len(approved["milestone_issue_plan"].get("audit_trail", [])) > first_count
+    assert len(approved["milestone_issue_plan"].get("audit_trail", [])) > len(draft["milestone_issue_plan"].get("audit_trail", [])) - 1
+    dossier = read_project_factory_dossier(config, project_id)
+    assert dossier["dossier"]["lifecycle_state"] == "milestone_issue_plan_approved"
+    assert dossier["dossier"]["next_recommended_action"] == "prepare_github_apply_plan"

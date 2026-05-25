@@ -216,6 +216,10 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "Prepare Architecture Contract" in index_text
     assert "Save Architecture Draft" in index_text
     assert "Approve Architecture" in index_text
+    assert "Milestone/Issue Plan" in index_text
+    assert "Prepare Milestone/Issue Plan" in index_text
+    assert "Save Plan Draft" in index_text
+    assert "Approve Plan" in index_text
     assert "wizard-project-name" in index_text
     assert "wizard-project-id" in index_text
     assert "wizard-project-type" in index_text
@@ -250,6 +254,8 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
         "/api/project-factory/scope-package/approve",
         "/api/project-factory/architecture-contract",
         "/api/project-factory/architecture-contract/approve",
+        "/api/project-factory/milestone-issue-plan",
+        "/api/project-factory/milestone-issue-plan/approve",
         "/api/projects/",
         "/github-link",
         "/api/bootstrap/status",
@@ -306,6 +312,9 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
         "home-prepare-architecture-contract",
         "architecture-save-draft",
         "architecture-approve",
+        "home-prepare-milestone-issue-plan",
+        "milestone-plan-save-draft",
+        "milestone-plan-approve",
     ):
         assert action_id in app_text
     assert "parseLineList" in app_text
@@ -314,6 +323,8 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
     assert "buildScopeAuthoringPayload" in app_text
     assert "renderArchitectureAuthoring" in app_text
     assert "buildArchitectureAuthoringPayload" in app_text
+    assert "renderMilestoneIssuePlan" in app_text
+    assert "buildMilestoneIssuePlanPayload" in app_text
 
 
 def test_bootstrap_api_status_plan_apply(tmp_path: Path) -> None:

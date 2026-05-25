@@ -163,6 +163,30 @@
           </section>
 
           <section class="subpanel">
+            <h3>Milestone/Issue Plan</h3>
+            <p id="home-milestone-plan-message" class="message-note">Prepare local milestone/issue planning after architecture approval. Local-only: no GitHub or model calls.</p>
+            <p id="home-milestone-plan-state" class="message-note">Milestone/Issue Plan lifecycle state: not_started</p>
+            <form id="milestone-plan-form" class="form-grid">
+              <label class="full">Planning Summary<textarea id="milestone-plan-summary"></textarea></label>
+              <label class="full">Milestones JSON<textarea id="milestone-plan-milestones" placeholder='[{"milestone_id":"M1","title":"..."}]'></textarea></label>
+              <label class="full">Issues JSON<textarea id="milestone-plan-issues" placeholder='[{"issue_id":"I1","milestone_id":"M1","title":"..."}]'></textarea></label>
+              <label class="full">Cross Cutting Tasks<textarea id="milestone-plan-cross-cutting-tasks" placeholder="One item per line"></textarea></label>
+              <label class="full">Validation Plan<textarea id="milestone-plan-validation-plan" placeholder="One item per line"></textarea></label>
+              <label class="full">Documentation Plan<textarea id="milestone-plan-documentation-plan" placeholder="One item per line"></textarea></label>
+              <label class="full">Release Notes<textarea id="milestone-plan-release-notes" placeholder="One item per line"></textarea></label>
+              <label class="full">Open Questions<textarea id="milestone-plan-open-questions" placeholder="One item per line"></textarea></label>
+              <label class="full">GitHub Apply Notes<textarea id="milestone-plan-github-apply-notes"></textarea></label>
+              <div class="quick-actions">
+                <button id="home-prepare-milestone-issue-plan" type="button">Prepare Milestone/Issue Plan</button>
+                <button id="milestone-plan-save-draft" type="button">Save Plan Draft</button>
+                <button id="milestone-plan-approve" type="button">Approve Plan</button>
+              </div>
+            </form>
+            <ul id="home-milestone-plan-audit-trail" class="list"></ul>
+            <p id="home-milestone-plan-audit-trail-empty" class="empty">No milestone/issue plan audit trail entries yet.</p>
+          </section>
+
+          <section class="subpanel">
             <h3>Current Active Work</h3>
             <ul id="home-current-active-work" class="list"></ul>
             <p id="home-current-active-work-empty" class="empty">No active project work items yet.</p>

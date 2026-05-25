@@ -59,6 +59,26 @@ _ARCHITECTURE_EDITABLE_LIST_FIELDS: tuple[str, ...] = (
     "documentation_plan",
     "open_questions",
 )
+_MILESTONE_ISSUE_TYPES: tuple[str, ...] = (
+    "task",
+    "feature",
+    "bug",
+    "documentation",
+    "validation",
+    "architecture",
+    "infrastructure",
+)
+_MILESTONE_ISSUE_PRIORITIES: tuple[str, ...] = ("low", "normal", "high", "urgent")
+_MILESTONE_ISSUE_AGENT_TYPES: tuple[str, ...] = (
+    "architect",
+    "backend",
+    "frontend",
+    "test",
+    "docs",
+    "validation",
+    "release",
+    "operator",
+)
 
 
 def resolve_project_factory_dossier_path(repo_root: Path, project_id: str) -> Path:
@@ -71,6 +91,10 @@ def resolve_project_scope_package_path(repo_root: Path, project_id: str) -> Path
 
 def resolve_project_architecture_contract_path(repo_root: Path, project_id: str) -> Path:
     return (repo_root / ".aresforge" / "projects" / project_id.strip() / "architecture_contract.json").resolve()
+
+
+def resolve_project_milestone_issue_plan_path(repo_root: Path, project_id: str) -> Path:
+    return (repo_root / ".aresforge" / "projects" / project_id.strip() / "milestone_issue_plan.json").resolve()
 
 
 def create_project_factory_dossier(config: AppConfig, payload: dict[str, Any]) -> dict[str, Any]:
@@ -163,6 +187,18 @@ def inspect_project_factory_dossier(config: AppConfig, project_id: str) -> dict[
         "architecture_approved",
     }:
         effective_lifecycle_state = architecture_lifecycle_state
+    milestone_issue_plan_payload = read_project_milestone_issue_plan(config, project_id)
+    milestone_issue_plan_lifecycle_state = ""
+    if milestone_issue_plan_payload.get("milestone_issue_plan_exists", False):
+        milestone_issue_plan = milestone_issue_plan_payload.get("milestone_issue_plan", {})
+        if isinstance(milestone_issue_plan, dict):
+            milestone_issue_plan_lifecycle_state = str(milestone_issue_plan.get("lifecycle_state", "")).strip()
+    if milestone_issue_plan_lifecycle_state in {
+        "milestone_issue_plan_prepared",
+        "milestone_issue_plan_draft_updated",
+        "milestone_issue_plan_approved",
+    }:
+        effective_lifecycle_state = milestone_issue_plan_lifecycle_state
     payload["workflow_steps"] = _build_workflow_steps(
         lifecycle_state=effective_lifecycle_state,
         github_mode=github_mode,
@@ -700,6 +736,384 @@ def approve_project_architecture_contract(config: AppConfig, project_id: str, ap
     }
 
 
+def read_project_milestone_issue_plan(config: AppConfig, project_id: str) -> dict[str, Any]:
+    normalized_project_id = str(project_id or "").strip()
+    plan_path = resolve_project_milestone_issue_plan_path(config.repo_root, normalized_project_id)
+    warnings: list[str] = []
+    if not plan_path.exists():
+        warnings.append(f"Milestone/issue plan not found for project: {normalized_project_id}")
+        return {
+            "ok": True,
+            "local_only": True,
+            "project_id": normalized_project_id,
+            "milestone_issue_plan_path": str(plan_path),
+            "milestone_issue_plan_exists": False,
+            "milestone_issue_plan": {},
+            "warnings": warnings,
+            "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+        }
+    try:
+        loaded = json.loads(plan_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        warnings.append(f"Milestone/issue plan could not be parsed: {exc}")
+        loaded = {}
+    if not isinstance(loaded, dict):
+        warnings.append("Milestone/issue plan has invalid schema; expected JSON object.")
+        loaded = {}
+    return {
+        "ok": True,
+        "local_only": True,
+        "project_id": normalized_project_id,
+        "milestone_issue_plan_path": str(plan_path),
+        "milestone_issue_plan_exists": bool(loaded),
+        "milestone_issue_plan": loaded,
+        "warnings": sorted(set(warnings)),
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+    }
+
+
+def prepare_project_milestone_issue_plan(config: AppConfig, project_id: str) -> dict[str, Any]:
+    normalized_project_id = str(project_id or "").strip()
+    architecture_result = read_project_architecture_contract(config, normalized_project_id)
+    if not architecture_result.get("architecture_contract_exists", False):
+        return _error(
+            "architecture_contract_not_found",
+            {
+                "message": "Architecture contract must exist before preparing milestone/issue plan.",
+                "project_id": normalized_project_id,
+                "architecture_contract_path": architecture_result.get("architecture_contract_path", ""),
+            },
+        )
+    architecture_contract = dict(architecture_result.get("architecture_contract", {}))
+    if str(architecture_contract.get("lifecycle_state", "")).strip() != "architecture_approved":
+        return _error(
+            "architecture_not_approved",
+            {
+                "message": "Architecture contract must be approved before preparing milestone/issue plan.",
+                "project_id": normalized_project_id,
+            },
+        )
+
+    scope_result = read_project_scope_package(config, normalized_project_id)
+    scope_package = dict(scope_result.get("scope_package", {}))
+    now = _now_iso()
+    plan_path = resolve_project_milestone_issue_plan_path(config.repo_root, normalized_project_id)
+    plan_path.parent.mkdir(parents=True, exist_ok=True)
+    existing_created_at = ""
+    if plan_path.exists():
+        try:
+            existing_raw = json.loads(plan_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            existing_raw = {}
+        if isinstance(existing_raw, dict):
+            existing_created_at = str(existing_raw.get("created_at", "")).strip()
+
+    milestones = [
+        {
+            "milestone_id": "M1",
+            "title": "M1 Foundation",
+            "description": "Establish project foundations aligned with approved architecture.",
+            "target_state": "Foundational structure and contracts are in place.",
+            "depends_on": [],
+            "status": "planned",
+        },
+        {
+            "milestone_id": "M2",
+            "title": "M2 Core Implementation",
+            "description": "Implement primary feature workflows and component interactions.",
+            "target_state": "Core capabilities implemented with local validation evidence.",
+            "depends_on": ["M1"],
+            "status": "planned",
+        },
+        {
+            "milestone_id": "M3",
+            "title": "M3 Validation and Documentation",
+            "description": "Complete validation, documentation, and closeout readiness.",
+            "target_state": "Validation and documentation are complete for GitHub apply planning.",
+            "depends_on": ["M2"],
+            "status": "planned",
+        },
+    ]
+    issues = [
+        {
+            "issue_id": "I1",
+            "milestone_id": "M1",
+            "title": "Confirm project architecture",
+            "description": "Confirm architecture assumptions and component boundaries before implementation.",
+            "issue_type": "architecture",
+            "priority": "high",
+            "agent_type": "architect",
+            "acceptance_criteria": ["Architecture assumptions are reviewed and captured."],
+            "validation_commands": [],
+            "status": "planned",
+            "github_issue_number": None,
+        },
+        {
+            "issue_id": "I2",
+            "milestone_id": "M1",
+            "title": "Implement foundation skeleton",
+            "description": "Create baseline project skeleton matching approved architecture contract.",
+            "issue_type": "task",
+            "priority": "normal",
+            "agent_type": "backend",
+            "acceptance_criteria": ["Project skeleton reflects approved architecture components."],
+            "validation_commands": [],
+            "status": "planned",
+            "github_issue_number": None,
+        },
+        {
+            "issue_id": "I3",
+            "milestone_id": "M2",
+            "title": "Implement core feature set",
+            "description": "Deliver core functionality defined by approved scope and architecture.",
+            "issue_type": "feature",
+            "priority": "high",
+            "agent_type": "backend",
+            "acceptance_criteria": ["Core feature set meets approved acceptance criteria."],
+            "validation_commands": [],
+            "status": "planned",
+            "github_issue_number": None,
+        },
+        {
+            "issue_id": "I4",
+            "milestone_id": "M3",
+            "title": "Add tests and validation",
+            "description": "Add local test coverage and validation command mapping.",
+            "issue_type": "validation",
+            "priority": "normal",
+            "agent_type": "test",
+            "acceptance_criteria": ["Validation coverage is documented and repeatable locally."],
+            "validation_commands": [],
+            "status": "planned",
+            "github_issue_number": None,
+        },
+        {
+            "issue_id": "I5",
+            "milestone_id": "M3",
+            "title": "Update documentation",
+            "description": "Update docs to reflect architecture and implementation decisions.",
+            "issue_type": "documentation",
+            "priority": "normal",
+            "agent_type": "docs",
+            "acceptance_criteria": ["Documentation reflects current implementation and validation."],
+            "validation_commands": [],
+            "status": "planned",
+            "github_issue_number": None,
+        },
+        {
+            "issue_id": "I6",
+            "milestone_id": "M3",
+            "title": "Prepare closeout evidence",
+            "description": "Collect final evidence and release readiness notes for handoff.",
+            "issue_type": "task",
+            "priority": "normal",
+            "agent_type": "release",
+            "acceptance_criteria": ["Closeout evidence package is complete and locally verifiable."],
+            "validation_commands": [],
+            "status": "planned",
+            "github_issue_number": None,
+        },
+    ]
+    plan = {
+        "schema_version": "1.0",
+        "project_id": normalized_project_id,
+        "created_at": existing_created_at or now,
+        "updated_at": now,
+        "lifecycle_state": "milestone_issue_plan_prepared",
+        "source": "local_project_factory",
+        "input": {
+            "approved_scope_summary": str(scope_package.get("notes", "")).strip(),
+            "approved_architecture_summary": str(architecture_contract.get("architecture_summary", "")).strip(),
+            "requirements": _normalize_text_list(scope_package.get("requirements")),
+            "acceptance_criteria": _normalize_text_list(scope_package.get("acceptance_criteria")),
+            "architecture_summary": str(architecture_contract.get("architecture_summary", "")).strip(),
+            "system_components": _normalize_text_list(architecture_contract.get("system_components")),
+            "testing_strategy": _normalize_text_list(architecture_contract.get("testing_strategy")),
+            "documentation_plan": _normalize_text_list(architecture_contract.get("documentation_plan")),
+            "milestone_planning_notes": str(architecture_contract.get("milestone_planning_notes", "")).strip(),
+        },
+        "planning_summary": "",
+        "milestones": milestones,
+        "issues": issues,
+        "cross_cutting_tasks": [],
+        "validation_plan": [],
+        "documentation_plan": [],
+        "release_notes": [],
+        "open_questions": [],
+        "github_apply_notes": "",
+        "model_execution_status": "not_requested",
+        "github_mutation_status": "not_requested",
+        "next_recommended_action": "edit_milestone_issue_plan",
+        "audit_trail": [],
+    }
+    _append_milestone_issue_plan_audit_entry(
+        plan,
+        event_type="milestone_issue_plan_prepared",
+        lifecycle_state="milestone_issue_plan_prepared",
+        summary="Milestone/issue plan prepared locally from approved architecture contract.",
+    )
+    plan_path.write_text(json.dumps(plan, indent=2) + "\n", encoding="utf-8")
+
+    dossier_result = read_project_factory_dossier(config, normalized_project_id)
+    dossier = dict(dossier_result.get("dossier", {})) if dossier_result.get("dossier_exists", False) else {}
+    if dossier:
+        dossier["lifecycle_state"] = "milestone_issue_plan_prepared"
+        dossier["next_recommended_action"] = "edit_milestone_issue_plan"
+        dossier["updated_at"] = now
+        create_project_factory_dossier(config, dossier)
+
+    return {
+        "ok": True,
+        "local_only": True,
+        "project_id": normalized_project_id,
+        "milestone_issue_plan": plan,
+        "milestone_issue_plan_path": str(plan_path),
+        "dossier_path": str(resolve_project_factory_dossier_path(config.repo_root, normalized_project_id)),
+        "warnings": sorted(set(architecture_result.get("warnings", []) + scope_result.get("warnings", []))),
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+    }
+
+
+def update_project_milestone_issue_plan(config: AppConfig, project_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+    plan_result = read_project_milestone_issue_plan(config, project_id)
+    normalized_project_id = str(plan_result.get("project_id", "")).strip()
+    if not plan_result.get("milestone_issue_plan_exists", False):
+        return _error(
+            "milestone_issue_plan_not_found",
+            {
+                "message": "Milestone/issue plan must be prepared before updating draft fields.",
+                "project_id": normalized_project_id,
+                "milestone_issue_plan_path": plan_result.get("milestone_issue_plan_path", ""),
+            },
+        )
+    plan = dict(plan_result.get("milestone_issue_plan", {}))
+    now = _now_iso()
+    if "planning_summary" in payload:
+        plan["planning_summary"] = str(payload.get("planning_summary", "")).strip()
+    for field in (
+        "cross_cutting_tasks",
+        "validation_plan",
+        "documentation_plan",
+        "release_notes",
+        "open_questions",
+    ):
+        if field in payload:
+            plan[field] = _normalize_text_list(payload.get(field))
+    if "github_apply_notes" in payload:
+        plan["github_apply_notes"] = str(payload.get("github_apply_notes", "")).strip()
+    if "milestones" in payload and isinstance(payload.get("milestones"), list):
+        plan["milestones"] = [item for item in payload.get("milestones", []) if isinstance(item, dict)]
+    if "issues" in payload and isinstance(payload.get("issues"), list):
+        plan["issues"] = [item for item in payload.get("issues", []) if isinstance(item, dict)]
+
+    plan["lifecycle_state"] = "milestone_issue_plan_draft_updated"
+    plan["updated_at"] = now
+    plan["model_execution_status"] = "not_requested"
+    plan["github_mutation_status"] = "not_requested"
+    plan["next_recommended_action"] = "approve_milestone_issue_plan_or_continue_editing"
+    _append_milestone_issue_plan_audit_entry(
+        plan,
+        event_type="milestone_issue_plan_draft_updated",
+        lifecycle_state="milestone_issue_plan_draft_updated",
+        summary="Milestone/issue plan draft fields were updated locally.",
+    )
+    plan_path = resolve_project_milestone_issue_plan_path(config.repo_root, normalized_project_id)
+    plan_path.write_text(json.dumps(plan, indent=2) + "\n", encoding="utf-8")
+
+    dossier_result = read_project_factory_dossier(config, normalized_project_id)
+    dossier = dict(dossier_result.get("dossier", {})) if dossier_result.get("dossier_exists", False) else {}
+    if dossier:
+        dossier["lifecycle_state"] = "milestone_issue_plan_draft_updated"
+        dossier["next_recommended_action"] = "approve_milestone_issue_plan_or_continue_editing"
+        dossier["updated_at"] = now
+        create_project_factory_dossier(config, dossier)
+    return {
+        "ok": True,
+        "local_only": True,
+        "project_id": normalized_project_id,
+        "milestone_issue_plan": plan,
+        "milestone_issue_plan_path": str(plan_path),
+        "dossier_path": str(resolve_project_factory_dossier_path(config.repo_root, normalized_project_id)),
+        "warnings": sorted(set(plan_result.get("warnings", []))),
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+    }
+
+
+def approve_project_milestone_issue_plan(config: AppConfig, project_id: str, approval_payload: dict[str, Any]) -> dict[str, Any]:
+    plan_result = read_project_milestone_issue_plan(config, project_id)
+    normalized_project_id = str(plan_result.get("project_id", "")).strip()
+    if not plan_result.get("milestone_issue_plan_exists", False):
+        return _error(
+            "milestone_issue_plan_not_found",
+            {
+                "message": "Milestone/issue plan must be prepared before approval.",
+                "project_id": normalized_project_id,
+                "milestone_issue_plan_path": plan_result.get("milestone_issue_plan_path", ""),
+            },
+        )
+    plan = dict(plan_result.get("milestone_issue_plan", {}))
+    planning_summary = str(plan.get("planning_summary", "")).strip()
+    milestones = [item for item in plan.get("milestones", []) if isinstance(item, dict)]
+    issues = [item for item in plan.get("issues", []) if isinstance(item, dict)]
+    if not planning_summary:
+        return _error("milestone_issue_plan_approval_validation_failed", {"message": "Plan approval requires a non-empty planning summary."})
+    if not milestones:
+        return _error("milestone_issue_plan_approval_validation_failed", {"message": "Plan approval requires at least one milestone."})
+    if not issues:
+        return _error("milestone_issue_plan_approval_validation_failed", {"message": "Plan approval requires at least one issue."})
+    milestone_ids = {str(item.get("milestone_id", "")).strip() for item in milestones if str(item.get("milestone_id", "")).strip()}
+    for issue in issues:
+        milestone_id = str(issue.get("milestone_id", "")).strip()
+        if not str(issue.get("title", "")).strip() or not str(issue.get("description", "")).strip() or not milestone_id:
+            return _error("milestone_issue_plan_approval_validation_failed", {"message": "Each issue must include title, description, and milestone_id."})
+        if milestone_id not in milestone_ids:
+            return _error("milestone_issue_plan_approval_validation_failed", {"message": f"Issue references unknown milestone_id: {milestone_id}"})
+        if str(issue.get("issue_type", "")).strip() not in _MILESTONE_ISSUE_TYPES:
+            return _error("milestone_issue_plan_approval_validation_failed", {"message": "Each issue must include a valid issue_type."})
+        if str(issue.get("priority", "")).strip() not in _MILESTONE_ISSUE_PRIORITIES:
+            return _error("milestone_issue_plan_approval_validation_failed", {"message": "Each issue must include a valid priority."})
+        if str(issue.get("agent_type", "")).strip() not in _MILESTONE_ISSUE_AGENT_TYPES:
+            return _error("milestone_issue_plan_approval_validation_failed", {"message": "Each issue must include a valid agent_type."})
+
+    now = _now_iso()
+    plan["planning_summary"] = planning_summary
+    plan["milestones"] = milestones
+    plan["issues"] = issues
+    plan["lifecycle_state"] = "milestone_issue_plan_approved"
+    plan["updated_at"] = now
+    plan["approved_at"] = now
+    plan["approved_by"] = str(approval_payload.get("approved_by", "")).strip() or "local_operator"
+    plan["model_execution_status"] = "not_requested"
+    plan["github_mutation_status"] = "not_requested"
+    plan["next_recommended_action"] = "prepare_github_apply_plan"
+    _append_milestone_issue_plan_audit_entry(
+        plan,
+        event_type="milestone_issue_plan_approved",
+        lifecycle_state="milestone_issue_plan_approved",
+        summary="Milestone/issue plan approved locally and ready for GitHub apply planning gate.",
+    )
+    plan_path = resolve_project_milestone_issue_plan_path(config.repo_root, normalized_project_id)
+    plan_path.write_text(json.dumps(plan, indent=2) + "\n", encoding="utf-8")
+
+    dossier_result = read_project_factory_dossier(config, normalized_project_id)
+    dossier = dict(dossier_result.get("dossier", {})) if dossier_result.get("dossier_exists", False) else {}
+    if dossier:
+        dossier["lifecycle_state"] = "milestone_issue_plan_approved"
+        dossier["next_recommended_action"] = "prepare_github_apply_plan"
+        dossier["updated_at"] = now
+        create_project_factory_dossier(config, dossier)
+    return {
+        "ok": True,
+        "local_only": True,
+        "project_id": normalized_project_id,
+        "milestone_issue_plan": plan,
+        "milestone_issue_plan_path": str(plan_path),
+        "dossier_path": str(resolve_project_factory_dossier_path(config.repo_root, normalized_project_id)),
+        "warnings": sorted(set(plan_result.get("warnings", []))),
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+    }
+
+
 def start_new_project_factory(config: AppConfig, payload: dict[str, Any]) -> dict[str, Any]:
     name = str(payload.get("name", "")).strip()
     if not name:
@@ -958,6 +1372,31 @@ def _append_architecture_audit_entry(
     architecture_contract["audit_trail"] = audit_entries
 
 
+def _append_milestone_issue_plan_audit_entry(
+    milestone_issue_plan: dict[str, Any],
+    *,
+    event_type: str,
+    lifecycle_state: str,
+    summary: str,
+) -> None:
+    audit_entries = milestone_issue_plan.get("audit_trail")
+    if not isinstance(audit_entries, list):
+        audit_entries = []
+    audit_entries.append(
+        {
+            "timestamp": _now_iso(),
+            "event_type": event_type,
+            "lifecycle_state": lifecycle_state,
+            "actor": "local_operator",
+            "summary": summary,
+            "local_only": True,
+            "github_mutation_status": "not_requested",
+            "model_execution_status": "not_requested",
+        }
+    )
+    milestone_issue_plan["audit_trail"] = audit_entries
+
+
 def _error(error: str, details: dict[str, Any]) -> dict[str, Any]:
     return {
         "ok": False,
@@ -995,6 +1434,12 @@ def _build_workflow_steps(*, lifecycle_state: str, github_mode: str) -> list[dic
     if normalized_state == "architecture_approved":
         architecture_step_status = "completed"
         milestone_step_status = "current"
+    if normalized_state in {"milestone_issue_plan_prepared", "milestone_issue_plan_draft_updated"}:
+        architecture_step_status = "completed"
+        milestone_step_status = "current"
+    if normalized_state == "milestone_issue_plan_approved":
+        architecture_step_status = "completed"
+        milestone_step_status = "completed"
 
     return [
         {
@@ -1040,7 +1485,7 @@ def _build_workflow_steps(*, lifecycle_state: str, github_mode: str) -> list[dic
         {
             "step_id": "github_apply",
             "label": "GitHub Apply",
-            "status": "gated",
+            "status": "current" if normalized_state == "milestone_issue_plan_approved" else "gated",
             "local_only": True,
             "gate_type": "github_approval",
             "description": "GitHub mutations remain gated until explicit approval.",
@@ -1048,7 +1493,7 @@ def _build_workflow_steps(*, lifecycle_state: str, github_mode: str) -> list[dic
         {
             "step_id": "agent_dispatch",
             "label": "Agent Dispatch",
-            "status": "gated",
+            "status": "pending" if normalized_state == "milestone_issue_plan_approved" else "gated",
             "local_only": True,
             "gate_type": "model_execution_approval",
             "description": "Agent execution remains gated until explicit approval.",

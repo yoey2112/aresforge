@@ -5,13 +5,17 @@ from pathlib import Path
 from aresforge.config import AppConfig
 from aresforge.hub.api import (
     get_project_factory_architecture_contract,
+    get_project_factory_milestone_issue_plan,
     get_project_factory_scope_package,
     patch_project_factory_architecture_contract,
+    patch_project_factory_milestone_issue_plan,
     patch_project_factory_scope_package,
     get_project_factory_dossier,
     post_active_project,
     post_project_factory_architecture_contract,
     post_project_factory_architecture_contract_approve,
+    post_project_factory_milestone_issue_plan,
+    post_project_factory_milestone_issue_plan_approve,
     post_project_factory_new_project,
     post_project_factory_scope_package_approve,
     post_project_factory_scope_package,
@@ -293,3 +297,79 @@ def test_post_architecture_approve_succeeds_for_valid_contract(tmp_path: Path) -
     payload = post_project_factory_architecture_contract_approve(config, {})
     assert payload["ok"] is True
     assert payload["architecture_contract"]["lifecycle_state"] == "architecture_approved"
+
+
+def _seed_architecture_approved(config: AppConfig, tmp_path: Path) -> None:
+    post_project_factory_new_project(config, {"name": "MIP Seed", "root_path": str(tmp_path / "workspace")})
+    post_project_factory_scope_package(config, {})
+    patch_project_factory_scope_package(config, {"requirements": ["r1"], "acceptance_criteria": ["a1"]})
+    post_project_factory_scope_package_approve(config, {})
+    post_project_factory_architecture_contract(config, {})
+    patch_project_factory_architecture_contract(
+        config,
+        {"architecture_summary": "summary", "system_components": ["api"], "testing_strategy": ["unit tests"]},
+    )
+    post_project_factory_architecture_contract_approve(config, {})
+
+
+def test_get_milestone_issue_plan_falls_back_to_active_project(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_architecture_approved(config, tmp_path)
+    post_project_factory_milestone_issue_plan(config, {})
+    payload = get_project_factory_milestone_issue_plan(config, {})
+    assert payload["ok"] is True
+    assert payload["milestone_issue_plan_exists"] is True
+
+
+def test_get_milestone_issue_plan_no_active_project_returns_friendly_state(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    payload = get_project_factory_milestone_issue_plan(config, {})
+    assert payload["ok"] is True
+    assert payload["milestone_issue_plan_exists"] is False
+    assert payload["warnings"]
+
+
+def test_post_milestone_issue_plan_prepare_validates_approved_architecture(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    post_project_factory_new_project(config, {"name": "MIP Gate", "root_path": str(tmp_path / "workspace")})
+    missing_arch = post_project_factory_milestone_issue_plan(config, {})
+    assert missing_arch["ok"] is False
+    assert missing_arch["_status"] == 404
+    post_project_factory_scope_package(config, {})
+    patch_project_factory_scope_package(config, {"requirements": ["r1"], "acceptance_criteria": ["a1"]})
+    post_project_factory_scope_package_approve(config, {})
+    post_project_factory_architecture_contract(config, {})
+    unapproved_arch = post_project_factory_milestone_issue_plan(config, {})
+    assert unapproved_arch["ok"] is False
+    assert unapproved_arch["_status"] == 409
+
+
+def test_patch_milestone_issue_plan_updates_fields(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_architecture_approved(config, tmp_path)
+    post_project_factory_milestone_issue_plan(config, {})
+    payload = patch_project_factory_milestone_issue_plan(
+        config,
+        {"planning_summary": "summary", "cross_cutting_tasks": ["ct1"]},
+    )
+    assert payload["ok"] is True
+    assert payload["milestone_issue_plan"]["lifecycle_state"] == "milestone_issue_plan_draft_updated"
+
+
+def test_post_milestone_issue_plan_approve_validates_fields(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_architecture_approved(config, tmp_path)
+    post_project_factory_milestone_issue_plan(config, {})
+    payload = post_project_factory_milestone_issue_plan_approve(config, {})
+    assert payload["ok"] is False
+    assert payload["_status"] == 400
+
+
+def test_post_milestone_issue_plan_approve_succeeds_for_valid_plan(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_architecture_approved(config, tmp_path)
+    post_project_factory_milestone_issue_plan(config, {})
+    patch_project_factory_milestone_issue_plan(config, {"planning_summary": "summary"})
+    payload = post_project_factory_milestone_issue_plan_approve(config, {})
+    assert payload["ok"] is True
+    assert payload["milestone_issue_plan"]["lifecycle_state"] == "milestone_issue_plan_approved"
