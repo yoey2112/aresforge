@@ -1286,6 +1286,304 @@ def render_queue_work_state_markdown(payload: dict[str, Any]) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
+def inspect_work_item_readiness(conn: Connection, work_item_id: str) -> dict[str, Any]:
+    work_item = inspect_work_item(conn, work_item_id)
+    if work_item is None:
+        return {
+            "ok": False,
+            "work_item_id": work_item_id,
+            "project_id": DEFAULT_PROJECT_ID,
+            "readiness_status": "missing",
+            "ready": False,
+            "error": "work_item_not_found",
+            "next_safe_action": "Create or inspect the local work item before starting.",
+            "blockers": [{"code": "work_item_not_found", "work_item_id": work_item_id}],
+            "warnings": [],
+            "work_item": None,
+            "roadmap_links": [],
+            "dependency_summary": {"total_dependencies": 0, "unsatisfied_dependencies": []},
+            "related_events": {"audit_event_count": 0, "roadmap_event_count": 0},
+        }
+
+    blockers: list[dict[str, Any]] = []
+    warnings: list[dict[str, Any]] = []
+    dependency_summary = {"total_dependencies": 0, "unsatisfied_dependencies": []}
+    roadmap_links: list[dict[str, Any]] = []
+    readiness_status = "not_ready"
+    ready = False
+    next_safe_action = "Inspect work item readiness blockers."
+    related_events = {"audit_event_count": 0, "roadmap_event_count": 0}
+
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT rwil.id, rwil.project_id, rwil.roadmap_task_id, rwil.work_item_id, rwil.link_type, rwil.status,
+                   rwil.metadata, rwil.created_at, rwil.updated_at,
+                   rt.title AS roadmap_task_title, rt.status AS roadmap_task_status
+            FROM roadmap_work_item_links rwil
+            JOIN roadmap_tasks rt ON rt.id = rwil.roadmap_task_id
+            WHERE rwil.work_item_id = %s
+              AND rwil.status = 'active'
+            ORDER BY rwil.created_at DESC, rwil.id DESC
+            """,
+            (work_item_id,),
+        )
+        roadmap_links = list(cur.fetchall())
+        cur.execute(
+            """
+            SELECT COUNT(*) AS count
+            FROM audit_events
+            WHERE work_item_id = %s
+            """,
+            (work_item_id,),
+        )
+        related_events["audit_event_count"] = cur.fetchone()["count"]
+
+    task_ids = sorted({row["roadmap_task_id"] for row in roadmap_links if row.get("roadmap_task_id")})
+    unsatisfied_dependencies: list[dict[str, Any]] = []
+    cancelled_link_present = any(link.get("roadmap_task_status") == "cancelled" for link in roadmap_links)
+    if task_ids:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT d.task_id, d.depends_on_task_id, dt.status AS depends_on_task_status
+                FROM roadmap_task_dependencies d
+                JOIN roadmap_tasks dt ON dt.id = d.depends_on_task_id
+                WHERE d.task_id = ANY(%s)
+                ORDER BY d.task_id ASC, d.depends_on_task_id ASC
+                """,
+                (task_ids,),
+            )
+            dependency_rows = list(cur.fetchall())
+            for row in dependency_rows:
+                if row["depends_on_task_status"] != "complete":
+                    unsatisfied_dependencies.append(
+                        {
+                            "task_id": row["task_id"],
+                            "depends_on_task_id": row["depends_on_task_id"],
+                            "status": row["depends_on_task_status"],
+                        }
+                    )
+            dependency_summary = {
+                "total_dependencies": len(dependency_rows),
+                "unsatisfied_dependencies": unsatisfied_dependencies,
+            }
+            cur.execute(
+                """
+                SELECT COUNT(*) AS count
+                FROM roadmap_events
+                WHERE task_id = ANY(%s)
+                """,
+                (task_ids,),
+            )
+            related_events["roadmap_event_count"] = cur.fetchone()["count"]
+
+    status = work_item.get("status")
+    if status == "cancelled":
+        readiness_status = "cancelled"
+        next_safe_action = "No action. Work item is cancelled."
+    elif status == "complete":
+        readiness_status = "already_complete"
+        next_safe_action = "No action. Work item is already complete."
+    elif status == "active":
+        readiness_status = "already_active"
+        next_safe_action = "Continue or inspect active work item."
+    elif status == "blocked":
+        readiness_status = "blocked"
+        blockers.append({"code": "work_item_status_blocked"})
+        blocked_reason = (work_item.get("metadata") or {}).get("blocked_reason")
+        if blocked_reason:
+            blockers.append({"code": "blocked_reason", "message": blocked_reason})
+        next_safe_action = "Resolve blockers before starting."
+    elif status == "queued":
+        if not roadmap_links:
+            readiness_status = "not_ready"
+            blockers.append({"code": "missing_roadmap_link"})
+            next_safe_action = "Create or restore a roadmap work item link before starting."
+            return {
+                "ok": True,
+                "work_item_id": work_item_id,
+                "project_id": work_item.get("project_id", DEFAULT_PROJECT_ID),
+                "readiness_status": readiness_status,
+                "ready": ready,
+                "next_safe_action": next_safe_action,
+                "blockers": blockers,
+                "warnings": warnings,
+                "work_item": work_item,
+                "roadmap_links": roadmap_links,
+                "dependency_summary": dependency_summary,
+                "related_events": related_events,
+            }
+
+        if cancelled_link_present:
+            readiness_status = "cancelled"
+            blockers.append({"code": "roadmap_task_cancelled"})
+            next_safe_action = "Do not start. Roadmap task is cancelled."
+        elif unsatisfied_dependencies:
+            readiness_status = "blocked"
+            blockers.append(
+                {
+                    "code": "unsatisfied_roadmap_dependencies",
+                    "dependencies": unsatisfied_dependencies,
+                }
+            )
+            next_safe_action = "Complete dependency roadmap tasks before starting."
+        else:
+            readiness_status = "ready"
+            ready = True
+            next_safe_action = "Start work item or assign to operator."
+    else:
+        warnings.append({"code": "unexpected_work_item_status", "status": status})
+
+    return {
+        "ok": True,
+        "work_item_id": work_item_id,
+        "project_id": work_item.get("project_id", DEFAULT_PROJECT_ID),
+        "readiness_status": readiness_status,
+        "ready": ready,
+        "next_safe_action": next_safe_action,
+        "blockers": blockers,
+        "warnings": warnings,
+        "work_item": work_item,
+        "roadmap_links": roadmap_links,
+        "dependency_summary": dependency_summary,
+        "related_events": related_events,
+    }
+
+
+def inspect_queue_readiness(
+    conn: Connection,
+    queue_id: str | None = None,
+    project_id: str = DEFAULT_PROJECT_ID,
+) -> dict[str, Any]:
+    params: list[Any] = [project_id]
+    queue_clause = ""
+    if queue_id is not None:
+        queue_clause = " AND queue_id = %s"
+        params.append(queue_id)
+    with conn.cursor() as cur:
+        cur.execute(
+            f"""
+            SELECT id
+            FROM work_items
+            WHERE project_id = %s
+              AND status IN ('queued', 'active', 'blocked'){queue_clause}
+            ORDER BY queue_id ASC, status ASC, created_at ASC, id ASC
+            """,
+            params,
+        )
+        ids = [row["id"] for row in cur.fetchall()]
+
+    items = [inspect_work_item_readiness(conn, work_item_id) for work_item_id in ids]
+    counts = {status: 0 for status in WORK_ITEM_READINESS_STATUSES}
+    for item in items:
+        readiness_status = item.get("readiness_status")
+        if readiness_status in counts:
+            counts[readiness_status] += 1
+
+    return {
+        "ok": True,
+        "project_id": project_id,
+        "queue_id": queue_id,
+        "counts": counts,
+        "total_items": len(items),
+        "work_items": items,
+        "next_ready_work_items": [
+            item for item in items if item.get("readiness_status") == "ready" and bool(item.get("ready"))
+        ],
+        "blocked_work_items": [item for item in items if item.get("readiness_status") == "blocked"],
+    }
+
+
+def render_work_item_readiness_markdown(payload: dict[str, Any]) -> str:
+    work_item = payload.get("work_item") or {}
+    lines = [
+        "# Work Item Readiness",
+        "",
+        f"- Work item ID: `{payload.get('work_item_id', work_item.get('id', ''))}`",
+        f"- Status: `{work_item.get('status', '')}`",
+        f"- Ready: `{payload.get('ready', False)}`",
+        f"- Readiness status: `{payload.get('readiness_status', '')}`",
+        f"- Next safe action: {payload.get('next_safe_action', '')}",
+        "",
+        "## Blockers",
+    ]
+    blockers = payload.get("blockers", [])
+    if blockers:
+        for blocker in blockers:
+            lines.append(f"- `{blocker.get('code', 'unknown')}` {json.dumps(blocker, sort_keys=True)}")
+    else:
+        lines.append("- none")
+    lines.append("")
+    lines.append("## Warnings")
+    warnings = payload.get("warnings", [])
+    if warnings:
+        for warning in warnings:
+            lines.append(f"- `{warning.get('code', 'warning')}` {json.dumps(warning, sort_keys=True)}")
+    else:
+        lines.append("- none")
+    lines.append("")
+    lines.append("## Roadmap Links")
+    roadmap_links = payload.get("roadmap_links", [])
+    if roadmap_links:
+        for link in roadmap_links:
+            lines.append(
+                f"- `{link['id']}` task=`{link['roadmap_task_id']}` task_status=`{link.get('roadmap_task_status', '')}` link_status=`{link['status']}`"
+            )
+    else:
+        lines.append("- none")
+    lines.append("")
+    lines.append("## Dependencies")
+    dependency_summary = payload.get("dependency_summary", {})
+    lines.append(f"- Total dependencies: `{dependency_summary.get('total_dependencies', 0)}`")
+    unsatisfied = dependency_summary.get("unsatisfied_dependencies", [])
+    if unsatisfied:
+        for dependency in unsatisfied:
+            lines.append(
+                f"- task=`{dependency.get('task_id', '')}` depends_on=`{dependency.get('depends_on_task_id', '')}` status=`{dependency.get('status', '')}`"
+            )
+    else:
+        lines.append("- Unsatisfied dependencies: none")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def render_queue_readiness_markdown(payload: dict[str, Any]) -> str:
+    lines = [
+        "# Queue Readiness",
+        "",
+        f"- Project ID: `{payload.get('project_id', '')}`",
+        f"- Queue ID filter: `{payload.get('queue_id') or 'all'}`",
+        f"- Total items: `{payload.get('total_items', 0)}`",
+        "",
+        "## Counts",
+    ]
+    counts = payload.get("counts", {})
+    for status in WORK_ITEM_READINESS_STATUSES:
+        lines.append(f"- `{status}`: `{counts.get(status, 0)}`")
+    lines.append("")
+    lines.append("## Next Ready Work Items")
+    ready_items = payload.get("next_ready_work_items", [])
+    if ready_items:
+        for item in ready_items:
+            work_item = item.get("work_item") or {}
+            lines.append(
+                f"- `{item.get('work_item_id', '')}` queue=`{work_item.get('queue_id', '')}` status=`{work_item.get('status', '')}` next=`{item.get('next_safe_action', '')}`"
+            )
+    else:
+        lines.append("- none")
+    lines.append("")
+    lines.append("## Blocked Work Items")
+    blocked_items = payload.get("blocked_work_items", [])
+    if blocked_items:
+        for item in blocked_items:
+            lines.append(
+                f"- `{item.get('work_item_id', '')}` blockers={json.dumps(item.get('blockers', []), sort_keys=True)}"
+            )
+    else:
+        lines.append("- none")
+    return "\n".join(lines).rstrip() + "\n"
+
+
 def inspect_state(conn: Connection) -> dict[str, Any]:
     with conn.cursor() as cur:
         counts: dict[str, int] = {}
@@ -1415,6 +1713,15 @@ WORK_ITEM_ALLOWED_STATUSES: tuple[str, ...] = (
     "blocked",
     "complete",
     "cancelled",
+)
+WORK_ITEM_READINESS_STATUSES: tuple[str, ...] = (
+    "ready",
+    "not_ready",
+    "blocked",
+    "already_active",
+    "already_complete",
+    "cancelled",
+    "missing",
 )
 
 

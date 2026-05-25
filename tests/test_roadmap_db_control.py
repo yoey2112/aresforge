@@ -8,8 +8,11 @@ from aresforge.db.repository import (
     WORK_ITEM_ALLOWED_STATUSES,
     create_work_item_from_roadmap_task,
     inspect_roadmap_db,
+    inspect_work_item_readiness,
     render_queue_work_state_markdown,
+    render_queue_readiness_markdown,
     render_roadmap_events_markdown,
+    render_work_item_readiness_markdown,
     render_work_item_lifecycle_markdown,
     render_roadmap_markdown,
     render_roadmap_work_item_links_markdown,
@@ -309,6 +312,28 @@ def test_cli_parser_recognizes_roadmap_commands_and_formats() -> None:
     assert inspect_queue_state_markdown_args.command == "inspect-queue-work-state"
     assert inspect_queue_state_markdown_args.format == "markdown"
 
+    inspect_work_item_readiness_json_args = parser.parse_args(
+        ["inspect-work-item-readiness", "--work-item-id", "work-1", "--format", "json"]
+    )
+    assert inspect_work_item_readiness_json_args.command == "inspect-work-item-readiness"
+    assert inspect_work_item_readiness_json_args.format == "json"
+
+    inspect_work_item_readiness_markdown_args = parser.parse_args(
+        ["inspect-work-item-readiness", "--work-item-id", "work-1", "--format", "markdown"]
+    )
+    assert inspect_work_item_readiness_markdown_args.command == "inspect-work-item-readiness"
+    assert inspect_work_item_readiness_markdown_args.format == "markdown"
+
+    inspect_queue_readiness_json_args = parser.parse_args(["inspect-queue-readiness", "--format", "json"])
+    assert inspect_queue_readiness_json_args.command == "inspect-queue-readiness"
+    assert inspect_queue_readiness_json_args.format == "json"
+
+    inspect_queue_readiness_markdown_args = parser.parse_args(
+        ["inspect-queue-readiness", "--format", "markdown"]
+    )
+    assert inspect_queue_readiness_markdown_args.command == "inspect-queue-readiness"
+    assert inspect_queue_readiness_markdown_args.format == "markdown"
+
 
 class _MissingRoadmapTaskCursor:
     def __enter__(self) -> _MissingRoadmapTaskCursor:
@@ -397,3 +422,178 @@ def test_render_queue_work_state_markdown_is_deterministic() -> None:
     assert "## Counts by Queue" in markdown
     assert "## Counts by Status" in markdown
     assert "## Active Queued Blocked Work Items" in markdown
+
+
+def test_inspect_work_item_readiness_returns_missing_shape_when_work_item_is_missing() -> None:
+    payload = inspect_work_item_readiness(_MissingRoadmapTaskConnection(), "work-missing")
+    assert payload["ok"] is False
+    assert payload["error"] == "work_item_not_found"
+    assert payload["readiness_status"] == "missing"
+    assert payload["ready"] is False
+    assert payload["work_item_id"] == "work-missing"
+
+
+class _ReadinessActiveCursor:
+    def __init__(self) -> None:
+        self._rows: list[dict[str, object]] = []
+        self._row: dict[str, object] | None = None
+
+    def __enter__(self) -> _ReadinessActiveCursor:
+        return self
+
+    def __exit__(self, exc_type, exc, tb) -> None:
+        return None
+
+    def execute(self, sql: str, _params: object = None) -> None:
+        if "FROM work_items wi" in sql and "WHERE wi.id = %s" in sql:
+            self._row = {
+                "id": "work-1",
+                "title": "Active work",
+                "description": "Test",
+                "status": "active",
+                "priority": "normal",
+                "route_status": "queued",
+                "queue_id": "queue-planning",
+                "agent_id": None,
+                "model_id": None,
+                "prompt_id": None,
+                "metadata": {
+                    "roadmap_task_id": "rt-04-starter",
+                    "roadmap_task_status": "planned",
+                    "roadmap_milestone_id": "rm-04-hub-workbench",
+                },
+                "created_at": "",
+                "updated_at": "",
+                "queue_name": "planning",
+                "queue_purpose": "Planning",
+                "queue_metadata": {},
+                "agent_name": None,
+                "model_name": None,
+                "model_provider": None,
+            }
+            self._rows = []
+            return
+        if "FROM roadmap_work_item_links rwil" in sql:
+            self._rows = [
+                {
+                    "id": "rwil-1",
+                    "project_id": "project-aresforge",
+                    "roadmap_task_id": "rt-04-starter",
+                    "work_item_id": "work-1",
+                    "link_type": "implements",
+                    "status": "active",
+                    "metadata": {},
+                    "created_at": "",
+                    "updated_at": "",
+                    "roadmap_task_title": "Task title",
+                    "roadmap_task_status": "planned",
+                }
+            ]
+            self._row = None
+            return
+        if "FROM audit_events" in sql and "COUNT(*) AS count" in sql:
+            self._row = {"count": 2}
+            self._rows = []
+            return
+        if "FROM roadmap_task_dependencies d" in sql:
+            self._rows = [
+                {
+                    "task_id": "rt-04-starter",
+                    "depends_on_task_id": "rt-03-starter",
+                    "depends_on_task_status": "complete",
+                }
+            ]
+            self._row = None
+            return
+        if "FROM roadmap_events" in sql and "COUNT(*) AS count" in sql:
+            self._row = {"count": 3}
+            self._rows = []
+            return
+        self._row = None
+        self._rows = []
+
+    def fetchone(self) -> dict[str, object] | None:
+        return self._row
+
+    def fetchall(self) -> list[dict[str, object]]:
+        return self._rows
+
+
+class _ReadinessActiveConnection:
+    def cursor(self) -> _ReadinessActiveCursor:
+        return _ReadinessActiveCursor()
+
+
+def test_inspect_work_item_readiness_active_still_includes_links_and_roadmap_event_counts() -> None:
+    payload = inspect_work_item_readiness(_ReadinessActiveConnection(), "work-1")
+    assert payload["ok"] is True
+    assert payload["readiness_status"] == "already_active"
+    assert payload["ready"] is False
+    assert payload["roadmap_links"] == [
+        {
+            "id": "rwil-1",
+            "project_id": "project-aresforge",
+            "roadmap_task_id": "rt-04-starter",
+            "work_item_id": "work-1",
+            "link_type": "implements",
+            "status": "active",
+            "metadata": {},
+            "created_at": "",
+            "updated_at": "",
+            "roadmap_task_title": "Task title",
+            "roadmap_task_status": "planned",
+        }
+    ]
+    assert payload["related_events"]["audit_event_count"] == 2
+    assert payload["related_events"]["roadmap_event_count"] == 3
+    assert payload["dependency_summary"] == {
+        "total_dependencies": 1,
+        "unsatisfied_dependencies": [],
+    }
+
+
+def test_render_work_item_readiness_markdown_is_deterministic() -> None:
+    payload = {
+        "ok": True,
+        "work_item_id": "work-1",
+        "ready": False,
+        "readiness_status": "blocked",
+        "next_safe_action": "Resolve blockers before starting.",
+        "blockers": [{"code": "unsatisfied_roadmap_dependencies", "dependencies": [{"task_id": "rt-2", "depends_on_task_id": "rt-1", "status": "active"}]}],
+        "warnings": [],
+        "work_item": {"id": "work-1", "status": "queued"},
+        "roadmap_links": [{"id": "rwil-1", "roadmap_task_id": "rt-2", "roadmap_task_status": "active", "status": "active"}],
+        "dependency_summary": {"total_dependencies": 1, "unsatisfied_dependencies": [{"task_id": "rt-2", "depends_on_task_id": "rt-1", "status": "active"}]},
+    }
+    markdown = render_work_item_readiness_markdown(payload)
+    assert "# Work Item Readiness" in markdown
+    assert "- Work item ID: `work-1`" in markdown
+    assert "## Blockers" in markdown
+    assert "## Roadmap Links" in markdown
+    assert "## Dependencies" in markdown
+    assert "depends_on=`rt-1` status=`active`" in markdown
+
+
+def test_render_queue_readiness_markdown_is_deterministic() -> None:
+    payload = {
+        "ok": True,
+        "project_id": "project-aresforge",
+        "queue_id": "queue-planning",
+        "total_items": 2,
+        "counts": {
+            "ready": 1,
+            "not_ready": 0,
+            "blocked": 1,
+            "already_active": 0,
+            "already_complete": 0,
+            "cancelled": 0,
+            "missing": 0,
+        },
+        "next_ready_work_items": [{"work_item_id": "work-1", "next_safe_action": "Start work item or assign to operator.", "work_item": {"queue_id": "queue-planning", "status": "queued"}}],
+        "blocked_work_items": [{"work_item_id": "work-2", "blockers": [{"code": "unsatisfied_roadmap_dependencies"}]}],
+    }
+    markdown = render_queue_readiness_markdown(payload)
+    assert "# Queue Readiness" in markdown
+    assert "- `ready`: `1`" in markdown
+    assert "## Next Ready Work Items" in markdown
+    assert "## Blocked Work Items" in markdown

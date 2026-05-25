@@ -38,6 +38,8 @@ def test_cli_has_expected_commands() -> None:
         "update-work-item-status",
         "inspect-work-item-lifecycle",
         "inspect-queue-work-state",
+        "inspect-work-item-readiness",
+        "inspect-queue-readiness",
         "inspect-roadmap-work-item-links",
         "inspect-project-state",
         "inspect-db-state",
@@ -3979,3 +3981,64 @@ def test_prepare_codex_handoff_can_capture_latest_review_package_when_opted_in(
         "markdown_path": str(bundle.markdown_path),
         "json_path": str(bundle.json_path),
     }
+
+
+def test_inspect_work_item_readiness_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    readiness_payload = {
+        "ok": True,
+        "work_item_id": "work-1",
+        "project_id": "project-aresforge",
+        "readiness_status": "ready",
+        "ready": True,
+        "next_safe_action": "Start work item or assign to operator.",
+        "blockers": [],
+        "warnings": [],
+        "work_item": {"id": "work-1", "status": "queued"},
+        "roadmap_links": [],
+        "dependency_summary": {"total_dependencies": 0, "unsatisfied_dependencies": []},
+        "related_events": {"audit_event_count": 0, "roadmap_event_count": 0},
+    }
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(cli, "inspect_work_item_readiness", lambda _conn, _work_item_id: readiness_payload)
+
+    exit_code = cli.main(["inspect-work-item-readiness", "--work-item-id", "work-1", "--format", "json"])
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload == readiness_payload
+
+
+def test_inspect_queue_readiness_dispatch_markdown(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    readiness_payload = {
+        "ok": True,
+        "project_id": "project-aresforge",
+        "queue_id": None,
+        "total_items": 0,
+        "counts": {
+            "ready": 0,
+            "not_ready": 0,
+            "blocked": 0,
+            "already_active": 0,
+            "already_complete": 0,
+            "cancelled": 0,
+            "missing": 0,
+        },
+        "work_items": [],
+        "next_ready_work_items": [],
+        "blocked_work_items": [],
+    }
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(
+        cli,
+        "inspect_queue_readiness",
+        lambda _conn, queue_id=None, project_id="project-aresforge": readiness_payload,
+    )
+    monkeypatch.setattr(cli, "render_queue_readiness_markdown", lambda payload: "# Queue Readiness\n")
+
+    exit_code = cli.main(["inspect-queue-readiness", "--format", "markdown"])
+    output = capsys.readouterr().out
+    assert exit_code == 0
+    assert output == "# Queue Readiness\n\n"

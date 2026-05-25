@@ -357,6 +357,15 @@ M4 adds local CLI lifecycle and inspection surfaces for roadmap-linked work item
 
 M4 updates local `work_items` lifecycle state with strict status validation, logs audit events, and logs related roadmap events when a roadmap task link exists. It does not automatically mutate roadmap task status, does not implement agent execution, and does not add Hub UI mutation flows.
 
+## 22. M5 local readiness gates status note
+
+M5 adds deterministic local readiness gate inspection for local work items and queues without mutating state:
+
+- `inspect-work-item-readiness --work-item-id <id> [--format json|markdown]`
+- `inspect-queue-readiness [--project-id <id>] [--queue-id <id>] [--format json|markdown]`
+
+Readiness inspection introduces explicit local readiness statuses (`ready`, `not_ready`, `blocked`, `already_active`, `already_complete`, `cancelled`, `missing`), validates roadmap-link presence for queued work, checks linked roadmap-task cancellation, and checks roadmap dependency completion before start.
+
 ### What was decided
 
 - AresForge should move toward Postgres as the authoritative live structured state layer for roadmap, control, validation, and completion tracking

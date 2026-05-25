@@ -29,11 +29,15 @@ from aresforge.db.repository import (
     inspect_roadmap_events,
     inspect_roadmap_work_item_links,
     inspect_queue_work_state,
+    inspect_queue_readiness,
+    inspect_work_item_readiness,
     inspect_work_item_lifecycle,
     render_roadmap_markdown,
     render_roadmap_events_markdown,
+    render_queue_readiness_markdown,
     render_roadmap_work_item_links_markdown,
     render_queue_work_state_markdown,
+    render_work_item_readiness_markdown,
     render_work_item_lifecycle_markdown,
     seed_aresforge_roadmap,
     add_roadmap_event,
@@ -367,6 +371,27 @@ def build_parser() -> argparse.ArgumentParser:
     inspect_queue_work_state_parser.add_argument("--project-id", default=DEFAULT_PROJECT_ID)
     inspect_queue_work_state_parser.add_argument("--queue-id")
     inspect_queue_work_state_parser.add_argument(
+        "--format",
+        choices=("json", "markdown"),
+        default="json",
+    )
+    inspect_work_item_readiness_parser = subparsers.add_parser(
+        "inspect-work-item-readiness",
+        help="Inspect local work item readiness gates without mutating state.",
+    )
+    inspect_work_item_readiness_parser.add_argument("--work-item-id", required=True)
+    inspect_work_item_readiness_parser.add_argument(
+        "--format",
+        choices=("json", "markdown"),
+        default="json",
+    )
+    inspect_queue_readiness_parser = subparsers.add_parser(
+        "inspect-queue-readiness",
+        help="Inspect queue-local readiness gates without mutating state.",
+    )
+    inspect_queue_readiness_parser.add_argument("--project-id", default=DEFAULT_PROJECT_ID)
+    inspect_queue_readiness_parser.add_argument("--queue-id")
+    inspect_queue_readiness_parser.add_argument(
         "--format",
         choices=("json", "markdown"),
         default="json",
@@ -2107,6 +2132,28 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         emit_json(payload)
         return 0
+
+    if args.command == "inspect-work-item-readiness":
+        with connect(config) as conn:
+            payload = inspect_work_item_readiness(conn, args.work_item_id)
+        if args.format == "markdown":
+            print(render_work_item_readiness_markdown(payload))
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-queue-readiness":
+        with connect(config) as conn:
+            payload = inspect_queue_readiness(
+                conn,
+                queue_id=args.queue_id,
+                project_id=args.project_id,
+            )
+        if args.format == "markdown":
+            print(render_queue_readiness_markdown(payload))
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
 
     if args.command == "inspect-db-state":
         with connect(config) as conn:
