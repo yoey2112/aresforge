@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from aresforge.cli import build_parser
@@ -19,6 +21,7 @@ from aresforge.db.repository import (
     move_work_item_queue_if_allowed,
     plan_work_item_queue_transition,
     build_work_item_execution_dossier,
+    export_work_item_operator_prompt,
     handoff_work_item_to_implementation,
     render_start_work_item_markdown,
     render_implementation_handoff_markdown,
@@ -34,6 +37,7 @@ from aresforge.db.repository import (
     render_work_item_readiness_markdown,
     render_work_item_lifecycle_markdown,
     render_work_item_execution_dossier_markdown,
+    render_export_work_item_operator_prompt_markdown,
     render_roadmap_markdown,
     render_roadmap_work_item_links_markdown,
     start_work_item_if_ready,
@@ -1213,6 +1217,23 @@ def test_render_project_queue_dashboard_markdown_is_deterministic() -> None:
     assert "## Next Safe Actions" in markdown
 
 
+def test_render_export_work_item_operator_prompt_markdown_is_deterministic() -> None:
+    payload = {
+        "ok": True,
+        "changed": True,
+        "work_item_id": "work-1",
+        "output_path": "artifacts/work-1.txt",
+        "dossier_status": "active",
+        "reason": "output_file_written",
+        "bytes_written": 42,
+        "suggested_operator_prompt": "Continue AresForge work item work-1.",
+    }
+    markdown = render_export_work_item_operator_prompt_markdown(payload)
+    assert "# Export Work Item Operator Prompt" in markdown
+    assert "- Work item ID: `work-1`" in markdown
+    assert "## Suggested Operator Prompt Preview" in markdown
+
+
 def test_build_work_item_execution_dossier_missing_is_non_mutating(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -1724,6 +1745,129 @@ def test_cli_parser_recognizes_project_queue_dashboard_formats() -> None:
     dashboard_markdown_args = parser.parse_args(["inspect-project-queue-dashboard", "--format", "markdown"])
     assert dashboard_markdown_args.command == "inspect-project-queue-dashboard"
     assert dashboard_markdown_args.format == "markdown"
+
+
+def test_cli_parser_recognizes_export_work_item_operator_prompt_formats() -> None:
+    parser = build_parser()
+    export_json_args = parser.parse_args(
+        [
+            "export-work-item-operator-prompt",
+            "--work-item-id",
+            "work-1",
+            "--output",
+            "artifacts/work-1.txt",
+            "--format",
+            "json",
+        ]
+    )
+    assert export_json_args.command == "export-work-item-operator-prompt"
+    assert export_json_args.format == "json"
+    export_markdown_args = parser.parse_args(
+        [
+            "export-work-item-operator-prompt",
+            "--work-item-id",
+            "work-1",
+            "--output",
+            "artifacts/work-1.txt",
+            "--force",
+            "--format",
+            "markdown",
+        ]
+    )
+    assert export_markdown_args.command == "export-work-item-operator-prompt"
+    assert export_markdown_args.force is True
+    assert export_markdown_args.format == "markdown"
+
+
+def test_export_work_item_operator_prompt_missing_does_not_write(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    output_path = tmp_path / "operator-prompt.txt"
+    monkeypatch.setattr(
+        repository_module,
+        "build_work_item_execution_dossier",
+        lambda *_args, **_kwargs: {"ok": False, "dossier_status": "missing"},
+    )
+    payload = export_work_item_operator_prompt(_FakeConnection(), "work-missing", output_path)
+    assert payload["ok"] is False
+    assert payload["changed"] is False
+    assert payload["reason"] == "work_item_not_found"
+    assert not output_path.exists()
+
+
+def test_export_work_item_operator_prompt_writes_file_and_content(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    output_path = tmp_path / "operator-prompt.txt"
+    prompt = "\n".join(
+        [
+            "Continue AresForge work item work-1.",
+            "Current queue: queue-implementation",
+            "Readiness status: already_active",
+            "Dossier status: active",
+            "Next safe action: Continue",
+            "Constraints: work locally only; do not call GitHub;",
+        ]
+    )
+    monkeypatch.setattr(
+        repository_module,
+        "build_work_item_execution_dossier",
+        lambda *_args, **_kwargs: {
+            "ok": True,
+            "dossier_status": "active",
+            "suggested_operator_prompt": prompt,
+        },
+    )
+    payload = export_work_item_operator_prompt(_FakeConnection(), "work-1", output_path)
+    assert payload["ok"] is True
+    assert payload["changed"] is True
+    assert payload["reason"] == "output_file_written"
+    written = output_path.read_text(encoding="utf-8")
+    assert "work locally only" in written
+    assert "do not call GitHub" in written
+    assert "```" not in written
+
+
+def test_export_work_item_operator_prompt_existing_without_force_is_non_mutating(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    output_path = tmp_path / "operator-prompt.txt"
+    output_path.write_text("existing", encoding="utf-8")
+    monkeypatch.setattr(
+        repository_module,
+        "build_work_item_execution_dossier",
+        lambda *_args, **_kwargs: {
+            "ok": True,
+            "dossier_status": "active",
+            "suggested_operator_prompt": "new prompt",
+        },
+    )
+    payload = export_work_item_operator_prompt(_FakeConnection(), "work-1", output_path, force=False)
+    assert payload["ok"] is False
+    assert payload["changed"] is False
+    assert payload["reason"] == "output_file_exists"
+    assert output_path.read_text(encoding="utf-8") == "existing"
+
+
+def test_export_work_item_operator_prompt_existing_with_force_overwrites(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    output_path = tmp_path / "operator-prompt.txt"
+    output_path.write_text("existing", encoding="utf-8")
+    monkeypatch.setattr(
+        repository_module,
+        "build_work_item_execution_dossier",
+        lambda *_args, **_kwargs: {
+            "ok": True,
+            "dossier_status": "active",
+            "suggested_operator_prompt": "new prompt",
+        },
+    )
+    payload = export_work_item_operator_prompt(_FakeConnection(), "work-1", output_path, force=True)
+    assert payload["ok"] is True
+    assert payload["changed"] is True
+    assert payload["reason"] == "output_file_overwritten"
+    assert output_path.read_text(encoding="utf-8") == "new prompt"
 
 
 def test_inspect_project_queue_dashboard_empty_is_stable(

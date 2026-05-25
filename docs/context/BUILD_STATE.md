@@ -39,6 +39,13 @@
 - Readiness gates can use these dependencies to explain blockers.
 - M11 includes no GitHub calls, no agent execution, and no Hub UI.
 
+## M12 Local Operator Prompt Export
+
+- Added local export of execution dossier suggested operator prompts:
+  - `python -m aresforge export-work-item-operator-prompt --work-item-id <id> --output <path> [--force] [--format json|markdown]`
+- Export writes a UTF-8 prompt file for human handoff.
+- M12 does not execute agents, call GitHub, or implement Hub UI.
+
 ## M46 Project Factory Source-of-Truth Realignment
 
 Current state on `main` includes M43-M45 and establishes a local-first Hub control plane plus a partial project-factory shell:

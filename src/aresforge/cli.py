@@ -35,6 +35,7 @@ from aresforge.db.repository import (
     inspect_work_item_readiness,
     inspect_work_item_lifecycle,
     build_work_item_execution_dossier,
+    export_work_item_operator_prompt,
     handoff_work_item_to_implementation,
     start_work_item_if_ready,
     plan_work_item_queue_transition,
@@ -51,6 +52,7 @@ from aresforge.db.repository import (
     render_work_item_readiness_markdown,
     render_work_item_lifecycle_markdown,
     render_work_item_execution_dossier_markdown,
+    render_export_work_item_operator_prompt_markdown,
     render_implementation_handoff_markdown,
     render_start_work_item_markdown,
     render_work_item_queue_transition_plan_markdown,
@@ -474,6 +476,18 @@ def build_parser() -> argparse.ArgumentParser:
     )
     build_execution_dossier_parser.add_argument("--work-item-id", required=True)
     build_execution_dossier_parser.add_argument(
+        "--format",
+        choices=("json", "markdown"),
+        default="json",
+    )
+    export_operator_prompt_parser = subparsers.add_parser(
+        "export-work-item-operator-prompt",
+        help="Export a work item execution dossier suggested operator prompt to a local UTF-8 file.",
+    )
+    export_operator_prompt_parser.add_argument("--work-item-id", required=True)
+    export_operator_prompt_parser.add_argument("--output", required=True)
+    export_operator_prompt_parser.add_argument("--force", action="store_true")
+    export_operator_prompt_parser.add_argument(
         "--format",
         choices=("json", "markdown"),
         default="json",
@@ -2303,6 +2317,20 @@ def main(argv: list[str] | None = None) -> int:
             payload = build_work_item_execution_dossier(conn, args.work_item_id)
         if args.format == "markdown":
             print(render_work_item_execution_dossier_markdown(payload))
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "export-work-item-operator-prompt":
+        with connect(config) as conn:
+            payload = export_work_item_operator_prompt(
+                conn,
+                args.work_item_id,
+                args.output,
+                force=bool(args.force),
+            )
+        if args.format == "markdown":
+            print(render_export_work_item_operator_prompt_markdown(payload))
             return 0 if bool(payload.get("ok")) else 1
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1

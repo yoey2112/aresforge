@@ -2712,6 +2712,72 @@ def render_work_item_execution_dossier_markdown(payload: dict[str, Any]) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
+def export_work_item_operator_prompt(
+    conn: Connection,
+    work_item_id: str,
+    output_path: str | Path,
+    *,
+    force: bool = False,
+) -> dict[str, Any]:
+    dossier = build_work_item_execution_dossier(conn, work_item_id)
+    suggested_operator_prompt = str(dossier.get("suggested_operator_prompt") or "")
+    if not bool(dossier.get("ok")):
+        return {
+            "ok": False,
+            "changed": False,
+            "reason": "work_item_not_found",
+            "work_item_id": work_item_id,
+            "dossier_status": dossier.get("dossier_status", "missing"),
+            "output_path": str(Path(output_path)),
+        }
+
+    path = Path(output_path).expanduser().resolve()
+    existed_before = path.exists()
+    if existed_before and not force:
+        return {
+            "ok": False,
+            "changed": False,
+            "reason": "output_file_exists",
+            "work_item_id": work_item_id,
+            "dossier_status": dossier.get("dossier_status", ""),
+            "output_path": str(path),
+            "suggested_operator_prompt": suggested_operator_prompt,
+            "dossier": dossier,
+        }
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    written = path.write_text(suggested_operator_prompt, encoding="utf-8")
+    reason = "output_file_overwritten" if existed_before and force else "output_file_written"
+    return {
+        "ok": True,
+        "changed": True,
+        "reason": reason,
+        "work_item_id": work_item_id,
+        "dossier_status": dossier.get("dossier_status", ""),
+        "output_path": str(path),
+        "bytes_written": written,
+        "suggested_operator_prompt": suggested_operator_prompt,
+        "dossier": dossier,
+    }
+
+
+def render_export_work_item_operator_prompt_markdown(payload: dict[str, Any]) -> str:
+    lines = [
+        "# Export Work Item Operator Prompt",
+        "",
+        f"- Work item ID: `{payload.get('work_item_id', '')}`",
+        f"- Changed: `{payload.get('changed', False)}`",
+        f"- Output path: `{payload.get('output_path', '')}`",
+        f"- Dossier status: `{payload.get('dossier_status', '')}`",
+        f"- Reason: `{payload.get('reason', '')}`",
+        f"- Bytes written: `{payload.get('bytes_written', 0)}`",
+        "",
+        "## Suggested Operator Prompt Preview",
+        payload.get("suggested_operator_prompt", ""),
+    ]
+    return "\n".join(lines).rstrip() + "\n"
+
+
 def inspect_state(conn: Connection) -> dict[str, Any]:
     with conn.cursor() as cur:
         counts: dict[str, int] = {}

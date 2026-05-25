@@ -45,6 +45,7 @@ def test_cli_has_expected_commands() -> None:
         "handoff-work-item-to-implementation",
         "inspect-work-item-lifecycle",
         "build-work-item-execution-dossier",
+        "export-work-item-operator-prompt",
         "inspect-queue-work-state",
         "inspect-work-item-readiness",
         "inspect-queue-readiness",
@@ -4390,6 +4391,68 @@ def test_inspect_project_queue_dashboard_dispatch_markdown(
     output = capsys.readouterr().out
     assert exit_code == 0
     assert output == "# Project Queue Dashboard\n\n"
+
+
+def test_export_work_item_operator_prompt_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "changed": True,
+        "work_item_id": "work-1",
+        "output_path": "artifacts/work-1.txt",
+    }
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(
+        cli,
+        "export_work_item_operator_prompt",
+        lambda _conn, _work_item_id, _output, force=False: payload,
+    )
+    exit_code = cli.main(
+        [
+            "export-work-item-operator-prompt",
+            "--work-item-id",
+            "work-1",
+            "--output",
+            "artifacts/work-1.txt",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert parsed == payload
+
+
+def test_export_work_item_operator_prompt_dispatch_markdown(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {"ok": False, "changed": False, "reason": "output_file_exists"}
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(
+        cli,
+        "export_work_item_operator_prompt",
+        lambda _conn, _work_item_id, _output, force=False: payload,
+    )
+    monkeypatch.setattr(
+        cli,
+        "render_export_work_item_operator_prompt_markdown",
+        lambda _payload: "# Export Work Item Operator Prompt\n",
+    )
+    exit_code = cli.main(
+        [
+            "export-work-item-operator-prompt",
+            "--work-item-id",
+            "work-1",
+            "--output",
+            "artifacts/work-1.txt",
+            "--format",
+            "markdown",
+        ]
+    )
+    output = capsys.readouterr().out
+    assert exit_code == 1
+    assert output == "# Export Work Item Operator Prompt\n\n"
 
 
 def test_add_roadmap_task_dependency_dispatch_json(
