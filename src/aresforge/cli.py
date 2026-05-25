@@ -29,6 +29,7 @@ from aresforge.db.repository import (
     inspect_roadmap_events,
     inspect_roadmap_work_item_links,
     inspect_queue_work_state,
+    inspect_project_queue_dashboard,
     inspect_queue_readiness,
     inspect_work_item_readiness,
     inspect_work_item_lifecycle,
@@ -42,6 +43,7 @@ from aresforge.db.repository import (
     render_queue_readiness_markdown,
     render_roadmap_work_item_links_markdown,
     render_queue_work_state_markdown,
+    render_project_queue_dashboard_markdown,
     render_work_item_readiness_markdown,
     render_work_item_lifecycle_markdown,
     render_work_item_execution_dossier_markdown,
@@ -460,6 +462,16 @@ def build_parser() -> argparse.ArgumentParser:
     inspect_queue_readiness_parser.add_argument("--project-id", default=DEFAULT_PROJECT_ID)
     inspect_queue_readiness_parser.add_argument("--queue-id")
     inspect_queue_readiness_parser.add_argument(
+        "--format",
+        choices=("json", "markdown"),
+        default="json",
+    )
+    inspect_project_queue_dashboard_parser = subparsers.add_parser(
+        "inspect-project-queue-dashboard",
+        help="Inspect a read-only local project and queue dashboard summary.",
+    )
+    inspect_project_queue_dashboard_parser.add_argument("--project-id", default=DEFAULT_PROJECT_ID)
+    inspect_project_queue_dashboard_parser.add_argument(
         "--format",
         choices=("json", "markdown"),
         default="json",
@@ -2300,6 +2312,15 @@ def main(argv: list[str] | None = None) -> int:
         if args.format == "markdown":
             print(render_queue_readiness_markdown(payload))
             return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-project-queue-dashboard":
+        with connect(config) as conn:
+            payload = inspect_project_queue_dashboard(conn, project_id=args.project_id)
+        if args.format == "markdown":
+            print(render_project_queue_dashboard_markdown(payload))
+            return 0 if bool(payload.get("ok")) else 1
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 

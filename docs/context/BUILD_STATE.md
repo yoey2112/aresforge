@@ -22,6 +22,13 @@
 - The command reuses queue transition gates and returns a post-move execution dossier for the updated state.
 - M9 remains local-only and does not execute agents, call GitHub, or implement Hub UI.
 
+## M10 Local Project/Queue Dashboard CLI
+
+- Added a read-only local dashboard command:
+  - `python -m aresforge inspect-project-queue-dashboard [--project-id <id>] [--format json|markdown]`
+- The dashboard summarizes work item totals, queue state, readiness state, roadmap state, recent events, and next safe actions.
+- M10 does not implement Hub UI, execute agents, or call GitHub.
+
 ## M46 Project Factory Source-of-Truth Realignment
 
 Current state on `main` includes M43-M45 and establishes a local-first Hub control plane plus a partial project-factory shell:

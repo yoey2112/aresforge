@@ -1721,6 +1721,309 @@ def render_queue_readiness_markdown(payload: dict[str, Any]) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
+def _summarize_dashboard_work_item(item: dict[str, Any]) -> dict[str, Any]:
+    work_item = item.get("work_item") or {}
+    roadmap_links = list(item.get("roadmap_links") or [])
+    roadmap_task_id = ""
+    if roadmap_links:
+        roadmap_task_id = str(roadmap_links[0].get("roadmap_task_id") or "")
+    return {
+        "work_item_id": item.get("work_item_id", work_item.get("id", "")),
+        "title": work_item.get("title", ""),
+        "status": work_item.get("status", ""),
+        "queue_id": work_item.get("queue_id", ""),
+        "readiness_status": item.get("readiness_status", "missing"),
+        "next_safe_action": item.get("next_safe_action", ""),
+        "roadmap_task_id": roadmap_task_id,
+    }
+
+
+def _inspect_project_work_item_status_counts(
+    conn: Connection,
+    project_id: str,
+) -> tuple[dict[str, dict[str, int]], dict[str, int]]:
+    by_queue: dict[str, dict[str, int]] = {}
+    totals = {
+        "total_work_items": 0,
+        "queued": 0,
+        "active": 0,
+        "blocked": 0,
+        "complete": 0,
+        "cancelled": 0,
+    }
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT queue_id, status, COUNT(*) AS count
+            FROM work_items
+            WHERE project_id = %s
+            GROUP BY queue_id, status
+            """,
+            (project_id,),
+        )
+        rows = list(cur.fetchall())
+    for row in rows:
+        queue_id = str(row["queue_id"])
+        status = str(row["status"])
+        count = int(row["count"])
+        if queue_id not in by_queue:
+            by_queue[queue_id] = {
+                "queued": 0,
+                "active": 0,
+                "blocked": 0,
+                "complete": 0,
+                "cancelled": 0,
+            }
+        if status in by_queue[queue_id]:
+            by_queue[queue_id][status] += count
+        if status in totals:
+            totals[status] += count
+        totals["total_work_items"] += count
+    return by_queue, totals
+
+
+def _inspect_recent_event_summary(conn: Connection, project_id: str) -> dict[str, Any]:
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT COUNT(*) AS count
+            FROM audit_events
+            WHERE project_id = %s
+            """,
+            (project_id,),
+        )
+        audit_event_count = int(cur.fetchone()["count"])
+        cur.execute(
+            """
+            SELECT COUNT(*) AS count
+            FROM roadmap_events
+            WHERE project_id = %s
+            """,
+            (project_id,),
+        )
+        roadmap_event_count = int(cur.fetchone()["count"])
+        cur.execute(
+            """
+            SELECT id, event_type, actor, created_at, work_item_id, details
+            FROM audit_events
+            WHERE project_id = %s
+            ORDER BY created_at DESC, id DESC
+            LIMIT 5
+            """,
+            (project_id,),
+        )
+        recent_audit_events = list(cur.fetchall())
+        cur.execute(
+            """
+            SELECT id, event_type, actor, created_at, task_id
+            FROM roadmap_events
+            WHERE project_id = %s
+            ORDER BY created_at DESC, id DESC
+            LIMIT 5
+            """,
+            (project_id,),
+        )
+        recent_roadmap_events = list(cur.fetchall())
+    return {
+        "audit_event_count": audit_event_count,
+        "roadmap_event_count": roadmap_event_count,
+        "recent_audit_events": recent_audit_events,
+        "recent_roadmap_events": recent_roadmap_events,
+    }
+
+
+def inspect_project_queue_dashboard(
+    conn: Connection,
+    project_id: str = DEFAULT_PROJECT_ID,
+) -> dict[str, Any]:
+    readiness = inspect_queue_readiness(conn, project_id=project_id)
+    queues = sorted(list_queues(conn), key=lambda row: str(row.get("id") or ""))
+    queue_status_counts, status_totals = _inspect_project_work_item_status_counts(conn, project_id)
+    roadmap_db = inspect_roadmap_db(conn)
+    recent_events_summary = _inspect_recent_event_summary(conn, project_id)
+
+    readiness_counts = dict(readiness.get("counts") or {})
+    all_work_items = list(readiness.get("work_items") or [])
+    active_work_items = sorted(
+        [_summarize_dashboard_work_item(item) for item in all_work_items if (item.get("work_item") or {}).get("status") == "active"],
+        key=lambda row: (row["queue_id"], row["work_item_id"]),
+    )
+    blocked_work_items = sorted(
+        [_summarize_dashboard_work_item(item) for item in all_work_items if item.get("readiness_status") == "blocked"],
+        key=lambda row: (row["queue_id"], row["work_item_id"]),
+    )
+    ready_work_items = sorted(
+        [
+            _summarize_dashboard_work_item(item)
+            for item in all_work_items
+            if item.get("readiness_status") == "ready" and bool(item.get("ready"))
+        ],
+        key=lambda row: (row["queue_id"], row["work_item_id"]),
+    )
+
+    queue_summaries: list[dict[str, Any]] = []
+    for queue in queues:
+        queue_id = str(queue.get("id") or "")
+        queue_readiness = inspect_queue_readiness(conn, queue_id=queue_id, project_id=project_id)
+        queue_items = list(queue_readiness.get("work_items") or [])
+        queue_item_status_counts = queue_status_counts.get(
+            queue_id,
+            {"queued": 0, "active": 0, "blocked": 0, "complete": 0, "cancelled": 0},
+        )
+        next_ready_rows = sorted(
+            [_summarize_dashboard_work_item(item) for item in queue_items if item.get("readiness_status") == "ready" and bool(item.get("ready"))],
+            key=lambda row: row["work_item_id"],
+        )
+        blocked_rows = sorted(
+            [_summarize_dashboard_work_item(item) for item in queue_items if item.get("readiness_status") == "blocked"],
+            key=lambda row: row["work_item_id"],
+        )
+        queue_summaries.append(
+            {
+                "queue_id": queue_id,
+                "queue_name": queue.get("name", ""),
+                "status": queue.get("status", ""),
+                "purpose": queue.get("purpose", ""),
+                "total_items": sum(queue_item_status_counts.values()),
+                "queued": queue_item_status_counts.get("queued", 0),
+                "active": queue_item_status_counts.get("active", 0),
+                "blocked": queue_item_status_counts.get("blocked", 0),
+                "complete": queue_item_status_counts.get("complete", 0),
+                "cancelled": queue_item_status_counts.get("cancelled", 0),
+                "readiness_counts": queue_readiness.get("counts", {}),
+                "allowed_next_queues": sorted(list(queue.get("allowed_next_queues") or [])),
+                "next_ready_work_items": next_ready_rows,
+                "blocked_work_items": blocked_rows,
+                "next_safe_action": "Inspect queue readiness or move the next ready work item when approved.",
+            }
+        )
+
+    roadmap_tasks = list(roadmap_db.get("tasks") or [])
+    roadmap_summary = {
+        "total_areas": int((roadmap_db.get("counts") or {}).get("areas", 0)),
+        "total_milestones": int((roadmap_db.get("counts") or {}).get("milestones", 0)),
+        "total_tasks": int((roadmap_db.get("counts") or {}).get("tasks", 0)),
+        "tasks_by_status": {
+            "planned": len([task for task in roadmap_tasks if task.get("status") == "planned"]),
+            "active": len([task for task in roadmap_tasks if task.get("status") == "active"]),
+            "blocked": len([task for task in roadmap_tasks if task.get("status") == "blocked"]),
+            "complete": len([task for task in roadmap_tasks if task.get("status") == "complete"]),
+            "cancelled": len([task for task in roadmap_tasks if task.get("status") == "cancelled"]),
+        },
+    }
+
+    totals = {
+        **status_totals,
+        "ready": int(readiness_counts.get("ready", 0)),
+        "not_ready": int(readiness_counts.get("not_ready", 0)),
+        "already_active": int(readiness_counts.get("already_active", 0)),
+        "already_complete": int(readiness_counts.get("already_complete", 0)),
+        "missing": int(readiness_counts.get("missing", 0)),
+        "total_queues": len(queues),
+        "active_queues": len([queue for queue in queues if queue.get("status") == "active"]),
+        "total_roadmap_tasks": roadmap_summary["total_tasks"],
+        "roadmap_planned": roadmap_summary["tasks_by_status"]["planned"],
+        "roadmap_active": roadmap_summary["tasks_by_status"]["active"],
+        "roadmap_blocked": roadmap_summary["tasks_by_status"]["blocked"],
+        "roadmap_complete": roadmap_summary["tasks_by_status"]["complete"],
+        "roadmap_cancelled": roadmap_summary["tasks_by_status"]["cancelled"],
+    }
+
+    next_safe_actions = sorted(
+        {
+            "Inspect queue readiness before mutating queue placement.",
+            "Use start-work-item only when readiness status is ready.",
+            "Use handoff-work-item-to-implementation for triage to implementation transitions.",
+        }
+    )
+    if ready_work_items:
+        next_safe_actions.append("Review and start the next ready work item.")
+    if blocked_work_items:
+        next_safe_actions.append("Resolve blocked work item prerequisites before moving queues.")
+
+    return {
+        "ok": True,
+        "project_id": project_id,
+        "dashboard_status": "ready",
+        "totals": totals,
+        "queue_summaries": queue_summaries,
+        "active_work_items": active_work_items,
+        "blocked_work_items": blocked_work_items,
+        "ready_work_items": ready_work_items,
+        "next_safe_actions": next_safe_actions,
+        "roadmap_summary": roadmap_summary,
+        "recent_events_summary": recent_events_summary,
+    }
+
+
+def render_project_queue_dashboard_markdown(payload: dict[str, Any]) -> str:
+    totals = payload.get("totals") or {}
+    lines = [
+        "# Project Queue Dashboard",
+        "",
+        f"- Project ID: `{payload.get('project_id', '')}`",
+        f"- Dashboard status: `{payload.get('dashboard_status', '')}`",
+        f"- Total work items: `{totals.get('total_work_items', 0)}`",
+        f"- Active work items: `{len(payload.get('active_work_items', []))}`",
+        f"- Blocked work items: `{len(payload.get('blocked_work_items', []))}`",
+        f"- Ready work items: `{len(payload.get('ready_work_items', []))}`",
+        "",
+        "## Totals",
+        f"- queued=`{totals.get('queued', 0)}` active=`{totals.get('active', 0)}` blocked=`{totals.get('blocked', 0)}` complete=`{totals.get('complete', 0)}` cancelled=`{totals.get('cancelled', 0)}`",
+        f"- ready=`{totals.get('ready', 0)}` not_ready=`{totals.get('not_ready', 0)}` already_active=`{totals.get('already_active', 0)}` already_complete=`{totals.get('already_complete', 0)}` missing=`{totals.get('missing', 0)}`",
+        f"- queues total=`{totals.get('total_queues', 0)}` active=`{totals.get('active_queues', 0)}`",
+        f"- roadmap tasks total=`{totals.get('total_roadmap_tasks', 0)}` planned=`{totals.get('roadmap_planned', 0)}` active=`{totals.get('roadmap_active', 0)}` blocked=`{totals.get('roadmap_blocked', 0)}` complete=`{totals.get('roadmap_complete', 0)}` cancelled=`{totals.get('roadmap_cancelled', 0)}`",
+        "",
+        "## Queue Summaries",
+    ]
+    queue_summaries = payload.get("queue_summaries", [])
+    if queue_summaries:
+        for queue in queue_summaries:
+            lines.append(
+                f"- `{queue.get('queue_id', '')}` name=`{queue.get('queue_name', '')}` status=`{queue.get('status', '')}` total=`{queue.get('total_items', 0)}` ready_next=`{len(queue.get('next_ready_work_items', []))}` blocked=`{len(queue.get('blocked_work_items', []))}`"
+            )
+    else:
+        lines.append("- none")
+
+    def _render_summary_rows(title: str, rows: list[dict[str, Any]]) -> None:
+        lines.extend(["", title])
+        if rows:
+            for row in rows:
+                lines.append(
+                    f"- `{row.get('work_item_id', '')}` queue=`{row.get('queue_id', '')}` status=`{row.get('status', '')}` readiness=`{row.get('readiness_status', '')}` roadmap_task=`{row.get('roadmap_task_id', '')}`"
+                )
+        else:
+            lines.append("- none")
+
+    _render_summary_rows("## Active Work Items", payload.get("active_work_items", []))
+    _render_summary_rows("## Ready Work Items", payload.get("ready_work_items", []))
+    _render_summary_rows("## Blocked Work Items", payload.get("blocked_work_items", []))
+
+    roadmap_summary = payload.get("roadmap_summary") or {}
+    task_status = roadmap_summary.get("tasks_by_status") or {}
+    lines.extend(
+        [
+            "",
+            "## Roadmap Summary",
+            f"- areas=`{roadmap_summary.get('total_areas', 0)}` milestones=`{roadmap_summary.get('total_milestones', 0)}` tasks=`{roadmap_summary.get('total_tasks', 0)}`",
+            f"- planned=`{task_status.get('planned', 0)}` active=`{task_status.get('active', 0)}` blocked=`{task_status.get('blocked', 0)}` complete=`{task_status.get('complete', 0)}` cancelled=`{task_status.get('cancelled', 0)}`",
+            "",
+            "## Recent Events",
+        ]
+    )
+    recent_events = payload.get("recent_events_summary") or {}
+    lines.append(f"- audit_events=`{recent_events.get('audit_event_count', 0)}` roadmap_events=`{recent_events.get('roadmap_event_count', 0)}`")
+    for event in list(recent_events.get("recent_audit_events", []))[:5]:
+        lines.append(f"- audit `{event.get('created_at', '')}` `{event.get('event_type', '')}` work_item=`{event.get('work_item_id', '')}`")
+    for event in list(recent_events.get("recent_roadmap_events", []))[:5]:
+        lines.append(f"- roadmap `{event.get('created_at', '')}` `{event.get('event_type', '')}` task=`{event.get('task_id', '')}`")
+
+    lines.extend(["", "## Next Safe Actions"])
+    for action in payload.get("next_safe_actions", []):
+        lines.append(f"- {action}")
+    return "\n".join(lines).rstrip() + "\n"
+
+
 def render_start_work_item_markdown(payload: dict[str, Any]) -> str:
     lines = [
         "# Start Work Item",

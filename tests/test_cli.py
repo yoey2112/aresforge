@@ -45,6 +45,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-queue-work-state",
         "inspect-work-item-readiness",
         "inspect-queue-readiness",
+        "inspect-project-queue-dashboard",
         "inspect-roadmap-work-item-links",
         "inspect-project-state",
         "inspect-db-state",
@@ -4341,3 +4342,48 @@ def test_handoff_work_item_to_implementation_dispatch_parses_bom_details_file(
     assert exit_code == 0
     assert seen == {"actor": "local-test", "details": {"source": "unit-test"}}
     assert payload["ok"] is True
+
+
+def test_inspect_project_queue_dashboard_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    dashboard_payload = {
+        "ok": True,
+        "project_id": "project-aresforge",
+        "dashboard_status": "ready",
+    }
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(
+        cli,
+        "inspect_project_queue_dashboard",
+        lambda _conn, project_id="project-aresforge": dashboard_payload,
+    )
+    exit_code = cli.main(["inspect-project-queue-dashboard", "--format", "json"])
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload == dashboard_payload
+
+
+def test_inspect_project_queue_dashboard_dispatch_markdown(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    dashboard_payload = {
+        "ok": True,
+        "project_id": "project-aresforge",
+        "dashboard_status": "ready",
+    }
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(
+        cli,
+        "inspect_project_queue_dashboard",
+        lambda _conn, project_id="project-aresforge": dashboard_payload,
+    )
+    monkeypatch.setattr(
+        cli,
+        "render_project_queue_dashboard_markdown",
+        lambda _payload: "# Project Queue Dashboard\n",
+    )
+    exit_code = cli.main(["inspect-project-queue-dashboard", "--format", "markdown"])
+    output = capsys.readouterr().out
+    assert exit_code == 0
+    assert output == "# Project Queue Dashboard\n\n"

@@ -11,6 +11,7 @@ from aresforge.db.repository import (
     WORK_ITEM_ALLOWED_STATUSES,
     create_work_item_from_roadmap_task,
     inspect_roadmap_db,
+    inspect_project_queue_dashboard,
     inspect_work_item_readiness,
     move_work_item_queue_if_allowed,
     plan_work_item_queue_transition,
@@ -20,6 +21,7 @@ from aresforge.db.repository import (
     render_implementation_handoff_markdown,
     render_move_work_item_queue_markdown,
     render_queue_work_state_markdown,
+    render_project_queue_dashboard_markdown,
     render_queue_readiness_markdown,
     render_roadmap_events_markdown,
     render_work_item_queue_transition_plan_markdown,
@@ -866,6 +868,37 @@ def test_render_implementation_handoff_markdown_is_deterministic() -> None:
     assert "## Suggested Operator Prompt" in markdown
 
 
+def test_render_project_queue_dashboard_markdown_is_deterministic() -> None:
+    payload = {
+        "ok": True,
+        "project_id": "project-aresforge",
+        "dashboard_status": "ready",
+        "totals": {"total_work_items": 2, "active": 1, "blocked": 0, "ready": 1},
+        "queue_summaries": [
+            {
+                "queue_id": "queue-implementation",
+                "queue_name": "implementation",
+                "status": "active",
+                "total_items": 1,
+                "next_ready_work_items": [],
+                "blocked_work_items": [],
+            }
+        ],
+        "active_work_items": [{"work_item_id": "work-1", "queue_id": "queue-implementation", "status": "active", "readiness_status": "already_active", "roadmap_task_id": "rt-1"}],
+        "ready_work_items": [{"work_item_id": "work-2", "queue_id": "queue-triage", "status": "queued", "readiness_status": "ready", "roadmap_task_id": "rt-2"}],
+        "blocked_work_items": [],
+        "roadmap_summary": {"total_areas": 1, "total_milestones": 1, "total_tasks": 2, "tasks_by_status": {"planned": 1, "active": 1, "blocked": 0, "complete": 0, "cancelled": 0}},
+        "recent_events_summary": {"audit_event_count": 2, "roadmap_event_count": 3, "recent_audit_events": [], "recent_roadmap_events": []},
+        "next_safe_actions": ["Inspect queue readiness before mutating queue placement."],
+    }
+    markdown = render_project_queue_dashboard_markdown(payload)
+    assert "# Project Queue Dashboard" in markdown
+    assert "- Project ID: `project-aresforge`" in markdown
+    assert "## Queue Summaries" in markdown
+    assert "queue-implementation" in markdown
+    assert "## Next Safe Actions" in markdown
+
+
 def test_build_work_item_execution_dossier_missing_is_non_mutating(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -1367,6 +1400,106 @@ def test_handoff_work_item_to_implementation_allowed_moves_and_returns_dossier(
     assert payload["previous_queue_id"] == "queue-triage"
     assert payload["new_queue_id"] == "queue-implementation"
     assert payload["dossier"]["dossier_status"] == "active"
+
+
+def test_cli_parser_recognizes_project_queue_dashboard_formats() -> None:
+    parser = build_parser()
+    dashboard_json_args = parser.parse_args(["inspect-project-queue-dashboard", "--format", "json"])
+    assert dashboard_json_args.command == "inspect-project-queue-dashboard"
+    assert dashboard_json_args.format == "json"
+    dashboard_markdown_args = parser.parse_args(["inspect-project-queue-dashboard", "--format", "markdown"])
+    assert dashboard_markdown_args.command == "inspect-project-queue-dashboard"
+    assert dashboard_markdown_args.format == "markdown"
+
+
+def test_inspect_project_queue_dashboard_empty_is_stable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(repository_module, "inspect_queue_readiness", lambda *_args, **_kwargs: {"ok": True, "counts": {}, "work_items": []})
+    monkeypatch.setattr(repository_module, "list_queues", lambda *_args, **_kwargs: [])
+    monkeypatch.setattr(
+        repository_module,
+        "_inspect_project_work_item_status_counts",
+        lambda *_args, **_kwargs: (
+            {},
+            {"total_work_items": 0, "queued": 0, "active": 0, "blocked": 0, "complete": 0, "cancelled": 0},
+        ),
+    )
+    monkeypatch.setattr(
+        repository_module,
+        "inspect_roadmap_db",
+        lambda *_args, **_kwargs: {"counts": {"areas": 0, "milestones": 0, "tasks": 0}, "tasks": []},
+    )
+    monkeypatch.setattr(
+        repository_module,
+        "_inspect_recent_event_summary",
+        lambda *_args, **_kwargs: {"audit_event_count": 0, "roadmap_event_count": 0, "recent_audit_events": [], "recent_roadmap_events": []},
+    )
+    payload = inspect_project_queue_dashboard(_FakeConnection())
+    assert payload["ok"] is True
+    assert payload["totals"]["total_work_items"] == 0
+    assert payload["queue_summaries"] == []
+    assert payload["active_work_items"] == []
+
+
+def test_inspect_project_queue_dashboard_queue_summaries_are_deterministic(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        repository_module,
+        "inspect_queue_readiness",
+        lambda _conn, queue_id=None, project_id="project-aresforge": {
+            "ok": True,
+            "counts": {"ready": 1, "already_active": 1} if queue_id is None else {"ready": 0, "already_active": 1},
+            "work_items": [
+                {
+                    "work_item_id": "work-1",
+                    "readiness_status": "already_active",
+                    "ready": False,
+                    "next_safe_action": "Continue.",
+                    "work_item": {"id": "work-1", "title": "W1", "status": "active", "queue_id": "queue-implementation"},
+                    "roadmap_links": [{"roadmap_task_id": "rt-1"}],
+                }
+            ]
+            if queue_id == "queue-implementation"
+            else [],
+        },
+    )
+    monkeypatch.setattr(
+        repository_module,
+        "list_queues",
+        lambda *_args, **_kwargs: [
+            {"id": "queue-triage", "name": "triage", "status": "active", "purpose": "triage", "allowed_next_queues": ["queue-implementation"]},
+            {"id": "queue-implementation", "name": "implementation", "status": "active", "purpose": "impl", "allowed_next_queues": ["queue-verification"]},
+        ],
+    )
+    monkeypatch.setattr(
+        repository_module,
+        "_inspect_project_work_item_status_counts",
+        lambda *_args, **_kwargs: (
+            {
+                "queue-implementation": {"queued": 0, "active": 1, "blocked": 0, "complete": 0, "cancelled": 0},
+                "queue-triage": {"queued": 1, "active": 0, "blocked": 0, "complete": 0, "cancelled": 0},
+            },
+            {"total_work_items": 2, "queued": 1, "active": 1, "blocked": 0, "complete": 0, "cancelled": 0},
+        ),
+    )
+    monkeypatch.setattr(
+        repository_module,
+        "inspect_roadmap_db",
+        lambda *_args, **_kwargs: {"counts": {"areas": 1, "milestones": 1, "tasks": 1}, "tasks": [{"status": "planned"}]},
+    )
+    monkeypatch.setattr(
+        repository_module,
+        "_inspect_recent_event_summary",
+        lambda *_args, **_kwargs: {"audit_event_count": 1, "roadmap_event_count": 1, "recent_audit_events": [], "recent_roadmap_events": []},
+    )
+    payload = inspect_project_queue_dashboard(_FakeConnection())
+    assert [row["queue_id"] for row in payload["queue_summaries"]] == [
+        "queue-implementation",
+        "queue-triage",
+    ]
+    assert payload["totals"]["active"] == 1
 
 
 def test_plan_work_item_queue_transition_missing_work_item_shape(
