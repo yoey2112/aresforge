@@ -25,6 +25,9 @@ from aresforge.db.repository import (
     list_projects,
     list_queues,
     list_work_items,
+    inspect_roadmap_db,
+    render_roadmap_markdown,
+    seed_aresforge_roadmap,
     store_evidence_record,
     store_prompt_record,
     WorkItemCreate,
@@ -246,6 +249,23 @@ def build_parser() -> argparse.ArgumentParser:
         "--plan",
         action="store_true",
         help="List pending migration files without applying them.",
+    )
+    subparsers.add_parser(
+        "init-roadmap-schema",
+        help="Apply migrations and bootstrap reference data for roadmap schema foundation.",
+    )
+    subparsers.add_parser(
+        "seed-aresforge-roadmap",
+        help="Apply migrations, bootstrap references, and seed roadmap control data.",
+    )
+    inspect_roadmap_db_parser = subparsers.add_parser(
+        "inspect-roadmap-db",
+        help="Inspect DB-backed roadmap control state without mutation.",
+    )
+    inspect_roadmap_db_parser.add_argument(
+        "--format",
+        choices=("json", "markdown"),
+        default="json",
     )
 
     subparsers.add_parser("inspect-db-state", help="Show local database state summary.")
@@ -1749,6 +1769,39 @@ def main(argv: list[str] | None = None) -> int:
             applied = apply_migrations(conn, migrations_dir)
             bootstrap_reference_data(conn, config)
         emit_json({"applied_migrations": applied, "bootstrap": "ok"})
+        return 0
+
+    if args.command == "init-roadmap-schema":
+        migrations_dir = config.repo_root / "migrations"
+        with connect(config) as conn:
+            applied = apply_migrations(conn, migrations_dir)
+            bootstrap_reference_data(conn, config)
+        emit_json({"ok": True, "applied_migrations": applied, "bootstrap": "ok"})
+        return 0
+
+    if args.command == "seed-aresforge-roadmap":
+        migrations_dir = config.repo_root / "migrations"
+        with connect(config) as conn:
+            applied = apply_migrations(conn, migrations_dir)
+            bootstrap_reference_data(conn, config)
+            seed_summary = seed_aresforge_roadmap(conn)
+        emit_json(
+            {
+                "ok": True,
+                "applied_migrations": applied,
+                "bootstrap": "ok",
+                "seed": seed_summary,
+            }
+        )
+        return 0
+
+    if args.command == "inspect-roadmap-db":
+        with connect(config) as conn:
+            payload = inspect_roadmap_db(conn)
+        if args.format == "markdown":
+            print(render_roadmap_markdown(payload))
+            return 0
+        emit_json(payload)
         return 0
 
     if args.command == "inspect-db-state":

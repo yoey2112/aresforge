@@ -309,6 +309,22 @@ No broader implementation is required for this leg.
 
 ## 17. Handoff summary
 
+## 18. M1 schema foundation status note
+
+M1 now includes the first Postgres-backed roadmap control schema foundation via migration `migrations/0004_roadmap_control_schema.sql`, introducing:
+
+- `roadmap_areas`
+- `roadmap_milestones`
+- `roadmap_tasks`
+- `roadmap_task_dependencies`
+- `roadmap_events`
+
+Local CLI support was also added for this phase:
+
+- `init-roadmap-schema`
+- `seed-aresforge-roadmap`
+- `inspect-roadmap-db --format json|markdown`
+
 ### What was decided
 
 - AresForge should move toward Postgres as the authoritative live structured state layer for roadmap, control, validation, and completion tracking

@@ -1114,3 +1114,257 @@ def store_evidence_record(
             ),
         )
         return cur.fetchone()
+
+
+ROADMAP_SEED_AREAS: tuple[dict[str, Any], ...] = (
+    {"id": "ra-recovery-reconciliation", "name": "Recovery and Source-of-Truth Reconciliation"},
+    {"id": "ra-state-authority-lifecycle", "name": "State Authority and Lifecycle Model"},
+    {"id": "ra-managed-standardization", "name": "Managed Project Standardization"},
+    {"id": "ra-hub-command-center", "name": "Hub Command Center"},
+    {"id": "ra-local-queue-intake", "name": "Local Queue and Work Intake"},
+    {"id": "ra-agent-execution-runtime", "name": "Agent Execution Runtime"},
+    {"id": "ra-validation-doc-agents", "name": "Validation and Documentation Agents"},
+    {"id": "ra-agent-handoff", "name": "Agent-to-Agent Handoff"},
+    {"id": "ra-llm-provider-routing", "name": "LLM Provider Routing"},
+    {"id": "ra-github-sync-mutation", "name": "GitHub Sync and Mutation"},
+    {"id": "ra-reporting-audit", "name": "Reporting, Audit, and Completion Tracking"},
+    {"id": "ra-production-hardening", "name": "Production Hardening"},
+)
+
+ROADMAP_SEED_MILESTONES: tuple[dict[str, Any], ...] = (
+    {"id": "rm-01-audit-baseline", "name": "Audit baseline acceptance and source-of-truth reconciliation", "area_id": "ra-recovery-reconciliation"},
+    {"id": "rm-02-state-authority", "name": "State authority matrix and lifecycle contract", "area_id": "ra-state-authority-lifecycle"},
+    {"id": "rm-03-standardization", "name": "Managed-project standardization generator and verifier", "area_id": "ra-managed-standardization"},
+    {"id": "rm-04-hub-workbench", "name": "Hub roadmap visibility and active-project workbench alignment", "area_id": "ra-hub-command-center"},
+    {"id": "rm-05-queue-to-execution", "name": "Local queue-to-agent execution MVP using mock provider first", "area_id": "ra-agent-execution-runtime"},
+    {"id": "rm-06-validation-gates", "name": "Validation and documentation post-run gates", "area_id": "ra-validation-doc-agents"},
+    {"id": "rm-07-handoff-protocol", "name": "Agent-to-agent context handoff protocol", "area_id": "ra-agent-handoff"},
+    {"id": "rm-08-routing-contract", "name": "Provider-neutral LLM routing contract", "area_id": "ra-llm-provider-routing"},
+    {"id": "rm-09-github-gates", "name": "Optional GitHub sync/mutation reintroduction behind gates", "area_id": "ra-github-sync-mutation"},
+    {"id": "rm-10-production-ready", "name": "Production hardening and release readiness", "area_id": "ra-production-hardening"},
+)
+
+
+def _roadmap_seed_tasks() -> list[dict[str, Any]]:
+    return [
+        {
+            "id": f"rt-{index:02d}-starter",
+            "milestone_id": milestone["id"],
+            "title": f"Define starter scope for {milestone['name']}",
+            "description": "Capture the high-level implementation and acceptance boundaries for this milestone.",
+            "status": "planned",
+            "priority": "normal",
+        }
+        for index, milestone in enumerate(ROADMAP_SEED_MILESTONES, start=1)
+    ]
+
+
+def seed_aresforge_roadmap(conn: Connection) -> dict[str, Any]:
+    tasks = _roadmap_seed_tasks()
+    with conn.cursor() as cur:
+        for sort_order, area in enumerate(ROADMAP_SEED_AREAS, start=1):
+            cur.execute(
+                """
+                INSERT INTO roadmap_areas (id, project_id, name, status, sort_order, metadata)
+                VALUES (%s, %s, %s, %s, %s, %s::jsonb)
+                ON CONFLICT (id) DO UPDATE
+                SET project_id = EXCLUDED.project_id,
+                    name = EXCLUDED.name,
+                    status = EXCLUDED.status,
+                    sort_order = EXCLUDED.sort_order,
+                    updated_at = NOW()
+                """,
+                (area["id"], DEFAULT_PROJECT_ID, area["name"], "planned", sort_order, json.dumps({})),
+            )
+        for sort_order, milestone in enumerate(ROADMAP_SEED_MILESTONES, start=1):
+            cur.execute(
+                """
+                INSERT INTO roadmap_milestones (id, project_id, area_id, name, status, sort_order, metadata)
+                VALUES (%s, %s, %s, %s, %s, %s, %s::jsonb)
+                ON CONFLICT (id) DO UPDATE
+                SET project_id = EXCLUDED.project_id,
+                    area_id = EXCLUDED.area_id,
+                    name = EXCLUDED.name,
+                    status = EXCLUDED.status,
+                    sort_order = EXCLUDED.sort_order,
+                    updated_at = NOW()
+                """,
+                (
+                    milestone["id"],
+                    DEFAULT_PROJECT_ID,
+                    milestone["area_id"],
+                    milestone["name"],
+                    "planned",
+                    sort_order,
+                    json.dumps({}),
+                ),
+            )
+        for sort_order, task in enumerate(tasks, start=1):
+            cur.execute(
+                """
+                INSERT INTO roadmap_tasks (
+                    id, project_id, milestone_id, title, description, status, priority, sort_order, metadata
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb)
+                ON CONFLICT (id) DO UPDATE
+                SET project_id = EXCLUDED.project_id,
+                    milestone_id = EXCLUDED.milestone_id,
+                    title = EXCLUDED.title,
+                    description = EXCLUDED.description,
+                    status = EXCLUDED.status,
+                    priority = EXCLUDED.priority,
+                    sort_order = EXCLUDED.sort_order,
+                    updated_at = NOW()
+                """,
+                (
+                    task["id"],
+                    DEFAULT_PROJECT_ID,
+                    task["milestone_id"],
+                    task["title"],
+                    task["description"],
+                    task["status"],
+                    task["priority"],
+                    sort_order,
+                    json.dumps({}),
+                ),
+            )
+        cur.execute(
+            """
+            INSERT INTO roadmap_events (id, project_id, event_type, actor, summary, details)
+            VALUES (%s, %s, %s, %s, %s, %s::jsonb)
+            ON CONFLICT (id) DO UPDATE
+            SET summary = EXCLUDED.summary,
+                details = EXCLUDED.details
+            """,
+            (
+                "roadmap-event-seed-aresforge",
+                DEFAULT_PROJECT_ID,
+                "roadmap_seed",
+                "aresforge-cli",
+                "Seeded foundational roadmap control entities.",
+                json.dumps(
+                    {
+                        "area_ids": [item["id"] for item in ROADMAP_SEED_AREAS],
+                        "milestone_ids": [item["id"] for item in ROADMAP_SEED_MILESTONES],
+                        "task_ids": [item["id"] for item in tasks],
+                    }
+                ),
+            ),
+        )
+
+    return {
+        "ok": True,
+        "project_id": DEFAULT_PROJECT_ID,
+        "seeded": {
+            "areas": len(ROADMAP_SEED_AREAS),
+            "milestones": len(ROADMAP_SEED_MILESTONES),
+            "tasks": len(tasks),
+        },
+        "seeded_ids": {
+            "areas": [item["id"] for item in ROADMAP_SEED_AREAS],
+            "milestones": [item["id"] for item in ROADMAP_SEED_MILESTONES],
+            "tasks": [item["id"] for item in tasks],
+        },
+        "event_id": "roadmap-event-seed-aresforge",
+    }
+
+
+def inspect_roadmap_db(conn: Connection) -> dict[str, Any]:
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT id, project_id, name, description, status, sort_order, metadata, created_at, updated_at
+            FROM roadmap_areas
+            ORDER BY sort_order, id
+            """
+        )
+        areas = list(cur.fetchall())
+        cur.execute(
+            """
+            SELECT id, project_id, area_id, name, description, status, sort_order, metadata, created_at, updated_at
+            FROM roadmap_milestones
+            ORDER BY sort_order, id
+            """
+        )
+        milestones = list(cur.fetchall())
+        cur.execute(
+            """
+            SELECT id, project_id, milestone_id, title, description, status, priority, sort_order, metadata, created_at, updated_at
+            FROM roadmap_tasks
+            ORDER BY sort_order, id
+            """
+        )
+        tasks = list(cur.fetchall())
+        cur.execute(
+            """
+            SELECT task_id, depends_on_task_id, dependency_type, metadata, created_at
+            FROM roadmap_task_dependencies
+            ORDER BY task_id, depends_on_task_id
+            """
+        )
+        dependencies = list(cur.fetchall())
+        cur.execute(
+            """
+            SELECT id, project_id, area_id, milestone_id, task_id, event_type, actor, summary, details, created_at
+            FROM roadmap_events
+            ORDER BY created_at DESC, id DESC
+            LIMIT 50
+            """
+        )
+        events = list(cur.fetchall())
+    return {
+        "ok": True,
+        "project_id": DEFAULT_PROJECT_ID,
+        "counts": {
+            "areas": len(areas),
+            "milestones": len(milestones),
+            "tasks": len(tasks),
+            "task_dependencies": len(dependencies),
+            "events": len(events),
+        },
+        "areas": areas,
+        "milestones": milestones,
+        "tasks": tasks,
+        "task_dependencies": dependencies,
+        "events": events,
+    }
+
+
+def render_roadmap_markdown(payload: dict[str, Any]) -> str:
+    areas = payload.get("areas", [])
+    milestones = payload.get("milestones", [])
+    tasks = payload.get("tasks", [])
+    milestones_by_area: dict[str, list[dict[str, Any]]] = {}
+    tasks_by_milestone: dict[str, list[dict[str, Any]]] = {}
+    for milestone in milestones:
+        milestones_by_area.setdefault(milestone.get("area_id") or "", []).append(milestone)
+    for task in tasks:
+        tasks_by_milestone.setdefault(task.get("milestone_id") or "", []).append(task)
+
+    lines = [
+        "# Roadmap DB Inspection",
+        "",
+        f"- Project ID: `{payload.get('project_id', '')}`",
+        f"- Areas: `{payload.get('counts', {}).get('areas', 0)}`",
+        f"- Milestones: `{payload.get('counts', {}).get('milestones', 0)}`",
+        f"- Tasks: `{payload.get('counts', {}).get('tasks', 0)}`",
+        "",
+    ]
+    for area in areas:
+        lines.append(f"## Area: {area['name']} ({area['id']})")
+        lines.append(f"- Status: `{area['status']}`")
+        area_milestones = sorted(
+            milestones_by_area.get(area["id"], []),
+            key=lambda item: (item.get("sort_order", 0), item["id"]),
+        )
+        for milestone in area_milestones:
+            lines.append(f"### Milestone: {milestone['name']} ({milestone['id']})")
+            lines.append(f"- Status: `{milestone['status']}`")
+            milestone_tasks = sorted(
+                tasks_by_milestone.get(milestone["id"], []),
+                key=lambda item: (item.get("sort_order", 0), item["id"]),
+            )
+            for task in milestone_tasks:
+                lines.append(f"- Task: {task['title']} ({task['id']}) [{task['status']}]")
+        lines.append("")
+    return "\n".join(lines).rstrip() + "\n"
