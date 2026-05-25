@@ -113,6 +113,10 @@ def resolve_project_documentation_closeout_plan_path(repo_root: Path, project_id
     return (repo_root / ".aresforge" / "projects" / project_id.strip() / "documentation_closeout_plan.json").resolve()
 
 
+def resolve_project_execution_phase_approval_path(repo_root: Path, project_id: str) -> Path:
+    return (repo_root / ".aresforge" / "projects" / project_id.strip() / "execution_phase_approval.json").resolve()
+
+
 def create_project_factory_dossier(config: AppConfig, payload: dict[str, Any]) -> dict[str, Any]:
     dossier_path = resolve_project_factory_dossier_path(config.repo_root, str(payload.get("project_id", "")).strip())
     dossier_path.parent.mkdir(parents=True, exist_ok=True)
@@ -263,6 +267,18 @@ def inspect_project_factory_dossier(config: AppConfig, project_id: str) -> dict[
         "documentation_closeout_plan_approved",
     }:
         effective_lifecycle_state = documentation_closeout_plan_lifecycle_state
+    execution_phase_approval_payload = read_project_execution_phase_approval(config, project_id)
+    execution_phase_approval_lifecycle_state = ""
+    if execution_phase_approval_payload.get("execution_phase_approval_exists", False):
+        execution_phase_approval = execution_phase_approval_payload.get("execution_phase_approval", {})
+        if isinstance(execution_phase_approval, dict):
+            execution_phase_approval_lifecycle_state = str(execution_phase_approval.get("lifecycle_state", "")).strip()
+    if execution_phase_approval_lifecycle_state in {
+        "execution_phase_approval_prepared",
+        "execution_phase_approval_draft_updated",
+        "execution_phase_approval_approved",
+    }:
+        effective_lifecycle_state = execution_phase_approval_lifecycle_state
     payload["workflow_steps"] = _build_workflow_steps(
         lifecycle_state=effective_lifecycle_state,
         github_mode=github_mode,
@@ -2455,6 +2471,292 @@ def approve_project_documentation_closeout_plan(config: AppConfig, project_id: s
     }
 
 
+def read_project_execution_phase_approval(config: AppConfig, project_id: str) -> dict[str, Any]:
+    normalized_project_id = str(project_id or "").strip()
+    approval_path = resolve_project_execution_phase_approval_path(config.repo_root, normalized_project_id)
+    warnings: list[str] = []
+    if not approval_path.exists():
+        warnings.append(f"Execution phase approval not found for project: {normalized_project_id}")
+        return {
+            "ok": True,
+            "local_only": True,
+            "project_id": normalized_project_id,
+            "execution_phase_approval_path": str(approval_path),
+            "execution_phase_approval_exists": False,
+            "execution_phase_approval": {},
+            "warnings": warnings,
+            "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+        }
+    try:
+        loaded = json.loads(approval_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        warnings.append(f"Execution phase approval could not be parsed: {exc}")
+        loaded = {}
+    if not isinstance(loaded, dict):
+        warnings.append("Execution phase approval has invalid schema; expected JSON object.")
+        loaded = {}
+    return {
+        "ok": True,
+        "local_only": True,
+        "project_id": normalized_project_id,
+        "execution_phase_approval_path": str(approval_path),
+        "execution_phase_approval_exists": bool(loaded),
+        "execution_phase_approval": loaded,
+        "warnings": sorted(set(warnings)),
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+    }
+
+
+def prepare_project_execution_phase_approval(config: AppConfig, project_id: str) -> dict[str, Any]:
+    normalized_project_id = str(project_id or "").strip()
+    closeout_result = read_project_documentation_closeout_plan(config, normalized_project_id)
+    if not closeout_result.get("documentation_closeout_plan_exists", False):
+        return _error(
+            "documentation_closeout_plan_not_found",
+            {
+                "message": "Documentation closeout plan must be approved before preparing execution phase approval.",
+                "project_id": normalized_project_id,
+                "documentation_closeout_plan_path": closeout_result.get("documentation_closeout_plan_path", ""),
+            },
+        )
+    closeout_plan = dict(closeout_result.get("documentation_closeout_plan", {}))
+    if str(closeout_plan.get("lifecycle_state", "")).strip() != "documentation_closeout_plan_approved":
+        return _error(
+            "documentation_closeout_plan_not_approved",
+            {
+                "message": "Documentation closeout plan must be approved before preparing execution phase approval.",
+                "project_id": normalized_project_id,
+            },
+        )
+    now = _now_iso()
+    approval_path = resolve_project_execution_phase_approval_path(config.repo_root, normalized_project_id)
+    approval_path.parent.mkdir(parents=True, exist_ok=True)
+    lanes = [
+        {
+            "lane_id": "github_mutation_execution",
+            "status": "blocked",
+            "summary": "GitHub milestone/issue mutations remain blocked until explicitly approved.",
+            "warnings": ["No GitHub API or gh mutations are executed by this gate."],
+            "required_acknowledgement": "Acknowledge GitHub mutation execution remains disabled unless explicitly approved.",
+            "acknowledgement_text": "",
+        },
+        {
+            "lane_id": "validation_command_execution",
+            "status": "blocked",
+            "summary": "Validation command execution remains blocked until explicitly approved.",
+            "warnings": ["No validation commands are executed by this gate."],
+            "required_acknowledgement": "Acknowledge validation command execution remains disabled unless explicitly approved.",
+            "acknowledgement_text": "",
+        },
+        {
+            "lane_id": "documentation_update_execution",
+            "status": "blocked",
+            "summary": "Documentation updates remain blocked until explicitly approved.",
+            "warnings": ["No documentation files are changed by this gate."],
+            "required_acknowledgement": "Acknowledge documentation updates remain disabled unless explicitly approved.",
+            "acknowledgement_text": "",
+        },
+        {
+            "lane_id": "agent_model_execution",
+            "status": "blocked",
+            "summary": "Agent/model execution remains blocked until explicitly approved.",
+            "warnings": ["No local/cloud model or agent execution is performed by this gate."],
+            "required_acknowledgement": "Acknowledge agent/model execution remains disabled unless explicitly approved.",
+            "acknowledgement_text": "",
+        },
+        {
+            "lane_id": "project_closeout_execution",
+            "status": "blocked",
+            "summary": "Project closeout execution remains blocked until explicitly approved.",
+            "warnings": ["No closeout execution is performed by this gate."],
+            "required_acknowledgement": "Acknowledge project closeout execution remains disabled unless explicitly approved.",
+            "acknowledgement_text": "",
+        },
+    ]
+    approval = {
+        "schema_version": "1.0",
+        "project_id": normalized_project_id,
+        "created_at": now,
+        "updated_at": now,
+        "lifecycle_state": "execution_phase_approval_prepared",
+        "source": "local_project_factory",
+        "input": {
+            "approved_documentation_closeout_plan_summary": str(closeout_plan.get("closeout_summary", "")).strip(),
+            "documentation_plan_items_count": len((closeout_plan.get("documentation_plan", {}) or {}).get("documentation_items", [])),
+            "evidence_package_count": len((closeout_plan.get("documentation_plan", {}) or {}).get("evidence_packages", [])),
+            "closeout_check_count": len((closeout_plan.get("documentation_plan", {}) or {}).get("closeout_checks", [])),
+        },
+        "execution_lanes": lanes,
+        "overall_acknowledgement": "",
+        "approval_summary": "",
+        "operator_notes": "",
+        "local_only": True,
+        "github_mutation_status": "not_requested",
+        "validation_execution_status": "not_requested",
+        "documentation_execution_status": "not_requested",
+        "agent_execution_status": "not_requested",
+        "model_execution_status": "not_requested",
+        "project_closeout_status": "not_requested",
+        "next_recommended_action": "review_execution_phase_approval",
+        "audit_trail": [],
+    }
+    _append_execution_phase_approval_audit_entry(
+        approval,
+        event_type="execution_phase_approval_prepared",
+        lifecycle_state="execution_phase_approval_prepared",
+        summary="Execution phase approval prepared locally from approved documentation closeout plan.",
+    )
+    approval_path.write_text(json.dumps(approval, indent=2) + "\n", encoding="utf-8")
+    dossier_result = read_project_factory_dossier(config, normalized_project_id)
+    dossier = dict(dossier_result.get("dossier", {})) if dossier_result.get("dossier_exists", False) else {}
+    if dossier:
+        dossier["lifecycle_state"] = "execution_phase_approval_prepared"
+        dossier["next_recommended_action"] = "review_execution_phase_approval"
+        dossier["updated_at"] = now
+        create_project_factory_dossier(config, dossier)
+    return {
+        "ok": True,
+        "local_only": True,
+        "project_id": normalized_project_id,
+        "execution_phase_approval": approval,
+        "execution_phase_approval_path": str(approval_path),
+        "dossier_path": str(resolve_project_factory_dossier_path(config.repo_root, normalized_project_id)),
+        "warnings": sorted(set(closeout_result.get("warnings", []))),
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+    }
+
+
+def update_project_execution_phase_approval(config: AppConfig, project_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+    approval_result = read_project_execution_phase_approval(config, project_id)
+    normalized_project_id = str(approval_result.get("project_id", "")).strip()
+    if not approval_result.get("execution_phase_approval_exists", False):
+        return _error(
+            "execution_phase_approval_not_found",
+            {
+                "message": "Execution phase approval must be prepared before updating draft fields.",
+                "project_id": normalized_project_id,
+                "execution_phase_approval_path": approval_result.get("execution_phase_approval_path", ""),
+            },
+        )
+    approval = dict(approval_result.get("execution_phase_approval", {}))
+    now = _now_iso()
+    if "approval_summary" in payload:
+        approval["approval_summary"] = str(payload.get("approval_summary", "")).strip()
+    if "operator_notes" in payload:
+        approval["operator_notes"] = str(payload.get("operator_notes", "")).strip()
+    if "overall_acknowledgement" in payload:
+        approval["overall_acknowledgement"] = str(payload.get("overall_acknowledgement", "")).strip()
+    raw_lanes = payload.get("execution_lanes")
+    existing_lanes = [item for item in approval.get("execution_lanes", []) if isinstance(item, dict)]
+    if isinstance(raw_lanes, list):
+        lane_map = {str(item.get("lane_id", "")).strip(): dict(item) for item in existing_lanes}
+        for lane_update in raw_lanes:
+            if not isinstance(lane_update, dict):
+                continue
+            lane_id = str(lane_update.get("lane_id", "")).strip()
+            if not lane_id or lane_id not in lane_map:
+                continue
+            lane = dict(lane_map[lane_id])
+            if "status" in lane_update:
+                status = str(lane_update.get("status", "")).strip().lower()
+                if status in {"blocked", "approved"}:
+                    lane["status"] = status
+            for field in ("summary", "required_acknowledgement", "acknowledgement_text"):
+                if field in lane_update:
+                    lane[field] = str(lane_update.get(field, "")).strip()
+            if "warnings" in lane_update:
+                lane["warnings"] = _normalize_text_list(lane_update.get("warnings"))
+            lane_map[lane_id] = lane
+        approval["execution_lanes"] = [lane_map[str(item.get("lane_id", "")).strip()] for item in existing_lanes if str(item.get("lane_id", "")).strip() in lane_map]
+    approval["lifecycle_state"] = "execution_phase_approval_draft_updated"
+    approval["updated_at"] = now
+    approval["next_recommended_action"] = "approve_execution_phase_approval_or_continue_editing"
+    _append_execution_phase_approval_audit_entry(
+        approval,
+        event_type="execution_phase_approval_draft_updated",
+        lifecycle_state="execution_phase_approval_draft_updated",
+        summary="Execution phase approval draft fields were updated locally.",
+    )
+    approval_path = resolve_project_execution_phase_approval_path(config.repo_root, normalized_project_id)
+    approval_path.write_text(json.dumps(approval, indent=2) + "\n", encoding="utf-8")
+    dossier_result = read_project_factory_dossier(config, normalized_project_id)
+    dossier = dict(dossier_result.get("dossier", {})) if dossier_result.get("dossier_exists", False) else {}
+    if dossier:
+        dossier["lifecycle_state"] = "execution_phase_approval_draft_updated"
+        dossier["next_recommended_action"] = "approve_execution_phase_approval_or_continue_editing"
+        dossier["updated_at"] = now
+        create_project_factory_dossier(config, dossier)
+    return {
+        "ok": True,
+        "local_only": True,
+        "project_id": normalized_project_id,
+        "execution_phase_approval": approval,
+        "execution_phase_approval_path": str(approval_path),
+        "dossier_path": str(resolve_project_factory_dossier_path(config.repo_root, normalized_project_id)),
+        "warnings": sorted(set(approval_result.get("warnings", []))),
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+    }
+
+
+def approve_project_execution_phase_approval(config: AppConfig, project_id: str, approval_payload: dict[str, Any]) -> dict[str, Any]:
+    approval_result = read_project_execution_phase_approval(config, project_id)
+    normalized_project_id = str(approval_result.get("project_id", "")).strip()
+    if not approval_result.get("execution_phase_approval_exists", False):
+        return _error(
+            "execution_phase_approval_not_found",
+            {
+                "message": "Execution phase approval must be prepared before approval.",
+                "project_id": normalized_project_id,
+                "execution_phase_approval_path": approval_result.get("execution_phase_approval_path", ""),
+            },
+        )
+    approval = dict(approval_result.get("execution_phase_approval", {}))
+    lanes = [item for item in approval.get("execution_lanes", []) if isinstance(item, dict)]
+    approved_lanes = [lane for lane in lanes if str(lane.get("status", "")).strip() == "approved"]
+    for lane in approved_lanes:
+        if not str(lane.get("acknowledgement_text", "")).strip():
+            return _error(
+                "execution_phase_approval_validation_failed",
+                {"message": f"Lane '{str(lane.get('lane_id', '')).strip()}' is approved but missing acknowledgement_text."},
+            )
+    if not approved_lanes and not str(approval.get("overall_acknowledgement", "")).strip():
+        return _error(
+            "execution_phase_approval_validation_failed",
+            {"message": "Provide overall_acknowledgement when all execution lanes remain blocked."},
+        )
+    now = _now_iso()
+    approval["lifecycle_state"] = "execution_phase_approval_approved"
+    approval["updated_at"] = now
+    approval["approved_at"] = now
+    approval["approved_by"] = str(approval_payload.get("approved_by", "")).strip() or "local_operator"
+    approval["next_recommended_action"] = "execution_phase_gate_ready"
+    _append_execution_phase_approval_audit_entry(
+        approval,
+        event_type="execution_phase_approval_approved",
+        lifecycle_state="execution_phase_approval_approved",
+        summary="Execution phase approval gate approved locally; execution lanes remain explicit and operator-controlled.",
+    )
+    approval_path = resolve_project_execution_phase_approval_path(config.repo_root, normalized_project_id)
+    approval_path.write_text(json.dumps(approval, indent=2) + "\n", encoding="utf-8")
+    dossier_result = read_project_factory_dossier(config, normalized_project_id)
+    dossier = dict(dossier_result.get("dossier", {})) if dossier_result.get("dossier_exists", False) else {}
+    if dossier:
+        dossier["lifecycle_state"] = "execution_phase_approval_approved"
+        dossier["next_recommended_action"] = "execution_phase_gate_ready"
+        dossier["updated_at"] = now
+        create_project_factory_dossier(config, dossier)
+    return {
+        "ok": True,
+        "local_only": True,
+        "project_id": normalized_project_id,
+        "execution_phase_approval": approval,
+        "execution_phase_approval_path": str(approval_path),
+        "dossier_path": str(resolve_project_factory_dossier_path(config.repo_root, normalized_project_id)),
+        "warnings": sorted(set(approval_result.get("warnings", []))),
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+    }
+
+
 def start_new_project_factory(config: AppConfig, payload: dict[str, Any]) -> dict[str, Any]:
     name = str(payload.get("name", "")).strip()
     if not name:
@@ -2845,6 +3147,35 @@ def _append_documentation_closeout_plan_audit_entry(
     documentation_closeout_plan["audit_trail"] = audit_entries
 
 
+def _append_execution_phase_approval_audit_entry(
+    execution_phase_approval: dict[str, Any],
+    *,
+    event_type: str,
+    lifecycle_state: str,
+    summary: str,
+) -> None:
+    audit_entries = execution_phase_approval.get("audit_trail")
+    if not isinstance(audit_entries, list):
+        audit_entries = []
+    audit_entries.append(
+        {
+            "timestamp": _now_iso(),
+            "event_type": event_type,
+            "lifecycle_state": lifecycle_state,
+            "actor": "local_operator",
+            "summary": summary,
+            "local_only": True,
+            "github_mutation_status": "not_requested",
+            "validation_execution_status": "not_requested",
+            "documentation_execution_status": "not_requested",
+            "agent_execution_status": "not_requested",
+            "model_execution_status": "not_requested",
+            "project_closeout_status": "not_requested",
+        }
+    )
+    execution_phase_approval["audit_trail"] = audit_entries
+
+
 def _error(error: str, details: dict[str, Any]) -> dict[str, Any]:
     return {
         "ok": False,
@@ -2900,6 +3231,7 @@ def _build_workflow_steps(*, lifecycle_state: str, github_mode: str) -> list[dic
         github_apply_status = "completed"
         agent_dispatch_status = "current"
     documentation_status = "pending"
+    execution_phase_approval_status = "pending"
     closeout_status = "pending"
     if normalized_state == "agent_dispatch_plan_approved":
         github_apply_status = "completed"
@@ -2921,12 +3253,28 @@ def _build_workflow_steps(*, lifecycle_state: str, github_mode: str) -> list[dic
         agent_dispatch_status = "completed"
         validation_status = "completed"
         documentation_status = "current"
+        execution_phase_approval_status = "pending"
         closeout_status = "pending"
     if normalized_state == "documentation_closeout_plan_approved":
         github_apply_status = "completed"
         agent_dispatch_status = "completed"
         validation_status = "completed"
         documentation_status = "completed"
+        execution_phase_approval_status = "current"
+        closeout_status = "gated"
+    if normalized_state in {"execution_phase_approval_prepared", "execution_phase_approval_draft_updated"}:
+        github_apply_status = "completed"
+        agent_dispatch_status = "completed"
+        validation_status = "completed"
+        documentation_status = "completed"
+        execution_phase_approval_status = "current"
+        closeout_status = "gated"
+    if normalized_state == "execution_phase_approval_approved":
+        github_apply_status = "completed"
+        agent_dispatch_status = "completed"
+        validation_status = "completed"
+        documentation_status = "completed"
+        execution_phase_approval_status = "completed"
         closeout_status = "current"
     elif normalized_state == "milestone_issue_plan_approved":
         github_apply_status = "current"
@@ -3005,6 +3353,14 @@ def _build_workflow_steps(*, lifecycle_state: str, github_mode: str) -> list[dic
             "local_only": True,
             "gate_type": "none",
             "description": "Documentation is tracked as local approved planning only; no updates are executed in this gate.",
+        },
+        {
+            "step_id": "execution_phase_approval",
+            "label": "Execution Phase Approval",
+            "status": execution_phase_approval_status,
+            "local_only": True,
+            "gate_type": "user_approval",
+            "description": "Explicit local approval gate for future execution lanes; this gate executes nothing.",
         },
         {
             "step_id": "closeout",

@@ -6,6 +6,7 @@ from pathlib import Path
 from aresforge.config import AppConfig
 from aresforge.operator.local_project_factory import (
     approve_project_documentation_closeout_plan,
+    approve_project_execution_phase_approval,
     approve_project_validation_execution_plan,
     approve_project_agent_dispatch_plan,
     approve_project_architecture_contract,
@@ -15,6 +16,7 @@ from aresforge.operator.local_project_factory import (
     inspect_project_factory_dossier,
     prepare_project_architecture_contract,
     prepare_project_documentation_closeout_plan,
+    prepare_project_execution_phase_approval,
     prepare_project_agent_dispatch_plan,
     prepare_project_validation_execution_plan,
     prepare_project_github_apply_plan,
@@ -24,6 +26,7 @@ from aresforge.operator.local_project_factory import (
     read_project_agent_dispatch_plan,
     read_project_factory_dossier,
     read_project_documentation_closeout_plan,
+    read_project_execution_phase_approval,
     read_project_github_apply_plan,
     read_project_validation_execution_plan,
     read_project_milestone_issue_plan,
@@ -32,6 +35,7 @@ from aresforge.operator.local_project_factory import (
     resolve_project_agent_dispatch_plan_path,
     resolve_project_factory_dossier_path,
     resolve_project_documentation_closeout_plan_path,
+    resolve_project_execution_phase_approval_path,
     resolve_project_github_apply_plan_path,
     resolve_project_milestone_issue_plan_path,
     resolve_project_validation_execution_plan_path,
@@ -39,6 +43,7 @@ from aresforge.operator.local_project_factory import (
     start_new_project_factory,
     update_project_architecture_contract,
     update_project_documentation_closeout_plan,
+    update_project_execution_phase_approval,
     update_project_agent_dispatch_plan,
     update_project_github_apply_plan,
     update_project_milestone_issue_plan,
@@ -174,6 +179,7 @@ def test_inspect_project_factory_dossier_includes_workflow_steps(tmp_path: Path)
     assert "scope_project" in step_ids
     assert "github_apply" in step_ids
     assert "agent_dispatch" in step_ids
+    assert "execution_phase_approval" in step_ids
 
 
 def test_prepare_project_scope_package_writes_scope_package_and_updates_dossier(tmp_path: Path) -> None:
@@ -999,3 +1005,69 @@ def test_documentation_closeout_plan_lifecycle_and_validations(tmp_path: Path) -
     dossier = read_project_factory_dossier(config, bad_project)
     assert dossier["dossier"]["lifecycle_state"] == "documentation_closeout_plan_approved"
     assert dossier["dossier"]["next_recommended_action"] == "await_explicit_execution_phase_approval"
+
+
+def test_execution_phase_approval_lifecycle_and_validations(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    missing = read_project_execution_phase_approval(config, "missing-project")
+    assert missing["ok"] is True
+    assert missing["execution_phase_approval_exists"] is False
+
+    created = start_new_project_factory(config, _payload(tmp_path))
+    missing_closeout = prepare_project_execution_phase_approval(config, str(created["project"]["project_id"]))
+    assert missing_closeout["ok"] is False
+    assert missing_closeout["error"] == "documentation_closeout_plan_not_found"
+
+    project_id = _seed_github_apply_plan_approved(config, tmp_path)
+    prepare_project_agent_dispatch_plan(config, project_id)
+    update_project_agent_dispatch_plan(config, project_id, {"dispatch_summary": "summary", "approval_conditions": ["Agent execution approval is required before run."]})
+    approve_project_agent_dispatch_plan(config, project_id, {})
+    prepare_project_validation_execution_plan(config, project_id)
+    update_project_validation_execution_plan(config, project_id, {"validation_summary": "summary", "approval_conditions": ["Validation execution approval is required before run."]})
+    approve_project_validation_execution_plan(config, project_id, {})
+    prepare_project_documentation_closeout_plan(config, project_id)
+    unapproved_closeout = prepare_project_execution_phase_approval(config, project_id)
+    assert unapproved_closeout["ok"] is False
+    assert unapproved_closeout["error"] == "documentation_closeout_plan_not_approved"
+
+    update_project_documentation_closeout_plan(
+        config,
+        project_id,
+        {"closeout_summary": "Approved closeout plan", "approval_conditions": ["Documentation execution and project closeout require explicit operator approval."]},
+    )
+    approve_project_documentation_closeout_plan(config, project_id, {})
+
+    prepared = prepare_project_execution_phase_approval(config, project_id)
+    assert prepared["ok"] is True
+    approval_path = resolve_project_execution_phase_approval_path(tmp_path, project_id)
+    rendered = json.loads(approval_path.read_text(encoding="utf-8"))
+    assert rendered["lifecycle_state"] == "execution_phase_approval_prepared"
+    assert all(lane["status"] == "blocked" for lane in rendered["execution_lanes"])
+
+    updated = update_project_execution_phase_approval(
+        config,
+        project_id,
+        {
+            "overall_acknowledgement": "No execution lanes approved yet.",
+            "execution_lanes": [{"lane_id": "github_mutation_execution", "status": "approved", "acknowledgement_text": ""}],
+        },
+    )
+    assert updated["ok"] is True
+    assert updated["execution_phase_approval"]["lifecycle_state"] == "execution_phase_approval_draft_updated"
+
+    invalid = approve_project_execution_phase_approval(config, project_id, {})
+    assert invalid["ok"] is False
+    assert invalid["error"] == "execution_phase_approval_validation_failed"
+
+    update_project_execution_phase_approval(
+        config,
+        project_id,
+        {
+            "execution_lanes": [{"lane_id": "github_mutation_execution", "status": "approved", "acknowledgement_text": "Acknowledged and intentionally approved."}],
+        },
+    )
+    approved = approve_project_execution_phase_approval(config, project_id, {})
+    assert approved["ok"] is True
+    assert approved["execution_phase_approval"]["lifecycle_state"] == "execution_phase_approval_approved"
+    dossier = read_project_factory_dossier(config, project_id)
+    assert dossier["dossier"]["lifecycle_state"] == "execution_phase_approval_approved"

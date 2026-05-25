@@ -27,6 +27,7 @@ from aresforge.hub.api import (
     get_project_factory_architecture_contract,
     get_project_factory_agent_dispatch_plan,
     get_project_factory_documentation_closeout_plan,
+    get_project_factory_execution_phase_approval,
     get_project_factory_validation_execution_plan,
     get_project_factory_github_apply_plan,
     get_project_factory_milestone_issue_plan,
@@ -60,6 +61,7 @@ from aresforge.hub.api import (
     patch_project_factory_github_apply_plan,
     patch_project_factory_agent_dispatch_plan,
     patch_project_factory_documentation_closeout_plan,
+    patch_project_factory_execution_phase_approval,
     patch_project_factory_validation_execution_plan,
     patch_project_factory_milestone_issue_plan,
     patch_project_factory_scope_package,
@@ -71,6 +73,8 @@ from aresforge.hub.api import (
     post_project_factory_agent_dispatch_plan_approve,
     post_project_factory_documentation_closeout_plan,
     post_project_factory_documentation_closeout_plan_approve,
+    post_project_factory_execution_phase_approval,
+    post_project_factory_execution_phase_approval_approve,
     post_project_factory_validation_execution_plan,
     post_project_factory_validation_execution_plan_approve,
     post_project_repo,
@@ -724,6 +728,48 @@ def _build_handler(config: AppConfig, static_root: Path) -> type[BaseHTTPRequest
                     )
                     return True
                 payload = post_project_factory_documentation_closeout_plan_approve(config, body)
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+            if method == "GET" and path == "/api/project-factory/execution-phase-approval":
+                payload = get_project_factory_execution_phase_approval(
+                    config,
+                    {
+                        "project_id": query_values.get("project_id", [None])[0],
+                    },
+                )
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+            if method == "POST" and path == "/api/project-factory/execution-phase-approval":
+                if body is None:
+                    _render_json(
+                        self,
+                        HTTPStatus.BAD_REQUEST,
+                        {"ok": False, "local_only": True, "error": "invalid_json_body", "message": "Request body must be a JSON object."},
+                    )
+                    return True
+                payload = post_project_factory_execution_phase_approval(config, body)
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+            if method == "PATCH" and path == "/api/project-factory/execution-phase-approval":
+                if body is None:
+                    _render_json(
+                        self,
+                        HTTPStatus.BAD_REQUEST,
+                        {"ok": False, "local_only": True, "error": "invalid_json_body", "message": "Request body must be a JSON object."},
+                    )
+                    return True
+                payload = patch_project_factory_execution_phase_approval(config, body)
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+            if method == "POST" and path == "/api/project-factory/execution-phase-approval/approve":
+                if body is None:
+                    _render_json(
+                        self,
+                        HTTPStatus.BAD_REQUEST,
+                        {"ok": False, "local_only": True, "error": "invalid_json_body", "message": "Request body must be a JSON object."},
+                    )
+                    return True
+                payload = post_project_factory_execution_phase_approval_approve(config, body)
                 _render_json(self, _status_from_payload(payload), payload)
                 return True
 

@@ -202,6 +202,7 @@ const state = {
   agentDispatchPlan: null,
   validationExecutionPlan: null,
   documentationCloseoutPlan: null,
+  executionPhaseApproval: null,
 };
 
 function renderBootstrapStatus(payload) {
@@ -950,6 +951,30 @@ function buildDocumentationCloseoutPlanPayload() {
   });
 }
 
+function buildExecutionPhaseApprovalPayload() {
+  const laneFromField = (laneId, fieldId) => {
+    const acknowledgementText = byId(fieldId).value.trim();
+    return {
+      lane_id: laneId,
+      status: acknowledgementText ? "approved" : "blocked",
+      acknowledgement_text: acknowledgementText,
+    };
+  };
+  return prunePayload({
+    project_id: activeProjectId(),
+    approval_summary: byId("execution-phase-approval-summary").value.trim(),
+    operator_notes: byId("execution-phase-approval-operator-notes").value.trim(),
+    overall_acknowledgement: byId("execution-phase-overall-acknowledgement").value.trim(),
+    execution_lanes: [
+      laneFromField("github_mutation_execution", "execution-phase-ack-github-mutation-execution"),
+      laneFromField("validation_command_execution", "execution-phase-ack-validation-command-execution"),
+      laneFromField("documentation_update_execution", "execution-phase-ack-documentation-update-execution"),
+      laneFromField("agent_model_execution", "execution-phase-ack-agent-model-execution"),
+      laneFromField("project_closeout_execution", "execution-phase-ack-project-closeout-execution"),
+    ],
+  });
+}
+
 function renderMilestoneIssuePlan(payload) {
   state.milestoneIssuePlan = payload || null;
   const message = byId("home-milestone-plan-message");
@@ -1221,6 +1246,58 @@ function renderDocumentationCloseoutPlan(payload) {
   }
 }
 
+function renderExecutionPhaseApproval(payload) {
+  state.executionPhaseApproval = payload || null;
+  const message = byId("home-execution-phase-approval-message");
+  const stateLine = byId("home-execution-phase-approval-state");
+  const exists = Boolean(payload && payload.execution_phase_approval_exists);
+  const plan = (payload && payload.execution_phase_approval) || {};
+  if (!exists) {
+    byId("execution-phase-approval-summary").value = "";
+    byId("execution-phase-approval-operator-notes").value = "";
+    byId("execution-phase-overall-acknowledgement").value = "";
+    byId("execution-phase-ack-github-mutation-execution").value = "";
+    byId("execution-phase-ack-validation-command-execution").value = "";
+    byId("execution-phase-ack-documentation-update-execution").value = "";
+    byId("execution-phase-ack-agent-model-execution").value = "";
+    byId("execution-phase-ack-project-closeout-execution").value = "";
+    setCodeBlock("home-execution-phase-lanes", "home-execution-phase-lanes-empty", "");
+    setList("home-execution-phase-audit-trail", "home-execution-phase-audit-trail-empty", []);
+    if (message) {
+      message.textContent = "No Execution Phase Approval found. Approve the local Documentation Closeout Plan first.";
+    }
+    if (stateLine) {
+      stateLine.textContent = "Execution Phase Approval lifecycle state: not_started";
+    }
+    return;
+  }
+  byId("execution-phase-approval-summary").value = String(plan.approval_summary || "");
+  byId("execution-phase-approval-operator-notes").value = String(plan.operator_notes || "");
+  byId("execution-phase-overall-acknowledgement").value = String(plan.overall_acknowledgement || "");
+  const lanes = Array.isArray(plan.execution_lanes) ? plan.execution_lanes : [];
+  const laneMap = {};
+  lanes.forEach((lane) => {
+    laneMap[String(lane.lane_id || "")] = lane;
+  });
+  byId("execution-phase-ack-github-mutation-execution").value = String((laneMap.github_mutation_execution || {}).acknowledgement_text || "");
+  byId("execution-phase-ack-validation-command-execution").value = String((laneMap.validation_command_execution || {}).acknowledgement_text || "");
+  byId("execution-phase-ack-documentation-update-execution").value = String((laneMap.documentation_update_execution || {}).acknowledgement_text || "");
+  byId("execution-phase-ack-agent-model-execution").value = String((laneMap.agent_model_execution || {}).acknowledgement_text || "");
+  byId("execution-phase-ack-project-closeout-execution").value = String((laneMap.project_closeout_execution || {}).acknowledgement_text || "");
+  setCodeBlock("home-execution-phase-lanes", "home-execution-phase-lanes-empty", JSON.stringify(lanes, null, 2));
+  setList(
+    "home-execution-phase-audit-trail",
+    "home-execution-phase-audit-trail-empty",
+    (plan.audit_trail || []).map((entry) => `${entry.timestamp || "-"} | ${entry.event_type || "-"} | state=${entry.lifecycle_state || "-"} | actor=${entry.actor || "-"}`)
+  );
+  if (message) {
+    message.textContent = "This is a local execution approval gate only. It does not execute GitHub mutations, validation commands, documentation updates, agents/models, or closeout.";
+  }
+  if (stateLine) {
+    stateLine.textContent = `Execution Phase Approval lifecycle state: ${plan.lifecycle_state || "not_started"}`;
+  }
+}
+
 async function loadScopePackage(projectId) {
   const query = toQuery({ project_id: projectId || "" });
   const payload = await fetchJson(`/api/project-factory/scope-package${query}`, { method: "GET" });
@@ -1267,6 +1344,13 @@ async function loadDocumentationCloseoutPlan(projectId) {
   const query = toQuery({ project_id: projectId || "" });
   const payload = await fetchJson(`/api/project-factory/documentation-closeout-plan${query}`, { method: "GET" });
   renderDocumentationCloseoutPlan(payload);
+  return payload;
+}
+
+async function loadExecutionPhaseApproval(projectId) {
+  const query = toQuery({ project_id: projectId || "" });
+  const payload = await fetchJson(`/api/project-factory/execution-phase-approval${query}`, { method: "GET" });
+  renderExecutionPhaseApproval(payload);
   return payload;
 }
 
@@ -1450,6 +1534,33 @@ async function approveDocumentationCloseoutPlan() {
   return payload;
 }
 
+async function prepareExecutionPhaseApproval() {
+  const payload = await fetchJson("/api/project-factory/execution-phase-approval", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(prunePayload({ project_id: activeProjectId() })),
+  });
+  return payload;
+}
+
+async function saveExecutionPhaseApprovalDraft() {
+  const payload = await fetchJson("/api/project-factory/execution-phase-approval", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(buildExecutionPhaseApprovalPayload()),
+  });
+  return payload;
+}
+
+async function approveExecutionPhaseApproval() {
+  const payload = await fetchJson("/api/project-factory/execution-phase-approval/approve", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(prunePayload({ project_id: activeProjectId() })),
+  });
+  return payload;
+}
+
 async function setActiveProject(projectId) {
   const payload = await fetchJson("/api/projects/active", {
     method: "POST",
@@ -1478,6 +1589,7 @@ async function loadProjects() {
   await loadAgentDispatchPlan(activeProjectId());
   await loadValidationExecutionPlan(activeProjectId());
   await loadDocumentationCloseoutPlan(activeProjectId());
+  await loadExecutionPhaseApproval(activeProjectId());
   setMessage("projects-message", payload.warnings && payload.warnings.length ? payload.warnings.join(" | ") : "Projects loaded.", payload.warnings && payload.warnings.length ? "warn" : "success");
 }
 
@@ -2712,6 +2824,42 @@ function bindForms() {
       setMessage("projects-message", String(error.message || error), "error");
     }
   });
+  on("home-prepare-execution-phase-approval", "click", async () => {
+    try {
+      setMessage("projects-message", "Preparing local Execution Phase Approval...", "loading");
+      await prepareExecutionPhaseApproval();
+      await loadExecutionPhaseApproval(activeProjectId());
+      await loadProjectFactoryDossier(activeProjectId());
+      await refreshSummaryAndReport();
+      setMessage("projects-message", "Execution phase approval prepared locally.", "success");
+    } catch (error) {
+      setMessage("projects-message", String(error.message || error), "error");
+    }
+  });
+  on("execution-phase-approval-save-draft", "click", async () => {
+    try {
+      setMessage("projects-message", "Saving local Execution Phase Approval draft...", "loading");
+      await saveExecutionPhaseApprovalDraft();
+      await loadExecutionPhaseApproval(activeProjectId());
+      await loadProjectFactoryDossier(activeProjectId());
+      await refreshSummaryAndReport();
+      setMessage("projects-message", "Execution phase approval draft saved.", "success");
+    } catch (error) {
+      setMessage("projects-message", String(error.message || error), "error");
+    }
+  });
+  on("execution-phase-approval-approve", "click", async () => {
+    try {
+      setMessage("projects-message", "Approving local Execution Phase Approval...", "loading");
+      await approveExecutionPhaseApproval();
+      await loadExecutionPhaseApproval(activeProjectId());
+      await loadProjectFactoryDossier(activeProjectId());
+      await refreshSummaryAndReport();
+      setMessage("projects-message", "Execution phase approval approved.", "success");
+    } catch (error) {
+      setMessage("projects-message", String(error.message || error), "error");
+    }
+  });
 }
 
 async function init() {
@@ -2776,6 +2924,11 @@ async function init() {
     await loadDocumentationCloseoutPlan(activeProjectId());
   } catch (_error) {
     renderDocumentationCloseoutPlan({ ok: true, documentation_closeout_plan_exists: false, documentation_closeout_plan: {} });
+  }
+  try {
+    await loadExecutionPhaseApproval(activeProjectId());
+  } catch (_error) {
+    renderExecutionPhaseApproval({ ok: true, execution_phase_approval_exists: false, execution_phase_approval: {} });
   }
 
   try {

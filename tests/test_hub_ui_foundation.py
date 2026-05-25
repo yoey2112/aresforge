@@ -240,6 +240,11 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "Save Closeout Draft" in index_text
     assert "Approve Closeout Plan" in index_text
     assert "This is a local documentation closeout plan only. It does not update docs, execute validation, run agents/models, or perform GitHub actions." in index_text
+    assert "Execution Phase Approval" in index_text
+    assert "Prepare Execution Phase Approval" in index_text
+    assert "Save Execution Approval Draft" in index_text
+    assert "Approve Execution Phase Gate" in index_text
+    assert "This is a local execution approval gate only. It does not execute GitHub mutations, validation commands, documentation updates, agents/models, or closeout." in index_text
     assert "wizard-project-name" in index_text
     assert "wizard-project-id" in index_text
     assert "wizard-project-type" in index_text
@@ -284,6 +289,8 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
         "/api/project-factory/validation-execution-plan/approve",
         "/api/project-factory/documentation-closeout-plan",
         "/api/project-factory/documentation-closeout-plan/approve",
+        "/api/project-factory/execution-phase-approval",
+        "/api/project-factory/execution-phase-approval/approve",
         "/api/projects/",
         "/github-link",
         "/api/bootstrap/status",
@@ -355,6 +362,9 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
         "home-prepare-documentation-closeout-plan",
         "documentation-closeout-plan-save-draft",
         "documentation-closeout-plan-approve",
+        "home-prepare-execution-phase-approval",
+        "execution-phase-approval-save-draft",
+        "execution-phase-approval-approve",
     ):
         assert action_id in app_text
     assert "parseLineList" in app_text

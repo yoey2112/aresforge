@@ -308,6 +308,33 @@
             <ul id="home-documentation-closeout-audit-trail" class="list"></ul>
             <p id="home-documentation-closeout-audit-trail-empty" class="empty">No documentation closeout plan audit trail entries yet.</p>
           </section>
+          <section class="subpanel">
+            <h3>Execution Phase Approval</h3>
+            <p id="home-execution-phase-approval-message" class="message-note">This is a local execution approval gate only. It does not execute GitHub mutations, validation commands, documentation updates, agents/models, or closeout.</p>
+            <p id="home-execution-phase-approval-state" class="message-note">Execution Phase Approval lifecycle state: not_started</p>
+            <form id="execution-phase-approval-form" class="form-grid">
+              <label class="full">Approval Summary<textarea id="execution-phase-approval-summary"></textarea></label>
+              <label class="full">Operator Notes<textarea id="execution-phase-approval-operator-notes"></textarea></label>
+              <label class="full">Overall Acknowledgement<textarea id="execution-phase-overall-acknowledgement"></textarea></label>
+              <h4 class="full">Lane Acknowledgements</h4>
+              <label class="full">GitHub Mutation Execution<textarea id="execution-phase-ack-github-mutation-execution"></textarea></label>
+              <label class="full">Validation Command Execution<textarea id="execution-phase-ack-validation-command-execution"></textarea></label>
+              <label class="full">Documentation Update Execution<textarea id="execution-phase-ack-documentation-update-execution"></textarea></label>
+              <label class="full">Agent/Model Execution<textarea id="execution-phase-ack-agent-model-execution"></textarea></label>
+              <label class="full">Project Closeout Execution<textarea id="execution-phase-ack-project-closeout-execution"></textarea></label>
+              <div class="quick-actions">
+                <button id="home-prepare-execution-phase-approval" type="button">Prepare Execution Phase Approval</button>
+                <button id="execution-phase-approval-save-draft" type="button">Save Execution Approval Draft</button>
+                <button id="execution-phase-approval-approve" type="button">Approve Execution Phase Gate</button>
+              </div>
+            </form>
+            <h4>Lane Statuses and Warnings</h4>
+            <pre id="home-execution-phase-lanes"></pre>
+            <p id="home-execution-phase-lanes-empty" class="empty">No execution lane statuses yet.</p>
+            <h4>Audit Trail Summary</h4>
+            <ul id="home-execution-phase-audit-trail" class="list"></ul>
+            <p id="home-execution-phase-audit-trail-empty" class="empty">No execution phase approval audit trail entries yet.</p>
+          </section>
 
           <section class="subpanel">
             <h3>Current Active Work</h3>
