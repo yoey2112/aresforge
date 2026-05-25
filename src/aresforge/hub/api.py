@@ -38,6 +38,7 @@ from aresforge.operator.local_bootstrap_wizard import (
     plan_bootstrap,
 )
 from aresforge.operator.local_project_factory import (
+    approve_project_documentation_closeout_plan,
     approve_project_validation_execution_plan,
     approve_project_agent_dispatch_plan,
     approve_project_github_apply_plan,
@@ -48,18 +49,21 @@ from aresforge.operator.local_project_factory import (
     approve_project_scope_package,
     inspect_project_factory_dossier,
     prepare_project_architecture_contract,
+    prepare_project_documentation_closeout_plan,
     prepare_project_agent_dispatch_plan,
     prepare_project_validation_execution_plan,
     prepare_project_github_apply_plan,
     prepare_project_milestone_issue_plan,
     prepare_project_scope_package,
     read_project_architecture_contract,
+    read_project_documentation_closeout_plan,
     read_project_agent_dispatch_plan,
     read_project_validation_execution_plan,
     read_project_github_apply_plan,
     read_project_milestone_issue_plan,
     read_project_scope_package,
     update_project_architecture_contract,
+    update_project_documentation_closeout_plan,
     update_project_agent_dispatch_plan,
     update_project_validation_execution_plan,
     update_project_github_apply_plan,
@@ -1571,6 +1575,127 @@ def post_project_factory_validation_execution_plan_approve(config: AppConfig, bo
         return _api_error(
             error,
             str(details.get("message", "Failed to approve local validation execution plan.")),
+            details=details,
+            status=status,
+        )
+    result["boundary_confirmations"] = list(dict.fromkeys(list(result.get("boundary_confirmations", [])) + list(_BOUNDARY_CONFIRMATIONS)))
+    return result
+
+
+def get_project_factory_documentation_closeout_plan(config: AppConfig, params: dict[str, str | None]) -> dict[str, Any]:
+    requested_project_id = str(params.get("project_id", "") or "").strip()
+    project_id = requested_project_id
+    warnings: list[str] = []
+    if not project_id:
+        active_payload = inspect_active_project(config)
+        project_id = str(active_payload.get("active_project_id", "")).strip()
+        if not project_id:
+            warnings.append("No active project selected. Approve local Validation Execution Plan first, then prepare documentation closeout plan.")
+            return {
+                "ok": True,
+                "local_only": True,
+                "project_id": "",
+                "documentation_closeout_plan_path": "",
+                "documentation_closeout_plan_exists": False,
+                "documentation_closeout_plan": {},
+                "warnings": sorted(set(warnings + list(active_payload.get("warnings", [])))),
+                "boundary_confirmations": list(
+                    dict.fromkeys(list(_BOUNDARY_CONFIRMATIONS) + list(active_payload.get("boundary_confirmations", [])))
+                ),
+            }
+    payload = read_project_documentation_closeout_plan(config, project_id)
+    payload["warnings"] = sorted(set(list(payload.get("warnings", [])) + warnings))
+    payload["boundary_confirmations"] = list(dict.fromkeys(list(payload.get("boundary_confirmations", [])) + list(_BOUNDARY_CONFIRMATIONS)))
+    return payload
+
+
+def post_project_factory_documentation_closeout_plan(config: AppConfig, body: dict[str, Any]) -> dict[str, Any]:
+    requested_project_id = str(body.get("project_id", "")).strip()
+    project_id = requested_project_id
+    if not project_id:
+        active_payload = inspect_active_project(config)
+        project_id = str(active_payload.get("active_project_id", "")).strip()
+        if not project_id:
+            return _api_error(
+                "active_project_required",
+                "project_id is required when no active project is selected.",
+                details={"required_fields": ["project_id"], "active_project_selected": False},
+                status=400,
+            )
+    result = prepare_project_documentation_closeout_plan(config, project_id)
+    if not result.get("ok", False):
+        error = str(result.get("error", "documentation_closeout_plan_prepare_failed"))
+        details = dict(result.get("details", {}))
+        status = 404 if error == "validation_execution_plan_not_found" else 409 if error == "validation_execution_plan_not_approved" else 400
+        return _api_error(
+            error,
+            str(details.get("message", "Failed to prepare local documentation closeout plan.")),
+            details=details,
+            status=status,
+        )
+    result["boundary_confirmations"] = list(dict.fromkeys(list(result.get("boundary_confirmations", [])) + list(_BOUNDARY_CONFIRMATIONS)))
+    return result
+
+
+def patch_project_factory_documentation_closeout_plan(config: AppConfig, body: dict[str, Any]) -> dict[str, Any]:
+    requested_project_id = str(body.get("project_id", "")).strip()
+    project_id = requested_project_id
+    if not project_id:
+        active_payload = inspect_active_project(config)
+        project_id = str(active_payload.get("active_project_id", "")).strip()
+        if not project_id:
+            return _api_error(
+                "active_project_required",
+                "project_id is required when no active project is selected.",
+                details={"required_fields": ["project_id"], "active_project_selected": False},
+                status=400,
+            )
+    editable_payload = {
+        "closeout_summary": body.get("closeout_summary"),
+        "operator_notes": body.get("operator_notes"),
+        "sequencing_notes": body.get("sequencing_notes"),
+        "dependency_notes": body.get("dependency_notes"),
+        "approval_conditions": body.get("approval_conditions"),
+        "known_risks": body.get("known_risks"),
+        "documentation_update_notes": body.get("documentation_update_notes"),
+        "evidence_collection_notes": body.get("evidence_collection_notes"),
+    }
+    result = update_project_documentation_closeout_plan(config, project_id, editable_payload)
+    if not result.get("ok", False):
+        error = str(result.get("error", "documentation_closeout_plan_update_failed"))
+        details = dict(result.get("details", {}))
+        status = 404 if error == "documentation_closeout_plan_not_found" else 400
+        return _api_error(
+            error,
+            str(details.get("message", "Failed to update local documentation closeout plan draft.")),
+            details=details,
+            status=status,
+        )
+    result["boundary_confirmations"] = list(dict.fromkeys(list(result.get("boundary_confirmations", [])) + list(_BOUNDARY_CONFIRMATIONS)))
+    return result
+
+
+def post_project_factory_documentation_closeout_plan_approve(config: AppConfig, body: dict[str, Any]) -> dict[str, Any]:
+    requested_project_id = str(body.get("project_id", "")).strip()
+    project_id = requested_project_id
+    if not project_id:
+        active_payload = inspect_active_project(config)
+        project_id = str(active_payload.get("active_project_id", "")).strip()
+        if not project_id:
+            return _api_error(
+                "active_project_required",
+                "project_id is required when no active project is selected.",
+                details={"required_fields": ["project_id"], "active_project_selected": False},
+                status=400,
+            )
+    result = approve_project_documentation_closeout_plan(config, project_id, {"approved_by": body.get("approved_by")})
+    if not result.get("ok", False):
+        error = str(result.get("error", "documentation_closeout_plan_approval_failed"))
+        details = dict(result.get("details", {}))
+        status = 404 if error == "documentation_closeout_plan_not_found" else 400
+        return _api_error(
+            error,
+            str(details.get("message", "Failed to approve local documentation closeout plan.")),
             details=details,
             status=status,
         )

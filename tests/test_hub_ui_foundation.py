@@ -235,6 +235,11 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "Save Validation Draft" in index_text
     assert "Approve Validation Plan" in index_text
     assert "This is a local validation plan only. It does not execute validation commands, agents, models, or GitHub actions." in index_text
+    assert "Documentation Closeout Plan" in index_text
+    assert "Prepare Documentation Closeout Plan" in index_text
+    assert "Save Closeout Draft" in index_text
+    assert "Approve Closeout Plan" in index_text
+    assert "This is a local documentation closeout plan only. It does not update docs, execute validation, run agents/models, or perform GitHub actions." in index_text
     assert "wizard-project-name" in index_text
     assert "wizard-project-id" in index_text
     assert "wizard-project-type" in index_text
@@ -277,6 +282,8 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
         "/api/project-factory/agent-dispatch-plan/approve",
         "/api/project-factory/validation-execution-plan",
         "/api/project-factory/validation-execution-plan/approve",
+        "/api/project-factory/documentation-closeout-plan",
+        "/api/project-factory/documentation-closeout-plan/approve",
         "/api/projects/",
         "/github-link",
         "/api/bootstrap/status",
@@ -345,6 +352,9 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
         "home-prepare-validation-execution-plan",
         "validation-execution-plan-save-draft",
         "validation-execution-plan-approve",
+        "home-prepare-documentation-closeout-plan",
+        "documentation-closeout-plan-save-draft",
+        "documentation-closeout-plan-approve",
     ):
         assert action_id in app_text
     assert "parseLineList" in app_text
@@ -361,6 +371,8 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
     assert "buildAgentDispatchPlanPayload" in app_text
     assert "renderValidationExecutionPlan" in app_text
     assert "buildValidationExecutionPlanPayload" in app_text
+    assert "renderDocumentationCloseoutPlan" in app_text
+    assert "buildDocumentationCloseoutPlanPayload" in app_text
     assert "home-github-apply-plan-milestones" in app_text
     assert "home-github-apply-plan-issues" in app_text
     assert "home-agent-dispatch-items" in app_text
@@ -368,6 +380,9 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
     assert "home-validation-execution-items" in app_text
     assert "home-validation-execution-groups" in app_text
     assert "home-validation-execution-evidence" in app_text
+    assert "home-documentation-closeout-items" in app_text
+    assert "home-documentation-closeout-evidence-packages" in app_text
+    assert "home-documentation-closeout-checks" in app_text
 
 
 def test_bootstrap_api_status_plan_apply(tmp_path: Path) -> None:

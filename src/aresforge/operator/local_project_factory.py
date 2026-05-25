@@ -109,6 +109,10 @@ def resolve_project_validation_execution_plan_path(repo_root: Path, project_id: 
     return (repo_root / ".aresforge" / "projects" / project_id.strip() / "validation_execution_plan.json").resolve()
 
 
+def resolve_project_documentation_closeout_plan_path(repo_root: Path, project_id: str) -> Path:
+    return (repo_root / ".aresforge" / "projects" / project_id.strip() / "documentation_closeout_plan.json").resolve()
+
+
 def create_project_factory_dossier(config: AppConfig, payload: dict[str, Any]) -> dict[str, Any]:
     dossier_path = resolve_project_factory_dossier_path(config.repo_root, str(payload.get("project_id", "")).strip())
     dossier_path.parent.mkdir(parents=True, exist_ok=True)
@@ -247,6 +251,18 @@ def inspect_project_factory_dossier(config: AppConfig, project_id: str) -> dict[
         "validation_execution_plan_approved",
     }:
         effective_lifecycle_state = validation_execution_plan_lifecycle_state
+    documentation_closeout_plan_payload = read_project_documentation_closeout_plan(config, project_id)
+    documentation_closeout_plan_lifecycle_state = ""
+    if documentation_closeout_plan_payload.get("documentation_closeout_plan_exists", False):
+        documentation_closeout_plan = documentation_closeout_plan_payload.get("documentation_closeout_plan", {})
+        if isinstance(documentation_closeout_plan, dict):
+            documentation_closeout_plan_lifecycle_state = str(documentation_closeout_plan.get("lifecycle_state", "")).strip()
+    if documentation_closeout_plan_lifecycle_state in {
+        "documentation_closeout_plan_prepared",
+        "documentation_closeout_plan_draft_updated",
+        "documentation_closeout_plan_approved",
+    }:
+        effective_lifecycle_state = documentation_closeout_plan_lifecycle_state
     payload["workflow_steps"] = _build_workflow_steps(
         lifecycle_state=effective_lifecycle_state,
         github_mode=github_mode,
@@ -2146,6 +2162,299 @@ def approve_project_validation_execution_plan(config: AppConfig, project_id: str
     }
 
 
+def read_project_documentation_closeout_plan(config: AppConfig, project_id: str) -> dict[str, Any]:
+    normalized_project_id = str(project_id or "").strip()
+    plan_path = resolve_project_documentation_closeout_plan_path(config.repo_root, normalized_project_id)
+    warnings: list[str] = []
+    if not plan_path.exists():
+        warnings.append(f"Documentation closeout plan not found for project: {normalized_project_id}")
+        return {
+            "ok": True,
+            "local_only": True,
+            "project_id": normalized_project_id,
+            "documentation_closeout_plan_path": str(plan_path),
+            "documentation_closeout_plan_exists": False,
+            "documentation_closeout_plan": {},
+            "warnings": warnings,
+            "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+        }
+    try:
+        loaded = json.loads(plan_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        warnings.append(f"Documentation closeout plan could not be parsed: {exc}")
+        loaded = {}
+    if not isinstance(loaded, dict):
+        warnings.append("Documentation closeout plan has invalid schema; expected JSON object.")
+        loaded = {}
+    return {
+        "ok": True,
+        "local_only": True,
+        "project_id": normalized_project_id,
+        "documentation_closeout_plan_path": str(plan_path),
+        "documentation_closeout_plan_exists": bool(loaded),
+        "documentation_closeout_plan": loaded,
+        "warnings": sorted(set(warnings)),
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+    }
+
+
+def prepare_project_documentation_closeout_plan(config: AppConfig, project_id: str) -> dict[str, Any]:
+    normalized_project_id = str(project_id or "").strip()
+    validation_result = read_project_validation_execution_plan(config, normalized_project_id)
+    if not validation_result.get("validation_execution_plan_exists", False):
+        return _error(
+            "validation_execution_plan_not_found",
+            {
+                "message": "Validation execution plan must be approved before preparing documentation closeout plan.",
+                "project_id": normalized_project_id,
+                "validation_execution_plan_path": validation_result.get("validation_execution_plan_path", ""),
+            },
+        )
+    validation_plan = dict(validation_result.get("validation_execution_plan", {}))
+    if str(validation_plan.get("lifecycle_state", "")).strip() != "validation_execution_plan_approved":
+        return _error(
+            "validation_execution_plan_not_approved",
+            {
+                "message": "Validation execution plan must be approved before preparing documentation closeout plan.",
+                "project_id": normalized_project_id,
+            },
+        )
+    now = _now_iso()
+    plan_path = resolve_project_documentation_closeout_plan_path(config.repo_root, normalized_project_id)
+    plan_path.parent.mkdir(parents=True, exist_ok=True)
+    validation_core = validation_plan.get("validation_plan", {}) if isinstance(validation_plan.get("validation_plan"), dict) else {}
+    validation_items = [item for item in validation_core.get("validation_items", []) if isinstance(item, dict)]
+    validation_groups = [item for item in validation_core.get("validation_groups", []) if isinstance(item, dict)]
+    evidence_expectations = [item for item in validation_core.get("evidence_expectations", []) if isinstance(item, dict)]
+    validation_input = validation_plan.get("input", {}) if isinstance(validation_plan.get("input"), dict) else {}
+    metadata = validation_input.get("repo_project_metadata", {}) if isinstance(validation_input.get("repo_project_metadata"), dict) else {}
+    documentation_items = [
+        {"documentation_id": "D1", "title": "BUILD_STATE update", "documentation_type": "build_state", "target_path": "BUILD_STATE.md", "description": "Capture the current local build state and summary notes.", "required": True, "execution_status": "not_executed", "evidence_status": "not_collected", "safety_notes": ["Local plan only; no documentation files are updated automatically."]},
+        {"documentation_id": "D2", "title": "AGENT_CONTEXT update", "documentation_type": "agent_context", "target_path": "AGENT_CONTEXT.md", "description": "Record final agent context and handoff notes for closeout.", "required": True, "execution_status": "not_executed", "evidence_status": "not_collected", "safety_notes": ["Local plan only; no agent execution performed."]},
+        {"documentation_id": "D3", "title": "ROADMAP update", "documentation_type": "roadmap", "target_path": "ROADMAP.md", "description": "Refresh roadmap status for completed local planning gates.", "required": True, "execution_status": "not_executed", "evidence_status": "not_collected", "safety_notes": ["Local plan only; roadmap is not changed by this operator gate."]},
+        {"documentation_id": "D4", "title": "LOCAL_OPERATOR_USAGE update", "documentation_type": "operator_usage", "target_path": "LOCAL_OPERATOR_USAGE.md", "description": "Document local operation instructions and boundaries for closeout.", "required": True, "execution_status": "not_executed", "evidence_status": "not_collected", "safety_notes": ["Local-only boundary remains enforced."]},
+        {"documentation_id": "D5", "title": "Validation summary", "documentation_type": "validation_summary", "target_path": "VALIDATION_SUMMARY.md", "description": "Summarize approved validation plan scope and expected results.", "required": True, "execution_status": "not_executed", "evidence_status": "not_collected", "safety_notes": ["Validation remains not executed in this milestone."]},
+        {"documentation_id": "D6", "title": "Evidence index", "documentation_type": "evidence_index", "target_path": "EVIDENCE_INDEX.md", "description": "Index expected evidence artifacts and validation references.", "required": True, "execution_status": "not_executed", "evidence_status": "not_collected", "safety_notes": ["Evidence collection is not performed by this gate."]},
+        {"documentation_id": "D7", "title": "Closeout summary", "documentation_type": "closeout_summary", "target_path": "CLOSEOUT_SUMMARY.md", "description": "Capture final closeout narrative and remaining gated approvals.", "required": True, "execution_status": "not_executed", "evidence_status": "not_collected", "safety_notes": ["Closeout execution requires explicit approval outside this gate."]},
+    ]
+    evidence_packages = [
+        {
+            "evidence_package_id": f"EP{idx}",
+            "title": str(evidence.get("description", "")).strip() or f"Evidence package {idx}",
+            "source_validation_ids": [str(evidence.get("validation_id", "")).strip()] if str(evidence.get("validation_id", "")).strip() else [],
+            "expected_evidence": [str(evidence.get("description", "")).strip()] if str(evidence.get("description", "")).strip() else [],
+            "status": "not_collected",
+            "required": bool(evidence.get("required", True)),
+        }
+        for idx, evidence in enumerate(evidence_expectations, start=1)
+    ]
+    closeout_checks = [
+        {"check_id": "C1", "title": "Validation plan approved", "description": "Validation execution plan is approved as a local plan-only prerequisite.", "status": "pending", "required": True},
+        {"check_id": "C2", "title": "Evidence expectations identified", "description": "Evidence expectations are captured for local closeout planning.", "status": "pending", "required": True},
+        {"check_id": "C3", "title": "Documentation targets identified", "description": "Documentation targets required for closeout are listed.", "status": "pending", "required": True},
+        {"check_id": "C4", "title": "GitHub execution not performed", "description": "GitHub mutations remain gated and not executed unless explicitly approved elsewhere.", "status": "pending", "required": True},
+        {"check_id": "C5", "title": "Agent/model execution not performed", "description": "Agent/model execution remains gated and not executed unless explicitly approved elsewhere.", "status": "pending", "required": True},
+    ]
+    plan = {
+        "schema_version": "1.0",
+        "project_id": normalized_project_id,
+        "created_at": now,
+        "updated_at": now,
+        "lifecycle_state": "documentation_closeout_plan_prepared",
+        "source": "local_project_factory",
+        "input": {
+            "approved_validation_execution_plan_summary": str(validation_plan.get("validation_summary", "")).strip(),
+            "validation_items": validation_items,
+            "validation_groups": validation_groups,
+            "evidence_expectations": evidence_expectations,
+            "repo_project_metadata": {
+                "github_owner": str(metadata.get("github_owner", "")).strip(),
+                "github_repo": str(metadata.get("github_repo", "")).strip(),
+                "github_url": str(metadata.get("github_url", "")).strip(),
+                "default_branch": str(metadata.get("default_branch", "")).strip(),
+                "github_mode": str(metadata.get("github_mode", "")).strip(),
+            },
+        },
+        "documentation_plan": {
+            "documentation_items": documentation_items,
+            "evidence_packages": evidence_packages,
+            "closeout_checks": closeout_checks,
+            "sequencing_notes": [],
+            "dependency_notes": [],
+        },
+        "closeout_summary": "",
+        "operator_notes": "",
+        "sequencing_notes": [],
+        "dependency_notes": [],
+        "approval_conditions": ["Documentation execution and project closeout require explicit operator approval."],
+        "known_risks": [],
+        "documentation_update_notes": [],
+        "evidence_collection_notes": [],
+        "local_only": True,
+        "documentation_execution_status": "not_requested",
+        "validation_execution_status": "not_requested",
+        "agent_execution_status": "not_requested",
+        "model_execution_status": "not_requested",
+        "github_mutation_status": "not_requested",
+        "requires_explicit_documentation_execution_approval": True,
+        "requires_explicit_closeout_approval": True,
+        "next_recommended_action": "review_documentation_closeout_plan",
+        "audit_trail": [],
+    }
+    _append_documentation_closeout_plan_audit_entry(
+        plan,
+        event_type="documentation_closeout_plan_prepared",
+        lifecycle_state="documentation_closeout_plan_prepared",
+        summary="Documentation closeout plan prepared locally from approved validation execution plan.",
+    )
+    plan_path.write_text(json.dumps(plan, indent=2) + "\n", encoding="utf-8")
+    dossier_result = read_project_factory_dossier(config, normalized_project_id)
+    dossier = dict(dossier_result.get("dossier", {})) if dossier_result.get("dossier_exists", False) else {}
+    if dossier:
+        dossier["lifecycle_state"] = "documentation_closeout_plan_prepared"
+        dossier["next_recommended_action"] = "review_documentation_closeout_plan"
+        dossier["updated_at"] = now
+        create_project_factory_dossier(config, dossier)
+    return {
+        "ok": True,
+        "local_only": True,
+        "project_id": normalized_project_id,
+        "documentation_closeout_plan": plan,
+        "documentation_closeout_plan_path": str(plan_path),
+        "dossier_path": str(resolve_project_factory_dossier_path(config.repo_root, normalized_project_id)),
+        "warnings": sorted(set(validation_result.get("warnings", []))),
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+    }
+
+
+def update_project_documentation_closeout_plan(config: AppConfig, project_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+    plan_result = read_project_documentation_closeout_plan(config, project_id)
+    normalized_project_id = str(plan_result.get("project_id", "")).strip()
+    if not plan_result.get("documentation_closeout_plan_exists", False):
+        return _error(
+            "documentation_closeout_plan_not_found",
+            {
+                "message": "Documentation closeout plan must be prepared before updating draft fields.",
+                "project_id": normalized_project_id,
+                "documentation_closeout_plan_path": plan_result.get("documentation_closeout_plan_path", ""),
+            },
+        )
+    plan = dict(plan_result.get("documentation_closeout_plan", {}))
+    now = _now_iso()
+    for field in ("closeout_summary", "operator_notes"):
+        if field in payload:
+            plan[field] = str(payload.get(field, "")).strip()
+    for field in ("sequencing_notes", "dependency_notes", "approval_conditions", "known_risks", "documentation_update_notes", "evidence_collection_notes"):
+        if field in payload:
+            plan[field] = _normalize_text_list(payload.get(field))
+    plan["lifecycle_state"] = "documentation_closeout_plan_draft_updated"
+    plan["updated_at"] = now
+    plan["documentation_execution_status"] = "not_requested"
+    plan["validation_execution_status"] = "not_requested"
+    plan["agent_execution_status"] = "not_requested"
+    plan["model_execution_status"] = "not_requested"
+    plan["github_mutation_status"] = "not_requested"
+    plan["next_recommended_action"] = "approve_documentation_closeout_plan_or_continue_editing"
+    _append_documentation_closeout_plan_audit_entry(
+        plan,
+        event_type="documentation_closeout_plan_draft_updated",
+        lifecycle_state="documentation_closeout_plan_draft_updated",
+        summary="Documentation closeout plan draft fields were updated locally.",
+    )
+    plan_path = resolve_project_documentation_closeout_plan_path(config.repo_root, normalized_project_id)
+    plan_path.write_text(json.dumps(plan, indent=2) + "\n", encoding="utf-8")
+    dossier_result = read_project_factory_dossier(config, normalized_project_id)
+    dossier = dict(dossier_result.get("dossier", {})) if dossier_result.get("dossier_exists", False) else {}
+    if dossier:
+        dossier["lifecycle_state"] = "documentation_closeout_plan_draft_updated"
+        dossier["next_recommended_action"] = "approve_documentation_closeout_plan_or_continue_editing"
+        dossier["updated_at"] = now
+        create_project_factory_dossier(config, dossier)
+    return {
+        "ok": True,
+        "local_only": True,
+        "project_id": normalized_project_id,
+        "documentation_closeout_plan": plan,
+        "documentation_closeout_plan_path": str(plan_path),
+        "dossier_path": str(resolve_project_factory_dossier_path(config.repo_root, normalized_project_id)),
+        "warnings": sorted(set(plan_result.get("warnings", []))),
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+    }
+
+
+def approve_project_documentation_closeout_plan(config: AppConfig, project_id: str, approval_payload: dict[str, Any]) -> dict[str, Any]:
+    plan_result = read_project_documentation_closeout_plan(config, project_id)
+    normalized_project_id = str(plan_result.get("project_id", "")).strip()
+    if not plan_result.get("documentation_closeout_plan_exists", False):
+        return _error(
+            "documentation_closeout_plan_not_found",
+            {
+                "message": "Documentation closeout plan must be prepared before approval.",
+                "project_id": normalized_project_id,
+                "documentation_closeout_plan_path": plan_result.get("documentation_closeout_plan_path", ""),
+            },
+        )
+    plan = dict(plan_result.get("documentation_closeout_plan", {}))
+    closeout_summary = str(plan.get("closeout_summary", "")).strip()
+    documentation_plan = plan.get("documentation_plan", {}) if isinstance(plan.get("documentation_plan"), dict) else {}
+    documentation_items = [item for item in documentation_plan.get("documentation_items", []) if isinstance(item, dict)]
+    evidence_packages = [item for item in documentation_plan.get("evidence_packages", []) if isinstance(item, dict)]
+    closeout_checks = [item for item in documentation_plan.get("closeout_checks", []) if isinstance(item, dict)]
+    approval_conditions = _normalize_text_list(plan.get("approval_conditions"))
+    if not closeout_summary:
+        return _error("documentation_closeout_plan_approval_validation_failed", {"message": "Closeout plan approval requires a non-empty closeout_summary."})
+    if not documentation_items:
+        return _error("documentation_closeout_plan_approval_validation_failed", {"message": "Closeout plan approval requires at least one documentation item."})
+    if not closeout_checks:
+        return _error("documentation_closeout_plan_approval_validation_failed", {"message": "Closeout plan approval requires at least one closeout check."})
+    if not evidence_packages and not any("no evidence package" in note.lower() for note in _normalize_text_list(plan.get("evidence_collection_notes"))):
+        return _error("documentation_closeout_plan_approval_validation_failed", {"message": "Closeout plan approval requires at least one evidence package or an explicit note explaining no evidence package is required."})
+    if not all(str(item.get("execution_status", "")).strip() == "not_executed" for item in documentation_items):
+        return _error("documentation_closeout_plan_approval_validation_failed", {"message": "All documentation item execution_status values must remain not_executed."})
+    if not all(str(item.get("evidence_status", "")).strip() == "not_collected" for item in documentation_items):
+        return _error("documentation_closeout_plan_approval_validation_failed", {"message": "All documentation item evidence_status values must remain not_collected."})
+    if not all(str(item.get("status", "")).strip() == "not_collected" for item in evidence_packages):
+        return _error("documentation_closeout_plan_approval_validation_failed", {"message": "All evidence package statuses must remain not_collected."})
+    if not any(("documentation execution approval" in value.lower() or "closeout approval" in value.lower() or "explicit operator approval" in value.lower()) for value in approval_conditions):
+        return _error("documentation_closeout_plan_approval_validation_failed", {"message": "Approval conditions must explicitly mention documentation execution approval or closeout approval."})
+    now = _now_iso()
+    plan["lifecycle_state"] = "documentation_closeout_plan_approved"
+    plan["updated_at"] = now
+    plan["approved_at"] = now
+    plan["approved_by"] = str(approval_payload.get("approved_by", "")).strip() or "local_operator"
+    plan["documentation_execution_status"] = "not_requested"
+    plan["validation_execution_status"] = "not_requested"
+    plan["agent_execution_status"] = "not_requested"
+    plan["model_execution_status"] = "not_requested"
+    plan["github_mutation_status"] = "not_requested"
+    plan["next_recommended_action"] = "await_explicit_execution_phase_approval"
+    _append_documentation_closeout_plan_audit_entry(
+        plan,
+        event_type="documentation_closeout_plan_approved",
+        lifecycle_state="documentation_closeout_plan_approved",
+        summary="Documentation closeout plan approved locally; no documentation or execution actions performed.",
+    )
+    plan_path = resolve_project_documentation_closeout_plan_path(config.repo_root, normalized_project_id)
+    plan_path.write_text(json.dumps(plan, indent=2) + "\n", encoding="utf-8")
+    dossier_result = read_project_factory_dossier(config, normalized_project_id)
+    dossier = dict(dossier_result.get("dossier", {})) if dossier_result.get("dossier_exists", False) else {}
+    if dossier:
+        dossier["lifecycle_state"] = "documentation_closeout_plan_approved"
+        dossier["next_recommended_action"] = "await_explicit_execution_phase_approval"
+        dossier["updated_at"] = now
+        create_project_factory_dossier(config, dossier)
+    return {
+        "ok": True,
+        "local_only": True,
+        "project_id": normalized_project_id,
+        "documentation_closeout_plan": plan,
+        "documentation_closeout_plan_path": str(plan_path),
+        "dossier_path": str(resolve_project_factory_dossier_path(config.repo_root, normalized_project_id)),
+        "warnings": sorted(set(plan_result.get("warnings", []))),
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+    }
+
+
 def start_new_project_factory(config: AppConfig, payload: dict[str, Any]) -> dict[str, Any]:
     name = str(payload.get("name", "")).strip()
     if not name:
@@ -2508,6 +2817,34 @@ def _append_validation_execution_plan_audit_entry(
     validation_execution_plan["audit_trail"] = audit_entries
 
 
+def _append_documentation_closeout_plan_audit_entry(
+    documentation_closeout_plan: dict[str, Any],
+    *,
+    event_type: str,
+    lifecycle_state: str,
+    summary: str,
+) -> None:
+    audit_entries = documentation_closeout_plan.get("audit_trail")
+    if not isinstance(audit_entries, list):
+        audit_entries = []
+    audit_entries.append(
+        {
+            "timestamp": _now_iso(),
+            "event_type": event_type,
+            "lifecycle_state": lifecycle_state,
+            "actor": "local_operator",
+            "summary": summary,
+            "local_only": True,
+            "documentation_execution_status": "not_requested",
+            "validation_execution_status": "not_requested",
+            "agent_execution_status": "not_requested",
+            "model_execution_status": "not_requested",
+            "github_mutation_status": "not_requested",
+        }
+    )
+    documentation_closeout_plan["audit_trail"] = audit_entries
+
+
 def _error(error: str, details: dict[str, Any]) -> dict[str, Any]:
     return {
         "ok": False,
@@ -2563,6 +2900,7 @@ def _build_workflow_steps(*, lifecycle_state: str, github_mode: str) -> list[dic
         github_apply_status = "completed"
         agent_dispatch_status = "current"
     documentation_status = "pending"
+    closeout_status = "pending"
     if normalized_state == "agent_dispatch_plan_approved":
         github_apply_status = "completed"
         agent_dispatch_status = "completed"
@@ -2577,6 +2915,19 @@ def _build_workflow_steps(*, lifecycle_state: str, github_mode: str) -> list[dic
         agent_dispatch_status = "completed"
         validation_status = "completed"
         documentation_status = "current"
+        closeout_status = "gated"
+    if normalized_state in {"documentation_closeout_plan_prepared", "documentation_closeout_plan_draft_updated"}:
+        github_apply_status = "completed"
+        agent_dispatch_status = "completed"
+        validation_status = "completed"
+        documentation_status = "current"
+        closeout_status = "pending"
+    if normalized_state == "documentation_closeout_plan_approved":
+        github_apply_status = "completed"
+        agent_dispatch_status = "completed"
+        validation_status = "completed"
+        documentation_status = "completed"
+        closeout_status = "current"
     elif normalized_state == "milestone_issue_plan_approved":
         github_apply_status = "current"
         agent_dispatch_status = "gated"
@@ -2653,14 +3004,14 @@ def _build_workflow_steps(*, lifecycle_state: str, github_mode: str) -> list[dic
             "status": documentation_status,
             "local_only": True,
             "gate_type": "none",
-            "description": "Capture docs and evidence updates.",
+            "description": "Documentation is tracked as local approved planning only; no updates are executed in this gate.",
         },
         {
             "step_id": "closeout",
             "label": "Closeout",
-            "status": "pending",
+            "status": closeout_status,
             "local_only": True,
             "gate_type": "none",
-            "description": "Finalize project closeout workflow.",
+            "description": "Closeout remains gated and not executed until explicit execution-phase approvals.",
         },
     ]

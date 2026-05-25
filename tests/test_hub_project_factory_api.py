@@ -6,12 +6,14 @@ from aresforge.config import AppConfig
 from aresforge.hub.api import (
     get_project_factory_architecture_contract,
     get_project_factory_agent_dispatch_plan,
+    get_project_factory_documentation_closeout_plan,
     get_project_factory_validation_execution_plan,
     get_project_factory_github_apply_plan,
     get_project_factory_milestone_issue_plan,
     get_project_factory_scope_package,
     patch_project_factory_architecture_contract,
     patch_project_factory_agent_dispatch_plan,
+    patch_project_factory_documentation_closeout_plan,
     patch_project_factory_validation_execution_plan,
     patch_project_factory_github_apply_plan,
     patch_project_factory_milestone_issue_plan,
@@ -23,6 +25,8 @@ from aresforge.hub.api import (
     post_project_factory_github_apply_plan_approve,
     post_project_factory_agent_dispatch_plan,
     post_project_factory_agent_dispatch_plan_approve,
+    post_project_factory_documentation_closeout_plan,
+    post_project_factory_documentation_closeout_plan_approve,
     post_project_factory_validation_execution_plan,
     post_project_factory_validation_execution_plan_approve,
     post_project_factory_architecture_contract_approve,
@@ -522,3 +526,56 @@ def test_validation_execution_plan_api_flows(tmp_path: Path) -> None:
     assert approved["validation_execution_plan"]["lifecycle_state"] == "validation_execution_plan_approved"
     assert approved["validation_execution_plan"]["local_only"] is True
     assert approved["validation_execution_plan"]["validation_execution_status"] == "not_requested"
+
+
+def test_documentation_closeout_plan_api_flows(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    friendly = get_project_factory_documentation_closeout_plan(config, {})
+    assert friendly["ok"] is True
+    assert friendly["documentation_closeout_plan_exists"] is False
+    assert friendly["warnings"]
+
+    _seed_architecture_approved(config, tmp_path)
+    post_project_factory_milestone_issue_plan(config, {})
+    patch_project_factory_milestone_issue_plan(config, {"planning_summary": "summary"})
+    post_project_factory_milestone_issue_plan_approve(config, {})
+    post_project_factory_github_apply_plan(config, {})
+    patch_project_factory_github_apply_plan(
+        config,
+        {"apply_summary": "apply summary", "approval_conditions": ["Explicit approval required; execution remains gated."]},
+    )
+    post_project_factory_github_apply_plan_approve(config, {})
+    post_project_factory_agent_dispatch_plan(config, {})
+    patch_project_factory_agent_dispatch_plan(
+        config,
+        {"dispatch_summary": "dispatch summary", "approval_conditions": ["Agent execution approval is required before run."]},
+    )
+    post_project_factory_agent_dispatch_plan_approve(config, {})
+    post_project_factory_validation_execution_plan(config, {})
+    gate = post_project_factory_documentation_closeout_plan(config, {})
+    assert gate["ok"] is False
+    assert gate["_status"] == 409
+
+    patch_project_factory_validation_execution_plan(
+        config,
+        {"validation_summary": "validation summary", "approval_conditions": ["Validation execution approval is required before run."]},
+    )
+    post_project_factory_validation_execution_plan_approve(config, {})
+    prepared = post_project_factory_documentation_closeout_plan(config, {})
+    assert prepared["ok"] is True
+
+    fetched = get_project_factory_documentation_closeout_plan(config, {})
+    assert fetched["ok"] is True
+    assert fetched["documentation_closeout_plan_exists"] is True
+
+    patched = patch_project_factory_documentation_closeout_plan(
+        config,
+        {"closeout_summary": "closeout summary", "approval_conditions": ["Documentation execution and project closeout require explicit operator approval."]},
+    )
+    assert patched["ok"] is True
+
+    approved = post_project_factory_documentation_closeout_plan_approve(config, {})
+    assert approved["ok"] is True
+    assert approved["documentation_closeout_plan"]["lifecycle_state"] == "documentation_closeout_plan_approved"
+    assert approved["documentation_closeout_plan"]["local_only"] is True
+    assert approved["documentation_closeout_plan"]["documentation_execution_status"] == "not_requested"

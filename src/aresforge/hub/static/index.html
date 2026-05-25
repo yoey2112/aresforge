@@ -275,6 +275,39 @@
             <ul id="home-validation-execution-audit-trail" class="list"></ul>
             <p id="home-validation-execution-audit-trail-empty" class="empty">No validation execution plan audit trail entries yet.</p>
           </section>
+          <section class="subpanel">
+            <h3>Documentation Closeout Plan</h3>
+            <p id="home-documentation-closeout-plan-message" class="message-note">This is a local documentation closeout plan only. It does not update docs, execute validation, run agents/models, or perform GitHub actions.</p>
+            <p id="home-documentation-closeout-plan-state" class="message-note">Documentation Closeout Plan lifecycle state: not_started</p>
+            <p id="home-documentation-closeout-plan-status" class="message-note">documentation_execution=not_requested | validation_execution=not_requested | agent_execution=not_requested | model_execution=not_requested</p>
+            <form id="documentation-closeout-plan-form" class="form-grid">
+              <label class="full">Closeout Summary<textarea id="documentation-closeout-summary"></textarea></label>
+              <label class="full">Operator Notes<textarea id="documentation-closeout-operator-notes"></textarea></label>
+              <label class="full">Sequencing Notes<textarea id="documentation-closeout-sequencing-notes" placeholder="One note per line"></textarea></label>
+              <label class="full">Dependency Notes<textarea id="documentation-closeout-dependency-notes" placeholder="One note per line"></textarea></label>
+              <label class="full">Approval Conditions<textarea id="documentation-closeout-approval-conditions" placeholder="One condition per line"></textarea></label>
+              <label class="full">Known Risks<textarea id="documentation-closeout-known-risks" placeholder="One risk per line"></textarea></label>
+              <label class="full">Documentation Update Notes<textarea id="documentation-closeout-update-notes" placeholder="One note per line"></textarea></label>
+              <label class="full">Evidence Collection Notes<textarea id="documentation-closeout-evidence-notes" placeholder="One note per line"></textarea></label>
+              <div class="quick-actions">
+                <button id="home-prepare-documentation-closeout-plan" type="button">Prepare Documentation Closeout Plan</button>
+                <button id="documentation-closeout-plan-save-draft" type="button">Save Closeout Draft</button>
+                <button id="documentation-closeout-plan-approve" type="button">Approve Closeout Plan</button>
+              </div>
+            </form>
+            <h4>Documentation Item Preview</h4>
+            <pre id="home-documentation-closeout-items"></pre>
+            <p id="home-documentation-closeout-items-empty" class="empty">No documentation items yet.</p>
+            <h4>Evidence Package Preview</h4>
+            <pre id="home-documentation-closeout-evidence-packages"></pre>
+            <p id="home-documentation-closeout-evidence-packages-empty" class="empty">No evidence packages yet.</p>
+            <h4>Closeout Check Preview</h4>
+            <pre id="home-documentation-closeout-checks"></pre>
+            <p id="home-documentation-closeout-checks-empty" class="empty">No closeout checks yet.</p>
+            <h4>Audit Trail Summary</h4>
+            <ul id="home-documentation-closeout-audit-trail" class="list"></ul>
+            <p id="home-documentation-closeout-audit-trail-empty" class="empty">No documentation closeout plan audit trail entries yet.</p>
+          </section>
 
           <section class="subpanel">
             <h3>Current Active Work</h3>

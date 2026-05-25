@@ -5,6 +5,7 @@ from pathlib import Path
 
 from aresforge.config import AppConfig
 from aresforge.operator.local_project_factory import (
+    approve_project_documentation_closeout_plan,
     approve_project_validation_execution_plan,
     approve_project_agent_dispatch_plan,
     approve_project_architecture_contract,
@@ -13,6 +14,7 @@ from aresforge.operator.local_project_factory import (
     approve_project_scope_package,
     inspect_project_factory_dossier,
     prepare_project_architecture_contract,
+    prepare_project_documentation_closeout_plan,
     prepare_project_agent_dispatch_plan,
     prepare_project_validation_execution_plan,
     prepare_project_github_apply_plan,
@@ -21,6 +23,7 @@ from aresforge.operator.local_project_factory import (
     read_project_architecture_contract,
     read_project_agent_dispatch_plan,
     read_project_factory_dossier,
+    read_project_documentation_closeout_plan,
     read_project_github_apply_plan,
     read_project_validation_execution_plan,
     read_project_milestone_issue_plan,
@@ -28,12 +31,14 @@ from aresforge.operator.local_project_factory import (
     resolve_project_architecture_contract_path,
     resolve_project_agent_dispatch_plan_path,
     resolve_project_factory_dossier_path,
+    resolve_project_documentation_closeout_plan_path,
     resolve_project_github_apply_plan_path,
     resolve_project_milestone_issue_plan_path,
     resolve_project_validation_execution_plan_path,
     resolve_project_scope_package_path,
     start_new_project_factory,
     update_project_architecture_contract,
+    update_project_documentation_closeout_plan,
     update_project_agent_dispatch_plan,
     update_project_github_apply_plan,
     update_project_milestone_issue_plan,
@@ -848,3 +853,149 @@ def test_validation_execution_plan_lifecycle_and_validations(tmp_path: Path) -> 
     dossier = read_project_factory_dossier(config, bad_project)
     assert dossier["dossier"]["lifecycle_state"] == "validation_execution_plan_approved"
     assert dossier["dossier"]["next_recommended_action"] == "prepare_documentation_closeout_plan"
+
+
+def test_documentation_closeout_plan_lifecycle_and_validations(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    missing = read_project_documentation_closeout_plan(config, "missing-project")
+    assert missing["ok"] is True
+    assert missing["documentation_closeout_plan_exists"] is False
+
+    created = start_new_project_factory(config, _payload(tmp_path))
+    missing_validation = prepare_project_documentation_closeout_plan(config, str(created["project"]["project_id"]))
+    assert missing_validation["ok"] is False
+    assert missing_validation["error"] == "validation_execution_plan_not_found"
+
+    project_id = _seed_github_apply_plan_approved(config, tmp_path)
+    prepare_project_agent_dispatch_plan(config, project_id)
+    update_project_agent_dispatch_plan(
+        config,
+        project_id,
+        {"dispatch_summary": "summary", "approval_conditions": ["Agent execution approval is required before run."]},
+    )
+    approve_project_agent_dispatch_plan(config, project_id, {})
+    prepare_project_validation_execution_plan(config, project_id)
+    unapproved_validation = prepare_project_documentation_closeout_plan(config, project_id)
+    assert unapproved_validation["ok"] is False
+    assert unapproved_validation["error"] == "validation_execution_plan_not_approved"
+
+    update_project_validation_execution_plan(
+        config,
+        project_id,
+        {"validation_summary": "summary", "approval_conditions": ["Validation execution approval is required before run."]},
+    )
+    approve_project_validation_execution_plan(config, project_id, {})
+    prepared = prepare_project_documentation_closeout_plan(config, project_id)
+    assert prepared["ok"] is True
+    plan_path = resolve_project_documentation_closeout_plan_path(tmp_path, project_id)
+    rendered = json.loads(plan_path.read_text(encoding="utf-8"))
+    assert rendered["lifecycle_state"] == "documentation_closeout_plan_prepared"
+    assert rendered["documentation_plan"]["documentation_items"]
+    assert rendered["documentation_plan"]["evidence_packages"] or rendered["input"]["evidence_expectations"] == []
+    assert rendered["documentation_plan"]["closeout_checks"]
+    assert any("BUILD_STATE" in str(item.get("title", "")) for item in rendered["documentation_plan"]["documentation_items"])
+    assert any("AGENT_CONTEXT" in str(item.get("title", "")) for item in rendered["documentation_plan"]["documentation_items"])
+    assert any("ROADMAP" in str(item.get("title", "")) for item in rendered["documentation_plan"]["documentation_items"])
+    assert any("LOCAL_OPERATOR_USAGE" in str(item.get("title", "")) for item in rendered["documentation_plan"]["documentation_items"])
+    assert rendered["documentation_plan"]["documentation_items"][0]["execution_status"] == "not_executed"
+    assert rendered["documentation_plan"]["documentation_items"][0]["evidence_status"] == "not_collected"
+
+    first_count = len(prepared["documentation_closeout_plan"].get("audit_trail", []))
+    updated = update_project_documentation_closeout_plan(
+        config,
+        project_id,
+        {
+            "closeout_summary": "closeout summary",
+            "approval_conditions": ["Documentation execution and project closeout require explicit operator approval."],
+        },
+    )
+    assert updated["ok"] is True
+    assert updated["documentation_closeout_plan"]["lifecycle_state"] == "documentation_closeout_plan_draft_updated"
+    assert len(updated["documentation_closeout_plan"].get("audit_trail", [])) > first_count
+    dossier = read_project_factory_dossier(config, project_id)
+    assert dossier["dossier"]["lifecycle_state"] == "documentation_closeout_plan_draft_updated"
+
+    bad_project = _seed_github_apply_plan_approved(config, tmp_path)
+    prepare_project_agent_dispatch_plan(config, bad_project)
+    update_project_agent_dispatch_plan(
+        config,
+        bad_project,
+        {"dispatch_summary": "summary", "approval_conditions": ["Agent execution approval is required before run."]},
+    )
+    approve_project_agent_dispatch_plan(config, bad_project, {})
+    prepare_project_validation_execution_plan(config, bad_project)
+    update_project_validation_execution_plan(
+        config,
+        bad_project,
+        {"validation_summary": "summary", "approval_conditions": ["Validation execution approval is required before run."]},
+    )
+    approve_project_validation_execution_plan(config, bad_project, {})
+    prepare_project_documentation_closeout_plan(config, bad_project)
+    no_summary = approve_project_documentation_closeout_plan(config, bad_project, {})
+    assert no_summary["ok"] is False
+
+    path = resolve_project_documentation_closeout_plan_path(tmp_path, bad_project)
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    raw["closeout_summary"] = "summary"
+    raw["approval_conditions"] = ["Documentation execution and project closeout require explicit operator approval."]
+    raw["documentation_plan"]["documentation_items"] = []
+    path.write_text(json.dumps(raw, indent=2) + "\n", encoding="utf-8")
+    assert approve_project_documentation_closeout_plan(config, bad_project, {})["ok"] is False
+
+    prepare_project_documentation_closeout_plan(config, bad_project)
+    updated_valid = update_project_documentation_closeout_plan(
+        config,
+        bad_project,
+        {
+            "closeout_summary": "summary",
+            "approval_conditions": ["Documentation execution and project closeout require explicit operator approval."],
+        },
+    )
+    tampered = updated_valid["documentation_closeout_plan"]
+    tampered["documentation_plan"]["evidence_packages"] = []
+    tampered["evidence_collection_notes"] = []
+    path.write_text(json.dumps(tampered, indent=2) + "\n", encoding="utf-8")
+    assert approve_project_documentation_closeout_plan(config, bad_project, {})["ok"] is False
+
+    tampered = updated_valid["documentation_closeout_plan"]
+    tampered["documentation_plan"]["documentation_items"][0]["execution_status"] = "executed"
+    path.write_text(json.dumps(tampered, indent=2) + "\n", encoding="utf-8")
+    assert approve_project_documentation_closeout_plan(config, bad_project, {})["ok"] is False
+
+    tampered = updated_valid["documentation_closeout_plan"]
+    tampered["documentation_plan"]["documentation_items"][0]["execution_status"] = "not_executed"
+    if not tampered["documentation_plan"]["evidence_packages"]:
+        prepare_project_documentation_closeout_plan(config, bad_project)
+        updated_valid = update_project_documentation_closeout_plan(
+            config,
+            bad_project,
+            {
+                "closeout_summary": "summary",
+                "approval_conditions": ["Documentation execution and project closeout require explicit operator approval."],
+            },
+        )
+        tampered = updated_valid["documentation_closeout_plan"]
+    tampered["documentation_plan"]["evidence_packages"][0]["status"] = "collected"
+    path.write_text(json.dumps(tampered, indent=2) + "\n", encoding="utf-8")
+    assert approve_project_documentation_closeout_plan(config, bad_project, {})["ok"] is False
+
+    prepare_project_documentation_closeout_plan(config, bad_project)
+    update_project_documentation_closeout_plan(
+        config,
+        bad_project,
+        {
+            "closeout_summary": "Approved closeout plan",
+            "approval_conditions": ["Documentation execution and project closeout require explicit operator approval."],
+            "sequencing_notes": ["s1"],
+            "dependency_notes": ["d1"],
+        },
+    )
+    approved = approve_project_documentation_closeout_plan(config, bad_project, {})
+    assert approved["ok"] is True
+    assert approved["documentation_closeout_plan"]["lifecycle_state"] == "documentation_closeout_plan_approved"
+    assert approved["documentation_closeout_plan"]["local_only"] is True
+    assert approved["documentation_closeout_plan"]["documentation_execution_status"] == "not_requested"
+    assert approved["documentation_closeout_plan"]["audit_trail"]
+    dossier = read_project_factory_dossier(config, bad_project)
+    assert dossier["dossier"]["lifecycle_state"] == "documentation_closeout_plan_approved"
+    assert dossier["dossier"]["next_recommended_action"] == "await_explicit_execution_phase_approval"
