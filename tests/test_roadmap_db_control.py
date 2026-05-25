@@ -15,7 +15,9 @@ from aresforge.db.repository import (
     move_work_item_queue_if_allowed,
     plan_work_item_queue_transition,
     build_work_item_execution_dossier,
+    handoff_work_item_to_implementation,
     render_start_work_item_markdown,
+    render_implementation_handoff_markdown,
     render_move_work_item_queue_markdown,
     render_queue_work_state_markdown,
     render_queue_readiness_markdown,
@@ -436,6 +438,30 @@ def test_cli_parser_recognizes_roadmap_commands_and_formats() -> None:
     assert move_queue_markdown_args.details_file == "details.json"
     assert move_queue_markdown_args.format == "markdown"
 
+    handoff_impl_json_args = parser.parse_args(
+        ["handoff-work-item-to-implementation", "--work-item-id", "work-1", "--format", "json"]
+    )
+    assert handoff_impl_json_args.command == "handoff-work-item-to-implementation"
+    assert handoff_impl_json_args.format == "json"
+
+    handoff_impl_markdown_args = parser.parse_args(
+        [
+            "handoff-work-item-to-implementation",
+            "--work-item-id",
+            "work-1",
+            "--actor",
+            "local-test",
+            "--details-file",
+            "details.json",
+            "--format",
+            "markdown",
+        ]
+    )
+    assert handoff_impl_markdown_args.command == "handoff-work-item-to-implementation"
+    assert handoff_impl_markdown_args.actor == "local-test"
+    assert handoff_impl_markdown_args.details_file == "details.json"
+    assert handoff_impl_markdown_args.format == "markdown"
+
     dossier_json_args = parser.parse_args(
         ["build-work-item-execution-dossier", "--work-item-id", "work-1", "--format", "json"]
     )
@@ -811,6 +837,32 @@ def test_render_work_item_execution_dossier_markdown_is_deterministic() -> None:
     assert "- Dossier status: `active`" in markdown
     assert "## Queue Transition Options" in markdown
     assert "target=`queue-blocked`" in markdown
+    assert "## Suggested Operator Prompt" in markdown
+
+
+def test_render_implementation_handoff_markdown_is_deterministic() -> None:
+    payload = {
+        "ok": True,
+        "changed": True,
+        "work_item_id": "work-1",
+        "previous_queue_id": "queue-triage",
+        "new_queue_id": "queue-implementation",
+        "transition_status": "moved",
+        "reason": "transition_applied",
+        "next_safe_action": "Inspect queue readiness or continue work item lifecycle.",
+        "move_result": {"ok": True, "changed": True},
+        "dossier": {
+            "dossier_status": "active",
+            "work_item": {"status": "active", "queue_id": "queue-implementation"},
+            "next_safe_action": "Inspect queue readiness or continue work item lifecycle.",
+            "suggested_operator_prompt": "Continue AresForge work item work-1.",
+        },
+    }
+    markdown = render_implementation_handoff_markdown(payload)
+    assert "# Implementation Handoff" in markdown
+    assert "- Work item ID: `work-1`" in markdown
+    assert "## Move Result" in markdown
+    assert "## Execution Dossier Summary" in markdown
     assert "## Suggested Operator Prompt" in markdown
 
 
@@ -1215,6 +1267,106 @@ def test_move_work_item_queue_if_allowed_allowed_target_updates_and_logs_events(
     executed_sql = "\n".join(sql for sql, _params in conn.last_cursor.executed)
     assert "UPDATE work_items" in executed_sql
     assert "INSERT INTO audit_events" in executed_sql
+
+
+def test_handoff_work_item_to_implementation_missing_is_non_mutating(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(repository_module, "inspect_work_item", lambda *_args, **_kwargs: None)
+    payload = handoff_work_item_to_implementation(_FakeConnection(), "work-missing")
+    assert payload["ok"] is False
+    assert payload["changed"] is False
+    assert payload["reason"] == "work_item_not_found"
+
+
+def test_handoff_work_item_to_implementation_already_in_implementation_is_non_mutating(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        repository_module,
+        "inspect_work_item",
+        lambda *_args, **_kwargs: {"id": "work-1", "queue_id": "queue-implementation"},
+    )
+    monkeypatch.setattr(
+        repository_module,
+        "build_work_item_execution_dossier",
+        lambda *_args, **_kwargs: {"ok": True, "dossier_status": "active"},
+    )
+    payload = handoff_work_item_to_implementation(_FakeConnection(), "work-1")
+    assert payload["ok"] is True
+    assert payload["changed"] is False
+    assert payload["reason"] == "already_in_implementation"
+    assert payload["dossier"]["dossier_status"] == "active"
+
+
+def test_handoff_work_item_to_implementation_blocked_transition_is_non_mutating(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        repository_module,
+        "inspect_work_item",
+        lambda *_args, **_kwargs: {"id": "work-1", "queue_id": "queue-triage"},
+    )
+    monkeypatch.setattr(
+        repository_module,
+        "plan_work_item_queue_transition",
+        lambda *_args, **_kwargs: {
+            "ok": True,
+            "can_transition": False,
+            "transition_status": "blocked",
+            "reason": "target_queue_not_allowed",
+            "next_safe_action": "Choose one of the allowed next queues.",
+            "blockers": [{"code": "target_queue_not_allowed"}],
+        },
+    )
+    payload = handoff_work_item_to_implementation(_FakeConnection(), "work-1")
+    assert payload["ok"] is True
+    assert payload["changed"] is False
+    assert payload["transition_status"] == "blocked"
+    assert payload["reason"] == "target_queue_not_allowed"
+
+
+def test_handoff_work_item_to_implementation_allowed_moves_and_returns_dossier(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        repository_module,
+        "inspect_work_item",
+        lambda *_args, **_kwargs: {"id": "work-1", "queue_id": "queue-triage"},
+    )
+    monkeypatch.setattr(
+        repository_module,
+        "plan_work_item_queue_transition",
+        lambda *_args, **_kwargs: {"ok": True, "can_transition": True},
+    )
+    monkeypatch.setattr(
+        repository_module,
+        "move_work_item_queue_if_allowed",
+        lambda *_args, **_kwargs: {
+            "ok": True,
+            "changed": True,
+            "previous_queue_id": "queue-triage",
+            "new_queue_id": "queue-implementation",
+            "transition_status": "moved",
+            "reason": "transition_applied",
+            "next_safe_action": "Inspect queue readiness or continue work item lifecycle.",
+        },
+    )
+    monkeypatch.setattr(
+        repository_module,
+        "build_work_item_execution_dossier",
+        lambda *_args, **_kwargs: {
+            "ok": True,
+            "dossier_status": "active",
+            "work_item": {"queue_id": "queue-implementation"},
+        },
+    )
+    payload = handoff_work_item_to_implementation(_FakeConnection(), "work-1")
+    assert payload["ok"] is True
+    assert payload["changed"] is True
+    assert payload["previous_queue_id"] == "queue-triage"
+    assert payload["new_queue_id"] == "queue-implementation"
+    assert payload["dossier"]["dossier_status"] == "active"
 
 
 def test_plan_work_item_queue_transition_missing_work_item_shape(

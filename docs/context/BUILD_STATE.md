@@ -15,6 +15,13 @@
 - The dossier packages readiness, lifecycle, queue context, roadmap links, dependencies, related events, and a suggested operator prompt.
 - M8 remains local-only and read-only. It does not execute agents, mutate GitHub, or implement Hub UI.
 
+## M9 Local Implementation Handoff Command
+
+- Added a local implementation handoff command:
+  - `python -m aresforge handoff-work-item-to-implementation --work-item-id <id> [--actor <actor>] [--details-file <path>] [--format json|markdown]`
+- The command reuses queue transition gates and returns a post-move execution dossier for the updated state.
+- M9 remains local-only and does not execute agents, call GitHub, or implement Hub UI.
+
 ## M46 Project Factory Source-of-Truth Realignment
 
 Current state on `main` includes M43-M45 and establishes a local-first Hub control plane plus a partial project-factory shell:

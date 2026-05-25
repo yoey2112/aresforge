@@ -33,6 +33,7 @@ from aresforge.db.repository import (
     inspect_work_item_readiness,
     inspect_work_item_lifecycle,
     build_work_item_execution_dossier,
+    handoff_work_item_to_implementation,
     start_work_item_if_ready,
     plan_work_item_queue_transition,
     move_work_item_queue_if_allowed,
@@ -44,6 +45,7 @@ from aresforge.db.repository import (
     render_work_item_readiness_markdown,
     render_work_item_lifecycle_markdown,
     render_work_item_execution_dossier_markdown,
+    render_implementation_handoff_markdown,
     render_start_work_item_markdown,
     render_work_item_queue_transition_plan_markdown,
     render_move_work_item_queue_markdown,
@@ -394,6 +396,18 @@ def build_parser() -> argparse.ArgumentParser:
     move_queue_parser.add_argument("--actor", default="local-operator")
     move_queue_parser.add_argument("--details-file")
     move_queue_parser.add_argument(
+        "--format",
+        choices=("json", "markdown"),
+        default="json",
+    )
+    handoff_implementation_parser = subparsers.add_parser(
+        "handoff-work-item-to-implementation",
+        help="Move one local work item to implementation when transition gates allow it, then return an execution dossier.",
+    )
+    handoff_implementation_parser.add_argument("--work-item-id", required=True)
+    handoff_implementation_parser.add_argument("--actor", default="local-operator")
+    handoff_implementation_parser.add_argument("--details-file")
+    handoff_implementation_parser.add_argument(
         "--format",
         choices=("json", "markdown"),
         default="json",
@@ -2253,6 +2267,25 @@ def main(argv: list[str] | None = None) -> int:
             )
         if args.format == "markdown":
             print(render_move_work_item_queue_markdown(payload))
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "handoff-work-item-to-implementation":
+        details, details_error = parse_details_input(None, getattr(args, "details_file", None))
+        if details_error is not None:
+            emit_json(details_error)
+            return 1
+        assert details is not None
+        with connect(config) as conn:
+            payload = handoff_work_item_to_implementation(
+                conn,
+                args.work_item_id,
+                actor=args.actor,
+                details=details,
+            )
+        if args.format == "markdown":
+            print(render_implementation_handoff_markdown(payload))
             return 0 if bool(payload.get("ok")) else 1
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1

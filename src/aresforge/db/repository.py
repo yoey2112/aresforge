@@ -2013,6 +2013,73 @@ def move_work_item_queue_if_allowed(
     }
 
 
+def handoff_work_item_to_implementation(
+    conn: Connection,
+    work_item_id: str,
+    *,
+    actor: str = "local-operator",
+    details: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    work_item = inspect_work_item(conn, work_item_id)
+    if work_item is None:
+        return {
+            "ok": False,
+            "changed": False,
+            "work_item_id": work_item_id,
+            "reason": "work_item_not_found",
+        }
+
+    current_queue_id = str(work_item.get("queue_id") or "")
+    if current_queue_id == "queue-implementation":
+        dossier = build_work_item_execution_dossier(conn, work_item_id)
+        return {
+            "ok": True,
+            "changed": False,
+            "work_item_id": work_item_id,
+            "previous_queue_id": current_queue_id,
+            "new_queue_id": current_queue_id,
+            "transition_status": "already_in_target_queue",
+            "reason": "already_in_implementation",
+            "next_safe_action": "Inspect queue readiness or continue work item lifecycle.",
+            "dossier": dossier,
+        }
+
+    plan = plan_work_item_queue_transition(conn, work_item_id, "queue-implementation")
+    if not bool(plan.get("can_transition")):
+        return {
+            "ok": bool(plan.get("ok")),
+            "changed": False,
+            "work_item_id": work_item_id,
+            "previous_queue_id": current_queue_id,
+            "new_queue_id": "queue-implementation",
+            "transition_status": plan.get("transition_status", "blocked"),
+            "reason": plan.get("reason", "transition_not_allowed"),
+            "next_safe_action": plan.get("next_safe_action"),
+            "plan": plan,
+        }
+
+    move_result = move_work_item_queue_if_allowed(
+        conn,
+        work_item_id,
+        "queue-implementation",
+        actor=actor,
+        details=details,
+    )
+    dossier = build_work_item_execution_dossier(conn, work_item_id)
+    return {
+        "ok": bool(move_result.get("ok")),
+        "changed": bool(move_result.get("changed")),
+        "work_item_id": work_item_id,
+        "previous_queue_id": move_result.get("previous_queue_id", current_queue_id),
+        "new_queue_id": move_result.get("new_queue_id", "queue-implementation"),
+        "transition_status": move_result.get("transition_status", "moved"),
+        "reason": move_result.get("reason", "transition_applied"),
+        "next_safe_action": move_result.get("next_safe_action"),
+        "move_result": move_result,
+        "dossier": dossier,
+    }
+
+
 def render_work_item_queue_transition_plan_markdown(payload: dict[str, Any]) -> str:
     current_queue = payload.get("current_queue") or {}
     target_queue = payload.get("target_queue") or {}
@@ -2070,6 +2137,49 @@ def render_move_work_item_queue_markdown(payload: dict[str, Any]) -> str:
             lines.append(f"- `{blocker.get('code', 'unknown')}` {json.dumps(blocker, sort_keys=True)}")
     else:
         lines.append("- none")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def render_implementation_handoff_markdown(payload: dict[str, Any]) -> str:
+    dossier = payload.get("dossier") or {}
+    lines = [
+        "# Implementation Handoff",
+        "",
+        f"- Work item ID: `{payload.get('work_item_id', '')}`",
+        f"- Changed: `{payload.get('changed', False)}`",
+        f"- Previous queue: `{payload.get('previous_queue_id', '')}`",
+        f"- New queue: `{payload.get('new_queue_id', '')}`",
+        f"- Transition status: `{payload.get('transition_status', '')}`",
+        f"- Reason: `{payload.get('reason', '')}`",
+        f"- Next safe action: {payload.get('next_safe_action', '')}",
+        "",
+        "## Blockers",
+    ]
+    blockers = []
+    if payload.get("plan"):
+        blockers = list((payload.get("plan") or {}).get("blockers", []))
+    elif payload.get("move_result"):
+        blockers = list((payload.get("move_result") or {}).get("blockers", []))
+    if blockers:
+        for blocker in blockers:
+            lines.append(f"- `{blocker.get('code', 'unknown')}` {json.dumps(blocker, sort_keys=True)}")
+    else:
+        lines.append("- none")
+    lines.extend(["", "## Move Result"])
+    if payload.get("move_result"):
+        lines.append(f"- {json.dumps(payload.get('move_result'), sort_keys=True)}")
+    else:
+        lines.append("- none")
+    lines.extend(["", "## Execution Dossier Summary"])
+    if dossier:
+        lines.append(f"- Dossier status: `{dossier.get('dossier_status', '')}`")
+        lines.append(f"- Work item status: `{(dossier.get('work_item') or {}).get('status', '')}`")
+        lines.append(f"- Current queue: `{(dossier.get('work_item') or {}).get('queue_id', '')}`")
+        lines.append(f"- Next safe action: {dossier.get('next_safe_action', '')}")
+    else:
+        lines.append("- none")
+    lines.extend(["", "## Suggested Operator Prompt"])
+    lines.append(dossier.get("suggested_operator_prompt", ""))
     return "\n".join(lines).rstrip() + "\n"
 
 

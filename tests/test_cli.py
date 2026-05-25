@@ -39,6 +39,7 @@ def test_cli_has_expected_commands() -> None:
         "start-work-item",
         "plan-work-item-queue-transition",
         "move-work-item-queue",
+        "handoff-work-item-to-implementation",
         "inspect-work-item-lifecycle",
         "build-work-item-execution-dossier",
         "inspect-queue-work-state",
@@ -4239,6 +4240,95 @@ def test_move_work_item_queue_dispatch_parses_bom_details_file(
             "work-1",
             "--target-queue-id",
             "queue-triage",
+            "--actor",
+            "local-test",
+            "--details-file",
+            str(details_path),
+            "--format",
+            "json",
+        ]
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert seen == {"actor": "local-test", "details": {"source": "unit-test"}}
+    assert payload["ok"] is True
+
+
+def test_handoff_work_item_to_implementation_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    handoff_payload = {
+        "ok": True,
+        "changed": True,
+        "work_item_id": "work-1",
+        "previous_queue_id": "queue-triage",
+        "new_queue_id": "queue-implementation",
+    }
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(
+        cli,
+        "handoff_work_item_to_implementation",
+        lambda _conn, _work_item_id, actor, details: handoff_payload,
+    )
+    exit_code = cli.main(
+        ["handoff-work-item-to-implementation", "--work-item-id", "work-1", "--format", "json"]
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload == handoff_payload
+
+
+def test_handoff_work_item_to_implementation_dispatch_markdown(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    handoff_payload = {
+        "ok": False,
+        "changed": False,
+        "work_item_id": "work-missing",
+        "reason": "work_item_not_found",
+    }
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(
+        cli,
+        "handoff_work_item_to_implementation",
+        lambda _conn, _work_item_id, actor, details: handoff_payload,
+    )
+    monkeypatch.setattr(
+        cli,
+        "render_implementation_handoff_markdown",
+        lambda _payload: "# Implementation Handoff\n",
+    )
+    exit_code = cli.main(
+        ["handoff-work-item-to-implementation", "--work-item-id", "work-missing", "--format", "markdown"]
+    )
+    output = capsys.readouterr().out
+    assert exit_code == 1
+    assert output == "# Implementation Handoff\n\n"
+
+
+def test_handoff_work_item_to_implementation_dispatch_parses_bom_details_file(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+) -> None:
+    details_path = tmp_path / "details-bom.json"
+    details_path.write_text('\ufeff{"source":"unit-test"}', encoding="utf-8")
+    seen: dict[str, object] = {}
+
+    def fake_handoff_work_item_to_implementation(
+        _conn: object, _work_item_id: str, actor: str, details: dict[str, object]
+    ) -> dict[str, object]:
+        seen["actor"] = actor
+        seen["details"] = details
+        return {"ok": True, "changed": False, "work_item_id": _work_item_id}
+
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(cli, "handoff_work_item_to_implementation", fake_handoff_work_item_to_implementation)
+    exit_code = cli.main(
+        [
+            "handoff-work-item-to-implementation",
+            "--work-item-id",
+            "work-1",
             "--actor",
             "local-test",
             "--details-file",
