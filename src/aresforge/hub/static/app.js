@@ -196,6 +196,7 @@ const state = {
   exportText: "",
   projectFactoryDossier: null,
   scopePackage: null,
+  architectureContract: null,
 };
 
 function renderBootstrapStatus(payload) {
@@ -794,10 +795,83 @@ function renderScopeAuthoring(payload) {
   }
 }
 
+function buildArchitectureAuthoringPayload() {
+  return prunePayload({
+    project_id: activeProjectId(),
+    architecture_summary: byId("architecture-summary").value.trim(),
+    system_components: parseLineList(byId("architecture-system-components").value),
+    data_model_notes: parseLineList(byId("architecture-data-model-notes").value),
+    integration_points: parseLineList(byId("architecture-integration-points").value),
+    security_considerations: parseLineList(byId("architecture-security-considerations").value),
+    deployment_notes: parseLineList(byId("architecture-deployment-notes").value),
+    testing_strategy: parseLineList(byId("architecture-testing-strategy").value),
+    documentation_plan: parseLineList(byId("architecture-documentation-plan").value),
+    open_questions: parseLineList(byId("architecture-open-questions").value),
+    milestone_planning_notes: byId("architecture-milestone-planning-notes").value.trim(),
+  });
+}
+
+function renderArchitectureAuthoring(payload) {
+  state.architectureContract = payload || null;
+  const message = byId("home-architecture-authoring-message");
+  const stateLine = byId("home-architecture-authoring-state");
+  const exists = Boolean(payload && payload.architecture_contract_exists);
+  const contract = (payload && payload.architecture_contract) || {};
+  if (!exists) {
+    byId("architecture-summary").value = "";
+    byId("architecture-system-components").value = "";
+    byId("architecture-data-model-notes").value = "";
+    byId("architecture-integration-points").value = "";
+    byId("architecture-security-considerations").value = "";
+    byId("architecture-deployment-notes").value = "";
+    byId("architecture-testing-strategy").value = "";
+    byId("architecture-documentation-plan").value = "";
+    byId("architecture-open-questions").value = "";
+    byId("architecture-milestone-planning-notes").value = "";
+    setList("home-architecture-audit-trail", "home-architecture-audit-trail-empty", []);
+    if (message) {
+      message.textContent = "No architecture contract found. Approve scope first, then prepare architecture contract.";
+    }
+    if (stateLine) {
+      stateLine.textContent = "Architecture lifecycle state: not_started";
+    }
+    return;
+  }
+
+  byId("architecture-summary").value = String(contract.architecture_summary || "");
+  byId("architecture-system-components").value = toTextareaList(contract.system_components);
+  byId("architecture-data-model-notes").value = toTextareaList(contract.data_model_notes);
+  byId("architecture-integration-points").value = toTextareaList(contract.integration_points);
+  byId("architecture-security-considerations").value = toTextareaList(contract.security_considerations);
+  byId("architecture-deployment-notes").value = toTextareaList(contract.deployment_notes);
+  byId("architecture-testing-strategy").value = toTextareaList(contract.testing_strategy);
+  byId("architecture-documentation-plan").value = toTextareaList(contract.documentation_plan);
+  byId("architecture-open-questions").value = toTextareaList(contract.open_questions);
+  byId("architecture-milestone-planning-notes").value = String(contract.milestone_planning_notes || "");
+  setList(
+    "home-architecture-audit-trail",
+    "home-architecture-audit-trail-empty",
+    (contract.audit_trail || []).map((entry) => `${entry.timestamp || "-"} | ${entry.event_type || "-"} | state=${entry.lifecycle_state || "-"} | actor=${entry.actor || "-"}`)
+  );
+  if (message) {
+    message.textContent = "Architecture authoring is local-only. No GitHub or model execution is triggered.";
+  }
+  if (stateLine) {
+    stateLine.textContent = `Architecture lifecycle state: ${contract.lifecycle_state || "not_started"}`;
+  }
+}
+
 async function loadScopePackage(projectId) {
   const query = toQuery({ project_id: projectId || "" });
   const payload = await fetchJson(`/api/project-factory/scope-package${query}`, { method: "GET" });
   renderScopeAuthoring(payload);
+  return payload;
+}
+
+async function loadArchitectureContract(projectId) {
+  const query = toQuery({ project_id: projectId || "" });
+  const payload = await fetchJson(`/api/project-factory/architecture-contract${query}`, { method: "GET" });
+  renderArchitectureAuthoring(payload);
   return payload;
 }
 
@@ -812,6 +886,33 @@ async function saveScopeDraft() {
 
 async function approveScope() {
   const payload = await fetchJson("/api/project-factory/scope-package/approve", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(prunePayload({ project_id: activeProjectId() })),
+  });
+  return payload;
+}
+
+async function prepareArchitectureContract() {
+  const payload = await fetchJson("/api/project-factory/architecture-contract", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(prunePayload({ project_id: activeProjectId() })),
+  });
+  return payload;
+}
+
+async function saveArchitectureDraft() {
+  const payload = await fetchJson("/api/project-factory/architecture-contract", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(buildArchitectureAuthoringPayload()),
+  });
+  return payload;
+}
+
+async function approveArchitecture() {
+  const payload = await fetchJson("/api/project-factory/architecture-contract/approve", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(prunePayload({ project_id: activeProjectId() })),
@@ -841,6 +942,7 @@ async function loadProjects() {
   refreshProjectSelectors(state.projects);
   await loadProjectFactoryDossier(activeProjectId());
   await loadScopePackage(activeProjectId());
+  await loadArchitectureContract(activeProjectId());
   setMessage("projects-message", payload.warnings && payload.warnings.length ? payload.warnings.join(" | ") : "Projects loaded.", payload.warnings && payload.warnings.length ? "warn" : "success");
 }
 
@@ -1111,6 +1213,7 @@ async function refreshSummaryAndReport() {
   await loadDashboardReport();
   await loadReportSlices();
   await loadProjectFactoryDossier(activeProjectId());
+  await loadArchitectureContract(activeProjectId());
 }
 
 async function loadSettings() {
@@ -1329,6 +1432,9 @@ function bindForms() {
   on("scope-authoring-form", "submit", (event) => {
     event.preventDefault();
   });
+  on("architecture-authoring-form", "submit", (event) => {
+    event.preventDefault();
+  });
 
   on("project-form", "submit", async (event) => {
     event.preventDefault();
@@ -1361,6 +1467,7 @@ function bindForms() {
       await refreshSummaryAndReport();
       await loadProjectFactoryDossier(activeProjectId());
       await loadScopePackage(activeProjectId());
+      await loadArchitectureContract(activeProjectId());
       applyActiveProjectDefaultsToQueueForm();
       setMessage("projects-message", `Active project set to ${projectId}.`, "success");
     } catch (error) {
@@ -1538,6 +1645,7 @@ function bindForms() {
       await loadProjects();
       await loadProjectFactoryDossier(payload.active_project_id || activeProjectId());
       await loadScopePackage(payload.active_project_id || activeProjectId());
+      await loadArchitectureContract(payload.active_project_id || activeProjectId());
       applyActiveProjectDefaultsToQueueForm();
       await loadQueue();
       await refreshSummaryAndReport();
@@ -1802,8 +1910,48 @@ function bindForms() {
       await approveScope();
       await loadScopePackage(activeProjectId());
       await loadProjectFactoryDossier(activeProjectId());
+      await loadArchitectureContract(activeProjectId());
       await refreshSummaryAndReport();
       setMessage("projects-message", "Scope approved.", "success");
+    } catch (error) {
+      setMessage("projects-message", String(error.message || error), "error");
+    }
+  });
+
+  on("home-prepare-architecture-contract", "click", async () => {
+    try {
+      setMessage("projects-message", "Preparing local architecture contract placeholder...", "loading");
+      await prepareArchitectureContract();
+      await loadArchitectureContract(activeProjectId());
+      await loadProjectFactoryDossier(activeProjectId());
+      await refreshSummaryAndReport();
+      setMessage("projects-message", "Architecture contract prepared locally.", "success");
+    } catch (error) {
+      setMessage("projects-message", String(error.message || error), "error");
+    }
+  });
+
+  on("architecture-save-draft", "click", async () => {
+    try {
+      setMessage("projects-message", "Saving local architecture draft...", "loading");
+      await saveArchitectureDraft();
+      await loadArchitectureContract(activeProjectId());
+      await loadProjectFactoryDossier(activeProjectId());
+      await refreshSummaryAndReport();
+      setMessage("projects-message", "Architecture draft saved.", "success");
+    } catch (error) {
+      setMessage("projects-message", String(error.message || error), "error");
+    }
+  });
+
+  on("architecture-approve", "click", async () => {
+    try {
+      setMessage("projects-message", "Approving local architecture contract...", "loading");
+      await approveArchitecture();
+      await loadArchitectureContract(activeProjectId());
+      await loadProjectFactoryDossier(activeProjectId());
+      await refreshSummaryAndReport();
+      setMessage("projects-message", "Architecture approved.", "success");
     } catch (error) {
       setMessage("projects-message", String(error.message || error), "error");
     }
@@ -1840,6 +1988,12 @@ async function init() {
     await loadScopePackage(activeProjectId());
   } catch (_error) {
     renderScopeAuthoring({ ok: true, scope_package_exists: false, scope_package: {} });
+  }
+
+  try {
+    await loadArchitectureContract(activeProjectId());
+  } catch (_error) {
+    renderArchitectureAuthoring({ ok: true, architecture_contract_exists: false, architecture_contract: {} });
   }
 
   try {

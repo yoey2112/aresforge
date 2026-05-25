@@ -138,6 +138,31 @@
           </section>
 
           <section class="subpanel">
+            <h3>Architecture Contract</h3>
+            <p id="home-architecture-authoring-message" class="message-note">Prepare local architecture contract after scope approval. Local-only: no GitHub or model calls.</p>
+            <p id="home-architecture-authoring-state" class="message-note">Architecture lifecycle state: not_started</p>
+            <form id="architecture-authoring-form" class="form-grid">
+              <label class="full">Architecture Summary<textarea id="architecture-summary"></textarea></label>
+              <label class="full">System Components<textarea id="architecture-system-components" placeholder="One component per line"></textarea></label>
+              <label class="full">Data Model Notes<textarea id="architecture-data-model-notes" placeholder="One note per line"></textarea></label>
+              <label class="full">Integration Points<textarea id="architecture-integration-points" placeholder="One integration point per line"></textarea></label>
+              <label class="full">Security Considerations<textarea id="architecture-security-considerations" placeholder="One consideration per line"></textarea></label>
+              <label class="full">Deployment Notes<textarea id="architecture-deployment-notes" placeholder="One note per line"></textarea></label>
+              <label class="full">Testing Strategy<textarea id="architecture-testing-strategy" placeholder="One testing strategy item per line"></textarea></label>
+              <label class="full">Documentation Plan<textarea id="architecture-documentation-plan" placeholder="One documentation task per line"></textarea></label>
+              <label class="full">Open Questions<textarea id="architecture-open-questions" placeholder="One open question per line"></textarea></label>
+              <label class="full">Milestone Planning Notes<textarea id="architecture-milestone-planning-notes"></textarea></label>
+              <div class="quick-actions">
+                <button id="home-prepare-architecture-contract" type="button">Prepare Architecture Contract</button>
+                <button id="architecture-save-draft" type="button">Save Architecture Draft</button>
+                <button id="architecture-approve" type="button">Approve Architecture</button>
+              </div>
+            </form>
+            <ul id="home-architecture-audit-trail" class="list"></ul>
+            <p id="home-architecture-audit-trail-empty" class="empty">No architecture audit trail entries yet.</p>
+          </section>
+
+          <section class="subpanel">
             <h3>Current Active Work</h3>
             <ul id="home-current-active-work" class="list"></ul>
             <p id="home-current-active-work-empty" class="empty">No active project work items yet.</p>

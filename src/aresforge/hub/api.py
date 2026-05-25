@@ -40,10 +40,14 @@ from aresforge.operator.local_bootstrap_wizard import (
 from aresforge.operator.local_project_factory import (
     GITHUB_MODES,
     PROJECT_TYPES,
+    approve_project_architecture_contract,
     approve_project_scope_package,
     inspect_project_factory_dossier,
+    prepare_project_architecture_contract,
     prepare_project_scope_package,
+    read_project_architecture_contract,
     read_project_scope_package,
+    update_project_architecture_contract,
     update_project_scope_package,
     start_new_project_factory,
 )
@@ -897,6 +901,146 @@ def post_project_factory_scope_package_approve(config: AppConfig, body: dict[str
         return _api_error(
             error,
             str(details.get("message", "Failed to approve local scope package.")),
+            details=details,
+            status=status,
+        )
+
+    result["boundary_confirmations"] = list(
+        dict.fromkeys(list(result.get("boundary_confirmations", [])) + list(_BOUNDARY_CONFIRMATIONS))
+    )
+    return result
+
+
+def get_project_factory_architecture_contract(config: AppConfig, params: dict[str, str | None]) -> dict[str, Any]:
+    requested_project_id = str(params.get("project_id", "") or "").strip()
+    project_id = requested_project_id
+    warnings: list[str] = []
+    if not project_id:
+        active_payload = inspect_active_project(config)
+        project_id = str(active_payload.get("active_project_id", "")).strip()
+        if not project_id:
+            warnings.append("No active project selected. Select a project and approve scope before architecture authoring.")
+            return {
+                "ok": True,
+                "local_only": True,
+                "project_id": "",
+                "architecture_contract_path": "",
+                "architecture_contract_exists": False,
+                "architecture_contract": {},
+                "warnings": sorted(set(warnings + list(active_payload.get("warnings", [])))),
+                "boundary_confirmations": list(
+                    dict.fromkeys(
+                        list(_BOUNDARY_CONFIRMATIONS) + list(active_payload.get("boundary_confirmations", []))
+                    )
+                ),
+            }
+
+    payload = read_project_architecture_contract(config, project_id)
+    payload["warnings"] = sorted(set(list(payload.get("warnings", [])) + warnings))
+    payload["boundary_confirmations"] = list(
+        dict.fromkeys(list(payload.get("boundary_confirmations", [])) + list(_BOUNDARY_CONFIRMATIONS))
+    )
+    return payload
+
+
+def post_project_factory_architecture_contract(config: AppConfig, body: dict[str, Any]) -> dict[str, Any]:
+    requested_project_id = str(body.get("project_id", "")).strip()
+    project_id = requested_project_id
+    if not project_id:
+        active_payload = inspect_active_project(config)
+        project_id = str(active_payload.get("active_project_id", "")).strip()
+        if not project_id:
+            return _api_error(
+                "active_project_required",
+                "project_id is required when no active project is selected.",
+                details={"required_fields": ["project_id"], "active_project_selected": False},
+                status=400,
+            )
+
+    result = prepare_project_architecture_contract(config, project_id)
+    if not result.get("ok", False):
+        error = str(result.get("error", "architecture_contract_prepare_failed"))
+        details = dict(result.get("details", {}))
+        status = 404 if error == "scope_package_not_found" else 409 if error == "scope_not_approved" else 400
+        return _api_error(
+            error,
+            str(details.get("message", "Failed to prepare local architecture contract placeholder.")),
+            details=details,
+            status=status,
+        )
+
+    result["boundary_confirmations"] = list(
+        dict.fromkeys(list(result.get("boundary_confirmations", [])) + list(_BOUNDARY_CONFIRMATIONS))
+    )
+    return result
+
+
+def patch_project_factory_architecture_contract(config: AppConfig, body: dict[str, Any]) -> dict[str, Any]:
+    requested_project_id = str(body.get("project_id", "")).strip()
+    project_id = requested_project_id
+    if not project_id:
+        active_payload = inspect_active_project(config)
+        project_id = str(active_payload.get("active_project_id", "")).strip()
+        if not project_id:
+            return _api_error(
+                "active_project_required",
+                "project_id is required when no active project is selected.",
+                details={"required_fields": ["project_id"], "active_project_selected": False},
+                status=400,
+            )
+
+    editable_payload = {
+        "architecture_summary": body.get("architecture_summary"),
+        "system_components": body.get("system_components"),
+        "data_model_notes": body.get("data_model_notes"),
+        "integration_points": body.get("integration_points"),
+        "security_considerations": body.get("security_considerations"),
+        "deployment_notes": body.get("deployment_notes"),
+        "testing_strategy": body.get("testing_strategy"),
+        "documentation_plan": body.get("documentation_plan"),
+        "open_questions": body.get("open_questions"),
+        "milestone_planning_notes": body.get("milestone_planning_notes"),
+    }
+    result = update_project_architecture_contract(config, project_id, editable_payload)
+    if not result.get("ok", False):
+        error = str(result.get("error", "architecture_contract_update_failed"))
+        details = dict(result.get("details", {}))
+        status = 404 if error == "architecture_contract_not_found" else 400
+        return _api_error(
+            error,
+            str(details.get("message", "Failed to update local architecture draft.")),
+            details=details,
+            status=status,
+        )
+
+    result["boundary_confirmations"] = list(
+        dict.fromkeys(list(result.get("boundary_confirmations", [])) + list(_BOUNDARY_CONFIRMATIONS))
+    )
+    return result
+
+
+def post_project_factory_architecture_contract_approve(config: AppConfig, body: dict[str, Any]) -> dict[str, Any]:
+    requested_project_id = str(body.get("project_id", "")).strip()
+    project_id = requested_project_id
+    if not project_id:
+        active_payload = inspect_active_project(config)
+        project_id = str(active_payload.get("active_project_id", "")).strip()
+        if not project_id:
+            return _api_error(
+                "active_project_required",
+                "project_id is required when no active project is selected.",
+                details={"required_fields": ["project_id"], "active_project_selected": False},
+                status=400,
+            )
+
+    result = approve_project_architecture_contract(config, project_id, {"approved_by": body.get("approved_by")})
+    if not result.get("ok", False):
+        error = str(result.get("error", "architecture_contract_approval_failed"))
+        details = dict(result.get("details", {}))
+        status = 404 if error == "architecture_contract_not_found" else 400
+        return _api_error(
+            error,
+            str(details.get("message", "Failed to approve local architecture contract.")),
             details=details,
             status=status,
         )

@@ -212,6 +212,10 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "Scope Authoring" in index_text
     assert "Save Scope Draft" in index_text
     assert "Approve Scope" in index_text
+    assert "Architecture Contract" in index_text
+    assert "Prepare Architecture Contract" in index_text
+    assert "Save Architecture Draft" in index_text
+    assert "Approve Architecture" in index_text
     assert "wizard-project-name" in index_text
     assert "wizard-project-id" in index_text
     assert "wizard-project-type" in index_text
@@ -244,6 +248,8 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
         "/api/project-factory/dossier",
         "/api/project-factory/scope-package",
         "/api/project-factory/scope-package/approve",
+        "/api/project-factory/architecture-contract",
+        "/api/project-factory/architecture-contract/approve",
         "/api/projects/",
         "/github-link",
         "/api/bootstrap/status",
@@ -267,6 +273,7 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
         "project-form",
         "new-project-wizard-form",
         "scope-authoring-form",
+        "architecture-authoring-form",
         "repo-form",
         "queue-form",
         "queue-filter-form",
@@ -296,12 +303,17 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
         "intake-submit",
         "scope-save-draft",
         "scope-approve",
+        "home-prepare-architecture-contract",
+        "architecture-save-draft",
+        "architecture-approve",
     ):
         assert action_id in app_text
     assert "parseLineList" in app_text
     assert "toTextareaList" in app_text
     assert "renderScopeAuthoring" in app_text
     assert "buildScopeAuthoringPayload" in app_text
+    assert "renderArchitectureAuthoring" in app_text
+    assert "buildArchitectureAuthoringPayload" in app_text
 
 
 def test_bootstrap_api_status_plan_apply(tmp_path: Path) -> None:

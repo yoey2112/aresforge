@@ -49,6 +49,16 @@ _SCOPE_EDITABLE_LIST_FIELDS: tuple[str, ...] = (
     "out_of_scope",
     "stakeholders",
 )
+_ARCHITECTURE_EDITABLE_LIST_FIELDS: tuple[str, ...] = (
+    "system_components",
+    "data_model_notes",
+    "integration_points",
+    "security_considerations",
+    "deployment_notes",
+    "testing_strategy",
+    "documentation_plan",
+    "open_questions",
+)
 
 
 def resolve_project_factory_dossier_path(repo_root: Path, project_id: str) -> Path:
@@ -57,6 +67,10 @@ def resolve_project_factory_dossier_path(repo_root: Path, project_id: str) -> Pa
 
 def resolve_project_scope_package_path(repo_root: Path, project_id: str) -> Path:
     return (repo_root / ".aresforge" / "projects" / project_id.strip() / "scope_package.json").resolve()
+
+
+def resolve_project_architecture_contract_path(repo_root: Path, project_id: str) -> Path:
+    return (repo_root / ".aresforge" / "projects" / project_id.strip() / "architecture_contract.json").resolve()
 
 
 def create_project_factory_dossier(config: AppConfig, payload: dict[str, Any]) -> dict[str, Any]:
@@ -134,9 +148,21 @@ def inspect_project_factory_dossier(config: AppConfig, project_id: str) -> dict[
         scope_package = scope_payload.get("scope_package", {})
         if isinstance(scope_package, dict):
             scope_lifecycle_state = str(scope_package.get("lifecycle_state", "")).strip()
+    architecture_lifecycle_state = ""
+    architecture_payload = read_project_architecture_contract(config, project_id)
+    if architecture_payload.get("architecture_contract_exists", False):
+        architecture_contract = architecture_payload.get("architecture_contract", {})
+        if isinstance(architecture_contract, dict):
+            architecture_lifecycle_state = str(architecture_contract.get("lifecycle_state", "")).strip()
     effective_lifecycle_state = lifecycle_state
     if scope_lifecycle_state == "scope_approved" and lifecycle_state != "scope_approved":
         effective_lifecycle_state = "scope_approved"
+    if architecture_lifecycle_state in {
+        "architecture_contract_prepared",
+        "architecture_draft_updated",
+        "architecture_approved",
+    }:
+        effective_lifecycle_state = architecture_lifecycle_state
     payload["workflow_steps"] = _build_workflow_steps(
         lifecycle_state=effective_lifecycle_state,
         github_mode=github_mode,
@@ -403,6 +429,277 @@ def approve_project_scope_package(config: AppConfig, project_id: str, approval_p
     }
 
 
+def read_project_architecture_contract(config: AppConfig, project_id: str) -> dict[str, Any]:
+    normalized_project_id = str(project_id or "").strip()
+    architecture_path = resolve_project_architecture_contract_path(config.repo_root, normalized_project_id)
+    warnings: list[str] = []
+    if not architecture_path.exists():
+        warnings.append(f"Architecture contract not found for project: {normalized_project_id}")
+        return {
+            "ok": True,
+            "local_only": True,
+            "project_id": normalized_project_id,
+            "architecture_contract_path": str(architecture_path),
+            "architecture_contract_exists": False,
+            "architecture_contract": {},
+            "warnings": warnings,
+            "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+        }
+
+    try:
+        loaded = json.loads(architecture_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        warnings.append(f"Architecture contract could not be parsed: {exc}")
+        loaded = {}
+
+    if not isinstance(loaded, dict):
+        warnings.append("Architecture contract has invalid schema; expected JSON object.")
+        loaded = {}
+
+    return {
+        "ok": True,
+        "local_only": True,
+        "project_id": normalized_project_id,
+        "architecture_contract_path": str(architecture_path),
+        "architecture_contract_exists": bool(loaded),
+        "architecture_contract": loaded,
+        "warnings": sorted(set(warnings)),
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+    }
+
+
+def prepare_project_architecture_contract(config: AppConfig, project_id: str) -> dict[str, Any]:
+    normalized_project_id = str(project_id or "").strip()
+    scope_result = read_project_scope_package(config, normalized_project_id)
+    if not scope_result.get("scope_package_exists", False):
+        return _error(
+            "scope_package_not_found",
+            {
+                "message": "Scope package must exist before preparing architecture contract.",
+                "project_id": normalized_project_id,
+                "scope_package_path": scope_result.get("scope_package_path", ""),
+            },
+        )
+    scope_package = dict(scope_result.get("scope_package", {}))
+    if str(scope_package.get("lifecycle_state", "")).strip() != "scope_approved":
+        return _error(
+            "scope_not_approved",
+            {
+                "message": "Scope must be approved before preparing architecture contract.",
+                "project_id": normalized_project_id,
+            },
+        )
+
+    now = _now_iso()
+    architecture_path = resolve_project_architecture_contract_path(config.repo_root, normalized_project_id)
+    architecture_path.parent.mkdir(parents=True, exist_ok=True)
+    existing_created_at = ""
+    if architecture_path.exists():
+        try:
+            existing_raw = json.loads(architecture_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            existing_raw = {}
+        if isinstance(existing_raw, dict):
+            existing_created_at = str(existing_raw.get("created_at", "")).strip()
+
+    architecture_contract = {
+        "schema_version": "1.0",
+        "project_id": normalized_project_id,
+        "created_at": existing_created_at or now,
+        "updated_at": now,
+        "lifecycle_state": "architecture_contract_prepared",
+        "source": "local_project_factory",
+        "input": {
+            "approved_scope_summary": str(scope_package.get("notes", "")).strip(),
+            "requirements": _normalize_text_list(scope_package.get("requirements")),
+            "constraints": _normalize_text_list(scope_package.get("constraints")),
+            "assumptions": _normalize_text_list(scope_package.get("assumptions")),
+            "acceptance_criteria": _normalize_text_list(scope_package.get("acceptance_criteria")),
+            "risks": _normalize_text_list(scope_package.get("risks")),
+            "out_of_scope": _normalize_text_list(scope_package.get("out_of_scope")),
+            "stakeholders": _normalize_text_list(scope_package.get("stakeholders")),
+            "preferred_stack": str(scope_package.get("input", {}).get("preferred_stack", "")).strip()
+            if isinstance(scope_package.get("input"), dict)
+            else "",
+            "project_type": str(scope_package.get("input", {}).get("project_type", "")).strip()
+            if isinstance(scope_package.get("input"), dict)
+            else "",
+        },
+        "architecture_summary": "",
+        "system_components": [],
+        "data_model_notes": [],
+        "integration_points": [],
+        "security_considerations": [],
+        "deployment_notes": [],
+        "testing_strategy": [],
+        "documentation_plan": [],
+        "open_questions": [],
+        "milestone_planning_notes": "",
+        "model_execution_status": "not_requested",
+        "github_mutation_status": "not_requested",
+        "next_recommended_action": "edit_architecture_contract",
+        "audit_trail": [],
+    }
+    _append_architecture_audit_entry(
+        architecture_contract,
+        event_type="architecture_contract_prepared",
+        lifecycle_state="architecture_contract_prepared",
+        summary="Architecture contract prepared locally from approved scope package.",
+    )
+    architecture_path.write_text(json.dumps(architecture_contract, indent=2) + "\n", encoding="utf-8")
+
+    dossier_result = read_project_factory_dossier(config, normalized_project_id)
+    dossier = dict(dossier_result.get("dossier", {})) if dossier_result.get("dossier_exists", False) else {}
+    if dossier:
+        dossier["lifecycle_state"] = "architecture_contract_prepared"
+        dossier["next_recommended_action"] = "edit_architecture_contract"
+        dossier["updated_at"] = now
+        create_project_factory_dossier(config, dossier)
+
+    return {
+        "ok": True,
+        "local_only": True,
+        "project_id": normalized_project_id,
+        "architecture_contract": architecture_contract,
+        "architecture_contract_path": str(architecture_path),
+        "dossier_path": str(resolve_project_factory_dossier_path(config.repo_root, normalized_project_id)),
+        "warnings": sorted(set(scope_result.get("warnings", []))),
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+    }
+
+
+def update_project_architecture_contract(config: AppConfig, project_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+    architecture_result = read_project_architecture_contract(config, project_id)
+    normalized_project_id = str(architecture_result.get("project_id", "")).strip()
+    if not architecture_result.get("architecture_contract_exists", False):
+        return _error(
+            "architecture_contract_not_found",
+            {
+                "message": "Architecture contract must be prepared before updating draft fields.",
+                "project_id": normalized_project_id,
+                "architecture_contract_path": architecture_result.get("architecture_contract_path", ""),
+            },
+        )
+
+    architecture_contract = dict(architecture_result.get("architecture_contract", {}))
+    now = _now_iso()
+    if "architecture_summary" in payload:
+        architecture_contract["architecture_summary"] = str(payload.get("architecture_summary", "")).strip()
+    for field in _ARCHITECTURE_EDITABLE_LIST_FIELDS:
+        if field in payload:
+            architecture_contract[field] = _normalize_text_list(payload.get(field))
+    if "milestone_planning_notes" in payload:
+        architecture_contract["milestone_planning_notes"] = str(payload.get("milestone_planning_notes", "")).strip()
+
+    architecture_contract["lifecycle_state"] = "architecture_draft_updated"
+    architecture_contract["updated_at"] = now
+    architecture_contract["model_execution_status"] = "not_requested"
+    architecture_contract["github_mutation_status"] = "not_requested"
+    architecture_contract["next_recommended_action"] = "approve_architecture_or_continue_editing"
+    _append_architecture_audit_entry(
+        architecture_contract,
+        event_type="architecture_draft_updated",
+        lifecycle_state="architecture_draft_updated",
+        summary="Architecture draft fields were updated locally.",
+    )
+
+    architecture_path = resolve_project_architecture_contract_path(config.repo_root, normalized_project_id)
+    architecture_path.write_text(json.dumps(architecture_contract, indent=2) + "\n", encoding="utf-8")
+
+    dossier_result = read_project_factory_dossier(config, normalized_project_id)
+    dossier = dict(dossier_result.get("dossier", {})) if dossier_result.get("dossier_exists", False) else {}
+    if dossier:
+        dossier["lifecycle_state"] = "architecture_draft_updated"
+        dossier["next_recommended_action"] = "approve_architecture_or_continue_editing"
+        dossier["updated_at"] = now
+        create_project_factory_dossier(config, dossier)
+
+    return {
+        "ok": True,
+        "local_only": True,
+        "project_id": normalized_project_id,
+        "architecture_contract": architecture_contract,
+        "architecture_contract_path": str(architecture_path),
+        "dossier_path": str(resolve_project_factory_dossier_path(config.repo_root, normalized_project_id)),
+        "warnings": sorted(set(architecture_result.get("warnings", []))),
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+    }
+
+
+def approve_project_architecture_contract(config: AppConfig, project_id: str, approval_payload: dict[str, Any]) -> dict[str, Any]:
+    architecture_result = read_project_architecture_contract(config, project_id)
+    normalized_project_id = str(architecture_result.get("project_id", "")).strip()
+    if not architecture_result.get("architecture_contract_exists", False):
+        return _error(
+            "architecture_contract_not_found",
+            {
+                "message": "Architecture contract must be prepared before approval.",
+                "project_id": normalized_project_id,
+                "architecture_contract_path": architecture_result.get("architecture_contract_path", ""),
+            },
+        )
+
+    architecture_contract = dict(architecture_result.get("architecture_contract", {}))
+    architecture_summary = str(architecture_contract.get("architecture_summary", "")).strip()
+    system_components = _normalize_text_list(architecture_contract.get("system_components"))
+    testing_strategy = _normalize_text_list(architecture_contract.get("testing_strategy"))
+    if not architecture_summary:
+        return _error(
+            "architecture_approval_validation_failed",
+            {"message": "Architecture approval requires a non-empty architecture summary."},
+        )
+    if not system_components:
+        return _error(
+            "architecture_approval_validation_failed",
+            {"message": "Architecture approval requires at least one system component."},
+        )
+    if not testing_strategy:
+        return _error(
+            "architecture_approval_validation_failed",
+            {"message": "Architecture approval requires at least one testing strategy item."},
+        )
+
+    now = _now_iso()
+    architecture_contract["architecture_summary"] = architecture_summary
+    architecture_contract["system_components"] = system_components
+    architecture_contract["testing_strategy"] = testing_strategy
+    architecture_contract["lifecycle_state"] = "architecture_approved"
+    architecture_contract["updated_at"] = now
+    architecture_contract["approved_at"] = now
+    architecture_contract["approved_by"] = str(approval_payload.get("approved_by", "")).strip() or "local_operator"
+    architecture_contract["model_execution_status"] = "not_requested"
+    architecture_contract["github_mutation_status"] = "not_requested"
+    architecture_contract["next_recommended_action"] = "prepare_milestone_issue_plan"
+    _append_architecture_audit_entry(
+        architecture_contract,
+        event_type="architecture_approved",
+        lifecycle_state="architecture_approved",
+        summary="Architecture contract approved locally and ready for milestone planning.",
+    )
+
+    architecture_path = resolve_project_architecture_contract_path(config.repo_root, normalized_project_id)
+    architecture_path.write_text(json.dumps(architecture_contract, indent=2) + "\n", encoding="utf-8")
+
+    dossier_result = read_project_factory_dossier(config, normalized_project_id)
+    dossier = dict(dossier_result.get("dossier", {})) if dossier_result.get("dossier_exists", False) else {}
+    if dossier:
+        dossier["lifecycle_state"] = "architecture_approved"
+        dossier["next_recommended_action"] = "prepare_milestone_issue_plan"
+        dossier["updated_at"] = now
+        create_project_factory_dossier(config, dossier)
+
+    return {
+        "ok": True,
+        "local_only": True,
+        "project_id": normalized_project_id,
+        "architecture_contract": architecture_contract,
+        "architecture_contract_path": str(architecture_path),
+        "dossier_path": str(resolve_project_factory_dossier_path(config.repo_root, normalized_project_id)),
+        "warnings": sorted(set(architecture_result.get("warnings", []))),
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+    }
+
+
 def start_new_project_factory(config: AppConfig, payload: dict[str, Any]) -> dict[str, Any]:
     name = str(payload.get("name", "")).strip()
     if not name:
@@ -636,6 +933,31 @@ def _append_scope_audit_entry(
     scope_package["audit_trail"] = audit_entries
 
 
+def _append_architecture_audit_entry(
+    architecture_contract: dict[str, Any],
+    *,
+    event_type: str,
+    lifecycle_state: str,
+    summary: str,
+) -> None:
+    audit_entries = architecture_contract.get("audit_trail")
+    if not isinstance(audit_entries, list):
+        audit_entries = []
+    audit_entries.append(
+        {
+            "timestamp": _now_iso(),
+            "event_type": event_type,
+            "lifecycle_state": lifecycle_state,
+            "actor": "local_operator",
+            "summary": summary,
+            "local_only": True,
+            "github_mutation_status": "not_requested",
+            "model_execution_status": "not_requested",
+        }
+    )
+    architecture_contract["audit_trail"] = audit_entries
+
+
 def _error(error: str, details: dict[str, Any]) -> dict[str, Any]:
     return {
         "ok": False,
@@ -660,6 +982,19 @@ def _build_workflow_steps(*, lifecycle_state: str, github_mode: str) -> list[dic
     if normalized_state == "scope_approved":
         repo_step_status = "completed" if normalized_github_mode == "link-existing" else "pending"
         scope_step_status = "completed"
+    if normalized_state in {"architecture_contract_prepared", "architecture_draft_updated", "architecture_approved"}:
+        repo_step_status = "completed" if normalized_github_mode == "link-existing" else "pending"
+        scope_step_status = "completed"
+    architecture_step_status = "pending"
+    milestone_step_status = "pending"
+    if normalized_state == "scope_approved":
+        architecture_step_status = "current"
+    if normalized_state in {"architecture_contract_prepared", "architecture_draft_updated"}:
+        architecture_step_status = "current"
+        milestone_step_status = "pending"
+    if normalized_state == "architecture_approved":
+        architecture_step_status = "completed"
+        milestone_step_status = "current"
 
     return [
         {
@@ -689,7 +1024,7 @@ def _build_workflow_steps(*, lifecycle_state: str, github_mode: str) -> list[dic
         {
             "step_id": "architecture_design",
             "label": "Architecture Design",
-            "status": "current" if normalized_state == "scope_approved" else "pending",
+            "status": architecture_step_status,
             "local_only": True,
             "gate_type": "model_execution_approval",
             "description": "Architecture and design planning phase.",
@@ -697,7 +1032,7 @@ def _build_workflow_steps(*, lifecycle_state: str, github_mode: str) -> list[dic
         {
             "step_id": "milestone_issue_plan",
             "label": "Milestone and Issue Plan",
-            "status": "pending",
+            "status": milestone_step_status,
             "local_only": True,
             "gate_type": "user_approval",
             "description": "Define milestones and issue plan locally before apply.",

@@ -4,10 +4,14 @@ from pathlib import Path
 
 from aresforge.config import AppConfig
 from aresforge.hub.api import (
+    get_project_factory_architecture_contract,
     get_project_factory_scope_package,
+    patch_project_factory_architecture_contract,
     patch_project_factory_scope_package,
     get_project_factory_dossier,
     post_active_project,
+    post_project_factory_architecture_contract,
+    post_project_factory_architecture_contract_approve,
     post_project_factory_new_project,
     post_project_factory_scope_package_approve,
     post_project_factory_scope_package,
@@ -206,3 +210,86 @@ def test_post_scope_approve_succeeds_for_valid_scope(tmp_path: Path) -> None:
     payload = post_project_factory_scope_package_approve(config, {})
     assert payload["ok"] is True
     assert payload["scope_package"]["lifecycle_state"] == "scope_approved"
+
+
+def test_get_architecture_contract_falls_back_to_active_project(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    post_project_factory_new_project(config, {"name": "Arch Read", "root_path": str(tmp_path / "workspace")})
+    post_project_factory_scope_package(config, {})
+    patch_project_factory_scope_package(config, {"requirements": ["r1"], "acceptance_criteria": ["a1"]})
+    post_project_factory_scope_package_approve(config, {})
+    post_project_factory_architecture_contract(config, {})
+    payload = get_project_factory_architecture_contract(config, {})
+    assert payload["ok"] is True
+    assert payload["architecture_contract_exists"] is True
+
+
+def test_get_architecture_contract_no_active_project_returns_friendly_state(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    payload = get_project_factory_architecture_contract(config, {})
+    assert payload["ok"] is True
+    assert payload["architecture_contract_exists"] is False
+    assert payload["warnings"]
+
+
+def test_post_architecture_prepare_validates_scope_approval(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    post_project_factory_new_project(config, {"name": "Arch Gate", "root_path": str(tmp_path / "workspace")})
+    missing_scope = post_project_factory_architecture_contract(config, {})
+    assert missing_scope["ok"] is False
+    assert missing_scope["_status"] == 404
+    post_project_factory_scope_package(config, {})
+    unapproved_scope = post_project_factory_architecture_contract(config, {})
+    assert unapproved_scope["ok"] is False
+    assert unapproved_scope["_status"] == 409
+
+
+def test_patch_architecture_contract_updates_fields(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    post_project_factory_new_project(config, {"name": "Arch Patch", "root_path": str(tmp_path / "workspace")})
+    post_project_factory_scope_package(config, {})
+    patch_project_factory_scope_package(config, {"requirements": ["r1"], "acceptance_criteria": ["a1"]})
+    post_project_factory_scope_package_approve(config, {})
+    post_project_factory_architecture_contract(config, {})
+    payload = patch_project_factory_architecture_contract(
+        config,
+        {
+            "architecture_summary": "summary",
+            "system_components": ["api"],
+            "testing_strategy": ["unit tests"],
+        },
+    )
+    assert payload["ok"] is True
+    assert payload["architecture_contract"]["lifecycle_state"] == "architecture_draft_updated"
+
+
+def test_post_architecture_approve_validates_required_fields(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    post_project_factory_new_project(config, {"name": "Arch Approve", "root_path": str(tmp_path / "workspace")})
+    post_project_factory_scope_package(config, {})
+    patch_project_factory_scope_package(config, {"requirements": ["r1"], "acceptance_criteria": ["a1"]})
+    post_project_factory_scope_package_approve(config, {})
+    post_project_factory_architecture_contract(config, {})
+    payload = post_project_factory_architecture_contract_approve(config, {})
+    assert payload["ok"] is False
+    assert payload["_status"] == 400
+
+
+def test_post_architecture_approve_succeeds_for_valid_contract(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    post_project_factory_new_project(config, {"name": "Arch Approve Valid", "root_path": str(tmp_path / "workspace")})
+    post_project_factory_scope_package(config, {})
+    patch_project_factory_scope_package(config, {"requirements": ["r1"], "acceptance_criteria": ["a1"]})
+    post_project_factory_scope_package_approve(config, {})
+    post_project_factory_architecture_contract(config, {})
+    patch_project_factory_architecture_contract(
+        config,
+        {
+            "architecture_summary": "summary",
+            "system_components": ["api"],
+            "testing_strategy": ["unit tests"],
+        },
+    )
+    payload = post_project_factory_architecture_contract_approve(config, {})
+    assert payload["ok"] is True
+    assert payload["architecture_contract"]["lifecycle_state"] == "architecture_approved"

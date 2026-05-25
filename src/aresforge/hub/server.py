@@ -24,6 +24,7 @@ from aresforge.hub.api import (
     get_orchestration_plan,
     get_project,
     get_project_factory_dossier,
+    get_project_factory_architecture_contract,
     get_project_factory_scope_package,
     get_project_repo_github_link,
     get_project_repos,
@@ -47,7 +48,10 @@ from aresforge.hub.api import (
     post_project,
     post_project_factory_new_project,
     post_project_factory_scope_package_approve,
+    post_project_factory_architecture_contract_approve,
+    post_project_factory_architecture_contract,
     post_project_factory_scope_package,
+    patch_project_factory_architecture_contract,
     patch_project_factory_scope_package,
     post_project_repo,
     post_queue_item,
@@ -396,6 +400,61 @@ def _build_handler(config: AppConfig, static_root: Path) -> type[BaseHTTPRequest
                     )
                     return True
                 payload = post_project_factory_scope_package_approve(config, body)
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+            if method == "GET" and path == "/api/project-factory/architecture-contract":
+                payload = get_project_factory_architecture_contract(
+                    config,
+                    {"project_id": query_values.get("project_id", [""])[0] if query_values.get("project_id") else ""},
+                )
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+            if method == "POST" and path == "/api/project-factory/architecture-contract":
+                if body is None:
+                    _render_json(
+                        self,
+                        HTTPStatus.BAD_REQUEST,
+                        {
+                            "ok": False,
+                            "local_only": True,
+                            "error": "invalid_json_body",
+                            "message": "Request body must be a JSON object.",
+                        },
+                    )
+                    return True
+                payload = post_project_factory_architecture_contract(config, body)
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+            if method == "PATCH" and path == "/api/project-factory/architecture-contract":
+                if body is None:
+                    _render_json(
+                        self,
+                        HTTPStatus.BAD_REQUEST,
+                        {
+                            "ok": False,
+                            "local_only": True,
+                            "error": "invalid_json_body",
+                            "message": "Request body must be a JSON object.",
+                        },
+                    )
+                    return True
+                payload = patch_project_factory_architecture_contract(config, body)
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+            if method == "POST" and path == "/api/project-factory/architecture-contract/approve":
+                if body is None:
+                    _render_json(
+                        self,
+                        HTTPStatus.BAD_REQUEST,
+                        {
+                            "ok": False,
+                            "local_only": True,
+                            "error": "invalid_json_body",
+                            "message": "Request body must be a JSON object.",
+                        },
+                    )
+                    return True
+                payload = post_project_factory_architecture_contract_approve(config, body)
                 _render_json(self, _status_from_payload(payload), payload)
                 return True
 

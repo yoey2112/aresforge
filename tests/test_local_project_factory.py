@@ -5,14 +5,19 @@ from pathlib import Path
 
 from aresforge.config import AppConfig
 from aresforge.operator.local_project_factory import (
+    approve_project_architecture_contract,
     approve_project_scope_package,
     inspect_project_factory_dossier,
+    prepare_project_architecture_contract,
     prepare_project_scope_package,
+    read_project_architecture_contract,
     read_project_factory_dossier,
     read_project_scope_package,
+    resolve_project_architecture_contract_path,
     resolve_project_factory_dossier_path,
     resolve_project_scope_package_path,
     start_new_project_factory,
+    update_project_architecture_contract,
     update_project_scope_package,
 )
 
@@ -249,3 +254,119 @@ def test_scope_audit_trail_preserves_existing_entries(tmp_path: Path) -> None:
     second_update = update_project_scope_package(config, project_id, {"acceptance_criteria": ["a1"]})
     second_count = len(second_update["scope_package"].get("audit_trail", []))
     assert second_count > first_count
+
+
+def test_read_missing_architecture_contract_returns_friendly_payload(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    payload = read_project_architecture_contract(config, "missing-project")
+    assert payload["ok"] is True
+    assert payload["architecture_contract_exists"] is False
+
+
+def test_prepare_architecture_contract_fails_without_scope_package(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    created = start_new_project_factory(config, _payload(tmp_path))
+    payload = prepare_project_architecture_contract(config, str(created["project"]["project_id"]))
+    assert payload["ok"] is False
+    assert payload["error"] == "scope_package_not_found"
+
+
+def test_prepare_architecture_contract_fails_when_scope_not_approved(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    created = start_new_project_factory(config, _payload(tmp_path))
+    project_id = str(created["project"]["project_id"])
+    prepare_project_scope_package(config, project_id)
+    payload = prepare_project_architecture_contract(config, project_id)
+    assert payload["ok"] is False
+    assert payload["error"] == "scope_not_approved"
+
+
+def test_prepare_architecture_contract_succeeds_and_writes_file(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    created = start_new_project_factory(config, _payload(tmp_path))
+    project_id = str(created["project"]["project_id"])
+    prepare_project_scope_package(config, project_id)
+    update_project_scope_package(config, project_id, {"requirements": ["r1"], "acceptance_criteria": ["a1"]})
+    approve_project_scope_package(config, project_id, {})
+    payload = prepare_project_architecture_contract(config, project_id)
+    assert payload["ok"] is True
+    architecture_path = resolve_project_architecture_contract_path(tmp_path, project_id)
+    rendered = json.loads(architecture_path.read_text(encoding="utf-8"))
+    assert rendered["lifecycle_state"] == "architecture_contract_prepared"
+    assert rendered["model_execution_status"] == "not_requested"
+    assert rendered["github_mutation_status"] == "not_requested"
+    dossier = read_project_factory_dossier(config, project_id)
+    assert dossier["dossier"]["lifecycle_state"] == "architecture_contract_prepared"
+    assert dossier["dossier"]["next_recommended_action"] == "edit_architecture_contract"
+
+
+def test_update_architecture_contract_writes_fields_and_audit_and_transitions(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    created = start_new_project_factory(config, _payload(tmp_path))
+    project_id = str(created["project"]["project_id"])
+    prepare_project_scope_package(config, project_id)
+    update_project_scope_package(config, project_id, {"requirements": ["r1"], "acceptance_criteria": ["a1"]})
+    approve_project_scope_package(config, project_id, {})
+    prepare_project_architecture_contract(config, project_id)
+    payload = update_project_architecture_contract(
+        config,
+        project_id,
+        {
+            "architecture_summary": "summary",
+            "system_components": ["api"],
+            "testing_strategy": ["unit tests"],
+            "milestone_planning_notes": "notes",
+        },
+    )
+    assert payload["ok"] is True
+    architecture = payload["architecture_contract"]
+    assert architecture["lifecycle_state"] == "architecture_draft_updated"
+    assert architecture["architecture_summary"] == "summary"
+    assert architecture["system_components"] == ["api"]
+    assert architecture["testing_strategy"] == ["unit tests"]
+    assert any(entry.get("event_type") == "architecture_draft_updated" for entry in architecture.get("audit_trail", []))
+
+
+def test_approve_architecture_fails_without_required_fields(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    created = start_new_project_factory(config, _payload(tmp_path))
+    project_id = str(created["project"]["project_id"])
+    prepare_project_scope_package(config, project_id)
+    update_project_scope_package(config, project_id, {"requirements": ["r1"], "acceptance_criteria": ["a1"]})
+    approve_project_scope_package(config, project_id, {})
+    prepare_project_architecture_contract(config, project_id)
+
+    missing_summary = approve_project_architecture_contract(config, project_id, {})
+    assert missing_summary["ok"] is False
+    assert missing_summary["error"] == "architecture_approval_validation_failed"
+
+    update_project_architecture_contract(config, project_id, {"architecture_summary": "summary"})
+    missing_components = approve_project_architecture_contract(config, project_id, {})
+    assert missing_components["ok"] is False
+
+    update_project_architecture_contract(config, project_id, {"system_components": ["api"]})
+    missing_testing = approve_project_architecture_contract(config, project_id, {})
+    assert missing_testing["ok"] is False
+
+
+def test_approve_architecture_succeeds_and_preserves_audit_entries(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    created = start_new_project_factory(config, _payload(tmp_path))
+    project_id = str(created["project"]["project_id"])
+    prepare_project_scope_package(config, project_id)
+    update_project_scope_package(config, project_id, {"requirements": ["r1"], "acceptance_criteria": ["a1"]})
+    approve_project_scope_package(config, project_id, {})
+    prepared = prepare_project_architecture_contract(config, project_id)
+    first_count = len(prepared["architecture_contract"].get("audit_trail", []))
+    update_project_architecture_contract(
+        config,
+        project_id,
+        {"architecture_summary": "summary", "system_components": ["api"], "testing_strategy": ["unit tests"]},
+    )
+    approved = approve_project_architecture_contract(config, project_id, {})
+    assert approved["ok"] is True
+    assert approved["architecture_contract"]["lifecycle_state"] == "architecture_approved"
+    assert len(approved["architecture_contract"].get("audit_trail", [])) > first_count
+    dossier = read_project_factory_dossier(config, project_id)
+    assert dossier["dossier"]["lifecycle_state"] == "architecture_approved"
+    assert dossier["dossier"]["next_recommended_action"] == "prepare_milestone_issue_plan"
