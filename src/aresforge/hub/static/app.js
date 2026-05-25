@@ -194,6 +194,7 @@ const state = {
   },
   report: null,
   exportText: "",
+  projectFactoryDossier: null,
 };
 
 function renderBootstrapStatus(payload) {
@@ -403,6 +404,41 @@ function renderActiveProjectWorkbench(report) {
   }
   const dedupedActions = workbenchActions.filter((value, index, all) => value && all.indexOf(value) === index);
   setList("home-workbench-actions", "home-workbench-actions-empty", dedupedActions);
+}
+
+function renderProjectFactoryDossier(payload) {
+  state.projectFactoryDossier = payload || null;
+  const dossier = (payload && payload.dossier) || {};
+  const safety = (payload && payload.safety_boundary) || {};
+  const projectName = dossier.name || payload.project_id || "-";
+  const lines = [];
+  if (!payload || !payload.dossier_exists) {
+    lines.push(`project: ${projectName}`);
+    lines.push(`lifecycle_state: ${payload && payload.lifecycle_state ? payload.lifecycle_state : "not_started"}`);
+    lines.push(`next_recommended_action: ${payload && payload.next_recommended_action ? payload.next_recommended_action : "create_project_via_new_project_wizard"}`);
+    lines.push(`github_mode: ${(dossier && dossier.github_mode) || "not_set"}`);
+  } else {
+    lines.push(`project: ${projectName} (${payload.project_id || "-"})`);
+    lines.push(`lifecycle_state: ${payload.lifecycle_state || "-"}`);
+    lines.push(`next_recommended_action: ${payload.next_recommended_action || "-"}`);
+    lines.push(`github_mode: ${dossier.github_mode || "create-later"}`);
+    lines.push(`github_status: ${(safety.github_mutation_status || "not_requested")}`);
+    lines.push(`model_status: ${(safety.model_execution_status || "not_requested")}`);
+  }
+  setList("home-project-factory-dossier", "home-project-factory-dossier-empty", lines);
+  setList("home-project-factory-workflow", "home-project-factory-workflow-empty", renderWorkflowTimeline(payload && payload.workflow_steps));
+  setList("home-scope-kickoff", "home-scope-kickoff-empty", [
+    `selected_project: ${payload && payload.project_id ? payload.project_id : "none"}`,
+    `lifecycle_state: ${payload && payload.lifecycle_state ? payload.lifecycle_state : "not_started"}`,
+    `next_recommended_action: ${payload && payload.next_recommended_action ? payload.next_recommended_action : "create_project_via_new_project_wizard"}`,
+    `initial_requirements: ${(dossier && dossier.initial_requirements) || "none yet"}`,
+  ]);
+}
+
+function renderWorkflowTimeline(steps) {
+  return (steps || []).map((step) => {
+    return `${step.step_id || "-"} | ${step.label || "-"} | status=${step.status || "-"} | gate=${step.gate_type || "none"} | local_only=${Boolean(step.local_only)}`;
+  });
 }
 
 function activateQueueIntakeFocus() {
@@ -660,6 +696,22 @@ async function loadActiveProject() {
   return payload;
 }
 
+async function loadProjectFactoryDossier(projectId) {
+  const query = toQuery({ project_id: projectId || "" });
+  const payload = await fetchJson(`/api/project-factory/dossier${query}`, { method: "GET" });
+  renderProjectFactoryDossier(payload);
+  return payload;
+}
+
+async function prepareScopePackage() {
+  const payload = await fetchJson("/api/project-factory/scope-package", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(prunePayload({ project_id: activeProjectId() })),
+  });
+  return payload;
+}
+
 async function setActiveProject(projectId) {
   const payload = await fetchJson("/api/projects/active", {
     method: "POST",
@@ -680,6 +732,7 @@ async function loadProjects() {
   }
   renderProjects(state.projects);
   refreshProjectSelectors(state.projects);
+  await loadProjectFactoryDossier(activeProjectId());
   setMessage("projects-message", payload.warnings && payload.warnings.length ? payload.warnings.join(" | ") : "Projects loaded.", payload.warnings && payload.warnings.length ? "warn" : "success");
 }
 
@@ -949,6 +1002,7 @@ async function copyExportText() {
 async function refreshSummaryAndReport() {
   await loadDashboardReport();
   await loadReportSlices();
+  await loadProjectFactoryDossier(activeProjectId());
 }
 
 async function loadSettings() {
@@ -1193,6 +1247,7 @@ function bindForms() {
       await setActiveProject(projectId);
       await loadProjects();
       await refreshSummaryAndReport();
+      await loadProjectFactoryDossier(activeProjectId());
       applyActiveProjectDefaultsToQueueForm();
       setMessage("projects-message", `Active project set to ${projectId}.`, "success");
     } catch (error) {
@@ -1368,6 +1423,7 @@ function bindForms() {
         body: JSON.stringify(buildNewProjectWizardPayload()),
       });
       await loadProjects();
+      await loadProjectFactoryDossier(payload.active_project_id || activeProjectId());
       applyActiveProjectDefaultsToQueueForm();
       await loadQueue();
       await refreshSummaryAndReport();
@@ -1597,6 +1653,18 @@ function bindForms() {
       setMessage("reports-message", "Escalation plan refreshed.", "success");
     } catch (error) {
       setMessage("reports-message", String(error.message || error), "error");
+    }
+  });
+
+  on("home-prepare-scope-package", "click", async () => {
+    try {
+      setMessage("projects-message", "Preparing local scope package placeholder...", "loading");
+      await prepareScopePackage();
+      await loadProjectFactoryDossier(activeProjectId());
+      await refreshSummaryAndReport();
+      setMessage("projects-message", "Scope package prepared locally.", "success");
+    } catch (error) {
+      setMessage("projects-message", String(error.message || error), "error");
     }
   });
 }

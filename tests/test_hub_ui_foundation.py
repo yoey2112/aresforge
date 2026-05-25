@@ -206,6 +206,9 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "New Project Wizard" in index_text
     assert "Start New Project" in index_text
     assert "Create Local Project Factory Start" in index_text
+    assert "Project Factory Dossier" in index_text
+    assert "Scope Project Kickoff" in index_text
+    assert "Prepare Scope Package" in index_text
     assert "wizard-project-name" in index_text
     assert "wizard-project-id" in index_text
     assert "wizard-project-type" in index_text
@@ -235,6 +238,8 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
         "/api/projects",
         "/api/projects/active",
         "/api/project-factory/new-project",
+        "/api/project-factory/dossier",
+        "/api/project-factory/scope-package",
         "/api/projects/",
         "/github-link",
         "/api/bootstrap/status",
@@ -1052,6 +1057,8 @@ def test_m44_active_project_intake_static_contract() -> None:
     assert "buildIntakePayload" in app_text
     assert "buildNewProjectWizardPayload" in app_text
     assert "focusNewProjectWizard" in app_text
+    assert "renderProjectFactoryDossier" in app_text
+    assert "renderWorkflowTimeline" in app_text
     assert 'fetchJson("/api/project-factory/new-project"' in app_text
     assert "generatedQueueItemId" in app_text
     assert "hub-active-project-intake" in app_text

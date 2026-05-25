@@ -5,7 +5,11 @@ from pathlib import Path
 
 from aresforge.config import AppConfig
 from aresforge.operator.local_project_factory import (
+    inspect_project_factory_dossier,
+    prepare_project_scope_package,
+    read_project_factory_dossier,
     resolve_project_factory_dossier_path,
+    resolve_project_scope_package_path,
     start_new_project_factory,
 )
 
@@ -108,3 +112,59 @@ def test_start_new_project_factory_writes_dossier_json(tmp_path: Path) -> None:
     assert rendered["project_id"] == result["project"]["project_id"]
     assert rendered["name"] == "Ares Wizard Project"
     assert rendered["github_mode"] == "create-later"
+
+
+def test_read_project_factory_dossier_missing_returns_friendly_payload(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    payload = read_project_factory_dossier(config, "missing-project")
+    assert payload["ok"] is True
+    assert payload["dossier_exists"] is False
+    assert payload["project_id"] == "missing-project"
+    assert payload["warnings"]
+
+
+def test_read_project_factory_dossier_existing_returns_dossier(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    created = start_new_project_factory(config, _payload(tmp_path))
+    payload = read_project_factory_dossier(config, str(created["project"]["project_id"]))
+    assert payload["ok"] is True
+    assert payload["dossier_exists"] is True
+    assert payload["dossier"]["project_id"] == created["project"]["project_id"]
+
+
+def test_inspect_project_factory_dossier_includes_workflow_steps(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    created = start_new_project_factory(config, _payload(tmp_path))
+    payload = inspect_project_factory_dossier(config, str(created["project"]["project_id"]))
+    step_ids = [step["step_id"] for step in payload["workflow_steps"]]
+    assert "project_intake" in step_ids
+    assert "scope_project" in step_ids
+    assert "github_apply" in step_ids
+    assert "agent_dispatch" in step_ids
+
+
+def test_prepare_project_scope_package_writes_scope_package_and_updates_dossier(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    created = start_new_project_factory(config, _payload(tmp_path))
+    project_id = str(created["project"]["project_id"])
+    payload = prepare_project_scope_package(config, project_id)
+    assert payload["ok"] is True
+
+    scope_path = resolve_project_scope_package_path(tmp_path, project_id)
+    rendered_scope = json.loads(scope_path.read_text(encoding="utf-8"))
+    assert rendered_scope["project_id"] == project_id
+    assert rendered_scope["scope_status"] == "not_started"
+    assert rendered_scope["model_execution_status"] == "not_requested"
+    assert rendered_scope["github_mutation_status"] == "not_requested"
+    assert rendered_scope["next_recommended_action"] == "approve_scope_generation_or_edit_scope_locally"
+
+    dossier = read_project_factory_dossier(config, project_id)
+    assert dossier["dossier"]["lifecycle_state"] == "scope_package_prepared"
+    assert dossier["dossier"]["next_recommended_action"] == "approve_scope_generation_or_edit_scope_locally"
+
+
+def test_prepare_project_scope_package_rejects_missing_dossier(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    payload = prepare_project_scope_package(config, "missing")
+    assert payload["ok"] is False
+    assert payload["error"] == "project_factory_dossier_not_found"

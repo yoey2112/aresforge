@@ -23,6 +23,7 @@ from aresforge.hub.api import (
     get_handoff_targets,
     get_orchestration_plan,
     get_project,
+    get_project_factory_dossier,
     get_project_repo_github_link,
     get_project_repos,
     get_reports_action_center,
@@ -44,6 +45,7 @@ from aresforge.hub.api import (
     post_orchestration_plan,
     post_project,
     post_project_factory_new_project,
+    post_project_factory_scope_package,
     post_project_repo,
     post_queue_item,
 )
@@ -329,6 +331,29 @@ def _build_handler(config: AppConfig, static_root: Path) -> type[BaseHTTPRequest
                     )
                     return True
                 payload = post_project_factory_new_project(config, body)
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+            if method == "GET" and path == "/api/project-factory/dossier":
+                payload = get_project_factory_dossier(
+                    config,
+                    {"project_id": query_values.get("project_id", [""])[0] if query_values.get("project_id") else ""},
+                )
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+            if method == "POST" and path == "/api/project-factory/scope-package":
+                if body is None:
+                    _render_json(
+                        self,
+                        HTTPStatus.BAD_REQUEST,
+                        {
+                            "ok": False,
+                            "local_only": True,
+                            "error": "invalid_json_body",
+                            "message": "Request body must be a JSON object.",
+                        },
+                    )
+                    return True
+                payload = post_project_factory_scope_package(config, body)
                 _render_json(self, _status_from_payload(payload), payload)
                 return True
 

@@ -46,6 +46,10 @@ def resolve_project_factory_dossier_path(repo_root: Path, project_id: str) -> Pa
     return (repo_root / ".aresforge" / "projects" / project_id.strip() / "factory_dossier.json").resolve()
 
 
+def resolve_project_scope_package_path(repo_root: Path, project_id: str) -> Path:
+    return (repo_root / ".aresforge" / "projects" / project_id.strip() / "scope_package.json").resolve()
+
+
 def create_project_factory_dossier(config: AppConfig, payload: dict[str, Any]) -> dict[str, Any]:
     dossier_path = resolve_project_factory_dossier_path(config.repo_root, str(payload.get("project_id", "")).strip())
     dossier_path.parent.mkdir(parents=True, exist_ok=True)
@@ -56,6 +60,147 @@ def create_project_factory_dossier(config: AppConfig, payload: dict[str, Any]) -
         "dossier_path": str(dossier_path),
         "dossier": payload,
         "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+    }
+
+
+def read_project_factory_dossier(config: AppConfig, project_id: str) -> dict[str, Any]:
+    normalized_project_id = str(project_id or "").strip()
+    dossier_path = resolve_project_factory_dossier_path(config.repo_root, normalized_project_id)
+    warnings: list[str] = []
+    dossier: dict[str, Any] | None = None
+    dossier_exists = dossier_path.exists()
+
+    if dossier_exists:
+        try:
+            loaded = json.loads(dossier_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            warnings.append(f"Factory dossier could not be parsed: {exc}")
+        else:
+            if isinstance(loaded, dict):
+                dossier = loaded
+            else:
+                warnings.append("Factory dossier has invalid schema; expected JSON object.")
+    else:
+        warnings.append(f"Factory dossier not found for project: {normalized_project_id}")
+
+    lifecycle_state = str((dossier or {}).get("lifecycle_state", "")).strip() or "not_started"
+    next_recommended_action = str((dossier or {}).get("next_recommended_action", "")).strip()
+    if not next_recommended_action:
+        if dossier_exists:
+            next_recommended_action = "scope_project"
+        else:
+            next_recommended_action = "create_project_via_new_project_wizard"
+
+    safety_boundary = (dossier or {}).get("safety_boundary")
+    if not isinstance(safety_boundary, dict):
+        safety_boundary = {
+            "local_only": True,
+            "github_mutation_status": "not_requested",
+            "model_execution_status": "not_requested",
+        }
+
+    return {
+        "ok": True,
+        "local_only": True,
+        "project_id": normalized_project_id,
+        "dossier_path": str(dossier_path),
+        "dossier_exists": dossier_exists and isinstance(dossier, dict),
+        "dossier": dossier if isinstance(dossier, dict) else {},
+        "lifecycle_state": lifecycle_state,
+        "next_recommended_action": next_recommended_action,
+        "safety_boundary": safety_boundary,
+        "warnings": sorted(set(warnings)),
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+    }
+
+
+def inspect_project_factory_dossier(config: AppConfig, project_id: str) -> dict[str, Any]:
+    payload = read_project_factory_dossier(config, project_id)
+    lifecycle_state = str(payload.get("lifecycle_state", "")).strip()
+    dossier = payload.get("dossier", {}) if isinstance(payload.get("dossier"), dict) else {}
+    github_mode = str(dossier.get("github_mode", "")).strip() or "create-later"
+    payload["workflow_steps"] = _build_workflow_steps(lifecycle_state=lifecycle_state, github_mode=github_mode)
+    return payload
+
+
+def prepare_project_scope_package(config: AppConfig, project_id: str) -> dict[str, Any]:
+    inspection = inspect_project_factory_dossier(config, project_id)
+    normalized_project_id = str(inspection.get("project_id", "")).strip()
+    if not inspection.get("dossier_exists", False):
+        return _error(
+            "project_factory_dossier_not_found",
+            {
+                "message": "Project factory dossier is required before preparing a scope package.",
+                "project_id": normalized_project_id,
+                "dossier_path": inspection.get("dossier_path", ""),
+            },
+        )
+
+    dossier = inspection.get("dossier", {}) if isinstance(inspection.get("dossier"), dict) else {}
+    now = _now_iso()
+    scope_path = resolve_project_scope_package_path(config.repo_root, normalized_project_id)
+    scope_path.parent.mkdir(parents=True, exist_ok=True)
+    existing_created_at = ""
+    if scope_path.exists():
+        try:
+            existing_raw = json.loads(scope_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            existing_raw = {}
+        if isinstance(existing_raw, dict):
+            existing_created_at = str(existing_raw.get("created_at", "")).strip()
+
+    scope_package = {
+        "schema_version": "1.0",
+        "project_id": normalized_project_id,
+        "created_at": existing_created_at or now,
+        "updated_at": now,
+        "lifecycle_state": "scope_package_prepared",
+        "source": "local_project_factory",
+        "input": {
+            "name": str(dossier.get("name", "")).strip(),
+            "description": str(dossier.get("description", "")).strip(),
+            "project_type": str(dossier.get("project_type", "")).strip(),
+            "preferred_stack": str(dossier.get("preferred_stack", "")).strip(),
+            "initial_requirements": str(dossier.get("initial_requirements", "")).strip(),
+        },
+        "scope_status": "not_started",
+        "model_execution_status": "not_requested",
+        "github_mutation_status": "not_requested",
+        "next_recommended_action": "approve_scope_generation_or_edit_scope_locally",
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
+    }
+    scope_path.write_text(json.dumps(scope_package, indent=2) + "\n", encoding="utf-8")
+
+    current_lifecycle_state = str(dossier.get("lifecycle_state", "")).strip()
+    if current_lifecycle_state in {"", "intake_created", "scope_project"}:
+        dossier["lifecycle_state"] = "scope_package_prepared"
+    dossier["next_recommended_action"] = "approve_scope_generation_or_edit_scope_locally"
+    dossier["updated_at"] = now
+    dossier.setdefault(
+        "safety_boundary",
+        {
+            "local_only": True,
+            "github_mutation_status": "not_requested",
+            "model_execution_status": "not_requested",
+        },
+    )
+    create_project_factory_dossier(config, dossier)
+    updated_inspection = inspect_project_factory_dossier(config, normalized_project_id)
+
+    return {
+        "ok": True,
+        "local_only": True,
+        "project_id": normalized_project_id,
+        "dossier": updated_inspection.get("dossier", {}),
+        "dossier_path": updated_inspection.get("dossier_path", ""),
+        "scope_package": scope_package,
+        "scope_package_path": str(scope_path),
+        "warnings": sorted(set(updated_inspection.get("warnings", []))),
+        "boundary_confirmations": list(
+            dict.fromkeys(
+                list(_BOUNDARY_CONFIRMATIONS) + list(updated_inspection.get("boundary_confirmations", []))
+            )
+        ),
     }
 
 
@@ -267,3 +412,96 @@ def _error(error: str, details: dict[str, Any]) -> dict[str, Any]:
 
 def _now_iso() -> str:
     return datetime.now(UTC).isoformat()
+
+
+def _build_workflow_steps(*, lifecycle_state: str, github_mode: str) -> list[dict[str, Any]]:
+    normalized_state = lifecycle_state.strip() or "not_started"
+    normalized_github_mode = github_mode.strip() or "create-later"
+    repo_step_status = "current" if normalized_state == "intake_created" and normalized_github_mode == "link-existing" else "pending"
+    scope_step_status = "current" if normalized_state == "intake_created" else "pending"
+    if normalized_state == "scope_package_prepared":
+        repo_step_status = "completed" if normalized_github_mode == "link-existing" else "pending"
+        scope_step_status = "completed"
+
+    return [
+        {
+            "step_id": "project_intake",
+            "label": "Project Intake",
+            "status": "completed" if normalized_state != "not_started" else "pending",
+            "local_only": True,
+            "gate_type": "none",
+            "description": "Local project intake captured in factory dossier.",
+        },
+        {
+            "step_id": "repo_create_or_link",
+            "label": "Repo Create or Link",
+            "status": repo_step_status,
+            "local_only": True,
+            "gate_type": "user_approval",
+            "description": "Prepare repository create/link intent locally before any GitHub mutation.",
+        },
+        {
+            "step_id": "scope_project",
+            "label": "Scope Project",
+            "status": scope_step_status,
+            "local_only": True,
+            "gate_type": "model_execution_approval",
+            "description": "Prepare local scope package and approve model scope generation later.",
+        },
+        {
+            "step_id": "architecture_design",
+            "label": "Architecture Design",
+            "status": "pending",
+            "local_only": True,
+            "gate_type": "model_execution_approval",
+            "description": "Architecture and design planning phase.",
+        },
+        {
+            "step_id": "milestone_issue_plan",
+            "label": "Milestone and Issue Plan",
+            "status": "pending",
+            "local_only": True,
+            "gate_type": "user_approval",
+            "description": "Define milestones and issue plan locally before apply.",
+        },
+        {
+            "step_id": "github_apply",
+            "label": "GitHub Apply",
+            "status": "gated",
+            "local_only": True,
+            "gate_type": "github_approval",
+            "description": "GitHub mutations remain gated until explicit approval.",
+        },
+        {
+            "step_id": "agent_dispatch",
+            "label": "Agent Dispatch",
+            "status": "gated",
+            "local_only": True,
+            "gate_type": "model_execution_approval",
+            "description": "Agent execution remains gated until explicit approval.",
+        },
+        {
+            "step_id": "validation",
+            "label": "Validation",
+            "status": "pending",
+            "local_only": True,
+            "gate_type": "none",
+            "description": "Run local validation for delivered work.",
+        },
+        {
+            "step_id": "documentation",
+            "label": "Documentation",
+            "status": "pending",
+            "local_only": True,
+            "gate_type": "none",
+            "description": "Capture docs and evidence updates.",
+        },
+        {
+            "step_id": "closeout",
+            "label": "Closeout",
+            "status": "pending",
+            "local_only": True,
+            "gate_type": "none",
+            "description": "Finalize project closeout workflow.",
+        },
+    ]

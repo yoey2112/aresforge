@@ -3,7 +3,12 @@ from __future__ import annotations
 from pathlib import Path
 
 from aresforge.config import AppConfig
-from aresforge.hub.api import post_project_factory_new_project
+from aresforge.hub.api import (
+    get_project_factory_dossier,
+    post_active_project,
+    post_project_factory_new_project,
+    post_project_factory_scope_package,
+)
 
 
 def _config(tmp_path: Path) -> AppConfig:
@@ -80,3 +85,70 @@ def test_post_project_factory_new_project_errors_for_invalid_payload(tmp_path: P
     )
     assert invalid_type["ok"] is False
     assert invalid_type["error"] == "invalid_project_type"
+
+
+def test_get_project_factory_dossier_without_project_id_uses_active_project(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    created = post_project_factory_new_project(
+        config,
+        {
+            "name": "Dossier Project",
+            "root_path": str(tmp_path / "workspace"),
+        },
+    )
+    assert created["ok"] is True
+
+    payload = get_project_factory_dossier(config, {})
+    assert payload["ok"] is True
+    assert payload["dossier_exists"] is True
+    assert payload["project_id"] == created["active_project_id"]
+
+
+def test_get_project_factory_dossier_missing_state_is_friendly(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    payload = get_project_factory_dossier(config, {})
+    assert payload["ok"] is True
+    assert payload["dossier_exists"] is False
+    assert payload["warnings"]
+
+
+def test_post_project_factory_scope_package_prepares_for_active_project(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    created = post_project_factory_new_project(
+        config,
+        {
+            "name": "Scope API Project",
+            "root_path": str(tmp_path / "workspace"),
+        },
+    )
+    assert created["ok"] is True
+
+    payload = post_project_factory_scope_package(config, {})
+    assert payload["ok"] is True
+    assert payload["project_id"] == created["active_project_id"]
+    assert payload["scope_package"]["lifecycle_state"] == "scope_package_prepared"
+
+
+def test_post_project_factory_scope_package_returns_400_with_no_active_project(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    payload = post_project_factory_scope_package(config, {})
+    assert payload["ok"] is False
+    assert payload["_status"] == 400
+
+
+def test_post_project_factory_scope_package_returns_404_for_missing_dossier(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    seed = post_project_factory_new_project(
+        config,
+        {
+            "name": "Seed Project",
+            "project_id": "seed-project",
+            "root_path": str(tmp_path / "seed-workspace"),
+        },
+    )
+    assert seed["ok"] is True
+    post_active_project(config, {"project_id": "seed-project"})
+
+    payload = post_project_factory_scope_package(config, {"project_id": "missing-project"})
+    assert payload["ok"] is False
+    assert payload["_status"] == 404

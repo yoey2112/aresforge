@@ -40,6 +40,8 @@ from aresforge.operator.local_bootstrap_wizard import (
 from aresforge.operator.local_project_factory import (
     GITHUB_MODES,
     PROJECT_TYPES,
+    inspect_project_factory_dossier,
+    prepare_project_scope_package,
     start_new_project_factory,
 )
 from aresforge.operator.managed_project_registry_local import (
@@ -719,6 +721,81 @@ def post_project_factory_new_project(config: AppConfig, body: dict[str, Any]) ->
             dict.fromkeys(list(result.get("boundary_confirmations", [])) + list(_BOUNDARY_CONFIRMATIONS))
         ),
     }
+
+
+def get_project_factory_dossier(config: AppConfig, params: dict[str, str | None]) -> dict[str, Any]:
+    requested_project_id = str(params.get("project_id", "") or "").strip()
+    warnings: list[str] = []
+    project_id = requested_project_id
+    if not project_id:
+        active_payload = inspect_active_project(config)
+        project_id = str(active_payload.get("active_project_id", "")).strip()
+        if not project_id:
+            warnings.append("No active project selected. Create/select a project to view its factory dossier.")
+            return {
+                "ok": True,
+                "local_only": True,
+                "project_id": "",
+                "dossier_path": "",
+                "dossier_exists": False,
+                "dossier": {},
+                "lifecycle_state": "not_started",
+                "next_recommended_action": "create_project_via_new_project_wizard",
+                "safety_boundary": {
+                    "local_only": True,
+                    "github_mutation_status": "not_requested",
+                    "model_execution_status": "not_requested",
+                },
+                "workflow_steps": [],
+                "warnings": sorted(set(warnings + list(active_payload.get("warnings", [])))),
+                "boundary_confirmations": list(
+                    dict.fromkeys(
+                        list(_BOUNDARY_CONFIRMATIONS) + list(active_payload.get("boundary_confirmations", []))
+                    )
+                ),
+            }
+
+    payload = inspect_project_factory_dossier(config, project_id)
+    warnings.extend(list(payload.get("warnings", [])))
+    if requested_project_id and not payload.get("dossier_exists", False):
+        warnings.append(f"Factory dossier not found for requested project: {requested_project_id}")
+    payload["warnings"] = sorted(set(warnings))
+    payload["boundary_confirmations"] = list(
+        dict.fromkeys(list(payload.get("boundary_confirmations", [])) + list(_BOUNDARY_CONFIRMATIONS))
+    )
+    return payload
+
+
+def post_project_factory_scope_package(config: AppConfig, body: dict[str, Any]) -> dict[str, Any]:
+    requested_project_id = str(body.get("project_id", "")).strip()
+    project_id = requested_project_id
+    if not project_id:
+        active_payload = inspect_active_project(config)
+        project_id = str(active_payload.get("active_project_id", "")).strip()
+        if not project_id:
+            return _api_error(
+                "active_project_required",
+                "project_id is required when no active project is selected.",
+                details={"required_fields": ["project_id"], "active_project_selected": False},
+                status=400,
+            )
+
+    result = prepare_project_scope_package(config, project_id)
+    if not result.get("ok", False):
+        error = str(result.get("error", "scope_package_prepare_failed"))
+        status = 404 if error == "project_factory_dossier_not_found" else 400
+        details = dict(result.get("details", {}))
+        return _api_error(
+            error,
+            str(details.get("message", "Failed to prepare local scope package placeholder.")),
+            details=details,
+            status=status,
+        )
+
+    result["boundary_confirmations"] = list(
+        dict.fromkeys(list(result.get("boundary_confirmations", [])) + list(_BOUNDARY_CONFIRMATIONS))
+    )
+    return result
 
 
 def get_projects(config: AppConfig) -> dict[str, Any]:
