@@ -33,6 +33,8 @@ from aresforge.db.repository import (
     inspect_work_item_readiness,
     inspect_work_item_lifecycle,
     start_work_item_if_ready,
+    plan_work_item_queue_transition,
+    move_work_item_queue_if_allowed,
     render_roadmap_markdown,
     render_roadmap_events_markdown,
     render_queue_readiness_markdown,
@@ -41,6 +43,8 @@ from aresforge.db.repository import (
     render_work_item_readiness_markdown,
     render_work_item_lifecycle_markdown,
     render_start_work_item_markdown,
+    render_work_item_queue_transition_plan_markdown,
+    render_move_work_item_queue_markdown,
     seed_aresforge_roadmap,
     add_roadmap_event,
     create_work_item_from_roadmap_task,
@@ -364,6 +368,30 @@ def build_parser() -> argparse.ArgumentParser:
     start_work_item_parser.add_argument("--actor", default="local-operator")
     start_work_item_parser.add_argument("--details-file")
     start_work_item_parser.add_argument(
+        "--format",
+        choices=("json", "markdown"),
+        default="json",
+    )
+    plan_queue_transition_parser = subparsers.add_parser(
+        "plan-work-item-queue-transition",
+        help="Plan a local queue transition for one work item without mutation.",
+    )
+    plan_queue_transition_parser.add_argument("--work-item-id", required=True)
+    plan_queue_transition_parser.add_argument("--target-queue-id", required=True)
+    plan_queue_transition_parser.add_argument(
+        "--format",
+        choices=("json", "markdown"),
+        default="json",
+    )
+    move_queue_parser = subparsers.add_parser(
+        "move-work-item-queue",
+        help="Move one local work item queue only when transition planning allows it.",
+    )
+    move_queue_parser.add_argument("--work-item-id", required=True)
+    move_queue_parser.add_argument("--target-queue-id", required=True)
+    move_queue_parser.add_argument("--actor", default="local-operator")
+    move_queue_parser.add_argument("--details-file")
+    move_queue_parser.add_argument(
         "--format",
         choices=("json", "markdown"),
         default="json",
@@ -2171,6 +2199,39 @@ def main(argv: list[str] | None = None) -> int:
             )
         if args.format == "markdown":
             print(render_start_work_item_markdown(payload))
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "plan-work-item-queue-transition":
+        with connect(config) as conn:
+            payload = plan_work_item_queue_transition(
+                conn,
+                args.work_item_id,
+                args.target_queue_id,
+            )
+        if args.format == "markdown":
+            print(render_work_item_queue_transition_plan_markdown(payload))
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "move-work-item-queue":
+        details, details_error = parse_details_input(None, getattr(args, "details_file", None))
+        if details_error is not None:
+            emit_json(details_error)
+            return 1
+        assert details is not None
+        with connect(config) as conn:
+            payload = move_work_item_queue_if_allowed(
+                conn,
+                args.work_item_id,
+                args.target_queue_id,
+                actor=args.actor,
+                details=details,
+            )
+        if args.format == "markdown":
+            print(render_move_work_item_queue_markdown(payload))
             return 0 if bool(payload.get("ok")) else 1
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1

@@ -37,6 +37,8 @@ def test_cli_has_expected_commands() -> None:
         "create-work-item-from-roadmap-task",
         "update-work-item-status",
         "start-work-item",
+        "plan-work-item-queue-transition",
+        "move-work-item-queue",
         "inspect-work-item-lifecycle",
         "inspect-queue-work-state",
         "inspect-work-item-readiness",
@@ -4109,6 +4111,88 @@ def test_start_work_item_dispatch_parses_bom_details_file(
             "start-work-item",
             "--work-item-id",
             "work-1",
+            "--actor",
+            "local-test",
+            "--details-file",
+            str(details_path),
+            "--format",
+            "json",
+        ]
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert seen == {"actor": "local-test", "details": {"source": "unit-test"}}
+    assert payload["ok"] is True
+
+
+def test_plan_work_item_queue_transition_dispatch_markdown(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    plan_payload = {
+        "ok": True,
+        "work_item_id": "work-1",
+        "can_transition": True,
+        "transition_status": "ready",
+        "reason": "transition_allowed",
+    }
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(
+        cli,
+        "plan_work_item_queue_transition",
+        lambda _conn, _work_item_id, _target_queue_id: plan_payload,
+    )
+    monkeypatch.setattr(
+        cli,
+        "render_work_item_queue_transition_plan_markdown",
+        lambda _payload: "# Queue Transition Plan\n",
+    )
+
+    exit_code = cli.main(
+        [
+            "plan-work-item-queue-transition",
+            "--work-item-id",
+            "work-1",
+            "--target-queue-id",
+            "queue-triage",
+            "--format",
+            "markdown",
+        ]
+    )
+    output = capsys.readouterr().out
+    assert exit_code == 0
+    assert output == "# Queue Transition Plan\n\n"
+
+
+def test_move_work_item_queue_dispatch_parses_bom_details_file(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+) -> None:
+    details_path = tmp_path / "details-bom.json"
+    details_path.write_text('\ufeff{"source":"unit-test"}', encoding="utf-8")
+    seen: dict[str, object] = {}
+
+    def fake_move_work_item_queue_if_allowed(
+        _conn: object,
+        _work_item_id: str,
+        _target_queue_id: str,
+        actor: str,
+        details: dict[str, object],
+    ) -> dict[str, object]:
+        seen["actor"] = actor
+        seen["details"] = details
+        return {"ok": True, "changed": True, "work_item_id": _work_item_id}
+
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(cli, "move_work_item_queue_if_allowed", fake_move_work_item_queue_if_allowed)
+
+    exit_code = cli.main(
+        [
+            "move-work-item-queue",
+            "--work-item-id",
+            "work-1",
+            "--target-queue-id",
+            "queue-triage",
             "--actor",
             "local-test",
             "--details-file",

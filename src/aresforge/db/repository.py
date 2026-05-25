@@ -1754,6 +1754,325 @@ def render_start_work_item_markdown(payload: dict[str, Any]) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
+def plan_work_item_queue_transition(
+    conn: Connection,
+    work_item_id: str,
+    target_queue_id: str,
+) -> dict[str, Any]:
+    work_item = inspect_work_item(conn, work_item_id)
+    if work_item is None:
+        return {
+            "ok": False,
+            "work_item_id": work_item_id,
+            "project_id": DEFAULT_PROJECT_ID,
+            "can_transition": False,
+            "changed": False,
+            "transition_status": "missing",
+            "reason": "work_item_not_found",
+            "next_safe_action": "Create or inspect the local work item before moving queues.",
+            "blockers": [{"code": "work_item_not_found", "work_item_id": work_item_id}],
+            "warnings": [],
+            "work_item": None,
+            "current_queue": None,
+            "target_queue": None,
+            "allowed_next_queues": [],
+        }
+
+    current_queue_id = work_item.get("queue_id")
+    current_queue = inspect_queue(conn, current_queue_id) if current_queue_id else None
+    target_queue = inspect_queue(conn, target_queue_id)
+    allowed_next_queues = list(work_item.get("queue_allowed_next_queues") or [])
+    readiness = inspect_work_item_readiness(conn, work_item_id)
+
+    if target_queue is None:
+        return {
+            "ok": False,
+            "work_item_id": work_item_id,
+            "project_id": work_item.get("project_id", DEFAULT_PROJECT_ID),
+            "can_transition": False,
+            "changed": False,
+            "transition_status": "missing_target_queue",
+            "reason": "target_queue_not_found",
+            "next_safe_action": "Inspect available queues before moving work items.",
+            "blockers": [{"code": "target_queue_not_found", "target_queue_id": target_queue_id}],
+            "warnings": [],
+            "work_item": work_item,
+            "current_queue": current_queue,
+            "target_queue": None,
+            "allowed_next_queues": allowed_next_queues,
+            "readiness": readiness,
+        }
+
+    status = work_item.get("status")
+    if status == "cancelled":
+        return {
+            "ok": True,
+            "work_item_id": work_item_id,
+            "project_id": work_item.get("project_id", DEFAULT_PROJECT_ID),
+            "can_transition": False,
+            "changed": False,
+            "transition_status": "cancelled",
+            "reason": "work_item_cancelled",
+            "next_safe_action": "No queue move. Work item is cancelled.",
+            "blockers": [],
+            "warnings": [],
+            "work_item": work_item,
+            "current_queue": current_queue,
+            "target_queue": target_queue,
+            "allowed_next_queues": allowed_next_queues,
+            "readiness": readiness,
+        }
+
+    if status == "complete":
+        return {
+            "ok": True,
+            "work_item_id": work_item_id,
+            "project_id": work_item.get("project_id", DEFAULT_PROJECT_ID),
+            "can_transition": False,
+            "changed": False,
+            "transition_status": "already_complete",
+            "reason": "work_item_complete",
+            "next_safe_action": "No queue move. Work item is complete.",
+            "blockers": [],
+            "warnings": [],
+            "work_item": work_item,
+            "current_queue": current_queue,
+            "target_queue": target_queue,
+            "allowed_next_queues": allowed_next_queues,
+            "readiness": readiness,
+        }
+
+    if current_queue_id == target_queue_id:
+        return {
+            "ok": True,
+            "work_item_id": work_item_id,
+            "project_id": work_item.get("project_id", DEFAULT_PROJECT_ID),
+            "can_transition": False,
+            "changed": False,
+            "transition_status": "already_in_target_queue",
+            "reason": "already_in_target_queue",
+            "next_safe_action": "No queue move needed.",
+            "blockers": [],
+            "warnings": [],
+            "work_item": work_item,
+            "current_queue": current_queue,
+            "target_queue": target_queue,
+            "allowed_next_queues": allowed_next_queues,
+            "readiness": readiness,
+        }
+
+    if target_queue_id not in allowed_next_queues:
+        return {
+            "ok": True,
+            "work_item_id": work_item_id,
+            "project_id": work_item.get("project_id", DEFAULT_PROJECT_ID),
+            "can_transition": False,
+            "changed": False,
+            "transition_status": "blocked",
+            "reason": "target_queue_not_allowed",
+            "next_safe_action": "Choose one of the allowed next queues.",
+            "blockers": [
+                {
+                    "code": "target_queue_not_allowed",
+                    "current_queue_id": current_queue_id,
+                    "target_queue_id": target_queue_id,
+                }
+            ],
+            "warnings": [],
+            "work_item": work_item,
+            "current_queue": current_queue,
+            "target_queue": target_queue,
+            "allowed_next_queues": allowed_next_queues,
+            "readiness": readiness,
+        }
+
+    return {
+        "ok": True,
+        "work_item_id": work_item_id,
+        "project_id": work_item.get("project_id", DEFAULT_PROJECT_ID),
+        "can_transition": True,
+        "changed": False,
+        "transition_status": "ready",
+        "reason": "transition_allowed",
+        "next_safe_action": "Move work item to target queue.",
+        "blockers": [],
+        "warnings": [],
+        "work_item": work_item,
+        "current_queue": current_queue,
+        "target_queue": target_queue,
+        "allowed_next_queues": allowed_next_queues,
+        "readiness": readiness,
+    }
+
+
+def move_work_item_queue_if_allowed(
+    conn: Connection,
+    work_item_id: str,
+    target_queue_id: str,
+    *,
+    actor: str = "local-operator",
+    details: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    plan = plan_work_item_queue_transition(conn, work_item_id, target_queue_id)
+    if not bool(plan.get("ok")) or not bool(plan.get("can_transition")):
+        return {
+            "ok": bool(plan.get("ok")),
+            "changed": False,
+            "work_item_id": work_item_id,
+            "target_queue_id": target_queue_id,
+            "transition_status": plan.get("transition_status", "blocked"),
+            "reason": plan.get("reason", "transition_not_allowed"),
+            "next_safe_action": plan.get("next_safe_action"),
+            "blockers": plan.get("blockers", []),
+            "plan": plan,
+        }
+
+    normalized_details = _normalize_roadmap_details(details)
+    project_id = str(plan.get("project_id") or DEFAULT_PROJECT_ID)
+    previous_queue_id = str((plan.get("work_item") or {}).get("queue_id") or "")
+    audit_event_id = _new_id("audit")
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            UPDATE work_items
+            SET queue_id = %s,
+                updated_at = NOW()
+            WHERE id = %s
+            """,
+            (target_queue_id, work_item_id),
+        )
+        cur.execute(
+            """
+            INSERT INTO audit_events (id, project_id, work_item_id, event_type, actor, details)
+            VALUES (%s, %s, %s, %s, %s, %s::jsonb)
+            """,
+            (
+                audit_event_id,
+                project_id,
+                work_item_id,
+                "work_item_queue_changed",
+                actor,
+                json.dumps(
+                    {
+                        "work_item_id": work_item_id,
+                        "previous_queue_id": previous_queue_id,
+                        "new_queue_id": target_queue_id,
+                        **normalized_details,
+                    }
+                ),
+            ),
+        )
+        cur.execute(
+            """
+            SELECT id, roadmap_task_id
+            FROM roadmap_work_item_links
+            WHERE work_item_id = %s
+              AND status = 'active'
+            ORDER BY created_at DESC, id DESC
+            LIMIT 1
+            """,
+            (work_item_id,),
+        )
+        link_row = cur.fetchone()
+
+    roadmap_event_ids: list[str] = []
+    if link_row is not None:
+        roadmap_event = add_roadmap_event(
+            conn,
+            project_id=project_id,
+            event_type="work_item_queue_changed",
+            actor=actor,
+            summary=f"Work item queue changed: {previous_queue_id} -> {target_queue_id}",
+            details={
+                "work_item_id": work_item_id,
+                "roadmap_task_id": link_row["roadmap_task_id"],
+                "previous_queue_id": previous_queue_id,
+                "new_queue_id": target_queue_id,
+                **normalized_details,
+            },
+            task_id=link_row["roadmap_task_id"],
+        )
+        if bool(roadmap_event.get("ok")):
+            roadmap_event_ids.append(roadmap_event["event_id"])
+
+    return {
+        "ok": True,
+        "changed": True,
+        "work_item_id": work_item_id,
+        "previous_queue_id": previous_queue_id,
+        "new_queue_id": target_queue_id,
+        "transition_status": "moved",
+        "reason": "transition_applied",
+        "next_safe_action": "Inspect queue readiness or continue work item lifecycle.",
+        "blockers": [],
+        "event_ids": {
+            "audit_event_ids": [audit_event_id],
+            "roadmap_event_ids": roadmap_event_ids,
+        },
+        "plan": plan,
+    }
+
+
+def render_work_item_queue_transition_plan_markdown(payload: dict[str, Any]) -> str:
+    current_queue = payload.get("current_queue") or {}
+    target_queue = payload.get("target_queue") or {}
+    lines = [
+        "# Queue Transition Plan",
+        "",
+        f"- Work item ID: `{payload.get('work_item_id', '')}`",
+        f"- Current queue: `{current_queue.get('id', '')}`",
+        f"- Target queue: `{target_queue.get('id', '')}`",
+        f"- Can transition: `{payload.get('can_transition', False)}`",
+        f"- Transition status: `{payload.get('transition_status', '')}`",
+        f"- Reason: `{payload.get('reason', '')}`",
+        f"- Next safe action: {payload.get('next_safe_action', '')}",
+        "",
+        "## Blockers",
+    ]
+    blockers = payload.get("blockers", [])
+    if blockers:
+        for blocker in blockers:
+            lines.append(f"- `{blocker.get('code', 'unknown')}` {json.dumps(blocker, sort_keys=True)}")
+    else:
+        lines.append("- none")
+    lines.extend(["", "## Allowed Next Queues"])
+    allowed = payload.get("allowed_next_queues", [])
+    if allowed:
+        for queue_id in allowed:
+            lines.append(f"- `{queue_id}`")
+    else:
+        lines.append("- none")
+    lines.extend(["", "## Readiness"])
+    readiness = payload.get("readiness") or {}
+    lines.append(f"- Status: `{readiness.get('readiness_status', 'missing')}`")
+    lines.append(f"- Ready: `{readiness.get('ready', False)}`")
+    lines.append(f"- Next safe action: {readiness.get('next_safe_action', '')}")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def render_move_work_item_queue_markdown(payload: dict[str, Any]) -> str:
+    lines = [
+        "# Move Work Item Queue",
+        "",
+        f"- Work item ID: `{payload.get('work_item_id', '')}`",
+        f"- Changed: `{payload.get('changed', False)}`",
+        f"- Previous queue: `{payload.get('previous_queue_id', '')}`",
+        f"- New queue: `{payload.get('new_queue_id', payload.get('target_queue_id', ''))}`",
+        f"- Transition status: `{payload.get('transition_status', '')}`",
+        f"- Reason: `{payload.get('reason', '')}`",
+        f"- Next safe action: {payload.get('next_safe_action', '')}",
+        "",
+        "## Blockers",
+    ]
+    blockers = payload.get("blockers", [])
+    if blockers:
+        for blocker in blockers:
+            lines.append(f"- `{blocker.get('code', 'unknown')}` {json.dumps(blocker, sort_keys=True)}")
+    else:
+        lines.append("- none")
+    return "\n".join(lines).rstrip() + "\n"
+
+
 def inspect_state(conn: Connection) -> dict[str, Any]:
     with conn.cursor() as cur:
         counts: dict[str, int] = {}

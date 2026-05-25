@@ -1,5 +1,13 @@
 # AresForge Build State
 
+## M7 Local Queue Transition Planning And Gated Queue Move
+
+- Added local queue transition planning and gated queue move control:
+  - `python -m aresforge plan-work-item-queue-transition --work-item-id <id> --target-queue-id <id> [--format json|markdown]`
+  - `python -m aresforge move-work-item-queue --work-item-id <id> --target-queue-id <id> [--actor <actor>] [--details-file <path>] [--format json|markdown]`
+- Planning remains read-only and deterministic.
+- Queue move remains local-only, does not execute agents, and does not call GitHub.
+
 ## M46 Project Factory Source-of-Truth Realignment
 
 Current state on `main` includes M43-M45 and establishes a local-first Hub control plane plus a partial project-factory shell:

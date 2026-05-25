@@ -12,10 +12,14 @@ from aresforge.db.repository import (
     create_work_item_from_roadmap_task,
     inspect_roadmap_db,
     inspect_work_item_readiness,
+    move_work_item_queue_if_allowed,
+    plan_work_item_queue_transition,
     render_start_work_item_markdown,
+    render_move_work_item_queue_markdown,
     render_queue_work_state_markdown,
     render_queue_readiness_markdown,
     render_roadmap_events_markdown,
+    render_work_item_queue_transition_plan_markdown,
     render_work_item_readiness_markdown,
     render_work_item_lifecycle_markdown,
     render_roadmap_markdown,
@@ -368,6 +372,68 @@ def test_cli_parser_recognizes_roadmap_commands_and_formats() -> None:
     assert start_work_item_details_args.actor == "local-test"
     assert start_work_item_details_args.details_file == "details.json"
 
+    plan_queue_transition_json_args = parser.parse_args(
+        [
+            "plan-work-item-queue-transition",
+            "--work-item-id",
+            "work-1",
+            "--target-queue-id",
+            "queue-verification",
+            "--format",
+            "json",
+        ]
+    )
+    assert plan_queue_transition_json_args.command == "plan-work-item-queue-transition"
+    assert plan_queue_transition_json_args.format == "json"
+
+    plan_queue_transition_markdown_args = parser.parse_args(
+        [
+            "plan-work-item-queue-transition",
+            "--work-item-id",
+            "work-1",
+            "--target-queue-id",
+            "queue-verification",
+            "--format",
+            "markdown",
+        ]
+    )
+    assert plan_queue_transition_markdown_args.command == "plan-work-item-queue-transition"
+    assert plan_queue_transition_markdown_args.format == "markdown"
+
+    move_queue_json_args = parser.parse_args(
+        [
+            "move-work-item-queue",
+            "--work-item-id",
+            "work-1",
+            "--target-queue-id",
+            "queue-verification",
+            "--format",
+            "json",
+        ]
+    )
+    assert move_queue_json_args.command == "move-work-item-queue"
+    assert move_queue_json_args.format == "json"
+
+    move_queue_markdown_args = parser.parse_args(
+        [
+            "move-work-item-queue",
+            "--work-item-id",
+            "work-1",
+            "--target-queue-id",
+            "queue-verification",
+            "--actor",
+            "local-test",
+            "--details-file",
+            "details.json",
+            "--format",
+            "markdown",
+        ]
+    )
+    assert move_queue_markdown_args.command == "move-work-item-queue"
+    assert move_queue_markdown_args.actor == "local-test"
+    assert move_queue_markdown_args.details_file == "details.json"
+    assert move_queue_markdown_args.format == "markdown"
+
 
 class _MissingRoadmapTaskCursor:
     def __enter__(self) -> _MissingRoadmapTaskCursor:
@@ -653,6 +719,47 @@ def test_render_start_work_item_markdown_is_deterministic() -> None:
     assert "## Roadmap Links" in markdown
 
 
+def test_render_work_item_queue_transition_plan_markdown_is_deterministic() -> None:
+    payload = {
+        "ok": True,
+        "work_item_id": "work-1",
+        "can_transition": False,
+        "transition_status": "blocked",
+        "reason": "target_queue_not_allowed",
+        "next_safe_action": "Choose one of the allowed next queues.",
+        "blockers": [{"code": "target_queue_not_allowed", "current_queue_id": "queue-planning", "target_queue_id": "queue-testing"}],
+        "current_queue": {"id": "queue-planning"},
+        "target_queue": {"id": "queue-testing"},
+        "allowed_next_queues": ["queue-triage", "queue-blocked"],
+        "readiness": {"readiness_status": "ready", "ready": True, "next_safe_action": "Start work item or assign to operator."},
+    }
+    markdown = render_work_item_queue_transition_plan_markdown(payload)
+    assert "# Queue Transition Plan" in markdown
+    assert "- Work item ID: `work-1`" in markdown
+    assert "## Allowed Next Queues" in markdown
+    assert "## Readiness" in markdown
+    assert "target_queue_not_allowed" in markdown
+
+
+def test_render_move_work_item_queue_markdown_is_deterministic() -> None:
+    payload = {
+        "ok": True,
+        "changed": True,
+        "work_item_id": "work-1",
+        "previous_queue_id": "queue-planning",
+        "new_queue_id": "queue-triage",
+        "transition_status": "moved",
+        "reason": "transition_applied",
+        "next_safe_action": "Inspect queue readiness or continue work item lifecycle.",
+        "blockers": [],
+    }
+    markdown = render_move_work_item_queue_markdown(payload)
+    assert "# Move Work Item Queue" in markdown
+    assert "- Changed: `True`" in markdown
+    assert "- Previous queue: `queue-planning`" in markdown
+    assert "- New queue: `queue-triage`" in markdown
+
+
 def test_start_work_item_if_ready_missing_is_non_mutating(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         repository_module,
@@ -762,3 +869,172 @@ def test_start_work_item_if_ready_ready_starts_and_logs_events(monkeypatch: pyte
     assert payload["new_status"] == "active"
     assert payload["readiness_status"] == "ready"
     assert payload["events"]["started_event_ids"] == ["roadmap-started-1"]
+
+
+def test_move_work_item_queue_if_allowed_missing_work_item_is_non_mutating(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        repository_module,
+        "plan_work_item_queue_transition",
+        lambda *_args, **_kwargs: {
+            "ok": False,
+            "work_item_id": "work-missing",
+            "can_transition": False,
+            "transition_status": "missing",
+            "reason": "work_item_not_found",
+            "next_safe_action": "Create or inspect the local work item before moving queues.",
+            "blockers": [{"code": "work_item_not_found"}],
+        },
+    )
+    payload = move_work_item_queue_if_allowed(_FakeConnection(), "work-missing", "queue-triage")
+    assert payload["ok"] is False
+    assert payload["changed"] is False
+    assert payload["reason"] == "work_item_not_found"
+
+
+def test_move_work_item_queue_if_allowed_missing_target_queue_is_non_mutating(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        repository_module,
+        "plan_work_item_queue_transition",
+        lambda *_args, **_kwargs: {
+            "ok": False,
+            "work_item_id": "work-1",
+            "can_transition": False,
+            "transition_status": "missing_target_queue",
+            "reason": "target_queue_not_found",
+            "next_safe_action": "Inspect available queues before moving work items.",
+            "blockers": [{"code": "target_queue_not_found"}],
+        },
+    )
+    payload = move_work_item_queue_if_allowed(_FakeConnection(), "work-1", "queue-missing")
+    assert payload["ok"] is False
+    assert payload["changed"] is False
+    assert payload["transition_status"] == "missing_target_queue"
+
+
+def test_move_work_item_queue_if_allowed_already_in_target_queue_is_non_mutating(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        repository_module,
+        "plan_work_item_queue_transition",
+        lambda *_args, **_kwargs: {
+            "ok": True,
+            "work_item_id": "work-1",
+            "can_transition": False,
+            "transition_status": "already_in_target_queue",
+            "reason": "already_in_target_queue",
+            "next_safe_action": "No queue move needed.",
+            "blockers": [],
+        },
+    )
+    payload = move_work_item_queue_if_allowed(_FakeConnection(), "work-1", "queue-planning")
+    assert payload["ok"] is True
+    assert payload["changed"] is False
+    assert payload["reason"] == "already_in_target_queue"
+
+
+def test_move_work_item_queue_if_allowed_target_queue_not_allowed_is_non_mutating(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        repository_module,
+        "plan_work_item_queue_transition",
+        lambda *_args, **_kwargs: {
+            "ok": True,
+            "work_item_id": "work-1",
+            "can_transition": False,
+            "transition_status": "blocked",
+            "reason": "target_queue_not_allowed",
+            "next_safe_action": "Choose one of the allowed next queues.",
+            "blockers": [{"code": "target_queue_not_allowed"}],
+        },
+    )
+    payload = move_work_item_queue_if_allowed(_FakeConnection(), "work-1", "queue-testing")
+    assert payload["ok"] is True
+    assert payload["changed"] is False
+    assert payload["reason"] == "target_queue_not_allowed"
+
+
+class _QueueMoveCursor:
+    def __init__(self) -> None:
+        self.executed: list[tuple[str, object]] = []
+        self._row: dict[str, object] | None = None
+
+    def __enter__(self) -> "_QueueMoveCursor":
+        return self
+
+    def __exit__(self, exc_type, exc, tb) -> None:
+        return None
+
+    def execute(self, sql: str, params: object = None) -> None:
+        self.executed.append((sql, params))
+        if "FROM roadmap_work_item_links" in sql:
+            self._row = {"id": "rwil-1", "roadmap_task_id": "rt-1"}
+        else:
+            self._row = None
+
+    def fetchone(self) -> dict[str, object] | None:
+        return self._row
+
+
+class _QueueMoveConnection:
+    def __init__(self) -> None:
+        self.last_cursor: _QueueMoveCursor | None = None
+
+    def cursor(self) -> _QueueMoveCursor:
+        self.last_cursor = _QueueMoveCursor()
+        return self.last_cursor
+
+
+def test_move_work_item_queue_if_allowed_allowed_target_updates_and_logs_events(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        repository_module,
+        "plan_work_item_queue_transition",
+        lambda *_args, **_kwargs: {
+            "ok": True,
+            "work_item_id": "work-1",
+            "project_id": "project-aresforge",
+            "can_transition": True,
+            "work_item": {"queue_id": "queue-planning"},
+        },
+    )
+    seen: dict[str, object] = {}
+
+    def fake_add_roadmap_event(*_args, **kwargs):
+        seen["event_type"] = kwargs.get("event_type")
+        seen["task_id"] = kwargs.get("task_id")
+        return {"ok": True, "event_id": "roadmap-queue-change-1"}
+
+    monkeypatch.setattr(repository_module, "add_roadmap_event", fake_add_roadmap_event)
+
+    conn = _QueueMoveConnection()
+    payload = move_work_item_queue_if_allowed(conn, "work-1", "queue-triage", actor="local-test")
+
+    assert payload["ok"] is True
+    assert payload["changed"] is True
+    assert payload["previous_queue_id"] == "queue-planning"
+    assert payload["new_queue_id"] == "queue-triage"
+    assert payload["transition_status"] == "moved"
+    assert seen["event_type"] == "work_item_queue_changed"
+    assert seen["task_id"] == "rt-1"
+    assert conn.last_cursor is not None
+    executed_sql = "\n".join(sql for sql, _params in conn.last_cursor.executed)
+    assert "UPDATE work_items" in executed_sql
+    assert "INSERT INTO audit_events" in executed_sql
+
+
+def test_plan_work_item_queue_transition_missing_work_item_shape(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(repository_module, "inspect_work_item", lambda *_args, **_kwargs: None)
+    payload = plan_work_item_queue_transition(_FakeConnection(), "work-missing", "queue-triage")
+    assert payload["ok"] is False
+    assert payload["can_transition"] is False
+    assert payload["transition_status"] == "missing"
+    assert payload["reason"] == "work_item_not_found"
