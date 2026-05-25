@@ -38,6 +38,7 @@ from aresforge.operator.local_bootstrap_wizard import (
     plan_bootstrap,
 )
 from aresforge.operator.local_project_factory import (
+    approve_project_github_apply_plan,
     GITHUB_MODES,
     PROJECT_TYPES,
     approve_project_architecture_contract,
@@ -45,12 +46,15 @@ from aresforge.operator.local_project_factory import (
     approve_project_scope_package,
     inspect_project_factory_dossier,
     prepare_project_architecture_contract,
+    prepare_project_github_apply_plan,
     prepare_project_milestone_issue_plan,
     prepare_project_scope_package,
     read_project_architecture_contract,
+    read_project_github_apply_plan,
     read_project_milestone_issue_plan,
     read_project_scope_package,
     update_project_architecture_contract,
+    update_project_github_apply_plan,
     update_project_milestone_issue_plan,
     update_project_scope_package,
     start_new_project_factory,
@@ -1178,6 +1182,136 @@ def post_project_factory_milestone_issue_plan_approve(config: AppConfig, body: d
         return _api_error(
             error,
             str(details.get("message", "Failed to approve local milestone/issue plan.")),
+            details=details,
+            status=status,
+        )
+    result["boundary_confirmations"] = list(
+        dict.fromkeys(list(result.get("boundary_confirmations", [])) + list(_BOUNDARY_CONFIRMATIONS))
+    )
+    return result
+
+
+def get_project_factory_github_apply_plan(config: AppConfig, params: dict[str, str | None]) -> dict[str, Any]:
+    requested_project_id = str(params.get("project_id", "") or "").strip()
+    project_id = requested_project_id
+    warnings: list[str] = []
+    if not project_id:
+        active_payload = inspect_active_project(config)
+        project_id = str(active_payload.get("active_project_id", "")).strip()
+        if not project_id:
+            warnings.append("No active project selected. Approve milestone/issue plan first, then prepare GitHub apply plan.")
+            return {
+                "ok": True,
+                "local_only": True,
+                "project_id": "",
+                "github_apply_plan_path": "",
+                "github_apply_plan_exists": False,
+                "github_apply_plan": {},
+                "warnings": sorted(set(warnings + list(active_payload.get("warnings", [])))),
+                "boundary_confirmations": list(
+                    dict.fromkeys(
+                        list(_BOUNDARY_CONFIRMATIONS) + list(active_payload.get("boundary_confirmations", []))
+                    )
+                ),
+            }
+    payload = read_project_github_apply_plan(config, project_id)
+    payload["warnings"] = sorted(set(list(payload.get("warnings", [])) + warnings))
+    payload["boundary_confirmations"] = list(
+        dict.fromkeys(list(payload.get("boundary_confirmations", [])) + list(_BOUNDARY_CONFIRMATIONS))
+    )
+    return payload
+
+
+def post_project_factory_github_apply_plan(config: AppConfig, body: dict[str, Any]) -> dict[str, Any]:
+    requested_project_id = str(body.get("project_id", "")).strip()
+    project_id = requested_project_id
+    if not project_id:
+        active_payload = inspect_active_project(config)
+        project_id = str(active_payload.get("active_project_id", "")).strip()
+        if not project_id:
+            return _api_error(
+                "active_project_required",
+                "project_id is required when no active project is selected.",
+                details={"required_fields": ["project_id"], "active_project_selected": False},
+                status=400,
+            )
+    result = prepare_project_github_apply_plan(config, project_id)
+    if not result.get("ok", False):
+        error = str(result.get("error", "github_apply_plan_prepare_failed"))
+        details = dict(result.get("details", {}))
+        status = 404 if error == "milestone_issue_plan_not_found" else 409 if error == "milestone_issue_plan_not_approved" else 400
+        return _api_error(
+            error,
+            str(details.get("message", "Failed to prepare local GitHub apply plan placeholder.")),
+            details=details,
+            status=status,
+        )
+    result["boundary_confirmations"] = list(
+        dict.fromkeys(list(result.get("boundary_confirmations", [])) + list(_BOUNDARY_CONFIRMATIONS))
+    )
+    return result
+
+
+def patch_project_factory_github_apply_plan(config: AppConfig, body: dict[str, Any]) -> dict[str, Any]:
+    requested_project_id = str(body.get("project_id", "")).strip()
+    project_id = requested_project_id
+    if not project_id:
+        active_payload = inspect_active_project(config)
+        project_id = str(active_payload.get("active_project_id", "")).strip()
+        if not project_id:
+            return _api_error(
+                "active_project_required",
+                "project_id is required when no active project is selected.",
+                details={"required_fields": ["project_id"], "active_project_selected": False},
+                status=400,
+            )
+    editable_payload = {
+        "apply_summary": body.get("apply_summary"),
+        "operator_notes": body.get("operator_notes"),
+        "labels": body.get("labels"),
+        "dry_run_notes": body.get("dry_run_notes"),
+        "preflight_checks": body.get("preflight_checks"),
+        "approval_conditions": body.get("approval_conditions"),
+        "known_risks": body.get("known_risks"),
+    }
+    result = update_project_github_apply_plan(config, project_id, editable_payload)
+    if not result.get("ok", False):
+        error = str(result.get("error", "github_apply_plan_update_failed"))
+        details = dict(result.get("details", {}))
+        status = 404 if error == "github_apply_plan_not_found" else 400
+        return _api_error(
+            error,
+            str(details.get("message", "Failed to update local GitHub apply plan draft.")),
+            details=details,
+            status=status,
+        )
+    result["boundary_confirmations"] = list(
+        dict.fromkeys(list(result.get("boundary_confirmations", [])) + list(_BOUNDARY_CONFIRMATIONS))
+    )
+    return result
+
+
+def post_project_factory_github_apply_plan_approve(config: AppConfig, body: dict[str, Any]) -> dict[str, Any]:
+    requested_project_id = str(body.get("project_id", "")).strip()
+    project_id = requested_project_id
+    if not project_id:
+        active_payload = inspect_active_project(config)
+        project_id = str(active_payload.get("active_project_id", "")).strip()
+        if not project_id:
+            return _api_error(
+                "active_project_required",
+                "project_id is required when no active project is selected.",
+                details={"required_fields": ["project_id"], "active_project_selected": False},
+                status=400,
+            )
+    result = approve_project_github_apply_plan(config, project_id, {"approved_by": body.get("approved_by")})
+    if not result.get("ok", False):
+        error = str(result.get("error", "github_apply_plan_approval_failed"))
+        details = dict(result.get("details", {}))
+        status = 404 if error == "github_apply_plan_not_found" else 400
+        return _api_error(
+            error,
+            str(details.get("message", "Failed to approve local GitHub apply plan.")),
             details=details,
             status=status,
         )

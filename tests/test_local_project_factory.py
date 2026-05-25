@@ -6,22 +6,27 @@ from pathlib import Path
 from aresforge.config import AppConfig
 from aresforge.operator.local_project_factory import (
     approve_project_architecture_contract,
+    approve_project_github_apply_plan,
     approve_project_milestone_issue_plan,
     approve_project_scope_package,
     inspect_project_factory_dossier,
     prepare_project_architecture_contract,
+    prepare_project_github_apply_plan,
     prepare_project_milestone_issue_plan,
     prepare_project_scope_package,
     read_project_architecture_contract,
     read_project_factory_dossier,
+    read_project_github_apply_plan,
     read_project_milestone_issue_plan,
     read_project_scope_package,
     resolve_project_architecture_contract_path,
     resolve_project_factory_dossier_path,
+    resolve_project_github_apply_plan_path,
     resolve_project_milestone_issue_plan_path,
     resolve_project_scope_package_path,
     start_new_project_factory,
     update_project_architecture_contract,
+    update_project_github_apply_plan,
     update_project_milestone_issue_plan,
     update_project_scope_package,
 )
@@ -514,3 +519,92 @@ def test_approve_milestone_issue_plan_succeeds_and_preserves_audit_entries(tmp_p
     dossier = read_project_factory_dossier(config, project_id)
     assert dossier["dossier"]["lifecycle_state"] == "milestone_issue_plan_approved"
     assert dossier["dossier"]["next_recommended_action"] == "prepare_github_apply_plan"
+
+
+def _seed_milestone_issue_plan_approved(config: AppConfig, tmp_path: Path) -> str:
+    project_id = _seed_architecture_approved(config, tmp_path)
+    prepare_project_milestone_issue_plan(config, project_id)
+    update_project_milestone_issue_plan(config, project_id, {"planning_summary": "summary"})
+    approve_project_milestone_issue_plan(config, project_id, {})
+    return project_id
+
+
+def test_read_missing_github_apply_plan_returns_friendly_payload(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    payload = read_project_github_apply_plan(config, "missing-project")
+    assert payload["ok"] is True
+    assert payload["github_apply_plan_exists"] is False
+
+
+def test_prepare_github_apply_plan_validations_and_success(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    created = start_new_project_factory(config, _payload(tmp_path))
+    project_id = str(created["project"]["project_id"])
+    missing = prepare_project_github_apply_plan(config, project_id)
+    assert missing["ok"] is False
+    assert missing["error"] == "milestone_issue_plan_not_found"
+
+    project_id = _seed_architecture_approved(config, tmp_path)
+    prepare_project_milestone_issue_plan(config, project_id)
+    unapproved = prepare_project_github_apply_plan(config, project_id)
+    assert unapproved["ok"] is False
+    assert unapproved["error"] == "milestone_issue_plan_not_approved"
+
+    project_id = _seed_milestone_issue_plan_approved(config, tmp_path)
+    payload = prepare_project_github_apply_plan(config, project_id)
+    assert payload["ok"] is True
+    plan_path = resolve_project_github_apply_plan_path(tmp_path, project_id)
+    rendered = json.loads(plan_path.read_text(encoding="utf-8"))
+    assert rendered["lifecycle_state"] == "github_apply_plan_prepared"
+    assert rendered["mutation_intent"]["create_milestones"]
+    assert rendered["mutation_intent"]["create_issues"]
+    assert "Local plan only; not executed." in rendered["mutation_intent"]["create_issues"][0]["body"]
+    labels = rendered["mutation_intent"]["create_issues"][0]["labels"]
+    assert any(label.startswith("issue-type:") for label in labels)
+    assert any(label.startswith("priority:") for label in labels)
+    assert any(label.startswith("agent:") for label in labels)
+    dossier = read_project_factory_dossier(config, project_id)
+    assert dossier["dossier"]["lifecycle_state"] == "github_apply_plan_prepared"
+
+
+def test_update_and_approve_github_apply_plan_lifecycle_and_audit(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    project_id = _seed_milestone_issue_plan_approved(config, tmp_path)
+    prepared = prepare_project_github_apply_plan(config, project_id)
+    first_count = len(prepared["github_apply_plan"].get("audit_trail", []))
+    updated = update_project_github_apply_plan(
+        config,
+        project_id,
+        {
+            "apply_summary": "Ready for local apply review",
+            "approval_conditions": ["Approval is required before any execution; keep execution gated."],
+            "dry_run_notes": ["No execution performed."],
+        },
+    )
+    assert updated["ok"] is True
+    assert updated["github_apply_plan"]["lifecycle_state"] == "github_apply_plan_draft_updated"
+    assert len(updated["github_apply_plan"].get("audit_trail", [])) > first_count
+
+    project_id_for_validation = _seed_milestone_issue_plan_approved(config, tmp_path)
+    prepare_project_github_apply_plan(config, project_id_for_validation)
+    missing_summary = approve_project_github_apply_plan(config, project_id_for_validation, {})
+    assert missing_summary["ok"] is False
+
+    update_project_github_apply_plan(config, project_id_for_validation, {"apply_summary": "summary", "approval_conditions": ["needs review"]})
+    missing_condition = approve_project_github_apply_plan(config, project_id_for_validation, {})
+    assert missing_condition["ok"] is False
+
+    update_project_github_apply_plan(
+        config,
+        project_id_for_validation,
+        {
+            "apply_summary": "Approved local apply plan",
+            "approval_conditions": ["Explicit approval required; execution remains gated until approved."],
+        },
+    )
+    approved = approve_project_github_apply_plan(config, project_id_for_validation, {})
+    assert approved["ok"] is True
+    assert approved["github_apply_plan"]["lifecycle_state"] == "github_apply_plan_approved"
+    assert approved["github_apply_plan"]["github_execution_status"] == "not_executed"
+    dossier = read_project_factory_dossier(config, project_id_for_validation)
+    assert dossier["dossier"]["lifecycle_state"] == "github_apply_plan_approved"

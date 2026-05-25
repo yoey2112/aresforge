@@ -198,6 +198,7 @@ const state = {
   scopePackage: null,
   architectureContract: null,
   milestoneIssuePlan: null,
+  githubApplyPlan: null,
 };
 
 function renderBootstrapStatus(payload) {
@@ -894,6 +895,19 @@ function buildMilestoneIssuePlanPayload() {
   });
 }
 
+function buildGithubApplyPlanPayload() {
+  return prunePayload({
+    project_id: activeProjectId(),
+    apply_summary: byId("github-apply-summary").value.trim(),
+    operator_notes: byId("github-apply-operator-notes").value.trim(),
+    labels: parseLineList(byId("github-apply-labels").value),
+    dry_run_notes: parseLineList(byId("github-apply-dry-run-notes").value),
+    preflight_checks: parseLineList(byId("github-apply-preflight-checks").value),
+    approval_conditions: parseLineList(byId("github-apply-approval-conditions").value),
+    known_risks: parseLineList(byId("github-apply-known-risks").value),
+  });
+}
+
 function renderMilestoneIssuePlan(payload) {
   state.milestoneIssuePlan = payload || null;
   const message = byId("home-milestone-plan-message");
@@ -941,6 +955,61 @@ function renderMilestoneIssuePlan(payload) {
   }
 }
 
+function renderGithubApplyPlan(payload) {
+  state.githubApplyPlan = payload || null;
+  const message = byId("home-github-apply-plan-message");
+  const stateLine = byId("home-github-apply-plan-state");
+  const statusLine = byId("home-github-apply-plan-status");
+  const exists = Boolean(payload && payload.github_apply_plan_exists);
+  const plan = (payload && payload.github_apply_plan) || {};
+  if (!exists) {
+    byId("github-apply-summary").value = "";
+    byId("github-apply-operator-notes").value = "";
+    byId("github-apply-labels").value = "";
+    byId("github-apply-dry-run-notes").value = "";
+    byId("github-apply-preflight-checks").value = "";
+    byId("github-apply-approval-conditions").value = "";
+    byId("github-apply-known-risks").value = "";
+    setList("home-github-apply-plan-audit-trail", "home-github-apply-plan-audit-trail-empty", []);
+    setCodeBlock("home-github-apply-plan-milestones", "home-github-apply-plan-milestones-empty", "");
+    setCodeBlock("home-github-apply-plan-issues", "home-github-apply-plan-issues-empty", "");
+    if (message) {
+      message.textContent = "No GitHub apply plan found. Approve milestone/issue plan first, then prepare GitHub apply plan.";
+    }
+    if (stateLine) {
+      stateLine.textContent = "GitHub Apply Plan lifecycle state: not_started";
+    }
+    if (statusLine) {
+      statusLine.textContent = "mutation=not_requested | execution=not_executed";
+    }
+    return;
+  }
+  byId("github-apply-summary").value = String(plan.apply_summary || "");
+  byId("github-apply-operator-notes").value = String(plan.operator_notes || "");
+  byId("github-apply-labels").value = toTextareaList(plan.labels);
+  byId("github-apply-dry-run-notes").value = toTextareaList(plan.dry_run_notes);
+  byId("github-apply-preflight-checks").value = toTextareaList(plan.preflight_checks);
+  byId("github-apply-approval-conditions").value = toTextareaList(plan.approval_conditions);
+  byId("github-apply-known-risks").value = toTextareaList(plan.known_risks);
+  const intent = plan.mutation_intent || {};
+  setCodeBlock("home-github-apply-plan-milestones", "home-github-apply-plan-milestones-empty", JSON.stringify(intent.create_milestones || [], null, 2));
+  setCodeBlock("home-github-apply-plan-issues", "home-github-apply-plan-issues-empty", JSON.stringify(intent.create_issues || [], null, 2));
+  setList(
+    "home-github-apply-plan-audit-trail",
+    "home-github-apply-plan-audit-trail-empty",
+    (plan.audit_trail || []).map((entry) => `${entry.timestamp || "-"} | ${entry.event_type || "-"} | state=${entry.lifecycle_state || "-"} | actor=${entry.actor || "-"}`)
+  );
+  if (message) {
+    message.textContent = "This is a local apply plan only. It does not create GitHub milestones or issues.";
+  }
+  if (stateLine) {
+    stateLine.textContent = `GitHub Apply Plan lifecycle state: ${plan.lifecycle_state || "not_started"}`;
+  }
+  if (statusLine) {
+    statusLine.textContent = `mutation=${plan.github_mutation_status || "not_requested"} | execution=${plan.github_execution_status || "not_executed"}`;
+  }
+}
+
 async function loadScopePackage(projectId) {
   const query = toQuery({ project_id: projectId || "" });
   const payload = await fetchJson(`/api/project-factory/scope-package${query}`, { method: "GET" });
@@ -959,6 +1028,13 @@ async function loadMilestoneIssuePlan(projectId) {
   const query = toQuery({ project_id: projectId || "" });
   const payload = await fetchJson(`/api/project-factory/milestone-issue-plan${query}`, { method: "GET" });
   renderMilestoneIssuePlan(payload);
+  return payload;
+}
+
+async function loadGithubApplyPlan(projectId) {
+  const query = toQuery({ project_id: projectId || "" });
+  const payload = await fetchJson(`/api/project-factory/github-apply-plan${query}`, { method: "GET" });
+  renderGithubApplyPlan(payload);
   return payload;
 }
 
@@ -1034,6 +1110,33 @@ async function approveMilestoneIssuePlan() {
   return payload;
 }
 
+async function prepareGithubApplyPlan() {
+  const payload = await fetchJson("/api/project-factory/github-apply-plan", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(prunePayload({ project_id: activeProjectId() })),
+  });
+  return payload;
+}
+
+async function saveGithubApplyPlanDraft() {
+  const payload = await fetchJson("/api/project-factory/github-apply-plan", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(buildGithubApplyPlanPayload()),
+  });
+  return payload;
+}
+
+async function approveGithubApplyPlan() {
+  const payload = await fetchJson("/api/project-factory/github-apply-plan/approve", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(prunePayload({ project_id: activeProjectId() })),
+  });
+  return payload;
+}
+
 async function setActiveProject(projectId) {
   const payload = await fetchJson("/api/projects/active", {
     method: "POST",
@@ -1058,6 +1161,7 @@ async function loadProjects() {
   await loadScopePackage(activeProjectId());
   await loadArchitectureContract(activeProjectId());
   await loadMilestoneIssuePlan(activeProjectId());
+  await loadGithubApplyPlan(activeProjectId());
   setMessage("projects-message", payload.warnings && payload.warnings.length ? payload.warnings.join(" | ") : "Projects loaded.", payload.warnings && payload.warnings.length ? "warn" : "success");
 }
 
@@ -1330,6 +1434,7 @@ async function refreshSummaryAndReport() {
   await loadProjectFactoryDossier(activeProjectId());
   await loadArchitectureContract(activeProjectId());
   await loadMilestoneIssuePlan(activeProjectId());
+  await loadGithubApplyPlan(activeProjectId());
 }
 
 async function loadSettings() {
@@ -2071,6 +2176,7 @@ function bindForms() {
       await loadArchitectureContract(activeProjectId());
       await loadProjectFactoryDossier(activeProjectId());
       await loadMilestoneIssuePlan(activeProjectId());
+      await loadGithubApplyPlan(activeProjectId());
       await refreshSummaryAndReport();
       setMessage("projects-message", "Architecture approved.", "success");
     } catch (error) {
@@ -2083,6 +2189,7 @@ function bindForms() {
       setMessage("projects-message", "Preparing local milestone/issue plan placeholder...", "loading");
       await prepareMilestoneIssuePlan();
       await loadMilestoneIssuePlan(activeProjectId());
+      await loadGithubApplyPlan(activeProjectId());
       await loadProjectFactoryDossier(activeProjectId());
       await refreshSummaryAndReport();
       setMessage("projects-message", "Milestone/issue plan prepared locally.", "success");
@@ -2096,6 +2203,7 @@ function bindForms() {
       setMessage("projects-message", "Saving local milestone/issue plan draft...", "loading");
       await saveMilestoneIssuePlanDraft();
       await loadMilestoneIssuePlan(activeProjectId());
+      await loadGithubApplyPlan(activeProjectId());
       await loadProjectFactoryDossier(activeProjectId());
       await refreshSummaryAndReport();
       setMessage("projects-message", "Milestone/issue plan draft saved.", "success");
@@ -2109,9 +2217,49 @@ function bindForms() {
       setMessage("projects-message", "Approving local milestone/issue plan...", "loading");
       await approveMilestoneIssuePlan();
       await loadMilestoneIssuePlan(activeProjectId());
+      await loadGithubApplyPlan(activeProjectId());
       await loadProjectFactoryDossier(activeProjectId());
       await refreshSummaryAndReport();
       setMessage("projects-message", "Milestone/issue plan approved.", "success");
+    } catch (error) {
+      setMessage("projects-message", String(error.message || error), "error");
+    }
+  });
+
+  on("home-prepare-github-apply-plan", "click", async () => {
+    try {
+      setMessage("projects-message", "Preparing local GitHub apply plan placeholder...", "loading");
+      await prepareGithubApplyPlan();
+      await loadGithubApplyPlan(activeProjectId());
+      await loadProjectFactoryDossier(activeProjectId());
+      await refreshSummaryAndReport();
+      setMessage("projects-message", "GitHub apply plan prepared locally.", "success");
+    } catch (error) {
+      setMessage("projects-message", String(error.message || error), "error");
+    }
+  });
+
+  on("github-apply-plan-save-draft", "click", async () => {
+    try {
+      setMessage("projects-message", "Saving local GitHub apply plan draft...", "loading");
+      await saveGithubApplyPlanDraft();
+      await loadGithubApplyPlan(activeProjectId());
+      await loadProjectFactoryDossier(activeProjectId());
+      await refreshSummaryAndReport();
+      setMessage("projects-message", "GitHub apply plan draft saved.", "success");
+    } catch (error) {
+      setMessage("projects-message", String(error.message || error), "error");
+    }
+  });
+
+  on("github-apply-plan-approve", "click", async () => {
+    try {
+      setMessage("projects-message", "Approving local GitHub apply plan...", "loading");
+      await approveGithubApplyPlan();
+      await loadGithubApplyPlan(activeProjectId());
+      await loadProjectFactoryDossier(activeProjectId());
+      await refreshSummaryAndReport();
+      setMessage("projects-message", "GitHub apply plan approved.", "success");
     } catch (error) {
       setMessage("projects-message", String(error.message || error), "error");
     }
@@ -2160,6 +2308,11 @@ async function init() {
     await loadMilestoneIssuePlan(activeProjectId());
   } catch (_error) {
     renderMilestoneIssuePlan({ ok: true, milestone_issue_plan_exists: false, milestone_issue_plan: {} });
+  }
+  try {
+    await loadGithubApplyPlan(activeProjectId());
+  } catch (_error) {
+    renderGithubApplyPlan({ ok: true, github_apply_plan_exists: false, github_apply_plan: {} });
   }
 
   try {

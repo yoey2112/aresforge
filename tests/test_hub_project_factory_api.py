@@ -5,14 +5,18 @@ from pathlib import Path
 from aresforge.config import AppConfig
 from aresforge.hub.api import (
     get_project_factory_architecture_contract,
+    get_project_factory_github_apply_plan,
     get_project_factory_milestone_issue_plan,
     get_project_factory_scope_package,
     patch_project_factory_architecture_contract,
+    patch_project_factory_github_apply_plan,
     patch_project_factory_milestone_issue_plan,
     patch_project_factory_scope_package,
     get_project_factory_dossier,
     post_active_project,
     post_project_factory_architecture_contract,
+    post_project_factory_github_apply_plan,
+    post_project_factory_github_apply_plan_approve,
     post_project_factory_architecture_contract_approve,
     post_project_factory_milestone_issue_plan,
     post_project_factory_milestone_issue_plan_approve,
@@ -373,3 +377,52 @@ def test_post_milestone_issue_plan_approve_succeeds_for_valid_plan(tmp_path: Pat
     payload = post_project_factory_milestone_issue_plan_approve(config, {})
     assert payload["ok"] is True
     assert payload["milestone_issue_plan"]["lifecycle_state"] == "milestone_issue_plan_approved"
+
+
+def test_get_github_apply_plan_falls_back_to_active_project(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_architecture_approved(config, tmp_path)
+    post_project_factory_milestone_issue_plan(config, {})
+    patch_project_factory_milestone_issue_plan(config, {"planning_summary": "summary"})
+    post_project_factory_milestone_issue_plan_approve(config, {})
+    post_project_factory_github_apply_plan(config, {})
+    payload = get_project_factory_github_apply_plan(config, {})
+    assert payload["ok"] is True
+    assert payload["github_apply_plan_exists"] is True
+
+
+def test_get_github_apply_plan_no_active_project_returns_friendly_state(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    payload = get_project_factory_github_apply_plan(config, {})
+    assert payload["ok"] is True
+    assert payload["github_apply_plan_exists"] is False
+    assert payload["warnings"]
+
+
+def test_post_patch_approve_github_apply_plan(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_architecture_approved(config, tmp_path)
+    post_project_factory_milestone_issue_plan(config, {})
+    missing_approval = post_project_factory_github_apply_plan(config, {})
+    assert missing_approval["ok"] is False
+    assert missing_approval["_status"] == 409
+    patch_project_factory_milestone_issue_plan(config, {"planning_summary": "summary"})
+    post_project_factory_milestone_issue_plan_approve(config, {})
+    prepared = post_project_factory_github_apply_plan(config, {})
+    assert prepared["ok"] is True
+    invalid_approve = post_project_factory_github_apply_plan_approve(config, {})
+    assert invalid_approve["ok"] is False
+    assert invalid_approve["_status"] == 400
+    patched = patch_project_factory_github_apply_plan(
+        config,
+        {
+            "apply_summary": "apply summary",
+            "approval_conditions": ["Explicit approval required; execution remains gated."],
+        },
+    )
+    assert patched["ok"] is True
+    approved = post_project_factory_github_apply_plan_approve(config, {})
+    assert approved["ok"] is True
+    assert approved["github_apply_plan"]["lifecycle_state"] == "github_apply_plan_approved"
+    assert approved["github_apply_plan"]["local_only"] is True
+    assert approved["github_apply_plan"]["github_execution_status"] == "not_executed"

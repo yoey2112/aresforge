@@ -187,6 +187,36 @@
           </section>
 
           <section class="subpanel">
+            <h3>GitHub Apply Plan</h3>
+            <p id="home-github-apply-plan-message" class="message-note">This is a local apply plan only. It does not create GitHub milestones or issues.</p>
+            <p id="home-github-apply-plan-state" class="message-note">GitHub Apply Plan lifecycle state: not_started</p>
+            <p id="home-github-apply-plan-status" class="message-note">mutation=not_requested | execution=not_executed</p>
+            <form id="github-apply-plan-form" class="form-grid">
+              <label class="full">Apply Summary<textarea id="github-apply-summary"></textarea></label>
+              <label class="full">Operator Notes<textarea id="github-apply-operator-notes"></textarea></label>
+              <label class="full">Labels<textarea id="github-apply-labels" placeholder="One label per line"></textarea></label>
+              <label class="full">Dry Run Notes<textarea id="github-apply-dry-run-notes" placeholder="One note per line"></textarea></label>
+              <label class="full">Preflight Checks<textarea id="github-apply-preflight-checks" placeholder="One check per line"></textarea></label>
+              <label class="full">Approval Conditions<textarea id="github-apply-approval-conditions" placeholder="One condition per line"></textarea></label>
+              <label class="full">Known Risks<textarea id="github-apply-known-risks" placeholder="One risk per line"></textarea></label>
+              <div class="quick-actions">
+                <button id="home-prepare-github-apply-plan" type="button">Prepare GitHub Apply Plan</button>
+                <button id="github-apply-plan-save-draft" type="button">Save Apply Plan Draft</button>
+                <button id="github-apply-plan-approve" type="button">Approve Apply Plan</button>
+              </div>
+            </form>
+            <h4>Milestone Intent Preview</h4>
+            <pre id="home-github-apply-plan-milestones"></pre>
+            <p id="home-github-apply-plan-milestones-empty" class="empty">No milestone intents yet.</p>
+            <h4>Issue Intent Preview</h4>
+            <pre id="home-github-apply-plan-issues"></pre>
+            <p id="home-github-apply-plan-issues-empty" class="empty">No issue intents yet.</p>
+            <h4>Audit Trail Summary</h4>
+            <ul id="home-github-apply-plan-audit-trail" class="list"></ul>
+            <p id="home-github-apply-plan-audit-trail-empty" class="empty">No GitHub apply plan audit trail entries yet.</p>
+          </section>
+
+          <section class="subpanel">
             <h3>Current Active Work</h3>
             <ul id="home-current-active-work" class="list"></ul>
             <p id="home-current-active-work-empty" class="empty">No active project work items yet.</p>

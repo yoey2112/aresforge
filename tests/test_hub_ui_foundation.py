@@ -220,6 +220,11 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "Prepare Milestone/Issue Plan" in index_text
     assert "Save Plan Draft" in index_text
     assert "Approve Plan" in index_text
+    assert "GitHub Apply Plan" in index_text
+    assert "Prepare GitHub Apply Plan" in index_text
+    assert "Save Apply Plan Draft" in index_text
+    assert "Approve Apply Plan" in index_text
+    assert "This is a local apply plan only. It does not create GitHub milestones or issues." in index_text
     assert "wizard-project-name" in index_text
     assert "wizard-project-id" in index_text
     assert "wizard-project-type" in index_text
@@ -256,6 +261,8 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
         "/api/project-factory/architecture-contract/approve",
         "/api/project-factory/milestone-issue-plan",
         "/api/project-factory/milestone-issue-plan/approve",
+        "/api/project-factory/github-apply-plan",
+        "/api/project-factory/github-apply-plan/approve",
         "/api/projects/",
         "/github-link",
         "/api/bootstrap/status",
@@ -315,6 +322,9 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
         "home-prepare-milestone-issue-plan",
         "milestone-plan-save-draft",
         "milestone-plan-approve",
+        "home-prepare-github-apply-plan",
+        "github-apply-plan-save-draft",
+        "github-apply-plan-approve",
     ):
         assert action_id in app_text
     assert "parseLineList" in app_text
@@ -325,6 +335,10 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
     assert "buildArchitectureAuthoringPayload" in app_text
     assert "renderMilestoneIssuePlan" in app_text
     assert "buildMilestoneIssuePlanPayload" in app_text
+    assert "renderGithubApplyPlan" in app_text
+    assert "buildGithubApplyPlanPayload" in app_text
+    assert "home-github-apply-plan-milestones" in app_text
+    assert "home-github-apply-plan-issues" in app_text
 
 
 def test_bootstrap_api_status_plan_apply(tmp_path: Path) -> None:
