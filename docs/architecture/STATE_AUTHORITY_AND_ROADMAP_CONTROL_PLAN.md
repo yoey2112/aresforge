@@ -325,6 +325,18 @@ Local CLI support was also added for this phase:
 - `seed-aresforge-roadmap`
 - `inspect-roadmap-db --format json|markdown`
 
+## 19. M2 roadmap mutation and event logging status note
+
+M2 now adds DB-backed roadmap mutation and event-inspection CLI support while preserving freeze boundaries (no Hub UI mutation work, no agent execution, no LLM routing, no GitHub sync/mutation execution):
+
+- `update-roadmap-task-status --task-id <id> --status <status> [--summary <text>] [--details-json <json>]`
+- `update-roadmap-milestone-status --milestone-id <id> --status <status> [--summary <text>] [--details-json <json>]`
+- `update-roadmap-area-status --area-id <id> --status <status> [--summary <text>] [--details-json <json>]`
+- `add-roadmap-event --event-type <type> --summary <text> [--project-id <id>] [--area-id <id>] [--milestone-id <id>] [--task-id <id>] [--details-json <json>]`
+- `inspect-roadmap-events [--project-id <id>] [--limit <n>] [--format json|markdown]`
+
+M2 details metadata input supports either `--details-json` (strict JSON object) or Windows-safe `--details-file` (UTF-8 JSON object file path).
+
 ### What was decided
 
 - AresForge should move toward Postgres as the authoritative live structured state layer for roadmap, control, validation, and completion tracking

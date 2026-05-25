@@ -10,6 +10,9 @@ from aresforge import cli
 from aresforge.cli import (
     build_parser,
     command_requires_directories,
+    parse_details_input,
+    parse_details_json,
+    parse_json_object,
     parse_metadata,
     parse_metadata_pairs,
 )
@@ -23,6 +26,14 @@ def test_cli_has_expected_commands() -> None:
         "validate-config",
         "validate-registries",
         "migrate",
+        "init-roadmap-schema",
+        "seed-aresforge-roadmap",
+        "inspect-roadmap-db",
+        "update-roadmap-task-status",
+        "update-roadmap-milestone-status",
+        "update-roadmap-area-status",
+        "add-roadmap-event",
+        "inspect-roadmap-events",
         "inspect-project-state",
         "inspect-db-state",
         "inspect-project",
@@ -145,6 +156,86 @@ def test_parse_metadata_pairs() -> None:
     }
 
 
+def test_parse_json_object_accepts_object() -> None:
+    assert parse_json_object('{"previous_status": "planned"}') == {"previous_status": "planned"}
+
+
+def test_parse_json_object_rejects_invalid_json() -> None:
+    with pytest.raises(json.JSONDecodeError):
+        parse_json_object("{not json}")
+
+
+def test_parse_json_object_rejects_non_object_json() -> None:
+    with pytest.raises(ValueError, match="details must decode to a JSON object."):
+        parse_json_object('["not", "an", "object"]')
+
+
+def test_parse_json_object_accepts_wrapped_json_string() -> None:
+    assert parse_json_object('"{\\"source\\":\\"unit-test\\",\\"mode\\":\\"local-only\\"}"') == {
+        "source": "unit-test",
+        "mode": "local-only",
+    }
+
+
+def test_parse_details_json_returns_empty_dict_when_omitted() -> None:
+    parsed, error = parse_details_json(None)
+    assert error is None
+    assert parsed == {}
+
+
+def test_parse_details_json_rejects_non_object_json() -> None:
+    parsed, error = parse_details_json('["not","object"]')
+    assert parsed is None
+    assert error == {"ok": False, "error": "invalid_details_json"}
+
+
+def test_parse_details_input_returns_empty_dict_when_omitted() -> None:
+    parsed, error = parse_details_input(None, None)
+    assert error is None
+    assert parsed == {}
+
+
+def test_parse_details_input_rejects_conflicting_inputs() -> None:
+    parsed, error = parse_details_input('{"source":"unit-test"}', "details.json")
+    assert parsed is None
+    assert error == {"ok": False, "error": "conflicting_details_input"}
+
+
+def test_parse_details_input_reads_json_file(tmp_path: Path) -> None:
+    details_path = tmp_path / "details.json"
+    details_path.write_text('{"source":"unit-test","mode":"local-only"}', encoding="utf-8")
+    parsed, error = parse_details_input(None, str(details_path))
+    assert error is None
+    assert parsed == {"source": "unit-test", "mode": "local-only"}
+
+
+def test_parse_details_input_reads_bom_prefixed_json_file(tmp_path: Path) -> None:
+    details_path = tmp_path / "details-bom.json"
+    details_path.write_text(
+        '\ufeff{"source":"unit-test","mode":"local-only"}',
+        encoding="utf-8",
+    )
+    parsed, error = parse_details_input(None, str(details_path))
+    assert error is None
+    assert parsed == {"source": "unit-test", "mode": "local-only"}
+
+
+def test_parse_details_input_rejects_invalid_json_file(tmp_path: Path) -> None:
+    details_path = tmp_path / "details.json"
+    details_path.write_text("{not-json}", encoding="utf-8")
+    parsed, error = parse_details_input(None, str(details_path))
+    assert parsed is None
+    assert error == {"ok": False, "error": "invalid_details_json"}
+
+
+def test_parse_details_input_rejects_non_object_json_file(tmp_path: Path) -> None:
+    details_path = tmp_path / "details.json"
+    details_path.write_text('["not","object"]', encoding="utf-8")
+    parsed, error = parse_details_input(None, str(details_path))
+    assert parsed is None
+    assert error == {"ok": False, "error": "invalid_details_json"}
+
+
 def test_cli_route_status_defaults_use_canonical_vocabulary() -> None:
     parser = build_parser()
 
@@ -168,6 +259,421 @@ def test_cli_route_status_defaults_use_canonical_vocabulary() -> None:
         ]
     )
     assert handoff_args.route_status == "ready"
+
+
+def test_cli_update_roadmap_task_status_dispatch_parses_details_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], tmp_path: Path
+) -> None:
+    config = AppConfig(
+        repo_root=tmp_path,
+        db_host="127.0.0.1",
+        db_port=5433,
+        db_name="aresforge",
+        db_user="aresforge",
+        db_password="aresforge",
+        ollama_base_url="http://127.0.0.1:11434",
+        ollama_model="qwen2.5:32b",
+        artifact_root=tmp_path / "artifacts",
+        prompts_dir=tmp_path / "artifacts" / "prompts" / "generated",
+        evidence_dir=tmp_path / "artifacts" / "evidence" / "generated",
+        codex_handoffs_dir=tmp_path / "artifacts" / "codex_handoffs" / "generated",
+        github_owner="yoey2112",
+        github_repo="aresforge",
+    )
+    seen: dict[str, object] = {}
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: config)
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(cli, "apply_migrations", lambda _conn, _dir: [])
+    monkeypatch.setattr(cli, "bootstrap_reference_data", lambda _conn, _config: None)
+
+    def fake_update_roadmap_task_status(
+        _conn: object,
+        *,
+        task_id: str,
+        status: str,
+        actor: str = "aresforge-cli",
+        summary: str | None = None,
+        details: dict[str, object] | None = None,
+    ) -> dict[str, object]:
+        seen["task_id"] = task_id
+        seen["status"] = status
+        seen["summary"] = summary
+        seen["details"] = details
+        return {"ok": True, "changed": True, "task": {"id": task_id, "status": status}, "event_id": "roadmap-event-abc123"}
+
+    monkeypatch.setattr(cli, "update_roadmap_task_status", fake_update_roadmap_task_status)
+
+    exit_code = cli.main(
+        [
+            "update-roadmap-task-status",
+            "--task-id",
+            "rt-02-starter",
+            "--status",
+            "active",
+            "--summary",
+            "Begin state authority lifecycle contract work",
+            "--details-json",
+            '{"source":"unit-test","mode":"local-only"}',
+        ]
+    )
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert seen["details"] == {"source": "unit-test", "mode": "local-only"}
+    assert payload["ok"] is True
+
+
+def test_cli_add_roadmap_event_dispatch_parses_details_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], tmp_path: Path
+) -> None:
+    config = AppConfig(
+        repo_root=tmp_path,
+        db_host="127.0.0.1",
+        db_port=5433,
+        db_name="aresforge",
+        db_user="aresforge",
+        db_password="aresforge",
+        ollama_base_url="http://127.0.0.1:11434",
+        ollama_model="qwen2.5:32b",
+        artifact_root=tmp_path / "artifacts",
+        prompts_dir=tmp_path / "artifacts" / "prompts" / "generated",
+        evidence_dir=tmp_path / "artifacts" / "evidence" / "generated",
+        codex_handoffs_dir=tmp_path / "artifacts" / "codex_handoffs" / "generated",
+        github_owner="yoey2112",
+        github_repo="aresforge",
+    )
+    seen: dict[str, object] = {}
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: config)
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(cli, "apply_migrations", lambda _conn, _dir: [])
+    monkeypatch.setattr(cli, "bootstrap_reference_data", lambda _conn, _config: None)
+
+    def fake_add_roadmap_event(
+        _conn: object,
+        project_id: str,
+        event_type: str,
+        actor: str = "aresforge-cli",
+        summary: str = "",
+        details: dict[str, object] | None = None,
+        area_id: str | None = None,
+        milestone_id: str | None = None,
+        task_id: str | None = None,
+    ) -> dict[str, object]:
+        seen["project_id"] = project_id
+        seen["event_type"] = event_type
+        seen["summary"] = summary
+        seen["details"] = details
+        seen["task_id"] = task_id
+        return {"ok": True, "event_id": "roadmap-event-def456", "event": {"id": "roadmap-event-def456"}}
+
+    monkeypatch.setattr(cli, "add_roadmap_event", fake_add_roadmap_event)
+
+    exit_code = cli.main(
+        [
+            "add-roadmap-event",
+            "--event-type",
+            "roadmap_operator_note",
+            "--summary",
+            "M2 smoke test event",
+            "--task-id",
+            "rt-02-starter",
+            "--details-json",
+            '{"source":"unit-test"}',
+        ]
+    )
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert seen["details"] == {"source": "unit-test"}
+    assert seen["task_id"] == "rt-02-starter"
+    assert payload["ok"] is True
+
+
+def test_cli_update_roadmap_task_status_dispatch_defaults_details_to_empty_dict_when_omitted(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], tmp_path: Path
+) -> None:
+    config = AppConfig(
+        repo_root=tmp_path,
+        db_host="127.0.0.1",
+        db_port=5433,
+        db_name="aresforge",
+        db_user="aresforge",
+        db_password="aresforge",
+        ollama_base_url="http://127.0.0.1:11434",
+        ollama_model="qwen2.5:32b",
+        artifact_root=tmp_path / "artifacts",
+        prompts_dir=tmp_path / "artifacts" / "prompts" / "generated",
+        evidence_dir=tmp_path / "artifacts" / "evidence" / "generated",
+        codex_handoffs_dir=tmp_path / "artifacts" / "codex_handoffs" / "generated",
+        github_owner="yoey2112",
+        github_repo="aresforge",
+    )
+    seen: dict[str, object] = {}
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: config)
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(cli, "apply_migrations", lambda _conn, _dir: [])
+    monkeypatch.setattr(cli, "bootstrap_reference_data", lambda _conn, _config: None)
+
+    def fake_update_roadmap_task_status(
+        _conn: object,
+        *,
+        task_id: str,
+        status: str,
+        actor: str = "aresforge-cli",
+        summary: str | None = None,
+        details: dict[str, object] | None = None,
+    ) -> dict[str, object]:
+        seen["details"] = details
+        return {"ok": True, "changed": True, "task": {"id": task_id, "status": status}, "event_id": "roadmap-event-abc123"}
+
+    monkeypatch.setattr(cli, "update_roadmap_task_status", fake_update_roadmap_task_status)
+
+    exit_code = cli.main(
+        [
+            "update-roadmap-task-status",
+            "--task-id",
+            "rt-02-starter",
+            "--status",
+            "active",
+            "--summary",
+            "Unit test status update",
+        ]
+    )
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert seen["details"] == {}
+    assert payload["ok"] is True
+
+
+def test_cli_update_roadmap_task_status_dispatch_parses_details_file(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], tmp_path: Path
+) -> None:
+    config = AppConfig(
+        repo_root=tmp_path,
+        db_host="127.0.0.1",
+        db_port=5433,
+        db_name="aresforge",
+        db_user="aresforge",
+        db_password="aresforge",
+        ollama_base_url="http://127.0.0.1:11434",
+        ollama_model="qwen2.5:32b",
+        artifact_root=tmp_path / "artifacts",
+        prompts_dir=tmp_path / "artifacts" / "prompts" / "generated",
+        evidence_dir=tmp_path / "artifacts" / "evidence" / "generated",
+        codex_handoffs_dir=tmp_path / "artifacts" / "codex_handoffs" / "generated",
+        github_owner="yoey2112",
+        github_repo="aresforge",
+    )
+    details_path = tmp_path / "details.json"
+    details_path.write_text('{"source":"unit-test","mode":"local-only"}', encoding="utf-8")
+    seen: dict[str, object] = {}
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: config)
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(cli, "apply_migrations", lambda _conn, _dir: [])
+    monkeypatch.setattr(cli, "bootstrap_reference_data", lambda _conn, _config: None)
+
+    def fake_update_roadmap_task_status(
+        _conn: object,
+        *,
+        task_id: str,
+        status: str,
+        actor: str = "aresforge-cli",
+        summary: str | None = None,
+        details: dict[str, object] | None = None,
+    ) -> dict[str, object]:
+        seen["details"] = details
+        return {"ok": True, "changed": True, "task": {"id": task_id, "status": status}, "event_id": "roadmap-event-abc123"}
+
+    monkeypatch.setattr(cli, "update_roadmap_task_status", fake_update_roadmap_task_status)
+    exit_code = cli.main(
+        [
+            "update-roadmap-task-status",
+            "--task-id",
+            "rt-02-starter",
+            "--status",
+            "active",
+            "--summary",
+            "Unit test status update",
+            "--details-file",
+            str(details_path),
+        ]
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert seen["details"] == {"source": "unit-test", "mode": "local-only"}
+    assert payload["ok"] is True
+
+
+def test_cli_update_roadmap_task_status_dispatch_parses_bom_details_file(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], tmp_path: Path
+) -> None:
+    config = AppConfig(
+        repo_root=tmp_path,
+        db_host="127.0.0.1",
+        db_port=5433,
+        db_name="aresforge",
+        db_user="aresforge",
+        db_password="aresforge",
+        ollama_base_url="http://127.0.0.1:11434",
+        ollama_model="qwen2.5:32b",
+        artifact_root=tmp_path / "artifacts",
+        prompts_dir=tmp_path / "artifacts" / "prompts" / "generated",
+        evidence_dir=tmp_path / "artifacts" / "evidence" / "generated",
+        codex_handoffs_dir=tmp_path / "artifacts" / "codex_handoffs" / "generated",
+        github_owner="yoey2112",
+        github_repo="aresforge",
+    )
+    details_path = tmp_path / "details-bom.json"
+    details_path.write_text(
+        '\ufeff{"source":"unit-test","mode":"local-only"}',
+        encoding="utf-8",
+    )
+    seen: dict[str, object] = {}
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: config)
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(cli, "apply_migrations", lambda _conn, _dir: [])
+    monkeypatch.setattr(cli, "bootstrap_reference_data", lambda _conn, _config: None)
+
+    def fake_update_roadmap_task_status(
+        _conn: object,
+        *,
+        task_id: str,
+        status: str,
+        actor: str = "aresforge-cli",
+        summary: str | None = None,
+        details: dict[str, object] | None = None,
+    ) -> dict[str, object]:
+        seen["details"] = details
+        return {"ok": True, "changed": True, "task": {"id": task_id, "status": status}, "event_id": "roadmap-event-abc123"}
+
+    monkeypatch.setattr(cli, "update_roadmap_task_status", fake_update_roadmap_task_status)
+    exit_code = cli.main(
+        [
+            "update-roadmap-task-status",
+            "--task-id",
+            "rt-03-starter",
+            "--status",
+            "active",
+            "--summary",
+            "Unit test status update",
+            "--details-file",
+            str(details_path),
+        ]
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert seen["details"] == {"source": "unit-test", "mode": "local-only"}
+    assert payload["ok"] is True
+
+
+def test_cli_add_roadmap_event_dispatch_parses_details_file(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], tmp_path: Path
+) -> None:
+    config = AppConfig(
+        repo_root=tmp_path,
+        db_host="127.0.0.1",
+        db_port=5433,
+        db_name="aresforge",
+        db_user="aresforge",
+        db_password="aresforge",
+        ollama_base_url="http://127.0.0.1:11434",
+        ollama_model="qwen2.5:32b",
+        artifact_root=tmp_path / "artifacts",
+        prompts_dir=tmp_path / "artifacts" / "prompts" / "generated",
+        evidence_dir=tmp_path / "artifacts" / "evidence" / "generated",
+        codex_handoffs_dir=tmp_path / "artifacts" / "codex_handoffs" / "generated",
+        github_owner="yoey2112",
+        github_repo="aresforge",
+    )
+    details_path = tmp_path / "details.json"
+    details_path.write_text('{"source":"unit-test"}', encoding="utf-8")
+    seen: dict[str, object] = {}
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: config)
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(cli, "apply_migrations", lambda _conn, _dir: [])
+    monkeypatch.setattr(cli, "bootstrap_reference_data", lambda _conn, _config: None)
+
+    def fake_add_roadmap_event(
+        _conn: object,
+        project_id: str,
+        event_type: str,
+        actor: str = "aresforge-cli",
+        summary: str = "",
+        details: dict[str, object] | None = None,
+        area_id: str | None = None,
+        milestone_id: str | None = None,
+        task_id: str | None = None,
+    ) -> dict[str, object]:
+        seen["details"] = details
+        return {"ok": True, "event_id": "roadmap-event-def456", "event": {"id": "roadmap-event-def456"}}
+
+    monkeypatch.setattr(cli, "add_roadmap_event", fake_add_roadmap_event)
+    exit_code = cli.main(
+        [
+            "add-roadmap-event",
+            "--event-type",
+            "roadmap_operator_note",
+            "--summary",
+            "Unit test event",
+            "--task-id",
+            "rt-02-starter",
+            "--details-file",
+            str(details_path),
+        ]
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert seen["details"] == {"source": "unit-test"}
+    assert payload["ok"] is True
+
+
+def test_cli_roadmap_mutation_rejects_invalid_details_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setattr(
+        cli,
+        "connect",
+        lambda *_args, **_kwargs: pytest.fail("invalid details json must fail before database connection"),
+    )
+    exit_code = cli.main(
+        [
+            "update-roadmap-task-status",
+            "--task-id",
+            "rt-02-starter",
+            "--status",
+            "active",
+            "--details-json",
+            "{not json}",
+        ]
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 1
+    assert payload == {"ok": False, "error": "invalid_details_json"}
+
+
+def test_cli_roadmap_mutation_rejects_non_object_details_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setattr(
+        cli,
+        "connect",
+        lambda *_args, **_kwargs: pytest.fail("non-object details json must fail before database connection"),
+    )
+    exit_code = cli.main(
+        [
+            "add-roadmap-event",
+            "--event-type",
+            "roadmap_operator_note",
+            "--summary",
+            "M2 smoke test event",
+            "--details-json",
+            '["not", "object"]',
+        ]
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 1
+    assert payload == {"ok": False, "error": "invalid_details_json"}
 
 
 def test_cli_inspection_commands_require_expected_ids() -> None:

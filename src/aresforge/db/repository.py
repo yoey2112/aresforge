@@ -1143,6 +1143,13 @@ ROADMAP_SEED_MILESTONES: tuple[dict[str, Any], ...] = (
     {"id": "rm-09-github-gates", "name": "Optional GitHub sync/mutation reintroduction behind gates", "area_id": "ra-github-sync-mutation"},
     {"id": "rm-10-production-ready", "name": "Production hardening and release readiness", "area_id": "ra-production-hardening"},
 )
+ROADMAP_ALLOWED_STATUSES: tuple[str, ...] = (
+    "planned",
+    "active",
+    "blocked",
+    "complete",
+    "cancelled",
+)
 
 
 def _roadmap_seed_tasks() -> list[dict[str, Any]]:
@@ -1330,6 +1337,255 @@ def inspect_roadmap_db(conn: Connection) -> dict[str, Any]:
     }
 
 
+def _normalize_roadmap_details(details: dict[str, Any] | None) -> dict[str, Any]:
+    if not isinstance(details, dict):
+        return {}
+    return details
+
+
+def _invalid_status_payload(status: str) -> dict[str, Any]:
+    return {
+        "ok": False,
+        "error": "invalid_status",
+        "status": status,
+        "allowed_statuses": list(ROADMAP_ALLOWED_STATUSES),
+    }
+
+
+def add_roadmap_event(
+    conn: Connection,
+    project_id: str,
+    event_type: str,
+    actor: str = "aresforge-cli",
+    summary: str = "",
+    details: dict[str, Any] | None = None,
+    area_id: str | None = None,
+    milestone_id: str | None = None,
+    task_id: str | None = None,
+) -> dict[str, Any]:
+    normalized_details = _normalize_roadmap_details(details)
+    with conn.cursor() as cur:
+        if area_id is not None:
+            cur.execute("SELECT id FROM roadmap_areas WHERE id = %s", (area_id,))
+            if cur.fetchone() is None:
+                return {"ok": False, "error": "area_not_found", "area_id": area_id}
+        if milestone_id is not None:
+            cur.execute("SELECT id FROM roadmap_milestones WHERE id = %s", (milestone_id,))
+            if cur.fetchone() is None:
+                return {"ok": False, "error": "milestone_not_found", "milestone_id": milestone_id}
+        if task_id is not None:
+            cur.execute("SELECT id FROM roadmap_tasks WHERE id = %s", (task_id,))
+            if cur.fetchone() is None:
+                return {"ok": False, "error": "task_not_found", "task_id": task_id}
+
+        event_id = _new_id("roadmap-event")
+        cur.execute(
+            """
+            INSERT INTO roadmap_events (
+                id, project_id, area_id, milestone_id, task_id, event_type, actor, summary, details
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb)
+            RETURNING id, project_id, area_id, milestone_id, task_id, event_type, actor, summary, details, created_at
+            """,
+            (
+                event_id,
+                project_id,
+                area_id,
+                milestone_id,
+                task_id,
+                event_type,
+                actor,
+                summary,
+                json.dumps(normalized_details),
+            ),
+        )
+        event_row = cur.fetchone()
+
+    return {"ok": True, "event_id": event_id, "event": event_row}
+
+
+def _update_roadmap_entity_status(
+    conn: Connection,
+    *,
+    entity_type: str,
+    entity_id: str,
+    status: str,
+    actor: str,
+    summary: str | None,
+    details: dict[str, Any] | None,
+) -> dict[str, Any]:
+    table_map = {
+        "area": "roadmap_areas",
+        "milestone": "roadmap_milestones",
+        "task": "roadmap_tasks",
+    }
+    event_type_map = {
+        "area": "roadmap_area_status_changed",
+        "milestone": "roadmap_milestone_status_changed",
+        "task": "roadmap_task_status_changed",
+    }
+    not_found_error_map = {
+        "area": "area_not_found",
+        "milestone": "milestone_not_found",
+        "task": "task_not_found",
+    }
+    if status not in ROADMAP_ALLOWED_STATUSES:
+        return _invalid_status_payload(status)
+
+    table_name = table_map[entity_type]
+    id_column = "id"
+    normalized_details = _normalize_roadmap_details(details)
+    with conn.cursor() as cur:
+        cur.execute(
+            f"""
+            SELECT id, project_id, status, updated_at
+            FROM {table_name}
+            WHERE {id_column} = %s
+            """,
+            (entity_id,),
+        )
+        existing = cur.fetchone()
+        if existing is None:
+            return {"ok": False, "error": not_found_error_map[entity_type], f"{entity_type}_id": entity_id}
+
+        previous_status = existing["status"]
+        if previous_status == status:
+            return {
+                "ok": True,
+                "changed": False,
+                "previous_status": previous_status,
+                "status": status,
+                f"{entity_type}_id": entity_id,
+            }
+
+        cur.execute(
+            f"""
+            UPDATE {table_name}
+            SET status = %s,
+                updated_at = NOW()
+            WHERE {id_column} = %s
+            RETURNING id, project_id, status, updated_at
+            """,
+            (status, entity_id),
+        )
+        updated = cur.fetchone()
+
+        event_details = {
+            "previous_status": previous_status,
+            "new_status": status,
+            "target_id": entity_id,
+            "target_type": entity_type,
+            **normalized_details,
+        }
+        event_summary = summary or f"{entity_type.capitalize()} status changed: {previous_status} -> {status}"
+        event_payload = add_roadmap_event(
+            conn,
+            project_id=updated["project_id"],
+            event_type=event_type_map[entity_type],
+            actor=actor,
+            summary=event_summary,
+            details=event_details,
+            area_id=entity_id if entity_type == "area" else None,
+            milestone_id=entity_id if entity_type == "milestone" else None,
+            task_id=entity_id if entity_type == "task" else None,
+        )
+        if not bool(event_payload.get("ok")):
+            return event_payload
+
+    return {
+        "ok": True,
+        "changed": True,
+        "previous_status": previous_status,
+        "status": status,
+        "event_id": event_payload["event_id"],
+        entity_type: updated,
+    }
+
+
+def update_roadmap_task_status(
+    conn: Connection,
+    task_id: str,
+    status: str,
+    actor: str = "aresforge-cli",
+    summary: str | None = None,
+    details: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    return _update_roadmap_entity_status(
+        conn,
+        entity_type="task",
+        entity_id=task_id,
+        status=status,
+        actor=actor,
+        summary=summary,
+        details=details,
+    )
+
+
+def update_roadmap_milestone_status(
+    conn: Connection,
+    milestone_id: str,
+    status: str,
+    actor: str = "aresforge-cli",
+    summary: str | None = None,
+    details: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    return _update_roadmap_entity_status(
+        conn,
+        entity_type="milestone",
+        entity_id=milestone_id,
+        status=status,
+        actor=actor,
+        summary=summary,
+        details=details,
+    )
+
+
+def update_roadmap_area_status(
+    conn: Connection,
+    area_id: str,
+    status: str,
+    actor: str = "aresforge-cli",
+    summary: str | None = None,
+    details: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    return _update_roadmap_entity_status(
+        conn,
+        entity_type="area",
+        entity_id=area_id,
+        status=status,
+        actor=actor,
+        summary=summary,
+        details=details,
+    )
+
+
+def inspect_roadmap_events(
+    conn: Connection,
+    project_id: str = DEFAULT_PROJECT_ID,
+    limit: int = 20,
+) -> dict[str, Any]:
+    if limit < 1:
+        return {"ok": False, "error": "invalid_limit", "limit": limit}
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT id, project_id, area_id, milestone_id, task_id, event_type, actor, summary, details, created_at
+            FROM roadmap_events
+            WHERE project_id = %s
+            ORDER BY created_at DESC, id DESC
+            LIMIT %s
+            """,
+            (project_id, limit),
+        )
+        events = list(cur.fetchall())
+    return {
+        "ok": True,
+        "project_id": project_id,
+        "event_count": len(events),
+        "events": events,
+    }
+
+
 def render_roadmap_markdown(payload: dict[str, Any]) -> str:
     areas = payload.get("areas", [])
     milestones = payload.get("milestones", [])
@@ -1367,4 +1623,28 @@ def render_roadmap_markdown(payload: dict[str, Any]) -> str:
             for task in milestone_tasks:
                 lines.append(f"- Task: {task['title']} ({task['id']}) [{task['status']}]")
         lines.append("")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def render_roadmap_events_markdown(payload: dict[str, Any]) -> str:
+    events = payload.get("events", [])
+    lines = [
+        "# Roadmap Events",
+        "",
+        f"- Project ID: `{payload.get('project_id', '')}`",
+        f"- Event count: `{payload.get('event_count', len(events))}`",
+        "",
+    ]
+    for event in events:
+        target_bits = [
+            f"area={event['area_id']}" if event.get("area_id") else None,
+            f"milestone={event['milestone_id']}" if event.get("milestone_id") else None,
+            f"task={event['task_id']}" if event.get("task_id") else None,
+        ]
+        target_text = ", ".join(item for item in target_bits if item) or "project"
+        lines.append(
+            f"- `{event['created_at']}` `{event['event_type']}` by `{event['actor']}` ({target_text})"
+        )
+        if event.get("summary"):
+            lines.append(f"  - {event['summary']}")
     return "\n".join(lines).rstrip() + "\n"

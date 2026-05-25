@@ -2,16 +2,29 @@ from __future__ import annotations
 
 from aresforge.cli import build_parser
 from aresforge.db.repository import (
+    ROADMAP_ALLOWED_STATUSES,
     ROADMAP_SEED_AREAS,
     ROADMAP_SEED_MILESTONES,
     inspect_roadmap_db,
+    render_roadmap_events_markdown,
     render_roadmap_markdown,
+    update_roadmap_task_status,
 )
 
 
 def test_seed_constants_include_expected_area_and_milestone_counts() -> None:
     assert len(ROADMAP_SEED_AREAS) == 12
     assert len(ROADMAP_SEED_MILESTONES) == 10
+
+
+def test_roadmap_allowed_statuses_match_m2_contract() -> None:
+    assert ROADMAP_ALLOWED_STATUSES == (
+        "planned",
+        "active",
+        "blocked",
+        "complete",
+        "cancelled",
+    )
 
 
 def test_render_roadmap_markdown_contains_stable_headings_and_entities() -> None:
@@ -52,6 +65,33 @@ def test_render_roadmap_markdown_contains_stable_headings_and_entities() -> None
     assert "## Area: State Authority and Lifecycle Model (ra-state-authority-lifecycle)" in markdown
     assert "### Milestone: State authority matrix and lifecycle contract (rm-02-state-authority)" in markdown
     assert "- Task: Define starter scope for State authority matrix and lifecycle contract (rt-02-starter) [planned]" in markdown
+
+
+def test_render_roadmap_events_markdown_contains_stable_headings_and_event_rows() -> None:
+    payload = {
+        "ok": True,
+        "project_id": "project-aresforge",
+        "event_count": 1,
+        "events": [
+            {
+                "id": "roadmap-event-123",
+                "project_id": "project-aresforge",
+                "area_id": "ra-state-authority-lifecycle",
+                "milestone_id": None,
+                "task_id": None,
+                "event_type": "roadmap_area_status_changed",
+                "actor": "aresforge-cli",
+                "summary": "Area status changed",
+                "details": {},
+                "created_at": "2026-05-25T12:00:00Z",
+            }
+        ],
+    }
+    markdown = render_roadmap_events_markdown(payload)
+    assert "# Roadmap Events" in markdown
+    assert "- Project ID: `project-aresforge`" in markdown
+    assert "- Event count: `1`" in markdown
+    assert "roadmap_area_status_changed" in markdown
 
 
 class _FakeCursor:
@@ -115,6 +155,16 @@ def test_inspect_roadmap_db_payload_shape_is_deterministic() -> None:
     ]
 
 
+def test_update_roadmap_task_status_invalid_status_response_shape() -> None:
+    payload = update_roadmap_task_status(_FakeConnection(), task_id="t1", status="not-a-real-status")
+    assert payload == {
+        "ok": False,
+        "error": "invalid_status",
+        "status": "not-a-real-status",
+        "allowed_statuses": list(ROADMAP_ALLOWED_STATUSES),
+    }
+
+
 def test_cli_parser_recognizes_roadmap_commands_and_formats() -> None:
     parser = build_parser()
 
@@ -131,3 +181,39 @@ def test_cli_parser_recognizes_roadmap_commands_and_formats() -> None:
     inspect_markdown_args = parser.parse_args(["inspect-roadmap-db", "--format", "markdown"])
     assert inspect_markdown_args.command == "inspect-roadmap-db"
     assert inspect_markdown_args.format == "markdown"
+
+    update_task_args = parser.parse_args(
+        ["update-roadmap-task-status", "--task-id", "rt-01-starter", "--status", "active"]
+    )
+    assert update_task_args.command == "update-roadmap-task-status"
+    assert update_task_args.status == "active"
+    assert update_task_args.details_file is None
+
+    update_milestone_args = parser.parse_args(
+        ["update-roadmap-milestone-status", "--milestone-id", "rm-01-audit-baseline", "--status", "blocked"]
+    )
+    assert update_milestone_args.command == "update-roadmap-milestone-status"
+    assert update_milestone_args.status == "blocked"
+    assert update_milestone_args.details_file is None
+
+    update_area_args = parser.parse_args(
+        ["update-roadmap-area-status", "--area-id", "ra-recovery-reconciliation", "--status", "complete"]
+    )
+    assert update_area_args.command == "update-roadmap-area-status"
+    assert update_area_args.status == "complete"
+    assert update_area_args.details_file is None
+
+    add_event_args = parser.parse_args(
+        ["add-roadmap-event", "--event-type", "operator_note", "--summary", "note"]
+    )
+    assert add_event_args.command == "add-roadmap-event"
+    assert add_event_args.project_id == "project-aresforge"
+    assert add_event_args.details_file is None
+
+    inspect_events_json_args = parser.parse_args(["inspect-roadmap-events", "--format", "json"])
+    assert inspect_events_json_args.command == "inspect-roadmap-events"
+    assert inspect_events_json_args.format == "json"
+
+    inspect_events_markdown_args = parser.parse_args(["inspect-roadmap-events", "--format", "markdown"])
+    assert inspect_events_markdown_args.command == "inspect-roadmap-events"
+    assert inspect_events_markdown_args.format == "markdown"

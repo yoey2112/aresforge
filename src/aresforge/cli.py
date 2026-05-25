@@ -26,8 +26,14 @@ from aresforge.db.repository import (
     list_queues,
     list_work_items,
     inspect_roadmap_db,
+    inspect_roadmap_events,
     render_roadmap_markdown,
+    render_roadmap_events_markdown,
     seed_aresforge_roadmap,
+    add_roadmap_event,
+    update_roadmap_area_status,
+    update_roadmap_milestone_status,
+    update_roadmap_task_status,
     store_evidence_record,
     store_prompt_record,
     WorkItemCreate,
@@ -263,6 +269,56 @@ def build_parser() -> argparse.ArgumentParser:
         help="Inspect DB-backed roadmap control state without mutation.",
     )
     inspect_roadmap_db_parser.add_argument(
+        "--format",
+        choices=("json", "markdown"),
+        default="json",
+    )
+    update_roadmap_task_parser = subparsers.add_parser(
+        "update-roadmap-task-status",
+        help="Update one roadmap task status and append a roadmap event when changed.",
+    )
+    update_roadmap_task_parser.add_argument("--task-id", required=True)
+    update_roadmap_task_parser.add_argument("--status", required=True)
+    update_roadmap_task_parser.add_argument("--summary")
+    update_roadmap_task_parser.add_argument("--details-json")
+    update_roadmap_task_parser.add_argument("--details-file")
+    update_roadmap_milestone_parser = subparsers.add_parser(
+        "update-roadmap-milestone-status",
+        help="Update one roadmap milestone status and append a roadmap event when changed.",
+    )
+    update_roadmap_milestone_parser.add_argument("--milestone-id", required=True)
+    update_roadmap_milestone_parser.add_argument("--status", required=True)
+    update_roadmap_milestone_parser.add_argument("--summary")
+    update_roadmap_milestone_parser.add_argument("--details-json")
+    update_roadmap_milestone_parser.add_argument("--details-file")
+    update_roadmap_area_parser = subparsers.add_parser(
+        "update-roadmap-area-status",
+        help="Update one roadmap area status and append a roadmap event when changed.",
+    )
+    update_roadmap_area_parser.add_argument("--area-id", required=True)
+    update_roadmap_area_parser.add_argument("--status", required=True)
+    update_roadmap_area_parser.add_argument("--summary")
+    update_roadmap_area_parser.add_argument("--details-json")
+    update_roadmap_area_parser.add_argument("--details-file")
+    add_roadmap_event_parser = subparsers.add_parser(
+        "add-roadmap-event",
+        help="Append one roadmap event without mutating roadmap status.",
+    )
+    add_roadmap_event_parser.add_argument("--event-type", required=True)
+    add_roadmap_event_parser.add_argument("--summary", required=True)
+    add_roadmap_event_parser.add_argument("--project-id", default=DEFAULT_PROJECT_ID)
+    add_roadmap_event_parser.add_argument("--area-id")
+    add_roadmap_event_parser.add_argument("--milestone-id")
+    add_roadmap_event_parser.add_argument("--task-id")
+    add_roadmap_event_parser.add_argument("--details-json")
+    add_roadmap_event_parser.add_argument("--details-file")
+    inspect_roadmap_events_parser = subparsers.add_parser(
+        "inspect-roadmap-events",
+        help="Inspect roadmap events without mutating state.",
+    )
+    inspect_roadmap_events_parser.add_argument("--project-id", default=DEFAULT_PROJECT_ID)
+    inspect_roadmap_events_parser.add_argument("--limit", type=int, default=20)
+    inspect_roadmap_events_parser.add_argument(
         "--format",
         choices=("json", "markdown"),
         default="json",
@@ -1702,10 +1758,70 @@ def parse_metadata_pairs(items: list[str]) -> dict[str, str]:
 
 
 def parse_json_object(raw_json: str) -> dict[str, Any]:
-    value = json.loads(raw_json)
-    if not isinstance(value, dict):
+    candidates = [raw_json, raw_json.strip()]
+    stripped = raw_json.strip()
+    if len(stripped) >= 2 and stripped[0] == stripped[-1] and stripped[0] in ("'", '"'):
+        candidates.append(stripped[1:-1])
+
+    last_decode_error: json.JSONDecodeError | None = None
+    decoded_non_object = False
+    seen: set[str] = set()
+    for candidate in candidates:
+        if candidate in seen:
+            continue
+        seen.add(candidate)
+        try:
+            value: Any = json.loads(candidate)
+        except json.JSONDecodeError as exc:
+            last_decode_error = exc
+            continue
+
+        if isinstance(value, str):
+            try:
+                value = json.loads(value)
+            except json.JSONDecodeError as exc:
+                last_decode_error = exc
+                continue
+
+        if isinstance(value, dict):
+            return value
+        decoded_non_object = True
+
+    if decoded_non_object:
         raise ValueError("details must decode to a JSON object.")
-    return value
+    if last_decode_error is not None:
+        raise last_decode_error
+    raise ValueError("details must decode to a JSON object.")
+
+
+def parse_details_json(raw: Any) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
+    if raw is None or raw == "":
+        return {}, None
+    if isinstance(raw, dict):
+        return raw, None
+    if not isinstance(raw, str):
+        return None, {"ok": False, "error": "invalid_details_json"}
+    try:
+        parsed = parse_json_object(raw)
+    except (ValueError, json.JSONDecodeError):
+        return None, {"ok": False, "error": "invalid_details_json"}
+    return parsed, None
+
+
+def parse_details_input(
+    details_json: str | None, details_file: str | None
+) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
+    if details_json and details_file:
+        return None, {"ok": False, "error": "conflicting_details_input"}
+    if details_json:
+        return parse_details_json(details_json)
+    if details_file:
+        try:
+            raw = Path(details_file).read_text(encoding="utf-8-sig")
+        except OSError:
+            return None, {"ok": False, "error": "details_file_not_readable"}
+        return parse_details_json(raw)
+    return {}, None
 
 
 def parse_boolean_flag(raw_value: str) -> bool:
@@ -1795,11 +1911,79 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 0
 
+    if args.command in (
+        "update-roadmap-task-status",
+        "update-roadmap-milestone-status",
+        "update-roadmap-area-status",
+        "add-roadmap-event",
+    ):
+        details, details_error = parse_details_input(
+            getattr(args, "details_json", None),
+            getattr(args, "details_file", None),
+        )
+        if details_error is not None:
+            emit_json(details_error)
+            return 1
+        assert details is not None
+        migrations_dir = config.repo_root / "migrations"
+        with connect(config) as conn:
+            applied = apply_migrations(conn, migrations_dir)
+            bootstrap_reference_data(conn, config)
+            if args.command == "update-roadmap-task-status":
+                payload = update_roadmap_task_status(
+                    conn,
+                    task_id=args.task_id,
+                    status=args.status,
+                    summary=args.summary,
+                    details=details,
+                )
+            elif args.command == "update-roadmap-milestone-status":
+                payload = update_roadmap_milestone_status(
+                    conn,
+                    milestone_id=args.milestone_id,
+                    status=args.status,
+                    summary=args.summary,
+                    details=details,
+                )
+            elif args.command == "update-roadmap-area-status":
+                payload = update_roadmap_area_status(
+                    conn,
+                    area_id=args.area_id,
+                    status=args.status,
+                    summary=args.summary,
+                    details=details,
+                )
+            else:
+                payload = add_roadmap_event(
+                    conn,
+                    project_id=args.project_id,
+                    event_type=args.event_type,
+                    summary=args.summary,
+                    details=details,
+                    area_id=args.area_id,
+                    milestone_id=args.milestone_id,
+                    task_id=args.task_id,
+                )
+        emit_json({"ok": bool(payload.get("ok")), "applied_migrations": applied, "bootstrap": "ok", **payload})
+        return 0 if bool(payload.get("ok")) else 1
+
     if args.command == "inspect-roadmap-db":
         with connect(config) as conn:
             payload = inspect_roadmap_db(conn)
         if args.format == "markdown":
             print(render_roadmap_markdown(payload))
+            return 0
+        emit_json(payload)
+        return 0
+
+    if args.command == "inspect-roadmap-events":
+        with connect(config) as conn:
+            payload = inspect_roadmap_events(conn, project_id=args.project_id, limit=args.limit)
+        if not bool(payload.get("ok")):
+            emit_json(payload)
+            return 1
+        if args.format == "markdown":
+            print(render_roadmap_events_markdown(payload))
             return 0
         emit_json(payload)
         return 0
