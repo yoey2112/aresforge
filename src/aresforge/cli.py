@@ -28,12 +28,17 @@ from aresforge.db.repository import (
     inspect_roadmap_db,
     inspect_roadmap_events,
     inspect_roadmap_work_item_links,
+    inspect_queue_work_state,
+    inspect_work_item_lifecycle,
     render_roadmap_markdown,
     render_roadmap_events_markdown,
     render_roadmap_work_item_links_markdown,
+    render_queue_work_state_markdown,
+    render_work_item_lifecycle_markdown,
     seed_aresforge_roadmap,
     add_roadmap_event,
     create_work_item_from_roadmap_task,
+    update_work_item_status,
     update_roadmap_area_status,
     update_roadmap_milestone_status,
     update_roadmap_task_status,
@@ -336,6 +341,36 @@ def build_parser() -> argparse.ArgumentParser:
     create_work_item_from_roadmap_task_parser.add_argument("--summary")
     create_work_item_from_roadmap_task_parser.add_argument("--details-json")
     create_work_item_from_roadmap_task_parser.add_argument("--details-file")
+    update_work_item_status_parser = subparsers.add_parser(
+        "update-work-item-status",
+        help="Update one local work item lifecycle status with audit and linked roadmap event logging.",
+    )
+    update_work_item_status_parser.add_argument("--work-item-id", required=True)
+    update_work_item_status_parser.add_argument("--status", required=True)
+    update_work_item_status_parser.add_argument("--summary")
+    update_work_item_status_parser.add_argument("--details-json")
+    update_work_item_status_parser.add_argument("--details-file")
+    inspect_work_item_lifecycle_parser = subparsers.add_parser(
+        "inspect-work-item-lifecycle",
+        help="Inspect one local work item lifecycle with links and events.",
+    )
+    inspect_work_item_lifecycle_parser.add_argument("--work-item-id", required=True)
+    inspect_work_item_lifecycle_parser.add_argument(
+        "--format",
+        choices=("json", "markdown"),
+        default="json",
+    )
+    inspect_queue_work_state_parser = subparsers.add_parser(
+        "inspect-queue-work-state",
+        help="Inspect queue-local work state grouped by queue and status.",
+    )
+    inspect_queue_work_state_parser.add_argument("--project-id", default=DEFAULT_PROJECT_ID)
+    inspect_queue_work_state_parser.add_argument("--queue-id")
+    inspect_queue_work_state_parser.add_argument(
+        "--format",
+        choices=("json", "markdown"),
+        default="json",
+    )
     inspect_roadmap_work_item_links_parser = subparsers.add_parser(
         "inspect-roadmap-work-item-links",
         help="Inspect roadmap-to-work-item bridge links without mutating state.",
@@ -1942,6 +1977,7 @@ def main(argv: list[str] | None = None) -> int:
         "update-roadmap-area-status",
         "add-roadmap-event",
         "create-work-item-from-roadmap-task",
+        "update-work-item-status",
     ):
         details, details_error = parse_details_input(
             getattr(args, "details_json", None),
@@ -1992,14 +2028,23 @@ def main(argv: list[str] | None = None) -> int:
                         task_id=args.task_id,
                     )
                 else:
-                    payload = create_work_item_from_roadmap_task(
-                        conn,
-                        roadmap_task_id=args.task_id,
-                        queue_id=args.queue_id,
-                        priority=args.priority,
-                        summary=args.summary,
-                        details=details,
-                    )
+                    if args.command == "create-work-item-from-roadmap-task":
+                        payload = create_work_item_from_roadmap_task(
+                            conn,
+                            roadmap_task_id=args.task_id,
+                            queue_id=args.queue_id,
+                            priority=args.priority,
+                            summary=args.summary,
+                            details=details,
+                        )
+                    else:
+                        payload = update_work_item_status(
+                            conn,
+                            work_item_id=args.work_item_id,
+                            status=args.status,
+                            summary=args.summary,
+                            details=details,
+                        )
         emit_json({"ok": bool(payload.get("ok")), "applied_migrations": applied, "bootstrap": "ok", **payload})
         return 0 if bool(payload.get("ok")) else 1
 
@@ -2034,6 +2079,31 @@ def main(argv: list[str] | None = None) -> int:
             )
         if args.format == "markdown":
             print(render_roadmap_work_item_links_markdown(payload))
+            return 0
+        emit_json(payload)
+        return 0
+
+    if args.command == "inspect-work-item-lifecycle":
+        with connect(config) as conn:
+            payload = inspect_work_item_lifecycle(conn, args.work_item_id)
+        if not bool(payload.get("ok")):
+            emit_json(payload)
+            return 1
+        if args.format == "markdown":
+            print(render_work_item_lifecycle_markdown(payload))
+            return 0
+        emit_json(payload)
+        return 0
+
+    if args.command == "inspect-queue-work-state":
+        with connect(config) as conn:
+            payload = inspect_queue_work_state(
+                conn,
+                queue_id=args.queue_id,
+                project_id=args.project_id,
+            )
+        if args.format == "markdown":
+            print(render_queue_work_state_markdown(payload))
             return 0
         emit_json(payload)
         return 0

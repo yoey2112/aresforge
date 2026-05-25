@@ -5,11 +5,15 @@ from aresforge.db.repository import (
     ROADMAP_ALLOWED_STATUSES,
     ROADMAP_SEED_AREAS,
     ROADMAP_SEED_MILESTONES,
+    WORK_ITEM_ALLOWED_STATUSES,
     create_work_item_from_roadmap_task,
     inspect_roadmap_db,
+    render_queue_work_state_markdown,
     render_roadmap_events_markdown,
+    render_work_item_lifecycle_markdown,
     render_roadmap_markdown,
     render_roadmap_work_item_links_markdown,
+    update_work_item_status,
     update_roadmap_task_status,
 )
 
@@ -22,6 +26,16 @@ def test_seed_constants_include_expected_area_and_milestone_counts() -> None:
 def test_roadmap_allowed_statuses_match_m2_contract() -> None:
     assert ROADMAP_ALLOWED_STATUSES == (
         "planned",
+        "active",
+        "blocked",
+        "complete",
+        "cancelled",
+    )
+
+
+def test_work_item_allowed_statuses_match_m4_contract() -> None:
+    assert WORK_ITEM_ALLOWED_STATUSES == (
+        "queued",
         "active",
         "blocked",
         "complete",
@@ -186,6 +200,16 @@ def test_update_roadmap_task_status_invalid_status_response_shape() -> None:
     }
 
 
+def test_update_work_item_status_invalid_status_response_shape() -> None:
+    payload = update_work_item_status(_FakeConnection(), work_item_id="work-1", status="not-valid")
+    assert payload == {
+        "ok": False,
+        "error": "invalid_work_item_status",
+        "status": "not-valid",
+        "allowed_statuses": list(WORK_ITEM_ALLOWED_STATUSES),
+    }
+
+
 def test_cli_parser_recognizes_roadmap_commands_and_formats() -> None:
     parser = build_parser()
 
@@ -259,6 +283,32 @@ def test_cli_parser_recognizes_roadmap_commands_and_formats() -> None:
     assert inspect_links_markdown_args.command == "inspect-roadmap-work-item-links"
     assert inspect_links_markdown_args.format == "markdown"
 
+    update_work_item_args = parser.parse_args(
+        ["update-work-item-status", "--work-item-id", "work-1", "--status", "active", "--details-file", "details.json"]
+    )
+    assert update_work_item_args.command == "update-work-item-status"
+    assert update_work_item_args.details_file == "details.json"
+
+    inspect_work_item_lifecycle_json_args = parser.parse_args(
+        ["inspect-work-item-lifecycle", "--work-item-id", "work-1", "--format", "json"]
+    )
+    assert inspect_work_item_lifecycle_json_args.command == "inspect-work-item-lifecycle"
+    assert inspect_work_item_lifecycle_json_args.format == "json"
+
+    inspect_work_item_lifecycle_markdown_args = parser.parse_args(
+        ["inspect-work-item-lifecycle", "--work-item-id", "work-1", "--format", "markdown"]
+    )
+    assert inspect_work_item_lifecycle_markdown_args.command == "inspect-work-item-lifecycle"
+    assert inspect_work_item_lifecycle_markdown_args.format == "markdown"
+
+    inspect_queue_state_json_args = parser.parse_args(["inspect-queue-work-state", "--format", "json"])
+    assert inspect_queue_state_json_args.command == "inspect-queue-work-state"
+    assert inspect_queue_state_json_args.format == "json"
+
+    inspect_queue_state_markdown_args = parser.parse_args(["inspect-queue-work-state", "--format", "markdown"])
+    assert inspect_queue_state_markdown_args.command == "inspect-queue-work-state"
+    assert inspect_queue_state_markdown_args.format == "markdown"
+
 
 class _MissingRoadmapTaskCursor:
     def __enter__(self) -> _MissingRoadmapTaskCursor:
@@ -313,3 +363,37 @@ def test_render_roadmap_work_item_links_markdown_is_deterministic() -> None:
     assert "- Project ID: `project-aresforge`" in markdown
     assert "- Link count: `1`" in markdown
     assert "task=`rt-01-starter` -> work_item=`work-1`" in markdown
+
+
+def test_render_work_item_lifecycle_markdown_is_deterministic() -> None:
+    payload = {
+        "ok": True,
+        "work_item_id": "work-1",
+        "work_item": {"id": "work-1", "status": "queued", "queue_id": "queue-planning", "route_status": "queued"},
+        "roadmap_links": [{"id": "rwil-1", "roadmap_task_id": "rt-01-starter", "status": "active"}],
+        "roadmap_events": [{"created_at": "2026-05-25T12:00:00Z", "event_type": "work_item_status_changed", "task_id": "rt-01-starter"}],
+        "audit_events": [{"created_at": "2026-05-25T12:00:01Z", "event_type": "work_item_status_changed", "actor": "aresforge-cli"}],
+    }
+    markdown = render_work_item_lifecycle_markdown(payload)
+    assert "# Work Item Lifecycle" in markdown
+    assert "- Work Item ID: `work-1`" in markdown
+    assert "## Roadmap Links" in markdown
+    assert "## Audit Events" in markdown
+    assert "## Roadmap Events" in markdown
+
+
+def test_render_queue_work_state_markdown_is_deterministic() -> None:
+    payload = {
+        "ok": True,
+        "project_id": "project-aresforge",
+        "queue_id": None,
+        "counts_by_queue": [{"queue_id": "queue-planning", "count": 2}],
+        "counts_by_status": [{"status": "active", "count": 1}, {"status": "queued", "count": 1}],
+        "work_items": [{"id": "work-1", "queue_id": "queue-planning", "status": "queued", "title": "Work title"}],
+    }
+    markdown = render_queue_work_state_markdown(payload)
+    assert "# Queue Work State" in markdown
+    assert "- Project ID: `project-aresforge`" in markdown
+    assert "## Counts by Queue" in markdown
+    assert "## Counts by Status" in markdown
+    assert "## Active Queued Blocked Work Items" in markdown

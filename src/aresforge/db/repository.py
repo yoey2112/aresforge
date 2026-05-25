@@ -1027,6 +1027,265 @@ def inspect_work_item(conn: Connection, work_item_id: str) -> dict[str, Any] | N
     return enrich_work_item_record(row)
 
 
+def update_work_item_status(
+    conn: Connection,
+    work_item_id: str,
+    status: str,
+    actor: str = "aresforge-cli",
+    summary: str | None = None,
+    details: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    if status not in WORK_ITEM_ALLOWED_STATUSES:
+        return {
+            "ok": False,
+            "error": "invalid_work_item_status",
+            "status": status,
+            "allowed_statuses": list(WORK_ITEM_ALLOWED_STATUSES),
+        }
+    normalized_details = _normalize_roadmap_details(details)
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT id, project_id, queue_id, status
+            FROM work_items
+            WHERE id = %s
+            """,
+            (work_item_id,),
+        )
+        existing = cur.fetchone()
+        if existing is None:
+            return {"ok": False, "error": "work_item_not_found", "work_item_id": work_item_id}
+        previous_status = existing["status"]
+        if previous_status == status:
+            return {
+                "ok": True,
+                "changed": False,
+                "previous_status": previous_status,
+                "status": status,
+                "work_item_id": work_item_id,
+                "work_item": inspect_work_item(conn, work_item_id),
+            }
+        cur.execute(
+            """
+            UPDATE work_items
+            SET status = %s,
+                route_status = %s,
+                updated_at = NOW()
+            WHERE id = %s
+            """,
+            (status, status, work_item_id),
+        )
+        audit_event_id = _new_id("audit")
+        cur.execute(
+            """
+            INSERT INTO audit_events (id, project_id, work_item_id, event_type, actor, details)
+            VALUES (%s, %s, %s, %s, %s, %s::jsonb)
+            """,
+            (
+                audit_event_id,
+                existing["project_id"],
+                work_item_id,
+                "work_item_status_changed",
+                actor,
+                json.dumps(
+                    {
+                        "previous_status": previous_status,
+                        "new_status": status,
+                        "queue_id": existing["queue_id"],
+                        **normalized_details,
+                    }
+                ),
+            ),
+        )
+        cur.execute(
+            """
+            SELECT id, roadmap_task_id
+            FROM roadmap_work_item_links
+            WHERE work_item_id = %s
+              AND status = 'active'
+            ORDER BY created_at DESC, id DESC
+            LIMIT 1
+            """,
+            (work_item_id,),
+        )
+        link_row = cur.fetchone()
+    work_item = inspect_work_item(conn, work_item_id)
+    event_ids = [audit_event_id]
+    if link_row is not None:
+        roadmap_event = add_roadmap_event(
+            conn,
+            project_id=existing["project_id"],
+            event_type="work_item_status_changed",
+            actor=actor,
+            summary=summary or f"Work item status changed: {previous_status} -> {status}",
+            details={
+                "work_item_id": work_item_id,
+                "previous_status": previous_status,
+                "new_status": status,
+                "queue_id": existing["queue_id"],
+                "link_id": link_row["id"],
+                **normalized_details,
+            },
+            task_id=link_row["roadmap_task_id"],
+        )
+        if bool(roadmap_event.get("ok")):
+            event_ids.append(roadmap_event["event_id"])
+    return {
+        "ok": True,
+        "changed": True,
+        "previous_status": previous_status,
+        "status": status,
+        "work_item_id": work_item_id,
+        "work_item": work_item,
+        "event_ids": event_ids,
+    }
+
+
+def inspect_work_item_lifecycle(conn: Connection, work_item_id: str) -> dict[str, Any]:
+    work_item = inspect_work_item(conn, work_item_id)
+    if work_item is None:
+        return {"ok": False, "error": "work_item_not_found", "work_item_id": work_item_id}
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT rwil.id, rwil.project_id, rwil.roadmap_task_id, rwil.work_item_id, rwil.link_type, rwil.status,
+                   rwil.metadata, rwil.created_at, rwil.updated_at,
+                   rt.title AS roadmap_task_title, rt.status AS roadmap_task_status
+            FROM roadmap_work_item_links rwil
+            JOIN roadmap_tasks rt ON rt.id = rwil.roadmap_task_id
+            WHERE rwil.work_item_id = %s
+            ORDER BY rwil.created_at DESC, rwil.id DESC
+            """,
+            (work_item_id,),
+        )
+        roadmap_links = list(cur.fetchall())
+        cur.execute(
+            """
+            SELECT id, project_id, work_item_id, event_type, actor, details, created_at
+            FROM audit_events
+            WHERE work_item_id = %s
+            ORDER BY created_at DESC, id DESC
+            """,
+            (work_item_id,),
+        )
+        audit_events = list(cur.fetchall())
+        roadmap_events: list[dict[str, Any]] = []
+        task_ids = sorted({row["roadmap_task_id"] for row in roadmap_links if row.get("roadmap_task_id")})
+        if task_ids:
+            cur.execute(
+                """
+                SELECT id, project_id, area_id, milestone_id, task_id, event_type, actor, summary, details, created_at
+                FROM roadmap_events
+                WHERE task_id = ANY(%s)
+                ORDER BY created_at DESC, id DESC
+                """,
+                (task_ids,),
+            )
+            roadmap_events = list(cur.fetchall())
+    return {
+        "ok": True,
+        "work_item_id": work_item_id,
+        "work_item": work_item,
+        "roadmap_links": roadmap_links,
+        "roadmap_events": roadmap_events,
+        "audit_events": audit_events,
+    }
+
+
+def inspect_queue_work_state(
+    conn: Connection,
+    queue_id: str | None = None,
+    project_id: str = DEFAULT_PROJECT_ID,
+) -> dict[str, Any]:
+    params: list[Any] = [project_id]
+    queue_clause = ""
+    if queue_id is not None:
+        queue_clause = " AND wi.queue_id = %s"
+        params.append(queue_id)
+    with conn.cursor() as cur:
+        cur.execute(
+            f"""
+            SELECT wi.id, wi.project_id, wi.queue_id, wi.title, wi.status, wi.priority, wi.route_status, wi.created_at, wi.updated_at,
+                   rwil.id AS link_id, rwil.roadmap_task_id, rt.title AS roadmap_task_title, rt.status AS roadmap_task_status
+            FROM work_items wi
+            LEFT JOIN roadmap_work_item_links rwil ON rwil.work_item_id = wi.id AND rwil.status = 'active'
+            LEFT JOIN roadmap_tasks rt ON rt.id = rwil.roadmap_task_id
+            WHERE wi.project_id = %s{queue_clause}
+            ORDER BY wi.queue_id ASC, wi.created_at ASC, wi.id ASC
+            """,
+            params,
+        )
+        rows = list(cur.fetchall())
+    by_queue: dict[str, int] = {}
+    by_status: dict[str, int] = {}
+    for row in rows:
+        by_queue[row["queue_id"]] = by_queue.get(row["queue_id"], 0) + 1
+        by_status[row["status"]] = by_status.get(row["status"], 0) + 1
+    return {
+        "ok": True,
+        "project_id": project_id,
+        "queue_id": queue_id,
+        "counts_by_queue": [{"queue_id": key, "count": by_queue[key]} for key in sorted(by_queue)],
+        "counts_by_status": [{"status": key, "count": by_status[key]} for key in sorted(by_status)],
+        "work_items": [row for row in rows if row["status"] in ("active", "queued", "blocked")],
+    }
+
+
+def render_work_item_lifecycle_markdown(payload: dict[str, Any]) -> str:
+    work_item = payload.get("work_item") or {}
+    roadmap_links = payload.get("roadmap_links", [])
+    roadmap_events = payload.get("roadmap_events", [])
+    audit_events = payload.get("audit_events", [])
+    lines = [
+        "# Work Item Lifecycle",
+        "",
+        f"- Work Item ID: `{payload.get('work_item_id', work_item.get('id', ''))}`",
+        f"- Status: `{work_item.get('status', '')}`",
+        f"- Queue ID: `{work_item.get('queue_id', '')}`",
+        f"- Route Status: `{work_item.get('route_status', '')}`",
+        f"- Roadmap links: `{len(roadmap_links)}`",
+        f"- Roadmap events: `{len(roadmap_events)}`",
+        f"- Audit events: `{len(audit_events)}`",
+        "",
+    ]
+    lines.append("## Roadmap Links")
+    for link in roadmap_links:
+        lines.append(f"- `{link['id']}` task=`{link['roadmap_task_id']}` status=`{link['status']}`")
+    lines.append("")
+    lines.append("## Audit Events")
+    for event in audit_events:
+        lines.append(f"- `{event['created_at']}` `{event['event_type']}` by `{event['actor']}`")
+    lines.append("")
+    lines.append("## Roadmap Events")
+    for event in roadmap_events:
+        lines.append(f"- `{event['created_at']}` `{event['event_type']}` task=`{event.get('task_id', '')}`")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def render_queue_work_state_markdown(payload: dict[str, Any]) -> str:
+    lines = [
+        "# Queue Work State",
+        "",
+        f"- Project ID: `{payload.get('project_id', '')}`",
+        f"- Queue ID filter: `{payload.get('queue_id') or 'all'}`",
+        "",
+        "## Counts by Queue",
+    ]
+    for row in payload.get("counts_by_queue", []):
+        lines.append(f"- `{row['queue_id']}`: `{row['count']}`")
+    lines.append("")
+    lines.append("## Counts by Status")
+    for row in payload.get("counts_by_status", []):
+        lines.append(f"- `{row['status']}`: `{row['count']}`")
+    lines.append("")
+    lines.append("## Active Queued Blocked Work Items")
+    for item in payload.get("work_items", []):
+        lines.append(
+            f"- `{item['id']}` queue=`{item['queue_id']}` status=`{item['status']}` title=`{item['title']}`"
+        )
+    return "\n".join(lines).rstrip() + "\n"
+
+
 def inspect_state(conn: Connection) -> dict[str, Any]:
     with conn.cursor() as cur:
         counts: dict[str, int] = {}
@@ -1145,6 +1404,13 @@ ROADMAP_SEED_MILESTONES: tuple[dict[str, Any], ...] = (
 )
 ROADMAP_ALLOWED_STATUSES: tuple[str, ...] = (
     "planned",
+    "active",
+    "blocked",
+    "complete",
+    "cancelled",
+)
+WORK_ITEM_ALLOWED_STATUSES: tuple[str, ...] = (
+    "queued",
     "active",
     "blocked",
     "complete",

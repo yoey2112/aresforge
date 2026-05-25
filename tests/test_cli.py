@@ -35,6 +35,9 @@ def test_cli_has_expected_commands() -> None:
         "add-roadmap-event",
         "inspect-roadmap-events",
         "create-work-item-from-roadmap-task",
+        "update-work-item-status",
+        "inspect-work-item-lifecycle",
+        "inspect-queue-work-state",
         "inspect-roadmap-work-item-links",
         "inspect-project-state",
         "inspect-db-state",
@@ -559,6 +562,68 @@ def test_cli_update_roadmap_task_status_dispatch_parses_bom_details_file(
             "active",
             "--summary",
             "Unit test status update",
+            "--details-file",
+            str(details_path),
+        ]
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert seen["details"] == {"source": "unit-test", "mode": "local-only"}
+    assert payload["ok"] is True
+
+
+def test_cli_update_work_item_status_dispatch_parses_details_file(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], tmp_path: Path
+) -> None:
+    config = AppConfig(
+        repo_root=tmp_path,
+        db_host="127.0.0.1",
+        db_port=5433,
+        db_name="aresforge",
+        db_user="aresforge",
+        db_password="aresforge",
+        ollama_base_url="http://127.0.0.1:11434",
+        ollama_model="qwen2.5:32b",
+        artifact_root=tmp_path / "artifacts",
+        prompts_dir=tmp_path / "artifacts" / "prompts" / "generated",
+        evidence_dir=tmp_path / "artifacts" / "evidence" / "generated",
+        codex_handoffs_dir=tmp_path / "artifacts" / "codex_handoffs" / "generated",
+        github_owner="yoey2112",
+        github_repo="aresforge",
+    )
+    details_path = tmp_path / "details.json"
+    details_path.write_text('{"source":"unit-test","mode":"local-only"}', encoding="utf-8")
+    seen: dict[str, object] = {}
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: config)
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(cli, "apply_migrations", lambda _conn, _dir: [])
+    monkeypatch.setattr(cli, "bootstrap_reference_data", lambda _conn, _config: None)
+
+    def fake_update_work_item_status(
+        _conn: object,
+        work_item_id: str,
+        status: str,
+        actor: str = "aresforge-cli",
+        summary: str | None = None,
+        details: dict[str, object] | None = None,
+    ) -> dict[str, object]:
+        seen["work_item_id"] = work_item_id
+        seen["status"] = status
+        seen["summary"] = summary
+        seen["details"] = details
+        return {"ok": True, "changed": True, "work_item_id": work_item_id, "status": status}
+
+    monkeypatch.setattr(cli, "update_work_item_status", fake_update_work_item_status)
+
+    exit_code = cli.main(
+        [
+            "update-work-item-status",
+            "--work-item-id",
+            "work-1",
+            "--status",
+            "active",
+            "--summary",
+            "Advance local queue",
             "--details-file",
             str(details_path),
         ]

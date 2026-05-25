@@ -347,6 +347,16 @@ M3 adds a local Postgres-backed bridge from roadmap tasks to local work items:
 
 This milestone remains within current freeze boundaries: no Hub UI mutation implementation, no agent execution, no LLM routing, and no GitHub sync/mutation execution.
 
+## 21. M4 local work item lifecycle status note
+
+M4 adds local CLI lifecycle and inspection surfaces for roadmap-linked work items without introducing execution behavior:
+
+- `update-work-item-status --work-item-id <id> --status <status> [--summary <text>] [--details-json <json>] [--details-file <path>]`
+- `inspect-work-item-lifecycle --work-item-id <id> [--format json|markdown]`
+- `inspect-queue-work-state [--project-id <id>] [--queue-id <id>] [--format json|markdown]`
+
+M4 updates local `work_items` lifecycle state with strict status validation, logs audit events, and logs related roadmap events when a roadmap task link exists. It does not automatically mutate roadmap task status, does not implement agent execution, and does not add Hub UI mutation flows.
+
 ### What was decided
 
 - AresForge should move toward Postgres as the authoritative live structured state layer for roadmap, control, validation, and completion tracking
