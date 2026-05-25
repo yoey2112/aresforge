@@ -27,6 +27,7 @@ from aresforge.db.repository import (
     list_work_items,
     inspect_roadmap_db,
     inspect_roadmap_events,
+    inspect_roadmap_task_dependencies,
     inspect_roadmap_work_item_links,
     inspect_queue_work_state,
     inspect_project_queue_dashboard,
@@ -40,6 +41,9 @@ from aresforge.db.repository import (
     move_work_item_queue_if_allowed,
     render_roadmap_markdown,
     render_roadmap_events_markdown,
+    render_roadmap_task_dependencies_markdown,
+    render_add_roadmap_task_dependency_markdown,
+    render_remove_roadmap_task_dependency_markdown,
     render_queue_readiness_markdown,
     render_roadmap_work_item_links_markdown,
     render_queue_work_state_markdown,
@@ -53,6 +57,8 @@ from aresforge.db.repository import (
     render_move_work_item_queue_markdown,
     seed_aresforge_roadmap,
     add_roadmap_event,
+    add_roadmap_task_dependency,
+    remove_roadmap_task_dependency,
     create_work_item_from_roadmap_task,
     update_work_item_status,
     update_roadmap_area_status,
@@ -343,6 +349,44 @@ def build_parser() -> argparse.ArgumentParser:
     inspect_roadmap_events_parser.add_argument("--project-id", default=DEFAULT_PROJECT_ID)
     inspect_roadmap_events_parser.add_argument("--limit", type=int, default=20)
     inspect_roadmap_events_parser.add_argument(
+        "--format",
+        choices=("json", "markdown"),
+        default="json",
+    )
+    add_roadmap_task_dependency_parser = subparsers.add_parser(
+        "add-roadmap-task-dependency",
+        help="Add one local roadmap task dependency.",
+    )
+    add_roadmap_task_dependency_parser.add_argument("--task-id", required=True)
+    add_roadmap_task_dependency_parser.add_argument("--depends-on-task-id", required=True)
+    add_roadmap_task_dependency_parser.add_argument("--dependency-type", default="blocks")
+    add_roadmap_task_dependency_parser.add_argument("--actor", default="local-operator")
+    add_roadmap_task_dependency_parser.add_argument("--details-file")
+    add_roadmap_task_dependency_parser.add_argument(
+        "--format",
+        choices=("json", "markdown"),
+        default="json",
+    )
+    remove_roadmap_task_dependency_parser = subparsers.add_parser(
+        "remove-roadmap-task-dependency",
+        help="Remove one local roadmap task dependency.",
+    )
+    remove_roadmap_task_dependency_parser.add_argument("--task-id", required=True)
+    remove_roadmap_task_dependency_parser.add_argument("--depends-on-task-id", required=True)
+    remove_roadmap_task_dependency_parser.add_argument("--actor", default="local-operator")
+    remove_roadmap_task_dependency_parser.add_argument("--details-file")
+    remove_roadmap_task_dependency_parser.add_argument(
+        "--format",
+        choices=("json", "markdown"),
+        default="json",
+    )
+    inspect_roadmap_task_dependencies_parser = subparsers.add_parser(
+        "inspect-roadmap-task-dependencies",
+        help="Inspect local roadmap task dependencies.",
+    )
+    inspect_roadmap_task_dependencies_parser.add_argument("--task-id")
+    inspect_roadmap_task_dependencies_parser.add_argument("--project-id", default=DEFAULT_PROJECT_ID)
+    inspect_roadmap_task_dependencies_parser.add_argument(
         "--format",
         choices=("json", "markdown"),
         default="json",
@@ -2170,6 +2214,60 @@ def main(argv: list[str] | None = None) -> int:
             return 1
         if args.format == "markdown":
             print(render_roadmap_events_markdown(payload))
+            return 0
+        emit_json(payload)
+        return 0
+
+    if args.command == "add-roadmap-task-dependency":
+        details, details_error = parse_details_input(None, getattr(args, "details_file", None))
+        if details_error is not None:
+            emit_json(details_error)
+            return 1
+        assert details is not None
+        with connect(config) as conn:
+            payload = add_roadmap_task_dependency(
+                conn,
+                args.task_id,
+                args.depends_on_task_id,
+                dependency_type=args.dependency_type,
+                actor=args.actor,
+                details=details,
+            )
+        if args.format == "markdown":
+            print(render_add_roadmap_task_dependency_markdown(payload))
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "remove-roadmap-task-dependency":
+        details, details_error = parse_details_input(None, getattr(args, "details_file", None))
+        if details_error is not None:
+            emit_json(details_error)
+            return 1
+        assert details is not None
+        with connect(config) as conn:
+            payload = remove_roadmap_task_dependency(
+                conn,
+                args.task_id,
+                args.depends_on_task_id,
+                actor=args.actor,
+                details=details,
+            )
+        if args.format == "markdown":
+            print(render_remove_roadmap_task_dependency_markdown(payload))
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-roadmap-task-dependencies":
+        with connect(config) as conn:
+            payload = inspect_roadmap_task_dependencies(
+                conn,
+                task_id=args.task_id,
+                project_id=args.project_id,
+            )
+        if args.format == "markdown":
+            print(render_roadmap_task_dependencies_markdown(payload))
             return 0
         emit_json(payload)
         return 0

@@ -29,6 +29,16 @@
 - The dashboard summarizes work item totals, queue state, readiness state, roadmap state, recent events, and next safe actions.
 - M10 does not implement Hub UI, execute agents, or call GitHub.
 
+## M11 Local Roadmap Dependency Management
+
+- Added local roadmap dependency management commands:
+  - `python -m aresforge add-roadmap-task-dependency --task-id <id> --depends-on-task-id <id> [--dependency-type blocks] [--actor <actor>] [--details-file <path>] [--format json|markdown]`
+  - `python -m aresforge remove-roadmap-task-dependency --task-id <id> --depends-on-task-id <id> [--actor <actor>] [--details-file <path>] [--format json|markdown]`
+  - `python -m aresforge inspect-roadmap-task-dependencies [--task-id <id>] [--project-id <id>] [--format json|markdown]`
+- Dependencies can now be added, inspected, and removed locally.
+- Readiness gates can use these dependencies to explain blockers.
+- M11 includes no GitHub calls, no agent execution, and no Hub UI.
+
 ## M46 Project Factory Source-of-Truth Realignment
 
 Current state on `main` includes M43-M45 and establishes a local-first Hub control plane plus a partial project-factory shell:

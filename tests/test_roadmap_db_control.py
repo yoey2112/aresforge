@@ -10,6 +10,9 @@ from aresforge.db.repository import (
     ROADMAP_SEED_MILESTONES,
     WORK_ITEM_ALLOWED_STATUSES,
     create_work_item_from_roadmap_task,
+    add_roadmap_task_dependency,
+    remove_roadmap_task_dependency,
+    inspect_roadmap_task_dependencies,
     inspect_roadmap_db,
     inspect_project_queue_dashboard,
     inspect_work_item_readiness,
@@ -24,6 +27,9 @@ from aresforge.db.repository import (
     render_project_queue_dashboard_markdown,
     render_queue_readiness_markdown,
     render_roadmap_events_markdown,
+    render_roadmap_task_dependencies_markdown,
+    render_add_roadmap_task_dependency_markdown,
+    render_remove_roadmap_task_dependency_markdown,
     render_work_item_queue_transition_plan_markdown,
     render_work_item_readiness_markdown,
     render_work_item_lifecycle_markdown,
@@ -126,6 +132,58 @@ def test_render_roadmap_events_markdown_contains_stable_headings_and_event_rows(
     assert "- Project ID: `project-aresforge`" in markdown
     assert "- Event count: `1`" in markdown
     assert "roadmap_area_status_changed" in markdown
+
+
+def test_render_roadmap_task_dependencies_markdown_is_deterministic() -> None:
+    payload = {
+        "ok": True,
+        "project_id": "project-aresforge",
+        "task_id": "rt-04-starter",
+        "dependency_count": 1,
+        "dependencies": [
+            {
+                "task_id": "rt-04-starter",
+                "task_status": "planned",
+                "depends_on_task_id": "rt-03-starter",
+                "depends_on_task_status": "active",
+                "dependency_type": "blocks",
+                "satisfied": False,
+            }
+        ],
+    }
+    markdown = render_roadmap_task_dependencies_markdown(payload)
+    assert "# Roadmap Task Dependencies" in markdown
+    assert "rt-04-starter" in markdown
+    assert "depends_on=`rt-03-starter`" in markdown
+
+
+def test_render_add_roadmap_task_dependency_markdown_is_deterministic() -> None:
+    markdown = render_add_roadmap_task_dependency_markdown(
+        {
+            "ok": True,
+            "changed": True,
+            "reason": "dependency_added",
+            "task_id": "rt-04-starter",
+            "depends_on_task_id": "rt-03-starter",
+            "dependency": {"dependency_type": "blocks"},
+        }
+    )
+    assert "# Add Roadmap Task Dependency" in markdown
+    assert "- Changed: `True`" in markdown
+
+
+def test_render_remove_roadmap_task_dependency_markdown_is_deterministic() -> None:
+    markdown = render_remove_roadmap_task_dependency_markdown(
+        {
+            "ok": True,
+            "changed": False,
+            "reason": "dependency_not_found",
+            "task_id": "rt-04-starter",
+            "depends_on_task_id": "rt-03-starter",
+        }
+    )
+    assert "# Remove Roadmap Task Dependency" in markdown
+    assert "dependency_not_found" in markdown
 
 
 class _FakeCursor:
@@ -280,6 +338,37 @@ def test_cli_parser_recognizes_roadmap_commands_and_formats() -> None:
     inspect_events_markdown_args = parser.parse_args(["inspect-roadmap-events", "--format", "markdown"])
     assert inspect_events_markdown_args.command == "inspect-roadmap-events"
     assert inspect_events_markdown_args.format == "markdown"
+    add_dependency_args = parser.parse_args(
+        [
+            "add-roadmap-task-dependency",
+            "--task-id",
+            "rt-04-starter",
+            "--depends-on-task-id",
+            "rt-03-starter",
+            "--format",
+            "json",
+        ]
+    )
+    assert add_dependency_args.command == "add-roadmap-task-dependency"
+    assert add_dependency_args.format == "json"
+    remove_dependency_args = parser.parse_args(
+        [
+            "remove-roadmap-task-dependency",
+            "--task-id",
+            "rt-04-starter",
+            "--depends-on-task-id",
+            "rt-03-starter",
+            "--format",
+            "markdown",
+        ]
+    )
+    assert remove_dependency_args.command == "remove-roadmap-task-dependency"
+    assert remove_dependency_args.format == "markdown"
+    inspect_dependencies_args = parser.parse_args(
+        ["inspect-roadmap-task-dependencies", "--task-id", "rt-04-starter", "--format", "markdown"]
+    )
+    assert inspect_dependencies_args.command == "inspect-roadmap-task-dependencies"
+    assert inspect_dependencies_args.format == "markdown"
 
     create_work_item_from_task_args = parser.parse_args(
         [
@@ -508,6 +597,130 @@ def test_create_work_item_from_roadmap_task_returns_task_not_found_when_missing(
     }
 
 
+def test_add_roadmap_task_dependency_self_dependency_rejected() -> None:
+    payload = add_roadmap_task_dependency(_FakeConnection(), "rt-1", "rt-1")
+    assert payload["ok"] is False
+    assert payload["changed"] is False
+    assert payload["reason"] == "self_dependency_not_allowed"
+
+
+def test_add_roadmap_task_dependency_missing_task_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
+    class _MissingTaskCursor:
+        def __enter__(self): return self
+        def __exit__(self, exc_type, exc, tb): return None
+        def execute(self, _sql: str, _params: object = None) -> None: return None
+        def fetchone(self): return None
+    class _MissingTaskConn:
+        def cursor(self): return _MissingTaskCursor()
+    payload = add_roadmap_task_dependency(_MissingTaskConn(), "rt-1", "rt-2")
+    assert payload["ok"] is False
+    assert payload["reason"] == "task_not_found"
+
+
+def test_add_roadmap_task_dependency_duplicate_is_idempotent(monkeypatch: pytest.MonkeyPatch) -> None:
+    responses = iter(
+        [
+            {"id": "rt-1", "project_id": "project-aresforge", "title": "T1", "status": "planned"},
+            {"id": "rt-2", "project_id": "project-aresforge", "title": "T2", "status": "planned"},
+            {"task_id": "rt-1", "depends_on_task_id": "rt-2", "dependency_type": "blocks", "metadata": {}, "created_at": ""},
+        ]
+    )
+    class _Cursor:
+        def __enter__(self): return self
+        def __exit__(self, exc_type, exc, tb): return None
+        def execute(self, _sql: str, _params: object = None) -> None: return None
+        def fetchone(self): return next(responses, None)
+    class _Conn:
+        def cursor(self): return _Cursor()
+    payload = add_roadmap_task_dependency(_Conn(), "rt-1", "rt-2")
+    assert payload["ok"] is True
+    assert payload["changed"] is False
+    assert payload["reason"] == "dependency_already_exists"
+
+
+def test_add_roadmap_task_dependency_creates_row(monkeypatch: pytest.MonkeyPatch) -> None:
+    responses = iter(
+        [
+            {"id": "rt-1", "project_id": "project-aresforge", "title": "T1", "status": "planned"},
+            {"id": "rt-2", "project_id": "project-aresforge", "title": "T2", "status": "planned"},
+            None,
+            {"task_id": "rt-1", "depends_on_task_id": "rt-2", "dependency_type": "blocks", "metadata": {}, "created_at": ""},
+        ]
+    )
+    class _Cursor:
+        def __enter__(self): return self
+        def __exit__(self, exc_type, exc, tb): return None
+        def execute(self, _sql: str, _params: object = None) -> None: return None
+        def fetchone(self): return next(responses, None)
+    class _Conn:
+        def cursor(self): return _Cursor()
+    monkeypatch.setattr(repository_module, "add_roadmap_event", lambda *_args, **_kwargs: {"ok": True, "event_id": "ev-1"})
+    payload = add_roadmap_task_dependency(_Conn(), "rt-1", "rt-2")
+    assert payload["ok"] is True
+    assert payload["changed"] is True
+
+
+def test_remove_roadmap_task_dependency_missing_is_idempotent() -> None:
+    class _Cursor:
+        def __enter__(self): return self
+        def __exit__(self, exc_type, exc, tb): return None
+        def execute(self, _sql: str, _params: object = None) -> None: return None
+        def fetchone(self): return None
+    class _Conn:
+        def cursor(self): return _Cursor()
+    payload = remove_roadmap_task_dependency(_Conn(), "rt-1", "rt-2")
+    assert payload["ok"] is True
+    assert payload["changed"] is False
+    assert payload["reason"] == "dependency_not_found"
+
+
+def test_remove_roadmap_task_dependency_removes_row(monkeypatch: pytest.MonkeyPatch) -> None:
+    responses = iter(
+        [
+            {"task_id": "rt-1", "depends_on_task_id": "rt-2", "dependency_type": "blocks", "metadata": {}, "created_at": ""},
+            {"project_id": "project-aresforge"},
+        ]
+    )
+    class _Cursor:
+        def __enter__(self): return self
+        def __exit__(self, exc_type, exc, tb): return None
+        def execute(self, _sql: str, _params: object = None) -> None: return None
+        def fetchone(self): return next(responses, None)
+    class _Conn:
+        def cursor(self): return _Cursor()
+    monkeypatch.setattr(repository_module, "add_roadmap_event", lambda *_args, **_kwargs: {"ok": True, "event_id": "ev-2"})
+    payload = remove_roadmap_task_dependency(_Conn(), "rt-1", "rt-2")
+    assert payload["ok"] is True
+    assert payload["changed"] is True
+
+
+def test_inspect_roadmap_task_dependencies_deterministic(monkeypatch: pytest.MonkeyPatch) -> None:
+    rows = [
+        {
+            "task_id": "rt-04-starter",
+            "task_title": "Task 4",
+            "task_status": "planned",
+            "depends_on_task_id": "rt-03-starter",
+            "depends_on_task_title": "Task 3",
+            "depends_on_task_status": "active",
+            "dependency_type": "blocks",
+            "metadata": {},
+            "created_at": "",
+        }
+    ]
+    class _Cursor:
+        def __enter__(self): return self
+        def __exit__(self, exc_type, exc, tb): return None
+        def execute(self, _sql: str, _params: object = None) -> None: return None
+        def fetchall(self): return rows
+    class _Conn:
+        def cursor(self): return _Cursor()
+    payload = inspect_roadmap_task_dependencies(_Conn(), task_id="rt-04-starter")
+    assert payload["ok"] is True
+    assert payload["dependency_count"] == 1
+    assert payload["dependencies"][0]["satisfied"] is False
+
+
 def test_render_roadmap_work_item_links_markdown_is_deterministic() -> None:
     payload = {
         "ok": True,
@@ -692,6 +905,107 @@ def test_inspect_work_item_readiness_active_still_includes_links_and_roadmap_eve
         "total_dependencies": 1,
         "unsatisfied_dependencies": [],
     }
+
+
+class _ReadinessBlockedDependencyCursor:
+    def __init__(self) -> None:
+        self._rows: list[dict[str, object]] = []
+        self._row: dict[str, object] | None = None
+
+    def __enter__(self) -> "_ReadinessBlockedDependencyCursor":
+        return self
+
+    def __exit__(self, exc_type, exc, tb) -> None:
+        return None
+
+    def execute(self, sql: str, _params: object = None) -> None:
+        if "FROM work_items wi" in sql and "WHERE wi.id = %s" in sql:
+            self._row = {
+                "id": "work-1",
+                "title": "Queued work",
+                "description": "Test",
+                "status": "queued",
+                "priority": "normal",
+                "route_status": "queued",
+                "queue_id": "queue-implementation",
+                "agent_id": None,
+                "model_id": None,
+                "prompt_id": None,
+                "metadata": {},
+                "created_at": "",
+                "updated_at": "",
+                "queue_name": "implementation",
+                "queue_purpose": "Implementation",
+                "queue_metadata": {},
+                "agent_name": None,
+                "model_name": None,
+                "model_provider": None,
+            }
+            self._rows = []
+            return
+        if "FROM roadmap_work_item_links rwil" in sql:
+            self._rows = [
+                {
+                    "id": "rwil-1",
+                    "project_id": "project-aresforge",
+                    "roadmap_task_id": "rt-04-starter",
+                    "work_item_id": "work-1",
+                    "link_type": "implements",
+                    "status": "active",
+                    "metadata": {},
+                    "created_at": "",
+                    "updated_at": "",
+                    "roadmap_task_title": "Task title",
+                    "roadmap_task_status": "planned",
+                }
+            ]
+            self._row = None
+            return
+        if "FROM audit_events" in sql and "COUNT(*) AS count" in sql:
+            self._row = {"count": 1}
+            self._rows = []
+            return
+        if "FROM roadmap_task_dependencies d" in sql:
+            self._rows = [
+                {
+                    "task_id": "rt-04-starter",
+                    "depends_on_task_id": "rt-03-starter",
+                    "depends_on_task_status": "active",
+                }
+            ]
+            self._row = None
+            return
+        if "FROM roadmap_events" in sql and "COUNT(*) AS count" in sql:
+            self._row = {"count": 1}
+            self._rows = []
+            return
+        self._row = None
+        self._rows = []
+
+    def fetchone(self) -> dict[str, object] | None:
+        return self._row
+
+    def fetchall(self) -> list[dict[str, object]]:
+        return self._rows
+
+
+class _ReadinessBlockedDependencyConnection:
+    def cursor(self) -> _ReadinessBlockedDependencyCursor:
+        return _ReadinessBlockedDependencyCursor()
+
+
+def test_inspect_work_item_readiness_unsatisfied_dependency_blocks_item() -> None:
+    payload = inspect_work_item_readiness(_ReadinessBlockedDependencyConnection(), "work-1")
+    assert payload["ok"] is True
+    assert payload["readiness_status"] == "blocked"
+    assert payload["ready"] is False
+    assert payload["dependency_summary"]["unsatisfied_dependencies"] == [
+        {
+            "task_id": "rt-04-starter",
+            "depends_on_task_id": "rt-03-starter",
+            "status": "active",
+        }
+    ]
 
 
 def test_render_work_item_readiness_markdown_is_deterministic() -> None:

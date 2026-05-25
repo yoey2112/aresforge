@@ -3300,6 +3300,224 @@ def inspect_roadmap_events(
     }
 
 
+def add_roadmap_task_dependency(
+    conn: Connection,
+    task_id: str,
+    depends_on_task_id: str,
+    *,
+    dependency_type: str = "blocks",
+    actor: str = "local-operator",
+    details: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    if task_id == depends_on_task_id:
+        return {
+            "ok": False,
+            "changed": False,
+            "reason": "self_dependency_not_allowed",
+            "task_id": task_id,
+            "depends_on_task_id": depends_on_task_id,
+        }
+    normalized_details = _normalize_roadmap_details(details)
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT id, project_id, title, status
+            FROM roadmap_tasks
+            WHERE id = %s
+            """,
+            (task_id,),
+        )
+        task = cur.fetchone()
+        if task is None:
+            return {"ok": False, "changed": False, "reason": "task_not_found", "task_id": task_id}
+        cur.execute(
+            """
+            SELECT id, project_id, title, status
+            FROM roadmap_tasks
+            WHERE id = %s
+            """,
+            (depends_on_task_id,),
+        )
+        depends_on_task = cur.fetchone()
+        if depends_on_task is None:
+            return {
+                "ok": False,
+                "changed": False,
+                "reason": "depends_on_task_not_found",
+                "depends_on_task_id": depends_on_task_id,
+            }
+        cur.execute(
+            """
+            SELECT task_id, depends_on_task_id, dependency_type, metadata, created_at
+            FROM roadmap_task_dependencies
+            WHERE task_id = %s
+              AND depends_on_task_id = %s
+            """,
+            (task_id, depends_on_task_id),
+        )
+        existing = cur.fetchone()
+        if existing is not None:
+            return {
+                "ok": True,
+                "changed": False,
+                "reason": "dependency_already_exists",
+                "task_id": task_id,
+                "depends_on_task_id": depends_on_task_id,
+                "dependency": existing,
+            }
+        cur.execute(
+            """
+            INSERT INTO roadmap_task_dependencies (
+                task_id, depends_on_task_id, dependency_type, metadata
+            )
+            VALUES (%s, %s, %s, %s::jsonb)
+            RETURNING task_id, depends_on_task_id, dependency_type, metadata, created_at
+            """,
+            (
+                task_id,
+                depends_on_task_id,
+                dependency_type,
+                json.dumps({}),
+            ),
+        )
+        dependency = cur.fetchone()
+
+    event_payload = add_roadmap_event(
+        conn,
+        project_id=task["project_id"],
+        event_type="roadmap_task_dependency_added",
+        actor=actor,
+        summary=f"Roadmap task dependency added: {task_id} depends on {depends_on_task_id}.",
+        details={
+            "task_id": task_id,
+            "depends_on_task_id": depends_on_task_id,
+            "dependency_type": dependency_type,
+            **normalized_details,
+        },
+        task_id=task_id,
+    )
+    return {
+        "ok": True,
+        "changed": True,
+        "reason": "dependency_added",
+        "task_id": task_id,
+        "depends_on_task_id": depends_on_task_id,
+        "dependency": dependency,
+        "event_id": event_payload.get("event_id"),
+    }
+
+
+def remove_roadmap_task_dependency(
+    conn: Connection,
+    task_id: str,
+    depends_on_task_id: str,
+    *,
+    actor: str = "local-operator",
+    details: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    normalized_details = _normalize_roadmap_details(details)
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT task_id, depends_on_task_id, dependency_type, metadata, created_at
+            FROM roadmap_task_dependencies
+            WHERE task_id = %s
+              AND depends_on_task_id = %s
+            """,
+            (task_id, depends_on_task_id),
+        )
+        existing = cur.fetchone()
+        if existing is None:
+            return {
+                "ok": True,
+                "changed": False,
+                "reason": "dependency_not_found",
+                "task_id": task_id,
+                "depends_on_task_id": depends_on_task_id,
+            }
+        cur.execute("SELECT project_id FROM roadmap_tasks WHERE id = %s", (task_id,))
+        task = cur.fetchone()
+        project_id = (task or {}).get("project_id", DEFAULT_PROJECT_ID)
+        cur.execute(
+            """
+            DELETE FROM roadmap_task_dependencies
+            WHERE task_id = %s
+              AND depends_on_task_id = %s
+            """,
+            (task_id, depends_on_task_id),
+        )
+    event_payload = add_roadmap_event(
+        conn,
+        project_id=project_id,
+        event_type="roadmap_task_dependency_removed",
+        actor=actor,
+        summary=f"Roadmap task dependency removed: {task_id} no longer depends on {depends_on_task_id}.",
+        details={
+            "task_id": task_id,
+            "depends_on_task_id": depends_on_task_id,
+            **normalized_details,
+        },
+        task_id=task_id,
+    )
+    return {
+        "ok": True,
+        "changed": True,
+        "reason": "dependency_removed",
+        "task_id": task_id,
+        "depends_on_task_id": depends_on_task_id,
+        "event_id": event_payload.get("event_id"),
+    }
+
+
+def inspect_roadmap_task_dependencies(
+    conn: Connection,
+    task_id: str | None = None,
+    project_id: str = DEFAULT_PROJECT_ID,
+) -> dict[str, Any]:
+    with conn.cursor() as cur:
+        params: list[Any] = [project_id]
+        where_clauses = ["td.project_id = %s"]
+        if task_id:
+            where_clauses.append("(d.task_id = %s OR d.depends_on_task_id = %s)")
+            params.extend([task_id, task_id])
+        where_sql = " AND ".join(where_clauses)
+        cur.execute(
+            f"""
+            SELECT
+                d.task_id,
+                td.title AS task_title,
+                td.status AS task_status,
+                d.depends_on_task_id,
+                dd.title AS depends_on_task_title,
+                dd.status AS depends_on_task_status,
+                d.dependency_type,
+                d.metadata,
+                d.created_at
+            FROM roadmap_task_dependencies d
+            JOIN roadmap_tasks td ON td.id = d.task_id
+            JOIN roadmap_tasks dd ON dd.id = d.depends_on_task_id
+            WHERE {where_sql}
+            ORDER BY d.task_id ASC, d.depends_on_task_id ASC
+            """,
+            params,
+        )
+        rows = list(cur.fetchall())
+    dependencies = [
+        {
+            **row,
+            "satisfied": row.get("depends_on_task_status") == "complete",
+        }
+        for row in rows
+    ]
+    return {
+        "ok": True,
+        "project_id": project_id,
+        "task_id": task_id,
+        "dependency_count": len(dependencies),
+        "dependencies": dependencies,
+    }
+
+
 def create_work_item_from_roadmap_task(
     conn: Connection,
     roadmap_task_id: str,
@@ -3585,4 +3803,50 @@ def render_roadmap_events_markdown(payload: dict[str, Any]) -> str:
         )
         if event.get("summary"):
             lines.append(f"  - {event['summary']}")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def render_roadmap_task_dependencies_markdown(payload: dict[str, Any]) -> str:
+    dependencies = payload.get("dependencies", [])
+    lines = [
+        "# Roadmap Task Dependencies",
+        "",
+        f"- Project ID: `{payload.get('project_id', '')}`",
+        f"- Task ID filter: `{payload.get('task_id') or 'all'}`",
+        f"- Dependency count: `{payload.get('dependency_count', len(dependencies))}`",
+        "",
+    ]
+    if dependencies:
+        for dep in dependencies:
+            lines.append(
+                f"- task=`{dep.get('task_id', '')}` ({dep.get('task_status', '')}) depends_on=`{dep.get('depends_on_task_id', '')}` ({dep.get('depends_on_task_status', '')}) type=`{dep.get('dependency_type', '')}` satisfied=`{dep.get('satisfied', False)}`"
+            )
+    else:
+        lines.append("- none")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def render_add_roadmap_task_dependency_markdown(payload: dict[str, Any]) -> str:
+    dependency = payload.get("dependency") or {}
+    lines = [
+        "# Add Roadmap Task Dependency",
+        "",
+        f"- Changed: `{payload.get('changed', False)}`",
+        f"- Reason: `{payload.get('reason', '')}`",
+        f"- Task ID: `{payload.get('task_id', '')}`",
+        f"- Depends on task ID: `{payload.get('depends_on_task_id', '')}`",
+        f"- Dependency type: `{dependency.get('dependency_type', '')}`",
+    ]
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def render_remove_roadmap_task_dependency_markdown(payload: dict[str, Any]) -> str:
+    lines = [
+        "# Remove Roadmap Task Dependency",
+        "",
+        f"- Changed: `{payload.get('changed', False)}`",
+        f"- Reason: `{payload.get('reason', '')}`",
+        f"- Task ID: `{payload.get('task_id', '')}`",
+        f"- Depends on task ID: `{payload.get('depends_on_task_id', '')}`",
+    ]
     return "\n".join(lines).rstrip() + "\n"

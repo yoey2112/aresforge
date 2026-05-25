@@ -34,6 +34,9 @@ def test_cli_has_expected_commands() -> None:
         "update-roadmap-area-status",
         "add-roadmap-event",
         "inspect-roadmap-events",
+        "add-roadmap-task-dependency",
+        "remove-roadmap-task-dependency",
+        "inspect-roadmap-task-dependencies",
         "create-work-item-from-roadmap-task",
         "update-work-item-status",
         "start-work-item",
@@ -4387,3 +4390,81 @@ def test_inspect_project_queue_dashboard_dispatch_markdown(
     output = capsys.readouterr().out
     assert exit_code == 0
     assert output == "# Project Queue Dashboard\n\n"
+
+
+def test_add_roadmap_task_dependency_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {"ok": True, "changed": True, "task_id": "rt-04-starter", "depends_on_task_id": "rt-03-starter"}
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(
+        cli,
+        "add_roadmap_task_dependency",
+        lambda _conn, task_id, depends_on_task_id, dependency_type, actor, details: payload,
+    )
+    exit_code = cli.main(
+        [
+            "add-roadmap-task-dependency",
+            "--task-id",
+            "rt-04-starter",
+            "--depends-on-task-id",
+            "rt-03-starter",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert parsed == payload
+
+
+def test_remove_roadmap_task_dependency_dispatch_markdown(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {"ok": True, "changed": False, "reason": "dependency_not_found"}
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(
+        cli,
+        "remove_roadmap_task_dependency",
+        lambda _conn, task_id, depends_on_task_id, actor, details: payload,
+    )
+    monkeypatch.setattr(
+        cli,
+        "render_remove_roadmap_task_dependency_markdown",
+        lambda _payload: "# Remove Roadmap Task Dependency\n",
+    )
+    exit_code = cli.main(
+        [
+            "remove-roadmap-task-dependency",
+            "--task-id",
+            "rt-04-starter",
+            "--depends-on-task-id",
+            "rt-03-starter",
+            "--format",
+            "markdown",
+        ]
+    )
+    output = capsys.readouterr().out
+    assert exit_code == 0
+    assert output == "# Remove Roadmap Task Dependency\n\n"
+
+
+def test_inspect_roadmap_task_dependencies_dispatch_markdown(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {"ok": True, "dependency_count": 0, "dependencies": []}
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(
+        cli,
+        "inspect_roadmap_task_dependencies",
+        lambda _conn, task_id=None, project_id="project-aresforge": payload,
+    )
+    monkeypatch.setattr(
+        cli,
+        "render_roadmap_task_dependencies_markdown",
+        lambda _payload: "# Roadmap Task Dependencies\n",
+    )
+    exit_code = cli.main(["inspect-roadmap-task-dependencies", "--format", "markdown"])
+    output = capsys.readouterr().out
+    assert exit_code == 0
+    assert output == "# Roadmap Task Dependencies\n\n"
