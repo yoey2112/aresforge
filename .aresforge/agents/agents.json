@@ -1,0 +1,323 @@
+{
+  "schema_version": "1.0",
+  "updated_at": "2026-05-26T01:16:04.813912+00:00",
+  "agents": [
+    {
+      "agent_id": "architect",
+      "name": "Architecture Planner",
+      "role": "architect",
+      "description": "Shapes implementation plans and dependency boundaries.",
+      "execution_mode": "human",
+      "model_preference": "",
+      "strengths": [
+        "system design",
+        "risk framing",
+        "scope decomposition"
+      ],
+      "constraints": [
+        "no direct mutation without operator approval"
+      ],
+      "allowed_item_types": [
+        "milestone",
+        "feature",
+        "documentation"
+      ],
+      "escalation_allowed": false,
+      "handoff_target_id": "human-review",
+      "status": "active",
+      "tags": [
+        "planning"
+      ],
+      "notes": "",
+      "created_at": "2026-05-26T01:16:04.813912+00:00",
+      "updated_at": "2026-05-26T01:16:04.813912+00:00"
+    },
+    {
+      "agent_id": "implementer",
+      "name": "Implementation Driver",
+      "role": "implementer",
+      "description": "Owns coding and refactoring tasks under explicit operator guidance.",
+      "execution_mode": "codex",
+      "model_preference": "",
+      "strengths": [
+        "code changes",
+        "targeted tests"
+      ],
+      "constraints": [
+        "must preserve local-only and safety boundaries"
+      ],
+      "allowed_item_types": [
+        "feature",
+        "bug",
+        "task"
+      ],
+      "escalation_allowed": false,
+      "handoff_target_id": "codex-local",
+      "status": "active",
+      "tags": [
+        "delivery"
+      ],
+      "notes": "",
+      "created_at": "2026-05-26T01:16:04.813912+00:00",
+      "updated_at": "2026-05-26T01:16:04.813912+00:00"
+    },
+    {
+      "agent_id": "tester",
+      "name": "Validation Specialist",
+      "role": "tester",
+      "description": "Designs and runs scoped local validation plans.",
+      "execution_mode": "scripted",
+      "model_preference": "",
+      "strengths": [
+        "test planning",
+        "regression detection"
+      ],
+      "constraints": [
+        "avoid network-dependent validation unless explicitly required"
+      ],
+      "allowed_item_types": [
+        "validation",
+        "task",
+        "bug"
+      ],
+      "escalation_allowed": false,
+      "handoff_target_id": "human-review",
+      "status": "active",
+      "tags": [
+        "quality"
+      ],
+      "notes": "",
+      "created_at": "2026-05-26T01:16:04.813912+00:00",
+      "updated_at": "2026-05-26T01:16:04.813912+00:00"
+    },
+    {
+      "agent_id": "documentation",
+      "name": "Documentation Reconciler",
+      "role": "documentation",
+      "description": "Keeps source-of-truth docs aligned with delivered behavior.",
+      "execution_mode": "manual",
+      "model_preference": "",
+      "strengths": [
+        "doc updates",
+        "command references"
+      ],
+      "constraints": [
+        "prefer concise, source-backed updates"
+      ],
+      "allowed_item_types": [
+        "documentation",
+        "handoff"
+      ],
+      "escalation_allowed": false,
+      "handoff_target_id": "human-review",
+      "status": "active",
+      "tags": [
+        "docs"
+      ],
+      "notes": "",
+      "created_at": "2026-05-26T01:16:04.813912+00:00",
+      "updated_at": "2026-05-26T01:16:04.813912+00:00"
+    },
+    {
+      "agent_id": "reviewer",
+      "name": "Review Gate",
+      "role": "reviewer",
+      "description": "Performs safety and quality review before approval.",
+      "execution_mode": "human",
+      "model_preference": "",
+      "strengths": [
+        "risk review",
+        "checklist enforcement"
+      ],
+      "constraints": [
+        "cannot approve unknown evidence paths"
+      ],
+      "allowed_item_types": [
+        "validation",
+        "handoff",
+        "documentation"
+      ],
+      "escalation_allowed": false,
+      "handoff_target_id": "human-review",
+      "status": "active",
+      "tags": [
+        "review"
+      ],
+      "notes": "",
+      "created_at": "2026-05-26T01:16:04.813912+00:00",
+      "updated_at": "2026-05-26T01:16:04.813912+00:00"
+    },
+    {
+      "agent_id": "operator",
+      "name": "Local Operator",
+      "role": "operator",
+      "description": "Coordinates local workflow checkpoints and execution gating.",
+      "execution_mode": "human",
+      "model_preference": "",
+      "strengths": [
+        "workflow control",
+        "safety boundaries"
+      ],
+      "constraints": [
+        "human-triggered actions only"
+      ],
+      "allowed_item_types": [
+        "milestone",
+        "orchestration",
+        "sync"
+      ],
+      "escalation_allowed": true,
+      "handoff_target_id": "human-review",
+      "status": "active",
+      "tags": [
+        "control-plane"
+      ],
+      "notes": "",
+      "created_at": "2026-05-26T01:16:04.813912+00:00",
+      "updated_at": "2026-05-26T01:16:04.813912+00:00"
+    },
+    {
+      "agent_id": "local-llm-general",
+      "name": "Local LLM Generalist (Advisory)",
+      "role": "local_llm",
+      "description": "Placeholder profile for future local LLM analysis routing.",
+      "execution_mode": "local_llm",
+      "model_preference": "",
+      "strengths": [
+        "context summarization",
+        "draft planning"
+      ],
+      "constraints": [
+        "no local LLM invocation in M34"
+      ],
+      "allowed_item_types": [
+        "task",
+        "documentation",
+        "handoff"
+      ],
+      "escalation_allowed": false,
+      "handoff_target_id": "local-llm-generic",
+      "status": "planned",
+      "tags": [
+        "planned",
+        "advisory"
+      ],
+      "notes": "Configuration only.",
+      "created_at": "2026-05-26T01:16:04.813912+00:00",
+      "updated_at": "2026-05-26T01:16:04.813912+00:00"
+    },
+    {
+      "agent_id": "cloud-escalation",
+      "name": "Cloud Escalation Planner (Advisory)",
+      "role": "cloud_llm",
+      "description": "Placeholder profile to describe potential cloud escalation handoff.",
+      "execution_mode": "cloud_llm",
+      "model_preference": "",
+      "strengths": [
+        "escalation routing",
+        "complexity triage"
+      ],
+      "constraints": [
+        "advisory only; no cloud calls in M34"
+      ],
+      "allowed_item_types": [
+        "orchestration",
+        "handoff",
+        "other"
+      ],
+      "escalation_allowed": true,
+      "handoff_target_id": "cloud-escalation-advisory",
+      "status": "planned",
+      "tags": [
+        "planned",
+        "cloud",
+        "advisory"
+      ],
+      "notes": "No execution path yet.",
+      "created_at": "2026-05-26T01:16:04.813912+00:00",
+      "updated_at": "2026-05-26T01:16:04.813912+00:00"
+    }
+  ],
+  "handoff_targets": [
+    {
+      "target_id": "human-review",
+      "name": "Human Review Prompt",
+      "target_type": "human_prompt",
+      "description": "Structured prompt packet for human operator review and action.",
+      "local_command": "",
+      "input_format": "markdown checklist",
+      "output_format": "approved notes",
+      "safety_notes": [
+        "Human confirmation required before any mutation command."
+      ],
+      "status": "active",
+      "tags": [
+        "local-first",
+        "review"
+      ],
+      "notes": "Default local handoff target.",
+      "created_at": "2026-05-26T01:16:04.813912+00:00",
+      "updated_at": "2026-05-26T01:16:04.813912+00:00"
+    },
+    {
+      "target_id": "codex-local",
+      "name": "Codex Prompt Packet",
+      "target_type": "codex_prompt",
+      "description": "Prompt packet intended for local Codex-driven implementation sessions.",
+      "local_command": "",
+      "input_format": "markdown handoff",
+      "output_format": "patch plan",
+      "safety_notes": [
+        "Advisory only. Execution remains human-triggered."
+      ],
+      "status": "active",
+      "tags": [
+        "local-first",
+        "implementation"
+      ],
+      "notes": "No automatic execution.",
+      "created_at": "2026-05-26T01:16:04.813912+00:00",
+      "updated_at": "2026-05-26T01:16:04.813912+00:00"
+    },
+    {
+      "target_id": "local-llm-generic",
+      "name": "Local LLM Prompt Packet",
+      "target_type": "local_llm_prompt",
+      "description": "Prompt template for optional future local LLM routing.",
+      "local_command": "",
+      "input_format": "markdown prompt",
+      "output_format": "analysis summary",
+      "safety_notes": [
+        "No local LLM invocation in M34."
+      ],
+      "status": "planned",
+      "tags": [
+        "local-llm",
+        "planned"
+      ],
+      "notes": "Descriptive only in M34.",
+      "created_at": "2026-05-26T01:16:04.813912+00:00",
+      "updated_at": "2026-05-26T01:16:04.813912+00:00"
+    },
+    {
+      "target_id": "cloud-escalation-advisory",
+      "name": "Cloud Escalation Advisory Packet",
+      "target_type": "cloud_llm_prompt",
+      "description": "Escalation packet definition for future cloud escalation planning.",
+      "local_command": "",
+      "input_format": "json packet",
+      "output_format": "triage recommendation",
+      "safety_notes": [
+        "Advisory only. No cloud calls in M34."
+      ],
+      "status": "planned",
+      "tags": [
+        "cloud",
+        "advisory"
+      ],
+      "notes": "Use only as a planning placeholder.",
+      "created_at": "2026-05-26T01:16:04.813912+00:00",
+      "updated_at": "2026-05-26T01:16:04.813912+00:00"
+    }
+  ]
+}

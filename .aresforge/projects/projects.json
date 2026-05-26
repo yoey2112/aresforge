@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0",
+  "updated_at": "2026-05-26T01:16:01.574374+00:00",
+  "projects": [
+    {
+      "project_id": "aresforge",
+      "name": "AresForge",
+      "description": "Local-first AI project control plane and Hub.",
+      "root_path": "C:\\Projects\\aresforge",
+      "status": "active",
+      "default_branch": "main",
+      "tags": [],
+      "repos": [
+        {
+          "repo_id": "aresforge",
+          "name": "AresForge",
+          "path": "C:\\Projects\\aresforge",
+          "remote_url": "https://github.com/yoey2112/aresforge.git",
+          "default_branch": "main",
+          "role": "primary",
+          "status": "active",
+          "tags": [],
+          "github_owner": "yoey2112",
+          "github_repo": "aresforge",
+          "github_url": "https://github.com/yoey2112/aresforge",
+          "github_default_branch": "main",
+          "github_connection_status": "linked",
+          "local_git_branch": "main",
+          "local_git_head": "26b257384a1e4a5cabe2a3ad76d5e0e719400421",
+          "local_git_remote_url": "https://github.com/yoey2112/aresforge.git",
+          "local_git_status_summary": "clean",
+          "notes": "",
+          "created_at": "2026-05-26T01:16:01.574374+00:00",
+          "updated_at": "2026-05-26T01:16:01.574374+00:00"
+        }
+      ],
+      "primary_repo_id": "aresforge",
+      "github_owner": "yoey2112",
+      "github_repo": "aresforge",
+      "github_url": "https://github.com/yoey2112/aresforge",
+      "github_default_branch": "main",
+      "github_connection_status": "linked",
+      "notes": "",
+      "created_at": "2026-05-26T01:16:01.045563+00:00",
+      "updated_at": "2026-05-26T01:16:01.574374+00:00"
+    }
+  ]
+}
