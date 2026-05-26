@@ -132,6 +132,8 @@ def test_cli_has_expected_commands() -> None:
         "inspect-managed-project",
         "inspect-managed-repo",
         "inspect-local-project-dashboard",
+        "list-local-projects",
+        "inspect-local-project-readiness",
         "generate-preflight-baseline-snapshot",
         "diff-preflight-snapshots",
         "inspect-child-execution-gates",
@@ -4581,6 +4583,28 @@ def test_inspect_local_project_dashboard_dispatch_json(
     }
     monkeypatch.setattr(cli, "summarize_local_project_dashboard", lambda _config: payload)
     exit_code = cli.main(["inspect-local-project-dashboard"])
+    parsed = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert parsed == payload
+
+
+def test_list_local_projects_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {"ok": True, "project_count": 0, "projects": []}
+    monkeypatch.setattr(cli, "list_local_projects", lambda _config: payload)
+    exit_code = cli.main(["list-local-projects"])
+    parsed = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert parsed == payload
+
+
+def test_inspect_local_project_readiness_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {"ok": True, "project_id": "p1", "readiness_status": "ready"}
+    monkeypatch.setattr(cli, "inspect_local_project_readiness", lambda _config, project_id: payload)
+    exit_code = cli.main(["inspect-local-project-readiness", "--project-id", "p1"])
     parsed = json.loads(capsys.readouterr().out)
     assert exit_code == 0
     assert parsed == payload

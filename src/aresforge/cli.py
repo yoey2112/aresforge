@@ -220,6 +220,10 @@ from aresforge.operator.local_bootstrap_wizard import (
     plan_bootstrap,
 )
 from aresforge.operator.local_project_dashboard import summarize_local_project_dashboard
+from aresforge.operator.local_project_readiness import (
+    inspect_local_project_readiness,
+    list_local_projects,
+)
 from aresforge.hub.server import serve_hub
 from aresforge.operator.milestone_reconciliation_planner import plan_milestone_final_reconciliation
 from aresforge.operator.preflight_snapshot import (
@@ -1420,6 +1424,25 @@ def build_parser() -> argparse.ArgumentParser:
         help="Inspect read-only local project dashboard contract payload.",
     )
     inspect_local_project_dashboard_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+    )
+    list_local_projects_parser = subparsers.add_parser(
+        "list-local-projects",
+        help="List read-only local managed projects with active-project and readiness hints.",
+    )
+    list_local_projects_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+    )
+    inspect_local_project_readiness_parser = subparsers.add_parser(
+        "inspect-local-project-readiness",
+        help="Inspect read-only local readiness contract for one managed project.",
+    )
+    inspect_local_project_readiness_parser.add_argument("--project-id", required=True)
+    inspect_local_project_readiness_parser.add_argument(
         "--format",
         choices=["json"],
         default="json",
@@ -3395,6 +3418,15 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "inspect-local-project-dashboard":
         emit_json(summarize_local_project_dashboard(config))
         return 0
+
+    if args.command == "list-local-projects":
+        emit_json(list_local_projects(config))
+        return 0
+
+    if args.command == "inspect-local-project-readiness":
+        payload = inspect_local_project_readiness(config, project_id=args.project_id)
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
 
     if args.command == "init-agent-profiles":
         payload = init_agent_profiles(
