@@ -31,6 +31,23 @@ M17 safety posture:
 - no agent execution
 - no model routing/invocation
 
+### M21 - Active Project Workspace (Polish & Tests)
+
+Status: Completed locally on `main`.
+
+Highlights:
+
+- UI polish for the Active Project Workspace with operator-first guidance and clear empty states.
+- Quick-action labels explicitly marked "(local-only)" and workspace actions wired in the frontend (`app.js`).
+- Regression tests added (`tests/test_active_project_workspace.py`) covering empty and seeded active-workspace payloads.
+
+Safety posture:
+
+- local-only report and planning surfaces
+- no GitHub API calls, no `gh` calls
+- no agent or model execution
+
+
 M17 completion evidence is stored locally with status transition metadata plus commit hash, validation summary, and optional evidence fields.
 
 ## M16 Hub Read-Only Foundations

@@ -29,6 +29,23 @@ Required operating boundaries remain unchanged:
 - no local/cloud/Codex/ChatGPT/Ollama model routing or invocation
 - completion records evidence locally only and does not verify commits remotely
 
+## M21 Active Project Workspace (UI & Operator Flow)
+
+Added and validated locally:
+
+- Active Project Workspace UI polish with clearer operator guidance and empty-state messaging.
+- Workspace quick-actions annotated with "(local-only)" and explicit operator next-steps.
+- Frontend action wiring to support refreshing the workspace, continuing task intake, opening the queue, and selecting projects.
+- New focused regression tests (`tests/test_active_project_workspace.py`) that assert the active-workspace API payload shape for empty and seeded states.
+
+Operating constraints (unchanged):
+
+- local-first and file-backed control-plane only
+- no GitHub API calls, no `gh` calls
+- no agent execution, no Codex or LLM invocation
+- no network or remote mutation
+
+
 ## M16 Hub Local-Only Read/Report Foundations
 
 Latest local milestone progression adds read-only Hub foundations for:

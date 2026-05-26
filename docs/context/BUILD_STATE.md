@@ -207,6 +207,23 @@ M42 safety posture:
 - no live GitHub validation/discovery
 - no local/cloud/Codex/ChatGPT/Ollama model invocation
 
+## M21 Active Project Workspace (Polish & Local-Only)
+
+Status: Completed locally on `main` and reconciled with tests and UI foundations.
+
+Delivered M21 items:
+
+- Polished the Active Project Workspace UI in the Hub with clearer operator-first guidance and empty states.
+- Added explicit local-only messaging on quick actions and workspace cards (labels now include "(local-only)").
+- Wired workspace quick actions in `app.js` to navigate/focus operator flows (refresh, continue intake, open queue, select project).
+- Hardened tests with `tests/test_active_project_workspace.py` to validate the `get_active_project_workspace` payload for empty and seeded states.
+
+Validation and boundary posture:
+
+- Local-first and operator-driven only: all UI and API surfaces are read/report and plan-only.
+- No GitHub API calls, no `gh` calls, no agent/model/Codex execution, no network mutation.
+- Tests added and validated locally; full test run reported passing (207 passed, 1 warning) during local validation.
+
 ## M41 GitHub-Linked Project/Repo Model (Local-Only)
 
 - Extended local managed project/repo registry schema for GitHub identity fields.

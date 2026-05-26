@@ -34,6 +34,20 @@ Boundary guarantees:
 - no model routing/invocation
 - no push
 
+## M21 Active Project Workspace: Operator Flow & Safety
+
+Summary:
+
+- The Hub includes a polished Active Project Workspace that surfaces the current active project, workspace actions, and empty states for operators.
+- Workspace quick-actions are labeled "(local-only)" and are operator-driven: refresh workspace/report, continue task intake (focus intake UI), open queue, and select project.
+
+Operator guidance and constraints:
+
+- Workspace actions are local-only and do not trigger agent/model execution or GitHub mutation.
+- Use the workspace to prepare and plan work; generate local Codex prompts for manual human-run sessions as needed.
+- Focused regression tests (`tests/test_active_project_workspace.py`) validate workspace API payloads for empty and active states.
+
+
 ## M16 Local Validation Closeout
 
 Completed locally on `main` with no push performed.

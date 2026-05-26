@@ -29,6 +29,20 @@ Execution boundaries remain unchanged:
 - no model routing/invocation
 - human review stays responsible for running Codex and deciding when completion evidence is sufficient
 
+## M21 Active Project Workspace
+
+Implemented polish and operator wiring:
+
+- Hub Active Project Workspace UI updated for scanability, empty states, and operator-first actions.
+- Quick actions annotated with "(local-only)" and bound in `src/aresforge/hub/static/app.js` to support refresh, continue-intake, open-queue, and select-project flows.
+- New tests (`tests/test_active_project_workspace.py`) validate the `get_active_project_workspace` API behavior for empty and seeded scenarios.
+
+Execution/operational guarantees:
+
+- local-only, file-backed operator flows
+- no automatic Codex/agent execution, no GitHub mutation or network calls
+
+
 ## M16 Hub Read-Only UI And API Wiring Layer
 
 Implemented local-only Hub read/report additions include:
