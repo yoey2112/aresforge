@@ -1216,14 +1216,6 @@ async function loadHandoffPreview() {
   setMessage("handoff-message", payload.warnings && payload.warnings.length ? payload.warnings.join(" | ") : "Handoff preview loaded. Local-only and not posted anywhere.", payload.warnings && payload.warnings.length ? "warn" : "success");
 }
 
-async function loadOrchestrationPlan(filters, usePost) {
-  return loadOrchestrationPlanSection(filters, usePost);
-}
-
-async function loadEscalationPlan(filters, usePost) {
-  return loadEscalationPlanSection(filters, usePost);
-}
-
 async function loadDashboardReport() {
   return loadDashboardReportSection(state, {
     countLines,
@@ -1982,15 +1974,15 @@ async function init() {
     copyExportTextForState: copyExportText,
     loadExportPreviewForState: loadExportPreview,
     loadHandoffPreview,
-    loadOrchestrationPlan,
-    loadEscalationPlan,
+    loadOrchestrationPlan: loadOrchestrationPlanSection,
+    loadEscalationPlan: loadEscalationPlanSection,
   });
   bindOrchestrationActions({
-    loadOrchestrationPlanForState: loadOrchestrationPlan,
+    loadOrchestrationPlanForState: loadOrchestrationPlanSection,
     refreshSummaryAndReport,
   });
   bindEscalationActions({
-    loadEscalationPlanForState: loadEscalationPlan,
+    loadEscalationPlanForState: loadEscalationPlanSection,
     refreshSummaryAndReport,
   });
   bindHomeActions({
@@ -2098,13 +2090,13 @@ async function init() {
   }
 
   try {
-    await loadOrchestrationPlan({}, false);
+    await loadOrchestrationPlanSection({}, false);
   } catch (error) {
     setMessage("orchestration-message", String(error.message || error), "error");
   }
 
   try {
-    await loadEscalationPlan({}, false);
+    await loadEscalationPlanSection({}, false);
   } catch (error) {
     setMessage("escalation-message", String(error.message || error), "error");
   }
