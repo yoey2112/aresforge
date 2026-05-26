@@ -200,6 +200,7 @@ from aresforge.operator.local_project_queue import (
     inspect_local_queue_item_readiness,
     inspect_project_queue,
     inspect_queue_item,
+    start_local_queue_item,
     update_queue_item,
 )
 from aresforge.operator.local_agent_profiles import (
@@ -1447,6 +1448,13 @@ def build_parser() -> argparse.ArgumentParser:
     inspect_local_queue_item_readiness_parser.add_argument("--item-id", required=True)
     inspect_local_queue_item_readiness_parser.add_argument("--queue-path")
     inspect_local_queue_item_readiness_parser.add_argument("--registry-path")
+    start_local_queue_item_parser = subparsers.add_parser(
+        "start-local-queue-item",
+        help="Start one local queue item when local readiness gates pass.",
+    )
+    start_local_queue_item_parser.add_argument("--item-id", required=True)
+    start_local_queue_item_parser.add_argument("--queue-path")
+    start_local_queue_item_parser.add_argument("--registry-path")
     inspect_local_project_dashboard_parser = subparsers.add_parser(
         "inspect-local-project-dashboard",
         help="Inspect read-only local project dashboard contract payload.",
@@ -3483,6 +3491,16 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "inspect-local-queue-item-readiness":
         payload = inspect_local_queue_item_readiness(
+            config,
+            item_id=args.item_id,
+            queue_path=args.queue_path,
+            registry_path=args.registry_path,
+        )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "start-local-queue-item":
+        payload = start_local_queue_item(
             config,
             item_id=args.item_id,
             queue_path=args.queue_path,

@@ -254,3 +254,63 @@ def test_cli_inspect_local_queue_item_readiness_stable_keys(monkeypatch, capsys,
         assert key in payload
     assert payload['item_id'] == 'ready-item'
     assert payload['readiness_status'] == 'ready'
+
+
+def test_cli_start_local_queue_item_stable_keys(monkeypatch, capsys, tmp_path: Path) -> None:
+    monkeypatch.setattr(cli.AppConfig, 'from_env', lambda: _config(tmp_path))
+    config = _config(tmp_path)
+    assert init_managed_project_registry(config)['ok'] is True
+    assert register_managed_project(
+        config,
+        project_id='project-one',
+        name='Project One',
+        root_path=str(tmp_path),
+        primary_repo_id='repo-main',
+    )['ok'] is True
+    assert register_managed_repo(
+        config,
+        project_id='project-one',
+        repo_id='repo-main',
+        name='Repo Main',
+        path=str(tmp_path),
+        role='primary',
+    )['ok'] is True
+    assert cli.main(['init-project-queue']) == 0
+    _ = capsys.readouterr().out
+    assert (
+        cli.main(
+            [
+                'add-queue-item',
+                '--item-id',
+                'startable-item',
+                '--project-id',
+                'project-one',
+                '--repo-id',
+                'repo-main',
+                '--title',
+                'Startable item',
+                '--description',
+                'Start this local queue item.',
+                '--status',
+                'ready',
+            ]
+        )
+        == 0
+    )
+    _ = capsys.readouterr().out
+
+    assert cli.main(['start-local-queue-item', '--item-id', 'startable-item']) == 0
+    payload = json.loads(capsys.readouterr().out)
+    for key in (
+        'ok',
+        'local_only',
+        'item_id',
+        'previous_status',
+        'status',
+        'next_safe_action',
+        'prompt_recommended',
+        'warnings',
+    ):
+        assert key in payload
+    assert payload['item_id'] == 'startable-item'
+    assert payload['status'] == 'in_progress'

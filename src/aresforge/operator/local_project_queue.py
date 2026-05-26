@@ -51,7 +51,16 @@ _QUEUE_ITEM_READINESS_BOUNDARY_CONFIRMATIONS: tuple[str, ...] = (
     'No network service calls.',
     'No mutations performed.',
 )
-_STARTABLE_QUEUE_STATUSES: frozenset[str] = frozenset({'ready'})
+_QUEUE_ITEM_START_BOUNDARY_CONFIRMATIONS: tuple[str, ...] = (
+    'Local-only queue item start gate.',
+    'File-backed local queue mutation only.',
+    'No GitHub API calls.',
+    'No gh calls.',
+    'No network service calls.',
+    'No agent execution.',
+    'No model invocation.',
+)
+_STARTABLE_QUEUE_STATUSES: frozenset[str] = frozenset({'proposed', 'ready'})
 _RESOLVED_DEPENDENCY_STATUSES: frozenset[str] = frozenset({'done'})
 _BLOCKED_QUEUE_STATUSES: frozenset[str] = frozenset({'blocked'})
 
@@ -281,6 +290,9 @@ def add_queue_item(
             'assigned_agent': '',
             'source': '',
             'notes': '',
+            'started_at': '',
+            'started_via': '',
+            'previous_status': '',
             'created_at': now,
             'updated_at': now,
         }
@@ -659,6 +671,104 @@ def inspect_local_queue_item_readiness(
     )
 
 
+def start_local_queue_item(
+    config: AppConfig,
+    *,
+    item_id: str,
+    queue_path: str | Path | None = None,
+    registry_path: str | Path | None = None,
+    started_via: str = 'local_operator',
+) -> dict[str, Any]:
+    resolved_queue_path = resolve_project_queue_path(config.repo_root, queue_path)
+    loaded = _load_queue_required(resolved_queue_path)
+    if not loaded.get('ok', False):
+        return loaded
+    queue = loaded['queue']
+
+    items = queue.get('work_items', [])
+    if not isinstance(items, list):
+        items = []
+
+    normalized_item_id = str(item_id or '').strip()
+    raw_item = next(
+        (
+            candidate
+            for candidate in items
+            if isinstance(candidate, dict) and str(candidate.get('item_id', '')).strip() == normalized_item_id
+        ),
+        None,
+    )
+    readiness = inspect_local_queue_item_readiness(
+        config,
+        item_id=normalized_item_id,
+        queue_path=resolved_queue_path,
+        registry_path=registry_path,
+    )
+    if raw_item is None or not readiness.get('ok', False) or readiness.get('readiness_status') != 'ready':
+        return {
+            'command': 'start-local-queue-item',
+            'ok': False,
+            'local_only': True,
+            'item_id': normalized_item_id,
+            'previous_status': str((readiness if isinstance(readiness, dict) else {}).get('status', '')).strip(),
+            'status': str((readiness if isinstance(readiness, dict) else {}).get('status', '')).strip(),
+            'next_safe_action': str(
+                (readiness if isinstance(readiness, dict) else {}).get(
+                    'recommended_next_action', 'Inspect local queue item readiness and resolve blockers.'
+                )
+            ).strip(),
+            'prompt_recommended': _prompt_recommended((readiness if isinstance(readiness, dict) else {})),
+            'warnings': sorted(
+                {
+                    *[
+                        str(warning).strip()
+                        for warning in (readiness.get('warnings', []) if isinstance(readiness, dict) else [])
+                        if str(warning).strip()
+                    ],
+                    *[
+                        str(blocker).strip()
+                        for blocker in (readiness.get('blockers', []) if isinstance(readiness, dict) else [])
+                        if str(blocker).strip()
+                    ],
+                }
+            ),
+            'readiness': readiness,
+            'boundary_confirmations': list(_QUEUE_ITEM_START_BOUNDARY_CONFIRMATIONS),
+        }
+
+    item = _item_view(raw_item)
+    previous_status = str(item.get('status', '')).strip()
+    now = _now_iso()
+    raw_item['previous_status'] = previous_status
+    raw_item['status'] = 'in_progress'
+    raw_item['started_at'] = now
+    raw_item['started_via'] = str(started_via or 'local_operator').strip() or 'local_operator'
+    raw_item['updated_at'] = now
+    queue['work_items'] = items
+    queue['updated_at'] = now
+    _write_queue(resolved_queue_path, queue)
+
+    started_item = _item_view(raw_item)
+    warnings = [
+        str(warning).strip()
+        for warning in readiness.get('warnings', [])
+        if str(warning).strip()
+    ]
+    return {
+        'command': 'start-local-queue-item',
+        'ok': True,
+        'local_only': True,
+        'item_id': normalized_item_id,
+        'previous_status': previous_status,
+        'status': str(started_item.get('status', '')).strip(),
+        'next_safe_action': 'Continue local implementation work and inspect queue summary as needed.',
+        'prompt_recommended': _prompt_recommended(started_item),
+        'warnings': sorted(set(warnings)),
+        'boundary_confirmations': list(_QUEUE_ITEM_START_BOUNDARY_CONFIRMATIONS),
+        'item': started_item,
+    }
+
+
 def project_queue_summary_for_handoff(config: AppConfig) -> dict[str, Any] | None:
     queue_path = resolve_project_queue_path(config.repo_root, None)
     if not queue_path.exists():
@@ -930,6 +1040,10 @@ def _missing_queue_item_fields(item: dict[str, Any]) -> list[str]:
     return sorted(set(missing_fields))
 
 
+def _prompt_recommended(item: dict[str, Any]) -> bool:
+    return bool(str(item.get('title', '')).strip() and (str(item.get('description', '')).strip() or str(item.get('notes', '')).strip()))
+
+
 def _empty_dependency_summary() -> dict[str, Any]:
     return {
         'total_dependencies': 0,
@@ -1038,7 +1152,7 @@ def _inspect_registry_binding_readiness(
         blockers.append(str(details.get('message', project_lookup.get('error', 'registry_validation_failed'))))
         return {'blockers': blockers, 'warnings': warnings}
     if project_lookup.get('project') is None:
-        blockers.append('Managed project registry is unavailable for project/repo validation.')
+        warnings.append('Managed project registry is unavailable for project/repo validation.')
         return {'blockers': blockers, 'warnings': warnings}
 
     binding = _validate_registry_binding(
@@ -1309,6 +1423,9 @@ def _item_view(item: dict[str, Any]) -> dict[str, Any]:
         'assigned_agent': str(item.get('assigned_agent', '')).strip(),
         'source': str(item.get('source', '')).strip(),
         'notes': str(item.get('notes', '')).strip(),
+        'started_at': str(item.get('started_at', '')).strip(),
+        'started_via': str(item.get('started_via', '')).strip(),
+        'previous_status': str(item.get('previous_status', '')).strip(),
         'created_at': str(item.get('created_at', '')).strip(),
         'updated_at': str(item.get('updated_at', '')).strip(),
     }
@@ -1510,6 +1627,9 @@ def _render_queue_item_markdown(payload: dict[str, Any]) -> str:
             f"- blocked_by: {', '.join(item.get('blocked_by', [])) if isinstance(item.get('blocked_by'), list) else ''}",
             f"- source: {item.get('source')}",
             f"- notes: {item.get('notes')}",
+            f"- started_at: {item.get('started_at')}",
+            f"- started_via: {item.get('started_via')}",
+            f"- previous_status: {item.get('previous_status')}",
             f"- created_at: {item.get('created_at')}",
             f"- updated_at: {item.get('updated_at')}",
         ]

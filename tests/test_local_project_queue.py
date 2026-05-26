@@ -11,6 +11,7 @@ from aresforge.operator.local_project_queue import (
     inspect_project_queue,
     inspect_queue_item,
     resolve_project_queue_path,
+    start_local_queue_item,
     update_queue_item,
 )
 from aresforge.operator.managed_project_registry_local import (
@@ -660,3 +661,146 @@ def test_inspect_local_queue_item_readiness_is_read_only(tmp_path: Path) -> None
     after = queue_path.read_text(encoding='utf-8')
     assert payload['ok'] is True
     assert before == after
+
+
+def test_start_local_queue_item_from_proposed_when_ready(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert init_managed_project_registry(config)['ok'] is True
+    assert register_managed_project(
+        config,
+        project_id='project-one',
+        name='Project One',
+        root_path=str(tmp_path),
+        primary_repo_id='repo-main',
+    )['ok'] is True
+    assert register_managed_repo(
+        config,
+        project_id='project-one',
+        repo_id='repo-main',
+        name='Repo Main',
+        path=str(tmp_path),
+        role='primary',
+    )['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='startable-proposed',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Startable proposed item',
+        description='Ready to begin local work.',
+        status='proposed',
+    )['ok'] is True
+
+    payload = start_local_queue_item(config, item_id='startable-proposed')
+
+    assert payload['ok'] is True
+    assert payload['previous_status'] == 'proposed'
+    assert payload['status'] == 'in_progress'
+    item_payload = inspect_queue_item(config, item_id='startable-proposed')
+    parsed = json.loads(item_payload['stdout'])
+    assert parsed['item']['status'] == 'in_progress'
+    assert parsed['item']['previous_status'] == 'proposed'
+    assert parsed['item']['started_via'] == 'local_operator'
+    assert parsed['item']['started_at']
+
+
+def test_start_local_queue_item_cannot_start_missing_item(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+
+    payload = start_local_queue_item(config, item_id='missing-item')
+
+    assert payload['ok'] is False
+    assert payload['item_id'] == 'missing-item'
+
+
+def test_start_local_queue_item_cannot_start_not_ready_item(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert init_managed_project_registry(config)['ok'] is True
+    assert register_managed_project(
+        config,
+        project_id='project-one',
+        name='Project One',
+        root_path=str(tmp_path),
+        primary_repo_id='repo-main',
+    )['ok'] is True
+    assert register_managed_repo(
+        config,
+        project_id='project-one',
+        repo_id='repo-main',
+        name='Repo Main',
+        path=str(tmp_path),
+        role='primary',
+    )['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='blocked-item',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Blocked item',
+        description='Blocked on dependency.',
+        status='blocked',
+    )['ok'] is True
+
+    payload = start_local_queue_item(config, item_id='blocked-item')
+
+    assert payload['ok'] is False
+    assert payload['status'] == 'blocked'
+    item_payload = inspect_queue_item(config, item_id='blocked-item')
+    parsed = json.loads(item_payload['stdout'])
+    assert parsed['item']['status'] == 'blocked'
+
+
+def test_start_local_queue_item_cannot_restart_in_progress_or_done(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='active-item',
+        project_id='p1',
+        repo_id='r1',
+        title='Active item',
+        description='Already running.',
+        status='in_progress',
+    )['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='done-item',
+        project_id='p1',
+        repo_id='r1',
+        title='Done item',
+        description='Already finished.',
+        status='done',
+    )['ok'] is True
+
+    active_payload = start_local_queue_item(config, item_id='active-item')
+    done_payload = start_local_queue_item(config, item_id='done-item')
+
+    assert active_payload['ok'] is False
+    assert done_payload['ok'] is False
+
+
+def test_start_local_queue_item_persists_status_transition(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='persist-item',
+        project_id='p1',
+        repo_id='r1',
+        title='Persisted start',
+        description='Persist start metadata.',
+        status='ready',
+    )['ok'] is True
+    queue_path = resolve_project_queue_path(config.repo_root, None)
+
+    payload = start_local_queue_item(config, item_id='persist-item')
+
+    rendered = json.loads(queue_path.read_text(encoding='utf-8'))
+    persisted = next(item for item in rendered['work_items'] if item['item_id'] == 'persist-item')
+    assert payload['ok'] is True
+    assert persisted['status'] == 'in_progress'
+    assert persisted['previous_status'] == 'ready'
+    assert persisted['started_via'] == 'local_operator'

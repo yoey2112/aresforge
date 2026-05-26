@@ -124,6 +124,7 @@ def test_cli_has_expected_commands() -> None:
         "init-project-state",
         "add-local-queue-item",
         "inspect-local-queue-item-readiness",
+        "start-local-queue-item",
         "update-project-state",
         "append-operation-log",
         "inspect-operation-log",
@@ -4631,6 +4632,17 @@ def test_inspect_local_queue_item_readiness_dispatch_json(
     payload = {"ok": True, "item_id": "q1", "readiness_status": "ready"}
     monkeypatch.setattr(cli, "inspect_local_queue_item_readiness", lambda _config, item_id, queue_path=None, registry_path=None: payload)
     exit_code = cli.main(["inspect-local-queue-item-readiness", "--item-id", "q1"])
+    parsed = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert parsed == payload
+
+
+def test_start_local_queue_item_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {"ok": True, "item_id": "q1", "status": "in_progress"}
+    monkeypatch.setattr(cli, "start_local_queue_item", lambda _config, item_id, queue_path=None, registry_path=None: payload)
+    exit_code = cli.main(["start-local-queue-item", "--item-id", "q1"])
     parsed = json.loads(capsys.readouterr().out)
     assert exit_code == 0
     assert parsed == payload
