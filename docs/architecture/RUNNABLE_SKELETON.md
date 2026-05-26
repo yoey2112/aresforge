@@ -79,6 +79,23 @@ Execution boundaries remain unchanged:
 - no new network execution path
 - no automatic agent or model execution
 
+## M26 Projects And Repos Section Modules
+
+Implemented frontend modularization now also includes:
+
+- `src/aresforge/hub/static/js/sections/projects.js` for Projects rendering, selector refresh, and Projects-specific actions
+- `src/aresforge/hub/static/js/sections/repos.js` for Repos rendering, repo loading/inspection, and Repos-specific actions
+- `src/aresforge/hub/static/app.js` retained as the browser entrypoint and cross-section orchestrator
+- project-factory lifecycle orchestration remains in `app.js` for now
+
+Execution boundaries remain unchanged:
+
+- local-only frontend/static refactor
+- no GitHub API calls
+- no `gh` calls
+- no new network execution path
+- no automatic agent or model execution
+
 ## M21 Active Project Workspace
 
 Implemented polish and operator wiring:

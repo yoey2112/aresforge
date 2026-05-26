@@ -32,6 +32,30 @@ M17 boundary posture:
 - no model routing/invocation
 - no remote commit verification
 
+## M26 Hub Projects And Repos Section Modules
+
+Status: Completed locally on `main`.
+
+Delivered M26 items:
+
+- extracted Projects section logic into `src/aresforge/hub/static/js/sections/projects.js`
+- extracted Repos section logic into `src/aresforge/hub/static/js/sections/repos.js`
+- kept `src/aresforge/hub/static/app.js` as the browser entrypoint and startup orchestrator
+- moved Projects list rendering, read-only rendering, selector refresh, and Projects-specific bindings into the Projects section module
+- moved Repos list rendering, repo loading, repo inspection, and Repos-specific bindings into the Repos section module
+- kept project-factory lifecycle orchestration in `app.js` so this milestone stays limited to Projects/Repos UI ownership
+- updated static frontend tests to validate the new Projects/Repos section modules and single-path bindings
+
+M26 boundary posture:
+
+- local-only static/frontend refactor
+- no GitHub API calls
+- no `gh` calls
+- no new network calls
+- no agent execution
+- no model routing/invocation
+- no UI redesign, DOM id changes, or endpoint path changes
+
 ## M25 Hub Queue Section Module
 
 Status: Completed locally on `main`.

@@ -191,7 +191,9 @@ def test_hub_static_files_exist() -> None:
     assert (static_dir / "js" / "core" / "http.js").exists()
     assert (static_dir / "js" / "core" / "state.js").exists()
     assert (static_dir / "js" / "sections" / "home.js").exists()
+    assert (static_dir / "js" / "sections" / "projects.js").exists()
     assert (static_dir / "js" / "sections" / "queue.js").exists()
+    assert (static_dir / "js" / "sections" / "repos.js").exists()
     assert (static_dir / "js" / "sections" / "workspace.js").exists()
     assert (static_dir / "styles.css").exists()
 
@@ -211,7 +213,9 @@ def test_app_js_imports_core_modules() -> None:
 def test_app_js_imports_section_modules() -> None:
     app_text = (_static_dir() / "app.js").read_text(encoding="utf-8")
     assert 'from "/js/sections/home.js"' in app_text
+    assert 'from "/js/sections/projects.js"' in app_text
     assert 'from "/js/sections/queue.js"' in app_text
+    assert 'from "/js/sections/repos.js"' in app_text
     assert 'from "/js/sections/workspace.js"' in app_text
 
 
@@ -642,11 +646,44 @@ def test_static_assets_do_not_reference_external_resources() -> None:
         static_dir / "js" / "core" / "http.js",
         static_dir / "js" / "core" / "state.js",
         static_dir / "js" / "sections" / "home.js",
+        static_dir / "js" / "sections" / "projects.js",
         static_dir / "js" / "sections" / "queue.js",
+        static_dir / "js" / "sections" / "repos.js",
         static_dir / "js" / "sections" / "workspace.js",
     ):
         content = path.read_text(encoding="utf-8")
         assert not pattern.search(content)
+
+
+def test_projects_bindings_live_in_projects_module_only() -> None:
+    static_dir = _static_dir()
+    app_text = (static_dir / "app.js").read_text(encoding="utf-8")
+    projects_text = (static_dir / "js" / "sections" / "projects.js").read_text(encoding="utf-8")
+
+    assert "bindProjectsActions" in projects_text
+    assert "bindProjectsActions" in app_text
+    for action_id in (
+        "project-form",
+        "active-project-set",
+    ):
+        assert action_id not in app_text
+        assert action_id in projects_text
+
+
+def test_repos_bindings_live_in_repos_module_only() -> None:
+    static_dir = _static_dir()
+    app_text = (static_dir / "app.js").read_text(encoding="utf-8")
+    repos_text = (static_dir / "js" / "sections" / "repos.js").read_text(encoding="utf-8")
+
+    assert "bindReposActions" in repos_text
+    assert "bindReposActions" in app_text
+    for action_id in (
+        "repo-project-select",
+        "repo-form",
+        "repo-check-github-link",
+    ):
+        assert action_id not in app_text
+        assert action_id in repos_text
 
 
 def test_queue_bindings_live_in_queue_module_only() -> None:

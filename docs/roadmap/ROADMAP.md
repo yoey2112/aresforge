@@ -106,6 +106,26 @@ Safety posture:
 - no agent or model execution
 - no UI redesign and no DOM id or endpoint path changes
 
+### M26 - Extract Hub Projects And Repos Section Modules
+
+Status: Completed locally on `main`.
+
+Highlights:
+
+- extracted Projects rendering/selectors/bindings into `src/aresforge/hub/static/js/sections/projects.js`
+- extracted Repos rendering/loading/inspection/bindings into `src/aresforge/hub/static/js/sections/repos.js`
+- kept `src/aresforge/hub/static/app.js` as the frontend entrypoint and init/orchestration surface
+- intentionally kept project-factory lifecycle orchestration in `app.js` to keep this refactor conservative and behavior-preserving
+- updated static tests to assert the new Projects/Repos section modules exist, are imported by `app.js`, and own their section bindings
+
+Safety posture:
+
+- local-only refactor
+- no GitHub API calls, no `gh` calls
+- no new network behavior
+- no agent or model execution
+- no UI redesign and no DOM id or endpoint path changes
+
 
 M17 completion evidence is stored locally with status transition metadata plus commit hash, validation summary, and optional evidence fields.
 

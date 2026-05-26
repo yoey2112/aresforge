@@ -7,7 +7,16 @@ import {
   loadLocalHomeDashboard,
   renderLocalHomeDashboardUnavailable,
 } from "/js/sections/home.js";
+import {
+  bindProjectsActions,
+  loadProjectsData,
+} from "/js/sections/projects.js";
 import { bindQueueActions, loadQueue as loadQueueSection } from "/js/sections/queue.js";
+import {
+  bindReposActions,
+  inspectRepoGitHubLink as inspectRepoGitHubLinkSection,
+  loadReposForSelectedProject as loadReposForSelectedProjectSection,
+} from "/js/sections/repos.js";
 import { bindWorkspaceActions, loadWorkspace, renderWorkspaceUnavailable } from "/js/sections/workspace.js";
 
 function parseCommaList(value) {
@@ -376,127 +385,6 @@ function activateQueueIntakeFocus() {
   const intakeTitle = byId("intake-title");
   if (intakeTitle) {
     intakeTitle.focus();
-  }
-}
-
-function renderProjects(projects) {
-  const lines = (projects || []).map((project) => {
-    const tags = (project.tags || []).join(", ") || "-";
-    const githubState = project.github_connection_status || "unlinked";
-    const activeMarker = project.is_active_project ? "ACTIVE | " : "";
-    return `${activeMarker}${project.project_id} | ${project.name} | status=${project.status || "-"} | github=${githubState} | owner=${project.github_owner || "-"} | repo=${project.github_repo || "-"} | primary=${project.primary_repo_id || "-"} | root=${project.root_path || "-"} | repos=${project.repo_count || 0} | tags=${tags}`;
-  });
-  setList("projects-list", "projects-empty-state", lines);
-}
-
-function renderProjectsReadOnly(payload) {
-  const projects = (payload && payload.projects) || [];
-  const lines = projects.map((project) => {
-    const activeMarker = project.is_active ? "ACTIVE" : "INACTIVE";
-    const pathValue = project.local_path || project.repo_path || "-";
-    return `${activeMarker} | ${project.project_id} | ${project.project_name || "-"} | readiness=${project.readiness_status || "-"} | path=${pathValue} | primary_repo=${project.repo_path || "-"} | warnings=${(payload.warnings || []).length}`;
-  });
-  setList("projects-readonly-list", "projects-readonly-empty-state", lines);
-}
-
-function refreshProjectSelectors(projects) {
-  const selectors = [byId("repo-project-select"), byId("active-project-select")].filter(Boolean);
-  const previousRepoProject = byId("repo-project-select") ? byId("repo-project-select").value : "";
-  const currentActive = activeProjectId();
-
-  selectors.forEach((selector) => {
-    const previous = selector.id === "active-project-select" ? currentActive : previousRepoProject;
-    selector.innerHTML = "";
-    const initialOption = document.createElement("option");
-    initialOption.value = "";
-    initialOption.textContent = selector.id === "active-project-select" ? "Select active project" : "Select project";
-    selector.appendChild(initialOption);
-    (projects || []).forEach((project) => {
-      const option = document.createElement("option");
-      option.value = project.project_id;
-      option.textContent = `${project.is_active_project ? "ACTIVE - " : ""}${project.project_id} (${project.name})`;
-      selector.appendChild(option);
-    });
-    if ((projects || []).some((project) => project.project_id === previous)) {
-      selector.value = previous;
-    } else {
-      selector.value = "";
-    }
-  });
-
-  const repoSelector = byId("repo-project-select");
-  if (repoSelector) {
-    if ((projects || []).some((project) => project.project_id === previousRepoProject)) {
-      state.selectedProjectId = previousRepoProject;
-    } else if (currentActive && (projects || []).some((project) => project.project_id === currentActive)) {
-      repoSelector.value = currentActive;
-      state.selectedProjectId = currentActive;
-    } else {
-      state.selectedProjectId = "";
-    }
-  }
-}
-
-function renderRepos(repos, showNoProject) {
-  const noProject = byId("repos-no-project-state");
-  const list = byId("repos-list");
-  const empty = byId("repos-empty-state");
-  if (noProject) {
-    noProject.style.display = showNoProject ? "block" : "none";
-  }
-  if (!list || !empty) {
-    return;
-  }
-  list.innerHTML = "";
-  if (!repos || repos.length === 0) {
-    empty.style.display = "block";
-    return;
-  }
-  empty.style.display = "none";
-  repos.forEach((repo) => {
-    const item = document.createElement("li");
-    const tags = (repo.tags || []).join(", ") || "-";
-    const githubState = repo.github_connection_status || "unlinked";
-    const localGit = repo.local_git_status_summary || "-";
-    item.textContent = `${repo.repo_id} | ${repo.name} | role=${repo.role || "-"} | status=${repo.status || "-"} | github=${githubState} | owner=${repo.github_owner || "-"} | repo=${repo.github_repo || "-"} | branch=${repo.local_git_branch || "-"} | head=${repo.local_git_head || "-"} | local_status=${localGit} | path=${repo.path || "-"} | tags=${tags}`;
-
-    const button = document.createElement("button");
-    button.type = "button";
-    button.textContent = "Inspect local git link";
-    button.className = "repo-link-action";
-    button.addEventListener("click", async () => {
-      await inspectRepoGitHubLink(repo.repo_id, true);
-    });
-    item.appendChild(document.createTextNode(" "));
-    item.appendChild(button);
-    list.appendChild(item);
-  });
-}
-
-async function inspectRepoGitHubLink(repoId, inspectLocalGit) {
-  if (!state.selectedProjectId) {
-    setMessage("repos-message", "Select a project before inspecting a repo link.", "warn");
-    return;
-  }
-  if (!repoId || !String(repoId).trim()) {
-    setMessage("repos-message", "Enter or choose a repo id before inspecting link state.", "warn");
-    return;
-  }
-
-  try {
-    setMessage("repos-message", "Inspecting local git link metadata...", "loading");
-    const query = toQuery({ inspect_local_git: inspectLocalGit ? "true" : "false" });
-    const payload = await fetchJson(
-      `/api/projects/${encodeURIComponent(state.selectedProjectId)}/repos/${encodeURIComponent(String(repoId).trim())}/github-link${query}`
-    );
-    const warningText = (payload.warnings || []).join(" | ");
-    const message = `Repo ${payload.repo_id}: github=${payload.github_connection_status} owner=${payload.github_owner || "-"} repo=${payload.github_repo || "-"} local_branch=${payload.local_git_branch || "-"} local_head=${payload.local_git_head || "-"} local_status=${payload.local_git_status_summary || "-"}`;
-    setMessage("repos-message", warningText ? `${message} | warnings: ${warningText}` : message, warningText ? "warn" : "success");
-    await loadReposForSelectedProject();
-    await loadProjects();
-    await refreshSummaryAndReport();
-  } catch (error) {
-    setMessage("repos-message", String(error.message || error), "error");
   }
 }
 
@@ -1467,21 +1355,7 @@ async function setActiveProject(projectId) {
 }
 
 async function loadProjects() {
-  setMessage("projects-message", "Loading projects...", "loading");
-  await loadActiveProject();
-  try {
-    const localProjectsPayload = await fetchJson("/api/local-projects");
-    renderProjectsReadOnly(localProjectsPayload);
-  } catch (_error) {
-    setList("projects-readonly-list", "projects-readonly-empty-state", []);
-  }
-  const payload = await fetchJson("/api/projects");
-  state.projects = payload.projects || [];
-  if (payload.active_project_id) {
-    renderActiveProjectSummary(payload);
-  }
-  renderProjects(state.projects);
-  refreshProjectSelectors(state.projects);
+  await loadProjectsData(state, { loadActiveProject, renderActiveProjectSummary, activeProjectId });
   await loadProjectFactoryDossier(activeProjectId());
   await loadScopePackage(activeProjectId());
   await loadArchitectureContract(activeProjectId());
@@ -1491,19 +1365,22 @@ async function loadProjects() {
   await loadValidationExecutionPlan(activeProjectId());
   await loadDocumentationCloseoutPlan(activeProjectId());
   await loadExecutionPhaseApproval(activeProjectId());
-  setMessage("projects-message", payload.warnings && payload.warnings.length ? payload.warnings.join(" | ") : "Projects loaded.", payload.warnings && payload.warnings.length ? "warn" : "success");
 }
 
 async function loadReposForSelectedProject() {
-  const projectId = state.selectedProjectId;
-  if (!projectId) {
-    renderRepos([], true);
-    return;
-  }
-  setMessage("repos-message", "Loading repos...", "loading");
-  const payload = await fetchJson(`/api/projects/${encodeURIComponent(projectId)}/repos`);
-  renderRepos(payload.repos || [], false);
-  setMessage("repos-message", payload.warnings && payload.warnings.length ? payload.warnings.join(" | ") : "Repos loaded.", payload.warnings && payload.warnings.length ? "warn" : "success");
+  return loadReposForSelectedProjectSection(state, {
+    inspectRepoGitHubLink,
+    loadProjects,
+    refreshSummaryAndReport,
+  });
+}
+
+async function inspectRepoGitHubLink(repoId, inspectLocalGit) {
+  return inspectRepoGitHubLinkSection(state, repoId, inspectLocalGit, {
+    loadReposForSelectedProject,
+    loadProjects,
+    refreshSummaryAndReport,
+  });
 }
 
 async function loadQueue() {
@@ -1868,24 +1745,6 @@ async function loadSettings() {
   }
 }
 
-function buildProjectPayload() {
-  return prunePayload({
-    project_id: byId("project-project-id").value.trim(),
-    name: byId("project-name").value.trim(),
-    root_path: byId("project-root-path").value.trim(),
-    description: byId("project-description").value.trim(),
-    status: byId("project-status").value.trim(),
-    default_branch: byId("project-default-branch").value.trim(),
-    primary_repo_id: byId("project-primary-repo-id").value.trim(),
-    github_url: byId("project-github-url").value.trim(),
-    github_owner: byId("project-github-owner").value.trim(),
-    github_repo: byId("project-github-repo").value.trim(),
-    github_default_branch: byId("project-github-default-branch").value.trim(),
-    tags: parseCommaList(byId("project-tags").value),
-    notes: byId("project-notes").value.trim(),
-  });
-}
-
 function buildNewProjectWizardPayload() {
   return prunePayload({
     name: byId("wizard-project-name").value.trim(),
@@ -1909,25 +1768,6 @@ function focusNewProjectWizard() {
   if (firstField) {
     firstField.focus();
   }
-}
-
-function buildRepoPayload() {
-  return prunePayload({
-    repo_id: byId("repo-repo-id").value.trim(),
-    name: byId("repo-name").value.trim(),
-    path: byId("repo-path").value.trim(),
-    remote_url: byId("repo-remote-url").value.trim(),
-    default_branch: byId("repo-default-branch").value.trim(),
-    github_url: byId("repo-github-url").value.trim(),
-    github_owner: byId("repo-github-owner").value.trim(),
-    github_repo: byId("repo-github-repo").value.trim(),
-    github_default_branch: byId("repo-github-default-branch").value.trim(),
-    inspect_local_git: byId("repo-inspect-local-git").checked,
-    role: byId("repo-role").value.trim(),
-    status: byId("repo-status").value.trim(),
-    tags: parseCommaList(byId("repo-tags").value),
-    notes: byId("repo-notes").value.trim(),
-  });
 }
 
 function applyActiveProjectDefaultsToQueueForm() {
@@ -2195,84 +2035,6 @@ function bindForms() {
   });
   on("milestone-plan-form", "submit", (event) => {
     event.preventDefault();
-  });
-
-  on("project-form", "submit", async (event) => {
-    event.preventDefault();
-    try {
-      setMessage("projects-message", "Saving project...", "loading");
-      await fetchJson("/api/projects", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(buildProjectPayload()),
-      });
-      await loadProjects();
-      await refreshSummaryAndReport();
-      await loadReposForSelectedProject();
-      setMessage("projects-message", "Project saved.", "success");
-    } catch (error) {
-      setMessage("projects-message", String(error.message || error), "error");
-    }
-  });
-
-  on("active-project-set", "click", async () => {
-    const projectId = byId("active-project-select").value.trim();
-    if (!projectId) {
-      setMessage("projects-message", "Choose a project to set active.", "warn");
-      return;
-    }
-    try {
-      setMessage("projects-message", "Setting active project...", "loading");
-      await setActiveProject(projectId);
-      await loadProjects();
-      await refreshSummaryAndReport();
-      await loadProjectFactoryDossier(activeProjectId());
-      await loadScopePackage(activeProjectId());
-      await loadArchitectureContract(activeProjectId());
-      applyActiveProjectDefaultsToQueueForm();
-      setMessage("projects-message", `Active project set to ${projectId}.`, "success");
-    } catch (error) {
-      setMessage("projects-message", String(error.message || error), "error");
-    }
-  });
-
-  on("repo-project-select", "change", async () => {
-    state.selectedProjectId = byId("repo-project-select").value;
-    try {
-      await loadReposForSelectedProject();
-    } catch (error) {
-      setMessage("repos-message", String(error.message || error), "error");
-    }
-  });
-
-  on("repo-form", "submit", async (event) => {
-    event.preventDefault();
-    if (!state.selectedProjectId) {
-      setMessage("repos-message", "Select a project before saving a repo.", "warn");
-      return;
-    }
-    try {
-      setMessage("repos-message", "Saving repo...", "loading");
-      await fetchJson(`/api/projects/${encodeURIComponent(state.selectedProjectId)}/repos`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(buildRepoPayload()),
-      });
-      await loadReposForSelectedProject();
-      await loadProjects();
-      await refreshSummaryAndReport();
-      setMessage("repos-message", "Repo saved.", "success");
-    } catch (error) {
-      setMessage("repos-message", String(error.message || error), "error");
-    }
-  });
-
-  on("repo-check-github-link", "click", async () => {
-    try {
-      await inspectRepoGitHubLink(byId("repo-repo-id").value.trim(), true);
-    } catch (error) {
-      setMessage("repos-message", String(error.message || error), "error");
-    }
   });
 
   on("queue-lifecycle-add-form", "submit", async (event) => {
@@ -3023,6 +2785,18 @@ async function init() {
   bindNavigation();
   bindHomeQuickNavActions({ activateSection });
   bindForms();
+  bindProjectsActions({
+    parseCommaList,
+    reloadProjects: loadProjects,
+    refreshSummaryAndReport,
+    loadReposForSelectedProject,
+    setActiveProject,
+    activeProjectId,
+    loadProjectFactoryDossier,
+    loadScopePackage,
+    loadArchitectureContract,
+    applyActiveProjectDefaultsToQueueForm,
+  });
   bindQueueActions({
     state,
     loadQueueData: loadQueue,
@@ -3031,6 +2805,14 @@ async function init() {
     activeRepoId,
     buildQueuePayload,
     refreshSummaryAndReport,
+  });
+  bindReposActions({
+    state,
+    parseCommaList,
+    reloadReposForSelectedProject: loadReposForSelectedProject,
+    reloadProjects: loadProjects,
+    refreshSummaryAndReport,
+    inspectRepoGitHubLink,
   });
   bindHomeActions({
     refreshSummaryAndReport,

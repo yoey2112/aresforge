@@ -85,6 +85,23 @@ Boundary guarantees remain unchanged:
 - no new network calls or external dependencies
 - no automatic Codex, agent, or model execution
 
+## M26 Hub Projects And Repos Section Modules
+
+Operator impact:
+
+- no new commands were added
+- Projects and Repos behavior remain the same, but their rendering/loading and section-owned actions now live in dedicated section modules
+- `src/aresforge/hub/static/app.js` remains the module entrypoint loaded by the Hub page
+- project-factory and other higher-coupling flows remain local-only and continue to behave the same
+
+Boundary guarantees remain unchanged:
+
+- local-only frontend refactor
+- no GitHub API calls
+- no `gh` calls
+- no new network calls or external dependencies
+- no automatic Codex, agent, or model execution
+
 ## M21 Active Project Workspace: Operator Flow & Safety
 
 Summary:

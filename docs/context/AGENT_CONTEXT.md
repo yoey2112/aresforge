@@ -29,6 +29,22 @@ Required operating boundaries remain unchanged:
 - no local/cloud/Codex/ChatGPT/Ollama model routing or invocation
 - completion records evidence locally only and does not verify commits remotely
 
+## M26 Hub Projects And Repos Section Modules
+
+Latest Hub frontend context now includes Projects and Repos section modules for the next UI slices:
+
+- `src/aresforge/hub/static/app.js` remains the only frontend entrypoint
+- Projects list rendering, read-only rendering, selector refresh, and Projects-specific bindings now live in `src/aresforge/hub/static/js/sections/projects.js`
+- Repos list rendering, repo loading/inspection, and Repos-specific bindings now live in `src/aresforge/hub/static/js/sections/repos.js`
+- project-factory and other higher-coupling orchestration still remains in `src/aresforge/hub/static/app.js`
+
+Guidance for follow-on frontend work:
+
+- keep `app.js` focused on orchestration and higher-coupling flows
+- continue extracting only clearly section-owned behavior when cross-section dependencies stay manageable
+- preserve DOM ids and API endpoint paths
+- keep validating the combined frontend script surface, not only `app.js`
+
 ## M25 Hub Queue Section Module
 
 Latest Hub frontend context now includes a Queue section module for the queue UI slice:
