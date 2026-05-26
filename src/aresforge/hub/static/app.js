@@ -1926,6 +1926,56 @@ async function loadDashboardReport() {
   setMessage("reports-message", "Report loaded.", "success");
 }
 
+function renderLocalProjectReportFoundation(report) {
+  const activeProject = (report && report.active_project) || {};
+  const projectHealth = (report && report.project_health) || {};
+  const roadmapSummary = (report && report.roadmap_summary) || {};
+  const queueSummary = (report && report.queue_summary) || {};
+  const validationSummary = (report && report.validation_summary) || {};
+  const documentationSummary = (report && report.documentation_summary) || {};
+  const blockers = Array.isArray(report && report.blockers) ? report.blockers : [];
+  const warnings = Array.isArray(report && report.warnings) ? report.warnings : [];
+
+  setText(
+    "reports-local-active-project",
+    activeProject.active_project_name || activeProject.active_project_id || "None selected",
+  );
+  setText("reports-local-project-health", projectHealth.overall_status || "needs_attention");
+  setText(
+    "reports-local-recommended-next-action",
+    (report && report.recommended_next_action) || "No recommendation available.",
+  );
+  setList("reports-local-roadmap-summary", "reports-local-roadmap-summary-empty", [
+    `roadmap_doc_exists: ${Boolean(roadmapSummary.roadmap_doc_exists)}`,
+    `active_milestone: ${roadmapSummary.active_milestone || "none"}`,
+    `status: ${roadmapSummary.status || "missing"}`,
+  ]);
+  setList("reports-local-queue-summary", "reports-local-queue-summary-empty", [
+    `item_count: ${queueSummary.item_count || 0}`,
+    ...countLines("status", queueSummary.counts_by_status),
+    `blocked_count: ${queueSummary.blocked_count || 0}`,
+    `ready_count: ${queueSummary.ready_count || 0}`,
+  ]);
+  setList(
+    "reports-local-validation-summary",
+    "reports-local-validation-summary-empty",
+    Object.keys(validationSummary).sort().map((key) => `${key}: ${validationSummary[key]}`),
+  );
+  setList("reports-local-documentation-summary", "reports-local-documentation-summary-empty", [
+    `docs_ready: ${Boolean(documentationSummary.docs_ready)}`,
+    `present_count: ${documentationSummary.present_count || 0}`,
+    `missing_count: ${documentationSummary.missing_count || 0}`,
+    `missing_docs: ${(documentationSummary.missing_docs || []).join(", ") || "none"}`,
+  ]);
+  setList("reports-local-blockers", "reports-local-blockers-empty", blockers);
+  setList("reports-local-warnings", "reports-local-warnings-empty", warnings);
+}
+
+async function loadLocalProjectReportFoundation() {
+  const payload = await fetchJson("/api/local-project-report", { method: "GET" });
+  renderLocalProjectReportFoundation(payload);
+}
+
 function renderLocalHomeDashboard(dashboard, report) {
   const projectSummary = (dashboard && dashboard.project_summary) || {};
   const queueSummary = (dashboard && dashboard.queue_summary) || {};
@@ -2006,6 +2056,19 @@ async function refreshSummaryAndReport() {
     setText("home-local-recommended-next-action", "Refresh Summary to retry local dashboard loading.");
     setList("home-local-queue-status-summary", "home-local-queue-status-summary-empty", []);
     setList("home-local-warnings-blockers", "home-local-warnings-blockers-empty", ["Local dashboard/report endpoint unavailable."]);
+  }
+  try {
+    await loadLocalProjectReportFoundation();
+  } catch (_error) {
+    setText("reports-local-active-project", "Unavailable");
+    setText("reports-local-project-health", "needs_attention");
+    setText("reports-local-recommended-next-action", "Local project report endpoint unavailable.");
+    setList("reports-local-roadmap-summary", "reports-local-roadmap-summary-empty", []);
+    setList("reports-local-queue-summary", "reports-local-queue-summary-empty", []);
+    setList("reports-local-validation-summary", "reports-local-validation-summary-empty", []);
+    setList("reports-local-documentation-summary", "reports-local-documentation-summary-empty", []);
+    setList("reports-local-blockers", "reports-local-blockers-empty", ["Local project report endpoint unavailable."]);
+    setList("reports-local-warnings", "reports-local-warnings-empty", []);
   }
   await loadDashboardReport();
   await loadReportSlices();

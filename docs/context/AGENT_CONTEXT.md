@@ -1,5 +1,24 @@
 # AresForge Agent Context
 
+## M16 Hub Local-Only Read/Report Foundations
+
+Latest local milestone progression adds read-only Hub foundations for:
+
+- Home dashboard API wiring and UI
+- Projects page UI
+- Queue page UI
+- Reports page UI
+
+Required operating boundaries remain unchanged:
+
+- local-first and local-only
+- no GitHub API calls or `gh` calls
+- no GitHub sync/mutation execution
+- no agent execution
+- no local/cloud/Codex/ChatGPT/Ollama model routing or invocation
+
+Validation closeout for this layer includes targeted suites, full `pytest`, and local smoke commands. Push has not been performed.
+
 ## M14 Local Foundation Context
 
 - Current source-of-truth stance:

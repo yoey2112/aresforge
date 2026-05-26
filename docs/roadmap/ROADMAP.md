@@ -1,5 +1,24 @@
 # AresForge Roadmap
 
+## M16 Hub Read-Only Foundations
+
+Status: Completed locally on `main` (no push performed).
+
+Delivered M16 scope:
+
+- Home dashboard API wiring for local report/readiness data
+- Home dashboard read-only UI foundation
+- Projects page read-only UI foundation
+- Queue page read-only UI foundation
+- Reports page read-only UI foundation
+
+M16 safety posture:
+
+- local-only/report-oriented surfaces
+- no GitHub mutation/sync execution
+- no agent execution
+- no model routing/invocation
+
 ## M14 Local Foundation Reconciliation
 
 Status: Completed locally on `main` in this chat (read-only/report-summary scope).

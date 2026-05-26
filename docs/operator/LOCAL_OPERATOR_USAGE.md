@@ -1,5 +1,38 @@
 # Local Operator Usage
 
+## M16 Local Validation Closeout
+
+Completed locally on `main` with no push performed.
+
+M16 additions:
+
+- Home dashboard API wiring and read-only UI foundation
+- Projects read-only UI foundation
+- Queue read-only UI foundation
+- Reports read-only UI foundation
+
+Boundary reaffirmation:
+
+- local-first/local-only
+- no GitHub API calls
+- no `gh` calls
+- no GitHub mutation/sync execution
+- no agent execution
+- no model routing/invocation
+
+Validation commands used:
+
+- `git diff --check`
+- `python -m pytest tests/test_roadmap_db_control.py tests/test_config_and_migrations.py tests/test_cli.py`
+- `python -m pytest tests/test_hub_project_factory_api.py tests/test_hub_active_project_api.py tests/test_hub_ui_foundation.py`
+- `python -m pytest tests/test_local_project_dashboard.py tests/test_local_project_readiness.py tests/test_local_queue_agent_summary.py tests/test_local_project_report.py`
+- `python -m pytest`
+- smoke:
+  - `python -m aresforge inspect-local-project-dashboard`
+  - `python -m aresforge list-local-projects`
+  - `python -m aresforge inspect-local-queue-agent-summary`
+  - `python -m aresforge inspect-local-project-report`
+
 ## M14 Source-of-Truth Reconciliation Note
 
 This section captures the current local foundation status after M14 reconciliation work.

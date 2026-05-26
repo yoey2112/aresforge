@@ -1,5 +1,39 @@
 # AresForge Build State
 
+## M16 Hub UI Foundations And Local Validation Closeout
+
+Status: Completed locally on `main` (no push performed).
+
+Delivered M16 items:
+
+- Home dashboard API wiring (`/api/local-project-dashboard`, `/api/local-project-report`, `/api/local-projects`)
+- Home dashboard read-only UI foundation
+- Projects page read-only UI foundation
+- Queue page read-only UI foundation (`/api/local-queue-agent-summary`)
+- Reports page read-only UI foundation
+
+Current boundary posture:
+
+- local-first and local-only control-plane read/report surfaces
+- no GitHub API calls
+- no `gh` calls
+- no GitHub mutation/sync execution
+- no agent execution
+- no model routing/invocation
+
+Validation commands used for M16 closeout:
+
+- `git diff --check`
+- `python -m pytest tests/test_roadmap_db_control.py tests/test_config_and_migrations.py tests/test_cli.py`
+- `python -m pytest tests/test_hub_project_factory_api.py tests/test_hub_active_project_api.py tests/test_hub_ui_foundation.py`
+- `python -m pytest tests/test_local_project_dashboard.py tests/test_local_project_readiness.py tests/test_local_queue_agent_summary.py tests/test_local_project_report.py`
+- `python -m pytest`
+- smoke:
+  - `python -m aresforge inspect-local-project-dashboard`
+  - `python -m aresforge list-local-projects`
+  - `python -m aresforge inspect-local-queue-agent-summary`
+  - `python -m aresforge inspect-local-project-report`
+
 ## M14 Source-of-Truth Reconciliation Snapshot
 
 - Operating mode for current local foundation work:

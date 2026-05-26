@@ -1098,6 +1098,45 @@
           <h2>Reports</h2>
           <p>Local control-plane reporting for project, repo, queue, agent, orchestration, escalation, docs, and readiness.</p>
           <p id="reports-message" class="message"></p>
+          <section class="subpanel">
+            <h3>Local Project Report Foundation</h3>
+            <p class="message-note">Local-only and read-only reports view: no report mutations, no GitHub sync/mutation, no agent/model execution.</p>
+            <div class="stats-grid">
+              <article class="card"><h4>Active Project</h4><p id="reports-local-active-project">None selected</p></article>
+              <article class="card"><h4>Project Health</h4><p id="reports-local-project-health">needs_attention</p></article>
+              <article class="card"><h4>Recommended Next Action</h4><p id="reports-local-recommended-next-action">No recommendation available.</p></article>
+            </div>
+            <div class="split two-col">
+              <section>
+                <h4>Roadmap Summary</h4>
+                <ul id="reports-local-roadmap-summary" class="list"></ul>
+                <p id="reports-local-roadmap-summary-empty" class="empty">No roadmap summary available.</p>
+                <h4>Queue Summary</h4>
+                <ul id="reports-local-queue-summary" class="list"></ul>
+                <p id="reports-local-queue-summary-empty" class="empty">No queue summary available.</p>
+              </section>
+              <section>
+                <h4>Validation Summary</h4>
+                <ul id="reports-local-validation-summary" class="list"></ul>
+                <p id="reports-local-validation-summary-empty" class="empty">No validation summary available.</p>
+                <h4>Documentation Summary</h4>
+                <ul id="reports-local-documentation-summary" class="list"></ul>
+                <p id="reports-local-documentation-summary-empty" class="empty">No documentation summary available.</p>
+              </section>
+            </div>
+            <div class="split two-col">
+              <section>
+                <h4>Blockers</h4>
+                <ul id="reports-local-blockers" class="list"></ul>
+                <p id="reports-local-blockers-empty" class="empty">No blockers.</p>
+              </section>
+              <section>
+                <h4>Warnings</h4>
+                <ul id="reports-local-warnings" class="list"></ul>
+                <p id="reports-local-warnings-empty" class="empty">No warnings.</p>
+              </section>
+            </div>
+          </section>
           <div class="quick-actions">
             <button id="reports-refresh" type="button">Refresh Report</button>
             <button id="reports-copy-json" type="button">Copy Report JSON</button>

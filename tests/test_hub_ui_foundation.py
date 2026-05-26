@@ -294,6 +294,13 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "Warnings And Blockers" in index_text
     assert "Docs Readiness" in index_text
     assert "Read-only local-only dashboard: no GitHub mutation, no agent execution, no model routing." in index_text
+    assert "Local Project Report Foundation" in index_text
+    assert "Project Health" in index_text
+    assert "Roadmap Summary" in index_text
+    assert "Validation Summary" in index_text
+    assert "Documentation Summary" in index_text
+    assert "Blockers" in index_text
+    assert "Local-only and read-only reports view: no report mutations, no GitHub sync/mutation, no agent/model execution." in index_text
     assert "active-project-intake" not in index_text
 
 
@@ -1205,6 +1212,8 @@ def test_m44_active_project_intake_static_contract() -> None:
     assert "active-project-intake" in app_text
     assert 'intakeType === "direction" ? "task" : intakeType' in app_text
     assert 'fetchJson("/api/queue"' in app_text
+    assert "loadLocalProjectReportFoundation" in app_text
+    assert "renderLocalProjectReportFoundation" in app_text
 
 
 def test_m45_active_project_workbench_static_contract() -> None:

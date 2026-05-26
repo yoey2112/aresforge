@@ -1,5 +1,29 @@
 # Runnable Skeleton
 
+## M16 Hub Read-Only UI And API Wiring Layer
+
+Implemented local-only Hub read/report additions include:
+
+- local Home API wiring for dashboard/report/project readiness
+- Home read-only dashboard section
+- Projects read-only managed-projects section
+- Queue read-only summary section
+- Reports read-only local project report section
+
+Key local endpoints now used by UI foundations:
+
+- `GET /api/local-project-dashboard`
+- `GET /api/local-project-report`
+- `GET /api/local-projects`
+- `GET /api/local-queue-agent-summary`
+
+Execution boundaries remain:
+
+- read-only/report-only surface for these M16 foundations
+- no GitHub mutation/sync execution
+- no agent execution
+- no model routing/invocation
+
 ## M14 Local Read-Model/Report Layer
 
 Implemented local-only inspection surfaces now include:
