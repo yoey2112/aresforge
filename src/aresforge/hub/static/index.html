@@ -717,6 +717,103 @@
             </div>
           </section>
 
+          <section class="subpanel">
+            <h3>Local Queue Lifecycle</h3>
+            <p class="message-note">Local-only and manual queue lifecycle controls: no automatic Codex execution, no agent execution, no GitHub sync/mutation.</p>
+            <p id="queue-lifecycle-message" class="message"></p>
+            <div class="split two-col">
+              <section>
+                <h4>Add Task</h4>
+                <p class="message-note">Item ID is generated automatically from the title and active project context exposed by the local queue lifecycle API.</p>
+                <form id="queue-lifecycle-add-form" class="form-grid">
+                  <label>Title<input id="queue-lifecycle-add-title" name="title" required /></label>
+                  <label>Type
+                    <select id="queue-lifecycle-add-type" name="item_type">
+                      <option value="task">task</option>
+                      <option value="feature">feature</option>
+                      <option value="bug">bug</option>
+                      <option value="documentation">documentation</option>
+                      <option value="validation">validation</option>
+                      <option value="handoff">handoff</option>
+                      <option value="orchestration">orchestration</option>
+                      <option value="dashboard">dashboard</option>
+                      <option value="other">other</option>
+                    </select>
+                  </label>
+                  <label>Priority
+                    <select id="queue-lifecycle-add-priority" name="priority">
+                      <option value="normal">normal</option>
+                      <option value="low">low</option>
+                      <option value="high">high</option>
+                      <option value="urgent">urgent</option>
+                    </select>
+                  </label>
+                  <label>Target Area<input id="queue-lifecycle-add-target-area" name="target_area" placeholder="optional" /></label>
+                  <label>Tags (comma-separated)<input id="queue-lifecycle-add-tags" name="tags" /></label>
+                  <label class="full">Summary / Description<textarea id="queue-lifecycle-add-description" name="description"></textarea></label>
+                  <label class="full">Acceptance Criteria<textarea id="queue-lifecycle-add-acceptance-criteria" name="acceptance_criteria" placeholder="One item per line"></textarea></label>
+                  <button id="queue-lifecycle-add-submit" type="submit">Add Task</button>
+                </form>
+                <ul id="queue-lifecycle-add-result" class="list"></ul>
+                <p id="queue-lifecycle-add-result-empty" class="empty">No add task result yet.</p>
+              </section>
+              <section>
+                <h4>Task Lifecycle Controls</h4>
+                <label>Item ID<input id="queue-lifecycle-item-id" name="item_id" placeholder="Enter item_id or use a queue card" /></label>
+                <p class="message-note">Inspect readiness, start manually, generate a local Codex prompt artifact, or complete with local evidence.</p>
+                <div class="quick-actions">
+                  <button id="queue-lifecycle-readiness" type="button">Inspect Readiness</button>
+                  <button id="queue-lifecycle-start" type="button">Start Task</button>
+                </div>
+                <h4>Readiness Result</h4>
+                <ul id="queue-lifecycle-readiness-summary" class="list"></ul>
+                <p id="queue-lifecycle-readiness-summary-empty" class="empty">No readiness result yet.</p>
+                <h4>Readiness Blockers</h4>
+                <ul id="queue-lifecycle-readiness-blockers" class="list"></ul>
+                <p id="queue-lifecycle-readiness-blockers-empty" class="empty">No readiness blockers.</p>
+                <h4>Readiness Warnings</h4>
+                <ul id="queue-lifecycle-readiness-warnings" class="list"></ul>
+                <p id="queue-lifecycle-readiness-warnings-empty" class="empty">No readiness warnings.</p>
+                <h4>Start Result</h4>
+                <ul id="queue-lifecycle-start-summary" class="list"></ul>
+                <p id="queue-lifecycle-start-summary-empty" class="empty">No start result yet.</p>
+              </section>
+            </div>
+            <div class="split two-col">
+              <section>
+                <h4>Generate Codex Prompt</h4>
+                <form id="queue-lifecycle-codex-form" class="form-grid">
+                  <label>Output Path<input id="queue-lifecycle-codex-output" name="output" placeholder="optional local artifact path" /></label>
+                  <label>Commit Message<input id="queue-lifecycle-codex-commit-message" name="commit_message" placeholder="optional local commit message" /></label>
+                  <label><input id="queue-lifecycle-codex-force" name="force" type="checkbox" /> Force overwrite existing artifact</label>
+                  <button id="queue-lifecycle-codex-submit" type="submit">Generate Codex Prompt</button>
+                </form>
+                <ul id="queue-lifecycle-codex-summary" class="list"></ul>
+                <p id="queue-lifecycle-codex-summary-empty" class="empty">No Codex prompt metadata yet.</p>
+                <pre id="queue-lifecycle-codex-prompt" class="code-block"></pre>
+                <p id="queue-lifecycle-codex-prompt-empty" class="empty">No Codex prompt generated yet.</p>
+              </section>
+              <section>
+                <h4>Complete With Evidence</h4>
+                <form id="queue-lifecycle-complete-form" class="form-grid">
+                  <label>Implementation Commit<input id="queue-lifecycle-complete-commit-hash" name="commit_hash" required /></label>
+                  <label>Completed By<input id="queue-lifecycle-complete-completed-by" name="completed_by" value="local_operator" /></label>
+                  <label class="full">Validation Summary<textarea id="queue-lifecycle-complete-validation-summary" name="validation_summary" required></textarea></label>
+                  <label class="full">Completion Notes<textarea id="queue-lifecycle-complete-evidence-note" name="evidence_note"></textarea></label>
+                  <label class="full">Tests Run<textarea id="queue-lifecycle-complete-tests-run" name="tests_run" placeholder="One command per line"></textarea></label>
+                  <label class="full">Changed Files<textarea id="queue-lifecycle-complete-changed-files" name="changed_files" placeholder="One path per line"></textarea></label>
+                  <label class="full">Artifact Paths<textarea id="queue-lifecycle-complete-artifact-paths" name="artifact_paths" placeholder="One path per line"></textarea></label>
+                  <button id="queue-lifecycle-complete-submit" type="submit">Complete With Evidence</button>
+                </form>
+                <ul id="queue-lifecycle-complete-summary" class="list"></ul>
+                <p id="queue-lifecycle-complete-summary-empty" class="empty">No completion result yet.</p>
+                <h4>Completion Warnings</h4>
+                <ul id="queue-lifecycle-complete-warnings" class="list"></ul>
+                <p id="queue-lifecycle-complete-warnings-empty" class="empty">No completion warnings.</p>
+              </section>
+            </div>
+          </section>
+
           <section class="subpanel active-project-panel">
             <h3>Active Project Intake</h3>
             <p class="message-note">Capture a task, feature, direction, bug, documentation item, or validation item for the selected active project.</p>

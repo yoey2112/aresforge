@@ -266,6 +266,24 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "Active Project Queue Focus" in index_text
     assert "Use Active Project Defaults" in index_text
     assert "Filter To Active Project" in index_text
+    assert "Local Queue Lifecycle" in index_text
+    assert "Local-only and manual queue lifecycle controls: no automatic Codex execution, no agent execution, no GitHub sync/mutation." in index_text
+    assert "Add Task" in index_text
+    assert "Item ID is generated automatically from the title and active project context exposed by the local queue lifecycle API." in index_text
+    assert "Task Lifecycle Controls" in index_text
+    assert "Inspect Readiness" in index_text
+    assert "Start Task" in index_text
+    assert "Generate Codex Prompt" in index_text
+    assert "Complete With Evidence" in index_text
+    assert "Implementation Commit" in index_text
+    assert "Validation Summary" in index_text
+    assert "Completion Notes" in index_text
+    assert "queue-lifecycle-message" in index_text
+    assert "queue-lifecycle-add-form" in index_text
+    assert "queue-lifecycle-item-id" in index_text
+    assert "queue-lifecycle-codex-form" in index_text
+    assert "queue-lifecycle-complete-form" in index_text
+    assert "queue-lifecycle-codex-prompt" in index_text
     assert "Active Project Report Focus" in index_text
     assert "settings-active-project-path" in index_text
     assert "Active Project Intake" in index_text
@@ -334,6 +352,11 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
         "/api/bootstrap/plan",
         "/api/bootstrap/apply",
         "/api/queue",
+        "/api/local-queue/items",
+        "/readiness",
+        "/start",
+        "/codex-prompt",
+        "/complete",
         "/api/settings",
         "/api/agents",
         "/api/handoff-targets",
@@ -360,6 +383,9 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
         "repo-form",
         "queue-form",
         "queue-filter-form",
+        "queue-lifecycle-add-form",
+        "queue-lifecycle-codex-form",
+        "queue-lifecycle-complete-form",
         "intake-form",
         "agent-form",
         "handoff-target-form",
@@ -383,6 +409,11 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
         "active-project-set",
         "queue-use-active-project",
         "queue-filter-active-project",
+        "queue-lifecycle-add-submit",
+        "queue-lifecycle-readiness",
+        "queue-lifecycle-start",
+        "queue-lifecycle-codex-submit",
+        "queue-lifecycle-complete-submit",
         "intake-submit",
         "scope-save-draft",
         "scope-approve",
@@ -428,6 +459,13 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
     assert "buildDocumentationCloseoutPlanPayload" in app_text
     assert "renderExecutionReadiness" in app_text
     assert "loadExecutionReadiness" in app_text
+    assert "setLocalQueueLifecycleItemId" in app_text
+    assert "buildLocalQueueAddPayload" in app_text
+    assert "buildLocalQueueCodexPromptPayload" in app_text
+    assert "buildLocalQueueCompletePayload" in app_text
+    assert "renderLocalQueueReadinessResult" in app_text
+    assert "renderLocalQueueCodexPromptResult" in app_text
+    assert "renderLocalQueueCompleteResult" in app_text
     assert "home-github-apply-plan-milestones" in app_text
     assert "home-github-apply-plan-issues" in app_text
     assert "home-agent-dispatch-items" in app_text
