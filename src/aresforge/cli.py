@@ -196,6 +196,7 @@ from aresforge.operator.local_project_queue import (
     QUEUE_STATUSES,
     add_local_queue_item,
     add_queue_item,
+    complete_local_queue_item,
     generate_local_queue_item_codex_prompt,
     init_project_queue,
     inspect_local_queue_item_readiness,
@@ -1456,6 +1457,19 @@ def build_parser() -> argparse.ArgumentParser:
     start_local_queue_item_parser.add_argument("--item-id", required=True)
     start_local_queue_item_parser.add_argument("--queue-path")
     start_local_queue_item_parser.add_argument("--registry-path")
+    complete_local_queue_item_parser = subparsers.add_parser(
+        "complete-local-queue-item",
+        help="Complete one local queue item with validation evidence.",
+    )
+    complete_local_queue_item_parser.add_argument("--item-id", required=True)
+    complete_local_queue_item_parser.add_argument("--commit-hash", required=True)
+    complete_local_queue_item_parser.add_argument("--validation-summary", required=True)
+    complete_local_queue_item_parser.add_argument("--evidence-note")
+    complete_local_queue_item_parser.add_argument("--tests-run", action="append", default=[])
+    complete_local_queue_item_parser.add_argument("--changed-files", action="append", default=[])
+    complete_local_queue_item_parser.add_argument("--artifact-path", action="append", default=[])
+    complete_local_queue_item_parser.add_argument("--completed-by", default="local_operator")
+    complete_local_queue_item_parser.add_argument("--queue-path")
     generate_local_queue_item_codex_prompt_parser = subparsers.add_parser(
         "generate-local-queue-item-codex-prompt",
         help="Generate a local-only Codex implementation prompt for one queue item.",
@@ -3516,6 +3530,22 @@ def main(argv: list[str] | None = None) -> int:
             item_id=args.item_id,
             queue_path=args.queue_path,
             registry_path=args.registry_path,
+        )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "complete-local-queue-item":
+        payload = complete_local_queue_item(
+            config,
+            item_id=args.item_id,
+            commit_hash=args.commit_hash,
+            validation_summary=args.validation_summary,
+            evidence_note=args.evidence_note,
+            tests_run=list(args.tests_run),
+            changed_files=list(args.changed_files),
+            artifact_paths=list(args.artifact_path),
+            completed_by=args.completed_by,
+            queue_path=args.queue_path,
         )
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1

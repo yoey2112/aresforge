@@ -1,5 +1,39 @@
 # Local Operator Usage
 
+## M17 Local Queue Execution-Prep Lifecycle
+
+Purpose:
+
+- prepare, start, hand off, and close out local queue work without GitHub mutation or automatic agent/model execution
+
+Command set:
+
+- `python -m aresforge add-local-queue-item --title <title> [--description <text>] [--type <type>] [--priority <priority>] [--target-area <area>] [--acceptance-criteria <text>]...`
+- `python -m aresforge inspect-local-queue-item-readiness --item-id <item_id>`
+- `python -m aresforge start-local-queue-item --item-id <item_id>`
+- `python -m aresforge generate-local-queue-item-codex-prompt --item-id <item_id> [--output <path>] [--commit-message <text>] [--force]`
+- human runs Codex manually using the generated prompt
+- `python -m aresforge complete-local-queue-item --item-id <item_id> --commit-hash <hash> --validation-summary <text> [--evidence-note <text>] [--tests-run <text>]... [--changed-files <path>]... [--artifact-path <path>]... [--completed-by <actor>]`
+
+Lifecycle notes:
+
+- readiness is read-only and explains blockers before start
+- start mutates only the local queue item state to `in_progress`
+- prompt generation is local-only and does not execute Codex
+- completion requires validation evidence and records it locally in the queue item
+- completion does not run tests automatically and does not verify the commit remotely
+
+Boundary guarantees:
+
+- local-first and file-backed
+- no GitHub API calls
+- no `gh` calls
+- no GitHub issues, PRs, workflow activity, or GitHub mutation
+- no automatic Codex execution
+- no agent execution
+- no model routing/invocation
+- no push
+
 ## M16 Local Validation Closeout
 
 Completed locally on `main` with no push performed.

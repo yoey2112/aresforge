@@ -397,3 +397,69 @@ def test_cli_generate_local_queue_item_codex_prompt_writes_output(monkeypatch, c
     payload = json.loads(capsys.readouterr().out)
     assert payload['output_path'] == str(output_path)
     assert output_path.exists()
+
+
+def test_cli_complete_local_queue_item_stable_keys(monkeypatch, capsys, tmp_path: Path) -> None:
+    monkeypatch.setattr(cli.AppConfig, 'from_env', lambda: _config(tmp_path))
+    assert cli.main(['init-project-queue']) == 0
+    _ = capsys.readouterr().out
+    assert (
+        cli.main(
+            [
+                'add-queue-item',
+                '--item-id',
+                'complete-item',
+                '--project-id',
+                'project-one',
+                '--repo-id',
+                'repo-main',
+                '--title',
+                'Complete item',
+                '--description',
+                'Complete local implementation with evidence.',
+                '--status',
+                'in_progress',
+            ]
+        )
+        == 0
+    )
+    _ = capsys.readouterr().out
+
+    assert (
+        cli.main(
+            [
+                'complete-local-queue-item',
+                '--item-id',
+                'complete-item',
+                '--commit-hash',
+                'abc123def',
+                '--validation-summary',
+                'Targeted tests passed locally.',
+                '--evidence-note',
+                'Manual smoke checks passed.',
+                '--tests-run',
+                'python -m pytest tests/test_local_project_queue.py',
+                '--changed-files',
+                'src/aresforge/operator/local_project_queue.py',
+                '--artifact-path',
+                'artifacts/evidence/local-complete.md',
+            ]
+        )
+        == 0
+    )
+    payload = json.loads(capsys.readouterr().out)
+    for key in (
+        'ok',
+        'local_only',
+        'item_id',
+        'previous_status',
+        'status',
+        'completion_commit',
+        'validation_summary',
+        'next_safe_action',
+        'warnings',
+    ):
+        assert key in payload
+    assert payload['item_id'] == 'complete-item'
+    assert payload['status'] == 'done'
+    assert payload['completion_commit'] == 'abc123def'

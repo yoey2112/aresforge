@@ -1,5 +1,37 @@
 # AresForge Build State
 
+## M17 Local Queue Execution-Prep Lifecycle
+
+Status: Completed locally on `main` (no push performed).
+
+Delivered M17 local queue workflow:
+
+- `python -m aresforge add-local-queue-item --title <title> ...`
+- `python -m aresforge inspect-local-queue-item-readiness --item-id <item_id>`
+- `python -m aresforge start-local-queue-item --item-id <item_id>`
+- `python -m aresforge generate-local-queue-item-codex-prompt --item-id <item_id> [--output <path>]`
+- human runs Codex manually using the generated prompt
+- `python -m aresforge complete-local-queue-item --item-id <item_id> --commit-hash <hash> --validation-summary <text> ...`
+
+M17 completion evidence recorded locally in `.aresforge/queue/work_items.json` includes:
+
+- `completed_at`
+- `completed_by`
+- `completion_commit`
+- `validation_summary`
+- optional `evidence_note`, `tests_run`, `changed_files`, and `artifact_paths`
+
+M17 boundary posture:
+
+- local-first and file-backed
+- no GitHub API calls
+- no `gh` calls
+- no GitHub mutation/sync execution
+- no automatic Codex execution
+- no agent execution
+- no model routing/invocation
+- no remote commit verification
+
 ## M16 Hub UI Foundations And Local Validation Closeout
 
 Status: Completed locally on `main` (no push performed).

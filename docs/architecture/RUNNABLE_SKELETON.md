@@ -1,5 +1,34 @@
 # Runnable Skeleton
 
+## M17 Local Queue Execution-Prep Layer
+
+Implemented local-only queue execution-prep additions now include:
+
+- local queue item creation using active-project/default repo context
+- local readiness inspection for one queue item
+- gated local start for one queue item
+- copy/paste-ready local Codex prompt generation
+- local queue completion with validation evidence and commit metadata
+
+CLI entry points:
+
+- `python -m aresforge add-local-queue-item --title <title> ...`
+- `python -m aresforge inspect-local-queue-item-readiness --item-id <item_id>`
+- `python -m aresforge start-local-queue-item --item-id <item_id>`
+- `python -m aresforge generate-local-queue-item-codex-prompt --item-id <item_id> [--output <path>]`
+- `python -m aresforge complete-local-queue-item --item-id <item_id> --commit-hash <hash> --validation-summary <text> ...`
+
+Execution boundaries remain unchanged:
+
+- local-only and file-backed for this M17 layer
+- no GitHub API calls
+- no `gh` calls
+- no GitHub mutation/sync execution
+- no automatic Codex execution
+- no agent execution
+- no model routing/invocation
+- human review stays responsible for running Codex and deciding when completion evidence is sufficient
+
 ## M16 Hub Read-Only UI And API Wiring Layer
 
 Implemented local-only Hub read/report additions include:

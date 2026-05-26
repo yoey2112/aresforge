@@ -52,6 +52,7 @@ def test_cli_has_expected_commands() -> None:
         "export-work-item-operator-prompt",
         "archive-work-item-operator-packet",
         "recommend-next-work-item-action",
+        "complete-local-queue-item",
         "generate-local-queue-item-codex-prompt",
         "inspect-queue-work-state",
         "inspect-work-item-readiness",
@@ -4745,6 +4746,41 @@ def test_generate_local_queue_item_codex_prompt_dispatch_json(
             "work-1",
             "--commit-message",
             "queue prompt commit",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert parsed == payload
+
+
+def test_complete_local_queue_item_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "item_id": "work-1",
+        "previous_status": "in_progress",
+        "status": "done",
+        "completion_commit": "abc123def",
+        "validation_summary": "Targeted tests passed locally.",
+        "next_safe_action": "Inspect queue summary.",
+        "warnings": [],
+    }
+    monkeypatch.setattr(
+        cli,
+        "complete_local_queue_item",
+        lambda _config, item_id, commit_hash, validation_summary, evidence_note=None, tests_run=None, changed_files=None, artifact_paths=None, completed_by='local_operator', queue_path=None: payload,
+    )
+    exit_code = cli.main(
+        [
+            "complete-local-queue-item",
+            "--item-id",
+            "work-1",
+            "--commit-hash",
+            "abc123def",
+            "--validation-summary",
+            "Targeted tests passed locally.",
         ]
     )
     parsed = json.loads(capsys.readouterr().out)

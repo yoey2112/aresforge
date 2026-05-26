@@ -1,5 +1,38 @@
 # AresForge Roadmap
 
+## M17 Local Queue Execution-Prep Lifecycle
+
+Status: Completed locally on `main` (no push performed).
+
+Delivered M17 scope:
+
+- local queue item creation with active-project/default repo binding
+- local readiness inspection before mutation
+- gated local queue item start
+- local-only Codex prompt generation for copy/paste manual implementation sessions
+- local queue completion with validation evidence and commit metadata
+
+Implemented local workflow:
+
+- `add-local-queue-item`
+- `inspect-local-queue-item-readiness`
+- `start-local-queue-item`
+- `generate-local-queue-item-codex-prompt`
+- manual human-run Codex session
+- `complete-local-queue-item`
+
+M17 safety posture:
+
+- local-only and file-backed
+- no GitHub mutation/sync execution
+- no GitHub API calls
+- no `gh` calls
+- no automatic Codex execution
+- no agent execution
+- no model routing/invocation
+
+M17 completion evidence is stored locally with status transition metadata plus commit hash, validation summary, and optional evidence fields.
+
 ## M16 Hub Read-Only Foundations
 
 Status: Completed locally on `main` (no push performed).

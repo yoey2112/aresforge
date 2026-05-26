@@ -1,5 +1,34 @@
 # AresForge Agent Context
 
+## M17 Local Queue Execution-Prep Lifecycle
+
+Latest local queue progression now supports a full operator-driven execution-prep loop:
+
+- add a local queue item
+- inspect readiness
+- start the item locally
+- generate a local Codex prompt artifact or stdout prompt
+- have a human run Codex manually
+- complete the item with local validation evidence and commit metadata
+
+New local queue command surface to know:
+
+- `python -m aresforge add-local-queue-item --title <title> ...`
+- `python -m aresforge inspect-local-queue-item-readiness --item-id <item_id>`
+- `python -m aresforge start-local-queue-item --item-id <item_id>`
+- `python -m aresforge generate-local-queue-item-codex-prompt --item-id <item_id> [--output <path>]`
+- `python -m aresforge complete-local-queue-item --item-id <item_id> --commit-hash <hash> --validation-summary <text> ...`
+
+Required operating boundaries remain unchanged:
+
+- local-first and local-only
+- no GitHub API calls or `gh` calls
+- no GitHub sync/mutation execution
+- no automatic Codex execution
+- no agent execution
+- no local/cloud/Codex/ChatGPT/Ollama model routing or invocation
+- completion records evidence locally only and does not verify commits remotely
+
 ## M16 Hub Local-Only Read/Report Foundations
 
 Latest local milestone progression adds read-only Hub foundations for:

@@ -6,6 +6,7 @@ from aresforge.operator.local_active_project import set_active_project
 from aresforge.operator.local_project_queue import (
     add_local_queue_item,
     add_queue_item,
+    complete_local_queue_item,
     generate_local_queue_item_codex_prompt,
     init_project_queue,
     inspect_local_queue_item_readiness,
@@ -879,3 +880,163 @@ def test_generate_local_queue_item_codex_prompt_writes_output_file(tmp_path: Pat
     assert output_path.exists()
     rendered = output_path.read_text(encoding='utf-8')
     assert 'Commit message guidance: Custom commit guidance' in rendered
+
+
+def test_complete_local_queue_item_in_progress_with_evidence(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='complete-item',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Complete item',
+        description='Complete local implementation with evidence.',
+        status='in_progress',
+    )['ok'] is True
+
+    payload = complete_local_queue_item(
+        config,
+        item_id='complete-item',
+        commit_hash='abc123def',
+        validation_summary='Targeted tests passed locally.',
+        evidence_note='Manual smoke checks passed.',
+        tests_run=['python -m pytest tests/test_local_project_queue.py'],
+        changed_files=['src/aresforge/operator/local_project_queue.py'],
+        artifact_paths=['artifacts/evidence/local-complete.md'],
+    )
+
+    assert payload['ok'] is True
+    assert payload['previous_status'] == 'in_progress'
+    assert payload['status'] == 'done'
+    assert payload['completion_commit'] == 'abc123def'
+    assert payload['validation_summary'] == 'Targeted tests passed locally.'
+
+
+def test_complete_local_queue_item_cannot_complete_missing_item(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+
+    payload = complete_local_queue_item(
+        config,
+        item_id='missing-item',
+        commit_hash='abc123def',
+        validation_summary='Targeted tests passed locally.',
+    )
+
+    assert payload['ok'] is False
+    assert payload['item_id'] == 'missing-item'
+    assert payload['status'] == ''
+
+
+def test_complete_local_queue_item_cannot_complete_proposed_item(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='proposed-item',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Proposed item',
+        description='Not started yet.',
+        status='proposed',
+    )['ok'] is True
+
+    payload = complete_local_queue_item(
+        config,
+        item_id='proposed-item',
+        commit_hash='abc123def',
+        validation_summary='Targeted tests passed locally.',
+    )
+
+    assert payload['ok'] is False
+    assert payload['status'] == 'proposed'
+    assert any('in_progress' in warning for warning in payload['warnings'])
+
+
+def test_complete_local_queue_item_requires_commit_hash(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='complete-item',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Complete item',
+        description='Complete local implementation with evidence.',
+        status='in_progress',
+    )['ok'] is True
+
+    payload = complete_local_queue_item(
+        config,
+        item_id='complete-item',
+        commit_hash='   ',
+        validation_summary='Targeted tests passed locally.',
+    )
+
+    assert payload['ok'] is False
+    assert any('commit_hash is required' in warning for warning in payload['warnings'])
+
+
+def test_complete_local_queue_item_requires_validation_summary(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='complete-item',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Complete item',
+        description='Complete local implementation with evidence.',
+        status='in_progress',
+    )['ok'] is True
+
+    payload = complete_local_queue_item(
+        config,
+        item_id='complete-item',
+        commit_hash='abc123def',
+        validation_summary='   ',
+    )
+
+    assert payload['ok'] is False
+    assert any('validation_summary is required' in warning for warning in payload['warnings'])
+
+
+def test_complete_local_queue_item_persists_completion_metadata(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='persist-complete-item',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Persist completion item',
+        description='Persist completion metadata.',
+        status='in_progress',
+    )['ok'] is True
+    queue_path = resolve_project_queue_path(config.repo_root, None)
+
+    payload = complete_local_queue_item(
+        config,
+        item_id='persist-complete-item',
+        commit_hash='abc123def',
+        validation_summary='All targeted validation passed.',
+        evidence_note='Smoke verified.',
+        tests_run=['python -m pytest tests/test_local_project_queue.py'],
+        changed_files=['src/aresforge/cli.py'],
+        artifact_paths=['artifacts/evidence/complete.json'],
+        completed_by='local_operator',
+    )
+
+    rendered = json.loads(queue_path.read_text(encoding='utf-8'))
+    persisted = next(item for item in rendered['work_items'] if item['item_id'] == 'persist-complete-item')
+    assert payload['ok'] is True
+    assert persisted['status'] == 'done'
+    assert persisted['completed_by'] == 'local_operator'
+    assert persisted['completion_commit'] == 'abc123def'
+    assert persisted['validation_summary'] == 'All targeted validation passed.'
+    assert persisted['evidence_note'] == 'Smoke verified.'
+    assert persisted['tests_run'] == ['python -m pytest tests/test_local_project_queue.py']
+    assert persisted['changed_files'] == ['src/aresforge/cli.py']
+    assert persisted['artifact_paths'] == ['artifacts/evidence/complete.json']
+    assert persisted['completed_at']

@@ -60,7 +60,18 @@ _QUEUE_ITEM_START_BOUNDARY_CONFIRMATIONS: tuple[str, ...] = (
     'No agent execution.',
     'No model invocation.',
 )
+_QUEUE_ITEM_COMPLETE_BOUNDARY_CONFIRMATIONS: tuple[str, ...] = (
+    'Local-only queue item completion gate.',
+    'File-backed local queue mutation only.',
+    'No GitHub API calls.',
+    'No gh calls.',
+    'No network service calls.',
+    'No agent execution.',
+    'No model invocation.',
+    'No remote commit verification.',
+)
 _STARTABLE_QUEUE_STATUSES: frozenset[str] = frozenset({'proposed', 'ready'})
+_COMPLETABLE_QUEUE_STATUSES: frozenset[str] = frozenset({'in_progress'})
 _RESOLVED_DEPENDENCY_STATUSES: frozenset[str] = frozenset({'done'})
 _BLOCKED_QUEUE_STATUSES: frozenset[str] = frozenset({'blocked'})
 
@@ -293,6 +304,14 @@ def add_queue_item(
             'started_at': '',
             'started_via': '',
             'previous_status': '',
+            'completed_at': '',
+            'completed_by': '',
+            'completion_commit': '',
+            'validation_summary': '',
+            'evidence_note': '',
+            'tests_run': [],
+            'changed_files': [],
+            'artifact_paths': [],
             'created_at': now,
             'updated_at': now,
         }
@@ -766,6 +785,117 @@ def start_local_queue_item(
         'warnings': sorted(set(warnings)),
         'boundary_confirmations': list(_QUEUE_ITEM_START_BOUNDARY_CONFIRMATIONS),
         'item': started_item,
+    }
+
+
+def complete_local_queue_item(
+    config: AppConfig,
+    *,
+    item_id: str,
+    commit_hash: str,
+    validation_summary: str,
+    evidence_note: str | None = None,
+    tests_run: list[str] | None = None,
+    changed_files: list[str] | None = None,
+    artifact_paths: list[str] | None = None,
+    completed_by: str = 'local_operator',
+    queue_path: str | Path | None = None,
+) -> dict[str, Any]:
+    resolved_queue_path = resolve_project_queue_path(config.repo_root, queue_path)
+    loaded = _load_queue_required(resolved_queue_path)
+    if not loaded.get('ok', False):
+        return loaded
+    queue = loaded['queue']
+
+    items = queue.get('work_items', [])
+    if not isinstance(items, list):
+        items = []
+
+    normalized_item_id = str(item_id or '').strip()
+    normalized_commit_hash = str(commit_hash or '').strip()
+    normalized_validation_summary = str(validation_summary or '').strip()
+    normalized_completed_by = str(completed_by or 'local_operator').strip() or 'local_operator'
+    raw_item = next(
+        (
+            candidate
+            for candidate in items
+            if isinstance(candidate, dict) and str(candidate.get('item_id', '')).strip() == normalized_item_id
+        ),
+        None,
+    )
+    if raw_item is None:
+        return {
+            'command': 'complete-local-queue-item',
+            'ok': False,
+            'local_only': True,
+            'item_id': normalized_item_id,
+            'previous_status': '',
+            'status': '',
+            'completion_commit': normalized_commit_hash,
+            'validation_summary': normalized_validation_summary,
+            'next_safe_action': 'Inspect the local queue and choose a valid item_id.',
+            'warnings': [f'Queue item not found: {normalized_item_id}'],
+            'boundary_confirmations': list(_QUEUE_ITEM_COMPLETE_BOUNDARY_CONFIRMATIONS),
+        }
+
+    previous_status = str(raw_item.get('status', '')).strip()
+    warnings: list[str] = []
+    if not normalized_commit_hash:
+        warnings.append('commit_hash is required to complete a local queue item.')
+    if not normalized_validation_summary:
+        warnings.append('validation_summary is required to complete a local queue item.')
+    if previous_status == 'done':
+        warnings.append('Queue item is already done.')
+    elif previous_status == 'cancelled':
+        warnings.append('Queue item is cancelled.')
+    elif previous_status not in _COMPLETABLE_QUEUE_STATUSES:
+        warnings.append('Queue item must be in_progress before completion evidence can be recorded.')
+
+    if warnings:
+        return {
+            'command': 'complete-local-queue-item',
+            'ok': False,
+            'local_only': True,
+            'item_id': normalized_item_id,
+            'previous_status': previous_status,
+            'status': previous_status,
+            'completion_commit': normalized_commit_hash,
+            'validation_summary': normalized_validation_summary,
+            'next_safe_action': 'Start the queue item, gather validation evidence, and retry completion.',
+            'warnings': sorted(set(warnings)),
+            'boundary_confirmations': list(_QUEUE_ITEM_COMPLETE_BOUNDARY_CONFIRMATIONS),
+        }
+
+    now = _now_iso()
+    raw_item['previous_status'] = previous_status
+    raw_item['status'] = 'done'
+    raw_item['completed_at'] = now
+    raw_item['completed_by'] = normalized_completed_by
+    raw_item['completion_commit'] = normalized_commit_hash
+    raw_item['validation_summary'] = normalized_validation_summary
+    raw_item['evidence_note'] = str(evidence_note or '').strip()
+    raw_item['tests_run'] = _normalize_list(tests_run or [])
+    raw_item['changed_files'] = _normalize_list(changed_files or [])
+    raw_item['artifact_paths'] = _normalize_list(artifact_paths or [])
+    raw_item['updated_at'] = now
+    queue['work_items'] = items
+    queue['updated_at'] = now
+    _write_queue(resolved_queue_path, queue)
+
+    completed_item = _item_view(raw_item)
+    return {
+        'command': 'complete-local-queue-item',
+        'ok': True,
+        'local_only': True,
+        'item_id': normalized_item_id,
+        'previous_status': previous_status,
+        'status': str(completed_item.get('status', '')).strip(),
+        'completion_commit': str(completed_item.get('completion_commit', '')).strip(),
+        'validation_summary': str(completed_item.get('validation_summary', '')).strip(),
+        'next_safe_action': 'Inspect queue summary and reconcile source-of-truth docs as needed.',
+        'warnings': [],
+        'boundary_confirmations': list(_QUEUE_ITEM_COMPLETE_BOUNDARY_CONFIRMATIONS),
+        'item': completed_item,
     }
 
 
@@ -1725,6 +1855,18 @@ def _item_view(item: dict[str, Any]) -> dict[str, Any]:
         'started_at': str(item.get('started_at', '')).strip(),
         'started_via': str(item.get('started_via', '')).strip(),
         'previous_status': str(item.get('previous_status', '')).strip(),
+        'completed_at': str(item.get('completed_at', '')).strip(),
+        'completed_by': str(item.get('completed_by', '')).strip(),
+        'completion_commit': str(item.get('completion_commit', '')).strip(),
+        'validation_summary': str(item.get('validation_summary', '')).strip(),
+        'evidence_note': str(item.get('evidence_note', '')).strip(),
+        'tests_run': _normalize_list(item.get('tests_run', []) if isinstance(item.get('tests_run'), list) else []),
+        'changed_files': _normalize_list(
+            item.get('changed_files', []) if isinstance(item.get('changed_files'), list) else []
+        ),
+        'artifact_paths': _normalize_list(
+            item.get('artifact_paths', []) if isinstance(item.get('artifact_paths'), list) else []
+        ),
         'created_at': str(item.get('created_at', '')).strip(),
         'updated_at': str(item.get('updated_at', '')).strip(),
     }
@@ -1929,6 +2071,14 @@ def _render_queue_item_markdown(payload: dict[str, Any]) -> str:
             f"- started_at: {item.get('started_at')}",
             f"- started_via: {item.get('started_via')}",
             f"- previous_status: {item.get('previous_status')}",
+            f"- completed_at: {item.get('completed_at')}",
+            f"- completed_by: {item.get('completed_by')}",
+            f"- completion_commit: {item.get('completion_commit')}",
+            f"- validation_summary: {item.get('validation_summary')}",
+            f"- evidence_note: {item.get('evidence_note')}",
+            f"- tests_run: {', '.join(item.get('tests_run', [])) if isinstance(item.get('tests_run'), list) else ''}",
+            f"- changed_files: {', '.join(item.get('changed_files', [])) if isinstance(item.get('changed_files'), list) else ''}",
+            f"- artifact_paths: {', '.join(item.get('artifact_paths', [])) if isinstance(item.get('artifact_paths'), list) else ''}",
             f"- created_at: {item.get('created_at')}",
             f"- updated_at: {item.get('updated_at')}",
         ]
