@@ -48,19 +48,33 @@ import {
 } from "/js/sections/reports.js";
 import {
   approveArchitecture as approveArchitectureSection,
+  approveMilestoneIssuePlan as approveMilestoneIssuePlanSection,
+  approveValidationExecutionPlan as approveValidationExecutionPlanSection,
   approveScope as approveScopeSection,
   bindProjectFactoryArchitectureActions,
+  bindProjectFactoryMilestonePlanActions,
   bindProjectFactoryScopeActions,
+  bindProjectFactoryValidationActions,
   buildArchitectureAuthoringPayload as buildArchitectureAuthoringPayloadSection,
+  buildMilestoneIssuePlanPayload as buildMilestoneIssuePlanPayloadSection,
   buildScopeAuthoringPayload as buildScopeAuthoringPayloadSection,
+  buildValidationExecutionPlanPayload as buildValidationExecutionPlanPayloadSection,
   loadArchitectureContract as loadArchitectureContractSection,
+  loadMilestoneIssuePlan as loadMilestoneIssuePlanSection,
   loadScopePackage as loadScopePackageSection,
+  loadValidationExecutionPlan as loadValidationExecutionPlanSection,
   prepareArchitectureContract as prepareArchitectureContractSection,
+  prepareMilestoneIssuePlan as prepareMilestoneIssuePlanSection,
   prepareScopePackage as prepareScopePackageSection,
+  prepareValidationExecutionPlan as prepareValidationExecutionPlanSection,
   renderArchitectureAuthoring as renderArchitectureAuthoringSection,
+  renderMilestoneIssuePlan as renderMilestoneIssuePlanSection,
   renderScopeAuthoring as renderScopeAuthoringSection,
+  renderValidationExecutionPlan as renderValidationExecutionPlanSection,
   saveArchitectureDraft as saveArchitectureDraftSection,
+  saveMilestoneIssuePlanDraft as saveMilestoneIssuePlanDraftSection,
   saveScopeDraft as saveScopeDraftSection,
+  saveValidationExecutionPlanDraft as saveValidationExecutionPlanDraftSection,
 } from "/js/sections/projectFactory/index.js";
 import {
   bindReposActions,
@@ -331,35 +345,10 @@ function renderArchitectureAuthoring(payload) {
   renderArchitectureAuthoringSection(state, payload, { toTextareaList });
 }
 
-function _parseJsonArray(text, fieldName) {
-  const raw = String(text || "").trim();
-  if (!raw) {
-    return [];
-  }
-  let decoded;
-  try {
-    decoded = JSON.parse(raw);
-  } catch (_error) {
-    throw new Error(`${fieldName} must be valid JSON array.`);
-  }
-  if (!Array.isArray(decoded)) {
-    throw new Error(`${fieldName} must be a JSON array.`);
-  }
-  return decoded;
-}
-
 function buildMilestoneIssuePlanPayload() {
-  return prunePayload({
-    project_id: activeProjectId(),
-    planning_summary: byId("milestone-plan-summary").value.trim(),
-    milestones: _parseJsonArray(byId("milestone-plan-milestones").value, "milestones"),
-    issues: _parseJsonArray(byId("milestone-plan-issues").value, "issues"),
-    cross_cutting_tasks: parseLineList(byId("milestone-plan-cross-cutting-tasks").value),
-    validation_plan: parseLineList(byId("milestone-plan-validation-plan").value),
-    documentation_plan: parseLineList(byId("milestone-plan-documentation-plan").value),
-    release_notes: parseLineList(byId("milestone-plan-release-notes").value),
-    open_questions: parseLineList(byId("milestone-plan-open-questions").value),
-    github_apply_notes: byId("milestone-plan-github-apply-notes").value.trim(),
+  return buildMilestoneIssuePlanPayloadSection({
+    activeProjectId,
+    parseLineList,
   });
 }
 
@@ -389,15 +378,9 @@ function buildAgentDispatchPlanPayload() {
 }
 
 function buildValidationExecutionPlanPayload() {
-  return prunePayload({
-    project_id: activeProjectId(),
-    validation_summary: byId("validation-execution-summary").value.trim(),
-    operator_notes: byId("validation-execution-operator-notes").value.trim(),
-    sequencing_notes: parseLineList(byId("validation-execution-sequencing-notes").value),
-    dependency_notes: parseLineList(byId("validation-execution-dependency-notes").value),
-    approval_conditions: parseLineList(byId("validation-execution-approval-conditions").value),
-    known_risks: parseLineList(byId("validation-execution-known-risks").value),
-    manual_validation_notes: parseLineList(byId("validation-execution-manual-notes").value),
+  return buildValidationExecutionPlanPayloadSection({
+    activeProjectId,
+    parseLineList,
   });
 }
 
@@ -440,50 +423,7 @@ function buildExecutionPhaseApprovalPayload() {
 }
 
 function renderMilestoneIssuePlan(payload) {
-  state.milestoneIssuePlan = payload || null;
-  const message = byId("home-milestone-plan-message");
-  const stateLine = byId("home-milestone-plan-state");
-  const exists = Boolean(payload && payload.milestone_issue_plan_exists);
-  const plan = (payload && payload.milestone_issue_plan) || {};
-  if (!exists) {
-    byId("milestone-plan-summary").value = "";
-    byId("milestone-plan-milestones").value = "";
-    byId("milestone-plan-issues").value = "";
-    byId("milestone-plan-cross-cutting-tasks").value = "";
-    byId("milestone-plan-validation-plan").value = "";
-    byId("milestone-plan-documentation-plan").value = "";
-    byId("milestone-plan-release-notes").value = "";
-    byId("milestone-plan-open-questions").value = "";
-    byId("milestone-plan-github-apply-notes").value = "";
-    setList("home-milestone-plan-audit-trail", "home-milestone-plan-audit-trail-empty", []);
-    if (message) {
-      message.textContent = "No milestone/issue plan found. Approve architecture first, then prepare milestone/issue plan.";
-    }
-    if (stateLine) {
-      stateLine.textContent = "Milestone/Issue Plan lifecycle state: not_started";
-    }
-    return;
-  }
-  byId("milestone-plan-summary").value = String(plan.planning_summary || "");
-  byId("milestone-plan-milestones").value = JSON.stringify(Array.isArray(plan.milestones) ? plan.milestones : [], null, 2);
-  byId("milestone-plan-issues").value = JSON.stringify(Array.isArray(plan.issues) ? plan.issues : [], null, 2);
-  byId("milestone-plan-cross-cutting-tasks").value = toTextareaList(plan.cross_cutting_tasks);
-  byId("milestone-plan-validation-plan").value = toTextareaList(plan.validation_plan);
-  byId("milestone-plan-documentation-plan").value = toTextareaList(plan.documentation_plan);
-  byId("milestone-plan-release-notes").value = toTextareaList(plan.release_notes);
-  byId("milestone-plan-open-questions").value = toTextareaList(plan.open_questions);
-  byId("milestone-plan-github-apply-notes").value = String(plan.github_apply_notes || "");
-  setList(
-    "home-milestone-plan-audit-trail",
-    "home-milestone-plan-audit-trail-empty",
-    (plan.audit_trail || []).map((entry) => `${entry.timestamp || "-"} | ${entry.event_type || "-"} | state=${entry.lifecycle_state || "-"} | actor=${entry.actor || "-"}`)
-  );
-  if (message) {
-    message.textContent = "Milestone/issue planning is local-only. No GitHub or model execution is triggered.";
-  }
-  if (stateLine) {
-    stateLine.textContent = `Milestone/Issue Plan lifecycle state: ${plan.lifecycle_state || "not_started"}`;
-  }
+  renderMilestoneIssuePlanSection(state, payload, { toTextareaList });
 }
 
 function renderGithubApplyPlan(payload) {
@@ -595,60 +535,7 @@ function renderAgentDispatchPlan(payload) {
 }
 
 function renderValidationExecutionPlan(payload) {
-  state.validationExecutionPlan = payload || null;
-  const message = byId("home-validation-execution-plan-message");
-  const stateLine = byId("home-validation-execution-plan-state");
-  const statusLine = byId("home-validation-execution-plan-status");
-  const exists = Boolean(payload && payload.validation_execution_plan_exists);
-  const plan = (payload && payload.validation_execution_plan) || {};
-  if (!exists) {
-    byId("validation-execution-summary").value = "";
-    byId("validation-execution-operator-notes").value = "";
-    byId("validation-execution-sequencing-notes").value = "";
-    byId("validation-execution-dependency-notes").value = "";
-    byId("validation-execution-approval-conditions").value = "";
-    byId("validation-execution-known-risks").value = "";
-    byId("validation-execution-manual-notes").value = "";
-    setCodeBlock("home-validation-execution-items", "home-validation-execution-items-empty", "");
-    setCodeBlock("home-validation-execution-groups", "home-validation-execution-groups-empty", "");
-    setCodeBlock("home-validation-execution-evidence", "home-validation-execution-evidence-empty", "");
-    setList("home-validation-execution-audit-trail", "home-validation-execution-audit-trail-empty", []);
-    if (message) {
-      message.textContent = "No Validation Execution Plan found. Approve the local Agent Dispatch Plan first, then prepare Validation Execution Plan.";
-    }
-    if (stateLine) {
-      stateLine.textContent = "Validation Execution Plan lifecycle state: not_started";
-    }
-    if (statusLine) {
-      statusLine.textContent = "validation_execution=not_requested | agent_execution=not_requested | model_execution=not_requested";
-    }
-    return;
-  }
-  byId("validation-execution-summary").value = String(plan.validation_summary || "");
-  byId("validation-execution-operator-notes").value = String(plan.operator_notes || "");
-  byId("validation-execution-sequencing-notes").value = toTextareaList(plan.sequencing_notes);
-  byId("validation-execution-dependency-notes").value = toTextareaList(plan.dependency_notes);
-  byId("validation-execution-approval-conditions").value = toTextareaList(plan.approval_conditions);
-  byId("validation-execution-known-risks").value = toTextareaList(plan.known_risks);
-  byId("validation-execution-manual-notes").value = toTextareaList(plan.manual_validation_notes);
-  const validationPlan = plan.validation_plan || {};
-  setCodeBlock("home-validation-execution-items", "home-validation-execution-items-empty", JSON.stringify(validationPlan.validation_items || [], null, 2));
-  setCodeBlock("home-validation-execution-groups", "home-validation-execution-groups-empty", JSON.stringify(validationPlan.validation_groups || [], null, 2));
-  setCodeBlock("home-validation-execution-evidence", "home-validation-execution-evidence-empty", JSON.stringify(validationPlan.evidence_expectations || [], null, 2));
-  setList(
-    "home-validation-execution-audit-trail",
-    "home-validation-execution-audit-trail-empty",
-    (plan.audit_trail || []).map((entry) => `${entry.timestamp || "-"} | ${entry.event_type || "-"} | state=${entry.lifecycle_state || "-"} | actor=${entry.actor || "-"}`)
-  );
-  if (message) {
-    message.textContent = "This is a local validation plan only. It does not execute validation commands, agents, models, or GitHub actions.";
-  }
-  if (stateLine) {
-    stateLine.textContent = `Validation Execution Plan lifecycle state: ${plan.lifecycle_state || "not_started"}`;
-  }
-  if (statusLine) {
-    statusLine.textContent = `validation_execution=${plan.validation_execution_status || "not_requested"} | agent_execution=${plan.agent_execution_status || "not_requested"} | model_execution=${plan.model_execution_status || "not_requested"}`;
-  }
+  renderValidationExecutionPlanSection(state, payload, { toTextareaList });
 }
 
 function renderDocumentationCloseoutPlan(payload) {
@@ -799,10 +686,7 @@ async function loadArchitectureContract(projectId) {
 }
 
 async function loadMilestoneIssuePlan(projectId) {
-  const query = toQuery({ project_id: projectId || "" });
-  const payload = await fetchJson(`/api/project-factory/milestone-issue-plan${query}`, { method: "GET" });
-  renderMilestoneIssuePlan(payload);
-  return payload;
+  return loadMilestoneIssuePlanSection(projectId, { renderMilestoneIssuePlanForState: renderMilestoneIssuePlan });
 }
 
 async function loadGithubApplyPlan(projectId) {
@@ -820,10 +704,7 @@ async function loadAgentDispatchPlan(projectId) {
 }
 
 async function loadValidationExecutionPlan(projectId) {
-  const query = toQuery({ project_id: projectId || "" });
-  const payload = await fetchJson(`/api/project-factory/validation-execution-plan${query}`, { method: "GET" });
-  renderValidationExecutionPlan(payload);
-  return payload;
+  return loadValidationExecutionPlanSection(projectId, { renderValidationExecutionPlanForState: renderValidationExecutionPlan });
 }
 
 async function loadDocumentationCloseoutPlan(projectId) {
@@ -868,30 +749,15 @@ async function approveArchitecture() {
 }
 
 async function prepareMilestoneIssuePlan() {
-  const payload = await fetchJson("/api/project-factory/milestone-issue-plan", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(prunePayload({ project_id: activeProjectId() })),
-  });
-  return payload;
+  return prepareMilestoneIssuePlanSection(activeProjectId);
 }
 
 async function saveMilestoneIssuePlanDraft() {
-  const payload = await fetchJson("/api/project-factory/milestone-issue-plan", {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(buildMilestoneIssuePlanPayload()),
-  });
-  return payload;
+  return saveMilestoneIssuePlanDraftSection(buildMilestoneIssuePlanPayload);
 }
 
 async function approveMilestoneIssuePlan() {
-  const payload = await fetchJson("/api/project-factory/milestone-issue-plan/approve", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(prunePayload({ project_id: activeProjectId() })),
-  });
-  return payload;
+  return approveMilestoneIssuePlanSection(activeProjectId);
 }
 
 async function prepareGithubApplyPlan() {
@@ -949,30 +815,15 @@ async function approveAgentDispatchPlan() {
 }
 
 async function prepareValidationExecutionPlan() {
-  const payload = await fetchJson("/api/project-factory/validation-execution-plan", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(prunePayload({ project_id: activeProjectId() })),
-  });
-  return payload;
+  return prepareValidationExecutionPlanSection(activeProjectId);
 }
 
 async function saveValidationExecutionPlanDraft() {
-  const payload = await fetchJson("/api/project-factory/validation-execution-plan", {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(buildValidationExecutionPlanPayload()),
-  });
-  return payload;
+  return saveValidationExecutionPlanDraftSection(buildValidationExecutionPlanPayload);
 }
 
 async function approveValidationExecutionPlan() {
-  const payload = await fetchJson("/api/project-factory/validation-execution-plan/approve", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(prunePayload({ project_id: activeProjectId() })),
-  });
-  return payload;
+  return approveValidationExecutionPlanSection(activeProjectId);
 }
 
 async function prepareDocumentationCloseoutPlan() {
@@ -1475,48 +1326,6 @@ function bindForms() {
     }
   });
 
-  on("home-prepare-milestone-issue-plan", "click", async () => {
-    try {
-      setMessage("projects-message", "Preparing local milestone/issue plan placeholder...", "loading");
-      await prepareMilestoneIssuePlan();
-      await loadMilestoneIssuePlan(activeProjectId());
-      await loadGithubApplyPlan(activeProjectId());
-      await loadProjectFactoryDossier(activeProjectId());
-      await refreshSummaryAndReport();
-      setMessage("projects-message", "Milestone/issue plan prepared locally.", "success");
-    } catch (error) {
-      setMessage("projects-message", String(error.message || error), "error");
-    }
-  });
-
-  on("milestone-plan-save-draft", "click", async () => {
-    try {
-      setMessage("projects-message", "Saving local milestone/issue plan draft...", "loading");
-      await saveMilestoneIssuePlanDraft();
-      await loadMilestoneIssuePlan(activeProjectId());
-      await loadGithubApplyPlan(activeProjectId());
-      await loadProjectFactoryDossier(activeProjectId());
-      await refreshSummaryAndReport();
-      setMessage("projects-message", "Milestone/issue plan draft saved.", "success");
-    } catch (error) {
-      setMessage("projects-message", String(error.message || error), "error");
-    }
-  });
-
-  on("milestone-plan-approve", "click", async () => {
-    try {
-      setMessage("projects-message", "Approving local milestone/issue plan...", "loading");
-      await approveMilestoneIssuePlan();
-      await loadMilestoneIssuePlan(activeProjectId());
-      await loadGithubApplyPlan(activeProjectId());
-      await loadProjectFactoryDossier(activeProjectId());
-      await refreshSummaryAndReport();
-      setMessage("projects-message", "Milestone/issue plan approved.", "success");
-    } catch (error) {
-      setMessage("projects-message", String(error.message || error), "error");
-    }
-  });
-
   on("home-prepare-github-apply-plan", "click", async () => {
     try {
       setMessage("projects-message", "Preparing local GitHub apply plan placeholder...", "loading");
@@ -1601,48 +1410,6 @@ function bindForms() {
       await loadProjectFactoryDossier(activeProjectId());
       await refreshSummaryAndReport();
       setMessage("projects-message", "Agent dispatch plan approved.", "success");
-    } catch (error) {
-      setMessage("projects-message", String(error.message || error), "error");
-    }
-  });
-
-  on("home-prepare-validation-execution-plan", "click", async () => {
-    try {
-      setMessage("projects-message", "Preparing local Validation Execution Plan...", "loading");
-      await prepareValidationExecutionPlan();
-      await loadValidationExecutionPlan(activeProjectId());
-      await loadDocumentationCloseoutPlan(activeProjectId());
-      await loadProjectFactoryDossier(activeProjectId());
-      await refreshSummaryAndReport();
-      setMessage("projects-message", "Validation execution plan prepared locally.", "success");
-    } catch (error) {
-      setMessage("projects-message", String(error.message || error), "error");
-    }
-  });
-
-  on("validation-execution-plan-save-draft", "click", async () => {
-    try {
-      setMessage("projects-message", "Saving local Validation Execution Plan draft...", "loading");
-      await saveValidationExecutionPlanDraft();
-      await loadValidationExecutionPlan(activeProjectId());
-      await loadDocumentationCloseoutPlan(activeProjectId());
-      await loadProjectFactoryDossier(activeProjectId());
-      await refreshSummaryAndReport();
-      setMessage("projects-message", "Validation execution plan draft saved.", "success");
-    } catch (error) {
-      setMessage("projects-message", String(error.message || error), "error");
-    }
-  });
-
-  on("validation-execution-plan-approve", "click", async () => {
-    try {
-      setMessage("projects-message", "Approving local Validation Execution Plan...", "loading");
-      await approveValidationExecutionPlan();
-      await loadValidationExecutionPlan(activeProjectId());
-      await loadDocumentationCloseoutPlan(activeProjectId());
-      await loadProjectFactoryDossier(activeProjectId());
-      await refreshSummaryAndReport();
-      setMessage("projects-message", "Validation execution plan approved.", "success");
     } catch (error) {
       setMessage("projects-message", String(error.message || error), "error");
     }
@@ -1748,6 +1515,26 @@ async function init() {
     loadProjectFactoryDossier,
     loadMilestoneIssuePlan,
     loadGithubApplyPlan,
+    refreshSummaryAndReport,
+  });
+  bindProjectFactoryMilestonePlanActions({
+    activeProjectId,
+    prepareMilestoneIssuePlanForState: prepareMilestoneIssuePlan,
+    saveMilestoneIssuePlanDraftForState: saveMilestoneIssuePlanDraft,
+    approveMilestoneIssuePlanForState: approveMilestoneIssuePlan,
+    loadMilestoneIssuePlanForState: loadMilestoneIssuePlan,
+    loadGithubApplyPlan,
+    loadProjectFactoryDossier,
+    refreshSummaryAndReport,
+  });
+  bindProjectFactoryValidationActions({
+    activeProjectId,
+    prepareValidationExecutionPlanForState: prepareValidationExecutionPlan,
+    saveValidationExecutionPlanDraftForState: saveValidationExecutionPlanDraft,
+    approveValidationExecutionPlanForState: approveValidationExecutionPlan,
+    loadValidationExecutionPlanForState: loadValidationExecutionPlan,
+    loadDocumentationCloseoutPlan,
+    loadProjectFactoryDossier,
     refreshSummaryAndReport,
   });
   bindProjectsActions({

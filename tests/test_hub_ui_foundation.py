@@ -201,6 +201,8 @@ def test_hub_static_files_exist() -> None:
     assert (static_dir / "js" / "sections" / "projectFactory" / "index.js").exists()
     assert (static_dir / "js" / "sections" / "projectFactory" / "scope.js").exists()
     assert (static_dir / "js" / "sections" / "projectFactory" / "architecture.js").exists()
+    assert (static_dir / "js" / "sections" / "projectFactory" / "milestonePlan.js").exists()
+    assert (static_dir / "js" / "sections" / "projectFactory" / "validation.js").exists()
     assert (static_dir / "styles.css").exists()
 
 
@@ -227,6 +229,12 @@ def test_app_js_imports_section_modules() -> None:
     assert 'from "/js/sections/orchestration.js"' in app_text
     assert 'from "/js/sections/escalation.js"' in app_text
     assert 'from "/js/sections/projectFactory/index.js"' in app_text
+
+
+def test_project_factory_index_exports_milestone_and_validation_modules() -> None:
+    index_text = (_static_dir() / "js" / "sections" / "projectFactory" / "index.js").read_text(encoding="utf-8")
+    assert 'from "/js/sections/projectFactory/milestonePlan.js"' in index_text
+    assert 'from "/js/sections/projectFactory/validation.js"' in index_text
 
 
 def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
@@ -664,6 +672,8 @@ def test_static_assets_do_not_reference_external_resources() -> None:
         static_dir / "js" / "sections" / "projectFactory" / "index.js",
         static_dir / "js" / "sections" / "projectFactory" / "scope.js",
         static_dir / "js" / "sections" / "projectFactory" / "architecture.js",
+        static_dir / "js" / "sections" / "projectFactory" / "milestonePlan.js",
+        static_dir / "js" / "sections" / "projectFactory" / "validation.js",
     ):
         content = path.read_text(encoding="utf-8")
         assert not pattern.search(content)

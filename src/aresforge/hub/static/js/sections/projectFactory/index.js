@@ -17,3 +17,23 @@ export {
   saveArchitectureDraft,
   approveArchitecture,
 } from "/js/sections/projectFactory/architecture.js";
+
+export {
+  bindProjectFactoryMilestonePlanActions,
+  buildMilestoneIssuePlanPayload,
+  loadMilestoneIssuePlan,
+  prepareMilestoneIssuePlan,
+  renderMilestoneIssuePlan,
+  saveMilestoneIssuePlanDraft,
+  approveMilestoneIssuePlan,
+} from "/js/sections/projectFactory/milestonePlan.js";
+
+export {
+  bindProjectFactoryValidationActions,
+  buildValidationExecutionPlanPayload,
+  loadValidationExecutionPlan,
+  prepareValidationExecutionPlan,
+  renderValidationExecutionPlan,
+  saveValidationExecutionPlanDraft,
+  approveValidationExecutionPlan,
+} from "/js/sections/projectFactory/validation.js";
