@@ -1,6 +1,43 @@
 import { byId, on, setCodeBlock, setList, setMessage, setText } from "/js/core/dom.js";
 import { fetchJson, toQuery } from "/js/core/http.js";
 
+export function queueEntries(countLines, queueStatusCounts) {
+  return countLines("status", queueStatusCounts);
+}
+
+export function statusBadgeText(readiness) {
+  const status = String((readiness || {}).overall_status || "needs_attention");
+  return status;
+}
+
+export function renderWorkflowCards(containerId, emptyId, workflows) {
+  const container = byId(containerId);
+  const empty = byId(emptyId);
+  if (!container || !empty) {
+    return;
+  }
+  container.innerHTML = "";
+  if (!workflows || workflows.length === 0) {
+    empty.style.display = "block";
+    return;
+  }
+  empty.style.display = "none";
+  workflows.forEach((workflow) => {
+    const card = document.createElement("article");
+    card.className = "workflow-card";
+    const required = (workflow.required_inputs || []).join(", ") || "none";
+    card.innerHTML = `
+      <h4>${workflow.title || workflow.workflow_id || "workflow"}</h4>
+      <p>${workflow.description || ""}</p>
+      <p><strong>Hub:</strong> ${workflow.related_hub_section || "-"}</p>
+      <p><strong>Inputs:</strong> ${required}</p>
+      <p><strong>Status:</strong> ${workflow.execution_status || "report_only"}</p>
+      <p><strong>Notes:</strong> ${workflow.notes || ""}</p>
+    `;
+    container.appendChild(card);
+  });
+}
+
 export function renderReportSummary(state, report, deps) {
   const {
     countLines,
@@ -47,7 +84,7 @@ export function renderReportSummary(state, report, deps) {
   byId("home-active-project-queue-detail").textContent = `ready=${activeProjectSummary.active_project_ready_item_count || 0} | blocked=${activeProjectSummary.active_project_blocked_item_count || 0}`;
   renderActiveProjectWorkbench(report);
 
-  setList("queue-status-list", "queue-empty-state", queueEntries(queueSummary.counts_by_status));
+  setList("queue-status-list", "queue-empty-state", queueEntries(countLines, queueSummary.counts_by_status));
   setList("warnings-list", "warnings-empty-state", report.warnings || []);
   setList("actions-list", "actions-empty-state", report.recommended_next_actions || []);
   setList(
@@ -224,7 +261,7 @@ export async function loadLocalProjectReportFoundation(countLines) {
   renderLocalProjectReportFoundation(payload, countLines);
 }
 
-export async function loadReportSlices(renderWorkflowCards) {
+export async function loadReportSlices() {
   const readiness = await fetchJson("/api/reports/readiness", { method: "GET" });
   const actionCenter = await fetchJson("/api/reports/action-center", { method: "GET" });
   const workflows = await fetchJson("/api/reports/operator-workflows", { method: "GET" });

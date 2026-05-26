@@ -41,7 +41,10 @@ import {
   loadExportPreview as loadExportPreviewSection,
   loadLocalProjectReportFoundation as loadLocalProjectReportFoundationSection,
   loadReportSlices as loadReportSlicesSection,
+  queueEntries,
+  renderWorkflowCards,
   renderLocalProjectReportFoundationUnavailable,
+  statusBadgeText,
 } from "/js/sections/reports.js";
 import {
   bindReposActions,
@@ -95,47 +98,6 @@ function countLines(prefix, counts) {
   return Object.keys(counts)
     .sort()
     .map((key) => `${prefix} ${key}: ${counts[key]}`);
-}
-
-function queueEntries(queueStatusCounts) {
-  return countLines("status", queueStatusCounts);
-}
-
-function statusBadgeText(readiness) {
-  const status = String((readiness || {}).overall_status || "needs_attention");
-  return status;
-}
-
-function workflowLine(workflow) {
-  return `${workflow.workflow_id} | ${workflow.title} | section=${workflow.related_hub_section} | status=${workflow.execution_status}`;
-}
-
-function renderWorkflowCards(containerId, emptyId, workflows) {
-  const container = byId(containerId);
-  const empty = byId(emptyId);
-  if (!container || !empty) {
-    return;
-  }
-  container.innerHTML = "";
-  if (!workflows || workflows.length === 0) {
-    empty.style.display = "block";
-    return;
-  }
-  empty.style.display = "none";
-  workflows.forEach((workflow) => {
-    const card = document.createElement("article");
-    card.className = "workflow-card";
-    const required = (workflow.required_inputs || []).join(", ") || "none";
-    card.innerHTML = `
-      <h4>${workflow.title || workflow.workflow_id || "workflow"}</h4>
-      <p>${workflow.description || ""}</p>
-      <p><strong>Hub:</strong> ${workflow.related_hub_section || "-"}</p>
-      <p><strong>Inputs:</strong> ${required}</p>
-      <p><strong>Status:</strong> ${workflow.execution_status || "report_only"}</p>
-      <p><strong>Notes:</strong> ${workflow.notes || ""}</p>
-    `;
-    container.appendChild(card);
-  });
 }
 
 const state = createState();
@@ -1279,7 +1241,7 @@ async function loadLocalProjectReportFoundation() {
 }
 
 async function loadReportSlices() {
-  return loadReportSlicesSection(renderWorkflowCards);
+  return loadReportSlicesSection();
 }
 
 async function loadExportPreview(formatName) {
