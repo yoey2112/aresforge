@@ -1,5 +1,40 @@
 # AresForge Build State
 
+## M14 Source-of-Truth Reconciliation Snapshot
+
+- Operating mode for current local foundation work:
+  - local-first
+  - direct-on-`main`
+  - read-only/report-planning emphasis for new dashboard/report surfaces
+- Safety restrictions remain explicit:
+  - no GitHub API calls
+  - no `gh` calls
+  - no GitHub issue/PR mutation from these local read-model/report commands
+  - no agent execution
+  - no LLM routing or invocation
+  - no background scheduler/daemon behavior
+- Historical milestone record:
+  - M9 through M13 were completed, validated, committed, and pushed before this chat.
+  - M14 local foundation additions are now present locally on `main` and validated in this chat.
+
+M14 local read-model/report command additions now available:
+
+- `python -m aresforge inspect-local-project-dashboard`
+- `python -m aresforge list-local-projects`
+- `python -m aresforge inspect-local-project-readiness --project-id <id>`
+- `python -m aresforge inspect-local-queue-agent-summary`
+- `python -m aresforge inspect-local-project-report`
+
+Targeted validation bundle for this local foundation layer:
+
+- `git diff --check`
+- `python -m pytest tests/test_roadmap_db_control.py tests/test_config_and_migrations.py tests/test_cli.py`
+- targeted local suites as needed:
+  - `python -m pytest tests/test_local_project_dashboard.py`
+  - `python -m pytest tests/test_local_project_readiness.py`
+  - `python -m pytest tests/test_local_queue_agent_summary.py`
+  - `python -m pytest tests/test_local_project_report.py`
+
 ## M7 Local Queue Transition Planning And Gated Queue Move
 
 - Added local queue transition planning and gated queue move control:

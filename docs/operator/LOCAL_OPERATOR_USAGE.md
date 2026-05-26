@@ -1,5 +1,40 @@
 # Local Operator Usage
 
+## M14 Source-of-Truth Reconciliation Note
+
+This section captures the current local foundation status after M14 reconciliation work.
+
+State summary:
+
+- M9-M13 were completed, validated, committed, and pushed before this chat.
+- M14 local read-model/report additions are now present on local `main` and validated.
+- Operating posture remains local-first and direct-on-`main`.
+
+Hard restrictions (unchanged):
+
+- no GitHub API calls
+- no `gh` calls
+- no GitHub issue/PR mutation for these local summary commands
+- no agent execution
+- no LLM routing/invocation
+
+M14 read-only command additions:
+
+- `python -m aresforge inspect-local-project-dashboard`
+- `python -m aresforge list-local-projects`
+- `python -m aresforge inspect-local-project-readiness --project-id <id>`
+- `python -m aresforge inspect-local-queue-agent-summary`
+- `python -m aresforge inspect-local-project-report`
+
+Targeted validation for this layer:
+
+- `git diff --check`
+- `python -m pytest tests/test_roadmap_db_control.py tests/test_config_and_migrations.py tests/test_cli.py`
+- `python -m pytest tests/test_local_project_dashboard.py`
+- `python -m pytest tests/test_local_project_readiness.py`
+- `python -m pytest tests/test_local_queue_agent_summary.py`
+- `python -m pytest tests/test_local_project_report.py`
+
 ## M46 Operator Note: Project Factory Pipeline And Approval Boundaries
 
 AresForge should now be operated as a local-first project-factory control plane with explicit approval boundaries. The canonical workflow is defined in:

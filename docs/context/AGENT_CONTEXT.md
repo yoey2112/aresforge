@@ -1,5 +1,29 @@
 # AresForge Agent Context
 
+## M14 Local Foundation Context
+
+- Current source-of-truth stance:
+  - local-first operation
+  - direct-on-`main` workflow
+  - read-only local reporting/inspection expansion
+- Explicit restrictions for this layer:
+  - no GitHub API calls
+  - no `gh` calls
+  - no GitHub issue/PR mutation for local read-model/report commands
+  - no real agent execution
+  - no LLM routing/invocation
+- Historical status:
+  - M9-M13 were completed, validated, committed, and pushed before this chat.
+  - M14 local read-model/report commands were added in this chat and validated on local `main`.
+
+New local read-only command surface to know:
+
+- `python -m aresforge inspect-local-project-dashboard`
+- `python -m aresforge list-local-projects`
+- `python -m aresforge inspect-local-project-readiness --project-id <id>`
+- `python -m aresforge inspect-local-queue-agent-summary`
+- `python -m aresforge inspect-local-project-report`
+
 ## M46 Project Factory Alignment Context
 
 Project-factory vision:

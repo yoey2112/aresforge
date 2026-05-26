@@ -1,5 +1,31 @@
 # Runnable Skeleton
 
+## M14 Local Read-Model/Report Layer
+
+Implemented local-only inspection surfaces now include:
+
+- project dashboard summary
+- local project list and per-project readiness inspection
+- queue and agent workload summary
+- consolidated local project report summary
+
+CLI entry points:
+
+- `python -m aresforge inspect-local-project-dashboard`
+- `python -m aresforge list-local-projects`
+- `python -m aresforge inspect-local-project-readiness --project-id <id>`
+- `python -m aresforge inspect-local-queue-agent-summary`
+- `python -m aresforge inspect-local-project-report`
+
+Execution boundaries remain unchanged:
+
+- read-only/report-only for this M14 layer
+- no GitHub API calls
+- no `gh` calls
+- no GitHub mutation
+- no real agent execution
+- no LLM routing/invocation
+
 ## M46 Project Factory Mapping
 
 This runnable skeleton currently maps to a partial project-factory shell, not the full pipeline.

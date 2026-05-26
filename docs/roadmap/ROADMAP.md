@@ -1,5 +1,31 @@
 # AresForge Roadmap
 
+## M14 Local Foundation Reconciliation
+
+Status: Completed locally on `main` in this chat (read-only/report-summary scope).
+
+Recorded completion context:
+
+- M9-M13 were already completed, validated, committed, and pushed before this chat.
+- M14 added local-only read model/report foundation surfaces without introducing execution/mutation behavior.
+
+Delivered M14 local command additions:
+
+- `inspect-local-project-dashboard`
+- `list-local-projects`
+- `inspect-local-project-readiness`
+- `inspect-local-queue-agent-summary`
+- `inspect-local-project-report`
+
+M14 boundaries:
+
+- local-first and local-only for new inspection/report commands
+- no GitHub API calls
+- no `gh` calls
+- no GitHub issue/PR mutation
+- no agent execution
+- no LLM routing/invocation
+
 ## Project Factory Realignment Track
 
 The primary near-term roadmap priority is completing the end-to-end project-factory loop. UI polish is secondary to finishing the workflow contract from intake through validated closeout.
