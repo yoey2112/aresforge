@@ -196,6 +196,7 @@ from aresforge.operator.local_project_queue import (
     QUEUE_STATUSES,
     add_local_queue_item,
     add_queue_item,
+    generate_local_queue_item_codex_prompt,
     init_project_queue,
     inspect_local_queue_item_readiness,
     inspect_project_queue,
@@ -1455,6 +1456,16 @@ def build_parser() -> argparse.ArgumentParser:
     start_local_queue_item_parser.add_argument("--item-id", required=True)
     start_local_queue_item_parser.add_argument("--queue-path")
     start_local_queue_item_parser.add_argument("--registry-path")
+    generate_local_queue_item_codex_prompt_parser = subparsers.add_parser(
+        "generate-local-queue-item-codex-prompt",
+        help="Generate a local-only Codex implementation prompt for one queue item.",
+    )
+    generate_local_queue_item_codex_prompt_parser.add_argument("--item-id", required=True)
+    generate_local_queue_item_codex_prompt_parser.add_argument("--queue-path")
+    generate_local_queue_item_codex_prompt_parser.add_argument("--registry-path")
+    generate_local_queue_item_codex_prompt_parser.add_argument("--output")
+    generate_local_queue_item_codex_prompt_parser.add_argument("--commit-message")
+    generate_local_queue_item_codex_prompt_parser.add_argument("--force", action="store_true")
     inspect_local_project_dashboard_parser = subparsers.add_parser(
         "inspect-local-project-dashboard",
         help="Inspect read-only local project dashboard contract payload.",
@@ -3505,6 +3516,19 @@ def main(argv: list[str] | None = None) -> int:
             item_id=args.item_id,
             queue_path=args.queue_path,
             registry_path=args.registry_path,
+        )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "generate-local-queue-item-codex-prompt":
+        payload = generate_local_queue_item_codex_prompt(
+            config,
+            item_id=args.item_id,
+            queue_path=args.queue_path,
+            registry_path=args.registry_path,
+            output=args.output,
+            force=bool(args.force),
+            commit_message=args.commit_message,
         )
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1

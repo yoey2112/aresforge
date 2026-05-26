@@ -52,6 +52,7 @@ def test_cli_has_expected_commands() -> None:
         "export-work-item-operator-prompt",
         "archive-work-item-operator-packet",
         "recommend-next-work-item-action",
+        "generate-local-queue-item-codex-prompt",
         "inspect-queue-work-state",
         "inspect-work-item-readiness",
         "inspect-queue-readiness",
@@ -4719,6 +4720,36 @@ def test_export_work_item_operator_prompt_dispatch_markdown(
     output = capsys.readouterr().out
     assert exit_code == 1
     assert output == "# Export Work Item Operator Prompt\n\n"
+
+
+def test_generate_local_queue_item_codex_prompt_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "item_id": "work-1",
+        "prompt": "# Codex Prompt Package",
+        "readiness_status": "ready",
+        "warnings": [],
+    }
+    monkeypatch.setattr(
+        cli,
+        "generate_local_queue_item_codex_prompt",
+        lambda _config, item_id, queue_path=None, registry_path=None, output=None, force=False, commit_message=None: payload,
+    )
+    exit_code = cli.main(
+        [
+            "generate-local-queue-item-codex-prompt",
+            "--item-id",
+            "work-1",
+            "--commit-message",
+            "queue prompt commit",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert parsed == payload
 
 
 def test_archive_work_item_operator_packet_dispatch_json(

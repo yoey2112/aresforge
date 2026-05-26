@@ -6,6 +6,7 @@ from aresforge.operator.local_active_project import set_active_project
 from aresforge.operator.local_project_queue import (
     add_local_queue_item,
     add_queue_item,
+    generate_local_queue_item_codex_prompt,
     init_project_queue,
     inspect_local_queue_item_readiness,
     inspect_project_queue,
@@ -804,3 +805,77 @@ def test_start_local_queue_item_persists_status_transition(tmp_path: Path) -> No
     assert persisted['status'] == 'in_progress'
     assert persisted['previous_status'] == 'ready'
     assert persisted['started_via'] == 'local_operator'
+
+
+def test_generate_local_queue_item_codex_prompt_for_valid_item(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='ready-item',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Prepare queue prompt generation',
+        description='Generate a Codex prompt from the local queue item.',
+        status='ready',
+        tags=['area:queue'],
+        notes='Acceptance criteria:\n- Prompt includes local-only constraints\n- Prompt includes validation commands',
+    )['ok'] is True
+
+    payload = generate_local_queue_item_codex_prompt(config, item_id='ready-item')
+
+    assert payload['ok'] is True
+    assert payload['local_only'] is True
+    assert payload['item_id'] == 'ready-item'
+    assert payload['readiness_status'] == 'ready'
+    assert 'Repository path: ' in payload['prompt']
+    assert str(config.repo_root) in payload['prompt']
+    assert 'Queue item title: Prepare queue prompt generation' in payload['prompt']
+    assert 'Target area: queue' in payload['prompt']
+    assert 'Prompt includes local-only constraints' in payload['prompt']
+    assert 'Do not push.' in payload['prompt']
+    assert 'Do not use GitHub API, gh, GitHub issues, pull requests, workflow activity, or GitHub mutation.' in payload['prompt']
+    assert 'git diff --check' in payload['prompt']
+    assert 'python -m pytest tests/test_roadmap_db_control.py tests/test_config_and_migrations.py tests/test_cli.py' in payload['prompt']
+
+
+def test_generate_local_queue_item_codex_prompt_missing_item_returns_safe_failure(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+
+    payload = generate_local_queue_item_codex_prompt(config, item_id='missing-item')
+
+    assert payload['ok'] is False
+    assert payload['local_only'] is True
+    assert payload['item_id'] == 'missing-item'
+    assert payload['readiness_status'] == 'not_found'
+    assert payload['prompt'] == ''
+    assert payload['warnings'] == []
+
+
+def test_generate_local_queue_item_codex_prompt_writes_output_file(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='ready-item',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Write queue prompt artifact',
+        description='Persist a prompt artifact locally.',
+        status='ready',
+    )['ok'] is True
+    output_path = tmp_path / 'artifacts' / 'local_queue_prompts' / 'prompt.txt'
+
+    payload = generate_local_queue_item_codex_prompt(
+        config,
+        item_id='ready-item',
+        output=output_path,
+        commit_message='Custom commit guidance',
+    )
+
+    assert payload['ok'] is True
+    assert payload['output_path'] == str(output_path)
+    assert output_path.exists()
+    rendered = output_path.read_text(encoding='utf-8')
+    assert 'Commit message guidance: Custom commit guidance' in rendered

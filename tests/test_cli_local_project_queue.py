@@ -314,3 +314,86 @@ def test_cli_start_local_queue_item_stable_keys(monkeypatch, capsys, tmp_path: P
         assert key in payload
     assert payload['item_id'] == 'startable-item'
     assert payload['status'] == 'in_progress'
+
+
+def test_cli_generate_local_queue_item_codex_prompt_stable_keys(monkeypatch, capsys, tmp_path: Path) -> None:
+    monkeypatch.setattr(cli.AppConfig, 'from_env', lambda: _config(tmp_path))
+    assert cli.main(['init-project-queue']) == 0
+    _ = capsys.readouterr().out
+    assert (
+        cli.main(
+            [
+                'add-queue-item',
+                '--item-id',
+                'ready-item',
+                '--project-id',
+                'project-one',
+                '--repo-id',
+                'repo-main',
+                '--title',
+                'Generate queue prompt',
+                '--description',
+                'Build a copy/paste-ready Codex prompt.',
+                '--status',
+                'ready',
+                '--tag',
+                'area:queue',
+                '--notes',
+                'Acceptance criteria:\n- Prompt includes constraints',
+            ]
+        )
+        == 0
+    )
+    _ = capsys.readouterr().out
+
+    assert cli.main(['generate-local-queue-item-codex-prompt', '--item-id', 'ready-item']) == 0
+    payload = json.loads(capsys.readouterr().out)
+    for key in ('ok', 'local_only', 'item_id', 'prompt', 'readiness_status', 'warnings'):
+        assert key in payload
+    assert payload['item_id'] == 'ready-item'
+    assert payload['readiness_status'] == 'ready'
+    assert 'Do not push.' in payload['prompt']
+
+
+def test_cli_generate_local_queue_item_codex_prompt_writes_output(monkeypatch, capsys, tmp_path: Path) -> None:
+    monkeypatch.setattr(cli.AppConfig, 'from_env', lambda: _config(tmp_path))
+    output_path = tmp_path / 'artifacts' / 'local_queue_prompts' / 'prompt.txt'
+    assert cli.main(['init-project-queue']) == 0
+    _ = capsys.readouterr().out
+    assert (
+        cli.main(
+            [
+                'add-queue-item',
+                '--item-id',
+                'ready-item',
+                '--project-id',
+                'project-one',
+                '--repo-id',
+                'repo-main',
+                '--title',
+                'Generate queue prompt',
+                '--description',
+                'Build a copy/paste-ready Codex prompt.',
+                '--status',
+                'ready',
+            ]
+        )
+        == 0
+    )
+    _ = capsys.readouterr().out
+
+    assert (
+        cli.main(
+            [
+                'generate-local-queue-item-codex-prompt',
+                '--item-id',
+                'ready-item',
+                '--output',
+                str(output_path),
+            ]
+        )
+        == 0
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert payload['output_path'] == str(output_path)
+    assert output_path.exists()

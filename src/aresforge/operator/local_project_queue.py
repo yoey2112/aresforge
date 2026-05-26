@@ -769,6 +769,102 @@ def start_local_queue_item(
     }
 
 
+def generate_local_queue_item_codex_prompt(
+    config: AppConfig,
+    *,
+    item_id: str,
+    queue_path: str | Path | None = None,
+    registry_path: str | Path | None = None,
+    output: str | Path | None = None,
+    force: bool = False,
+    commit_message: str | None = None,
+) -> dict[str, Any]:
+    resolved_queue_path = resolve_project_queue_path(config.repo_root, queue_path)
+    loaded = _load_queue_required(resolved_queue_path)
+    if not loaded.get('ok', False):
+        return loaded
+    queue = loaded['queue']
+
+    items = [_item_view(item) for item in queue.get('work_items', []) if isinstance(item, dict)]
+    normalized_item_id = str(item_id or '').strip()
+    item = next((candidate for candidate in items if candidate.get('item_id') == normalized_item_id), None)
+    if item is None:
+        return {
+            'command': 'generate-local-queue-item-codex-prompt',
+            'ok': False,
+            'local_only': True,
+            'item_id': normalized_item_id,
+            'prompt': '',
+            'readiness_status': 'not_found',
+            'warnings': [],
+        }
+
+    readiness = _evaluate_local_queue_item_readiness(
+        repo_root=config.repo_root,
+        item=item,
+        items=items,
+        registry_path=registry_path,
+    )
+    parsed_notes = _parse_queue_item_notes(str(item.get('notes', '')).strip())
+    prompt = _render_local_queue_item_codex_prompt(
+        repo_root=config.repo_root,
+        item=item,
+        readiness=readiness,
+        target_area=_infer_target_area(item),
+        acceptance_criteria=parsed_notes['acceptance_criteria'],
+        extra_notes=parsed_notes['notes'],
+        commit_message=commit_message,
+    )
+
+    payload = {
+        'command': 'generate-local-queue-item-codex-prompt',
+        'ok': True,
+        'local_only': True,
+        'item_id': normalized_item_id,
+        'prompt': prompt,
+        'readiness_status': str(readiness.get('readiness_status', '')).strip(),
+        'warnings': sorted(
+            {
+                str(warning).strip()
+                for warning in readiness.get('warnings', [])
+                if str(warning).strip()
+            }
+        ),
+    }
+
+    if output is None:
+        return payload
+
+    output_path = Path(output)
+    if output_path.exists() and not force:
+        payload['ok'] = False
+        payload['output_path'] = str(output_path)
+        payload['warnings'] = sorted(
+            {
+                *payload['warnings'],
+                'Output file already exists. Re-run with --force to overwrite.',
+            }
+        )
+        return payload
+
+    try:
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(prompt + '\n', encoding='utf-8')
+    except OSError as exc:
+        payload['ok'] = False
+        payload['output_path'] = str(output_path)
+        payload['warnings'] = sorted(
+            {
+                *payload['warnings'],
+                f'Failed to write output file: {exc}',
+            }
+        )
+        return payload
+
+    payload['output_path'] = str(output_path)
+    return payload
+
+
 def project_queue_summary_for_handoff(config: AppConfig) -> dict[str, Any] | None:
     queue_path = resolve_project_queue_path(config.repo_root, None)
     if not queue_path.exists():
@@ -1211,6 +1307,209 @@ def _compose_notes_with_acceptance_criteria(acceptance_criteria: list[str] | Non
     if not criteria:
         return None
     return '\n'.join(['Acceptance criteria:'] + [f'- {criterion}' for criterion in criteria])
+
+
+def _parse_queue_item_notes(notes: str) -> dict[str, Any]:
+    stripped = str(notes or '').strip()
+    if not stripped:
+        return {
+            'acceptance_criteria': [],
+            'notes': '',
+        }
+
+    lines = [line.rstrip() for line in stripped.splitlines()]
+    if lines and lines[0].strip().lower() == 'acceptance criteria:':
+        acceptance_criteria: list[str] = []
+        remaining: list[str] = []
+        for line in lines[1:]:
+            normalized = line.strip()
+            if normalized.startswith('- '):
+                criterion = normalized[2:].strip()
+                if criterion:
+                    acceptance_criteria.append(criterion)
+                continue
+            if normalized:
+                remaining.append(normalized)
+        return {
+            'acceptance_criteria': _normalize_list(acceptance_criteria),
+            'notes': '\n'.join(remaining).strip(),
+        }
+
+    return {
+        'acceptance_criteria': [],
+        'notes': stripped,
+    }
+
+
+def _infer_target_area(item: dict[str, Any]) -> str:
+    tags = item.get('tags', []) if isinstance(item.get('tags'), list) else []
+    for tag in tags:
+        normalized = str(tag).strip()
+        if normalized.startswith('area:'):
+            return normalized.split(':', 1)[1].strip()
+    return ''
+
+
+def _render_local_queue_item_codex_prompt(
+    *,
+    repo_root: Path,
+    item: dict[str, Any],
+    readiness: dict[str, Any],
+    target_area: str,
+    acceptance_criteria: list[str],
+    extra_notes: str,
+    commit_message: str | None,
+) -> str:
+    description = str(item.get('description', '')).strip()
+    title = str(item.get('title', '')).strip()
+    normalized_commit_message = str(commit_message or '').strip() or f'Implement {title}'
+    blockers = [
+        str(blocker).strip()
+        for blocker in readiness.get('blockers', [])
+        if str(blocker).strip()
+    ]
+    warnings = [
+        str(warning).strip()
+        for warning in readiness.get('warnings', [])
+        if str(warning).strip()
+    ]
+    dependency_summary = (
+        readiness.get('dependency_summary', {}) if isinstance(readiness.get('dependency_summary'), dict) else {}
+    )
+    unresolved_dependencies = dependency_summary.get('unresolved_dependencies', [])
+    unresolved_blockers = dependency_summary.get('unresolved_blockers', [])
+
+    lines = [
+        '# Codex Prompt Package',
+        '',
+        '## Task',
+        f"- Queue item ID: {str(item.get('item_id', '')).strip()}",
+        f'- Queue item title: {title}',
+        f"- Queue item status: {str(item.get('status', '')).strip()}",
+        f'- Queue item description: {description or "No explicit description provided."}',
+        '',
+        '## Repository Context',
+        '- Repository: aresforge',
+        f'- Repository path: {repo_root}',
+        '- Base branch: main',
+        '- Working mode: local-first, direct on main',
+        '',
+        '## Purpose And Boundary',
+        '- This prompt package is a review/input artifact only. It does not approve, merge, close, automate, bypass human review, change repository settings, or authorize future automation.',
+        '- Work locally first.',
+        '- Work directly on main.',
+        '- Keep changes small and focused.',
+        '- Preserve existing behavior and tests.',
+        '- Avoid placeholders.',
+        '- Avoid nested markdown fences inside PowerShell here-strings.',
+        '',
+        '## Required Source-Of-Truth Reading List',
+        '- docs/context/AGENT_CONTEXT.md',
+        '- docs/context/BUILD_STATE.md',
+        '- docs/roadmap/ROADMAP.md',
+        '- docs/prompts/CODEX_PROMPT_STANDARD.md',
+        '- docs/prompts/CODEX_PROMPT_PACKAGE_TEMPLATE.md',
+        '- docs/architecture/LOCAL_OPERATOR_WORKFLOW.md',
+        '- docs/learning/ERROR_PATTERNS.md',
+        '',
+        '## Goal',
+        f'- Implement the queue item: {title}.',
+        '- Validate the change locally.',
+        '- Commit only after all required tests pass.',
+        '',
+        '## Required Changes',
+        f'- Target area: {target_area or "Not explicitly tagged."}',
+        f"- Project ID: {str(item.get('project_id', '')).strip()}",
+        f"- Repo ID: {str(item.get('repo_id', '')).strip()}",
+    ]
+
+    if acceptance_criteria:
+        lines.extend([
+            '',
+            '## Acceptance Criteria',
+            *[f'- {criterion}' for criterion in acceptance_criteria],
+        ])
+    else:
+        lines.extend([
+            '',
+            '## Acceptance Criteria',
+            '- No explicit acceptance criteria were stored on the queue item. Derive the narrowest correct implementation from the description and source-of-truth docs.',
+        ])
+
+    if extra_notes:
+        lines.extend([
+            '',
+            '## Additional Notes',
+            extra_notes,
+        ])
+
+    lines.extend([
+        '',
+        '## Local-Only Constraints',
+        '- Do not push.',
+        '- Do not use GitHub API, gh, GitHub issues, pull requests, workflow activity, or GitHub mutation.',
+        '- Do not implement Hub mutation UI in this task.',
+        '- Do not implement automatic Codex execution.',
+        '- Do not implement agent execution.',
+        '- Do not implement LLM routing.',
+        '- Do not implement GitHub sync or GitHub mutation.',
+        '- Leave unrelated local changes untouched and stage only files required for this work.',
+        '',
+        '## Readiness Snapshot',
+        f"- Readiness status: {str(readiness.get('readiness_status', '')).strip()}",
+    ])
+    if blockers:
+        lines.extend(['- Current blockers:'] + [f'- {blocker}' for blocker in blockers])
+    else:
+        lines.append('- Current blockers: none')
+    if warnings:
+        lines.extend(['- Current warnings:'] + [f'- {warning}' for warning in warnings])
+    else:
+        lines.append('- Current warnings: none')
+    if unresolved_dependencies:
+        lines.extend(
+            ['- Unresolved dependencies:']
+            + [
+                f"- {str(entry.get('item_id', '')).strip()} ({str(entry.get('status', '')).strip()} / {str(entry.get('reason', '')).strip()})"
+                for entry in unresolved_dependencies
+                if isinstance(entry, dict)
+            ]
+        )
+    if unresolved_blockers:
+        lines.extend(
+            ['- External blockers:']
+            + [
+                f"- {str(entry.get('item_id', '')).strip()} ({str(entry.get('status', '')).strip()} / {str(entry.get('reason', '')).strip()})"
+                for entry in unresolved_blockers
+                if isinstance(entry, dict)
+            ]
+        )
+
+    lines.extend([
+        '',
+        '## Validation',
+        '- Run these commands before committing:',
+        '- git diff --check',
+        '- python -m pytest tests/test_roadmap_db_control.py tests/test_config_and_migrations.py tests/test_cli.py',
+        '- python -m pytest tests/test_local_queue_agent_summary.py tests/test_local_project_dashboard.py tests/test_local_project_report.py',
+        '- python -m pytest tests/test_local_project_queue.py tests/test_cli_local_project_queue.py',
+        '- Run any narrower targeted tests required for the files you touch.',
+        '',
+        '## Commit Expectations',
+        '- Only commit after all required validation commands succeed.',
+        f'- Commit message guidance: {normalized_commit_message}',
+        '- Do not amend unrelated work.',
+        '- Do not push.',
+        '',
+        '## Evidence To Report Back',
+        '- Changed files.',
+        '- Validation commands and outcomes.',
+        '- Any smoke checks performed locally.',
+        '- Commit hash.',
+        '- Current git status.',
+    ])
+
+    return '\n'.join(lines).rstrip()
 
 
 def _generate_local_queue_item_id(
