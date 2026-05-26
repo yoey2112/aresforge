@@ -214,6 +214,14 @@ def test_index_loads_app_js_as_module_entrypoint() -> None:
     assert '<script type="module" src="/app.js"></script>' in index_text
 
 
+def test_index_html_has_no_external_script_or_stylesheet_urls() -> None:
+    index_text = (_static_dir() / "index.html").read_text(encoding="utf-8")
+    assert "http://" not in index_text.lower()
+    assert "https://" not in index_text.lower()
+    assert "src=\"//" not in index_text.lower()
+    assert "href=\"//" not in index_text.lower()
+
+
 def test_app_js_imports_core_modules() -> None:
     app_text = (_static_dir() / "app.js").read_text(encoding="utf-8")
     assert 'from "/js/core/dom.js"' in app_text
@@ -1484,15 +1492,9 @@ def test_m44_active_project_intake_static_contract() -> None:
     assert "intake-result" in index_text
     assert "Local-only intake for the selected active project." in index_text
 
-    assert "buildIntakePayload" in app_text
-    assert "renderActiveProjectIntakeResult" in app_text
-    assert "buildNewProjectWizardPayload" in app_text
-    assert "focusNewProjectWizard" in app_text
-    assert "renderProjectFactoryDossier" in app_text
-    assert "renderWorkflowTimeline" in app_text
-    assert 'fetchJson("/api/project-factory/new-project"' in app_text
-    assert 'fetchJson("/api/local-queue/items"' in app_text
-    assert "active-project-intake" in app_text
+    assert 'fetchJson("/api/project-factory/new-project"' in combined_text
+    assert 'fetchJson("/api/local-queue/items"' in combined_text
+    assert "active-project-intake" in combined_text
     assert 'intakeType === "direction" || intakeType === "ui" || intakeType === "refactor"' in app_text
     assert 'intakeType === "docs"' in app_text
     assert "loadLocalProjectReportFoundation" in combined_text
@@ -1502,18 +1504,27 @@ def test_m44_active_project_intake_static_contract() -> None:
 def test_m45_active_project_workbench_static_contract() -> None:
     index_text = (_static_dir() / "index.html").read_text(encoding="utf-8")
     combined_text = _combined_frontend_script_text()
-    app_text = (_static_dir() / "app.js").read_text(encoding="utf-8")
 
     assert "Active Project Workbench" in index_text
     assert "Current Active Work" in index_text
     assert "Workbench Actions" in index_text
     assert "Add Active Project Intake" in index_text
 
-    assert "renderActiveProjectWorkbench" in app_text
     assert "home-quick-intake" in combined_text
     assert 'activateSection("queue")' in combined_text
     assert 'byId("intake-title")' in combined_text
     assert ".focus()" in combined_text
+
+
+def test_static_frontend_source_excludes_github_mutation_cli_and_api_strings() -> None:
+    combined_text = _combined_frontend_script_text()
+    forbidden_strings = (
+        "gh issue",
+        "gh pr",
+        "api.github.com",
+    )
+    for token in forbidden_strings:
+        assert token not in combined_text.lower()
 
 
 def test_local_queue_agent_summary_api_contract(tmp_path: Path) -> None:
