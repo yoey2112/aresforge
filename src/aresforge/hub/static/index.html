@@ -40,6 +40,51 @@
             <button id="home-refresh-summary" type="button">Refresh Summary</button>
             <button id="home-start-new-project" type="button">Start New Project</button>
           </div>
+          <section class="subpanel">
+            <h3>Local Home Dashboard</h3>
+            <p id="home-local-dashboard-message" class="message-note">Read-only local dashboard/report snapshot.</p>
+            <p class="boundary-banner">Read-only local-only dashboard: no GitHub mutation, no agent execution, no model routing.</p>
+            <div class="cards">
+              <article class="card">
+                <h3>Total Projects</h3>
+                <p id="home-local-total-projects">0</p>
+                <p class="subvalue">From local project dashboard</p>
+              </article>
+              <article class="card">
+                <h3>Active Project</h3>
+                <p id="home-local-active-project">None selected</p>
+                <p class="subvalue" id="home-local-active-project-id">project_id: -</p>
+              </article>
+              <article class="card">
+                <h3>Active Repo</h3>
+                <p id="home-local-active-repo">-</p>
+                <p class="subvalue">Selected local default repo</p>
+              </article>
+              <article class="card">
+                <h3>Overall Readiness</h3>
+                <p id="home-local-overall-readiness">needs_attention</p>
+                <p class="subvalue">Local report status</p>
+              </article>
+              <article class="card">
+                <h3>Queue Item Count</h3>
+                <p id="home-local-queue-count">0</p>
+                <p class="subvalue">All local queue items</p>
+              </article>
+              <article class="card">
+                <h3>Docs Readiness</h3>
+                <p id="home-local-docs-readiness">needs docs</p>
+                <p class="subvalue">Source-of-truth docs state</p>
+              </article>
+            </div>
+            <h4>Queue Status Summary</h4>
+            <ul id="home-local-queue-status-summary" class="list"></ul>
+            <p id="home-local-queue-status-summary-empty" class="empty">No queue status summary available.</p>
+            <h4>Recommended Next Action</h4>
+            <p id="home-local-recommended-next-action" class="placeholder">No recommendation available yet.</p>
+            <h4>Warnings And Blockers</h4>
+            <ul id="home-local-warnings-blockers" class="list"></ul>
+            <p id="home-local-warnings-blockers-empty" class="empty">No warnings or blockers.</p>
+          </section>
 
           <section class="subpanel active-project-panel">
             <h3>Active Project</h3>

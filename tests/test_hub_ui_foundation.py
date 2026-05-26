@@ -269,6 +269,17 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "Active Project Intake" in index_text
     assert "Add To Active Project Queue" in index_text
     assert "Direction / Details" in index_text
+    assert "Local Home Dashboard" in index_text
+    assert "Total Projects" in index_text
+    assert "Active Project" in index_text
+    assert "Active Repo" in index_text
+    assert "Overall Readiness" in index_text
+    assert "Queue Item Count" in index_text
+    assert "Queue Status Summary" in index_text
+    assert "Recommended Next Action" in index_text
+    assert "Warnings And Blockers" in index_text
+    assert "Docs Readiness" in index_text
+    assert "Read-only local-only dashboard: no GitHub mutation, no agent execution, no model routing." in index_text
     assert "active-project-intake" not in index_text
 
 
@@ -313,6 +324,8 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
         "/api/reports/readiness",
         "/api/reports/operator-workflows",
         "/api/reports/export",
+        "/api/local-project-dashboard",
+        "/api/local-project-report",
     ):
         assert endpoint in app_text
     for form_id in (
