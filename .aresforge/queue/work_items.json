@@ -1,14 +1,14 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-26T01:16:04.306516+00:00",
+  "updated_at": "2026-05-26T02:17:30.904794+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
       "project_id": "aresforge",
       "repo_id": "aresforge",
       "title": "Build Home dashboard API wiring",
-      "description": "",
-      "status": "proposed",
+      "description": "Expose local Home dashboard and local project report data through read-only Hub API endpoints for the AresForge active project.",
+      "status": "done",
       "priority": "high",
       "item_type": "dashboard",
       "tags": [],
@@ -16,17 +16,32 @@
       "blocked_by": [],
       "assigned_agent": "",
       "source": "bootstrap",
-      "notes": "",
+      "notes": "Completed in M16 commit 30e9666. Reconciliation item only; no new implementation required.",
       "created_at": "2026-05-26T01:16:02.826483+00:00",
-      "updated_at": "2026-05-26T01:16:02.826483+00:00"
+      "updated_at": "2026-05-26T02:17:29.344197+00:00",
+      "previous_status": "in_progress",
+      "started_at": "2026-05-26T02:17:27.310913+00:00",
+      "started_via": "local_operator",
+      "completed_at": "2026-05-26T02:17:29.344197+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "30e9666",
+      "validation_summary": "M16 Home dashboard API wiring was implemented and validated as part of the completed M16 local Hub foundation work.",
+      "evidence_note": "Reconciled stale bootstrap planning item after M16 completion.",
+      "tests_run": [
+        "Core targeted validation passed with 232 tests. Hub/read-model targeted validation passed with 96 tests."
+      ],
+      "changed_files": [
+        "src/aresforge/hub/api.py; src/aresforge/hub/server.py; tests for Hub API/read-model coverage"
+      ],
+      "artifact_paths": []
     },
     {
       "item_id": "m15-projects-page-ui-foundation",
       "project_id": "aresforge",
       "repo_id": "aresforge",
       "title": "Build Projects page UI foundation",
-      "description": "",
-      "status": "proposed",
+      "description": "Build the read-only Projects page foundation in the Hub using the local project registry and active project state.",
+      "status": "done",
       "priority": "high",
       "item_type": "dashboard",
       "tags": [],
@@ -34,17 +49,32 @@
       "blocked_by": [],
       "assigned_agent": "",
       "source": "bootstrap",
-      "notes": "",
+      "notes": "Completed in M16 commit fe82182. Reconciliation item only; no new implementation required.",
       "created_at": "2026-05-26T01:16:03.302670+00:00",
-      "updated_at": "2026-05-26T01:16:03.302670+00:00"
+      "updated_at": "2026-05-26T02:17:29.858683+00:00",
+      "previous_status": "in_progress",
+      "started_at": "2026-05-26T02:17:27.783998+00:00",
+      "started_via": "local_operator",
+      "completed_at": "2026-05-26T02:17:29.858683+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "fe82182",
+      "validation_summary": "M16 Projects page UI foundation was implemented and validated as part of the completed M16 local Hub foundation work.",
+      "evidence_note": "Reconciled stale bootstrap planning item after M16 completion.",
+      "tests_run": [
+        "Core targeted validation passed with 232 tests. Hub/read-model targeted validation passed with 96 tests."
+      ],
+      "changed_files": [
+        "src/aresforge/hub/static/index.html; src/aresforge/hub/static/app.js; tests/test_hub_ui_foundation.py"
+      ],
+      "artifact_paths": []
     },
     {
       "item_id": "m15-queue-page-ui-foundation",
       "project_id": "aresforge",
       "repo_id": "aresforge",
       "title": "Build Queue page UI foundation",
-      "description": "",
-      "status": "proposed",
+      "description": "Build the read-only Queue page foundation in the Hub using the local queue and agent summary read model.",
+      "status": "done",
       "priority": "high",
       "item_type": "dashboard",
       "tags": [],
@@ -52,17 +82,32 @@
       "blocked_by": [],
       "assigned_agent": "",
       "source": "bootstrap",
-      "notes": "",
+      "notes": "Completed in M16 commit 4b1e19d. Reconciliation item only; no new implementation required.",
       "created_at": "2026-05-26T01:16:03.800225+00:00",
-      "updated_at": "2026-05-26T01:16:03.800225+00:00"
+      "updated_at": "2026-05-26T02:17:30.373652+00:00",
+      "previous_status": "in_progress",
+      "started_at": "2026-05-26T02:17:28.269258+00:00",
+      "started_via": "local_operator",
+      "completed_at": "2026-05-26T02:17:30.373652+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "4b1e19d",
+      "validation_summary": "M16 Queue page UI foundation was implemented and validated as part of the completed M16 local Hub foundation work.",
+      "evidence_note": "Reconciled stale bootstrap planning item after M16 completion.",
+      "tests_run": [
+        "Core targeted validation passed with 232 tests. Hub/read-model targeted validation passed with 96 tests."
+      ],
+      "changed_files": [
+        "src/aresforge/hub/static/index.html; src/aresforge/hub/static/app.js; tests/test_hub_ui_foundation.py"
+      ],
+      "artifact_paths": []
     },
     {
       "item_id": "m15-reports-page-ui-foundation",
       "project_id": "aresforge",
       "repo_id": "aresforge",
       "title": "Build Reports page UI foundation",
-      "description": "",
-      "status": "proposed",
+      "description": "Build the read-only Reports page foundation in the Hub using the local project report summary and reconcile source-of-truth documentation.",
+      "status": "done",
       "priority": "high",
       "item_type": "dashboard",
       "tags": [],
@@ -70,9 +115,24 @@
       "blocked_by": [],
       "assigned_agent": "",
       "source": "bootstrap",
-      "notes": "",
+      "notes": "Completed in M16 commit f1b169c. Reconciliation item only; no new implementation required.",
       "created_at": "2026-05-26T01:16:04.306516+00:00",
-      "updated_at": "2026-05-26T01:16:04.306516+00:00"
+      "updated_at": "2026-05-26T02:17:30.904794+00:00",
+      "previous_status": "in_progress",
+      "started_at": "2026-05-26T02:17:28.794935+00:00",
+      "started_via": "local_operator",
+      "completed_at": "2026-05-26T02:17:30.904794+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "f1b169c",
+      "validation_summary": "M16 Reports page UI foundation and source-of-truth reconciliation were implemented and validated as part of the completed M16 local Hub foundation work.",
+      "evidence_note": "Reconciled stale bootstrap planning item after M16 completion.",
+      "tests_run": [
+        "Core targeted validation passed with 232 tests. Hub/read-model targeted validation passed with 96 tests."
+      ],
+      "changed_files": [
+        "src/aresforge/hub/static/index.html; src/aresforge/hub/static/app.js; docs/context/BUILD_STATE.md; docs/context/AGENT_CONTEXT.md; docs/roadmap/ROADMAP.md; docs/architecture/RUNNABLE_SKELETON.md; docs/operator/LOCAL_OPERATOR_USAGE.md"
+      ],
+      "artifact_paths": []
     }
   ]
 }
