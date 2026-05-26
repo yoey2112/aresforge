@@ -32,6 +32,28 @@ M17 boundary posture:
 - no model routing/invocation
 - no remote commit verification
 
+## M27 Hub Reports Section Module
+
+Status: Completed locally on `main`.
+
+Delivered M27 items:
+
+- extracted Reports section logic into `src/aresforge/hub/static/js/sections/reports.js`
+- kept `src/aresforge/hub/static/app.js` as the browser entrypoint and startup orchestrator
+- moved Reports dashboard rendering, local project report rendering, report slice loading, export helpers, and Reports-specific bindings into the new section module
+- kept non-Reports orchestration and shared cross-section flows in `app.js` so this milestone stays limited to Reports UI ownership
+- updated static frontend tests to validate the new Reports section module and single-path Reports bindings
+
+M27 boundary posture:
+
+- local-only static/frontend refactor
+- no GitHub API calls
+- no `gh` calls
+- no new network calls
+- no agent execution
+- no model routing/invocation
+- no UI redesign, DOM id changes, or endpoint path changes
+
 ## M26 Hub Projects And Repos Section Modules
 
 Status: Completed locally on `main`.

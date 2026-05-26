@@ -126,6 +126,25 @@ Safety posture:
 - no agent or model execution
 - no UI redesign and no DOM id or endpoint path changes
 
+### M27 - Extract Hub Reports Section Module
+
+Status: Completed locally on `main`.
+
+Highlights:
+
+- extracted Reports rendering/loading/export helpers and Reports-specific bindings into `src/aresforge/hub/static/js/sections/reports.js`
+- kept `src/aresforge/hub/static/app.js` as the frontend entrypoint and init/orchestration surface
+- intentionally kept non-Reports orchestration in `app.js` to keep this refactor conservative and behavior-preserving
+- updated static tests to assert the new Reports section module exists, is imported by `app.js`, and owns Reports bindings
+
+Safety posture:
+
+- local-only refactor
+- no GitHub API calls, no `gh` calls
+- no new network behavior
+- no agent or model execution
+- no UI redesign and no DOM id or endpoint path changes
+
 
 M17 completion evidence is stored locally with status transition metadata plus commit hash, validation summary, and optional evidence fields.
 

@@ -102,6 +102,23 @@ Boundary guarantees remain unchanged:
 - no new network calls or external dependencies
 - no automatic Codex, agent, or model execution
 
+## M27 Hub Reports Section Module
+
+Operator impact:
+
+- no new commands were added
+- Reports behavior remains the same, but report rendering/loading/export helpers and Reports-owned actions now live in a dedicated section module
+- `src/aresforge/hub/static/app.js` remains the module entrypoint loaded by the Hub page
+- other local-only control-plane flows continue to behave the same
+
+Boundary guarantees remain unchanged:
+
+- local-only frontend refactor
+- no GitHub API calls
+- no `gh` calls
+- no new network calls or external dependencies
+- no automatic Codex, agent, or model execution
+
 ## M21 Active Project Workspace: Operator Flow & Safety
 
 Summary:

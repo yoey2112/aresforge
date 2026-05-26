@@ -29,6 +29,21 @@ Required operating boundaries remain unchanged:
 - no local/cloud/Codex/ChatGPT/Ollama model routing or invocation
 - completion records evidence locally only and does not verify commits remotely
 
+## M27 Hub Reports Section Module
+
+Latest Hub frontend context now includes a Reports section module for the Reports UI slice:
+
+- `src/aresforge/hub/static/app.js` remains the only frontend entrypoint
+- Reports dashboard rendering, local project report rendering, report slice loading, export helpers, and Reports-specific bindings now live in `src/aresforge/hub/static/js/sections/reports.js`
+- non-Reports orchestration and other higher-coupling flows still remain in `src/aresforge/hub/static/app.js`
+
+Guidance for follow-on frontend work:
+
+- keep `app.js` focused on orchestration and higher-coupling flows
+- continue extracting only clearly section-owned behavior when cross-section dependencies stay manageable
+- preserve DOM ids and API endpoint paths
+- keep validating the combined frontend script surface, not only `app.js`
+
 ## M26 Hub Projects And Repos Section Modules
 
 Latest Hub frontend context now includes Projects and Repos section modules for the next UI slices:

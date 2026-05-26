@@ -193,6 +193,7 @@ def test_hub_static_files_exist() -> None:
     assert (static_dir / "js" / "sections" / "home.js").exists()
     assert (static_dir / "js" / "sections" / "projects.js").exists()
     assert (static_dir / "js" / "sections" / "queue.js").exists()
+    assert (static_dir / "js" / "sections" / "reports.js").exists()
     assert (static_dir / "js" / "sections" / "repos.js").exists()
     assert (static_dir / "js" / "sections" / "workspace.js").exists()
     assert (static_dir / "styles.css").exists()
@@ -215,6 +216,7 @@ def test_app_js_imports_section_modules() -> None:
     assert 'from "/js/sections/home.js"' in app_text
     assert 'from "/js/sections/projects.js"' in app_text
     assert 'from "/js/sections/queue.js"' in app_text
+    assert 'from "/js/sections/reports.js"' in app_text
     assert 'from "/js/sections/repos.js"' in app_text
     assert 'from "/js/sections/workspace.js"' in app_text
 
@@ -648,11 +650,31 @@ def test_static_assets_do_not_reference_external_resources() -> None:
         static_dir / "js" / "sections" / "home.js",
         static_dir / "js" / "sections" / "projects.js",
         static_dir / "js" / "sections" / "queue.js",
+        static_dir / "js" / "sections" / "reports.js",
         static_dir / "js" / "sections" / "repos.js",
         static_dir / "js" / "sections" / "workspace.js",
     ):
         content = path.read_text(encoding="utf-8")
         assert not pattern.search(content)
+
+
+def test_reports_bindings_live_in_reports_module_only() -> None:
+    static_dir = _static_dir()
+    app_text = (static_dir / "app.js").read_text(encoding="utf-8")
+    reports_text = (static_dir / "js" / "sections" / "reports.js").read_text(encoding="utf-8")
+
+    assert "bindReportsActions" in reports_text
+    assert "bindReportsActions" in app_text
+    for action_id in (
+        "reports-refresh",
+        "reports-copy-json",
+        "reports-export-json",
+        "reports-generate-handoff",
+        "reports-generate-orchestration",
+        "reports-generate-escalation",
+    ):
+        assert action_id not in app_text
+        assert action_id in reports_text
 
 
 def test_projects_bindings_live_in_projects_module_only() -> None:
@@ -1418,6 +1440,7 @@ def test_boundary_confirmations_remain_present_for_m39_endpoints(tmp_path: Path)
 
 def test_m44_active_project_intake_static_contract() -> None:
     index_text = (_static_dir() / "index.html").read_text(encoding="utf-8")
+    combined_text = _combined_frontend_script_text()
     app_text = (_static_dir() / "app.js").read_text(encoding="utf-8")
 
     assert "Active Project Task Intake" in index_text
@@ -1442,8 +1465,8 @@ def test_m44_active_project_intake_static_contract() -> None:
     assert "active-project-intake" in app_text
     assert 'intakeType === "direction" || intakeType === "ui" || intakeType === "refactor"' in app_text
     assert 'intakeType === "docs"' in app_text
-    assert "loadLocalProjectReportFoundation" in app_text
-    assert "renderLocalProjectReportFoundation" in app_text
+    assert "loadLocalProjectReportFoundation" in combined_text
+    assert "renderLocalProjectReportFoundation" in combined_text
 
 
 def test_m45_active_project_workbench_static_contract() -> None:
