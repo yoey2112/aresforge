@@ -1,5 +1,65 @@
 # AresForge Build State
 
+## M34 Frontend Modularization Closeout And Docs Reconciliation
+
+Status: Completed locally on `main`.
+
+Frontend module structure now finalized:
+
+- entrypoint: `src/aresforge/hub/static/app.js` (ES module entrypoint loaded by `index.html`)
+- core modules:
+  - `src/aresforge/hub/static/js/core/dom.js`
+  - `src/aresforge/hub/static/js/core/http.js`
+  - `src/aresforge/hub/static/js/core/state.js`
+- section modules:
+  - `src/aresforge/hub/static/js/sections/home.js`
+  - `src/aresforge/hub/static/js/sections/workspace.js`
+  - `src/aresforge/hub/static/js/sections/queue.js`
+  - `src/aresforge/hub/static/js/sections/projects.js`
+  - `src/aresforge/hub/static/js/sections/repos.js`
+  - `src/aresforge/hub/static/js/sections/reports.js`
+  - `src/aresforge/hub/static/js/sections/orchestration.js`
+  - `src/aresforge/hub/static/js/sections/escalation.js`
+- project-factory modules:
+  - `src/aresforge/hub/static/js/sections/projectFactory/index.js`
+  - `src/aresforge/hub/static/js/sections/projectFactory/scope.js`
+  - `src/aresforge/hub/static/js/sections/projectFactory/architecture.js`
+  - `src/aresforge/hub/static/js/sections/projectFactory/milestonePlan.js`
+  - `src/aresforge/hub/static/js/sections/projectFactory/validation.js`
+  - `src/aresforge/hub/static/js/sections/projectFactory/agentDispatch.js`
+  - `src/aresforge/hub/static/js/sections/projectFactory/executionApproval.js`
+  - `src/aresforge/hub/static/js/sections/projectFactory/closeout.js`
+
+Validation status used for closeout:
+
+- `python -m pytest tests/test_hub_ui_foundation.py tests/test_hub_project_factory_api.py tests/test_hub_local_queue_lifecycle_api.py tests/test_hub_active_project_api.py tests/test_local_project_factory.py tests/test_local_active_project.py`
+- smoke:
+  - `python -m aresforge inspect-local-queue-agent-summary`
+  - `python -m aresforge inspect-local-project-report`
+
+Boundary posture reconfirmed:
+
+- local-first
+- file-backed
+- operator-gated
+- no real agent execution
+- no GitHub mutation
+- no network execution beyond existing local Hub API behavior
+
+Recommended next milestone after M34:
+
+- M35 - Hub Dashboard Data Contract And Read-Only Metrics
+- scope:
+  - read-only Home dashboard metrics
+  - total projects
+  - active project summary
+  - queue item counts by status
+  - advisory agent lane counts from local summaries
+  - repo status summary from existing local inspection outputs
+  - no new GitHub calls
+  - no real agent execution
+  - no mutation
+
 ## M28 Hub Orchestration And Escalation Section Modules
 
 Status: Completed locally on `main`.

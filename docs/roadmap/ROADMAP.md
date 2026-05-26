@@ -1,5 +1,74 @@
 # AresForge Roadmap
 
+## M34 Frontend Modularization Closeout And Docs Reconciliation
+
+Status: Completed locally on `main`.
+
+Delivered M34 scope:
+
+- reconciled source-of-truth docs with final Hub frontend module structure
+- confirmed `src/aresforge/hub/static/app.js` remains the ES module entrypoint
+- confirmed module split across core, section, and project-factory section modules
+- reconfirmed validation/smoke baseline for the modularized frontend contract
+
+Final frontend module structure:
+
+- core:
+  - `src/aresforge/hub/static/js/core/dom.js`
+  - `src/aresforge/hub/static/js/core/http.js`
+  - `src/aresforge/hub/static/js/core/state.js`
+- sections:
+  - `src/aresforge/hub/static/js/sections/home.js`
+  - `src/aresforge/hub/static/js/sections/workspace.js`
+  - `src/aresforge/hub/static/js/sections/queue.js`
+  - `src/aresforge/hub/static/js/sections/projects.js`
+  - `src/aresforge/hub/static/js/sections/repos.js`
+  - `src/aresforge/hub/static/js/sections/reports.js`
+  - `src/aresforge/hub/static/js/sections/orchestration.js`
+  - `src/aresforge/hub/static/js/sections/escalation.js`
+- project factory:
+  - `src/aresforge/hub/static/js/sections/projectFactory/index.js`
+  - `src/aresforge/hub/static/js/sections/projectFactory/scope.js`
+  - `src/aresforge/hub/static/js/sections/projectFactory/architecture.js`
+  - `src/aresforge/hub/static/js/sections/projectFactory/milestonePlan.js`
+  - `src/aresforge/hub/static/js/sections/projectFactory/validation.js`
+  - `src/aresforge/hub/static/js/sections/projectFactory/agentDispatch.js`
+  - `src/aresforge/hub/static/js/sections/projectFactory/executionApproval.js`
+  - `src/aresforge/hub/static/js/sections/projectFactory/closeout.js`
+
+Validation baseline:
+
+- `python -m pytest tests/test_hub_ui_foundation.py tests/test_hub_project_factory_api.py tests/test_hub_local_queue_lifecycle_api.py tests/test_hub_active_project_api.py tests/test_local_project_factory.py tests/test_local_active_project.py`
+- smoke:
+  - `python -m aresforge inspect-local-queue-agent-summary`
+  - `python -m aresforge inspect-local-project-report`
+
+Boundaries:
+
+- local-first, file-backed, operator-gated
+- no real agent execution
+- no GitHub mutation
+- no network execution beyond existing local Hub API behavior
+
+## Next Recommended Milestone
+
+### M35 - Hub Dashboard Data Contract And Read-Only Metrics
+
+Planned scope:
+
+- read-only Home dashboard metrics
+- total projects
+- active project summary
+- queue item counts by status
+- advisory agent lane counts from local summaries
+- repo status summary from existing local inspection outputs
+
+Constraints:
+
+- no new GitHub calls
+- no real agent execution
+- no mutation
+
 ## M17 Local Queue Execution-Prep Lifecycle
 
 Status: Completed locally on `main` (no push performed).

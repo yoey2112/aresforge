@@ -1,5 +1,51 @@
 # Runnable Skeleton
 
+## M34 Frontend Modularization Closeout Skeleton
+
+Frontend entrypoint contract:
+
+- `src/aresforge/hub/static/index.html` loads `src/aresforge/hub/static/app.js` as `type="module"`.
+- `src/aresforge/hub/static/app.js` remains the only browser entrypoint.
+
+Frontend module topology:
+
+- core:
+  - `src/aresforge/hub/static/js/core/dom.js`
+  - `src/aresforge/hub/static/js/core/http.js`
+  - `src/aresforge/hub/static/js/core/state.js`
+- sections:
+  - `src/aresforge/hub/static/js/sections/home.js`
+  - `src/aresforge/hub/static/js/sections/workspace.js`
+  - `src/aresforge/hub/static/js/sections/queue.js`
+  - `src/aresforge/hub/static/js/sections/projects.js`
+  - `src/aresforge/hub/static/js/sections/repos.js`
+  - `src/aresforge/hub/static/js/sections/reports.js`
+  - `src/aresforge/hub/static/js/sections/orchestration.js`
+  - `src/aresforge/hub/static/js/sections/escalation.js`
+- project factory:
+  - `src/aresforge/hub/static/js/sections/projectFactory/index.js`
+  - `src/aresforge/hub/static/js/sections/projectFactory/scope.js`
+  - `src/aresforge/hub/static/js/sections/projectFactory/architecture.js`
+  - `src/aresforge/hub/static/js/sections/projectFactory/milestonePlan.js`
+  - `src/aresforge/hub/static/js/sections/projectFactory/validation.js`
+  - `src/aresforge/hub/static/js/sections/projectFactory/agentDispatch.js`
+  - `src/aresforge/hub/static/js/sections/projectFactory/executionApproval.js`
+  - `src/aresforge/hub/static/js/sections/projectFactory/closeout.js`
+
+Validation/smoke baseline:
+
+- `python -m pytest tests/test_hub_ui_foundation.py tests/test_hub_project_factory_api.py tests/test_hub_local_queue_lifecycle_api.py tests/test_hub_active_project_api.py tests/test_local_project_factory.py tests/test_local_active_project.py`
+- `python -m aresforge inspect-local-queue-agent-summary`
+- `python -m aresforge inspect-local-project-report`
+
+Runtime boundaries:
+
+- local-first and file-backed
+- operator-gated flows
+- no real agent execution
+- no GitHub mutation
+- no network execution beyond existing local Hub API behavior
+
 ## M17 Local Queue Execution-Prep Layer
 
 Implemented local-only queue execution-prep additions now include:

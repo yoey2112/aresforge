@@ -1,5 +1,59 @@
 # AresForge Agent Context
 
+## M34 Frontend Modularization Closeout Context
+
+Use this as the current frontend contract baseline:
+
+- `src/aresforge/hub/static/app.js` is the ES module entrypoint.
+- `src/aresforge/hub/static/index.html` loads `app.js` with `type="module"`.
+- core modules:
+  - `src/aresforge/hub/static/js/core/dom.js`
+  - `src/aresforge/hub/static/js/core/http.js`
+  - `src/aresforge/hub/static/js/core/state.js`
+- section modules:
+  - `src/aresforge/hub/static/js/sections/home.js`
+  - `src/aresforge/hub/static/js/sections/workspace.js`
+  - `src/aresforge/hub/static/js/sections/queue.js`
+  - `src/aresforge/hub/static/js/sections/projects.js`
+  - `src/aresforge/hub/static/js/sections/repos.js`
+  - `src/aresforge/hub/static/js/sections/reports.js`
+  - `src/aresforge/hub/static/js/sections/orchestration.js`
+  - `src/aresforge/hub/static/js/sections/escalation.js`
+- project-factory modules:
+  - `src/aresforge/hub/static/js/sections/projectFactory/index.js`
+  - `src/aresforge/hub/static/js/sections/projectFactory/scope.js`
+  - `src/aresforge/hub/static/js/sections/projectFactory/architecture.js`
+  - `src/aresforge/hub/static/js/sections/projectFactory/milestonePlan.js`
+  - `src/aresforge/hub/static/js/sections/projectFactory/validation.js`
+  - `src/aresforge/hub/static/js/sections/projectFactory/agentDispatch.js`
+  - `src/aresforge/hub/static/js/sections/projectFactory/executionApproval.js`
+  - `src/aresforge/hub/static/js/sections/projectFactory/closeout.js`
+
+Validation baseline for this contract:
+
+- `tests/test_hub_ui_foundation.py`
+- `tests/test_hub_project_factory_api.py`
+- `tests/test_hub_local_queue_lifecycle_api.py`
+- `tests/test_hub_active_project_api.py`
+- `tests/test_local_project_factory.py`
+- `tests/test_local_active_project.py`
+- smoke:
+  - `python -m aresforge inspect-local-queue-agent-summary`
+  - `python -m aresforge inspect-local-project-report`
+
+Boundary context remains mandatory:
+
+- local-first
+- file-backed
+- operator-gated
+- no real agent execution
+- no GitHub mutation
+- no network execution beyond existing local Hub API behavior
+
+Next recommended milestone:
+
+- M35 - Hub Dashboard Data Contract And Read-Only Metrics
+
 ## M28 Hub Orchestration And Escalation Section Modules
 
 Latest Hub frontend context now includes dedicated section modules for Orchestration and Escalation:
