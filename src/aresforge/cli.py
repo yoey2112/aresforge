@@ -37,6 +37,7 @@ from aresforge.db.repository import (
     build_work_item_execution_dossier,
     export_work_item_operator_prompt,
     archive_work_item_operator_packet,
+    recommend_next_work_item_action,
     handoff_work_item_to_implementation,
     start_work_item_if_ready,
     complete_work_item_if_ready,
@@ -59,6 +60,7 @@ from aresforge.db.repository import (
     render_work_item_execution_dossier_markdown,
     render_export_work_item_operator_prompt_markdown,
     render_archive_work_item_operator_packet_markdown,
+    render_next_work_item_action_recommendation_markdown,
     render_implementation_handoff_markdown,
     render_start_work_item_markdown,
     render_work_item_completion_markdown,
@@ -558,6 +560,16 @@ def build_parser() -> argparse.ArgumentParser:
     archive_operator_packet_parser.add_argument("--actor", required=True)
     archive_operator_packet_parser.add_argument("--force", action="store_true")
     archive_operator_packet_parser.add_argument(
+        "--format",
+        choices=("json", "markdown"),
+        default="json",
+    )
+    recommend_next_work_item_action_parser = subparsers.add_parser(
+        "recommend-next-work-item-action",
+        help="Recommend the safest next local CLI action for one work item using read-only state.",
+    )
+    recommend_next_work_item_action_parser.add_argument("--work-item-id", required=True)
+    recommend_next_work_item_action_parser.add_argument(
         "--format",
         choices=("json", "markdown"),
         default="json",
@@ -2416,6 +2428,15 @@ def main(argv: list[str] | None = None) -> int:
             )
         if args.format == "markdown":
             print(render_archive_work_item_operator_packet_markdown(payload))
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "recommend-next-work-item-action":
+        with connect(config) as conn:
+            payload = recommend_next_work_item_action(conn, args.work_item_id)
+        if args.format == "markdown":
+            print(render_next_work_item_action_recommendation_markdown(payload))
             return 0 if bool(payload.get("ok")) else 1
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1

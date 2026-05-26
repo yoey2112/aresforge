@@ -24,6 +24,7 @@ from aresforge.db.repository import (
     build_work_item_execution_dossier,
     export_work_item_operator_prompt,
     archive_work_item_operator_packet,
+    recommend_next_work_item_action,
     handoff_work_item_to_implementation,
     render_start_work_item_markdown,
     render_work_item_completion_markdown,
@@ -43,6 +44,7 @@ from aresforge.db.repository import (
     render_work_item_execution_dossier_markdown,
     render_export_work_item_operator_prompt_markdown,
     render_archive_work_item_operator_packet_markdown,
+    render_next_work_item_action_recommendation_markdown,
     render_roadmap_markdown,
     render_roadmap_work_item_links_markdown,
     inspect_work_item_queue_approval_state,
@@ -499,6 +501,18 @@ def test_cli_parser_recognizes_roadmap_commands_and_formats() -> None:
     assert complete_work_item_args.actor == "local-test"
     assert complete_work_item_args.details_file == "details.json"
     assert complete_work_item_args.format == "markdown"
+
+    recommend_next_action_args = parser.parse_args(
+        [
+            "recommend-next-work-item-action",
+            "--work-item-id",
+            "work-1",
+            "--format",
+            "markdown",
+        ]
+    )
+    assert recommend_next_action_args.command == "recommend-next-work-item-action"
+    assert recommend_next_action_args.format == "markdown"
 
     plan_queue_transition_json_args = parser.parse_args(
         [
@@ -1381,6 +1395,35 @@ def test_render_archive_work_item_operator_packet_markdown_is_deterministic() ->
     assert "packet-metadata.json" in markdown
 
 
+def test_render_next_work_item_action_recommendation_markdown_is_deterministic() -> None:
+    payload = {
+        "ok": True,
+        "read_only": True,
+        "project_id": "project-aresforge",
+        "work_item_id": "work-1",
+        "current_status": "queued",
+        "current_queue_id": "queue-planning",
+        "route_status": "queued",
+        "primary_recommendation": "start-work-item --work-item-id work-1 --actor <actor> --details-file <details-file> --format markdown",
+        "recommended_commands": [
+            {
+                "rank": 1,
+                "command": "start-work-item --work-item-id work-1 --actor <actor> --details-file <details-file> --format markdown",
+                "reason": "ready",
+                "safe_mutation": True,
+            }
+        ],
+        "blocked_reasons": [],
+        "warnings": [],
+        "reasoning_summary": "summary",
+        "next_safe_action": "Run the primary recommendation.",
+    }
+    markdown = render_next_work_item_action_recommendation_markdown(payload)
+    assert "# Next Work Item Action Recommendation" in markdown
+    assert "- Work item ID: `work-1`" in markdown
+    assert "## Recommended Commands" in markdown
+
+
 def test_build_work_item_execution_dossier_missing_is_non_mutating(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -1778,6 +1821,160 @@ def test_complete_work_item_if_ready_success_mutates_and_returns_event_id(
     assert payload["completion_status"] == "completed"
     assert payload["event_id"] == "audit-1"
     assert payload["new_status"] == "complete"
+
+
+def test_recommend_next_work_item_action_missing_is_read_only(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        repository_module,
+        "inspect_work_item_readiness",
+        lambda *_args, **_kwargs: {"ok": False, "work_item_id": "work-missing", "project_id": "project-aresforge", "blockers": []},
+    )
+    monkeypatch.setattr(repository_module, "build_work_item_execution_dossier", lambda *_args, **_kwargs: {"ok": False})
+    monkeypatch.setattr(repository_module, "inspect_work_item_lifecycle", lambda *_args, **_kwargs: {"ok": False})
+    payload = recommend_next_work_item_action(_FakeConnection(), "work-missing")
+    assert payload["read_only"] is True
+    assert payload["ok"] is False
+    assert payload["primary_recommendation"].startswith("inspect-work-item-lifecycle")
+
+
+def test_recommend_next_work_item_action_queued_ready_recommends_start(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        repository_module,
+        "inspect_work_item_readiness",
+        lambda *_args, **_kwargs: {
+            "ok": True,
+            "project_id": "project-aresforge",
+            "readiness_status": "ready",
+            "blockers": [],
+            "warnings": [],
+            "dependency_summary": {"unsatisfied_dependencies": []},
+            "work_item": {"id": "work-1", "status": "queued", "queue_id": "queue-planning", "route_status": "queued"},
+        },
+    )
+    monkeypatch.setattr(
+        repository_module,
+        "build_work_item_execution_dossier",
+        lambda *_args, **_kwargs: {"ok": True, "project_id": "project-aresforge", "queue_transition_options": []},
+    )
+    monkeypatch.setattr(repository_module, "inspect_work_item_lifecycle", lambda *_args, **_kwargs: {"ok": True})
+    payload = recommend_next_work_item_action(_FakeConnection(), "work-1")
+    assert payload["ok"] is True
+    assert payload["read_only"] is True
+    assert payload["primary_recommendation"].startswith("start-work-item")
+
+
+def test_recommend_next_work_item_action_active_triage_recommends_handoff(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        repository_module,
+        "inspect_work_item_readiness",
+        lambda *_args, **_kwargs: {
+            "ok": True,
+            "project_id": "project-aresforge",
+            "readiness_status": "already_active",
+            "blockers": [],
+            "warnings": [],
+            "dependency_summary": {"unsatisfied_dependencies": []},
+            "work_item": {"id": "work-1", "status": "active", "queue_id": "queue-triage", "route_status": "active"},
+        },
+    )
+    monkeypatch.setattr(
+        repository_module,
+        "build_work_item_execution_dossier",
+        lambda *_args, **_kwargs: {
+            "ok": True,
+            "project_id": "project-aresforge",
+            "queue_transition_options": [{"target_queue_id": "queue-implementation", "can_transition": True, "reason": "transition_allowed"}],
+        },
+    )
+    monkeypatch.setattr(repository_module, "inspect_work_item_lifecycle", lambda *_args, **_kwargs: {"ok": True})
+    payload = recommend_next_work_item_action(_FakeConnection(), "work-1")
+    assert payload["primary_recommendation"].startswith("handoff-work-item-to-implementation")
+
+
+def test_recommend_next_work_item_action_dependency_blocked_recommends_inspect_dependencies(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        repository_module,
+        "inspect_work_item_readiness",
+        lambda *_args, **_kwargs: {
+            "ok": True,
+            "project_id": "project-aresforge",
+            "readiness_status": "blocked",
+            "blockers": [{"code": "unsatisfied_roadmap_dependencies"}],
+            "warnings": [],
+            "dependency_summary": {"unsatisfied_dependencies": [{"task_id": "rt-2", "depends_on_task_id": "rt-1", "status": "active"}]},
+            "work_item": {"id": "work-1", "status": "queued", "queue_id": "queue-planning", "route_status": "queued"},
+        },
+    )
+    monkeypatch.setattr(
+        repository_module,
+        "build_work_item_execution_dossier",
+        lambda *_args, **_kwargs: {"ok": True, "project_id": "project-aresforge", "queue_transition_options": []},
+    )
+    monkeypatch.setattr(repository_module, "inspect_work_item_lifecycle", lambda *_args, **_kwargs: {"ok": True})
+    payload = recommend_next_work_item_action(_FakeConnection(), "work-1")
+    assert payload["primary_recommendation"].startswith("inspect-roadmap-task-dependencies")
+
+
+def test_recommend_next_work_item_action_active_implementation_recommends_complete(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        repository_module,
+        "inspect_work_item_readiness",
+        lambda *_args, **_kwargs: {
+            "ok": True,
+            "project_id": "project-aresforge",
+            "readiness_status": "already_active",
+            "blockers": [],
+            "warnings": [],
+            "dependency_summary": {"unsatisfied_dependencies": []},
+            "work_item": {"id": "work-1", "status": "active", "queue_id": "queue-implementation", "route_status": "active"},
+        },
+    )
+    monkeypatch.setattr(
+        repository_module,
+        "build_work_item_execution_dossier",
+        lambda *_args, **_kwargs: {"ok": True, "project_id": "project-aresforge", "queue_transition_options": []},
+    )
+    monkeypatch.setattr(repository_module, "inspect_work_item_lifecycle", lambda *_args, **_kwargs: {"ok": True})
+    payload = recommend_next_work_item_action(_FakeConnection(), "work-1")
+    assert payload["primary_recommendation"].startswith("complete-work-item-if-ready")
+
+
+def test_recommend_next_work_item_action_no_safe_mutation_returns_read_only_commands(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        repository_module,
+        "inspect_work_item_readiness",
+        lambda *_args, **_kwargs: {
+            "ok": True,
+            "project_id": "project-aresforge",
+            "readiness_status": "blocked",
+            "blockers": [],
+            "warnings": [],
+            "dependency_summary": {"unsatisfied_dependencies": []},
+            "work_item": {"id": "work-1", "status": "blocked", "queue_id": "queue-blocked", "route_status": "blocked"},
+        },
+    )
+    monkeypatch.setattr(
+        repository_module,
+        "build_work_item_execution_dossier",
+        lambda *_args, **_kwargs: {"ok": True, "project_id": "project-aresforge", "queue_transition_options": []},
+    )
+    monkeypatch.setattr(repository_module, "inspect_work_item_lifecycle", lambda *_args, **_kwargs: {"ok": True})
+    payload = recommend_next_work_item_action(_FakeConnection(), "work-1")
+    assert payload["read_only"] is True
+    assert payload["next_safe_action"].startswith("No safe mutation command")
+    assert payload["primary_recommendation"].startswith("inspect-work-item-readiness")
 
 
 def test_move_work_item_queue_if_allowed_missing_work_item_is_non_mutating(

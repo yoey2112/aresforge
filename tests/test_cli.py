@@ -51,6 +51,7 @@ def test_cli_has_expected_commands() -> None:
         "build-work-item-execution-dossier",
         "export-work-item-operator-prompt",
         "archive-work-item-operator-packet",
+        "recommend-next-work-item-action",
         "inspect-queue-work-state",
         "inspect-work-item-readiness",
         "inspect-queue-readiness",
@@ -4701,6 +4702,69 @@ def test_archive_work_item_operator_packet_dispatch_markdown(
     output = capsys.readouterr().out
     assert exit_code == 1
     assert output == "# Archive Work Item Operator Packet\n\n"
+
+
+def test_recommend_next_work_item_action_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    recommendation_payload = {
+        "ok": True,
+        "read_only": True,
+        "work_item_id": "work-1",
+        "primary_recommendation": "inspect-work-item-readiness --work-item-id work-1 --format markdown",
+        "recommended_commands": [],
+    }
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(
+        cli,
+        "recommend_next_work_item_action",
+        lambda _conn, _work_item_id: recommendation_payload,
+    )
+    exit_code = cli.main(
+        [
+            "recommend-next-work-item-action",
+            "--work-item-id",
+            "work-1",
+            "--format",
+            "json",
+        ]
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload == recommendation_payload
+
+
+def test_recommend_next_work_item_action_dispatch_markdown(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    recommendation_payload = {
+        "ok": False,
+        "read_only": True,
+        "work_item_id": "work-missing",
+    }
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(
+        cli,
+        "recommend_next_work_item_action",
+        lambda _conn, _work_item_id: recommendation_payload,
+    )
+    monkeypatch.setattr(
+        cli,
+        "render_next_work_item_action_recommendation_markdown",
+        lambda _payload: "# Next Work Item Action Recommendation\n",
+    )
+    exit_code = cli.main(
+        [
+            "recommend-next-work-item-action",
+            "--work-item-id",
+            "work-missing",
+            "--format",
+            "markdown",
+        ]
+    )
+    output = capsys.readouterr().out
+    assert exit_code == 1
+    assert output == "# Next Work Item Action Recommendation\n\n"
 
 
 def test_add_roadmap_task_dependency_dispatch_json(

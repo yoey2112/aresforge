@@ -2256,6 +2256,199 @@ def render_work_item_completion_markdown(payload: dict[str, Any]) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
+def recommend_next_work_item_action(conn: Connection, work_item_id: str) -> dict[str, Any]:
+    readiness = inspect_work_item_readiness(conn, work_item_id)
+    dossier = build_work_item_execution_dossier(conn, work_item_id)
+    lifecycle = inspect_work_item_lifecycle(conn, work_item_id)
+    work_item = (readiness.get("work_item") or dossier.get("work_item") or {})
+    project_id = str(readiness.get("project_id") or dossier.get("project_id") or DEFAULT_PROJECT_ID)
+    current_status = str(work_item.get("status") or "")
+    current_queue_id = str(work_item.get("queue_id") or "")
+    route_status = str(work_item.get("route_status") or "")
+    blocked_reasons: list[dict[str, Any]] = list(readiness.get("blockers") or [])
+    warnings: list[dict[str, Any]] = list(readiness.get("warnings") or [])
+    recommended_commands: list[dict[str, Any]] = []
+
+    def _add_command(command: str, reason: str, rank: int, safe_mutation: bool) -> None:
+        recommended_commands.append(
+            {
+                "rank": rank,
+                "command": command,
+                "reason": reason,
+                "safe_mutation": safe_mutation,
+            }
+        )
+
+    if not bool(readiness.get("ok")) or not bool(dossier.get("ok")) or not bool(lifecycle.get("ok")):
+        if not bool(lifecycle.get("ok")):
+            blocked_reasons.append({"code": "lifecycle_unavailable"})
+        _add_command(
+            f"inspect-work-item-lifecycle --work-item-id {work_item_id} --format markdown",
+            "Inspect lifecycle state because recommendation context is incomplete.",
+            1,
+            False,
+        )
+        _add_command(
+            f"build-work-item-execution-dossier --work-item-id {work_item_id} --format markdown",
+            "Rebuild dossier to collect deterministic local state.",
+            2,
+            False,
+        )
+        primary = recommended_commands[0]["command"]
+        return {
+            "ok": False,
+            "read_only": True,
+            "project_id": project_id,
+            "work_item_id": work_item_id,
+            "current_status": current_status,
+            "current_queue_id": current_queue_id,
+            "route_status": route_status,
+            "primary_recommendation": primary,
+            "recommended_commands": recommended_commands,
+            "blocked_reasons": blocked_reasons,
+            "warnings": warnings,
+            "reasoning_summary": "Required read-only context is missing, so only inspection commands are recommended.",
+            "next_safe_action": "Run inspection commands and resolve missing local context.",
+        }
+
+    readiness_status = str(readiness.get("readiness_status") or "")
+    queue_options = list(dossier.get("queue_transition_options") or [])
+    unsatisfied_dependencies = list((readiness.get("dependency_summary") or {}).get("unsatisfied_dependencies") or [])
+
+    if unsatisfied_dependencies:
+        first_dependency = unsatisfied_dependencies[0]
+        _add_command(
+            f"inspect-roadmap-task-dependencies --task-id {first_dependency.get('task_id', '')} --format markdown",
+            "Dependencies are unsatisfied; inspect dependency chain before any mutation.",
+            1,
+            False,
+        )
+
+    if readiness_status == "ready" and current_status == "queued":
+        _add_command(
+            f"start-work-item --work-item-id {work_item_id} --actor <actor> --details-file <details-file> --format markdown",
+            "Work item is queued and readiness gates are satisfied.",
+            1,
+            True,
+        )
+
+    implementation_option = next(
+        (option for option in queue_options if option.get("target_queue_id") == "queue-implementation"),
+        None,
+    )
+    if current_status == "active" and current_queue_id in {"queue-planning", "queue-triage"}:
+        if implementation_option and bool(implementation_option.get("can_transition")):
+            _add_command(
+                f"handoff-work-item-to-implementation --work-item-id {work_item_id} --actor <actor> --details-file <details-file> --format markdown",
+                "Active planning/triage work item can safely transition to implementation.",
+                1,
+                True,
+            )
+        elif implementation_option and str(implementation_option.get("reason") or "") == "queue_approval_required":
+            _add_command(
+                f"request-work-item-queue-approval --work-item-id {work_item_id} --target-queue-id queue-implementation --actor <actor> --details-file <details-file> --format markdown",
+                "Implementation move is gated by local approval; request approval first.",
+                1,
+                True,
+            )
+
+    if current_status == "active" and current_queue_id == "queue-implementation":
+        _add_command(
+            f"complete-work-item-if-ready --work-item-id {work_item_id} --actor <actor> --details-file <details-file> --format markdown",
+            "Active implementation work item may be ready for gated completion.",
+            1,
+            True,
+        )
+
+    if route_status == "blocked":
+        blocked_reasons.append({"code": "route_status_blocked"})
+
+    _add_command(
+        f"inspect-work-item-readiness --work-item-id {work_item_id} --format markdown",
+        "Use read-only readiness inspection to verify blockers and warnings before mutation.",
+        80,
+        False,
+    )
+    _add_command(
+        f"build-work-item-execution-dossier --work-item-id {work_item_id} --format markdown",
+        "Review dossier and transition options before executing next step.",
+        90,
+        False,
+    )
+    recommended_commands = sorted(recommended_commands, key=lambda row: (int(row["rank"]), str(row["command"])))
+    primary_recommendation = ""
+    for command in recommended_commands:
+        if bool(command.get("safe_mutation")):
+            primary_recommendation = str(command["command"])
+            break
+    if not primary_recommendation and recommended_commands:
+        primary_recommendation = str(recommended_commands[0]["command"])
+
+    next_safe_action = "Run the primary recommendation."
+    if not any(bool(row.get("safe_mutation")) for row in recommended_commands):
+        next_safe_action = "No safe mutation command is recommended; use read-only inspection commands."
+        if not blocked_reasons:
+            blocked_reasons.append({"code": "no_safe_mutation_recommendation"})
+
+    return {
+        "ok": True,
+        "read_only": True,
+        "project_id": project_id,
+        "work_item_id": work_item_id,
+        "current_status": current_status,
+        "current_queue_id": current_queue_id,
+        "route_status": route_status,
+        "primary_recommendation": primary_recommendation,
+        "recommended_commands": recommended_commands,
+        "blocked_reasons": blocked_reasons,
+        "warnings": warnings,
+        "reasoning_summary": "Recommendation derived from local dossier, readiness, lifecycle, queue transitions, and dependency state.",
+        "next_safe_action": next_safe_action,
+    }
+
+
+def render_next_work_item_action_recommendation_markdown(payload: dict[str, Any]) -> str:
+    lines = [
+        "# Next Work Item Action Recommendation",
+        "",
+        f"- Work item ID: `{payload.get('work_item_id', '')}`",
+        f"- Project ID: `{payload.get('project_id', '')}`",
+        f"- Read only: `{payload.get('read_only', False)}`",
+        f"- Current status: `{payload.get('current_status', '')}`",
+        f"- Current queue ID: `{payload.get('current_queue_id', '')}`",
+        f"- Route status: `{payload.get('route_status', '')}`",
+        f"- Primary recommendation: `{payload.get('primary_recommendation', '')}`",
+        f"- Next safe action: {payload.get('next_safe_action', '')}",
+        f"- Reasoning summary: {payload.get('reasoning_summary', '')}",
+        "",
+        "## Recommended Commands",
+    ]
+    commands = list(payload.get("recommended_commands") or [])
+    if commands:
+        for row in commands:
+            lines.append(
+                f"- rank=`{row.get('rank', '')}` safe_mutation=`{row.get('safe_mutation', False)}` `{row.get('command', '')}`"
+            )
+            lines.append(f"  reason: {row.get('reason', '')}")
+    else:
+        lines.append("- none")
+    lines.extend(["", "## Blocked Reasons"])
+    blockers = list(payload.get("blocked_reasons") or [])
+    if blockers:
+        for blocker in blockers:
+            lines.append(f"- `{blocker.get('code', 'unknown')}` {json.dumps(blocker, sort_keys=True)}")
+    else:
+        lines.append("- none")
+    lines.extend(["", "## Warnings"])
+    warnings = list(payload.get("warnings") or [])
+    if warnings:
+        for warning in warnings:
+            lines.append(f"- `{warning.get('code', 'warning')}` {json.dumps(warning, sort_keys=True)}")
+    else:
+        lines.append("- none")
+    return "\n".join(lines).rstrip() + "\n"
+
+
 def plan_work_item_queue_transition(
     conn: Connection,
     work_item_id: str,
