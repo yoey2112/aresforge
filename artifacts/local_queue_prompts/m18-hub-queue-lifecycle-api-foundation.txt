@@ -1,0 +1,81 @@
+# Codex Prompt Package
+
+## Task
+- Queue item ID: m15-build-hub-queue-lifecycle-api-foundation
+- Queue item title: Build Hub queue lifecycle API foundation
+- Queue item status: in_progress
+- Queue item description: Expose the M17 local queue lifecycle through safe Hub API endpoints for add, inspect readiness, start, generate Codex prompt, and complete with evidence. The endpoints must remain local-only, gated, and must not execute agents, Codex, LLMs, GitHub API, gh, PRs, issues, workflow activity, or network calls.
+
+## Repository Context
+- Repository: aresforge
+- Repository path: C:\Projects\aresforge
+- Base branch: main
+- Working mode: local-first, direct on main
+
+## Purpose And Boundary
+- This prompt package is a review/input artifact only. It does not approve, merge, close, automate, bypass human review, change repository settings, or authorize future automation.
+- Work locally first.
+- Work directly on main.
+- Keep changes small and focused.
+- Preserve existing behavior and tests.
+- Avoid placeholders.
+- Avoid nested markdown fences inside PowerShell here-strings.
+
+## Required Source-Of-Truth Reading List
+- docs/context/AGENT_CONTEXT.md
+- docs/context/BUILD_STATE.md
+- docs/roadmap/ROADMAP.md
+- docs/prompts/CODEX_PROMPT_STANDARD.md
+- docs/prompts/CODEX_PROMPT_PACKAGE_TEMPLATE.md
+- docs/architecture/LOCAL_OPERATOR_WORKFLOW.md
+- docs/learning/ERROR_PATTERNS.md
+
+## Goal
+- Implement the queue item: Build Hub queue lifecycle API foundation.
+- Validate the change locally.
+- Commit only after all required tests pass.
+
+## Required Changes
+- Target area: hub-api-queue-lifecycle
+- Project ID: aresforge
+- Repo ID: aresforge
+
+## Acceptance Criteria
+- Hub API exposes local-only endpoints for add queue item, inspect readiness, start item, generate Codex prompt, and complete item with evidence; endpoints return stable JSON; endpoints reuse existing M17 operators; tests cover success and gated failure paths; no Hub mutation UI is added in this task.
+
+## Local-Only Constraints
+- Do not push.
+- Do not use GitHub API, gh, GitHub issues, pull requests, workflow activity, or GitHub mutation.
+- Do not implement Hub mutation UI in this task.
+- Do not implement automatic Codex execution.
+- Do not implement agent execution.
+- Do not implement LLM routing.
+- Do not implement GitHub sync or GitHub mutation.
+- Leave unrelated local changes untouched and stage only files required for this work.
+
+## Readiness Snapshot
+- Readiness status: blocked
+- Current blockers:
+- Queue item is already in progress.
+- Current warnings: none
+
+## Validation
+- Run these commands before committing:
+- git diff --check
+- python -m pytest tests/test_roadmap_db_control.py tests/test_config_and_migrations.py tests/test_cli.py
+- python -m pytest tests/test_local_queue_agent_summary.py tests/test_local_project_dashboard.py tests/test_local_project_report.py
+- python -m pytest tests/test_local_project_queue.py tests/test_cli_local_project_queue.py
+- Run any narrower targeted tests required for the files you touch.
+
+## Commit Expectations
+- Only commit after all required validation commands succeed.
+- Commit message guidance: M18 add Hub queue lifecycle API foundation
+- Do not amend unrelated work.
+- Do not push.
+
+## Evidence To Report Back
+- Changed files.
+- Validation commands and outcomes.
+- Any smoke checks performed locally.
+- Commit hash.
+- Current git status.

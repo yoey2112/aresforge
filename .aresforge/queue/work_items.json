@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-26T02:17:30.904794+00:00",
+  "updated_at": "2026-05-26T02:19:27.212330+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -133,6 +133,37 @@
         "src/aresforge/hub/static/index.html; src/aresforge/hub/static/app.js; docs/context/BUILD_STATE.md; docs/context/AGENT_CONTEXT.md; docs/roadmap/ROADMAP.md; docs/architecture/RUNNABLE_SKELETON.md; docs/operator/LOCAL_OPERATOR_USAGE.md"
       ],
       "artifact_paths": []
+    },
+    {
+      "item_id": "m15-build-hub-queue-lifecycle-api-foundation",
+      "project_id": "aresforge",
+      "repo_id": "aresforge",
+      "title": "Build Hub queue lifecycle API foundation",
+      "description": "Expose the M17 local queue lifecycle through safe Hub API endpoints for add, inspect readiness, start, generate Codex prompt, and complete with evidence. The endpoints must remain local-only, gated, and must not execute agents, Codex, LLMs, GitHub API, gh, PRs, issues, workflow activity, or network calls.",
+      "status": "in_progress",
+      "priority": "high",
+      "item_type": "feature",
+      "tags": [
+        "area:hub-api-queue-lifecycle"
+      ],
+      "dependencies": [],
+      "blocked_by": [],
+      "assigned_agent": "",
+      "source": "local_cli",
+      "notes": "Acceptance criteria:\n- Hub API exposes local-only endpoints for add queue item, inspect readiness, start item, generate Codex prompt, and complete item with evidence; endpoints return stable JSON; endpoints reuse existing M17 operators; tests cover success and gated failure paths; no Hub mutation UI is added in this task.",
+      "started_at": "2026-05-26T02:19:27.212330+00:00",
+      "started_via": "local_operator",
+      "previous_status": "proposed",
+      "completed_at": "",
+      "completed_by": "",
+      "completion_commit": "",
+      "validation_summary": "",
+      "evidence_note": "",
+      "tests_run": [],
+      "changed_files": [],
+      "artifact_paths": [],
+      "created_at": "2026-05-26T02:18:51.655748+00:00",
+      "updated_at": "2026-05-26T02:19:27.212330+00:00"
     }
   ]
 }
