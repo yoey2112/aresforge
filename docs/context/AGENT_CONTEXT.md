@@ -1,5 +1,21 @@
 # AresForge Agent Context
 
+## M28 Hub Orchestration And Escalation Section Modules
+
+Latest Hub frontend context now includes dedicated section modules for Orchestration and Escalation:
+
+- `src/aresforge/hub/static/app.js` remains the only frontend entrypoint
+- Orchestration render/load/binding logic now lives in `src/aresforge/hub/static/js/sections/orchestration.js`
+- Escalation render/load/binding logic now lives in `src/aresforge/hub/static/js/sections/escalation.js`
+- project-factory lifecycle, queue lifecycle, and execution-approval orchestration remain in `src/aresforge/hub/static/app.js`
+
+Guidance for follow-on frontend work:
+
+- keep `app.js` focused on cross-section orchestration and higher-coupling flows
+- continue extracting only clearly section-owned behavior
+- preserve DOM ids and API endpoint paths
+- keep validating the combined frontend script surface, not only `app.js`
+
 ## M17 Local Queue Execution-Prep Lifecycle
 
 Latest local queue progression now supports a full operator-driven execution-prep loop:

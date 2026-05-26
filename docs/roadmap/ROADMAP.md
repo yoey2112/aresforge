@@ -145,6 +145,26 @@ Safety posture:
 - no agent or model execution
 - no UI redesign and no DOM id or endpoint path changes
 
+### M28 - Extract Hub Orchestration And Escalation Section Modules
+
+Status: Completed locally on `main`.
+
+Highlights:
+
+- extracted Orchestration rendering/loading/bindings into `src/aresforge/hub/static/js/sections/orchestration.js`
+- extracted Escalation rendering/loading/bindings into `src/aresforge/hub/static/js/sections/escalation.js`
+- kept `src/aresforge/hub/static/app.js` as the frontend entrypoint and init/orchestration surface
+- intentionally kept project-factory lifecycle, queue lifecycle internals, and execution approval orchestration in `app.js` to keep this refactor conservative and behavior-preserving
+- updated static tests to assert the new section modules exist, are imported by `app.js`, and preserve Orchestration/Escalation static contracts
+
+Safety posture:
+
+- local-only refactor
+- no GitHub API calls, no `gh` calls
+- no new network behavior
+- no agent or model execution
+- no UI redesign and no DOM id or endpoint path changes
+
 
 M17 completion evidence is stored locally with status transition metadata plus commit hash, validation summary, and optional evidence fields.
 

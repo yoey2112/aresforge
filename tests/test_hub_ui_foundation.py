@@ -196,6 +196,8 @@ def test_hub_static_files_exist() -> None:
     assert (static_dir / "js" / "sections" / "reports.js").exists()
     assert (static_dir / "js" / "sections" / "repos.js").exists()
     assert (static_dir / "js" / "sections" / "workspace.js").exists()
+    assert (static_dir / "js" / "sections" / "orchestration.js").exists()
+    assert (static_dir / "js" / "sections" / "escalation.js").exists()
     assert (static_dir / "styles.css").exists()
 
 
@@ -219,6 +221,8 @@ def test_app_js_imports_section_modules() -> None:
     assert 'from "/js/sections/reports.js"' in app_text
     assert 'from "/js/sections/repos.js"' in app_text
     assert 'from "/js/sections/workspace.js"' in app_text
+    assert 'from "/js/sections/orchestration.js"' in app_text
+    assert 'from "/js/sections/escalation.js"' in app_text
 
 
 def test_index_contains_required_navigation_labels_and_m39_sections() -> None:

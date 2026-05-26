@@ -1,5 +1,28 @@
 # AresForge Build State
 
+## M28 Hub Orchestration And Escalation Section Modules
+
+Status: Completed locally on `main`.
+
+Delivered M28 items:
+
+- extracted Orchestration section logic into `src/aresforge/hub/static/js/sections/orchestration.js`
+- extracted Escalation section logic into `src/aresforge/hub/static/js/sections/escalation.js`
+- kept `src/aresforge/hub/static/app.js` as the frontend entrypoint and startup orchestrator
+- moved Orchestration/Escalation rendering, plan loading, reset/submit bindings, and section-local helpers into the new modules
+- preserved local-only/operator-gated messaging, DOM ids, and API endpoint paths
+- updated static frontend tests to validate new section modules and import wiring
+
+M28 boundary posture:
+
+- local-only static/frontend refactor
+- no GitHub API calls
+- no `gh` calls
+- no new network calls
+- no agent execution
+- no model routing/invocation
+- no UI redesign, DOM id changes, or endpoint path changes
+
 ## M17 Local Queue Execution-Prep Lifecycle
 
 Status: Completed locally on `main` (no push performed).

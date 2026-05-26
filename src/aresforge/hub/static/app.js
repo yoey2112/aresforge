@@ -13,6 +13,14 @@ import {
 } from "/js/sections/projects.js";
 import { bindQueueActions, loadQueue as loadQueueSection } from "/js/sections/queue.js";
 import {
+  bindEscalationActions,
+  loadEscalationPlan as loadEscalationPlanSection,
+} from "/js/sections/escalation.js";
+import {
+  bindOrchestrationActions,
+  loadOrchestrationPlan as loadOrchestrationPlanSection,
+} from "/js/sections/orchestration.js";
+import {
   bindReportsActions,
   copyExportText as copyExportTextSection,
   loadDashboardReport as loadDashboardReportSection,
@@ -410,70 +418,6 @@ function renderHandoffTargets(targets) {
     return `${target.target_id} | ${target.name} | type=${target.target_type || "-"} | status=${target.status || "-"}`;
   });
   setList("handoff-targets-list", "handoff-targets-empty-state", lines);
-}
-
-function assignmentLines(assignments) {
-  return (assignments || []).map((assignment) => {
-    return `${assignment.item_id} -> ${assignment.recommended_agent_id || "unassigned"} (${assignment.recommended_agent_role || "unknown"})`;
-  });
-}
-
-function blockedLines(items) {
-  return (items || []).map((item) => `${item.item_id} | ${item.reason || item.status || "blocked"}`);
-}
-
-function promptLines(prompts) {
-  return (prompts || []).map((prompt) => {
-    const text = String(prompt.prompt || "").replace(/\s+/g, " ").trim();
-    const shortText = text.length > 180 ? `${text.slice(0, 180)}...` : text;
-    return `${prompt.item_id || "item"}: ${shortText}`;
-  });
-}
-
-function renderOrchestrationPlan(plan) {
-  setList("orchestration-assignments", "orchestration-assignments-empty", assignmentLines(plan.recommended_assignments));
-  setList("orchestration-dependency-order", "orchestration-dependency-empty", plan.dependency_order || []);
-  setList("orchestration-blocked", "orchestration-blocked-empty", blockedLines(plan.blocked_items));
-  setList("orchestration-unassigned", "orchestration-unassigned-empty", blockedLines(plan.unassigned_items));
-  setList("orchestration-prompts", "orchestration-prompts-empty", promptLines(plan.handoff_prompts));
-  setList("orchestration-risks", "orchestration-risks-empty", plan.risk_warnings || []);
-  setList("orchestration-actions", "orchestration-actions-empty", plan.next_actions || []);
-}
-
-function classificationLines(label, items) {
-  return (items || []).map((item) => `${label}: ${item.item_id} (${item.project_id || "-"}/${item.repo_id || "-"})`);
-}
-
-function reasonLines(reasonsByItem) {
-  if (!reasonsByItem || typeof reasonsByItem !== "object") {
-    return [];
-  }
-  return Object.keys(reasonsByItem).map((itemId) => `${itemId}: ${(reasonsByItem[itemId] || []).join("; ")}`);
-}
-
-function targetLines(targets) {
-  return (targets || []).map((target) => `${target.item_id || "item"}: agent=${target.recommended_agent_id || "-"} target=${target.recommended_target_id || "-"} type=${target.recommended_target_type || "-"}`);
-}
-
-function guidanceLines(guidance) {
-  return (guidance || []).map((item) => {
-    const text = String(item.prompt || "").replace(/\s+/g, " ").trim();
-    const shortText = text.length > 170 ? `${text.slice(0, 170)}...` : text;
-    return `${item.item_id || "item"} (${item.classification || "-"}): ${shortText}`;
-  });
-}
-
-function renderEscalationPlan(plan) {
-  setList("escalation-local-llm", "escalation-local-llm-empty", classificationLines("local_llm_suitable", plan.local_llm_suitable));
-  setList("escalation-codex", "escalation-codex-empty", classificationLines("codex_suitable", plan.codex_suitable));
-  setList("escalation-cloud", "escalation-cloud-empty", classificationLines("cloud_llm_recommended", plan.cloud_llm_recommended));
-  setList("escalation-human", "escalation-human-empty", classificationLines("human_required", plan.human_required));
-  setList("escalation-blocked", "escalation-blocked-empty", classificationLines("blocked_or_needs_clarification", plan.blocked_or_needs_clarification));
-  setList("escalation-reasons", "escalation-reasons-empty", reasonLines(plan.escalation_reasons));
-  setList("escalation-targets", "escalation-targets-empty", targetLines(plan.recommended_handoff_targets));
-  setList("escalation-guidance", "escalation-guidance-empty", guidanceLines(plan.prompt_guidance));
-  setList("escalation-risks", "escalation-risks-empty", plan.risk_warnings || []);
-  setList("escalation-actions", "escalation-actions-empty", plan.next_actions || []);
 }
 
 async function loadActiveProject() {
@@ -1421,35 +1365,11 @@ async function loadHandoffPreview() {
 }
 
 async function loadOrchestrationPlan(filters, usePost) {
-  setMessage("orchestration-message", "Generating plan-only orchestration output...", "loading");
-  let payload;
-  if (usePost) {
-    payload = await fetchJson("/api/orchestration/plan", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(prunePayload(filters || {})),
-    });
-  } else {
-    payload = await fetchJson("/api/orchestration/plan");
-  }
-  renderOrchestrationPlan(payload);
-  setMessage("orchestration-message", "Plan generated. This is plan-only and does not execute agents.", "success");
+  return loadOrchestrationPlanSection(filters, usePost);
 }
 
 async function loadEscalationPlan(filters, usePost) {
-  setMessage("escalation-message", "Generating plan-only escalation output...", "loading");
-  let payload;
-  if (usePost) {
-    payload = await fetchJson("/api/escalation/plan", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(prunePayload(filters || {})),
-    });
-  } else {
-    payload = await fetchJson("/api/escalation/plan");
-  }
-  renderEscalationPlan(payload);
-  setMessage("escalation-message", "Plan generated. No local/cloud/Codex/ChatGPT/Ollama model invocation occurred.", "success");
+  return loadEscalationPlanSection(filters, usePost);
 }
 
 async function loadDashboardReport() {
@@ -2073,68 +1993,6 @@ function bindForms() {
     }
   });
 
-  on("orchestration-form", "submit", async (event) => {
-    event.preventDefault();
-    try {
-      await loadOrchestrationPlan(
-        {
-          project_id: byId("orchestration-project-id").value.trim(),
-          repo_id: byId("orchestration-repo-id").value.trim(),
-          status: byId("orchestration-status").value.trim(),
-          format: "json",
-        },
-        true
-      );
-      await refreshSummaryAndReport();
-    } catch (error) {
-      setMessage("orchestration-message", String(error.message || error), "error");
-    }
-  });
-
-  on("orchestration-reset", "click", async () => {
-    byId("orchestration-project-id").value = "";
-    byId("orchestration-repo-id").value = "";
-    byId("orchestration-status").value = "";
-    try {
-      await loadOrchestrationPlan({}, false);
-      await refreshSummaryAndReport();
-    } catch (error) {
-      setMessage("orchestration-message", String(error.message || error), "error");
-    }
-  });
-
-  on("escalation-form", "submit", async (event) => {
-    event.preventDefault();
-    try {
-      await loadEscalationPlan(
-        {
-          item_id: byId("escalation-item-id").value.trim(),
-          project_id: byId("escalation-project-id").value.trim(),
-          repo_id: byId("escalation-repo-id").value.trim(),
-          status: byId("escalation-status").value.trim(),
-          format: "json",
-        },
-        true
-      );
-      await refreshSummaryAndReport();
-    } catch (error) {
-      setMessage("escalation-message", String(error.message || error), "error");
-    }
-  });
-
-  on("escalation-reset", "click", async () => {
-    byId("escalation-item-id").value = "";
-    byId("escalation-project-id").value = "";
-    byId("escalation-repo-id").value = "";
-    byId("escalation-status").value = "";
-    try {
-      await loadEscalationPlan({}, false);
-      await refreshSummaryAndReport();
-    } catch (error) {
-      setMessage("escalation-message", String(error.message || error), "error");
-    }
-  });
-
   on("home-refresh-execution-readiness", "click", async () => {
     try {
       await loadExecutionReadiness(activeProjectId());
@@ -2551,6 +2409,14 @@ async function init() {
     loadHandoffPreview,
     loadOrchestrationPlan,
     loadEscalationPlan,
+  });
+  bindOrchestrationActions({
+    loadOrchestrationPlanForState: loadOrchestrationPlan,
+    refreshSummaryAndReport,
+  });
+  bindEscalationActions({
+    loadEscalationPlanForState: loadEscalationPlan,
+    refreshSummaryAndReport,
   });
   bindHomeActions({
     refreshSummaryAndReport,
