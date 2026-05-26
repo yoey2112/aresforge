@@ -2189,6 +2189,40 @@ def plan_work_item_queue_transition(
             "readiness": readiness,
         }
 
+    if _is_sensitive_execution_queue(target_queue):
+        approval = inspect_work_item_queue_approval_state(
+            conn,
+            work_item_id=work_item_id,
+            target_queue_id=target_queue_id,
+            project_id=str(work_item.get("project_id") or DEFAULT_PROJECT_ID),
+        )
+        approval_status = str(approval.get("approval_status") or "missing")
+        if approval_status != "approved":
+            blocker = {
+                "code": "queue_approval_required",
+                "work_item_id": work_item_id,
+                "target_queue_id": target_queue_id,
+                "approval_status": approval_status,
+            }
+            return {
+                "ok": True,
+                "work_item_id": work_item_id,
+                "project_id": work_item.get("project_id", DEFAULT_PROJECT_ID),
+                "can_transition": False,
+                "changed": False,
+                "transition_status": "blocked",
+                "reason": "queue_approval_required",
+                "next_safe_action": "Request and approve a local queue-transition approval gate before moving.",
+                "blockers": [blocker],
+                "warnings": [],
+                "work_item": work_item,
+                "current_queue": current_queue,
+                "target_queue": target_queue,
+                "allowed_next_queues": allowed_next_queues,
+                "readiness": readiness,
+                "approval": approval,
+            }
+
     return {
         "ok": True,
         "work_item_id": work_item_id,
@@ -2206,6 +2240,254 @@ def plan_work_item_queue_transition(
         "allowed_next_queues": allowed_next_queues,
         "readiness": readiness,
     }
+
+
+def _is_sensitive_execution_queue(target_queue: dict[str, Any] | None) -> bool:
+    if target_queue is None:
+        return False
+    queue_id = str(target_queue.get("id") or "")
+    if queue_id == "queue-implementation" or queue_id.startswith("queue-execution"):
+        return True
+    lifecycle_stage = str(target_queue.get("lifecycle_stage_mapping") or "")
+    return lifecycle_stage in {"implementation", "execution"}
+
+
+def _row_to_work_item_queue_approval(row: dict[str, Any] | None) -> dict[str, Any] | None:
+    if row is None:
+        return None
+    return {
+        "id": row["id"],
+        "project_id": row["project_id"],
+        "work_item_id": row["work_item_id"],
+        "target_queue_id": row["target_queue_id"],
+        "approval_status": row["approval_status"],
+        "actor": row["actor"],
+        "details": row["details"] if isinstance(row["details"], dict) else {},
+        "created_at": row["created_at"],
+        "updated_at": row["updated_at"],
+    }
+
+
+def inspect_work_item_queue_approval_state(
+    conn: Connection,
+    *,
+    work_item_id: str,
+    target_queue_id: str,
+    project_id: str = DEFAULT_PROJECT_ID,
+) -> dict[str, Any]:
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT id, project_id, work_item_id, target_queue_id, approval_status, actor, details, created_at, updated_at
+            FROM work_item_queue_approvals
+            WHERE project_id = %s
+              AND work_item_id = %s
+              AND target_queue_id = %s
+            ORDER BY created_at DESC, id DESC
+            LIMIT 1
+            """,
+            (project_id, work_item_id, target_queue_id),
+        )
+        latest_row = _row_to_work_item_queue_approval(cur.fetchone())
+    if latest_row is None:
+        return {
+            "ok": True,
+            "project_id": project_id,
+            "work_item_id": work_item_id,
+            "target_queue_id": target_queue_id,
+            "approval_status": "missing",
+            "approval": None,
+            "blocked_reasons": [{"code": "approval_not_found"}],
+            "next_safe_action": "Request a local queue-transition approval.",
+        }
+    status = str(latest_row.get("approval_status") or "missing")
+    blocked_reasons: list[dict[str, Any]] = []
+    next_safe_action = "Proceed with queue transition when ready."
+    if status == "pending":
+        blocked_reasons = [{"code": "approval_pending"}]
+        next_safe_action = "Approve or reject the pending queue-transition approval."
+    elif status == "rejected":
+        blocked_reasons = [{"code": "approval_rejected"}]
+        next_safe_action = "Request a new queue-transition approval after addressing rejection details."
+    elif status == "cancelled":
+        blocked_reasons = [{"code": "approval_cancelled"}]
+        next_safe_action = "Request a new queue-transition approval if transition is still needed."
+    return {
+        "ok": True,
+        "project_id": project_id,
+        "work_item_id": work_item_id,
+        "target_queue_id": target_queue_id,
+        "approval_status": status,
+        "approval": latest_row,
+        "blocked_reasons": blocked_reasons,
+        "next_safe_action": next_safe_action,
+    }
+
+
+def request_work_item_queue_approval(
+    conn: Connection,
+    *,
+    work_item_id: str,
+    target_queue_id: str,
+    actor: str,
+    details: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    work_item = inspect_work_item(conn, work_item_id)
+    if work_item is None:
+        return {"ok": False, "error": "work_item_not_found", "work_item_id": work_item_id}
+    target_queue = inspect_queue(conn, target_queue_id)
+    if target_queue is None:
+        return {"ok": False, "error": "target_queue_not_found", "target_queue_id": target_queue_id}
+    normalized_details = _normalize_roadmap_details(details)
+    approval_id = _new_id("wqappr")
+    project_id = str(work_item.get("project_id") or DEFAULT_PROJECT_ID)
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            INSERT INTO work_item_queue_approvals (
+                id, project_id, work_item_id, target_queue_id, approval_status, actor, details
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s::jsonb)
+            """,
+            (
+                approval_id,
+                project_id,
+                work_item_id,
+                target_queue_id,
+                "pending",
+                actor,
+                json.dumps(normalized_details),
+            ),
+        )
+        cur.execute(
+            """
+            SELECT id, project_id, work_item_id, target_queue_id, approval_status, actor, details, created_at, updated_at
+            FROM work_item_queue_approvals
+            WHERE id = %s
+            """,
+            (approval_id,),
+        )
+        row = _row_to_work_item_queue_approval(cur.fetchone())
+    return {
+        "ok": True,
+        "changed": True,
+        "approval_status": "pending",
+        "project_id": project_id,
+        "work_item_id": work_item_id,
+        "target_queue_id": target_queue_id,
+        "approval": row,
+        "blocked_reasons": [{"code": "approval_pending"}],
+        "next_safe_action": "Approve or reject the pending queue-transition approval.",
+    }
+
+
+def _set_work_item_queue_approval_status(
+    conn: Connection,
+    *,
+    work_item_id: str,
+    target_queue_id: str,
+    actor: str,
+    status: str,
+    details: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    if status not in WORK_ITEM_QUEUE_APPROVAL_ALLOWED_STATUSES:
+        return {
+            "ok": False,
+            "error": "invalid_approval_status",
+            "status": status,
+            "allowed_statuses": list(WORK_ITEM_QUEUE_APPROVAL_ALLOWED_STATUSES),
+        }
+    work_item = inspect_work_item(conn, work_item_id)
+    if work_item is None:
+        return {"ok": False, "error": "work_item_not_found", "work_item_id": work_item_id}
+    project_id = str(work_item.get("project_id") or DEFAULT_PROJECT_ID)
+    state = inspect_work_item_queue_approval_state(
+        conn,
+        work_item_id=work_item_id,
+        target_queue_id=target_queue_id,
+        project_id=project_id,
+    )
+    existing = state.get("approval")
+    if not isinstance(existing, dict):
+        return {
+            "ok": False,
+            "error": "approval_not_found",
+            "work_item_id": work_item_id,
+            "target_queue_id": target_queue_id,
+        }
+    normalized_details = _normalize_roadmap_details(details)
+    merged_details = {**(existing.get("details") or {}), **normalized_details}
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            UPDATE work_item_queue_approvals
+            SET approval_status = %s,
+                actor = %s,
+                details = %s::jsonb,
+                updated_at = NOW()
+            WHERE id = %s
+            """,
+            (status, actor, json.dumps(merged_details), existing["id"]),
+        )
+    return inspect_work_item_queue_approval_state(
+        conn,
+        work_item_id=work_item_id,
+        target_queue_id=target_queue_id,
+        project_id=project_id,
+    )
+
+
+def approve_work_item_queue_approval(
+    conn: Connection,
+    *,
+    work_item_id: str,
+    target_queue_id: str,
+    actor: str,
+    details: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    return _set_work_item_queue_approval_status(
+        conn,
+        work_item_id=work_item_id,
+        target_queue_id=target_queue_id,
+        actor=actor,
+        status="approved",
+        details=details,
+    )
+
+
+def reject_work_item_queue_approval(
+    conn: Connection,
+    *,
+    work_item_id: str,
+    target_queue_id: str,
+    actor: str,
+    details: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    return _set_work_item_queue_approval_status(
+        conn,
+        work_item_id=work_item_id,
+        target_queue_id=target_queue_id,
+        actor=actor,
+        status="rejected",
+        details=details,
+    )
+
+
+def cancel_work_item_queue_approval(
+    conn: Connection,
+    *,
+    work_item_id: str,
+    target_queue_id: str,
+    actor: str,
+    details: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    return _set_work_item_queue_approval_status(
+        conn,
+        work_item_id=work_item_id,
+        target_queue_id=target_queue_id,
+        actor=actor,
+        status="cancelled",
+        details=details,
+    )
 
 
 def move_work_item_queue_if_allowed(
@@ -2438,6 +2720,36 @@ def render_move_work_item_queue_markdown(payload: dict[str, Any]) -> str:
     if blockers:
         for blocker in blockers:
             lines.append(f"- `{blocker.get('code', 'unknown')}` {json.dumps(blocker, sort_keys=True)}")
+    else:
+        lines.append("- none")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def render_work_item_queue_approval_markdown(payload: dict[str, Any]) -> str:
+    blocked_reasons = list(payload.get("blocked_reasons") or [])
+    lines = [
+        "# Work Item Queue Approval",
+        "",
+        f"- Work item ID: `{payload.get('work_item_id', '')}`",
+        f"- Target queue ID: `{payload.get('target_queue_id', '')}`",
+        f"- Approval status: `{payload.get('approval_status', '')}`",
+        f"- Next safe action: {payload.get('next_safe_action', '')}",
+        "",
+        "## Blocked Reasons",
+    ]
+    if blocked_reasons:
+        for blocker in blocked_reasons:
+            lines.append(f"- `{blocker.get('code', 'unknown')}` {json.dumps(blocker, sort_keys=True)}")
+    else:
+        lines.append("- none")
+    approval = payload.get("approval")
+    lines.extend(["", "## Approval Record"])
+    if isinstance(approval, dict):
+        lines.append(f"- ID: `{approval.get('id', '')}`")
+        lines.append(f"- Actor: `{approval.get('actor', '')}`")
+        lines.append(f"- Created at: `{approval.get('created_at', '')}`")
+        lines.append(f"- Updated at: `{approval.get('updated_at', '')}`")
+        lines.append(f"- Details: `{json.dumps(approval.get('details', {}), sort_keys=True)}`")
     else:
         lines.append("- none")
     return "\n".join(lines).rstrip() + "\n"
@@ -2916,6 +3228,12 @@ WORK_ITEM_READINESS_STATUSES: tuple[str, ...] = (
     "already_complete",
     "cancelled",
     "missing",
+)
+WORK_ITEM_QUEUE_APPROVAL_ALLOWED_STATUSES: tuple[str, ...] = (
+    "pending",
+    "approved",
+    "rejected",
+    "cancelled",
 )
 
 

@@ -47,6 +47,7 @@ def test_discover_migrations_reads_repo_sql_files() -> None:
         "0003_m16_autonomous_run_pr_linkage.sql",
         "0004_roadmap_control_schema.sql",
         "0005_roadmap_work_item_bridge.sql",
+        "0006_work_item_queue_approvals.sql",
     ]
 
 

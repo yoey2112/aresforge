@@ -26,6 +26,7 @@ from aresforge.db.repository import (
     render_start_work_item_markdown,
     render_implementation_handoff_markdown,
     render_move_work_item_queue_markdown,
+    render_work_item_queue_approval_markdown,
     render_queue_work_state_markdown,
     render_project_queue_dashboard_markdown,
     render_queue_readiness_markdown,
@@ -40,6 +41,11 @@ from aresforge.db.repository import (
     render_export_work_item_operator_prompt_markdown,
     render_roadmap_markdown,
     render_roadmap_work_item_links_markdown,
+    inspect_work_item_queue_approval_state,
+    request_work_item_queue_approval,
+    approve_work_item_queue_approval,
+    reject_work_item_queue_approval,
+    cancel_work_item_queue_approval,
     start_work_item_if_ready,
     update_work_item_status,
     update_roadmap_task_status,
@@ -532,6 +538,57 @@ def test_cli_parser_recognizes_roadmap_commands_and_formats() -> None:
     assert move_queue_markdown_args.actor == "local-test"
     assert move_queue_markdown_args.details_file == "details.json"
     assert move_queue_markdown_args.format == "markdown"
+
+    request_queue_approval_args = parser.parse_args(
+        [
+            "request-work-item-queue-approval",
+            "--work-item-id",
+            "work-1",
+            "--target-queue-id",
+            "queue-implementation",
+            "--actor",
+            "local-test",
+            "--details-file",
+            "details.json",
+            "--format",
+            "markdown",
+        ]
+    )
+    assert request_queue_approval_args.command == "request-work-item-queue-approval"
+    assert request_queue_approval_args.actor == "local-test"
+    assert request_queue_approval_args.details_file == "details.json"
+    assert request_queue_approval_args.format == "markdown"
+
+    approve_queue_approval_args = parser.parse_args(
+        [
+            "approve-work-item-queue-approval",
+            "--work-item-id",
+            "work-1",
+            "--target-queue-id",
+            "queue-implementation",
+            "--actor",
+            "local-test",
+            "--format",
+            "json",
+        ]
+    )
+    assert approve_queue_approval_args.command == "approve-work-item-queue-approval"
+    assert approve_queue_approval_args.actor == "local-test"
+    assert approve_queue_approval_args.format == "json"
+
+    inspect_queue_approval_args = parser.parse_args(
+        [
+            "inspect-work-item-queue-approval",
+            "--work-item-id",
+            "work-1",
+            "--target-queue-id",
+            "queue-implementation",
+            "--format",
+            "json",
+        ]
+    )
+    assert inspect_queue_approval_args.command == "inspect-work-item-queue-approval"
+    assert inspect_queue_approval_args.format == "json"
 
     handoff_impl_json_args = parser.parse_args(
         ["handoff-work-item-to-implementation", "--work-item-id", "work-1", "--format", "json"]
@@ -1120,6 +1177,29 @@ def test_render_move_work_item_queue_markdown_is_deterministic() -> None:
     assert "- New queue: `queue-triage`" in markdown
 
 
+def test_render_work_item_queue_approval_markdown_is_deterministic() -> None:
+    payload = {
+        "ok": True,
+        "work_item_id": "work-1",
+        "target_queue_id": "queue-implementation",
+        "approval_status": "pending",
+        "next_safe_action": "Approve or reject the pending queue-transition approval.",
+        "blocked_reasons": [{"code": "approval_pending"}],
+        "approval": {
+            "id": "wqappr-1",
+            "actor": "local-test",
+            "created_at": "2026-05-25T00:00:00Z",
+            "updated_at": "2026-05-25T00:00:00Z",
+            "details": {"source": "unit-test"},
+        },
+    }
+    markdown = render_work_item_queue_approval_markdown(payload)
+    assert "# Work Item Queue Approval" in markdown
+    assert "- Work item ID: `work-1`" in markdown
+    assert "- Target queue ID: `queue-implementation`" in markdown
+    assert "approval_pending" in markdown
+
+
 def test_render_work_item_execution_dossier_markdown_is_deterministic() -> None:
     payload = {
         "ok": True,
@@ -1567,6 +1647,28 @@ def test_move_work_item_queue_if_allowed_target_queue_not_allowed_is_non_mutatin
     assert payload["reason"] == "target_queue_not_allowed"
 
 
+def test_move_work_item_queue_if_allowed_approval_required_is_non_mutating(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        repository_module,
+        "plan_work_item_queue_transition",
+        lambda *_args, **_kwargs: {
+            "ok": True,
+            "work_item_id": "work-1",
+            "can_transition": False,
+            "transition_status": "blocked",
+            "reason": "queue_approval_required",
+            "next_safe_action": "Request and approve a local queue-transition approval gate before moving.",
+            "blockers": [{"code": "queue_approval_required"}],
+        },
+    )
+    payload = move_work_item_queue_if_allowed(_FakeConnection(), "work-1", "queue-implementation")
+    assert payload["ok"] is True
+    assert payload["changed"] is False
+    assert payload["reason"] == "queue_approval_required"
+
+
 class _QueueMoveCursor:
     def __init__(self) -> None:
         self.executed: list[tuple[str, object]] = []
@@ -1635,6 +1737,128 @@ def test_move_work_item_queue_if_allowed_allowed_target_updates_and_logs_events(
     executed_sql = "\n".join(sql for sql, _params in conn.last_cursor.executed)
     assert "UPDATE work_items" in executed_sql
     assert "INSERT INTO audit_events" in executed_sql
+
+
+class _ApprovalCursor:
+    def __init__(self, state: dict[str, object]) -> None:
+        self.state = state
+        self._row: dict[str, object] | None = None
+
+    def __enter__(self) -> "_ApprovalCursor":
+        return self
+
+    def __exit__(self, exc_type, exc, tb) -> None:
+        return None
+
+    def execute(self, sql: str, params: object = None) -> None:
+        parameters = params if isinstance(params, tuple) else tuple()
+        approvals = self.state["approvals"]
+        if "INSERT INTO work_item_queue_approvals" in sql:
+            row = {
+                "id": parameters[0],
+                "project_id": parameters[1],
+                "work_item_id": parameters[2],
+                "target_queue_id": parameters[3],
+                "approval_status": parameters[4],
+                "actor": parameters[5],
+                "details": {},
+                "created_at": "2026-05-25T00:00:00Z",
+                "updated_at": "2026-05-25T00:00:00Z",
+            }
+            approvals.append(row)
+            self._row = None
+            return
+        if "WHERE id = %s" in sql and "FROM work_item_queue_approvals" in sql:
+            self._row = next((row for row in approvals if row["id"] == parameters[0]), None)
+            return
+        if "UPDATE work_item_queue_approvals" in sql:
+            row = next((item for item in approvals if item["id"] == parameters[3]), None)
+            if row is not None:
+                row["approval_status"] = parameters[0]
+                row["actor"] = parameters[1]
+                row["updated_at"] = "2026-05-25T00:01:00Z"
+            self._row = None
+            return
+        if "FROM work_item_queue_approvals" in sql:
+            self._row = next(
+                (
+                    row
+                    for row in reversed(approvals)
+                    if row["project_id"] == parameters[0]
+                    and row["work_item_id"] == parameters[1]
+                    and row["target_queue_id"] == parameters[2]
+                ),
+                None,
+            )
+
+    def fetchone(self) -> dict[str, object] | None:
+        return self._row
+
+
+class _ApprovalConnection:
+    def __init__(self) -> None:
+        self.state: dict[str, object] = {"approvals": []}
+
+    def cursor(self) -> _ApprovalCursor:
+        return _ApprovalCursor(self.state)
+
+
+def test_queue_approval_request_inspect_approve_reject_and_cancel(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    conn = _ApprovalConnection()
+    monkeypatch.setattr(
+        repository_module,
+        "inspect_work_item",
+        lambda *_args, **_kwargs: {"id": "work-1", "project_id": "project-aresforge"},
+    )
+    monkeypatch.setattr(repository_module, "inspect_queue", lambda *_args, **_kwargs: {"id": "queue-implementation"})
+
+    requested = request_work_item_queue_approval(
+        conn,
+        work_item_id="work-1",
+        target_queue_id="queue-implementation",
+        actor="local-requester",
+        details={"reason": "ready"},
+    )
+    assert requested["ok"] is True
+    assert requested["approval_status"] == "pending"
+
+    pending = inspect_work_item_queue_approval_state(
+        conn,
+        work_item_id="work-1",
+        target_queue_id="queue-implementation",
+    )
+    assert pending["approval_status"] == "pending"
+
+    approved = approve_work_item_queue_approval(
+        conn,
+        work_item_id="work-1",
+        target_queue_id="queue-implementation",
+        actor="local-approver",
+        details={"decision": "approve"},
+    )
+    assert approved["approval_status"] == "approved"
+
+    rejected = reject_work_item_queue_approval(
+        conn,
+        work_item_id="work-1",
+        target_queue_id="queue-implementation",
+        actor="local-approver",
+        details={"decision": "reject"},
+    )
+    assert rejected["approval_status"] == "rejected"
+    assert rejected["blocked_reasons"] == [{"code": "approval_rejected"}]
+
+    cancelled = cancel_work_item_queue_approval(
+        conn,
+        work_item_id="work-1",
+        target_queue_id="queue-implementation",
+        actor="local-approver",
+        details={"decision": "cancel"},
+    )
+    assert cancelled["approval_status"] == "cancelled"
+    assert cancelled["blocked_reasons"] == [{"code": "approval_cancelled"}]
 
 
 def test_handoff_work_item_to_implementation_missing_is_non_mutating(
@@ -1969,3 +2193,63 @@ def test_plan_work_item_queue_transition_missing_work_item_shape(
     assert payload["can_transition"] is False
     assert payload["transition_status"] == "missing"
     assert payload["reason"] == "work_item_not_found"
+
+
+def test_plan_work_item_queue_transition_implementation_blocked_without_approval(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        repository_module,
+        "inspect_work_item",
+        lambda *_args, **_kwargs: {
+            "id": "work-1",
+            "project_id": "project-aresforge",
+            "queue_id": "queue-triage",
+            "status": "queued",
+            "queue_allowed_next_queues": ["queue-implementation"],
+        },
+    )
+    monkeypatch.setattr(repository_module, "inspect_queue", lambda _conn, queue_id: {"id": queue_id, "lifecycle_stage_mapping": "implementation"})
+    monkeypatch.setattr(
+        repository_module,
+        "inspect_work_item_readiness",
+        lambda *_args, **_kwargs: {"readiness_status": "ready", "ready": True},
+    )
+    monkeypatch.setattr(
+        repository_module,
+        "inspect_work_item_queue_approval_state",
+        lambda *_args, **_kwargs: {"approval_status": "missing"},
+    )
+    payload = plan_work_item_queue_transition(_FakeConnection(), "work-1", "queue-implementation")
+    assert payload["can_transition"] is False
+    assert payload["reason"] == "queue_approval_required"
+
+
+def test_plan_work_item_queue_transition_implementation_allowed_with_approval(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        repository_module,
+        "inspect_work_item",
+        lambda *_args, **_kwargs: {
+            "id": "work-1",
+            "project_id": "project-aresforge",
+            "queue_id": "queue-triage",
+            "status": "queued",
+            "queue_allowed_next_queues": ["queue-implementation"],
+        },
+    )
+    monkeypatch.setattr(repository_module, "inspect_queue", lambda _conn, queue_id: {"id": queue_id, "lifecycle_stage_mapping": "implementation"})
+    monkeypatch.setattr(
+        repository_module,
+        "inspect_work_item_readiness",
+        lambda *_args, **_kwargs: {"readiness_status": "ready", "ready": True},
+    )
+    monkeypatch.setattr(
+        repository_module,
+        "inspect_work_item_queue_approval_state",
+        lambda *_args, **_kwargs: {"approval_status": "approved"},
+    )
+    payload = plan_work_item_queue_transition(_FakeConnection(), "work-1", "queue-implementation")
+    assert payload["can_transition"] is True
+    assert payload["transition_status"] == "ready"

@@ -40,6 +40,9 @@ from aresforge.db.repository import (
     start_work_item_if_ready,
     plan_work_item_queue_transition,
     move_work_item_queue_if_allowed,
+    request_work_item_queue_approval,
+    approve_work_item_queue_approval,
+    inspect_work_item_queue_approval_state,
     render_roadmap_markdown,
     render_roadmap_events_markdown,
     render_roadmap_task_dependencies_markdown,
@@ -57,6 +60,7 @@ from aresforge.db.repository import (
     render_start_work_item_markdown,
     render_work_item_queue_transition_plan_markdown,
     render_move_work_item_queue_markdown,
+    render_work_item_queue_approval_markdown,
     seed_aresforge_roadmap,
     add_roadmap_event,
     add_roadmap_task_dependency,
@@ -444,6 +448,43 @@ def build_parser() -> argparse.ArgumentParser:
     move_queue_parser.add_argument("--actor", default="local-operator")
     move_queue_parser.add_argument("--details-file")
     move_queue_parser.add_argument(
+        "--format",
+        choices=("json", "markdown"),
+        default="json",
+    )
+    request_queue_approval_parser = subparsers.add_parser(
+        "request-work-item-queue-approval",
+        help="Request a local approval gate for moving one work item to a target queue.",
+    )
+    request_queue_approval_parser.add_argument("--work-item-id", required=True)
+    request_queue_approval_parser.add_argument("--target-queue-id", required=True)
+    request_queue_approval_parser.add_argument("--actor", required=True)
+    request_queue_approval_parser.add_argument("--details-file")
+    request_queue_approval_parser.add_argument(
+        "--format",
+        choices=("json", "markdown"),
+        default="json",
+    )
+    approve_queue_approval_parser = subparsers.add_parser(
+        "approve-work-item-queue-approval",
+        help="Approve a local approval gate for moving one work item to a target queue.",
+    )
+    approve_queue_approval_parser.add_argument("--work-item-id", required=True)
+    approve_queue_approval_parser.add_argument("--target-queue-id", required=True)
+    approve_queue_approval_parser.add_argument("--actor", required=True)
+    approve_queue_approval_parser.add_argument("--details-file")
+    approve_queue_approval_parser.add_argument(
+        "--format",
+        choices=("json", "markdown"),
+        default="json",
+    )
+    inspect_queue_approval_parser = subparsers.add_parser(
+        "inspect-work-item-queue-approval",
+        help="Inspect local approval gate state for a work item and target queue.",
+    )
+    inspect_queue_approval_parser.add_argument("--work-item-id", required=True)
+    inspect_queue_approval_parser.add_argument("--target-queue-id", required=True)
+    inspect_queue_approval_parser.add_argument(
         "--format",
         choices=("json", "markdown"),
         default="json",
@@ -2405,6 +2446,59 @@ def main(argv: list[str] | None = None) -> int:
             )
         if args.format == "markdown":
             print(render_move_work_item_queue_markdown(payload))
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "request-work-item-queue-approval":
+        details, details_error = parse_details_input(None, getattr(args, "details_file", None))
+        if details_error is not None:
+            emit_json(details_error)
+            return 1
+        assert details is not None
+        with connect(config) as conn:
+            payload = request_work_item_queue_approval(
+                conn,
+                work_item_id=args.work_item_id,
+                target_queue_id=args.target_queue_id,
+                actor=args.actor,
+                details=details,
+            )
+        if args.format == "markdown":
+            print(render_work_item_queue_approval_markdown(payload))
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "approve-work-item-queue-approval":
+        details, details_error = parse_details_input(None, getattr(args, "details_file", None))
+        if details_error is not None:
+            emit_json(details_error)
+            return 1
+        assert details is not None
+        with connect(config) as conn:
+            payload = approve_work_item_queue_approval(
+                conn,
+                work_item_id=args.work_item_id,
+                target_queue_id=args.target_queue_id,
+                actor=args.actor,
+                details=details,
+            )
+        if args.format == "markdown":
+            print(render_work_item_queue_approval_markdown(payload))
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-work-item-queue-approval":
+        with connect(config) as conn:
+            payload = inspect_work_item_queue_approval_state(
+                conn,
+                work_item_id=args.work_item_id,
+                target_queue_id=args.target_queue_id,
+            )
+        if args.format == "markdown":
+            print(render_work_item_queue_approval_markdown(payload))
             return 0 if bool(payload.get("ok")) else 1
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1

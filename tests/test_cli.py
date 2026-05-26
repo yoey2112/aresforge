@@ -42,6 +42,9 @@ def test_cli_has_expected_commands() -> None:
         "start-work-item",
         "plan-work-item-queue-transition",
         "move-work-item-queue",
+        "request-work-item-queue-approval",
+        "approve-work-item-queue-approval",
+        "inspect-work-item-queue-approval",
         "handoff-work-item-to-implementation",
         "inspect-work-item-lifecycle",
         "build-work-item-execution-dossier",
@@ -4257,6 +4260,105 @@ def test_move_work_item_queue_dispatch_parses_bom_details_file(
     assert exit_code == 0
     assert seen == {"actor": "local-test", "details": {"source": "unit-test"}}
     assert payload["ok"] is True
+
+
+def test_request_work_item_queue_approval_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(
+        cli,
+        "request_work_item_queue_approval",
+        lambda _conn, work_item_id, target_queue_id, actor, details: {
+            "ok": True,
+            "work_item_id": work_item_id,
+            "target_queue_id": target_queue_id,
+            "approval_status": "pending",
+        },
+    )
+    exit_code = cli.main(
+        [
+            "request-work-item-queue-approval",
+            "--work-item-id",
+            "work-1",
+            "--target-queue-id",
+            "queue-implementation",
+            "--actor",
+            "local-test",
+            "--format",
+            "json",
+        ]
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["approval_status"] == "pending"
+
+
+def test_approve_work_item_queue_approval_dispatch_markdown(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(
+        cli,
+        "approve_work_item_queue_approval",
+        lambda _conn, work_item_id, target_queue_id, actor, details: {
+            "ok": True,
+            "work_item_id": work_item_id,
+            "target_queue_id": target_queue_id,
+            "approval_status": "approved",
+        },
+    )
+    monkeypatch.setattr(
+        cli,
+        "render_work_item_queue_approval_markdown",
+        lambda _payload: "# Work Item Queue Approval\n",
+    )
+    exit_code = cli.main(
+        [
+            "approve-work-item-queue-approval",
+            "--work-item-id",
+            "work-1",
+            "--target-queue-id",
+            "queue-implementation",
+            "--actor",
+            "local-test",
+            "--format",
+            "markdown",
+        ]
+    )
+    output = capsys.readouterr().out
+    assert exit_code == 0
+    assert output == "# Work Item Queue Approval\n\n"
+
+
+def test_inspect_work_item_queue_approval_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(
+        cli,
+        "inspect_work_item_queue_approval_state",
+        lambda _conn, work_item_id, target_queue_id: {
+            "ok": True,
+            "work_item_id": work_item_id,
+            "target_queue_id": target_queue_id,
+            "approval_status": "pending",
+        },
+    )
+    exit_code = cli.main(
+        [
+            "inspect-work-item-queue-approval",
+            "--work-item-id",
+            "work-1",
+            "--target-queue-id",
+            "queue-implementation",
+            "--format",
+            "json",
+        ]
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["approval_status"] == "pending"
 
 
 def test_handoff_work_item_to_implementation_dispatch_json(
