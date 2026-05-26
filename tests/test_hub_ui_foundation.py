@@ -269,6 +269,9 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "Active Project Intake" in index_text
     assert "Add To Active Project Queue" in index_text
     assert "Direction / Details" in index_text
+    assert "Projects Read-Only Overview" in index_text
+    assert "projects-readonly-list" in index_text
+    assert "Local-only and read-only project view: no project mutations, no GitHub sync/mutation, no agent/model execution." in index_text
     assert "Local Home Dashboard" in index_text
     assert "Total Projects" in index_text
     assert "Active Project" in index_text
@@ -326,8 +329,10 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
         "/api/reports/export",
         "/api/local-project-dashboard",
         "/api/local-project-report",
+        "/api/local-projects",
     ):
         assert endpoint in app_text
+    assert "ACTIVE" in app_text
     for form_id in (
         "project-form",
         "new-project-wizard-form",

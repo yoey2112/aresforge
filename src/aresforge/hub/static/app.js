@@ -497,6 +497,16 @@ function renderProjects(projects) {
   setList("projects-list", "projects-empty-state", lines);
 }
 
+function renderProjectsReadOnly(payload) {
+  const projects = (payload && payload.projects) || [];
+  const lines = projects.map((project) => {
+    const activeMarker = project.is_active ? "ACTIVE" : "INACTIVE";
+    const pathValue = project.local_path || project.repo_path || "-";
+    return `${activeMarker} | ${project.project_id} | ${project.project_name || "-"} | readiness=${project.readiness_status || "-"} | path=${pathValue} | primary_repo=${project.repo_path || "-"} | warnings=${(payload.warnings || []).length}`;
+  });
+  setList("projects-readonly-list", "projects-readonly-empty-state", lines);
+}
+
 function refreshProjectSelectors(projects) {
   const selectors = [byId("repo-project-select"), byId("active-project-select")].filter(Boolean);
   const previousRepoProject = byId("repo-project-select") ? byId("repo-project-select").value : "";
@@ -1618,6 +1628,12 @@ async function setActiveProject(projectId) {
 async function loadProjects() {
   setMessage("projects-message", "Loading projects...", "loading");
   await loadActiveProject();
+  try {
+    const localProjectsPayload = await fetchJson("/api/local-projects");
+    renderProjectsReadOnly(localProjectsPayload);
+  } catch (_error) {
+    setList("projects-readonly-list", "projects-readonly-empty-state", []);
+  }
   const payload = await fetchJson("/api/projects");
   state.projects = payload.projects || [];
   if (payload.active_project_id) {

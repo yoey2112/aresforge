@@ -22,6 +22,7 @@ from aresforge.hub.api import (
     get_handoff_target,
     get_handoff_targets,
     get_local_project_dashboard,
+    get_local_projects_readiness,
     get_local_project_report,
     get_orchestration_plan,
     get_project,
@@ -164,6 +165,9 @@ def _build_handler(config: AppConfig, static_root: Path) -> type[BaseHTTPRequest
                 return True
             if method == "GET" and path == "/api/local-project-report":
                 _render_json(self, HTTPStatus.OK, get_local_project_report(config))
+                return True
+            if method == "GET" and path == "/api/local-projects":
+                _render_json(self, HTTPStatus.OK, get_local_projects_readiness(config))
                 return True
             if method == "GET" and path == "/api/bootstrap/status":
                 _render_json(self, HTTPStatus.OK, get_bootstrap_status(config))

@@ -520,6 +520,12 @@
           <h2>Projects</h2>
           <p>Register and update local managed projects backed by the M32 registry.</p>
           <p id="projects-message" class="message"></p>
+          <section class="subpanel">
+            <h3>Projects Read-Only Overview</h3>
+            <p class="boundary-banner">Local-only and read-only project view: no project mutations, no GitHub sync/mutation, no agent/model execution.</p>
+            <ul id="projects-readonly-list" class="list"></ul>
+            <p id="projects-readonly-empty-state" class="empty">No local managed projects available.</p>
+          </section>
           <section class="subpanel active-project-panel">
             <h3>Active Project Selector</h3>
             <p id="projects-active-project-summary" class="message-note">No active project selected.</p>
