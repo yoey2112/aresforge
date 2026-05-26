@@ -37,3 +37,35 @@ export {
   saveValidationExecutionPlanDraft,
   approveValidationExecutionPlan,
 } from "/js/sections/projectFactory/validation.js";
+
+export {
+  bindProjectFactoryAgentDispatchActions,
+  buildAgentDispatchPlanPayload,
+  loadAgentDispatchPlan,
+  prepareAgentDispatchPlan,
+  renderAgentDispatchPlan,
+  saveAgentDispatchPlanDraft,
+  approveAgentDispatchPlan,
+} from "/js/sections/projectFactory/agentDispatch.js";
+
+export {
+  bindProjectFactoryCloseoutActions,
+  buildDocumentationCloseoutPlanPayload,
+  loadDocumentationCloseoutPlan,
+  prepareDocumentationCloseoutPlan,
+  renderDocumentationCloseoutPlan,
+  saveDocumentationCloseoutPlanDraft,
+  approveDocumentationCloseoutPlan,
+} from "/js/sections/projectFactory/closeout.js";
+
+export {
+  bindProjectFactoryExecutionApprovalActions,
+  buildExecutionPhaseApprovalPayload,
+  loadExecutionPhaseApproval,
+  loadExecutionReadiness,
+  prepareExecutionPhaseApproval,
+  renderExecutionPhaseApproval,
+  renderExecutionReadiness,
+  saveExecutionPhaseApprovalDraft,
+  approveExecutionPhaseApproval,
+} from "/js/sections/projectFactory/executionApproval.js";

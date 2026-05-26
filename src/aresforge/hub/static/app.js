@@ -47,31 +47,54 @@ import {
   statusBadgeText,
 } from "/js/sections/reports.js";
 import {
+  approveAgentDispatchPlan as approveAgentDispatchPlanSection,
   approveArchitecture as approveArchitectureSection,
+  approveDocumentationCloseoutPlan as approveDocumentationCloseoutPlanSection,
+  approveExecutionPhaseApproval as approveExecutionPhaseApprovalSection,
   approveMilestoneIssuePlan as approveMilestoneIssuePlanSection,
   approveValidationExecutionPlan as approveValidationExecutionPlanSection,
   approveScope as approveScopeSection,
+  bindProjectFactoryAgentDispatchActions,
   bindProjectFactoryArchitectureActions,
+  bindProjectFactoryCloseoutActions,
+  bindProjectFactoryExecutionApprovalActions,
   bindProjectFactoryMilestonePlanActions,
   bindProjectFactoryScopeActions,
   bindProjectFactoryValidationActions,
+  buildAgentDispatchPlanPayload as buildAgentDispatchPlanPayloadSection,
   buildArchitectureAuthoringPayload as buildArchitectureAuthoringPayloadSection,
+  buildDocumentationCloseoutPlanPayload as buildDocumentationCloseoutPlanPayloadSection,
+  buildExecutionPhaseApprovalPayload as buildExecutionPhaseApprovalPayloadSection,
   buildMilestoneIssuePlanPayload as buildMilestoneIssuePlanPayloadSection,
   buildScopeAuthoringPayload as buildScopeAuthoringPayloadSection,
   buildValidationExecutionPlanPayload as buildValidationExecutionPlanPayloadSection,
+  loadAgentDispatchPlan as loadAgentDispatchPlanSection,
   loadArchitectureContract as loadArchitectureContractSection,
+  loadDocumentationCloseoutPlan as loadDocumentationCloseoutPlanSection,
+  loadExecutionPhaseApproval as loadExecutionPhaseApprovalSection,
+  loadExecutionReadiness as loadExecutionReadinessSection,
   loadMilestoneIssuePlan as loadMilestoneIssuePlanSection,
   loadScopePackage as loadScopePackageSection,
   loadValidationExecutionPlan as loadValidationExecutionPlanSection,
+  prepareAgentDispatchPlan as prepareAgentDispatchPlanSection,
   prepareArchitectureContract as prepareArchitectureContractSection,
+  prepareDocumentationCloseoutPlan as prepareDocumentationCloseoutPlanSection,
+  prepareExecutionPhaseApproval as prepareExecutionPhaseApprovalSection,
   prepareMilestoneIssuePlan as prepareMilestoneIssuePlanSection,
   prepareScopePackage as prepareScopePackageSection,
   prepareValidationExecutionPlan as prepareValidationExecutionPlanSection,
+  renderAgentDispatchPlan as renderAgentDispatchPlanSection,
   renderArchitectureAuthoring as renderArchitectureAuthoringSection,
+  renderDocumentationCloseoutPlan as renderDocumentationCloseoutPlanSection,
+  renderExecutionPhaseApproval as renderExecutionPhaseApprovalSection,
+  renderExecutionReadiness as renderExecutionReadinessSection,
   renderMilestoneIssuePlan as renderMilestoneIssuePlanSection,
   renderScopeAuthoring as renderScopeAuthoringSection,
   renderValidationExecutionPlan as renderValidationExecutionPlanSection,
+  saveAgentDispatchPlanDraft as saveAgentDispatchPlanDraftSection,
   saveArchitectureDraft as saveArchitectureDraftSection,
+  saveDocumentationCloseoutPlanDraft as saveDocumentationCloseoutPlanDraftSection,
+  saveExecutionPhaseApprovalDraft as saveExecutionPhaseApprovalDraftSection,
   saveMilestoneIssuePlanDraft as saveMilestoneIssuePlanDraftSection,
   saveScopeDraft as saveScopeDraftSection,
   saveValidationExecutionPlanDraft as saveValidationExecutionPlanDraftSection,
@@ -366,14 +389,9 @@ function buildGithubApplyPlanPayload() {
 }
 
 function buildAgentDispatchPlanPayload() {
-  return prunePayload({
-    project_id: activeProjectId(),
-    dispatch_summary: byId("agent-dispatch-summary").value.trim(),
-    operator_notes: byId("agent-dispatch-operator-notes").value.trim(),
-    sequencing_notes: parseLineList(byId("agent-dispatch-sequencing-notes").value),
-    dependency_notes: parseLineList(byId("agent-dispatch-dependency-notes").value),
-    approval_conditions: parseLineList(byId("agent-dispatch-approval-conditions").value),
-    known_risks: parseLineList(byId("agent-dispatch-known-risks").value),
+  return buildAgentDispatchPlanPayloadSection({
+    activeProjectId,
+    parseLineList,
   });
 }
 
@@ -385,40 +403,15 @@ function buildValidationExecutionPlanPayload() {
 }
 
 function buildDocumentationCloseoutPlanPayload() {
-  return prunePayload({
-    project_id: activeProjectId(),
-    closeout_summary: byId("documentation-closeout-summary").value.trim(),
-    operator_notes: byId("documentation-closeout-operator-notes").value.trim(),
-    sequencing_notes: parseLineList(byId("documentation-closeout-sequencing-notes").value),
-    dependency_notes: parseLineList(byId("documentation-closeout-dependency-notes").value),
-    approval_conditions: parseLineList(byId("documentation-closeout-approval-conditions").value),
-    known_risks: parseLineList(byId("documentation-closeout-known-risks").value),
-    documentation_update_notes: parseLineList(byId("documentation-closeout-update-notes").value),
-    evidence_collection_notes: parseLineList(byId("documentation-closeout-evidence-notes").value),
+  return buildDocumentationCloseoutPlanPayloadSection({
+    activeProjectId,
+    parseLineList,
   });
 }
 
 function buildExecutionPhaseApprovalPayload() {
-  const laneFromField = (laneId, fieldId) => {
-    const acknowledgementText = byId(fieldId).value.trim();
-    return {
-      lane_id: laneId,
-      status: acknowledgementText ? "approved" : "blocked",
-      acknowledgement_text: acknowledgementText,
-    };
-  };
-  return prunePayload({
-    project_id: activeProjectId(),
-    approval_summary: byId("execution-phase-approval-summary").value.trim(),
-    operator_notes: byId("execution-phase-approval-operator-notes").value.trim(),
-    overall_acknowledgement: byId("execution-phase-overall-acknowledgement").value.trim(),
-    execution_lanes: [
-      laneFromField("github_mutation_execution", "execution-phase-ack-github-mutation-execution"),
-      laneFromField("validation_command_execution", "execution-phase-ack-validation-command-execution"),
-      laneFromField("documentation_update_execution", "execution-phase-ack-documentation-update-execution"),
-      laneFromField("agent_model_execution", "execution-phase-ack-agent-model-execution"),
-      laneFromField("project_closeout_execution", "execution-phase-ack-project-closeout-execution"),
-    ],
+  return buildExecutionPhaseApprovalPayloadSection({
+    activeProjectId,
   });
 }
 
@@ -482,56 +475,7 @@ function renderGithubApplyPlan(payload) {
 }
 
 function renderAgentDispatchPlan(payload) {
-  state.agentDispatchPlan = payload || null;
-  const message = byId("home-agent-dispatch-plan-message");
-  const stateLine = byId("home-agent-dispatch-plan-state");
-  const statusLine = byId("home-agent-dispatch-plan-status");
-  const exists = Boolean(payload && payload.agent_dispatch_plan_exists);
-  const plan = (payload && payload.agent_dispatch_plan) || {};
-  if (!exists) {
-    byId("agent-dispatch-summary").value = "";
-    byId("agent-dispatch-operator-notes").value = "";
-    byId("agent-dispatch-sequencing-notes").value = "";
-    byId("agent-dispatch-dependency-notes").value = "";
-    byId("agent-dispatch-approval-conditions").value = "";
-    byId("agent-dispatch-known-risks").value = "";
-    setCodeBlock("home-agent-dispatch-items", "home-agent-dispatch-items-empty", "");
-    setCodeBlock("home-agent-dispatch-queues", "home-agent-dispatch-queues-empty", "");
-    setList("home-agent-dispatch-audit-trail", "home-agent-dispatch-audit-trail-empty", []);
-    if (message) {
-      message.textContent = "No Agent Dispatch Plan found. Approve the local GitHub Apply Plan first, then prepare Agent Dispatch Plan.";
-    }
-    if (stateLine) {
-      stateLine.textContent = "Agent Dispatch Plan lifecycle state: not_started";
-    }
-    if (statusLine) {
-      statusLine.textContent = "agent_execution=not_requested | model_execution=not_requested";
-    }
-    return;
-  }
-  byId("agent-dispatch-summary").value = String(plan.dispatch_summary || "");
-  byId("agent-dispatch-operator-notes").value = String(plan.operator_notes || "");
-  byId("agent-dispatch-sequencing-notes").value = toTextareaList(plan.sequencing_notes);
-  byId("agent-dispatch-dependency-notes").value = toTextareaList(plan.dependency_notes);
-  byId("agent-dispatch-approval-conditions").value = toTextareaList(plan.approval_conditions);
-  byId("agent-dispatch-known-risks").value = toTextareaList(plan.known_risks);
-  const dispatchPlan = plan.dispatch_plan || {};
-  setCodeBlock("home-agent-dispatch-items", "home-agent-dispatch-items-empty", JSON.stringify(dispatchPlan.dispatch_items || [], null, 2));
-  setCodeBlock("home-agent-dispatch-queues", "home-agent-dispatch-queues-empty", JSON.stringify(dispatchPlan.agent_queues || [], null, 2));
-  setList(
-    "home-agent-dispatch-audit-trail",
-    "home-agent-dispatch-audit-trail-empty",
-    (plan.audit_trail || []).map((entry) => `${entry.timestamp || "-"} | ${entry.event_type || "-"} | state=${entry.lifecycle_state || "-"} | actor=${entry.actor || "-"}`)
-  );
-  if (message) {
-    message.textContent = "This is a local dispatch plan only. It does not execute agents or models.";
-  }
-  if (stateLine) {
-    stateLine.textContent = `Agent Dispatch Plan lifecycle state: ${plan.lifecycle_state || "not_started"}`;
-  }
-  if (statusLine) {
-    statusLine.textContent = `agent_execution=${plan.agent_execution_status || "not_requested"} | model_execution=${plan.model_execution_status || "not_requested"}`;
-  }
+  renderAgentDispatchPlanSection(state, payload, { toTextareaList });
 }
 
 function renderValidationExecutionPlan(payload) {
@@ -539,142 +483,15 @@ function renderValidationExecutionPlan(payload) {
 }
 
 function renderDocumentationCloseoutPlan(payload) {
-  state.documentationCloseoutPlan = payload || null;
-  const message = byId("home-documentation-closeout-plan-message");
-  const stateLine = byId("home-documentation-closeout-plan-state");
-  const statusLine = byId("home-documentation-closeout-plan-status");
-  const exists = Boolean(payload && payload.documentation_closeout_plan_exists);
-  const plan = (payload && payload.documentation_closeout_plan) || {};
-  if (!exists) {
-    byId("documentation-closeout-summary").value = "";
-    byId("documentation-closeout-operator-notes").value = "";
-    byId("documentation-closeout-sequencing-notes").value = "";
-    byId("documentation-closeout-dependency-notes").value = "";
-    byId("documentation-closeout-approval-conditions").value = "";
-    byId("documentation-closeout-known-risks").value = "";
-    byId("documentation-closeout-update-notes").value = "";
-    byId("documentation-closeout-evidence-notes").value = "";
-    setCodeBlock("home-documentation-closeout-items", "home-documentation-closeout-items-empty", "");
-    setCodeBlock("home-documentation-closeout-evidence-packages", "home-documentation-closeout-evidence-packages-empty", "");
-    setCodeBlock("home-documentation-closeout-checks", "home-documentation-closeout-checks-empty", "");
-    setList("home-documentation-closeout-audit-trail", "home-documentation-closeout-audit-trail-empty", []);
-    if (message) {
-      message.textContent = "No Documentation Closeout Plan found. Approve the local Validation Execution Plan first.";
-    }
-    if (stateLine) {
-      stateLine.textContent = "Documentation Closeout Plan lifecycle state: not_started";
-    }
-    if (statusLine) {
-      statusLine.textContent = "documentation_execution=not_requested | validation_execution=not_requested | agent_execution=not_requested | model_execution=not_requested";
-    }
-    return;
-  }
-  byId("documentation-closeout-summary").value = String(plan.closeout_summary || "");
-  byId("documentation-closeout-operator-notes").value = String(plan.operator_notes || "");
-  byId("documentation-closeout-sequencing-notes").value = toTextareaList(plan.sequencing_notes);
-  byId("documentation-closeout-dependency-notes").value = toTextareaList(plan.dependency_notes);
-  byId("documentation-closeout-approval-conditions").value = toTextareaList(plan.approval_conditions);
-  byId("documentation-closeout-known-risks").value = toTextareaList(plan.known_risks);
-  byId("documentation-closeout-update-notes").value = toTextareaList(plan.documentation_update_notes);
-  byId("documentation-closeout-evidence-notes").value = toTextareaList(plan.evidence_collection_notes);
-  const closeoutPlan = plan.documentation_plan || {};
-  setCodeBlock("home-documentation-closeout-items", "home-documentation-closeout-items-empty", JSON.stringify(closeoutPlan.documentation_items || [], null, 2));
-  setCodeBlock("home-documentation-closeout-evidence-packages", "home-documentation-closeout-evidence-packages-empty", JSON.stringify(closeoutPlan.evidence_packages || [], null, 2));
-  setCodeBlock("home-documentation-closeout-checks", "home-documentation-closeout-checks-empty", JSON.stringify(closeoutPlan.closeout_checks || [], null, 2));
-  setList(
-    "home-documentation-closeout-audit-trail",
-    "home-documentation-closeout-audit-trail-empty",
-    (plan.audit_trail || []).map((entry) => `${entry.timestamp || "-"} | ${entry.event_type || "-"} | state=${entry.lifecycle_state || "-"} | actor=${entry.actor || "-"}`)
-  );
-  if (message) {
-    message.textContent = "This is a local documentation closeout plan only. It does not update docs, execute validation, run agents/models, or perform GitHub actions.";
-  }
-  if (stateLine) {
-    stateLine.textContent = `Documentation Closeout Plan lifecycle state: ${plan.lifecycle_state || "not_started"}`;
-  }
-  if (statusLine) {
-    statusLine.textContent = `documentation_execution=${plan.documentation_execution_status || "not_requested"} | validation_execution=${plan.validation_execution_status || "not_requested"} | agent_execution=${plan.agent_execution_status || "not_requested"} | model_execution=${plan.model_execution_status || "not_requested"}`;
-  }
+  renderDocumentationCloseoutPlanSection(state, payload, { toTextareaList });
 }
 
 function renderExecutionPhaseApproval(payload) {
-  state.executionPhaseApproval = payload || null;
-  const message = byId("home-execution-phase-approval-message");
-  const stateLine = byId("home-execution-phase-approval-state");
-  const exists = Boolean(payload && payload.execution_phase_approval_exists);
-  const plan = (payload && payload.execution_phase_approval) || {};
-  if (!exists) {
-    byId("execution-phase-approval-summary").value = "";
-    byId("execution-phase-approval-operator-notes").value = "";
-    byId("execution-phase-overall-acknowledgement").value = "";
-    byId("execution-phase-ack-github-mutation-execution").value = "";
-    byId("execution-phase-ack-validation-command-execution").value = "";
-    byId("execution-phase-ack-documentation-update-execution").value = "";
-    byId("execution-phase-ack-agent-model-execution").value = "";
-    byId("execution-phase-ack-project-closeout-execution").value = "";
-    setCodeBlock("home-execution-phase-lanes", "home-execution-phase-lanes-empty", "");
-    setList("home-execution-phase-audit-trail", "home-execution-phase-audit-trail-empty", []);
-    if (message) {
-      message.textContent = "No Execution Phase Approval found. Approve the local Documentation Closeout Plan first.";
-    }
-    if (stateLine) {
-      stateLine.textContent = "Execution Phase Approval lifecycle state: not_started";
-    }
-    return;
-  }
-  byId("execution-phase-approval-summary").value = String(plan.approval_summary || "");
-  byId("execution-phase-approval-operator-notes").value = String(plan.operator_notes || "");
-  byId("execution-phase-overall-acknowledgement").value = String(plan.overall_acknowledgement || "");
-  const lanes = Array.isArray(plan.execution_lanes) ? plan.execution_lanes : [];
-  const laneMap = {};
-  lanes.forEach((lane) => {
-    laneMap[String(lane.lane_id || "")] = lane;
-  });
-  byId("execution-phase-ack-github-mutation-execution").value = String((laneMap.github_mutation_execution || {}).acknowledgement_text || "");
-  byId("execution-phase-ack-validation-command-execution").value = String((laneMap.validation_command_execution || {}).acknowledgement_text || "");
-  byId("execution-phase-ack-documentation-update-execution").value = String((laneMap.documentation_update_execution || {}).acknowledgement_text || "");
-  byId("execution-phase-ack-agent-model-execution").value = String((laneMap.agent_model_execution || {}).acknowledgement_text || "");
-  byId("execution-phase-ack-project-closeout-execution").value = String((laneMap.project_closeout_execution || {}).acknowledgement_text || "");
-  setCodeBlock("home-execution-phase-lanes", "home-execution-phase-lanes-empty", JSON.stringify(lanes, null, 2));
-  setList(
-    "home-execution-phase-audit-trail",
-    "home-execution-phase-audit-trail-empty",
-    (plan.audit_trail || []).map((entry) => `${entry.timestamp || "-"} | ${entry.event_type || "-"} | state=${entry.lifecycle_state || "-"} | actor=${entry.actor || "-"}`)
-  );
-  if (message) {
-    message.textContent = "This is a local execution approval gate only. It does not execute GitHub mutations, validation commands, documentation updates, agents/models, or closeout.";
-  }
-  if (stateLine) {
-    stateLine.textContent = `Execution Phase Approval lifecycle state: ${plan.lifecycle_state || "not_started"}`;
-  }
+  renderExecutionPhaseApprovalSection(state, payload);
 }
 
 function renderExecutionReadiness(payload) {
-  state.executionReadiness = payload || null;
-  const statusLine = byId("home-execution-readiness-overall-status");
-  const nextActionLine = byId("home-execution-readiness-next-safe-action");
-  const overallStatus = String((payload && payload.overall_status) || "blocked");
-  const nextSafeAction = String((payload && payload.next_safe_action) || "select_or_create_active_project");
-  if (statusLine) {
-    statusLine.textContent = `overall_status: ${overallStatus}`;
-  }
-  if (nextActionLine) {
-    nextActionLine.textContent = `next_safe_action: ${nextSafeAction}`;
-  }
-  setList("home-execution-readiness-blockers", "home-execution-readiness-blockers-empty", (payload && payload.blockers) || []);
-  setList("home-execution-readiness-warnings", "home-execution-readiness-warnings-empty", (payload && payload.warnings) || []);
-  const artifacts = (payload && payload.artifact_summary) || {};
-  const artifactLines = Object.keys(artifacts).sort().map((key) => {
-    const item = artifacts[key] || {};
-    return `${key}: exists=${Boolean(item.exists)} approved=${Boolean(item.approved)} lifecycle=${item.lifecycle_state || "not_started"}`;
-  });
-  setList("home-execution-readiness-artifacts", "home-execution-readiness-artifacts-empty", artifactLines);
-  const lanes = (payload && payload.lane_summary) || {};
-  const laneLines = Object.keys(lanes).sort().map((key) => {
-    const lane = lanes[key] || {};
-    return `${key}: status=${lane.status || "blocked"} approved=${Boolean(lane.approved)} acknowledgement_present=${Boolean(lane.acknowledgement_present)}`;
-  });
-  setList("home-execution-readiness-lanes", "home-execution-readiness-lanes-empty", laneLines);
+  renderExecutionReadinessSection(state, payload);
 }
 
 async function loadScopePackage(projectId) {
@@ -697,10 +514,7 @@ async function loadGithubApplyPlan(projectId) {
 }
 
 async function loadAgentDispatchPlan(projectId) {
-  const query = toQuery({ project_id: projectId || "" });
-  const payload = await fetchJson(`/api/project-factory/agent-dispatch-plan${query}`, { method: "GET" });
-  renderAgentDispatchPlan(payload);
-  return payload;
+  return loadAgentDispatchPlanSection(projectId, { renderAgentDispatchPlanForState: renderAgentDispatchPlan });
 }
 
 async function loadValidationExecutionPlan(projectId) {
@@ -708,24 +522,15 @@ async function loadValidationExecutionPlan(projectId) {
 }
 
 async function loadDocumentationCloseoutPlan(projectId) {
-  const query = toQuery({ project_id: projectId || "" });
-  const payload = await fetchJson(`/api/project-factory/documentation-closeout-plan${query}`, { method: "GET" });
-  renderDocumentationCloseoutPlan(payload);
-  return payload;
+  return loadDocumentationCloseoutPlanSection(projectId, { renderDocumentationCloseoutPlanForState: renderDocumentationCloseoutPlan });
 }
 
 async function loadExecutionPhaseApproval(projectId) {
-  const query = toQuery({ project_id: projectId || "" });
-  const payload = await fetchJson(`/api/project-factory/execution-phase-approval${query}`, { method: "GET" });
-  renderExecutionPhaseApproval(payload);
-  return payload;
+  return loadExecutionPhaseApprovalSection(projectId, { renderExecutionPhaseApprovalForState: renderExecutionPhaseApproval });
 }
 
 async function loadExecutionReadiness(projectId) {
-  const query = toQuery({ project_id: projectId || "" });
-  const payload = await fetchJson(`/api/project-factory/execution-readiness${query}`, { method: "GET" });
-  renderExecutionReadiness(payload);
-  return payload;
+  return loadExecutionReadinessSection(projectId, { renderExecutionReadinessForState: renderExecutionReadiness });
 }
 
 async function saveScopeDraft() {
@@ -788,30 +593,15 @@ async function approveGithubApplyPlan() {
 }
 
 async function prepareAgentDispatchPlan() {
-  const payload = await fetchJson("/api/project-factory/agent-dispatch-plan", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(prunePayload({ project_id: activeProjectId() })),
-  });
-  return payload;
+  return prepareAgentDispatchPlanSection(activeProjectId);
 }
 
 async function saveAgentDispatchPlanDraft() {
-  const payload = await fetchJson("/api/project-factory/agent-dispatch-plan", {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(buildAgentDispatchPlanPayload()),
-  });
-  return payload;
+  return saveAgentDispatchPlanDraftSection(buildAgentDispatchPlanPayload);
 }
 
 async function approveAgentDispatchPlan() {
-  const payload = await fetchJson("/api/project-factory/agent-dispatch-plan/approve", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(prunePayload({ project_id: activeProjectId() })),
-  });
-  return payload;
+  return approveAgentDispatchPlanSection(activeProjectId);
 }
 
 async function prepareValidationExecutionPlan() {
@@ -827,57 +617,27 @@ async function approveValidationExecutionPlan() {
 }
 
 async function prepareDocumentationCloseoutPlan() {
-  const payload = await fetchJson("/api/project-factory/documentation-closeout-plan", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(prunePayload({ project_id: activeProjectId() })),
-  });
-  return payload;
+  return prepareDocumentationCloseoutPlanSection(activeProjectId);
 }
 
 async function saveDocumentationCloseoutPlanDraft() {
-  const payload = await fetchJson("/api/project-factory/documentation-closeout-plan", {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(buildDocumentationCloseoutPlanPayload()),
-  });
-  return payload;
+  return saveDocumentationCloseoutPlanDraftSection(buildDocumentationCloseoutPlanPayload);
 }
 
 async function approveDocumentationCloseoutPlan() {
-  const payload = await fetchJson("/api/project-factory/documentation-closeout-plan/approve", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(prunePayload({ project_id: activeProjectId() })),
-  });
-  return payload;
+  return approveDocumentationCloseoutPlanSection(activeProjectId);
 }
 
 async function prepareExecutionPhaseApproval() {
-  const payload = await fetchJson("/api/project-factory/execution-phase-approval", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(prunePayload({ project_id: activeProjectId() })),
-  });
-  return payload;
+  return prepareExecutionPhaseApprovalSection(activeProjectId);
 }
 
 async function saveExecutionPhaseApprovalDraft() {
-  const payload = await fetchJson("/api/project-factory/execution-phase-approval", {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(buildExecutionPhaseApprovalPayload()),
-  });
-  return payload;
+  return saveExecutionPhaseApprovalDraftSection(buildExecutionPhaseApprovalPayload);
 }
 
 async function approveExecutionPhaseApproval() {
-  const payload = await fetchJson("/api/project-factory/execution-phase-approval/approve", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(prunePayload({ project_id: activeProjectId() })),
-  });
-  return payload;
+  return approveExecutionPhaseApprovalSection(activeProjectId);
 }
 
 async function setActiveProject(projectId) {
@@ -1374,122 +1134,6 @@ function bindForms() {
     }
   });
 
-  on("home-prepare-agent-dispatch-plan", "click", async () => {
-    try {
-      setMessage("projects-message", "Preparing local Agent Dispatch Plan...", "loading");
-      await prepareAgentDispatchPlan();
-      await loadAgentDispatchPlan(activeProjectId());
-      await loadProjectFactoryDossier(activeProjectId());
-      await refreshSummaryAndReport();
-      setMessage("projects-message", "Agent dispatch plan prepared locally.", "success");
-    } catch (error) {
-      setMessage("projects-message", String(error.message || error), "error");
-    }
-  });
-
-  on("agent-dispatch-plan-save-draft", "click", async () => {
-    try {
-      setMessage("projects-message", "Saving local Agent Dispatch Plan draft...", "loading");
-      await saveAgentDispatchPlanDraft();
-      await loadAgentDispatchPlan(activeProjectId());
-      await loadProjectFactoryDossier(activeProjectId());
-      await refreshSummaryAndReport();
-      setMessage("projects-message", "Agent dispatch plan draft saved.", "success");
-    } catch (error) {
-      setMessage("projects-message", String(error.message || error), "error");
-    }
-  });
-
-  on("agent-dispatch-plan-approve", "click", async () => {
-    try {
-      setMessage("projects-message", "Approving local Agent Dispatch Plan...", "loading");
-      await approveAgentDispatchPlan();
-      await loadAgentDispatchPlan(activeProjectId());
-      await loadValidationExecutionPlan(activeProjectId());
-      await loadDocumentationCloseoutPlan(activeProjectId());
-      await loadProjectFactoryDossier(activeProjectId());
-      await refreshSummaryAndReport();
-      setMessage("projects-message", "Agent dispatch plan approved.", "success");
-    } catch (error) {
-      setMessage("projects-message", String(error.message || error), "error");
-    }
-  });
-
-  on("home-prepare-documentation-closeout-plan", "click", async () => {
-    try {
-      setMessage("projects-message", "Preparing local Documentation Closeout Plan...", "loading");
-      await prepareDocumentationCloseoutPlan();
-      await loadDocumentationCloseoutPlan(activeProjectId());
-      await loadProjectFactoryDossier(activeProjectId());
-      await refreshSummaryAndReport();
-      setMessage("projects-message", "Documentation closeout plan prepared locally.", "success");
-    } catch (error) {
-      setMessage("projects-message", String(error.message || error), "error");
-    }
-  });
-
-  on("documentation-closeout-plan-save-draft", "click", async () => {
-    try {
-      setMessage("projects-message", "Saving local Documentation Closeout Plan draft...", "loading");
-      await saveDocumentationCloseoutPlanDraft();
-      await loadDocumentationCloseoutPlan(activeProjectId());
-      await loadProjectFactoryDossier(activeProjectId());
-      await refreshSummaryAndReport();
-      setMessage("projects-message", "Documentation closeout plan draft saved.", "success");
-    } catch (error) {
-      setMessage("projects-message", String(error.message || error), "error");
-    }
-  });
-
-  on("documentation-closeout-plan-approve", "click", async () => {
-    try {
-      setMessage("projects-message", "Approving local Documentation Closeout Plan...", "loading");
-      await approveDocumentationCloseoutPlan();
-      await loadDocumentationCloseoutPlan(activeProjectId());
-      await loadProjectFactoryDossier(activeProjectId());
-      await refreshSummaryAndReport();
-      setMessage("projects-message", "Documentation closeout plan approved.", "success");
-    } catch (error) {
-      setMessage("projects-message", String(error.message || error), "error");
-    }
-  });
-  on("home-prepare-execution-phase-approval", "click", async () => {
-    try {
-      setMessage("projects-message", "Preparing local Execution Phase Approval...", "loading");
-      await prepareExecutionPhaseApproval();
-      await loadExecutionPhaseApproval(activeProjectId());
-      await loadProjectFactoryDossier(activeProjectId());
-      await refreshSummaryAndReport();
-      setMessage("projects-message", "Execution phase approval prepared locally.", "success");
-    } catch (error) {
-      setMessage("projects-message", String(error.message || error), "error");
-    }
-  });
-  on("execution-phase-approval-save-draft", "click", async () => {
-    try {
-      setMessage("projects-message", "Saving local Execution Phase Approval draft...", "loading");
-      await saveExecutionPhaseApprovalDraft();
-      await loadExecutionPhaseApproval(activeProjectId());
-      await loadProjectFactoryDossier(activeProjectId());
-      await refreshSummaryAndReport();
-      setMessage("projects-message", "Execution phase approval draft saved.", "success");
-    } catch (error) {
-      setMessage("projects-message", String(error.message || error), "error");
-    }
-  });
-  on("execution-phase-approval-approve", "click", async () => {
-    try {
-      setMessage("projects-message", "Approving local Execution Phase Approval...", "loading");
-      await approveExecutionPhaseApproval();
-      await loadExecutionPhaseApproval(activeProjectId());
-      await loadExecutionReadiness(activeProjectId());
-      await loadProjectFactoryDossier(activeProjectId());
-      await refreshSummaryAndReport();
-      setMessage("projects-message", "Execution phase approval approved.", "success");
-    } catch (error) {
-      setMessage("projects-message", String(error.message || error), "error");
-    }
-  });
 }
 
 async function init() {
@@ -1534,6 +1178,36 @@ async function init() {
     approveValidationExecutionPlanForState: approveValidationExecutionPlan,
     loadValidationExecutionPlanForState: loadValidationExecutionPlan,
     loadDocumentationCloseoutPlan,
+    loadProjectFactoryDossier,
+    refreshSummaryAndReport,
+  });
+  bindProjectFactoryAgentDispatchActions({
+    activeProjectId,
+    prepareAgentDispatchPlanForState: prepareAgentDispatchPlan,
+    saveAgentDispatchPlanDraftForState: saveAgentDispatchPlanDraft,
+    approveAgentDispatchPlanForState: approveAgentDispatchPlan,
+    loadAgentDispatchPlanForState: loadAgentDispatchPlan,
+    loadValidationExecutionPlan,
+    loadDocumentationCloseoutPlan,
+    loadProjectFactoryDossier,
+    refreshSummaryAndReport,
+  });
+  bindProjectFactoryCloseoutActions({
+    activeProjectId,
+    prepareDocumentationCloseoutPlanForState: prepareDocumentationCloseoutPlan,
+    saveDocumentationCloseoutPlanDraftForState: saveDocumentationCloseoutPlanDraft,
+    approveDocumentationCloseoutPlanForState: approveDocumentationCloseoutPlan,
+    loadDocumentationCloseoutPlanForState: loadDocumentationCloseoutPlan,
+    loadProjectFactoryDossier,
+    refreshSummaryAndReport,
+  });
+  bindProjectFactoryExecutionApprovalActions({
+    activeProjectId,
+    prepareExecutionPhaseApprovalForState: prepareExecutionPhaseApproval,
+    saveExecutionPhaseApprovalDraftForState: saveExecutionPhaseApprovalDraft,
+    approveExecutionPhaseApprovalForState: approveExecutionPhaseApproval,
+    loadExecutionPhaseApprovalForState: loadExecutionPhaseApproval,
+    loadExecutionReadinessForState: loadExecutionReadiness,
     loadProjectFactoryDossier,
     refreshSummaryAndReport,
   });

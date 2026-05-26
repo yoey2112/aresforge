@@ -203,6 +203,9 @@ def test_hub_static_files_exist() -> None:
     assert (static_dir / "js" / "sections" / "projectFactory" / "architecture.js").exists()
     assert (static_dir / "js" / "sections" / "projectFactory" / "milestonePlan.js").exists()
     assert (static_dir / "js" / "sections" / "projectFactory" / "validation.js").exists()
+    assert (static_dir / "js" / "sections" / "projectFactory" / "agentDispatch.js").exists()
+    assert (static_dir / "js" / "sections" / "projectFactory" / "executionApproval.js").exists()
+    assert (static_dir / "js" / "sections" / "projectFactory" / "closeout.js").exists()
     assert (static_dir / "styles.css").exists()
 
 
@@ -231,10 +234,13 @@ def test_app_js_imports_section_modules() -> None:
     assert 'from "/js/sections/projectFactory/index.js"' in app_text
 
 
-def test_project_factory_index_exports_milestone_and_validation_modules() -> None:
+def test_project_factory_index_exports_remaining_project_factory_modules() -> None:
     index_text = (_static_dir() / "js" / "sections" / "projectFactory" / "index.js").read_text(encoding="utf-8")
     assert 'from "/js/sections/projectFactory/milestonePlan.js"' in index_text
     assert 'from "/js/sections/projectFactory/validation.js"' in index_text
+    assert 'from "/js/sections/projectFactory/agentDispatch.js"' in index_text
+    assert 'from "/js/sections/projectFactory/executionApproval.js"' in index_text
+    assert 'from "/js/sections/projectFactory/closeout.js"' in index_text
 
 
 def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
@@ -674,6 +680,9 @@ def test_static_assets_do_not_reference_external_resources() -> None:
         static_dir / "js" / "sections" / "projectFactory" / "architecture.js",
         static_dir / "js" / "sections" / "projectFactory" / "milestonePlan.js",
         static_dir / "js" / "sections" / "projectFactory" / "validation.js",
+        static_dir / "js" / "sections" / "projectFactory" / "agentDispatch.js",
+        static_dir / "js" / "sections" / "projectFactory" / "executionApproval.js",
+        static_dir / "js" / "sections" / "projectFactory" / "closeout.js",
     ):
         content = path.read_text(encoding="utf-8")
         assert not pattern.search(content)
