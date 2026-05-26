@@ -485,10 +485,12 @@
           <p class="boundary-banner">Local-only workspace: no GitHub sync/mutation, no network activity, no agent/model execution.</p>
           <div class="quick-actions">
             <button id="workspace-refresh" type="button">Refresh Workspace</button>
-            <button id="workspace-continue-intake" type="button">Continue Task Intake</button>
-            <button id="workspace-open-queue" type="button">Open Queue Lifecycle</button>
+            <button id="workspace-continue-intake" type="button">Continue to Task Intake (local-only)</button>
+            <button id="workspace-open-queue" type="button">Open Queue Lifecycle (local-only)</button>
             <button id="workspace-select-project" type="button">Select Active Project</button>
           </div>
+          <!-- Continue Task Intake -->
+          <p class="subvalue">Operator path: choose an action below to continue local-only workflows. No automation will run automatically.</p>
           <p id="workspace-message" class="message-note">Loading active project workspace...</p>
 
           <section class="subpanel">
@@ -503,17 +505,17 @@
               <article class="card">
                 <h3>Report Status</h3>
                 <p id="workspace-report-status">needs_attention</p>
-                <p class="subvalue" id="workspace-report-detail">No report data available yet.</p>
+                <p class="subvalue" id="workspace-report-detail">No report data available yet. Inspect Reports for details.</p>
               </article>
               <article class="card">
                 <h3>Repo Status</h3>
                 <p id="workspace-repo-status">No active repo</p>
-                <p class="subvalue" id="workspace-repo-detail">No local repo facts available yet.</p>
+                <p class="subvalue" id="workspace-repo-detail">No local repo facts available yet. Use Repos to inspect local links.</p>
               </article>
               <article class="card">
                 <h3>Next Safe Action</h3>
                 <p id="workspace-next-safe-action">Select an active project to continue.</p>
-                <p class="subvalue">Continue task intake or queue lifecycle locally.</p>
+                <p class="subvalue">Local-only recommended next step; operator approval required before any external operations.</p>
               </article>
             </div>
           </section>

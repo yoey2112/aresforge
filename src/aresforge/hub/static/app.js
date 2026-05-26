@@ -483,10 +483,8 @@ function renderWorkspace(payload) {
       ? `status=${repoStatus.status || repo.status || "-"} | branch=${repoStatus.local_git_branch || "-"} | ${repoStatus.local_git_status_summary || repoStatus.message || "Local repo facts available."}`
       : (repoStatus.message || "No local repo facts available yet."),
   );
-  setText(
-    "workspace-next-safe-action",
-    (payload && payload.next_safe_action) || "Select an active project to continue.",
-  );
+  const nextSafe = (payload && payload.next_safe_action) || "Select an active project to continue.";
+  setText("workspace-next-safe-action", `Local-only: ${nextSafe}`);
   setList(
     "workspace-current-items",
     "workspace-current-items-empty",
@@ -505,10 +503,42 @@ function renderWorkspace(payload) {
   setMessage(
     "workspace-message",
     selected
-      ? "Active project workspace loaded."
+      ? "Active project workspace loaded. Local-only view; operator actions required for changes."
       : "No active project selected. Use Projects to choose one before continuing task intake or queue lifecycle.",
     selected ? "success" : "warn",
   );
+}
+
+function bindWorkspaceActions() {
+  on("workspace-refresh", "click", async () => {
+    setMessage("workspace-message", "Refreshing workspace (local-only)...", "loading");
+    try {
+      await refreshSummaryAndReport();
+      await loadWorkspace();
+      setMessage("workspace-message", "Workspace refreshed. Local-only view.", "success");
+    } catch (error) {
+      setMessage("workspace-message", String(error.message || error), "error");
+    }
+  });
+
+  on("workspace-continue-intake", "click", () => {
+    activateSection("queue");
+    setMessage("workspace-message", "Navigate to Queue/Intake (local-only).", "success");
+    const intakeTitle = byId("intake-title");
+    if (intakeTitle) {
+      intakeTitle.focus();
+    }
+  });
+
+  on("workspace-open-queue", "click", () => {
+    activateSection("queue");
+    setMessage("workspace-message", "Open Queue Lifecycle (local-only).", "success");
+  });
+
+  on("workspace-select-project", "click", () => {
+    activateSection("projects");
+    setMessage("workspace-message", "Select an active project. No automation will run automatically.", "success");
+  });
 }
 
 async function loadWorkspace() {
@@ -3473,6 +3503,7 @@ function bindForms() {
 async function init() {
   bindNavigation();
   bindForms();
+  bindWorkspaceActions();
   renderRepos([], true);
 
   try {
