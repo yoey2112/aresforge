@@ -1278,6 +1278,160 @@ def start_work_item_if_ready(
     }
 
 
+def _is_completion_safe_queue(queue: dict[str, Any] | None) -> bool:
+    if queue is None:
+        return False
+    queue_id = str(queue.get("id") or "")
+    lifecycle_stage = str(queue.get("lifecycle_stage_mapping") or "")
+    if lifecycle_stage in {"implementation", "execution", "verification", "testing", "documentation", "closeout"}:
+        return True
+    if queue_id in {"queue-implementation", "queue-verification", "queue-testing", "queue-documentation", "queue-closeout"}:
+        return True
+    metadata = queue.get("metadata") if isinstance(queue.get("metadata"), dict) else {}
+    return bool(metadata.get("completion_safe"))
+
+
+def complete_work_item_if_ready(
+    conn: Connection,
+    work_item_id: str,
+    *,
+    actor: str = "local-operator",
+    details: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    normalized_details = _normalize_roadmap_details(details)
+    work_item = inspect_work_item(conn, work_item_id)
+    if work_item is None:
+        return {
+            "ok": False,
+            "mutated": False,
+            "work_item_id": work_item_id,
+            "previous_status": "",
+            "new_status": "",
+            "previous_queue_id": "",
+            "route_status": "",
+            "completion_status": "blocked",
+            "blocked_reasons": [{"code": "work_item_not_found", "work_item_id": work_item_id}],
+            "warnings": [],
+            "event_id": None,
+            "next_safe_action": "Create or inspect the local work item before completion.",
+            "operator_summary": {"status_line": "Work item not found."},
+        }
+
+    readiness = inspect_work_item_readiness(conn, work_item_id)
+    lifecycle = inspect_work_item_lifecycle(conn, work_item_id)
+    dossier = build_work_item_execution_dossier(conn, work_item_id)
+    queue_record = inspect_queue(conn, str(work_item.get("queue_id") or ""))
+
+    blocked_reasons: list[dict[str, Any]] = []
+    warnings: list[dict[str, Any]] = list(readiness.get("warnings") or [])
+    previous_status = str(work_item.get("status") or "")
+    previous_queue_id = str(work_item.get("queue_id") or "")
+    route_status = str(work_item.get("route_status") or "")
+    roadmap_note = "Linked roadmap task state remains unchanged by completion gate."
+
+    if previous_status == "complete":
+        blocked_reasons.append({"code": "already_complete"})
+    if previous_status == "cancelled":
+        blocked_reasons.append({"code": "work_item_cancelled"})
+    if previous_status not in {"active"}:
+        blocked_reasons.append({"code": "invalid_pre_completion_status", "status": previous_status})
+    if not _is_completion_safe_queue(queue_record):
+        blocked_reasons.append({"code": "invalid_completion_queue", "queue_id": previous_queue_id})
+    unsatisfied_dependencies = list((readiness.get("dependency_summary") or {}).get("unsatisfied_dependencies") or [])
+    if unsatisfied_dependencies:
+        blocked_reasons.append(
+            {
+                "code": "unsatisfied_roadmap_dependencies",
+                "dependencies": unsatisfied_dependencies,
+            }
+        )
+    if route_status == "blocked":
+        blocked_reasons.append({"code": "route_status_blocked"})
+    if not bool(dossier.get("ok")) or str(dossier.get("dossier_status") or "") in {"missing", "blocked", "not_ready", "cancelled"}:
+        blocked_reasons.append(
+            {
+                "code": "execution_dossier_not_ready",
+                "dossier_status": dossier.get("dossier_status"),
+            }
+        )
+    if not bool(lifecycle.get("ok")):
+        blocked_reasons.append({"code": "lifecycle_unavailable"})
+
+    if blocked_reasons:
+        return {
+            "ok": False,
+            "mutated": False,
+            "work_item_id": work_item_id,
+            "previous_status": previous_status,
+            "new_status": previous_status,
+            "previous_queue_id": previous_queue_id,
+            "route_status": route_status,
+            "completion_status": "blocked",
+            "blocked_reasons": blocked_reasons,
+            "warnings": warnings,
+            "event_id": None,
+            "next_safe_action": "Resolve blockers, then retry completion.",
+            "operator_summary": {
+                "status_line": f"Work item remains `{previous_status}`.",
+                "queue_line": f"Current queue: `{previous_queue_id}`.",
+                "route_line": f"Route status: `{route_status}`.",
+                "dossier_line": f"Dossier status: `{dossier.get('dossier_status', '')}`.",
+                "roadmap_line": roadmap_note,
+            },
+        }
+
+    status_payload = update_work_item_status(
+        conn,
+        work_item_id=work_item_id,
+        status="complete",
+        actor=actor,
+        summary="Work item completed through local gated completion.",
+        details=normalized_details,
+    )
+    if not bool(status_payload.get("ok")):
+        return {
+            "ok": False,
+            "mutated": False,
+            "work_item_id": work_item_id,
+            "previous_status": previous_status,
+            "new_status": previous_status,
+            "previous_queue_id": previous_queue_id,
+            "route_status": route_status,
+            "completion_status": "failed",
+            "blocked_reasons": [{"code": "completion_update_failed"}],
+            "warnings": warnings,
+            "event_id": None,
+            "next_safe_action": "Inspect work item lifecycle and retry completion.",
+            "operator_summary": {"status_line": "Completion update failed."},
+        }
+
+    event_ids = list(status_payload.get("event_ids") or [])
+    event_id = event_ids[0] if event_ids else None
+    return {
+        "ok": True,
+        "mutated": bool(status_payload.get("changed")),
+        "work_item_id": work_item_id,
+        "previous_status": previous_status,
+        "new_status": "complete",
+        "previous_queue_id": previous_queue_id,
+        "route_status": "complete",
+        "completion_status": "completed",
+        "blocked_reasons": [],
+        "warnings": warnings,
+        "event_id": event_id,
+        "next_safe_action": "Inspect lifecycle events or continue closeout workflow.",
+        "operator_summary": {
+            "status_line": "Work item marked complete.",
+            "queue_line": f"Queue at completion: `{previous_queue_id}`.",
+            "route_line": "Route status updated to `complete`.",
+            "dossier_line": f"Dossier status before completion: `{dossier.get('dossier_status', '')}`.",
+            "roadmap_line": roadmap_note,
+        },
+        "events": {"event_ids": event_ids},
+        "work_item": status_payload.get("work_item"),
+    }
+
+
 def inspect_work_item_lifecycle(conn: Connection, work_item_id: str) -> dict[str, Any]:
     work_item = inspect_work_item(conn, work_item_id)
     if work_item is None:
@@ -2052,6 +2206,47 @@ def render_start_work_item_markdown(payload: dict[str, Any]) -> str:
             lines.append(
                 f"- `{link.get('id', '')}` task=`{link.get('roadmap_task_id', '')}` link_status=`{link.get('status', '')}`"
             )
+    else:
+        lines.append("- none")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def render_work_item_completion_markdown(payload: dict[str, Any]) -> str:
+    summary = payload.get("operator_summary") or {}
+    lines = [
+        "# Complete Work Item",
+        "",
+        f"- Work item ID: `{payload.get('work_item_id', '')}`",
+        f"- OK: `{payload.get('ok', False)}`",
+        f"- Mutated: `{payload.get('mutated', False)}`",
+        f"- Previous status: `{payload.get('previous_status', '')}`",
+        f"- New status: `{payload.get('new_status', '')}`",
+        f"- Previous queue ID: `{payload.get('previous_queue_id', '')}`",
+        f"- Route status: `{payload.get('route_status', '')}`",
+        f"- Completion status: `{payload.get('completion_status', '')}`",
+        f"- Event ID: `{payload.get('event_id') or ''}`",
+        f"- Next safe action: {payload.get('next_safe_action', '')}",
+        "",
+        "## Blocked Reasons",
+    ]
+    blocked_reasons = list(payload.get("blocked_reasons") or [])
+    if blocked_reasons:
+        for blocker in blocked_reasons:
+            lines.append(f"- `{blocker.get('code', 'unknown')}` {json.dumps(blocker, sort_keys=True)}")
+    else:
+        lines.append("- none")
+    lines.extend(["", "## Warnings"])
+    warnings = list(payload.get("warnings") or [])
+    if warnings:
+        for warning in warnings:
+            lines.append(f"- `{warning.get('code', 'warning')}` {json.dumps(warning, sort_keys=True)}")
+    else:
+        lines.append("- none")
+    lines.extend(["", "## Operator Summary"])
+    if summary:
+        for key in ("status_line", "queue_line", "route_line", "dossier_line", "roadmap_line"):
+            if summary.get(key):
+                lines.append(f"- {summary.get(key)}")
     else:
         lines.append("- none")
     return "\n".join(lines).rstrip() + "\n"

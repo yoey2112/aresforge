@@ -24,6 +24,7 @@ from aresforge.db.repository import (
     export_work_item_operator_prompt,
     handoff_work_item_to_implementation,
     render_start_work_item_markdown,
+    render_work_item_completion_markdown,
     render_implementation_handoff_markdown,
     render_move_work_item_queue_markdown,
     render_work_item_queue_approval_markdown,
@@ -47,6 +48,7 @@ from aresforge.db.repository import (
     reject_work_item_queue_approval,
     cancel_work_item_queue_approval,
     start_work_item_if_ready,
+    complete_work_item_if_ready,
     update_work_item_status,
     update_roadmap_task_status,
 )
@@ -476,6 +478,24 @@ def test_cli_parser_recognizes_roadmap_commands_and_formats() -> None:
     assert start_work_item_details_args.command == "start-work-item"
     assert start_work_item_details_args.actor == "local-test"
     assert start_work_item_details_args.details_file == "details.json"
+
+    complete_work_item_args = parser.parse_args(
+        [
+            "complete-work-item-if-ready",
+            "--work-item-id",
+            "work-1",
+            "--actor",
+            "local-test",
+            "--details-file",
+            "details.json",
+            "--format",
+            "markdown",
+        ]
+    )
+    assert complete_work_item_args.command == "complete-work-item-if-ready"
+    assert complete_work_item_args.actor == "local-test"
+    assert complete_work_item_args.details_file == "details.json"
+    assert complete_work_item_args.format == "markdown"
 
     plan_queue_transition_json_args = parser.parse_args(
         [
@@ -1136,6 +1156,29 @@ def test_render_start_work_item_markdown_is_deterministic() -> None:
     assert "## Roadmap Links" in markdown
 
 
+def test_render_work_item_completion_markdown_is_deterministic() -> None:
+    payload = {
+        "ok": False,
+        "mutated": False,
+        "work_item_id": "work-1",
+        "previous_status": "active",
+        "new_status": "active",
+        "previous_queue_id": "queue-implementation",
+        "route_status": "active",
+        "completion_status": "blocked",
+        "blocked_reasons": [{"code": "unsatisfied_roadmap_dependencies"}],
+        "warnings": [],
+        "event_id": None,
+        "next_safe_action": "Resolve blockers, then retry completion.",
+        "operator_summary": {"status_line": "Work item remains `active`."},
+    }
+    markdown = render_work_item_completion_markdown(payload)
+    assert "# Complete Work Item" in markdown
+    assert "- Work item ID: `work-1`" in markdown
+    assert "## Blocked Reasons" in markdown
+    assert "unsatisfied_roadmap_dependencies" in markdown
+
+
 def test_render_work_item_queue_transition_plan_markdown_is_deterministic() -> None:
     payload = {
         "ok": True,
@@ -1557,6 +1600,160 @@ def test_start_work_item_if_ready_ready_starts_and_logs_events(monkeypatch: pyte
     assert payload["new_status"] == "active"
     assert payload["readiness_status"] == "ready"
     assert payload["events"]["started_event_ids"] == ["roadmap-started-1"]
+
+
+def test_complete_work_item_if_ready_missing_is_blocked_non_mutating(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(repository_module, "inspect_work_item", lambda *_args, **_kwargs: None)
+    payload = complete_work_item_if_ready(_FakeConnection(), "work-missing", actor="local-test")
+    assert payload["ok"] is False
+    assert payload["mutated"] is False
+    assert payload["completion_status"] == "blocked"
+    assert payload["blocked_reasons"][0]["code"] == "work_item_not_found"
+
+
+def test_complete_work_item_if_ready_already_complete_is_blocked_non_mutating(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        repository_module,
+        "inspect_work_item",
+        lambda *_args, **_kwargs: {
+            "id": "work-1",
+            "project_id": "project-aresforge",
+            "status": "complete",
+            "queue_id": "queue-implementation",
+            "route_status": "complete",
+        },
+    )
+    monkeypatch.setattr(repository_module, "inspect_work_item_readiness", lambda *_args, **_kwargs: {"warnings": [], "dependency_summary": {}})
+    monkeypatch.setattr(repository_module, "inspect_work_item_lifecycle", lambda *_args, **_kwargs: {"ok": True})
+    monkeypatch.setattr(repository_module, "build_work_item_execution_dossier", lambda *_args, **_kwargs: {"ok": True, "dossier_status": "active"})
+    monkeypatch.setattr(repository_module, "inspect_queue", lambda *_args, **_kwargs: {"id": "queue-implementation", "lifecycle_stage_mapping": "implementation"})
+    payload = complete_work_item_if_ready(_FakeConnection(), "work-1", actor="local-test")
+    assert payload["ok"] is False
+    assert payload["mutated"] is False
+    assert any(item["code"] == "already_complete" for item in payload["blocked_reasons"])
+
+
+def test_complete_work_item_if_ready_cancelled_is_blocked_non_mutating(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        repository_module,
+        "inspect_work_item",
+        lambda *_args, **_kwargs: {
+            "id": "work-1",
+            "project_id": "project-aresforge",
+            "status": "cancelled",
+            "queue_id": "queue-implementation",
+            "route_status": "cancelled",
+        },
+    )
+    monkeypatch.setattr(repository_module, "inspect_work_item_readiness", lambda *_args, **_kwargs: {"warnings": [], "dependency_summary": {}})
+    monkeypatch.setattr(repository_module, "inspect_work_item_lifecycle", lambda *_args, **_kwargs: {"ok": True})
+    monkeypatch.setattr(repository_module, "build_work_item_execution_dossier", lambda *_args, **_kwargs: {"ok": True, "dossier_status": "active"})
+    monkeypatch.setattr(repository_module, "inspect_queue", lambda *_args, **_kwargs: {"id": "queue-implementation", "lifecycle_stage_mapping": "implementation"})
+    payload = complete_work_item_if_ready(_FakeConnection(), "work-1", actor="local-test")
+    assert payload["ok"] is False
+    assert payload["mutated"] is False
+    assert any(item["code"] == "work_item_cancelled" for item in payload["blocked_reasons"])
+
+
+def test_complete_work_item_if_ready_invalid_queue_is_blocked_non_mutating(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        repository_module,
+        "inspect_work_item",
+        lambda *_args, **_kwargs: {
+            "id": "work-1",
+            "project_id": "project-aresforge",
+            "status": "active",
+            "queue_id": "queue-triage",
+            "route_status": "active",
+        },
+    )
+    monkeypatch.setattr(repository_module, "inspect_work_item_readiness", lambda *_args, **_kwargs: {"warnings": [], "dependency_summary": {"unsatisfied_dependencies": []}})
+    monkeypatch.setattr(repository_module, "inspect_work_item_lifecycle", lambda *_args, **_kwargs: {"ok": True})
+    monkeypatch.setattr(repository_module, "build_work_item_execution_dossier", lambda *_args, **_kwargs: {"ok": True, "dossier_status": "active"})
+    monkeypatch.setattr(repository_module, "inspect_queue", lambda *_args, **_kwargs: {"id": "queue-triage", "lifecycle_stage_mapping": "triage"})
+    payload = complete_work_item_if_ready(_FakeConnection(), "work-1", actor="local-test")
+    assert payload["ok"] is False
+    assert payload["mutated"] is False
+    assert any(item["code"] == "invalid_completion_queue" for item in payload["blocked_reasons"])
+
+
+def test_complete_work_item_if_ready_dependencies_block_completion_non_mutating(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        repository_module,
+        "inspect_work_item",
+        lambda *_args, **_kwargs: {
+            "id": "work-1",
+            "project_id": "project-aresforge",
+            "status": "active",
+            "queue_id": "queue-implementation",
+            "route_status": "active",
+        },
+    )
+    monkeypatch.setattr(
+        repository_module,
+        "inspect_work_item_readiness",
+        lambda *_args, **_kwargs: {
+            "warnings": [],
+            "dependency_summary": {"unsatisfied_dependencies": [{"task_id": "rt-2", "depends_on_task_id": "rt-1", "status": "active"}]},
+        },
+    )
+    monkeypatch.setattr(repository_module, "inspect_work_item_lifecycle", lambda *_args, **_kwargs: {"ok": True})
+    monkeypatch.setattr(repository_module, "build_work_item_execution_dossier", lambda *_args, **_kwargs: {"ok": True, "dossier_status": "active"})
+    monkeypatch.setattr(repository_module, "inspect_queue", lambda *_args, **_kwargs: {"id": "queue-implementation", "lifecycle_stage_mapping": "implementation"})
+    payload = complete_work_item_if_ready(_FakeConnection(), "work-1", actor="local-test")
+    assert payload["ok"] is False
+    assert payload["mutated"] is False
+    assert any(item["code"] == "unsatisfied_roadmap_dependencies" for item in payload["blocked_reasons"])
+
+
+def test_complete_work_item_if_ready_success_mutates_and_returns_event_id(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        repository_module,
+        "inspect_work_item",
+        lambda *_args, **_kwargs: {
+            "id": "work-1",
+            "project_id": "project-aresforge",
+            "status": "active",
+            "queue_id": "queue-implementation",
+            "route_status": "active",
+        },
+    )
+    monkeypatch.setattr(
+        repository_module,
+        "inspect_work_item_readiness",
+        lambda *_args, **_kwargs: {"warnings": [], "dependency_summary": {"unsatisfied_dependencies": []}},
+    )
+    monkeypatch.setattr(repository_module, "inspect_work_item_lifecycle", lambda *_args, **_kwargs: {"ok": True})
+    monkeypatch.setattr(repository_module, "build_work_item_execution_dossier", lambda *_args, **_kwargs: {"ok": True, "dossier_status": "active"})
+    monkeypatch.setattr(repository_module, "inspect_queue", lambda *_args, **_kwargs: {"id": "queue-implementation", "lifecycle_stage_mapping": "implementation"})
+    monkeypatch.setattr(
+        repository_module,
+        "update_work_item_status",
+        lambda *_args, **_kwargs: {
+            "ok": True,
+            "changed": True,
+            "previous_status": "active",
+            "status": "complete",
+            "event_ids": ["audit-1", "roadmap-1"],
+            "work_item": {"id": "work-1", "status": "complete"},
+        },
+    )
+    payload = complete_work_item_if_ready(_FakeConnection(), "work-1", actor="local-test")
+    assert payload["ok"] is True
+    assert payload["mutated"] is True
+    assert payload["completion_status"] == "completed"
+    assert payload["event_id"] == "audit-1"
+    assert payload["new_status"] == "complete"
 
 
 def test_move_work_item_queue_if_allowed_missing_work_item_is_non_mutating(

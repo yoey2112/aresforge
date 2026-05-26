@@ -38,6 +38,7 @@ from aresforge.db.repository import (
     export_work_item_operator_prompt,
     handoff_work_item_to_implementation,
     start_work_item_if_ready,
+    complete_work_item_if_ready,
     plan_work_item_queue_transition,
     move_work_item_queue_if_allowed,
     request_work_item_queue_approval,
@@ -58,6 +59,7 @@ from aresforge.db.repository import (
     render_export_work_item_operator_prompt_markdown,
     render_implementation_handoff_markdown,
     render_start_work_item_markdown,
+    render_work_item_completion_markdown,
     render_work_item_queue_transition_plan_markdown,
     render_move_work_item_queue_markdown,
     render_work_item_queue_approval_markdown,
@@ -424,6 +426,18 @@ def build_parser() -> argparse.ArgumentParser:
     start_work_item_parser.add_argument("--actor", default="local-operator")
     start_work_item_parser.add_argument("--details-file")
     start_work_item_parser.add_argument(
+        "--format",
+        choices=("json", "markdown"),
+        default="json",
+    )
+    complete_work_item_parser = subparsers.add_parser(
+        "complete-work-item-if-ready",
+        help="Complete one local work item only when completion gates pass.",
+    )
+    complete_work_item_parser.add_argument("--work-item-id", required=True)
+    complete_work_item_parser.add_argument("--actor", required=True)
+    complete_work_item_parser.add_argument("--details-file")
+    complete_work_item_parser.add_argument(
         "--format",
         choices=("json", "markdown"),
         default="json",
@@ -2413,6 +2427,25 @@ def main(argv: list[str] | None = None) -> int:
             )
         if args.format == "markdown":
             print(render_start_work_item_markdown(payload))
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "complete-work-item-if-ready":
+        details, details_error = parse_details_input(None, getattr(args, "details_file", None))
+        if details_error is not None:
+            emit_json(details_error)
+            return 1
+        assert details is not None
+        with connect(config) as conn:
+            payload = complete_work_item_if_ready(
+                conn,
+                args.work_item_id,
+                actor=args.actor,
+                details=details,
+            )
+        if args.format == "markdown":
+            print(render_work_item_completion_markdown(payload))
             return 0 if bool(payload.get("ok")) else 1
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1

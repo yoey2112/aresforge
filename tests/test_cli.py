@@ -40,6 +40,7 @@ def test_cli_has_expected_commands() -> None:
         "create-work-item-from-roadmap-task",
         "update-work-item-status",
         "start-work-item",
+        "complete-work-item-if-ready",
         "plan-work-item-queue-transition",
         "move-work-item-queue",
         "request-work-item-queue-approval",
@@ -4164,6 +4165,78 @@ def test_start_work_item_dispatch_parses_bom_details_file(
     exit_code = cli.main(
         [
             "start-work-item",
+            "--work-item-id",
+            "work-1",
+            "--actor",
+            "local-test",
+            "--details-file",
+            str(details_path),
+            "--format",
+            "json",
+        ]
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert seen == {"actor": "local-test", "details": {"source": "unit-test"}}
+    assert payload["ok"] is True
+
+
+def test_complete_work_item_if_ready_dispatch_markdown(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(
+        cli,
+        "complete_work_item_if_ready",
+        lambda _conn, _work_item_id, actor, details: {
+            "ok": True,
+            "mutated": True,
+            "work_item_id": _work_item_id,
+            "completion_status": "completed",
+        },
+    )
+    monkeypatch.setattr(
+        cli,
+        "render_work_item_completion_markdown",
+        lambda _payload: "# Complete Work Item\n",
+    )
+    exit_code = cli.main(
+        [
+            "complete-work-item-if-ready",
+            "--work-item-id",
+            "work-1",
+            "--actor",
+            "local-test",
+            "--format",
+            "markdown",
+        ]
+    )
+    output = capsys.readouterr().out
+    assert exit_code == 0
+    assert output == "# Complete Work Item\n\n"
+
+
+def test_complete_work_item_if_ready_dispatch_parses_bom_details_file(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+) -> None:
+    details_path = tmp_path / "details-bom.json"
+    details_path.write_text('\ufeff{"source":"unit-test"}', encoding="utf-8")
+    seen: dict[str, object] = {}
+
+    def fake_complete_work_item_if_ready(
+        _conn: object, _work_item_id: str, actor: str, details: dict[str, object]
+    ) -> dict[str, object]:
+        seen["actor"] = actor
+        seen["details"] = details
+        return {"ok": True, "mutated": True, "work_item_id": _work_item_id}
+
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(cli, "complete_work_item_if_ready", fake_complete_work_item_if_ready)
+    exit_code = cli.main(
+        [
+            "complete-work-item-if-ready",
             "--work-item-id",
             "work-1",
             "--actor",
