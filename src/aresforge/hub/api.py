@@ -14,9 +14,14 @@ from aresforge.operator.local_project_queue import (
     QUEUE_ITEM_TYPES,
     QUEUE_PRIORITIES,
     QUEUE_STATUSES,
+    add_local_queue_item,
     add_queue_item,
+    complete_local_queue_item,
+    generate_local_queue_item_codex_prompt,
     init_project_queue,
+    inspect_local_queue_item_readiness,
     resolve_project_queue_path,
+    start_local_queue_item,
     update_queue_item,
 )
 from aresforge.operator.local_agent_profiles import (
@@ -414,6 +419,49 @@ def _require_boolean_field(body: dict[str, Any], field: str) -> tuple[bool, dict
         f"{field} must be a boolean value.",
         details={field: body.get(field)},
     )
+
+
+def _require_list_field(body: dict[str, Any], field: str) -> tuple[bool, dict[str, Any] | None]:
+    if field not in body or body.get(field) is None:
+        return True, None
+    if isinstance(body.get(field), list):
+        return True, None
+    return False, _api_error(
+        f"invalid_{field}",
+        f"{field} must be a list of strings.",
+        details={field: body.get(field)},
+    )
+
+
+def _merge_boundary_confirmations(payload: dict[str, Any], *extra: str) -> list[str]:
+    existing = payload.get("boundary_confirmations", [])
+    merged = list(existing) if isinstance(existing, list) else []
+    merged.extend(_BOUNDARY_CONFIRMATIONS)
+    merged.extend([value for value in extra if value])
+    return list(dict.fromkeys(merged))
+
+
+def _status_for_local_queue_result(result: dict[str, Any]) -> int:
+    error = str(result.get("error", "")).strip()
+    readiness_status = str(result.get("readiness_status", "")).strip()
+    warnings = [str(warning).strip().lower() for warning in result.get("warnings", []) if str(warning).strip()]
+
+    if error in {
+        "project_queue_not_found",
+        "queue_item_not_found",
+        "managed_project_not_found",
+        "managed_repo_not_found",
+    } or readiness_status == "not_found" or any("not found" in warning for warning in warnings):
+        return 404
+
+    command = str(result.get("command", "")).strip()
+    if command in {
+        "start-local-queue-item",
+        "complete-local-queue-item",
+        "generate-local-queue-item-codex-prompt",
+    }:
+        return 409
+    return 400
 
 
 def get_health() -> dict[str, Any]:
@@ -2370,6 +2418,161 @@ def patch_queue_item(config: AppConfig, item_id: str, body: dict[str, Any]) -> d
         "warnings": sorted(set(result.get("warnings", []))),
         "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
     }
+
+
+def post_local_queue_item(config: AppConfig, body: dict[str, Any]) -> dict[str, Any]:
+    title = str(body.get("title", "")).strip()
+    if not title:
+        return _api_error(
+            "invalid_local_queue_item_payload",
+            "title is required.",
+            details={"required_fields": ["title"]},
+        )
+
+    priority = _normalize_optional_str(body.get("priority"))
+    if priority is not None and priority not in QUEUE_PRIORITIES:
+        return _invalid_choice_error(
+            field="priority",
+            value=priority,
+            supported=QUEUE_PRIORITIES,
+            label="priority",
+        )
+
+    item_type = _normalize_optional_str(body.get("item_type"))
+    if item_type is not None and item_type not in QUEUE_ITEM_TYPES:
+        return _invalid_choice_error(
+            field="item_type",
+            value=item_type,
+            supported=QUEUE_ITEM_TYPES,
+            label="queue item type",
+        )
+
+    for field in ("acceptance_criteria", "dependencies", "tags"):
+        valid, error_payload = _require_list_field(body, field)
+        if not valid:
+            return error_payload or _api_error(f"invalid_{field}", f"{field} must be a list of strings.")
+
+    queue_path = _normalize_optional_str(body.get("queue_path"))
+    registry_path = _normalize_optional_str(body.get("registry_path"))
+
+    warnings: list[str] = []
+    resolved_queue_path = resolve_project_queue_path(config.repo_root, queue_path)
+    if not resolved_queue_path.exists():
+        init_result = init_project_queue(config, path=queue_path)
+        if not init_result.get("ok", False):
+            payload = dict(init_result)
+            payload["boundary_confirmations"] = _merge_boundary_confirmations(payload)
+            payload["_status"] = _status_for_local_queue_result(payload)
+            return payload
+        warnings.append("Local project queue was initialized automatically.")
+
+    payload = dict(
+        add_local_queue_item(
+            config,
+            title=title,
+            description=_normalize_optional_str(body.get("description")),
+            project_id=_normalize_optional_str(body.get("project_id")),
+            repo_id=_normalize_optional_str(body.get("repo_id")),
+            queue_path=queue_path,
+            registry_path=registry_path,
+            priority=priority,
+            item_type=item_type,
+            assigned_agent=_normalize_optional_str(body.get("assigned_agent")),
+            target_area=_normalize_optional_str(body.get("target_area")),
+            acceptance_criteria=_normalize_optional_list(body.get("acceptance_criteria")),
+            dependencies=_normalize_optional_list(body.get("dependencies")),
+            tags=_normalize_optional_list(body.get("tags")),
+        )
+    )
+    payload["warnings"] = sorted(set(warnings + list(payload.get("warnings", []))))
+    payload["boundary_confirmations"] = _merge_boundary_confirmations(
+        payload,
+        "Local queue item addition is local-only and uses file-backed queue state.",
+    )
+    if not payload.get("ok", False):
+        payload["_status"] = _status_for_local_queue_result(payload)
+    return payload
+
+
+def get_local_queue_item_readiness(config: AppConfig, item_id: str, params: dict[str, str | None]) -> dict[str, Any]:
+    payload = dict(
+        inspect_local_queue_item_readiness(
+            config,
+            item_id=item_id.strip(),
+            queue_path=_normalize_optional_str(params.get("queue_path")),
+            registry_path=_normalize_optional_str(params.get("registry_path")),
+        )
+    )
+    payload["boundary_confirmations"] = _merge_boundary_confirmations(payload)
+    if not payload.get("ok", False):
+        payload["_status"] = _status_for_local_queue_result(payload)
+    return payload
+
+
+def post_local_queue_item_start(config: AppConfig, item_id: str, body: dict[str, Any]) -> dict[str, Any]:
+    payload = dict(
+        start_local_queue_item(
+            config,
+            item_id=item_id.strip(),
+            queue_path=_normalize_optional_str(body.get("queue_path")),
+            registry_path=_normalize_optional_str(body.get("registry_path")),
+        )
+    )
+    payload["boundary_confirmations"] = _merge_boundary_confirmations(payload)
+    if not payload.get("ok", False):
+        payload["_status"] = _status_for_local_queue_result(payload)
+    return payload
+
+
+def post_local_queue_item_codex_prompt(config: AppConfig, item_id: str, body: dict[str, Any]) -> dict[str, Any]:
+    valid_force, force_error = _require_boolean_field(body, "force")
+    if not valid_force:
+        return force_error or _api_error("invalid_force", "force must be a boolean value.")
+
+    payload = dict(
+        generate_local_queue_item_codex_prompt(
+            config,
+            item_id=item_id.strip(),
+            queue_path=_normalize_optional_str(body.get("queue_path")),
+            registry_path=_normalize_optional_str(body.get("registry_path")),
+            output=_normalize_optional_str(body.get("output")),
+            force=bool(body.get("force", False)),
+            commit_message=_normalize_optional_str(body.get("commit_message")),
+        )
+    )
+    payload["boundary_confirmations"] = _merge_boundary_confirmations(
+        payload,
+        "Prompt generation writes local artifacts only and does not execute Codex.",
+    )
+    if not payload.get("ok", False):
+        payload["_status"] = _status_for_local_queue_result(payload)
+    return payload
+
+
+def post_local_queue_item_complete(config: AppConfig, item_id: str, body: dict[str, Any]) -> dict[str, Any]:
+    for field in ("tests_run", "changed_files", "artifact_paths"):
+        valid, error_payload = _require_list_field(body, field)
+        if not valid:
+            return error_payload or _api_error(f"invalid_{field}", f"{field} must be a list of strings.")
+
+    payload = dict(
+        complete_local_queue_item(
+            config,
+            item_id=item_id.strip(),
+            commit_hash=str(body.get("commit_hash", "")).strip(),
+            validation_summary=str(body.get("validation_summary", "")).strip(),
+            evidence_note=_normalize_optional_str(body.get("evidence_note")),
+            tests_run=_normalize_optional_list(body.get("tests_run")),
+            changed_files=_normalize_optional_list(body.get("changed_files")),
+            artifact_paths=_normalize_optional_list(body.get("artifact_paths")),
+            completed_by=str(body.get("completed_by", "local_operator")).strip() or "local_operator",
+            queue_path=_normalize_optional_str(body.get("queue_path")),
+        )
+    )
+    payload["boundary_confirmations"] = _merge_boundary_confirmations(payload)
+    if not payload.get("ok", False):
+        payload["_status"] = _status_for_local_queue_result(payload)
+    return payload
 
 
 def get_agents(config: AppConfig) -> dict[str, Any]:

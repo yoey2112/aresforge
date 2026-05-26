@@ -24,6 +24,7 @@ from aresforge.hub.api import (
     get_local_project_dashboard,
     get_local_projects_readiness,
     get_local_project_report,
+    get_local_queue_item_readiness,
     get_local_queue_agent_summary,
     get_orchestration_plan,
     get_project,
@@ -55,6 +56,10 @@ from aresforge.hub.api import (
     post_bootstrap_apply,
     post_escalation_plan,
     post_handoff_target,
+    post_local_queue_item,
+    post_local_queue_item_codex_prompt,
+    post_local_queue_item_complete,
+    post_local_queue_item_start,
     post_orchestration_plan,
     post_project,
     post_project_factory_new_project,
@@ -172,6 +177,81 @@ def _build_handler(config: AppConfig, static_root: Path) -> type[BaseHTTPRequest
                 return True
             if method == "GET" and path == "/api/local-queue-agent-summary":
                 _render_json(self, HTTPStatus.OK, get_local_queue_agent_summary(config))
+                return True
+            if method == "POST" and path == "/api/local-queue/items":
+                if body is None:
+                    _render_json(
+                        self,
+                        HTTPStatus.BAD_REQUEST,
+                        {
+                            "ok": False,
+                            "local_only": True,
+                            "error": "invalid_json_body",
+                            "message": "Request body must be a JSON object.",
+                        },
+                    )
+                    return True
+                payload = post_local_queue_item(config, body)
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+            if len(segments) == 5 and segments[1] == "local-queue" and segments[2] == "items" and segments[4] == "readiness" and method == "GET":
+                payload = get_local_queue_item_readiness(
+                    config,
+                    segments[3],
+                    {
+                        "queue_path": query_values.get("queue_path", [None])[0],
+                        "registry_path": query_values.get("registry_path", [None])[0],
+                    },
+                )
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+            if len(segments) == 5 and segments[1] == "local-queue" and segments[2] == "items" and segments[4] == "start" and method == "POST":
+                if body is None:
+                    _render_json(
+                        self,
+                        HTTPStatus.BAD_REQUEST,
+                        {
+                            "ok": False,
+                            "local_only": True,
+                            "error": "invalid_json_body",
+                            "message": "Request body must be a JSON object.",
+                        },
+                    )
+                    return True
+                payload = post_local_queue_item_start(config, segments[3], body)
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+            if len(segments) == 5 and segments[1] == "local-queue" and segments[2] == "items" and segments[4] == "codex-prompt" and method == "POST":
+                if body is None:
+                    _render_json(
+                        self,
+                        HTTPStatus.BAD_REQUEST,
+                        {
+                            "ok": False,
+                            "local_only": True,
+                            "error": "invalid_json_body",
+                            "message": "Request body must be a JSON object.",
+                        },
+                    )
+                    return True
+                payload = post_local_queue_item_codex_prompt(config, segments[3], body)
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+            if len(segments) == 5 and segments[1] == "local-queue" and segments[2] == "items" and segments[4] == "complete" and method == "POST":
+                if body is None:
+                    _render_json(
+                        self,
+                        HTTPStatus.BAD_REQUEST,
+                        {
+                            "ok": False,
+                            "local_only": True,
+                            "error": "invalid_json_body",
+                            "message": "Request body must be a JSON object.",
+                        },
+                    )
+                    return True
+                payload = post_local_queue_item_complete(config, segments[3], body)
+                _render_json(self, _status_from_payload(payload), payload)
                 return True
             if method == "GET" and path == "/api/bootstrap/status":
                 _render_json(self, HTTPStatus.OK, get_bootstrap_status(config))
