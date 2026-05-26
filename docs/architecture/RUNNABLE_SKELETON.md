@@ -29,6 +29,24 @@ Execution boundaries remain unchanged:
 - no model routing/invocation
 - human review stays responsible for running Codex and deciding when completion evidence is sufficient
 
+## M23 Hub Frontend Modularization Foundation
+
+Implemented frontend foundation changes now include:
+
+- browser-native ES module loading for Hub static frontend entrypoint `src/aresforge/hub/static/app.js`
+- extracted shared DOM primitives in `src/aresforge/hub/static/js/core/dom.js`
+- extracted shared HTTP/payload primitives in `src/aresforge/hub/static/js/core/http.js`
+- extracted the shared frontend state container in `src/aresforge/hub/static/js/core/state.js`
+- consolidated workspace quick-action binding to a single binding path
+
+Execution boundaries remain unchanged:
+
+- local-only frontend/static refactor
+- no GitHub API calls
+- no `gh` calls
+- no network-required execution path
+- no automatic agent or model execution
+
 ## M21 Active Project Workspace
 
 Implemented polish and operator wiring:

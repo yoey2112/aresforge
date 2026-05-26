@@ -34,6 +34,23 @@ Boundary guarantees:
 - no model routing/invocation
 - no push
 
+## M23 Hub Frontend Modularization Foundation
+
+Operator impact:
+
+- no new commands were added
+- Hub page behavior remains the same, but the frontend now loads `app.js` as a browser-native module
+- shared frontend helpers now live under `src/aresforge/hub/static/js/core/`
+- workspace quick actions no longer risk duplicate binding
+
+Boundary guarantees remain unchanged:
+
+- local-only frontend refactor
+- no GitHub API calls
+- no `gh` calls
+- no network calls or external dependencies added
+- no automatic Codex, agent, or model execution
+
 ## M21 Active Project Workspace: Operator Flow & Safety
 
 Summary:

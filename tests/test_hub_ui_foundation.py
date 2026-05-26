@@ -82,6 +82,18 @@ def _static_dir() -> Path:
     return Path(__file__).resolve().parents[1] / "src" / "aresforge" / "hub" / "static"
 
 
+def _frontend_script_texts() -> dict[str, str]:
+    static_dir = _static_dir()
+    return {
+        str(path.relative_to(static_dir)).replace("\\", "/"): path.read_text(encoding="utf-8")
+        for path in sorted(static_dir.rglob("*.js"))
+    }
+
+
+def _combined_frontend_script_text() -> str:
+    return "\n".join(_frontend_script_texts().values())
+
+
 def _seed_project(config: AppConfig, project_id: str = "p1") -> None:
     payload = post_project(
         config,
@@ -175,7 +187,22 @@ def test_hub_static_files_exist() -> None:
     static_dir = _static_dir()
     assert (static_dir / "index.html").exists()
     assert (static_dir / "app.js").exists()
+    assert (static_dir / "js" / "core" / "dom.js").exists()
+    assert (static_dir / "js" / "core" / "http.js").exists()
+    assert (static_dir / "js" / "core" / "state.js").exists()
     assert (static_dir / "styles.css").exists()
+
+
+def test_index_loads_app_js_as_module_entrypoint() -> None:
+    index_text = (_static_dir() / "index.html").read_text(encoding="utf-8")
+    assert '<script type="module" src="/app.js"></script>' in index_text
+
+
+def test_app_js_imports_core_modules() -> None:
+    app_text = (_static_dir() / "app.js").read_text(encoding="utf-8")
+    assert 'from "/js/core/dom.js"' in app_text
+    assert 'from "/js/core/http.js"' in app_text
+    assert 'from "/js/core/state.js"' in app_text
 
 
 def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
@@ -336,8 +363,8 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "active-project-intake" not in index_text
 
 
-def test_app_js_references_m39_api_endpoints_and_forms() -> None:
-    app_text = (_static_dir() / "app.js").read_text(encoding="utf-8")
+def test_frontend_scripts_reference_m39_api_endpoints_and_forms() -> None:
+    combined_text = _combined_frontend_script_text()
     for endpoint in (
         "/api/projects",
         "/api/projects/active",
@@ -388,8 +415,8 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
         "/api/local-projects",
         "/api/local-queue-agent-summary",
     ):
-        assert endpoint in app_text
-    assert "ACTIVE" in app_text
+        assert endpoint in combined_text
+    assert "ACTIVE" in combined_text
     for form_id in (
         "project-form",
         "new-project-wizard-form",
@@ -407,7 +434,7 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
         "orchestration-form",
         "escalation-form",
     ):
-        assert form_id in app_text
+        assert form_id in combined_text
     for action_id in (
         "bootstrap-refresh-status",
         "bootstrap-refresh-plan",
@@ -459,42 +486,42 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
         "execution-phase-approval-approve",
         "home-refresh-execution-readiness",
     ):
-        assert action_id in app_text
-    assert "parseLineList" in app_text
-    assert "toTextareaList" in app_text
-    assert "renderScopeAuthoring" in app_text
-    assert "buildScopeAuthoringPayload" in app_text
-    assert "renderArchitectureAuthoring" in app_text
-    assert "buildArchitectureAuthoringPayload" in app_text
-    assert "renderMilestoneIssuePlan" in app_text
-    assert "buildMilestoneIssuePlanPayload" in app_text
-    assert "renderGithubApplyPlan" in app_text
-    assert "buildGithubApplyPlanPayload" in app_text
-    assert "renderAgentDispatchPlan" in app_text
-    assert "buildAgentDispatchPlanPayload" in app_text
-    assert "renderValidationExecutionPlan" in app_text
-    assert "buildValidationExecutionPlanPayload" in app_text
-    assert "renderDocumentationCloseoutPlan" in app_text
-    assert "buildDocumentationCloseoutPlanPayload" in app_text
-    assert "renderExecutionReadiness" in app_text
-    assert "loadExecutionReadiness" in app_text
-    assert "setLocalQueueLifecycleItemId" in app_text
-    assert "buildLocalQueueAddPayload" in app_text
-    assert "buildLocalQueueCodexPromptPayload" in app_text
-    assert "buildLocalQueueCompletePayload" in app_text
-    assert "renderLocalQueueReadinessResult" in app_text
-    assert "renderLocalQueueCodexPromptResult" in app_text
-    assert "renderLocalQueueCompleteResult" in app_text
-    assert "home-github-apply-plan-milestones" in app_text
-    assert "home-github-apply-plan-issues" in app_text
-    assert "home-agent-dispatch-items" in app_text
-    assert "home-agent-dispatch-queues" in app_text
-    assert "home-validation-execution-items" in app_text
-    assert "home-validation-execution-groups" in app_text
-    assert "home-validation-execution-evidence" in app_text
-    assert "home-documentation-closeout-items" in app_text
-    assert "home-documentation-closeout-evidence-packages" in app_text
-    assert "home-documentation-closeout-checks" in app_text
+        assert action_id in combined_text
+    assert "parseLineList" in combined_text
+    assert "toTextareaList" in combined_text
+    assert "renderScopeAuthoring" in combined_text
+    assert "buildScopeAuthoringPayload" in combined_text
+    assert "renderArchitectureAuthoring" in combined_text
+    assert "buildArchitectureAuthoringPayload" in combined_text
+    assert "renderMilestoneIssuePlan" in combined_text
+    assert "buildMilestoneIssuePlanPayload" in combined_text
+    assert "renderGithubApplyPlan" in combined_text
+    assert "buildGithubApplyPlanPayload" in combined_text
+    assert "renderAgentDispatchPlan" in combined_text
+    assert "buildAgentDispatchPlanPayload" in combined_text
+    assert "renderValidationExecutionPlan" in combined_text
+    assert "buildValidationExecutionPlanPayload" in combined_text
+    assert "renderDocumentationCloseoutPlan" in combined_text
+    assert "buildDocumentationCloseoutPlanPayload" in combined_text
+    assert "renderExecutionReadiness" in combined_text
+    assert "loadExecutionReadiness" in combined_text
+    assert "setLocalQueueLifecycleItemId" in combined_text
+    assert "buildLocalQueueAddPayload" in combined_text
+    assert "buildLocalQueueCodexPromptPayload" in combined_text
+    assert "buildLocalQueueCompletePayload" in combined_text
+    assert "renderLocalQueueReadinessResult" in combined_text
+    assert "renderLocalQueueCodexPromptResult" in combined_text
+    assert "renderLocalQueueCompleteResult" in combined_text
+    assert "home-github-apply-plan-milestones" in combined_text
+    assert "home-github-apply-plan-issues" in combined_text
+    assert "home-agent-dispatch-items" in combined_text
+    assert "home-agent-dispatch-queues" in combined_text
+    assert "home-validation-execution-items" in combined_text
+    assert "home-validation-execution-groups" in combined_text
+    assert "home-validation-execution-evidence" in combined_text
+    assert "home-documentation-closeout-items" in combined_text
+    assert "home-documentation-closeout-evidence-packages" in combined_text
+    assert "home-documentation-closeout-checks" in combined_text
 
 
 def test_active_project_workspace_api_reuses_local_only_dashboard_and_report_data(tmp_path: Path) -> None:
@@ -596,8 +623,16 @@ def test_static_assets_do_not_reference_external_resources() -> None:
     ]
     pattern = re.compile("|".join(external_patterns), re.IGNORECASE)
 
-    for name in ("index.html", "app.js", "styles.css"):
-        content = (_static_dir() / name).read_text(encoding="utf-8")
+    static_dir = _static_dir()
+    for path in (
+        static_dir / "index.html",
+        static_dir / "app.js",
+        static_dir / "styles.css",
+        static_dir / "js" / "core" / "dom.js",
+        static_dir / "js" / "core" / "http.js",
+        static_dir / "js" / "core" / "state.js",
+    ):
+        content = path.read_text(encoding="utf-8")
         assert not pattern.search(content)
 
 

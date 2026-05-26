@@ -1,68 +1,6 @@
-function byId(id) {
-  return document.getElementById(id);
-}
-
-function on(id, eventName, handler) {
-  const element = byId(id);
-  if (!element) {
-    return;
-  }
-  element.addEventListener(eventName, handler);
-}
-
-function setMessage(id, text, tone) {
-  const element = byId(id);
-  if (!element) {
-    return;
-  }
-  element.className = "message";
-  element.textContent = text || "";
-  if (tone) {
-    element.classList.add(`message-${tone}`);
-  }
-}
-
-function setList(listId, emptyId, values) {
-  const list = byId(listId);
-  const empty = byId(emptyId);
-  if (!list || !empty) {
-    return;
-  }
-  list.innerHTML = "";
-  if (!values || values.length === 0) {
-    empty.style.display = "block";
-    return;
-  }
-  empty.style.display = "none";
-  values.forEach((value) => {
-    const item = document.createElement("li");
-    item.textContent = value;
-    list.appendChild(item);
-  });
-}
-
-function setCodeBlock(blockId, emptyId, value) {
-  const block = byId(blockId);
-  const empty = byId(emptyId);
-  if (!block || !empty) {
-    return;
-  }
-  if (!value) {
-    block.textContent = "";
-    empty.style.display = "block";
-    return;
-  }
-  block.textContent = value;
-  empty.style.display = "none";
-}
-
-function setText(id, value) {
-  const element = byId(id);
-  if (!element) {
-    return;
-  }
-  element.textContent = String(value || "");
-}
+import { byId, on, setCodeBlock, setList, setMessage, setText } from "/js/core/dom.js";
+import { fetchJson, prunePayload, toQuery } from "/js/core/http.js";
+import { createState } from "/js/core/state.js";
 
 function parseCommaList(value) {
   if (!value || typeof value !== "string") {
@@ -87,43 +25,6 @@ function generatedQueueItemId(title) {
   return `m44-${slugify(title)}-${Date.now().toString(36)}`;
 }
 
-function toQuery(params) {
-  const query = new URLSearchParams();
-  Object.keys(params || {}).forEach((key) => {
-    const value = params[key];
-    if (value !== undefined && value !== null && String(value).trim()) {
-      query.set(key, String(value).trim());
-    }
-  });
-  const rendered = query.toString();
-  return rendered ? `?${rendered}` : "";
-}
-
-function prunePayload(payload) {
-  Object.keys(payload).forEach((key) => {
-    const value = payload[key];
-    if (value === "" || value === undefined || value === null) {
-      delete payload[key];
-      return;
-    }
-    if (Array.isArray(value) && value.length === 0) {
-      delete payload[key];
-    }
-  });
-  return payload;
-}
-
-async function fetchJson(url, options) {
-  const response = await fetch(url, options || { method: "GET" });
-  const payload = await response.json();
-  if (!response.ok || payload.ok === false) {
-    const error = new Error(payload.message || payload.error || "Request failed.");
-    error.payload = payload;
-    throw error;
-  }
-  return payload;
-}
-
 function activateSection(sectionName) {
   document.querySelectorAll(".nav-item").forEach((button) => {
     button.classList.toggle("active", button.dataset.section === sectionName);
@@ -136,6 +37,21 @@ function activateSection(sectionName) {
 function bindNavigation() {
   document.querySelectorAll(".nav-item").forEach((button) => {
     button.addEventListener("click", () => activateSection(button.dataset.section));
+  });
+}
+
+function bindHomeQuickNavActions() {
+  on("home-nav-workspace", "click", () => {
+    activateSection("workspace");
+  });
+  on("home-nav-projects", "click", () => {
+    activateSection("projects");
+  });
+  on("home-nav-queue", "click", () => {
+    activateSection("queue");
+  });
+  on("home-nav-reports", "click", () => {
+    activateSection("reports");
   });
 }
 
@@ -189,33 +105,7 @@ function renderWorkflowCards(containerId, emptyId, workflows) {
   });
 }
 
-const state = {
-  projects: [],
-  selectedProjectId: "",
-  activeProject: null,
-  workspace: null,
-  bootstrapStatus: null,
-  bootstrapPlan: null,
-  queueFilters: {
-    project_id: "",
-    repo_id: "",
-    status: "",
-    type: "",
-    assigned_agent: "",
-  },
-  report: null,
-  exportText: "",
-  projectFactoryDossier: null,
-  scopePackage: null,
-  architectureContract: null,
-  milestoneIssuePlan: null,
-  githubApplyPlan: null,
-  agentDispatchPlan: null,
-  validationExecutionPlan: null,
-  documentationCloseoutPlan: null,
-  executionPhaseApproval: null,
-  executionReadiness: null,
-};
+const state = createState();
 
 function renderBootstrapStatus(payload) {
   state.bootstrapStatus = payload || null;
@@ -522,12 +412,8 @@ function bindWorkspaceActions() {
   });
 
   on("workspace-continue-intake", "click", () => {
-    activateSection("queue");
+    activateQueueIntakeFocus();
     setMessage("workspace-message", "Navigate to Queue/Intake (local-only).", "success");
-    const intakeTitle = byId("intake-title");
-    if (intakeTitle) {
-      intakeTitle.focus();
-    }
   });
 
   on("workspace-open-queue", "click", () => {
@@ -538,6 +424,10 @@ function bindWorkspaceActions() {
   on("workspace-select-project", "click", () => {
     activateSection("projects");
     setMessage("workspace-message", "Select an active project. No automation will run automatically.", "success");
+    const selector = byId("active-project-select");
+    if (selector) {
+      selector.focus();
+    }
   });
 }
 
@@ -3057,30 +2947,6 @@ function bindForms() {
     activateQueueIntakeFocus();
   });
 
-  on("workspace-refresh", "click", async () => {
-    try {
-      await loadWorkspace();
-    } catch (error) {
-      setMessage("workspace-message", String(error.message || error), "error");
-    }
-  });
-
-  on("workspace-continue-intake", "click", () => {
-    activateQueueIntakeFocus();
-  });
-
-  on("workspace-open-queue", "click", () => {
-    activateSection("queue");
-  });
-
-  on("workspace-select-project", "click", () => {
-    activateSection("projects");
-    const selector = byId("active-project-select");
-    if (selector) {
-      selector.focus();
-    }
-  });
-
   on("home-start-new-project", "click", () => {
     focusNewProjectWizard();
   });
@@ -3502,6 +3368,7 @@ function bindForms() {
 
 async function init() {
   bindNavigation();
+  bindHomeQuickNavActions();
   bindForms();
   bindWorkspaceActions();
   renderRepos([], true);

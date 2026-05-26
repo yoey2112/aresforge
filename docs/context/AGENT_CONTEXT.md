@@ -29,6 +29,23 @@ Required operating boundaries remain unchanged:
 - no local/cloud/Codex/ChatGPT/Ollama model routing or invocation
 - completion records evidence locally only and does not verify commits remotely
 
+## M23 Hub Frontend Modularization Foundation
+
+Latest Hub frontend context now includes a browser-native ES module foundation:
+
+- `src/aresforge/hub/static/app.js` remains the main entrypoint
+- shared DOM helpers live in `src/aresforge/hub/static/js/core/dom.js`
+- shared HTTP/payload helpers live in `src/aresforge/hub/static/js/core/http.js`
+- the shared frontend state container lives in `src/aresforge/hub/static/js/core/state.js`
+- duplicate workspace button binding was consolidated into one binding path
+
+Guidance for follow-on frontend work:
+
+- preserve `app.js` as the entrypoint unless a later milestone explicitly changes that contract
+- keep DOM ids and API endpoint paths stable
+- prefer moving only generic helpers into `js/core/*` until section/domain modules are ready
+- update static tests to validate the combined frontend script surface, not a single monolith file
+
 ## M21 Active Project Workspace (UI & Operator Flow)
 
 Added and validated locally:

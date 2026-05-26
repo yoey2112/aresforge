@@ -47,6 +47,26 @@ Safety posture:
 - no GitHub API calls, no `gh` calls
 - no agent or model execution
 
+### M23 - Hub Frontend Modularization Foundation
+
+Status: Completed locally on `main`.
+
+Highlights:
+
+- converted Hub static loading to use browser-native ES modules
+- extracted shared frontend primitives into `js/core/dom.js`, `js/core/http.js`, and `js/core/state.js`
+- kept `app.js` as the frontend entrypoint/orchestrator
+- removed the unused placeholder helper and consolidated duplicated workspace button binding
+- updated frontend foundation tests to validate the modularized static surface safely
+
+Safety posture:
+
+- local-only refactor
+- no GitHub API calls, no `gh` calls
+- no new network behavior
+- no agent or model execution
+- no DOM id or endpoint path contract changes
+
 
 M17 completion evidence is stored locally with status transition metadata plus commit hash, validation summary, and optional evidence fields.
 

@@ -40,6 +40,10 @@
           <div class="quick-actions">
             <button id="home-refresh-summary" type="button">Refresh Summary</button>
             <button id="home-start-new-project" type="button">Start New Project</button>
+            <button id="home-nav-workspace" type="button">Go to Active Project Workspace</button>
+            <button id="home-nav-projects" type="button">Go to Projects</button>
+            <button id="home-nav-queue" type="button">Go to Queue</button>
+            <button id="home-nav-reports" type="button">Go to Reports</button>
           </div>
           <section class="subpanel">
             <h3>Local Home Dashboard</h3>
@@ -85,6 +89,15 @@
             <h4>Warnings And Blockers</h4>
             <ul id="home-local-warnings-blockers" class="list"></ul>
             <p id="home-local-warnings-blockers-empty" class="empty">No warnings or blockers.</p>
+            <h4>Running Actions / Agents</h4>
+            <div class="card">
+              <h3>Running Actions</h3>
+              <p class="placeholder">No actions or agents are running automatically. All actions require explicit operator approval and are local-only.</p>
+            </div>
+            <div class="card">
+              <h3>Running Agents</h3>
+              <p class="placeholder">No agents are running. This is a local-only dashboard. Agent/model execution is not automatic or backgrounded.</p>
+            </div>
           </section>
 
           <section class="subpanel active-project-panel">
@@ -1397,6 +1410,6 @@
       </main>
     </div>
 
-    <script src="/app.js"></script>
+    <script type="module" src="/app.js"></script>
   </body>
 </html>

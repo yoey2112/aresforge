@@ -32,6 +32,32 @@ M17 boundary posture:
 - no model routing/invocation
 - no remote commit verification
 
+## M23 Hub Frontend Modularization Foundation
+
+Status: Completed locally on `main`.
+
+Delivered M23 items:
+
+- switched Hub static loading from a plain script tag to browser-native ES module loading for `src/aresforge/hub/static/app.js`
+- extracted shared frontend primitives into:
+  - `src/aresforge/hub/static/js/core/dom.js`
+  - `src/aresforge/hub/static/js/core/http.js`
+  - `src/aresforge/hub/static/js/core/state.js`
+- kept `app.js` as the main entrypoint/orchestrator for existing Hub domain logic
+- removed the unused `renderRunningActionsAgentsPlaceholders` helper
+- consolidated duplicated workspace quick-action binding so workspace buttons bind once
+- updated static frontend tests to validate the module foundation without forcing all frontend strings to remain in `app.js`
+
+M23 boundary posture:
+
+- local-only static/frontend refactor
+- no GitHub API calls
+- no `gh` calls
+- no new network calls
+- no agent execution
+- no model routing/invocation
+- no UI redesign and no DOM id changes
+
 ## M16 Hub UI Foundations And Local Validation Closeout
 
 Status: Completed locally on `main` (no push performed).
