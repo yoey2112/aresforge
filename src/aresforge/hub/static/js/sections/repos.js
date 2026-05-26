@@ -104,6 +104,23 @@ export async function loadReposForSelectedProject(state, { inspectRepoGitHubLink
   );
 }
 
+export async function loadReposSection(state, deps) {
+  return loadReposForSelectedProject(state, {
+    inspectRepoGitHubLink: (repoId, inspectLocalGit) =>
+      inspectRepoGitHubLink(state, repoId, inspectLocalGit, deps),
+    loadProjects: deps.loadProjects,
+    refreshSummaryAndReport: deps.refreshSummaryAndReport,
+  });
+}
+
+export async function inspectRepoGitHubLinkSection(state, repoId, inspectLocalGit, deps) {
+  return inspectRepoGitHubLink(state, repoId, inspectLocalGit, {
+    loadReposForSelectedProject: () => loadReposSection(state, deps),
+    loadProjects: deps.loadProjects,
+    refreshSummaryAndReport: deps.refreshSummaryAndReport,
+  });
+}
+
 export function bindReposActions({
   state,
   parseCommaList,

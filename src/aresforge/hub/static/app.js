@@ -15,7 +15,8 @@ import {
 } from "/js/sections/home.js";
 import {
   bindProjectsActions,
-  loadProjectsData,
+  loadProjectsSection,
+  setActiveProject as setActiveProjectSection,
 } from "/js/sections/projects.js";
 import {
   bindQueueActions,
@@ -44,8 +45,8 @@ import {
 } from "/js/sections/reports.js";
 import {
   bindReposActions,
-  inspectRepoGitHubLink as inspectRepoGitHubLinkSection,
-  loadReposForSelectedProject as loadReposForSelectedProjectSection,
+  inspectRepoGitHubLinkSection,
+  loadReposSection,
 } from "/js/sections/repos.js";
 import { bindWorkspaceActions, loadWorkspace, renderWorkspaceUnavailable } from "/js/sections/workspace.js";
 
@@ -1191,31 +1192,28 @@ async function approveExecutionPhaseApproval() {
 }
 
 async function setActiveProject(projectId) {
-  const payload = await fetchJson("/api/projects/active", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ project_id: projectId }),
-  });
-  renderActiveProjectSummary(payload);
-  return payload;
+  return setActiveProjectSection(projectId, { renderActiveProjectSummary });
 }
 
 async function loadProjects() {
-  await loadProjectsData(state, { loadActiveProject, renderActiveProjectSummary, activeProjectId });
-  await loadProjectFactoryDossier(activeProjectId());
-  await loadScopePackage(activeProjectId());
-  await loadArchitectureContract(activeProjectId());
-  await loadMilestoneIssuePlan(activeProjectId());
-  await loadGithubApplyPlan(activeProjectId());
-  await loadAgentDispatchPlan(activeProjectId());
-  await loadValidationExecutionPlan(activeProjectId());
-  await loadDocumentationCloseoutPlan(activeProjectId());
-  await loadExecutionPhaseApproval(activeProjectId());
+  return loadProjectsSection(state, {
+    loadActiveProject,
+    renderActiveProjectSummary,
+    activeProjectId,
+    loadProjectFactoryDossier,
+    loadScopePackage,
+    loadArchitectureContract,
+    loadMilestoneIssuePlan,
+    loadGithubApplyPlan,
+    loadAgentDispatchPlan,
+    loadValidationExecutionPlan,
+    loadDocumentationCloseoutPlan,
+    loadExecutionPhaseApproval,
+  });
 }
 
 async function loadReposForSelectedProject() {
-  return loadReposForSelectedProjectSection(state, {
-    inspectRepoGitHubLink,
+  return loadReposSection(state, {
     loadProjects,
     refreshSummaryAndReport,
   });
@@ -1223,7 +1221,6 @@ async function loadReposForSelectedProject() {
 
 async function inspectRepoGitHubLink(repoId, inspectLocalGit) {
   return inspectRepoGitHubLinkSection(state, repoId, inspectLocalGit, {
-    loadReposForSelectedProject,
     loadProjects,
     refreshSummaryAndReport,
   });

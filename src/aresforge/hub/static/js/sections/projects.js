@@ -105,6 +105,29 @@ export async function loadProjectsData(state, { loadActiveProject, renderActiveP
   return payload;
 }
 
+export async function setActiveProject(projectId, { renderActiveProjectSummary }) {
+  const payload = await fetchJson("/api/projects/active", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ project_id: projectId }),
+  });
+  renderActiveProjectSummary(payload);
+  return payload;
+}
+
+export async function loadProjectsSection(state, deps) {
+  await loadProjectsData(state, deps);
+  await deps.loadProjectFactoryDossier(deps.activeProjectId());
+  await deps.loadScopePackage(deps.activeProjectId());
+  await deps.loadArchitectureContract(deps.activeProjectId());
+  await deps.loadMilestoneIssuePlan(deps.activeProjectId());
+  await deps.loadGithubApplyPlan(deps.activeProjectId());
+  await deps.loadAgentDispatchPlan(deps.activeProjectId());
+  await deps.loadValidationExecutionPlan(deps.activeProjectId());
+  await deps.loadDocumentationCloseoutPlan(deps.activeProjectId());
+  await deps.loadExecutionPhaseApproval(deps.activeProjectId());
+}
+
 export function bindProjectsActions({
   parseCommaList,
   reloadProjects,
