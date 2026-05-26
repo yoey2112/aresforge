@@ -131,6 +131,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-managed-project-registry",
         "inspect-managed-project",
         "inspect-managed-repo",
+        "inspect-local-project-dashboard",
         "generate-preflight-baseline-snapshot",
         "diff-preflight-snapshots",
         "inspect-child-execution-gates",
@@ -4568,6 +4569,21 @@ def test_inspect_project_queue_dashboard_dispatch_markdown(
     output = capsys.readouterr().out
     assert exit_code == 0
     assert output == "# Project Queue Dashboard\n\n"
+
+
+def test_inspect_local_project_dashboard_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "local_only": True,
+        "total_projects": 0,
+        "active_project": None,
+    }
+    monkeypatch.setattr(cli, "summarize_local_project_dashboard", lambda _config: payload)
+    exit_code = cli.main(["inspect-local-project-dashboard"])
+    parsed = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert parsed == payload
 
 
 def test_export_work_item_operator_prompt_dispatch_json(

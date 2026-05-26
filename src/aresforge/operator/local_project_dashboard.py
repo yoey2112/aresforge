@@ -664,6 +664,48 @@ def summarize_local_project_dashboard(config: AppConfig) -> dict[str, Any]:
         "recommended_operator_actions": recommended_next_actions,
     }
 
+    project_summaries = [
+        {
+            "project_id": str(item.get("project_id", "")).strip(),
+            "name": str(item.get("name", "")).strip(),
+            "status": str(item.get("status", "")).strip(),
+            "primary_repo_id": str(item.get("primary_repo_id", "")).strip(),
+            "repo_count": len([repo for repo in item.get("repos", []) if isinstance(repo, dict)]),
+            "linked_to_github": _is_linked(
+                item.get("github_owner"), item.get("github_repo"), item.get("github_url")
+            ),
+        }
+        for item in sorted(projects_raw, key=lambda value: str(value.get("project_id", "")).strip())
+    ]
+    active_project_contract = None
+    if active_project:
+        active_project_contract = {
+            "project_id": str(active_project.get("project_id", "")).strip(),
+            "name": str(active_project.get("name", "")).strip(),
+            "status": str(active_project.get("status", "")).strip(),
+            "primary_repo_id": str(active_project.get("primary_repo_id", "")).strip(),
+            "active_repo_id": str((active_repo or {}).get("repo_id", "")).strip(),
+            "active_repo_name": str((active_repo or {}).get("name", "")).strip(),
+        }
+    validation_summary = {
+        "overall_status": str(readiness_indicators.get("overall_status", "")).strip(),
+        "hub_ready": bool(readiness_indicators.get("hub_ready", False)),
+        "registry_ready": bool(readiness_indicators.get("registry_ready", False)),
+        "queue_ready": bool(readiness_indicators.get("queue_ready", False)),
+        "agents_ready": bool(readiness_indicators.get("agents_ready", False)),
+        "docs_ready": bool(readiness_indicators.get("docs_ready", False)),
+        "bootstrap_ready": bool(readiness_indicators.get("bootstrap_ready", False)),
+        "blocked_item_count": len(blocked_items),
+        "warning_count": len(sorted(set(warnings))),
+    }
+    recent_activity_summary = {
+        "recently_completed_items": list(recently_completed_items),
+        "active_project_current_items": list(active_project_current_items),
+        "latest_handoff_artifact": handoff_summary.get("latest_handoff_artifact"),
+        "latest_orchestration_artifact": orchestration_summary.get("latest_orchestration_artifact"),
+        "latest_escalation_artifact": escalation_summary.get("latest_escalation_artifact"),
+    }
+
     component_warnings = (
         list(docs_summary.get("warnings", []))
         + list(handoff_summary.get("warnings", []))
@@ -706,6 +748,12 @@ def summarize_local_project_dashboard(config: AppConfig) -> dict[str, Any]:
         "generated_at": datetime.now(UTC).isoformat(),
         "local_only": True,
         "report_only": True,
+        "total_projects": len(project_summaries),
+        "active_project": active_project_contract,
+        "project_summaries": project_summaries,
+        "recommended_next_action": recommended_next_actions[0] if recommended_next_actions else "",
+        "validation_summary": validation_summary,
+        "recent_activity_summary": recent_activity_summary,
         "active_project_summary": active_project_summary,
         "project_summary": project_summary,
         "repo_summary": repo_summary,

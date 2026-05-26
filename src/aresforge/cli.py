@@ -219,6 +219,7 @@ from aresforge.operator.local_bootstrap_wizard import (
     inspect_bootstrap_status,
     plan_bootstrap,
 )
+from aresforge.operator.local_project_dashboard import summarize_local_project_dashboard
 from aresforge.hub.server import serve_hub
 from aresforge.operator.milestone_reconciliation_planner import plan_milestone_final_reconciliation
 from aresforge.operator.preflight_snapshot import (
@@ -1412,6 +1413,15 @@ def build_parser() -> argparse.ArgumentParser:
     inspect_queue_item_parser.add_argument(
         "--format",
         choices=["json", "markdown"],
+        default="json",
+    )
+    inspect_local_project_dashboard_parser = subparsers.add_parser(
+        "inspect-local-project-dashboard",
+        help="Inspect read-only local project dashboard contract payload.",
+    )
+    inspect_local_project_dashboard_parser.add_argument(
+        "--format",
+        choices=["json"],
         default="json",
     )
     init_agent_profiles_parser = subparsers.add_parser(
@@ -3381,6 +3391,10 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-local-project-dashboard":
+        emit_json(summarize_local_project_dashboard(config))
+        return 0
 
     if args.command == "init-agent-profiles":
         payload = init_agent_profiles(

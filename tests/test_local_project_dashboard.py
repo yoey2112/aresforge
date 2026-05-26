@@ -49,6 +49,16 @@ def test_dashboard_missing_files_returns_warnings_and_empty_summaries(tmp_path: 
     assert payload["queue_summary"]["item_count"] == 0
     assert payload["agent_summary"]["agent_count"] == 0
     assert payload["warnings"]
+    assert payload["total_projects"] == 0
+    assert payload["active_project"] is None
+    for key in (
+        "project_summaries",
+        "queue_summary",
+        "recommended_next_action",
+        "validation_summary",
+        "recent_activity_summary",
+    ):
+        assert key in payload
 
 
 def test_dashboard_project_repo_and_agent_counts_from_local_state(tmp_path: Path) -> None:
@@ -222,6 +232,24 @@ def test_dashboard_active_project_summary_and_action_center(tmp_path: Path) -> N
     assert payload["action_center"]["active_project_ready_items"] == ["q1"]
     assert payload["readiness_indicators"]["active_project_selected"] is True
     assert payload["paths"]["active_project_path"].endswith("active_project.json")
+    assert payload["total_projects"] == 1
+    assert payload["active_project"]["project_id"] == "p1"
+    assert payload["active_project"]["active_repo_id"] == "r1"
+
+
+def test_dashboard_contract_keys_are_stable(tmp_path: Path) -> None:
+    payload = summarize_local_project_dashboard(_config(tmp_path))
+
+    expected_keys = {
+        "total_projects",
+        "active_project",
+        "project_summaries",
+        "queue_summary",
+        "recommended_next_action",
+        "validation_summary",
+        "recent_activity_summary",
+    }
+    assert expected_keys.issubset(payload.keys())
 
 
 def test_dashboard_recommends_selecting_active_project_when_projects_exist(tmp_path: Path) -> None:
