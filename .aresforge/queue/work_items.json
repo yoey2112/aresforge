@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-26T02:19:27.212330+00:00",
+  "updated_at": "2026-05-26T02:30:29.826884+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -140,7 +140,7 @@
       "repo_id": "aresforge",
       "title": "Build Hub queue lifecycle API foundation",
       "description": "Expose the M17 local queue lifecycle through safe Hub API endpoints for add, inspect readiness, start, generate Codex prompt, and complete with evidence. The endpoints must remain local-only, gated, and must not execute agents, Codex, LLMs, GitHub API, gh, PRs, issues, workflow activity, or network calls.",
-      "status": "in_progress",
+      "status": "done",
       "priority": "high",
       "item_type": "feature",
       "tags": [
@@ -153,17 +153,21 @@
       "notes": "Acceptance criteria:\n- Hub API exposes local-only endpoints for add queue item, inspect readiness, start item, generate Codex prompt, and complete item with evidence; endpoints return stable JSON; endpoints reuse existing M17 operators; tests cover success and gated failure paths; no Hub mutation UI is added in this task.",
       "started_at": "2026-05-26T02:19:27.212330+00:00",
       "started_via": "local_operator",
-      "previous_status": "proposed",
-      "completed_at": "",
-      "completed_by": "",
-      "completion_commit": "",
-      "validation_summary": "",
-      "evidence_note": "",
-      "tests_run": [],
-      "changed_files": [],
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-26T02:30:29.826884+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "af95caecbb7729925be9cdf45d4ce4ad74da0db6",
+      "validation_summary": "M18 Hub queue lifecycle API foundation was implemented by Codex and validated locally. Route-level tests passed with 7 passed. Core targeted validation passed with 232 passed. Hub UI/API targeted validation passed with 80 passed. Local dashboard/report targeted validation passed with 13 passed.",
+      "evidence_note": "Added local-only Hub API endpoints for add queue item, inspect readiness, start item, generate Codex prompt, and complete item with evidence. No Hub mutation UI, agent execution, LLM routing, GitHub API, gh, PR, issue, workflow, or network execution was added.",
+      "tests_run": [
+        "git diff --check; python -m pytest tests/test_hub_local_queue_lifecycle_api.py; python -m pytest tests/test_roadmap_db_control.py tests/test_config_and_migrations.py tests/test_cli.py; python -m pytest tests/test_hub_project_factory_api.py tests/test_hub_active_project_api.py tests/test_hub_ui_foundation.py; python -m pytest tests/test_local_queue_agent_summary.py tests/test_local_project_dashboard.py tests/test_local_project_report.py"
+      ],
+      "changed_files": [
+        "src/aresforge/hub/api.py; src/aresforge/hub/server.py; tests/test_hub_local_queue_lifecycle_api.py"
+      ],
       "artifact_paths": [],
       "created_at": "2026-05-26T02:18:51.655748+00:00",
-      "updated_at": "2026-05-26T02:19:27.212330+00:00"
+      "updated_at": "2026-05-26T02:30:29.826884+00:00"
     }
   ]
 }
