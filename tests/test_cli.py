@@ -135,6 +135,7 @@ def test_cli_has_expected_commands() -> None:
         "list-local-projects",
         "inspect-local-project-readiness",
         "inspect-local-queue-agent-summary",
+        "inspect-local-project-report",
         "generate-preflight-baseline-snapshot",
         "diff-preflight-snapshots",
         "inspect-child-execution-gates",
@@ -4617,6 +4618,17 @@ def test_inspect_local_queue_agent_summary_dispatch_json(
     payload = {"ok": True, "queue_totals": {"item_count": 0}}
     monkeypatch.setattr(cli, "inspect_local_queue_agent_summary", lambda _config: payload)
     exit_code = cli.main(["inspect-local-queue-agent-summary"])
+    parsed = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert parsed == payload
+
+
+def test_inspect_local_project_report_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {"ok": True, "report_type": "local_project_report_summary"}
+    monkeypatch.setattr(cli, "inspect_local_project_report", lambda _config: payload)
+    exit_code = cli.main(["inspect-local-project-report"])
     parsed = json.loads(capsys.readouterr().out)
     assert exit_code == 0
     assert parsed == payload
