@@ -815,20 +815,22 @@
           </section>
 
           <section class="subpanel active-project-panel">
-            <h3>Active Project Intake</h3>
-            <p class="message-note">Capture a task, feature, direction, bug, documentation item, or validation item for the selected active project.</p>
+            <h3>Active Project Task Intake</h3>
+            <p class="message-note">Local-only intake for the selected active project. This creates a queue item only and does not auto-start work, generate a Codex prompt, or execute anything.</p>
+            <p id="intake-active-project-summary" class="message-note">Select an active project to create a local queue item.</p>
             <p id="intake-message" class="message"></p>
             <form id="intake-form" class="form-grid">
-              <label>Item ID Optional<input id="intake-item-id" name="item_id" placeholder="auto-generated when blank" /></label>
-              <label>Title<input id="intake-title" name="title" required /></label>
+              <label>Task Title<input id="intake-title" name="title" required /></label>
               <label>Type
                 <select id="intake-type" name="intake_type">
-                  <option value="task">task</option>
                   <option value="feature">feature</option>
-                  <option value="direction">direction</option>
                   <option value="bug">bug</option>
-                  <option value="documentation">documentation</option>
+                  <option value="docs">docs</option>
+                  <option value="ui">ui</option>
+                  <option value="refactor">refactor</option>
                   <option value="validation">validation</option>
+                  <option value="direction">direction</option>
+                  <option value="task">task</option>
                 </select>
               </label>
               <label>Priority
@@ -839,19 +841,12 @@
                   <option value="urgent">urgent</option>
                 </select>
               </label>
-              <label>Status
-                <select id="intake-status" name="status">
-                  <option value="proposed">proposed</option>
-                  <option value="ready">ready</option>
-                  <option value="blocked">blocked</option>
-                </select>
-              </label>
-              <label>Assigned Agent<input id="intake-assigned-agent" name="assigned_agent" placeholder="optional" /></label>
               <label>Tags (comma-separated)<input id="intake-tags" name="tags" /></label>
-              <label class="full">Direction / Details<textarea id="intake-description" name="description"></textarea></label>
-              <label class="full">Notes<textarea id="intake-notes" name="notes"></textarea></label>
-              <button id="intake-submit" type="submit">Add To Active Project Queue</button>
+              <label class="full">Task Summary / Details<textarea id="intake-description" name="description" required></textarea></label>
+              <button id="intake-submit" type="submit">Create Local Queue Item</button>
             </form>
+            <ul id="intake-result" class="list"></ul>
+            <p id="intake-result-empty" class="empty">No intake result yet.</p>
           </section>
 
           <section class="subpanel">

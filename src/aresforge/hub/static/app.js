@@ -354,6 +354,12 @@ function renderActiveProjectSummary(payload) {
       ? `Queue defaults will use project=${projectId} and repo=${repoId || "(manual repo required)"}.`
       : "No active project selected. Queue filters and new items remain manual.";
   }
+  const intakeSummary = byId("intake-active-project-summary");
+  if (intakeSummary) {
+    intakeSummary.textContent = selected
+      ? `Creating local queue items for ${projectName} (${projectId})${repoId ? ` | repo=${repoId}` : " | repo resolved from project defaults when available"}.`
+      : "Select an active project to create a local queue item.";
+  }
 }
 
 function parseLineList(value) {
@@ -2322,36 +2328,64 @@ function renderLocalQueueCompleteResult(payload) {
   setList("queue-lifecycle-complete-warnings", "queue-lifecycle-complete-warnings-empty", (payload && payload.warnings) || []);
 }
 
+function renderActiveProjectIntakeResult(payload) {
+  const activeProjectSummary = state.activeProject || {};
+  const projectId = String((payload && payload.project_id) || activeProjectSummary.active_project_id || "").trim() || "-";
+  const projectName = String(
+    (activeProjectSummary.active_project && activeProjectSummary.active_project.name) || projectId || ""
+  ).trim() || "-";
+  const repoId = String((payload && payload.repo_id) || activeProjectSummary.active_repo_id || "").trim() || "-";
+
+  setList("intake-result", "intake-result-empty", [
+    `item_id: ${payload && payload.item_id ? payload.item_id : "-"}`,
+    `status: ${payload && payload.status ? payload.status : "-"}`,
+    `active_project: ${projectId} | ${projectName}`,
+    `repo_id: ${repoId}`,
+    `next_safe_action: ${payload && payload.next_safe_action ? payload.next_safe_action : "-"}`,
+  ].concat((payload && payload.warnings ? payload.warnings : []).map((warning) => `warning: ${warning}`)));
+
+  if (payload && payload.item_id) {
+    setLocalQueueLifecycleItemId(payload.item_id);
+  }
+}
+
 function buildIntakePayload() {
-  const title = byId("intake-title").value.trim();
   const intakeType = byId("intake-type").value.trim() || "task";
-  const itemType = intakeType === "direction" ? "task" : intakeType;
+  const itemType = intakeType === "direction" || intakeType === "ui" || intakeType === "refactor"
+    ? "task"
+    : intakeType === "docs"
+      ? "documentation"
+      : intakeType;
   const tags = parseCommaList(byId("intake-tags").value);
   if (intakeType === "direction" && tags.indexOf("direction") === -1) {
     tags.push("direction");
+  }
+  if (intakeType === "ui" && tags.indexOf("ui") === -1) {
+    tags.push("ui");
+  }
+  if (intakeType === "refactor" && tags.indexOf("refactor") === -1) {
+    tags.push("refactor");
+  }
+  if (intakeType === "docs" && tags.indexOf("docs") === -1) {
+    tags.push("docs");
   }
   if (tags.indexOf("active-project-intake") === -1) {
     tags.push("active-project-intake");
   }
 
   return prunePayload({
-    item_id: byId("intake-item-id").value.trim() || generatedQueueItemId(title),
     project_id: activeProjectId(),
     repo_id: activeRepoId(),
-    title,
+    title: byId("intake-title").value.trim(),
     description: byId("intake-description").value.trim(),
-    status: byId("intake-status").value.trim() || "proposed",
     priority: byId("intake-priority").value.trim() || "normal",
     item_type: itemType,
     tags,
-    assigned_agent: byId("intake-assigned-agent").value.trim(),
-    source: `hub-active-project-intake:${intakeType}`,
-    notes: byId("intake-notes").value.trim(),
   });
 }
 
 function clearIntakeForm() {
-  ["intake-item-id", "intake-title", "intake-assigned-agent", "intake-tags", "intake-description", "intake-notes"].forEach((id) => {
+  ["intake-title", "intake-tags", "intake-description"].forEach((id) => {
     if (byId(id)) {
       byId(id).value = "";
     }
@@ -2361,9 +2395,6 @@ function clearIntakeForm() {
   }
   if (byId("intake-priority")) {
     byId("intake-priority").value = "normal";
-  }
-  if (byId("intake-status")) {
-    byId("intake-status").value = "proposed";
   }
 }
 
@@ -2694,10 +2725,13 @@ function bindForms() {
     const originalIntakeSubmitLabel = intakeSubmit ? intakeSubmit.textContent : "";
     if (!activeProjectId()) {
       setMessage("intake-message", "Select an active project before adding intake work.", "warn");
-      return;
-    }
-    if (!activeRepoId()) {
-      setMessage("intake-message", "The active project has no default repo. Add or select a primary repo first.", "warn");
+      renderActiveProjectIntakeResult({
+        project_id: "-",
+        repo_id: "-",
+        status: "not_created",
+        warnings: ["No active project selected."],
+        next_safe_action: "Select an active project from Projects.",
+      });
       return;
     }
     try {
@@ -2705,12 +2739,14 @@ function bindForms() {
         intakeSubmit.disabled = true;
         intakeSubmit.textContent = "Adding...";
       }
-      setMessage("intake-message", "Adding intake item to active project queue...", "loading");
-      const payload = await fetchJson("/api/queue", {
+      setMessage("intake-message", "Creating local queue item for the active project...", "loading");
+      const payload = await fetchJson("/api/local-queue/items", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(buildIntakePayload()),
       });
+      renderActiveProjectIntakeResult(payload);
+      renderLocalQueueAddResult(payload);
       clearIntakeForm();
       state.queueFilters.project_id = activeProjectId();
       state.queueFilters.repo_id = activeRepoId();
@@ -2722,13 +2758,14 @@ function bindForms() {
       }
       await loadQueue();
       await refreshSummaryAndReport();
-      setMessage("intake-message", `Added ${payload.item.item_id} to active project queue.`, "success");
+      setMessage("intake-message", `Created local queue item ${payload.item_id} for the active project. Continue in Queue lifecycle controls when ready.`, "success");
     } catch (error) {
+      renderActiveProjectIntakeResult((error && error.payload) || null);
       setMessage("intake-message", String(error.message || error), "error");
     } finally {
       if (intakeSubmit) {
         intakeSubmit.disabled = false;
-        intakeSubmit.textContent = originalIntakeSubmitLabel || "Add To Active Project Queue";
+        intakeSubmit.textContent = originalIntakeSubmitLabel || "Create Local Queue Item";
       }
     }
   });

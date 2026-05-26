@@ -286,9 +286,11 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "queue-lifecycle-codex-prompt" in index_text
     assert "Active Project Report Focus" in index_text
     assert "settings-active-project-path" in index_text
-    assert "Active Project Intake" in index_text
-    assert "Add To Active Project Queue" in index_text
-    assert "Direction / Details" in index_text
+    assert "Active Project Task Intake" in index_text
+    assert "Create Local Queue Item" in index_text
+    assert "Task Summary / Details" in index_text
+    assert "intake-active-project-summary" in index_text
+    assert "intake-result" in index_text
     assert "Projects Read-Only Overview" in index_text
     assert "projects-readonly-list" in index_text
     assert "Local-only and read-only project view: no project mutations, no GitHub sync/mutation, no agent/model execution." in index_text
@@ -1231,25 +1233,28 @@ def test_m44_active_project_intake_static_contract() -> None:
     index_text = (_static_dir() / "index.html").read_text(encoding="utf-8")
     app_text = (_static_dir() / "app.js").read_text(encoding="utf-8")
 
-    assert "Active Project Intake" in index_text
+    assert "Active Project Task Intake" in index_text
     assert "intake-form" in index_text
     assert "intake-title" in index_text
     assert "intake-type" in index_text
     assert "intake-priority" in index_text
-    assert "intake-status" in index_text
-    assert "Add To Active Project Queue" in index_text
+    assert "Task Summary / Details" in index_text
+    assert "Create Local Queue Item" in index_text
+    assert "intake-active-project-summary" in index_text
+    assert "intake-result" in index_text
+    assert "Local-only intake for the selected active project." in index_text
 
     assert "buildIntakePayload" in app_text
+    assert "renderActiveProjectIntakeResult" in app_text
     assert "buildNewProjectWizardPayload" in app_text
     assert "focusNewProjectWizard" in app_text
     assert "renderProjectFactoryDossier" in app_text
     assert "renderWorkflowTimeline" in app_text
     assert 'fetchJson("/api/project-factory/new-project"' in app_text
-    assert "generatedQueueItemId" in app_text
-    assert "hub-active-project-intake" in app_text
+    assert 'fetchJson("/api/local-queue/items"' in app_text
     assert "active-project-intake" in app_text
-    assert 'intakeType === "direction" ? "task" : intakeType' in app_text
-    assert 'fetchJson("/api/queue"' in app_text
+    assert 'intakeType === "direction" || intakeType === "ui" || intakeType === "refactor"' in app_text
+    assert 'intakeType === "docs"' in app_text
     assert "loadLocalProjectReportFoundation" in app_text
     assert "renderLocalProjectReportFoundation" in app_text
 
