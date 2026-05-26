@@ -190,6 +190,8 @@ def test_hub_static_files_exist() -> None:
     assert (static_dir / "js" / "core" / "dom.js").exists()
     assert (static_dir / "js" / "core" / "http.js").exists()
     assert (static_dir / "js" / "core" / "state.js").exists()
+    assert (static_dir / "js" / "sections" / "home.js").exists()
+    assert (static_dir / "js" / "sections" / "workspace.js").exists()
     assert (static_dir / "styles.css").exists()
 
 
@@ -203,6 +205,12 @@ def test_app_js_imports_core_modules() -> None:
     assert 'from "/js/core/dom.js"' in app_text
     assert 'from "/js/core/http.js"' in app_text
     assert 'from "/js/core/state.js"' in app_text
+
+
+def test_app_js_imports_home_and_workspace_section_modules() -> None:
+    app_text = (_static_dir() / "app.js").read_text(encoding="utf-8")
+    assert 'from "/js/sections/home.js"' in app_text
+    assert 'from "/js/sections/workspace.js"' in app_text
 
 
 def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
@@ -631,9 +639,28 @@ def test_static_assets_do_not_reference_external_resources() -> None:
         static_dir / "js" / "core" / "dom.js",
         static_dir / "js" / "core" / "http.js",
         static_dir / "js" / "core" / "state.js",
+        static_dir / "js" / "sections" / "home.js",
+        static_dir / "js" / "sections" / "workspace.js",
     ):
         content = path.read_text(encoding="utf-8")
         assert not pattern.search(content)
+
+
+def test_workspace_bindings_live_in_workspace_module_only() -> None:
+    static_dir = _static_dir()
+    app_text = (static_dir / "app.js").read_text(encoding="utf-8")
+    workspace_text = (static_dir / "js" / "sections" / "workspace.js").read_text(encoding="utf-8")
+
+    assert "bindWorkspaceActions" in workspace_text
+    assert "bindWorkspaceActions" in app_text
+    for action_id in (
+        "workspace-refresh",
+        "workspace-continue-intake",
+        "workspace-open-queue",
+        "workspace-select-project",
+    ):
+        assert action_id not in app_text
+        assert action_id in workspace_text
 
 
 def test_settings_and_boundary_notice_present_in_static_markup() -> None:
@@ -1363,6 +1390,7 @@ def test_m44_active_project_intake_static_contract() -> None:
 
 def test_m45_active_project_workbench_static_contract() -> None:
     index_text = (_static_dir() / "index.html").read_text(encoding="utf-8")
+    combined_text = _combined_frontend_script_text()
     app_text = (_static_dir() / "app.js").read_text(encoding="utf-8")
 
     assert "Active Project Workbench" in index_text
@@ -1371,10 +1399,10 @@ def test_m45_active_project_workbench_static_contract() -> None:
     assert "Add Active Project Intake" in index_text
 
     assert "renderActiveProjectWorkbench" in app_text
-    assert "home-quick-intake" in app_text
-    assert 'activateSection("queue")' in app_text
-    assert 'byId("intake-title")' in app_text
-    assert ".focus()" in app_text
+    assert "home-quick-intake" in combined_text
+    assert 'activateSection("queue")' in combined_text
+    assert 'byId("intake-title")' in combined_text
+    assert ".focus()" in combined_text
 
 
 def test_local_queue_agent_summary_api_contract(tmp_path: Path) -> None:

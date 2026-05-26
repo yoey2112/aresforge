@@ -47,6 +47,22 @@ Execution boundaries remain unchanged:
 - no network-required execution path
 - no automatic agent or model execution
 
+## M24 Home And Workspace Section Modules
+
+Implemented frontend modularization now also includes:
+
+- `src/aresforge/hub/static/js/sections/home.js` for Home dashboard rendering/loading and Home-specific actions
+- `src/aresforge/hub/static/js/sections/workspace.js` for Active Project Workspace rendering/loading and quick actions
+- `src/aresforge/hub/static/app.js` retained as the browser entrypoint and cross-section orchestrator
+
+Execution boundaries remain unchanged:
+
+- local-only frontend/static refactor
+- no GitHub API calls
+- no `gh` calls
+- no new network execution path
+- no automatic agent or model execution
+
 ## M21 Active Project Workspace
 
 Implemented polish and operator wiring:

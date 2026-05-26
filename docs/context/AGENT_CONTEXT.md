@@ -29,6 +29,22 @@ Required operating boundaries remain unchanged:
 - no local/cloud/Codex/ChatGPT/Ollama model routing or invocation
 - completion records evidence locally only and does not verify commits remotely
 
+## M24 Hub Home And Workspace Section Modules
+
+Latest Hub frontend context now includes section-level modules for the lowest-risk UI slices:
+
+- `src/aresforge/hub/static/app.js` remains the only frontend entrypoint
+- Home dashboard rendering/loading and Home-specific button wiring now live in `src/aresforge/hub/static/js/sections/home.js`
+- Active Project Workspace rendering/loading, empty-state handling, and quick-action wiring now live in `src/aresforge/hub/static/js/sections/workspace.js`
+- workspace quick-action binding still follows a single binding path
+
+Guidance for follow-on frontend work:
+
+- keep `app.js` focused on orchestration and shared cross-section flows
+- keep Home/Workspace helpers in their section modules unless they become clearly shared
+- preserve DOM ids and API endpoint paths
+- continue validating the combined frontend script surface, not only `app.js`
+
 ## M23 Hub Frontend Modularization Foundation
 
 Latest Hub frontend context now includes a browser-native ES module foundation:

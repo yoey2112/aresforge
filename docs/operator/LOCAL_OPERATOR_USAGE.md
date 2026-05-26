@@ -51,6 +51,23 @@ Boundary guarantees remain unchanged:
 - no network calls or external dependencies added
 - no automatic Codex, agent, or model execution
 
+## M24 Hub Home And Workspace Section Modules
+
+Operator impact:
+
+- no new commands were added
+- Home dashboard and Workspace behavior remain the same, but their frontend logic now lives in dedicated section modules
+- `src/aresforge/hub/static/app.js` remains the module entrypoint loaded by the Hub page
+- workspace quick actions still bind once and remain local-only
+
+Boundary guarantees remain unchanged:
+
+- local-only frontend refactor
+- no GitHub API calls
+- no `gh` calls
+- no new network calls or external dependencies
+- no automatic Codex, agent, or model execution
+
 ## M21 Active Project Workspace: Operator Flow & Safety
 
 Summary:

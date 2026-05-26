@@ -67,6 +67,25 @@ Safety posture:
 - no agent or model execution
 - no DOM id or endpoint path contract changes
 
+### M24 - Extract Home + Workspace Section Modules
+
+Status: Completed locally on `main`.
+
+Highlights:
+
+- extracted Home dashboard rendering/loading plus Home-specific action binding into `src/aresforge/hub/static/js/sections/home.js`
+- extracted Active Project Workspace rendering/loading, empty-state wiring, and quick actions into `src/aresforge/hub/static/js/sections/workspace.js`
+- kept `src/aresforge/hub/static/app.js` as the frontend entrypoint and init/orchestration surface
+- updated static tests to assert the new section modules exist, are imported by `app.js`, and do not duplicate workspace bindings
+
+Safety posture:
+
+- local-only refactor
+- no GitHub API calls, no `gh` calls
+- no new network behavior
+- no agent or model execution
+- no UI redesign and no DOM id or endpoint path changes
+
 
 M17 completion evidence is stored locally with status transition metadata plus commit hash, validation summary, and optional evidence fields.
 

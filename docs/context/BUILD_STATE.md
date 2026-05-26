@@ -32,6 +32,29 @@ M17 boundary posture:
 - no model routing/invocation
 - no remote commit verification
 
+## M24 Hub Home And Workspace Section Modules
+
+Status: Completed locally on `main`.
+
+Delivered M24 items:
+
+- extracted Home section logic into `src/aresforge/hub/static/js/sections/home.js`
+- extracted Workspace section logic into `src/aresforge/hub/static/js/sections/workspace.js`
+- kept `src/aresforge/hub/static/app.js` as the browser entrypoint and startup orchestrator
+- moved Home dashboard rendering/loading and Home-specific action binding behind module exports
+- moved Workspace rendering/loading, empty-state rendering, and quick-action binding behind module exports
+- updated static frontend tests to validate the new section modules, preserved entrypoint loading, and single-path workspace bindings
+
+M24 boundary posture:
+
+- local-only static/frontend refactor
+- no GitHub API calls
+- no `gh` calls
+- no new network calls
+- no agent execution
+- no model routing/invocation
+- no UI redesign, DOM id changes, or endpoint path changes
+
 ## M23 Hub Frontend Modularization Foundation
 
 Status: Completed locally on `main`.

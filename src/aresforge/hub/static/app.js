@@ -1,6 +1,13 @@
 import { byId, on, setCodeBlock, setList, setMessage, setText } from "/js/core/dom.js";
 import { fetchJson, prunePayload, toQuery } from "/js/core/http.js";
 import { createState } from "/js/core/state.js";
+import {
+  bindHomeActions,
+  bindHomeQuickNavActions,
+  loadLocalHomeDashboard,
+  renderLocalHomeDashboardUnavailable,
+} from "/js/sections/home.js";
+import { bindWorkspaceActions, loadWorkspace, renderWorkspaceUnavailable } from "/js/sections/workspace.js";
 
 function parseCommaList(value) {
   if (!value || typeof value !== "string") {
@@ -37,21 +44,6 @@ function activateSection(sectionName) {
 function bindNavigation() {
   document.querySelectorAll(".nav-item").forEach((button) => {
     button.addEventListener("click", () => activateSection(button.dataset.section));
-  });
-}
-
-function bindHomeQuickNavActions() {
-  on("home-nav-workspace", "click", () => {
-    activateSection("workspace");
-  });
-  on("home-nav-projects", "click", () => {
-    activateSection("projects");
-  });
-  on("home-nav-queue", "click", () => {
-    activateSection("queue");
-  });
-  on("home-nav-reports", "click", () => {
-    activateSection("reports");
   });
 }
 
@@ -337,104 +329,6 @@ function renderActiveProjectWorkbench(report) {
   }
   const dedupedActions = workbenchActions.filter((value, index, all) => value && all.indexOf(value) === index);
   setList("home-workbench-actions", "home-workbench-actions-empty", dedupedActions);
-}
-
-function renderWorkspace(payload) {
-  state.workspace = payload || null;
-  const summary = (payload && payload.active_project_summary) || {};
-  const project = summary.active_project || {};
-  const repo = summary.active_repo || {};
-  const reportStatus = (payload && payload.report_status) || {};
-  const repoStatus = (payload && payload.repo_status) || {};
-  const selected = Boolean(payload && payload.active_project_selected);
-  const projectId = String((payload && payload.active_project_id) || "").trim();
-  const activeRepoId = String((payload && payload.active_repo_id) || "").trim();
-
-  setText("workspace-project-name", selected ? (project.name || projectId || "None selected") : "None selected");
-  const badge = byId("workspace-project-badge");
-  if (badge) {
-    badge.textContent = selected ? "active" : "not selected";
-    badge.className = selected ? "status-pill status-pill-ready" : "status-pill status-pill-needs_attention";
-  }
-  setText(
-    "workspace-project-detail",
-    selected
-      ? `${projectId} | status=${project.status || "-"} | repo=${activeRepoId || "-"}`
-      : "Select an active project from Projects.",
-  );
-  setText("workspace-report-status", reportStatus.overall_status || "needs_attention");
-  setText("workspace-report-detail", reportStatus.message || "No report data available yet.");
-
-  const repoHeadline = activeRepoId || repoStatus.repo_id || repo.repo_id || "No active repo";
-  setText("workspace-repo-status", repoHeadline);
-  setText(
-    "workspace-repo-detail",
-    repoStatus.available
-      ? `status=${repoStatus.status || repo.status || "-"} | branch=${repoStatus.local_git_branch || "-"} | ${repoStatus.local_git_status_summary || repoStatus.message || "Local repo facts available."}`
-      : (repoStatus.message || "No local repo facts available yet."),
-  );
-  const nextSafe = (payload && payload.next_safe_action) || "Select an active project to continue.";
-  setText("workspace-next-safe-action", `Local-only: ${nextSafe}`);
-  setList(
-    "workspace-current-items",
-    "workspace-current-items-empty",
-    ((payload && payload.current_queue_items) || []).map((item) => {
-      return `${item.item_id || "-"} | ${item.title || "(no title)"} | status=${item.status || "-"} | priority=${item.priority || "-"} | repo=${item.repo_id || "-"} | agent=${item.assigned_agent || "unassigned"}`;
-    }),
-  );
-  setList(
-    "workspace-completed-items",
-    "workspace-completed-items-empty",
-    ((payload && payload.recent_completed_queue_items) || []).map((item) => {
-      return `${item.item_id || "-"} | ${item.title || "(no title)"} | status=${item.status || "done"} | updated=${item.updated_at || "-"}`;
-    }),
-  );
-  setList("workspace-warnings", "workspace-warnings-empty", (payload && payload.warnings) || []);
-  setMessage(
-    "workspace-message",
-    selected
-      ? "Active project workspace loaded. Local-only view; operator actions required for changes."
-      : "No active project selected. Use Projects to choose one before continuing task intake or queue lifecycle.",
-    selected ? "success" : "warn",
-  );
-}
-
-function bindWorkspaceActions() {
-  on("workspace-refresh", "click", async () => {
-    setMessage("workspace-message", "Refreshing workspace (local-only)...", "loading");
-    try {
-      await refreshSummaryAndReport();
-      await loadWorkspace();
-      setMessage("workspace-message", "Workspace refreshed. Local-only view.", "success");
-    } catch (error) {
-      setMessage("workspace-message", String(error.message || error), "error");
-    }
-  });
-
-  on("workspace-continue-intake", "click", () => {
-    activateQueueIntakeFocus();
-    setMessage("workspace-message", "Navigate to Queue/Intake (local-only).", "success");
-  });
-
-  on("workspace-open-queue", "click", () => {
-    activateSection("queue");
-    setMessage("workspace-message", "Open Queue Lifecycle (local-only).", "success");
-  });
-
-  on("workspace-select-project", "click", () => {
-    activateSection("projects");
-    setMessage("workspace-message", "Select an active project. No automation will run automatically.", "success");
-    const selector = byId("active-project-select");
-    if (selector) {
-      selector.focus();
-    }
-  });
-}
-
-async function loadWorkspace() {
-  const payload = await fetchJson("/api/active-project/workspace", { method: "GET" });
-  renderWorkspace(payload);
-  return payload;
 }
 
 function renderProjectFactoryDossier(payload) {
@@ -1981,38 +1875,6 @@ async function loadLocalProjectReportFoundation() {
   renderLocalProjectReportFoundation(payload);
 }
 
-function renderLocalHomeDashboard(dashboard, report) {
-  const projectSummary = (dashboard && dashboard.project_summary) || {};
-  const queueSummary = (dashboard && dashboard.queue_summary) || {};
-  const docsSummary = (dashboard && dashboard.docs_summary) || {};
-  const activeProject = (dashboard && dashboard.active_project) || {};
-  const readinessSummary = (report && report.project_health) || {};
-  const warnings = Array.isArray((dashboard && dashboard.warnings)) ? dashboard.warnings : [];
-  const blockers = Array.isArray((report && report.blockers)) ? report.blockers : [];
-  const recommended = (report && report.recommended_next_action) || (dashboard && dashboard.recommended_next_action) || "No recommendation available yet.";
-  const overallStatus = readinessSummary.overall_status || ((dashboard && dashboard.validation_summary) || {}).overall_status || "needs_attention";
-  const queueStatuses = queueSummary.counts_by_status || {};
-  const queueLines = Object.keys(queueStatuses).sort().map((key) => `${key}: ${queueStatuses[key]}`);
-
-  setText("home-local-total-projects", String(projectSummary.project_count || dashboard.total_projects || 0));
-  setText("home-local-active-project", activeProject.name || "None selected");
-  setText("home-local-active-project-id", `project_id: ${dashboard.active_project_id || "-"}`);
-  setText("home-local-active-repo", dashboard.active_repo_id || "-");
-  setText("home-local-overall-readiness", overallStatus);
-  setText("home-local-queue-count", String(queueSummary.item_count || 0));
-  setText("home-local-docs-readiness", docsSummary.docs_ready ? "ready" : "needs docs");
-  setList("home-local-queue-status-summary", "home-local-queue-status-summary-empty", queueLines);
-  setText("home-local-recommended-next-action", recommended);
-  setList("home-local-warnings-blockers", "home-local-warnings-blockers-empty", blockers.concat(warnings).slice(0, 12));
-  setText("home-local-dashboard-message", "Read-only local dashboard/report snapshot loaded.");
-}
-
-async function loadLocalHomeDashboard() {
-  const dashboard = await fetchJson("/api/local-project-dashboard", { method: "GET" });
-  const report = await fetchJson("/api/local-project-report", { method: "GET" });
-  renderLocalHomeDashboard(dashboard, report);
-}
-
 async function loadReportSlices() {
   const readiness = await fetchJson("/api/reports/readiness", { method: "GET" });
   const actionCenter = await fetchJson("/api/reports/action-center", { method: "GET" });
@@ -2057,10 +1919,7 @@ async function refreshSummaryAndReport() {
   try {
     await loadLocalHomeDashboard();
   } catch (_error) {
-    setText("home-local-dashboard-message", "Local home dashboard data is unavailable.");
-    setText("home-local-recommended-next-action", "Refresh Summary to retry local dashboard loading.");
-    setList("home-local-queue-status-summary", "home-local-queue-status-summary-empty", []);
-    setList("home-local-warnings-blockers", "home-local-warnings-blockers-empty", ["Local dashboard/report endpoint unavailable."]);
+    renderLocalHomeDashboardUnavailable();
   }
   try {
     await loadLocalProjectReportFoundation();
@@ -2076,19 +1935,9 @@ async function refreshSummaryAndReport() {
     setList("reports-local-warnings", "reports-local-warnings-empty", []);
   }
   try {
-    await loadWorkspace();
+    await loadWorkspace(state);
   } catch (_error) {
-    setText("workspace-project-name", "Unavailable");
-    setText("workspace-project-detail", "Workspace endpoint unavailable.");
-    setText("workspace-report-status", "needs_attention");
-    setText("workspace-report-detail", "Workspace report data unavailable.");
-    setText("workspace-repo-status", "Unavailable");
-    setText("workspace-repo-detail", "Workspace repo facts unavailable.");
-    setText("workspace-next-safe-action", "Refresh Workspace to retry.");
-    setList("workspace-current-items", "workspace-current-items-empty", []);
-    setList("workspace-completed-items", "workspace-completed-items-empty", []);
-    setList("workspace-warnings", "workspace-warnings-empty", ["Active project workspace endpoint unavailable."]);
-    setMessage("workspace-message", "Workspace data is unavailable.", "warn");
+    renderWorkspaceUnavailable();
   }
   await loadDashboardReport();
   await loadReportSlices();
@@ -2921,15 +2770,6 @@ function bindForms() {
     }
   });
 
-  on("home-refresh-summary", "click", async () => {
-    try {
-      await refreshSummaryAndReport();
-      await loadExecutionReadiness(activeProjectId());
-      setMessage("reports-message", "Summary refreshed.", "success");
-    } catch (error) {
-      setMessage("reports-message", String(error.message || error), "error");
-    }
-  });
   on("home-refresh-execution-readiness", "click", async () => {
     try {
       await loadExecutionReadiness(activeProjectId());
@@ -2937,18 +2777,6 @@ function bindForms() {
     } catch (error) {
       setMessage("projects-message", String(error.message || error), "error");
     }
-  });
-
-  on("home-open-bootstrap", "click", () => {
-    activateSection("bootstrap");
-  });
-
-  on("home-quick-intake", "click", () => {
-    activateQueueIntakeFocus();
-  });
-
-  on("home-start-new-project", "click", () => {
-    focusNewProjectWizard();
   });
 
   on("projects-focus-new-project-wizard", "click", () => {
@@ -3368,9 +3196,22 @@ function bindForms() {
 
 async function init() {
   bindNavigation();
-  bindHomeQuickNavActions();
+  bindHomeQuickNavActions({ activateSection });
   bindForms();
-  bindWorkspaceActions();
+  bindHomeActions({
+    refreshSummaryAndReport,
+    loadExecutionReadiness,
+    activeProjectId,
+    activateSection,
+    activateQueueIntakeFocus,
+    focusNewProjectWizard,
+  });
+  bindWorkspaceActions({
+    refreshSummaryAndReport,
+    loadWorkspaceData: () => loadWorkspace(state),
+    activateQueueIntakeFocus,
+    activateSection,
+  });
   renderRepos([], true);
 
   try {
