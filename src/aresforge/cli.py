@@ -194,6 +194,7 @@ from aresforge.operator.local_project_queue import (
     QUEUE_ITEM_TYPES,
     QUEUE_PRIORITIES,
     QUEUE_STATUSES,
+    add_local_queue_item,
     add_queue_item,
     init_project_queue,
     inspect_project_queue,
@@ -1376,6 +1377,23 @@ def build_parser() -> argparse.ArgumentParser:
     add_queue_item_parser.add_argument("--assigned-agent")
     add_queue_item_parser.add_argument("--source")
     add_queue_item_parser.add_argument("--notes")
+    add_local_queue_item_parser = subparsers.add_parser(
+        "add-local-queue-item",
+        help="Add one local queue item using active-project and primary-repo defaults.",
+    )
+    add_local_queue_item_parser.add_argument("--title", required=True)
+    add_local_queue_item_parser.add_argument("--description")
+    add_local_queue_item_parser.add_argument("--project-id")
+    add_local_queue_item_parser.add_argument("--repo-id")
+    add_local_queue_item_parser.add_argument("--queue-path")
+    add_local_queue_item_parser.add_argument("--registry-path")
+    add_local_queue_item_parser.add_argument("--priority", choices=list(QUEUE_PRIORITIES))
+    add_local_queue_item_parser.add_argument("--type", choices=list(QUEUE_ITEM_TYPES))
+    add_local_queue_item_parser.add_argument("--assigned-agent")
+    add_local_queue_item_parser.add_argument("--target-area")
+    add_local_queue_item_parser.add_argument("--acceptance-criteria", action="append", default=[])
+    add_local_queue_item_parser.add_argument("--depends-on", action="append", default=[])
+    add_local_queue_item_parser.add_argument("--tags", action="append", default=[])
     update_queue_item_parser = subparsers.add_parser(
         "update-queue-item",
         help="Update selected fields for one local project queue item.",
@@ -3379,6 +3397,26 @@ def main(argv: list[str] | None = None) -> int:
             assigned_agent=args.assigned_agent,
             source=args.source,
             notes=args.notes,
+        )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "add-local-queue-item":
+        payload = add_local_queue_item(
+            config,
+            title=args.title,
+            description=args.description,
+            project_id=args.project_id,
+            repo_id=args.repo_id,
+            queue_path=args.queue_path,
+            registry_path=args.registry_path,
+            priority=args.priority,
+            item_type=args.type,
+            assigned_agent=args.assigned_agent,
+            target_area=args.target_area,
+            acceptance_criteria=list(args.acceptance_criteria),
+            dependencies=list(args.depends_on),
+            tags=list(args.tags),
         )
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1

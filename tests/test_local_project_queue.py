@@ -2,7 +2,9 @@ import json
 from pathlib import Path
 
 from aresforge.config import AppConfig
+from aresforge.operator.local_active_project import set_active_project
 from aresforge.operator.local_project_queue import (
+    add_local_queue_item,
     add_queue_item,
     init_project_queue,
     inspect_project_queue,
@@ -369,3 +371,127 @@ def test_registry_validation_skipped_warning_when_no_registry_exists(tmp_path: P
     )
     assert payload['ok'] is True
     assert any('validation was skipped' in warning.lower() for warning in payload['warnings'])
+
+
+def test_add_local_queue_item_with_explicit_project_and_repo(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert init_managed_project_registry(config)['ok'] is True
+    assert register_managed_project(
+        config,
+        project_id='project-one',
+        name='Project One',
+        root_path=str(tmp_path),
+        primary_repo_id='repo-main',
+    )['ok'] is True
+    assert register_managed_repo(
+        config,
+        project_id='project-one',
+        repo_id='repo-main',
+        name='Repo Main',
+        path=str(tmp_path),
+        role='primary',
+    )['ok'] is True
+
+    payload = add_local_queue_item(
+        config,
+        title='Build local queue add flow',
+        description='Create a queue item from the local CLI.',
+        project_id='project-one',
+        repo_id='repo-main',
+        item_type='feature',
+        priority='high',
+        assigned_agent='agent-alpha',
+        dependencies=['future-item'],
+        tags=['queue'],
+    )
+
+    assert payload['ok'] is True
+    assert payload['project_id'] == 'project-one'
+    assert payload['repo_id'] == 'repo-main'
+    assert payload['status'] == 'proposed'
+    assert payload['item_id'].startswith('local-build-local-queue-add-flow')
+
+
+def test_add_local_queue_item_uses_active_project_defaults(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert init_managed_project_registry(config)['ok'] is True
+    assert register_managed_project(
+        config,
+        project_id='project-one',
+        name='Project One',
+        root_path=str(tmp_path),
+        primary_repo_id='repo-main',
+    )['ok'] is True
+    assert register_managed_repo(
+        config,
+        project_id='project-one',
+        repo_id='repo-main',
+        name='Repo Main',
+        path=str(tmp_path),
+        role='primary',
+    )['ok'] is True
+    assert set_active_project(config, project_id='project-one')['ok'] is True
+
+    payload = add_local_queue_item(
+        config,
+        title='Review active defaults',
+        item_type='task',
+        priority='normal',
+    )
+
+    assert payload['ok'] is True
+    assert payload['project_id'] == 'project-one'
+    assert payload['repo_id'] == 'repo-main'
+    item_payload = inspect_queue_item(config, item_id=payload['item_id'])
+    assert item_payload['ok'] is True
+    parsed = json.loads(item_payload['stdout'])
+    assert parsed['item']['source'] == 'local_cli'
+
+
+def test_add_local_queue_item_requires_title(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+
+    payload = add_local_queue_item(config, title='   ')
+
+    assert payload['ok'] is False
+    assert payload['error'] == 'invalid_local_queue_item_payload'
+
+
+def test_add_local_queue_item_rejects_unknown_project(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert init_managed_project_registry(config)['ok'] is True
+
+    payload = add_local_queue_item(
+        config,
+        title='Unknown project item',
+        project_id='missing-project',
+    )
+
+    assert payload['ok'] is False
+    assert payload['error'] == 'managed_project_not_found'
+
+
+def test_add_local_queue_item_infers_existing_prefix_when_state_milestone_missing(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='m15-existing-item',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Existing item',
+    )['ok'] is True
+
+    payload = add_local_queue_item(
+        config,
+        title='Infer queue prefix',
+        project_id='project-one',
+        repo_id='repo-main',
+    )
+
+    assert payload['ok'] is True
+    assert payload['item_id'].startswith('m15-infer-queue-prefix')

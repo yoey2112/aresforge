@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import json
+import re
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 from aresforge.config import AppConfig
+from aresforge.operator.local_active_project import inspect_active_project
+from aresforge.operator.local_project_state import resolve_project_state_path
 from aresforge.operator.managed_project_registry_local import resolve_managed_project_registry_path
 
 QUEUE_DIR_RELATIVE = Path('.aresforge') / 'queue'
@@ -39,6 +42,107 @@ QUEUE_ITEM_TYPES: tuple[str, ...] = (
     'dashboard',
     'other',
 )
+
+_SLUG_NON_ALNUM_RE = re.compile(r'[^a-z0-9]+')
+
+
+def add_local_queue_item(
+    config: AppConfig,
+    *,
+    title: str,
+    description: str | None = None,
+    project_id: str | None = None,
+    repo_id: str | None = None,
+    queue_path: str | Path | None = None,
+    registry_path: str | Path | None = None,
+    priority: str | None = None,
+    item_type: str | None = None,
+    assigned_agent: str | None = None,
+    target_area: str | None = None,
+    acceptance_criteria: list[str] | None = None,
+    dependencies: list[str] | None = None,
+    tags: list[str] | None = None,
+) -> dict[str, Any]:
+    normalized_title = str(title or '').strip()
+    if not normalized_title:
+        return _error(
+            'invalid_local_queue_item_payload',
+            {
+                'message': 'title is required.',
+                'required_fields': ['title'],
+            },
+        )
+
+    resolved_queue_path = resolve_project_queue_path(config.repo_root, queue_path)
+    loaded = _load_queue_required(resolved_queue_path)
+    if not loaded.get('ok', False):
+        return loaded
+    queue = loaded['queue']
+
+    binding = _resolve_local_queue_binding(
+        config,
+        project_id=project_id,
+        repo_id=repo_id,
+        registry_path=registry_path,
+    )
+    if not binding.get('ok', False):
+        return binding
+
+    normalized_tags = _normalize_list(tags or [])
+    normalized_target_area = str(target_area or '').strip()
+    if normalized_target_area:
+        normalized_tags = _normalize_list([*normalized_tags, f"area:{_slugify(normalized_target_area)}"])
+
+    item_id = _generate_local_queue_item_id(
+        repo_root=config.repo_root,
+        queue=queue,
+        title=normalized_title,
+        project_id=str(binding.get('project_id', '')).strip(),
+        repo_id=str(binding.get('repo_id', '')).strip(),
+    )
+    result = add_queue_item(
+        config,
+        item_id=item_id,
+        project_id=str(binding.get('project_id', '')).strip(),
+        repo_id=str(binding.get('repo_id', '')).strip(),
+        title=normalized_title,
+        queue_path=resolved_queue_path,
+        registry_path=registry_path,
+        description=description,
+        status='proposed',
+        priority=priority,
+        item_type=item_type,
+        tags=normalized_tags,
+        dependencies=dependencies,
+        blocked_by=None,
+        assigned_agent=assigned_agent,
+        source='local_cli',
+        notes=_compose_notes_with_acceptance_criteria(acceptance_criteria),
+    )
+    if not result.get('ok', False):
+        return result
+
+    item = result.get('item', {}) if isinstance(result.get('item'), dict) else {}
+    return {
+        'command': 'add-local-queue-item',
+        'ok': True,
+        'local_only': True,
+        'item_id': str(item.get('item_id', '')).strip(),
+        'status': str(item.get('status', '')).strip(),
+        'project_id': str(item.get('project_id', '')).strip(),
+        'repo_id': str(item.get('repo_id', '')).strip(),
+        'next_safe_action': (
+            'Inspect the queue item locally with '
+            f"python -m aresforge inspect-queue-item --item-id {str(item.get('item_id', '')).strip()}"
+        ),
+        'warnings': sorted(
+            {
+                str(warning).strip()
+                for warning in result.get('warnings', [])
+                if str(warning).strip()
+            }
+        ),
+    }
 
 
 def init_project_queue(
@@ -594,6 +698,84 @@ def _write_queue(path: Path, queue: dict[str, Any]) -> None:
     path.write_text(json.dumps(queue, indent=2) + '\n', encoding='utf-8')
 
 
+def _resolve_local_queue_binding(
+    config: AppConfig,
+    *,
+    project_id: str | None,
+    repo_id: str | None,
+    registry_path: str | Path | None,
+) -> dict[str, Any]:
+    normalized_project_id = str(project_id or '').strip()
+    normalized_repo_id = str(repo_id or '').strip()
+    warnings: list[str] = []
+    project: dict[str, Any] | None = None
+
+    if not normalized_project_id:
+        active_payload = inspect_active_project(config)
+        warnings.extend(
+            str(warning).strip()
+            for warning in active_payload.get('warnings', [])
+            if str(warning).strip()
+        )
+        normalized_project_id = str(active_payload.get('active_project_id', '')).strip()
+        if not normalized_project_id:
+            return _error(
+                'active_project_required',
+                {
+                    'message': 'project_id is required when no active project is selected.',
+                    'required_fields': ['project_id'],
+                    'active_project_selected': False,
+                    'warnings': sorted(set(warnings)),
+                },
+            )
+        if isinstance(active_payload.get('active_project'), dict):
+            project = active_payload['active_project']
+        if not normalized_repo_id:
+            normalized_repo_id = str(active_payload.get('active_repo_id', '')).strip()
+
+    registry_lookup = _lookup_registry_project(
+        repo_root=config.repo_root,
+        project_id=normalized_project_id,
+        registry_path=registry_path,
+    )
+    warnings.extend(registry_lookup.get('warnings', []))
+    if not registry_lookup.get('ok', False):
+        return registry_lookup
+    if isinstance(registry_lookup.get('project'), dict):
+        project = registry_lookup['project']
+
+    if not normalized_repo_id and isinstance(project, dict):
+        normalized_repo_id = _project_primary_repo_id(project)
+
+    if not normalized_repo_id:
+        return _error(
+            'repo_id_required',
+            {
+                'message': 'repo_id is required when no primary repo can be resolved.',
+                'required_fields': ['repo_id'],
+                'project_id': normalized_project_id,
+                'warnings': sorted(set(warnings)),
+            },
+        )
+
+    validation = _validate_registry_binding(
+        repo_root=config.repo_root,
+        project_id=normalized_project_id,
+        repo_id=normalized_repo_id,
+        registry_path=registry_path,
+    )
+    if not validation.get('ok', False):
+        return validation
+
+    warnings.extend(validation.get('warnings', []))
+    return {
+        'ok': True,
+        'project_id': normalized_project_id,
+        'repo_id': normalized_repo_id,
+        'warnings': sorted(set(str(warning) for warning in warnings if str(warning).strip())),
+    }
+
+
 def _normalize_list(values: list[str]) -> list[str]:
     normalized: list[str] = []
     for value in values:
@@ -601,6 +783,205 @@ def _normalize_list(values: list[str]) -> list[str]:
         if item and item not in normalized:
             normalized.append(item)
     return normalized
+
+
+def _compose_notes_with_acceptance_criteria(acceptance_criteria: list[str] | None) -> str | None:
+    criteria = _normalize_list(acceptance_criteria or [])
+    if not criteria:
+        return None
+    return '\n'.join(['Acceptance criteria:'] + [f'- {criterion}' for criterion in criteria])
+
+
+def _generate_local_queue_item_id(
+    *,
+    repo_root: Path,
+    queue: dict[str, Any],
+    title: str,
+    project_id: str,
+    repo_id: str,
+) -> str:
+    existing_ids = {
+        str(item.get('item_id', '')).strip()
+        for item in queue.get('work_items', [])
+        if isinstance(item, dict) and str(item.get('item_id', '')).strip()
+    }
+    prefix = _resolve_local_queue_item_prefix(
+        repo_root=repo_root,
+        queue=queue,
+        project_id=project_id,
+        repo_id=repo_id,
+    )
+    base_id = f'{prefix}-{_slugify(title)}' if prefix else _slugify(title)
+    candidate = base_id
+    suffix = 2
+    while candidate in existing_ids:
+        candidate = f'{base_id}-{suffix}'
+        suffix += 1
+    return candidate
+
+
+def _resolve_local_queue_item_prefix(
+    *,
+    repo_root: Path,
+    queue: dict[str, Any],
+    project_id: str,
+    repo_id: str,
+) -> str:
+    current_milestone = _load_current_milestone(repo_root)
+    if current_milestone:
+        return current_milestone
+
+    scoped_items = [
+        item
+        for item in queue.get('work_items', [])
+        if isinstance(item, dict)
+        and str(item.get('project_id', '')).strip() == project_id
+        and str(item.get('repo_id', '')).strip() == repo_id
+    ]
+    inferred = _infer_prefix_from_items(scoped_items)
+    if inferred:
+        return inferred
+
+    all_items = [item for item in queue.get('work_items', []) if isinstance(item, dict)]
+    inferred = _infer_prefix_from_items(all_items)
+    if inferred:
+        return inferred
+    return 'local'
+
+
+def _load_current_milestone(repo_root: Path) -> str:
+    path = resolve_project_state_path(repo_root, None)
+    if not path.exists():
+        return ''
+    try:
+        raw = json.loads(path.read_text(encoding='utf-8'))
+    except (OSError, json.JSONDecodeError):
+        return ''
+    if not isinstance(raw, dict):
+        return ''
+    current_milestone = str(raw.get('current_milestone', '')).strip()
+    if not current_milestone:
+        return ''
+    return _slugify(current_milestone)
+
+
+def _infer_prefix_from_items(items: list[dict[str, Any]]) -> str:
+    counts: dict[str, int] = {}
+    for item in items:
+        item_id = str(item.get('item_id', '')).strip()
+        if '-' not in item_id:
+            continue
+        prefix, remainder = item_id.split('-', 1)
+        normalized_prefix = _slugify(prefix)
+        if not normalized_prefix or not remainder.strip():
+            continue
+        counts[normalized_prefix] = counts.get(normalized_prefix, 0) + 1
+    if not counts:
+        return ''
+    return sorted(counts.items(), key=lambda entry: (-entry[1], entry[0]))[0][0]
+
+
+def _slugify(value: str) -> str:
+    normalized = _SLUG_NON_ALNUM_RE.sub('-', value.strip().lower()).strip('-')
+    return normalized or 'item'
+
+
+def _lookup_registry_project(
+    *,
+    repo_root: Path,
+    project_id: str,
+    registry_path: str | Path | None,
+) -> dict[str, Any]:
+    warnings: list[str] = []
+    should_validate = False
+    resolved_registry_path: Path | None = None
+
+    if registry_path is not None:
+        should_validate = True
+        resolved_registry_path = resolve_managed_project_registry_path(repo_root, registry_path)
+    else:
+        default_registry = resolve_managed_project_registry_path(repo_root, None)
+        if default_registry.exists():
+            should_validate = True
+            resolved_registry_path = default_registry
+
+    if not should_validate:
+        warnings.append('Managed project registry not found. Registry validation was skipped.')
+        return {
+            'ok': True,
+            'project': None,
+            'warnings': warnings,
+        }
+
+    assert resolved_registry_path is not None
+    if not resolved_registry_path.exists():
+        return _error(
+            'managed_project_registry_not_found',
+            {
+                'path': str(resolved_registry_path),
+                'message': 'Managed project registry is missing for queue validation.',
+            },
+        )
+
+    try:
+        raw = json.loads(resolved_registry_path.read_text(encoding='utf-8'))
+    except (OSError, json.JSONDecodeError) as exc:
+        return _error(
+            'managed_project_registry_invalid_json',
+            {
+                'path': str(resolved_registry_path),
+                'message': str(exc),
+            },
+        )
+
+    if not isinstance(raw, dict):
+        return _error(
+            'managed_project_registry_invalid_schema',
+            {
+                'path': str(resolved_registry_path),
+                'message': 'Managed project registry JSON must decode to an object.',
+            },
+        )
+
+    projects = raw.get('projects', []) if isinstance(raw.get('projects'), list) else []
+    project = next(
+        (
+            candidate
+            for candidate in projects
+            if isinstance(candidate, dict)
+            and str(candidate.get('project_id', '')).strip() == project_id
+        ),
+        None,
+    )
+    if project is None:
+        return _error(
+            'managed_project_not_found',
+            {
+                'project_id': project_id,
+                'registry_path': str(resolved_registry_path),
+                'message': 'Project id was not found in managed project registry.',
+            },
+        )
+
+    return {
+        'ok': True,
+        'project': project,
+        'warnings': warnings,
+    }
+
+
+def _project_primary_repo_id(project: dict[str, Any]) -> str:
+    primary_repo_id = str(project.get('primary_repo_id', '')).strip()
+    repos = project.get('repos', []) if isinstance(project.get('repos'), list) else []
+    if primary_repo_id:
+        return primary_repo_id
+    for repo in repos:
+        if isinstance(repo, dict) and str(repo.get('role', '')).strip() == 'primary':
+            return str(repo.get('repo_id', '')).strip()
+    first = repos[0] if repos else None
+    if isinstance(first, dict):
+        return str(first.get('repo_id', '')).strip()
+    return ''
 
 
 def _item_view(item: dict[str, Any]) -> dict[str, Any]:

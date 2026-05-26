@@ -122,6 +122,7 @@ def test_cli_has_expected_commands() -> None:
         "plan-github-sync",
         "plan-agent-orchestration",
         "init-project-state",
+        "add-local-queue-item",
         "update-project-state",
         "append-operation-log",
         "inspect-operation-log",

@@ -3,6 +3,12 @@ from pathlib import Path
 
 from aresforge import cli
 from aresforge.config import AppConfig
+from aresforge.operator.local_active_project import set_active_project
+from aresforge.operator.managed_project_registry_local import (
+    init_managed_project_registry,
+    register_managed_project,
+    register_managed_repo,
+)
 
 
 def _config(tmp_path: Path) -> AppConfig:
@@ -118,3 +124,66 @@ def test_cli_local_project_queue_markdown_output(monkeypatch, capsys, tmp_path: 
 
     assert cli.main(['inspect-queue-item', '--item-id', 'm33-1', '--format', 'markdown']) == 0
     assert '# Local Queue Item Inspection' in capsys.readouterr().out
+
+
+def test_cli_add_local_queue_item_json_output(monkeypatch, capsys, tmp_path: Path) -> None:
+    monkeypatch.setattr(cli.AppConfig, 'from_env', lambda: _config(tmp_path))
+    config = _config(tmp_path)
+    assert init_managed_project_registry(config)['ok'] is True
+    assert register_managed_project(
+        config,
+        project_id='project-one',
+        name='Project One',
+        root_path=str(tmp_path),
+        primary_repo_id='repo-main',
+    )['ok'] is True
+    assert register_managed_repo(
+        config,
+        project_id='project-one',
+        repo_id='repo-main',
+        name='Repo Main',
+        path=str(tmp_path),
+        role='primary',
+    )['ok'] is True
+    assert set_active_project(config, project_id='project-one')['ok'] is True
+    assert cli.main(['init-project-queue']) == 0
+    _ = capsys.readouterr().out
+
+    assert (
+        cli.main(
+            [
+                'add-local-queue-item',
+                '--title',
+                'CLI add local queue item',
+                '--description',
+                'Validate CLI JSON output.',
+                '--type',
+                'feature',
+                '--priority',
+                'high',
+                '--tags',
+                'queue',
+                '--depends-on',
+                'future-item',
+            ]
+        )
+        == 0
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert payload['ok'] is True
+    assert payload['project_id'] == 'project-one'
+    assert payload['repo_id'] == 'repo-main'
+    assert payload['status'] == 'proposed'
+    assert payload['item_id'].startswith('local-cli-add-local-queue-item')
+    assert 'inspect-queue-item' in payload['next_safe_action']
+
+
+def test_cli_add_local_queue_item_missing_title_validation(monkeypatch, capsys, tmp_path: Path) -> None:
+    monkeypatch.setattr(cli.AppConfig, 'from_env', lambda: _config(tmp_path))
+
+    assert cli.main(['init-project-queue']) == 0
+    _ = capsys.readouterr().out
+    assert cli.main(['add-local-queue-item', '--title', '   ']) == 1
+    payload = json.loads(capsys.readouterr().out)
+    assert payload['ok'] is False
+    assert payload['error'] == 'invalid_local_queue_item_payload'
