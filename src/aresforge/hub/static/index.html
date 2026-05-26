@@ -675,6 +675,39 @@
           <h2>Queue</h2>
           <p>Track local queue items with filters, dependency warnings, and quick status updates.</p>
           <p id="queue-message" class="message"></p>
+          <section class="subpanel">
+            <h3>Local Queue Read-Only Summary</h3>
+            <p class="message-note">Local-only and read-only queue view: no queue mutation, no agent execution, no GitHub sync/mutation.</p>
+            <div class="stats-grid">
+              <article class="card"><h4>Total Queue Item Count</h4><p id="queue-readonly-total-count">0</p></article>
+              <article class="card"><h4>Active Project Context</h4><p id="queue-readonly-active-project">None selected</p></article>
+              <article class="card"><h4>Next Safe Action</h4><p id="queue-readonly-next-safe-action">No recommendation available.</p></article>
+            </div>
+            <div class="split two-col">
+              <section>
+                <h4>Counts By Status</h4>
+                <ul id="queue-readonly-status-counts" class="list"></ul>
+                <p id="queue-readonly-status-counts-empty" class="empty">No status counts available.</p>
+              </section>
+              <section>
+                <h4>Grouped Queue Items</h4>
+                <ul id="queue-readonly-grouped-items" class="list"></ul>
+                <p id="queue-readonly-grouped-items-empty" class="empty">No grouped queue items available.</p>
+              </section>
+            </div>
+            <div class="split two-col">
+              <section>
+                <h4>Blocked Items</h4>
+                <ul id="queue-readonly-blocked-items" class="list"></ul>
+                <p id="queue-readonly-blocked-items-empty" class="empty">No blocked items.</p>
+              </section>
+              <section>
+                <h4>Ready Items</h4>
+                <ul id="queue-readonly-ready-items" class="list"></ul>
+                <p id="queue-readonly-ready-items-empty" class="empty">No ready items.</p>
+              </section>
+            </div>
+          </section>
           <section class="subpanel active-project-panel">
             <h3>Active Project Queue Focus</h3>
             <p id="queue-active-project-summary" class="message-note">No active project selected. Queue filters and new items remain manual.</p>

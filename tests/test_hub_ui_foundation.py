@@ -13,6 +13,7 @@ from aresforge.hub.api import (
     get_handoff_preview,
     get_handoff_target,
     get_handoff_targets,
+    get_local_queue_agent_summary,
     get_orchestration_plan,
     get_project,
     get_project_repo_github_link,
@@ -28,6 +29,7 @@ from aresforge.hub.api import (
     get_settings,
     get_summary,
     patch_queue_item,
+    post_active_project,
     post_agent,
     post_bootstrap_apply,
     post_escalation_plan,
@@ -279,6 +281,15 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "Overall Readiness" in index_text
     assert "Queue Item Count" in index_text
     assert "Queue Status Summary" in index_text
+    assert "Local Queue Read-Only Summary" in index_text
+    assert "Total Queue Item Count" in index_text
+    assert "Active Project Context" in index_text
+    assert "Next Safe Action" in index_text
+    assert "Counts By Status" in index_text
+    assert "Grouped Queue Items" in index_text
+    assert "Blocked Items" in index_text
+    assert "Ready Items" in index_text
+    assert "Local-only and read-only queue view: no queue mutation, no agent execution, no GitHub sync/mutation." in index_text
     assert "Recommended Next Action" in index_text
     assert "Warnings And Blockers" in index_text
     assert "Docs Readiness" in index_text
@@ -330,6 +341,7 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
         "/api/local-project-dashboard",
         "/api/local-project-report",
         "/api/local-projects",
+        "/api/local-queue-agent-summary",
     ):
         assert endpoint in app_text
     assert "ACTIVE" in app_text
@@ -1209,3 +1221,20 @@ def test_m45_active_project_workbench_static_contract() -> None:
     assert 'activateSection("queue")' in app_text
     assert 'byId("intake-title")' in app_text
     assert ".focus()" in app_text
+
+
+def test_local_queue_agent_summary_api_contract(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_project(config, "aresforge")
+    _seed_repo(config, "aresforge", "aresforge-primary")
+    post_active_project(config, {"project_id": "aresforge"})
+    _seed_queue_item(config, "queue-one")
+
+    payload = get_local_queue_agent_summary(config)
+
+    assert payload["ok"] is True
+    assert payload["local_only"] is True
+    assert payload["active_project"]["active_project_id"] == "aresforge"
+    assert "queue_totals" in payload
+    assert "items_by_status" in payload
+    assert "next_safe_action" in payload

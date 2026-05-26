@@ -24,6 +24,7 @@ from aresforge.hub.api import (
     get_local_project_dashboard,
     get_local_projects_readiness,
     get_local_project_report,
+    get_local_queue_agent_summary,
     get_orchestration_plan,
     get_project,
     get_project_factory_dossier,
@@ -168,6 +169,9 @@ def _build_handler(config: AppConfig, static_root: Path) -> type[BaseHTTPRequest
                 return True
             if method == "GET" and path == "/api/local-projects":
                 _render_json(self, HTTPStatus.OK, get_local_projects_readiness(config))
+                return True
+            if method == "GET" and path == "/api/local-queue-agent-summary":
+                _render_json(self, HTTPStatus.OK, get_local_queue_agent_summary(config))
                 return True
             if method == "GET" and path == "/api/bootstrap/status":
                 _render_json(self, HTTPStatus.OK, get_bootstrap_status(config))

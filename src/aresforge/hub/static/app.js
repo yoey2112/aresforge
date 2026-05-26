@@ -1665,8 +1665,58 @@ async function loadReposForSelectedProject() {
   setMessage("repos-message", payload.warnings && payload.warnings.length ? payload.warnings.join(" | ") : "Repos loaded.", payload.warnings && payload.warnings.length ? "warn" : "success");
 }
 
+function renderQueueReadOnlySummary(payload) {
+  const queueTotals = payload.queue_totals || {};
+  const activeProject = payload.active_project || {};
+  const statusCounts = queueTotals.status_counts || {};
+  const groupedItems = payload.items_by_status || {};
+  const blockedItems = Array.isArray(payload.blocked_items) ? payload.blocked_items : [];
+  const readyItems = Array.isArray(payload.next_ready_items) ? payload.next_ready_items : [];
+  const groupedStatuses = ["proposed", "ready", "in_progress", "blocked", "done", "cancelled"];
+
+  setText("queue-readonly-total-count", String(queueTotals.item_count || 0));
+  setText("queue-readonly-active-project", activeProject.project_id || "None selected");
+  setText("queue-readonly-next-safe-action", payload.next_safe_action || "No recommendation available.");
+  setList(
+    "queue-readonly-status-counts",
+    "queue-readonly-status-counts-empty",
+    Object.keys(statusCounts).sort().map((status) => `${status}: ${statusCounts[status]}`),
+  );
+  setList(
+    "queue-readonly-grouped-items",
+    "queue-readonly-grouped-items-empty",
+    groupedStatuses.map((status) => `${status}: ${((groupedItems[status] || []).length)}`),
+  );
+  setList(
+    "queue-readonly-blocked-items",
+    "queue-readonly-blocked-items-empty",
+    blockedItems.map((item) => `${item.item_id || "-"} | ${item.title || "(untitled)"} | ${(item.assigned_agent || "").trim() || "unassigned"}`),
+  );
+  setList(
+    "queue-readonly-ready-items",
+    "queue-readonly-ready-items-empty",
+    readyItems.map((item) => `${item.item_id || "-"} | ${item.title || "(untitled)"} | ${(item.assigned_agent || "").trim() || "unassigned"}`),
+  );
+}
+
+async function loadQueueReadOnlySummary() {
+  const payload = await fetchJson("/api/local-queue-agent-summary");
+  renderQueueReadOnlySummary(payload);
+}
+
 async function loadQueue() {
   setMessage("queue-message", "Loading queue...", "loading");
+  try {
+    await loadQueueReadOnlySummary();
+  } catch (_error) {
+    setText("queue-readonly-total-count", "0");
+    setText("queue-readonly-active-project", "Unavailable");
+    setText("queue-readonly-next-safe-action", "Queue summary endpoint unavailable.");
+    setList("queue-readonly-status-counts", "queue-readonly-status-counts-empty", []);
+    setList("queue-readonly-grouped-items", "queue-readonly-grouped-items-empty", []);
+    setList("queue-readonly-blocked-items", "queue-readonly-blocked-items-empty", []);
+    setList("queue-readonly-ready-items", "queue-readonly-ready-items-empty", []);
+  }
   const payload = await fetchJson(`/api/queue${toQuery(state.queueFilters)}`);
   renderQueueItems(payload.items || []);
   setList("queue-counts", "queue-counts-empty-state", [].concat(countLines("status", payload.counts_by_status), countLines("type", payload.counts_by_type), countLines("priority", payload.counts_by_priority)));
