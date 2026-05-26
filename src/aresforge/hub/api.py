@@ -6,6 +6,7 @@ from typing import Any
 
 from aresforge.config import AppConfig
 from aresforge.operator.local_project_dashboard import summarize_docs_status, summarize_local_project_dashboard
+from aresforge.operator.local_project_report import inspect_local_project_report
 from aresforge.operator.local_active_project import inspect_active_project, set_active_project
 from aresforge.operator.local_project_queue import (
     QUEUE_ITEM_TYPES,
@@ -424,6 +425,28 @@ def get_health() -> dict[str, Any]:
 
 def get_summary(config: AppConfig) -> dict[str, Any]:
     payload = summarize_local_project_dashboard(config)
+    payload.update(
+        {
+            "ok": True,
+            "service": SERVICE_NAME,
+        }
+    )
+    return payload
+
+
+def get_local_project_dashboard(config: AppConfig) -> dict[str, Any]:
+    payload = summarize_local_project_dashboard(config)
+    payload.update(
+        {
+            "ok": True,
+            "service": SERVICE_NAME,
+        }
+    )
+    return payload
+
+
+def get_local_project_report(config: AppConfig) -> dict[str, Any]:
+    payload = inspect_local_project_report(config)
     payload.update(
         {
             "ok": True,
