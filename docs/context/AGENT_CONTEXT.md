@@ -29,6 +29,22 @@ Required operating boundaries remain unchanged:
 - no local/cloud/Codex/ChatGPT/Ollama model routing or invocation
 - completion records evidence locally only and does not verify commits remotely
 
+## M25 Hub Queue Section Module
+
+Latest Hub frontend context now includes a Queue section module for the queue UI slice:
+
+- `src/aresforge/hub/static/app.js` remains the only frontend entrypoint
+- queue read-only summary rendering/loading and queue item card rendering now live in `src/aresforge/hub/static/js/sections/queue.js`
+- queue-only bindings now live in `src/aresforge/hub/static/js/sections/queue.js`
+- local queue lifecycle internals remain in `src/aresforge/hub/static/app.js` for now because they are more tightly coupled to intake/start/readiness/prompt/complete flows
+
+Guidance for follow-on frontend work:
+
+- keep `app.js` focused on orchestration and higher-coupling flows
+- continue extracting only clearly section-owned queue behavior until lifecycle internals are safer to split
+- preserve DOM ids and API endpoint paths
+- keep validating the combined frontend script surface, not only `app.js`
+
 ## M24 Hub Home And Workspace Section Modules
 
 Latest Hub frontend context now includes section-level modules for the lowest-risk UI slices:

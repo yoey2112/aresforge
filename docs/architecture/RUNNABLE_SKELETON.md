@@ -63,6 +63,22 @@ Execution boundaries remain unchanged:
 - no new network execution path
 - no automatic agent or model execution
 
+## M25 Queue Section Module
+
+Implemented frontend modularization now also includes:
+
+- `src/aresforge/hub/static/js/sections/queue.js` for Queue read-only summary rendering/loading, queue item card rendering, and queue-only actions
+- `src/aresforge/hub/static/app.js` retained as the browser entrypoint and cross-section orchestrator
+- local queue lifecycle forms and lifecycle-specific handlers remain in `app.js` for now
+
+Execution boundaries remain unchanged:
+
+- local-only frontend/static refactor
+- no GitHub API calls
+- no `gh` calls
+- no new network execution path
+- no automatic agent or model execution
+
 ## M21 Active Project Workspace
 
 Implemented polish and operator wiring:

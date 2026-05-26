@@ -68,6 +68,23 @@ Boundary guarantees remain unchanged:
 - no new network calls or external dependencies
 - no automatic Codex, agent, or model execution
 
+## M25 Hub Queue Section Module
+
+Operator impact:
+
+- no new commands were added
+- Queue behavior remains the same, but queue summary/list rendering and queue-only actions now live in a dedicated section module
+- `src/aresforge/hub/static/app.js` remains the module entrypoint loaded by the Hub page
+- local queue lifecycle flows still behave the same and remain local-only
+
+Boundary guarantees remain unchanged:
+
+- local-only frontend refactor
+- no GitHub API calls
+- no `gh` calls
+- no new network calls or external dependencies
+- no automatic Codex, agent, or model execution
+
 ## M21 Active Project Workspace: Operator Flow & Safety
 
 Summary:

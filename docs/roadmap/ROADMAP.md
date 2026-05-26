@@ -86,6 +86,26 @@ Safety posture:
 - no agent or model execution
 - no UI redesign and no DOM id or endpoint path changes
 
+### M25 - Extract Hub Queue Section Module
+
+Status: Completed locally on `main`.
+
+Highlights:
+
+- extracted Queue read-only summary rendering/loading and queue item card rendering into `src/aresforge/hub/static/js/sections/queue.js`
+- extracted queue-only actions into `src/aresforge/hub/static/js/sections/queue.js`
+- kept `src/aresforge/hub/static/app.js` as the frontend entrypoint and init/orchestration surface
+- intentionally left local queue lifecycle internals in `app.js` to keep this refactor conservative and behavior-preserving
+- updated static tests to assert the new queue section module exists, is imported by `app.js`, and owns queue-only bindings
+
+Safety posture:
+
+- local-only refactor
+- no GitHub API calls, no `gh` calls
+- no new network behavior
+- no agent or model execution
+- no UI redesign and no DOM id or endpoint path changes
+
 
 M17 completion evidence is stored locally with status transition metadata plus commit hash, validation summary, and optional evidence fields.
 

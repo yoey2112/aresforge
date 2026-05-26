@@ -191,6 +191,7 @@ def test_hub_static_files_exist() -> None:
     assert (static_dir / "js" / "core" / "http.js").exists()
     assert (static_dir / "js" / "core" / "state.js").exists()
     assert (static_dir / "js" / "sections" / "home.js").exists()
+    assert (static_dir / "js" / "sections" / "queue.js").exists()
     assert (static_dir / "js" / "sections" / "workspace.js").exists()
     assert (static_dir / "styles.css").exists()
 
@@ -207,9 +208,10 @@ def test_app_js_imports_core_modules() -> None:
     assert 'from "/js/core/state.js"' in app_text
 
 
-def test_app_js_imports_home_and_workspace_section_modules() -> None:
+def test_app_js_imports_section_modules() -> None:
     app_text = (_static_dir() / "app.js").read_text(encoding="utf-8")
     assert 'from "/js/sections/home.js"' in app_text
+    assert 'from "/js/sections/queue.js"' in app_text
     assert 'from "/js/sections/workspace.js"' in app_text
 
 
@@ -640,10 +642,29 @@ def test_static_assets_do_not_reference_external_resources() -> None:
         static_dir / "js" / "core" / "http.js",
         static_dir / "js" / "core" / "state.js",
         static_dir / "js" / "sections" / "home.js",
+        static_dir / "js" / "sections" / "queue.js",
         static_dir / "js" / "sections" / "workspace.js",
     ):
         content = path.read_text(encoding="utf-8")
         assert not pattern.search(content)
+
+
+def test_queue_bindings_live_in_queue_module_only() -> None:
+    static_dir = _static_dir()
+    app_text = (static_dir / "app.js").read_text(encoding="utf-8")
+    queue_text = (static_dir / "js" / "sections" / "queue.js").read_text(encoding="utf-8")
+
+    assert "bindQueueActions" in queue_text
+    assert "bindQueueActions" in app_text
+    for action_id in (
+        "queue-use-active-project",
+        "queue-filter-active-project",
+        "queue-filter-form",
+        "queue-filter-reset",
+        "queue-form",
+    ):
+        assert action_id not in app_text
+        assert action_id in queue_text
 
 
 def test_workspace_bindings_live_in_workspace_module_only() -> None:

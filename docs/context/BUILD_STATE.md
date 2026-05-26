@@ -32,6 +32,29 @@ M17 boundary posture:
 - no model routing/invocation
 - no remote commit verification
 
+## M25 Hub Queue Section Module
+
+Status: Completed locally on `main`.
+
+Delivered M25 items:
+
+- extracted Queue section logic into `src/aresforge/hub/static/js/sections/queue.js`
+- kept `src/aresforge/hub/static/app.js` as the browser entrypoint and startup orchestrator
+- moved queue read-only summary rendering/loading and queue item card rendering into the new section module
+- moved queue-only actions into the new section module: apply active-project defaults, filter to active project, filter submit/reset, and queue form submit
+- kept local queue lifecycle internals in `app.js` to avoid mixing higher-risk flow extraction into this milestone
+- updated static frontend tests to validate the new queue section module and single-path queue bindings
+
+M25 boundary posture:
+
+- local-only static/frontend refactor
+- no GitHub API calls
+- no `gh` calls
+- no new network calls
+- no agent execution
+- no model routing/invocation
+- no UI redesign, DOM id changes, or endpoint path changes
+
 ## M24 Hub Home And Workspace Section Modules
 
 Status: Completed locally on `main`.
