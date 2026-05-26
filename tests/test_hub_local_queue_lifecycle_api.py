@@ -153,6 +153,45 @@ def test_post_local_queue_item_route_adds_item_with_active_project_defaults(tmp_
         thread.join(timeout=2)
 
 
+def test_get_active_project_workspace_route_returns_local_only_payload(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_active_project(config, tmp_path)
+    _seed_queue_item(
+        config,
+        item_id="workspace-ready",
+        status="ready",
+        title="Workspace ready item",
+        description="Ready for queue lifecycle.",
+    )
+    _seed_queue_item(
+        config,
+        item_id="workspace-done",
+        status="done",
+        title="Workspace done item",
+        description="Completed recently.",
+    )
+    server, thread = _start_server(config)
+
+    try:
+        port = int(server.server_address[1])
+        status, payload = _request_json(port, "GET", "/api/active-project/workspace")
+
+        assert status == 200
+        assert payload["ok"] is True
+        assert payload["local_only"] is True
+        assert payload["report_only"] is True
+        assert payload["active_project_selected"] is True
+        assert payload["active_project_id"] == "aresforge"
+        assert payload["current_queue_items"][0]["item_id"] == "workspace-ready"
+        assert payload["recent_completed_queue_items"][0]["item_id"] == "workspace-done"
+        assert payload["continue_actions"]["queue_lifecycle_section"] == "queue"
+        assert payload["boundary_confirmations"]
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
+
+
 def test_get_local_queue_item_readiness_route_returns_ready_payload(tmp_path: Path) -> None:
     config = _config(tmp_path)
     _seed_active_project(config, tmp_path)

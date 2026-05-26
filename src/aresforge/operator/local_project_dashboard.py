@@ -409,6 +409,24 @@ def summarize_local_project_dashboard(config: AppConfig) -> dict[str, Any]:
             ),
         )
     ][:10]
+    active_project_recently_completed_items = [
+        {
+            "item_id": str(item.get("item_id", "")).strip(),
+            "title": str(item.get("title", "")).strip(),
+            "status": str(item.get("status", "")).strip(),
+            "updated_at": str(item.get("updated_at", "")).strip(),
+            "repo_id": str(item.get("repo_id", "")).strip(),
+        }
+        for item in sorted(
+            active_project_queue_items,
+            key=lambda value: (
+                str(value.get("updated_at", "")).strip(),
+                str(value.get("item_id", "")).strip(),
+            ),
+            reverse=True,
+        )
+        if str(item.get("status", "")).strip() in {"done", "cancelled"}
+    ][:10]
 
     queue_summary = {
         "item_count": len(queue_items),
@@ -426,6 +444,7 @@ def summarize_local_project_dashboard(config: AppConfig) -> dict[str, Any]:
         "active_project_counts_by_priority": _count_by(active_project_queue_items, "priority"),
         "active_project_blocked_items": active_project_blocked_items,
         "active_project_ready_items": active_project_ready_items,
+        "active_project_recently_completed_items": active_project_recently_completed_items,
     }
 
     agent_summary = {
@@ -701,6 +720,7 @@ def summarize_local_project_dashboard(config: AppConfig) -> dict[str, Any]:
     recent_activity_summary = {
         "recently_completed_items": list(recently_completed_items),
         "active_project_current_items": list(active_project_current_items),
+        "active_project_recently_completed_items": list(active_project_recently_completed_items),
         "latest_handoff_artifact": handoff_summary.get("latest_handoff_artifact"),
         "latest_orchestration_artifact": orchestration_summary.get("latest_orchestration_artifact"),
         "latest_escalation_artifact": escalation_summary.get("latest_escalation_artifact"),
@@ -777,6 +797,7 @@ def summarize_local_project_dashboard(config: AppConfig) -> dict[str, Any]:
         "risks": risks,
         "recommended_next_actions": recommended_next_actions,
         "active_project_current_items": active_project_current_items,
+        "active_project_recently_completed_items": active_project_recently_completed_items,
         "bootstrap_ready": bool(bootstrap_status.get("bootstrap_ready", False)),
         "bootstrap_missing_files": list(bootstrap_status.get("missing_files", [])),
         "bootstrap_recommended_actions": list(bootstrap_status.get("recommended_next_actions", [])),

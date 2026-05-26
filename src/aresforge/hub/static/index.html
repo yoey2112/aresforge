@@ -20,6 +20,7 @@
       <nav class="sidenav" aria-label="Primary Navigation">
         <button class="nav-item active" data-section="home">Home</button>
         <button class="nav-item" data-section="bootstrap">Bootstrap</button>
+        <button class="nav-item" data-section="workspace">Workspace</button>
         <button class="nav-item" data-section="projects">Projects</button>
         <button class="nav-item" data-section="repos">Repos</button>
         <button class="nav-item" data-section="queue">Queue</button>
@@ -475,6 +476,64 @@
             <div class="quick-actions">
               <button id="home-open-bootstrap" type="button">Open Bootstrap Setup</button>
             </div>
+          </section>
+        </section>
+
+        <section id="panel-workspace" class="panel" data-panel="workspace">
+          <h2>Workspace</h2>
+          <p>Active Project Workspace for local-only control-plane visibility and safe next actions.</p>
+          <p class="boundary-banner">Local-only workspace: no GitHub sync/mutation, no network activity, no agent/model execution.</p>
+          <div class="quick-actions">
+            <button id="workspace-refresh" type="button">Refresh Workspace</button>
+            <button id="workspace-continue-intake" type="button">Continue Task Intake</button>
+            <button id="workspace-open-queue" type="button">Open Queue Lifecycle</button>
+            <button id="workspace-select-project" type="button">Select Active Project</button>
+          </div>
+          <p id="workspace-message" class="message-note">Loading active project workspace...</p>
+
+          <section class="subpanel">
+            <h3>Workspace Summary</h3>
+            <div class="cards">
+              <article class="card active-project-card">
+                <h3>Active Project Summary</h3>
+                <p id="workspace-project-name">None selected</p>
+                <span id="workspace-project-badge" class="status-pill">not selected</span>
+                <p class="subvalue" id="workspace-project-detail">Select an active project from Projects.</p>
+              </article>
+              <article class="card">
+                <h3>Report Status</h3>
+                <p id="workspace-report-status">needs_attention</p>
+                <p class="subvalue" id="workspace-report-detail">No report data available yet.</p>
+              </article>
+              <article class="card">
+                <h3>Repo Status</h3>
+                <p id="workspace-repo-status">No active repo</p>
+                <p class="subvalue" id="workspace-repo-detail">No local repo facts available yet.</p>
+              </article>
+              <article class="card">
+                <h3>Next Safe Action</h3>
+                <p id="workspace-next-safe-action">Select an active project to continue.</p>
+                <p class="subvalue">Continue task intake or queue lifecycle locally.</p>
+              </article>
+            </div>
+          </section>
+
+          <section class="subpanel">
+            <h3>Current Queue Items</h3>
+            <ul id="workspace-current-items" class="list"></ul>
+            <p id="workspace-current-items-empty" class="empty">No current queue items for the active project.</p>
+          </section>
+
+          <section class="subpanel">
+            <h3>Recent Completed Queue Items</h3>
+            <ul id="workspace-completed-items" class="list"></ul>
+            <p id="workspace-completed-items-empty" class="empty">No recently completed queue items for the active project.</p>
+          </section>
+
+          <section class="subpanel">
+            <h3>Workspace Warnings</h3>
+            <ul id="workspace-warnings" class="list"></ul>
+            <p id="workspace-warnings-empty" class="empty">No workspace warnings.</p>
           </section>
         </section>
 

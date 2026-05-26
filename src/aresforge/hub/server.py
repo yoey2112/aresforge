@@ -13,6 +13,7 @@ from aresforge.hub.api import (
     get_bootstrap_plan,
     get_bootstrap_status,
     get_active_project,
+    get_active_project_workspace,
     get_agent,
     get_agents,
     get_docs_status,
@@ -171,6 +172,9 @@ def _build_handler(config: AppConfig, static_root: Path) -> type[BaseHTTPRequest
                 return True
             if method == "GET" and path == "/api/local-project-report":
                 _render_json(self, HTTPStatus.OK, get_local_project_report(config))
+                return True
+            if method == "GET" and path == "/api/active-project/workspace":
+                _render_json(self, HTTPStatus.OK, get_active_project_workspace(config))
                 return True
             if method == "GET" and path == "/api/local-projects":
                 _render_json(self, HTTPStatus.OK, get_local_projects_readiness(config))

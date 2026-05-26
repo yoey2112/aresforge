@@ -627,6 +627,69 @@ def get_reports_dashboard(config: AppConfig) -> dict[str, Any]:
     return payload
 
 
+def get_active_project_workspace(config: AppConfig) -> dict[str, Any]:
+    dashboard = summarize_local_project_dashboard(config)
+    report = inspect_local_project_report(config)
+
+    active_project_summary = dashboard.get("active_project_summary", {})
+    active_repo = active_project_summary.get("active_repo") or {}
+    repo_status = {
+        "available": bool(active_repo),
+        "repo_id": str(active_project_summary.get("active_repo_id", "")).strip(),
+        "name": str(active_repo.get("name", "")).strip(),
+        "role": str(active_repo.get("role", "")).strip(),
+        "status": str(active_repo.get("status", "")).strip(),
+        "local_git_branch": str(active_repo.get("local_git_branch", "")).strip(),
+        "local_git_head": str(active_repo.get("local_git_head", "")).strip(),
+        "local_git_status_summary": str(active_repo.get("local_git_status_summary", "")).strip(),
+        "message": "Local repo facts available." if active_repo else "No active repo facts available yet.",
+    }
+    report_status = {
+        "overall_status": str((report.get("project_health") or {}).get("overall_status", "needs_attention")).strip()
+        or "needs_attention",
+        "docs_ready": bool((report.get("documentation_summary") or {}).get("docs_ready", False)),
+        "validation_ready": bool((report.get("validation_summary") or {}).get("hub_ready", False)),
+        "roadmap_status": str((report.get("roadmap_summary") or {}).get("status", "missing")).strip() or "missing",
+        "message": str(report.get("recommended_next_action", "")).strip() or "No report recommendation available.",
+    }
+
+    warnings: list[str] = []
+    for warning in list(dashboard.get("warnings", [])) + list(report.get("warnings", [])):
+        normalized = str(warning).strip()
+        if normalized and normalized not in warnings:
+            warnings.append(normalized)
+
+    return {
+        "ok": True,
+        "service": SERVICE_NAME,
+        "local_only": True,
+        "report_only": True,
+        "generated_at": dashboard.get("generated_at") or report.get("generated_at"),
+        "active_project_selected": bool(dashboard.get("active_project_selected", False)),
+        "active_project_id": str(dashboard.get("active_project_id", "")).strip(),
+        "active_repo_id": str(dashboard.get("active_repo_id", "")).strip(),
+        "active_project_summary": active_project_summary,
+        "current_queue_items": list(dashboard.get("active_project_current_items", [])),
+        "recent_completed_queue_items": list(dashboard.get("active_project_recently_completed_items", [])),
+        "report_status": report_status,
+        "repo_status": repo_status,
+        "next_safe_action": str(report.get("recommended_next_action", "")).strip()
+        or str(dashboard.get("recommended_next_action", "")).strip()
+        or "Select an active project to continue local-only workflow control.",
+        "continue_actions": {
+            "task_intake_section": "queue",
+            "queue_lifecycle_section": "queue",
+            "project_selection_section": "projects",
+        },
+        "warnings": warnings,
+        "boundary_confirmations": _merge_boundary_confirmations(
+            dashboard,
+            "Workspace is local-only.",
+            "Workspace reuses existing local report/dashboard data.",
+        ),
+    }
+
+
 def get_reports_action_center(config: AppConfig) -> dict[str, Any]:
     report = _report_payload(config)
     return {

@@ -3,6 +3,7 @@ from pathlib import Path
 
 from aresforge.config import AppConfig
 from aresforge.hub.api import (
+    get_active_project_workspace,
     get_bootstrap_plan,
     get_bootstrap_status,
     get_agent,
@@ -44,6 +45,7 @@ from aresforge.hub.api import (
 NAV_LABELS = [
     "Home",
     "Bootstrap",
+    "Workspace",
     "Projects",
     "Repos",
     "Queue",
@@ -204,6 +206,16 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "Seed sample work queue" in index_text
     assert "Force overwrite where safe" in index_text
     assert "Active Project Selector" in index_text
+    assert "Active Project Workspace for local-only control-plane visibility and safe next actions." in index_text
+    assert "Refresh Workspace" in index_text
+    assert "Continue Task Intake" in index_text
+    assert "Open Queue Lifecycle" in index_text
+    assert "Select Active Project" in index_text
+    assert "Workspace Summary" in index_text
+    assert "Active Project Summary" in index_text
+    assert "Current Queue Items" in index_text
+    assert "Recent Completed Queue Items" in index_text
+    assert "Workspace Warnings" in index_text
     assert "Set Active Project" in index_text
     assert "New Project Wizard" in index_text
     assert "Start New Project" in index_text
@@ -372,6 +384,7 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
         "/api/reports/export",
         "/api/local-project-dashboard",
         "/api/local-project-report",
+        "/api/active-project/workspace",
         "/api/local-projects",
         "/api/local-queue-agent-summary",
     ):
@@ -406,6 +419,10 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
         "reports-generate-orchestration",
         "reports-generate-escalation",
         "home-refresh-summary",
+        "workspace-refresh",
+        "workspace-continue-intake",
+        "workspace-open-queue",
+        "workspace-select-project",
         "home-start-new-project",
         "projects-focus-new-project-wizard",
         "active-project-set",
@@ -478,6 +495,56 @@ def test_app_js_references_m39_api_endpoints_and_forms() -> None:
     assert "home-documentation-closeout-items" in app_text
     assert "home-documentation-closeout-evidence-packages" in app_text
     assert "home-documentation-closeout-checks" in app_text
+
+
+def test_active_project_workspace_api_reuses_local_only_dashboard_and_report_data(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_project(config, "p1")
+    _seed_repo(config, "p1", "r1")
+    payload = post_active_project(config, {"project_id": "p1"})
+    assert payload["ok"] is True
+
+    payload = post_queue_item(
+        config,
+        {
+            "item_id": "ready-1",
+            "project_id": "p1",
+            "repo_id": "r1",
+            "title": "Ready item",
+            "status": "ready",
+            "priority": "high",
+            "item_type": "task",
+        },
+    )
+    assert payload["ok"] is True
+    payload = post_queue_item(
+        config,
+        {
+            "item_id": "done-1",
+            "project_id": "p1",
+            "repo_id": "r1",
+            "title": "Done item",
+            "status": "done",
+            "priority": "high",
+            "item_type": "task",
+        },
+    )
+    assert payload["ok"] is True
+
+    workspace = get_active_project_workspace(config)
+
+    assert workspace["ok"] is True
+    assert workspace["local_only"] is True
+    assert workspace["report_only"] is True
+    assert workspace["active_project_selected"] is True
+    assert workspace["active_project_id"] == "p1"
+    assert workspace["active_repo_id"] == "r1"
+    assert workspace["active_project_summary"]["active_project"]["name"] == "Project One"
+    assert workspace["current_queue_items"][0]["item_id"] == "ready-1"
+    assert workspace["recent_completed_queue_items"][0]["item_id"] == "done-1"
+    assert "overall_status" in workspace["report_status"]
+    assert "message" in workspace["repo_status"]
+    assert workspace["continue_actions"]["task_intake_section"] == "queue"
 
 
 def test_bootstrap_api_status_plan_apply(tmp_path: Path) -> None:
