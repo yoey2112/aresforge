@@ -17,7 +17,14 @@ import {
   bindProjectsActions,
   loadProjectsData,
 } from "/js/sections/projects.js";
-import { bindQueueActions, loadQueue as loadQueueSection } from "/js/sections/queue.js";
+import {
+  bindQueueActions,
+  bindQueueLifecycleActions,
+  buildQueuePayload as buildQueuePayloadSection,
+  loadQueue as loadQueueSection,
+  renderLocalQueueAddResult as renderLocalQueueAddResultSection,
+  setLocalQueueLifecycleItemId as setLocalQueueLifecycleItemIdSection,
+} from "/js/sections/queue.js";
 import {
   bindEscalationActions,
   loadEscalationPlan as loadEscalationPlanSection,
@@ -1371,136 +1378,19 @@ function applyActiveProjectDefaultsToQueueForm() {
 }
 
 function buildQueuePayload() {
-  if (!byId("queue-project-id").value.trim() && activeProjectId()) {
-    byId("queue-project-id").value = activeProjectId();
-  }
-  if (!byId("queue-repo-id").value.trim() && activeRepoId()) {
-    byId("queue-repo-id").value = activeRepoId();
-  }
-  return prunePayload({
-    item_id: byId("queue-item-id").value.trim(),
-    project_id: byId("queue-project-id").value.trim(),
-    repo_id: byId("queue-repo-id").value.trim(),
-    title: byId("queue-title").value.trim(),
-    description: byId("queue-description").value.trim(),
-    status: byId("queue-status").value.trim(),
-    priority: byId("queue-priority").value.trim(),
-    item_type: byId("queue-item-type").value.trim(),
-    tags: parseCommaList(byId("queue-tags").value),
-    dependencies: parseCommaList(byId("queue-dependencies").value),
-    blocked_by: parseCommaList(byId("queue-blocked-by").value),
-    assigned_agent: byId("queue-assigned-agent").value.trim(),
-    source: byId("queue-source").value.trim(),
-    notes: byId("queue-notes").value.trim(),
+  return buildQueuePayloadSection({
+    activeProjectId,
+    activeRepoId,
+    parseCommaList,
   });
 }
 
 function setLocalQueueLifecycleItemId(itemId) {
-  const value = String(itemId || "").trim();
-  if (byId("queue-lifecycle-item-id")) {
-    byId("queue-lifecycle-item-id").value = value;
-  }
-}
-
-function selectedLocalQueueLifecycleItemId() {
-  return byId("queue-lifecycle-item-id") ? byId("queue-lifecycle-item-id").value.trim() : "";
-}
-
-function requireLocalQueueLifecycleItemId() {
-  const itemId = selectedLocalQueueLifecycleItemId();
-  if (!itemId) {
-    throw new Error("Enter an item_id or select one from Queue Items first.");
-  }
-  return itemId;
-}
-
-function buildLocalQueueAddPayload() {
-  return prunePayload({
-    title: byId("queue-lifecycle-add-title").value.trim(),
-    description: byId("queue-lifecycle-add-description").value.trim(),
-    item_type: byId("queue-lifecycle-add-type").value.trim(),
-    priority: byId("queue-lifecycle-add-priority").value.trim(),
-    target_area: byId("queue-lifecycle-add-target-area").value.trim(),
-    tags: parseCommaList(byId("queue-lifecycle-add-tags").value),
-    acceptance_criteria: parseLineList(byId("queue-lifecycle-add-acceptance-criteria").value),
-  });
-}
-
-function buildLocalQueueCodexPromptPayload() {
-  return {
-    output: byId("queue-lifecycle-codex-output").value.trim(),
-    commit_message: byId("queue-lifecycle-codex-commit-message").value.trim(),
-    force: Boolean(byId("queue-lifecycle-codex-force") && byId("queue-lifecycle-codex-force").checked),
-  };
-}
-
-function buildLocalQueueCompletePayload() {
-  return prunePayload({
-    commit_hash: byId("queue-lifecycle-complete-commit-hash").value.trim(),
-    completed_by: byId("queue-lifecycle-complete-completed-by").value.trim(),
-    validation_summary: byId("queue-lifecycle-complete-validation-summary").value.trim(),
-    evidence_note: byId("queue-lifecycle-complete-evidence-note").value.trim(),
-    tests_run: parseLineList(byId("queue-lifecycle-complete-tests-run").value),
-    changed_files: parseLineList(byId("queue-lifecycle-complete-changed-files").value),
-    artifact_paths: parseLineList(byId("queue-lifecycle-complete-artifact-paths").value),
-  });
+  setLocalQueueLifecycleItemIdSection(itemId);
 }
 
 function renderLocalQueueAddResult(payload) {
-  setList("queue-lifecycle-add-result", "queue-lifecycle-add-result-empty", [
-    `item_id: ${payload && payload.item_id ? payload.item_id : "-"}`,
-    `status: ${payload && payload.status ? payload.status : "-"}`,
-    `project_id: ${payload && payload.project_id ? payload.project_id : "-"}`,
-    `repo_id: ${payload && payload.repo_id ? payload.repo_id : "-"}`,
-    `next_safe_action: ${payload && payload.next_safe_action ? payload.next_safe_action : "-"}`,
-  ].concat((payload && payload.warnings ? payload.warnings : []).map((warning) => `warning: ${warning}`)));
-  if (payload && payload.item_id) {
-    setLocalQueueLifecycleItemId(payload.item_id);
-  }
-}
-
-function renderLocalQueueReadinessResult(payload) {
-  setList("queue-lifecycle-readiness-summary", "queue-lifecycle-readiness-summary-empty", [
-    `item_id: ${payload && payload.item_id ? payload.item_id : "-"}`,
-    `readiness_status: ${payload && payload.readiness_status ? payload.readiness_status : "-"}`,
-    `can_start: ${Boolean(payload && payload.can_start)}`,
-    `status: ${payload && payload.status ? payload.status : "-"}`,
-    `next_safe_action: ${payload && (payload.recommended_next_action || payload.next_safe_action) ? (payload.recommended_next_action || payload.next_safe_action) : "-"}`,
-  ]);
-  setList("queue-lifecycle-readiness-blockers", "queue-lifecycle-readiness-blockers-empty", (payload && payload.blockers) || []);
-  setList("queue-lifecycle-readiness-warnings", "queue-lifecycle-readiness-warnings-empty", (payload && payload.warnings) || []);
-}
-
-function renderLocalQueueStartResult(payload) {
-  const readiness = (payload && payload.readiness) || {};
-  setList("queue-lifecycle-start-summary", "queue-lifecycle-start-summary-empty", [
-    `item_id: ${payload && payload.item_id ? payload.item_id : "-"}`,
-    `previous_status: ${payload && payload.previous_status ? payload.previous_status : "-"}`,
-    `status: ${payload && payload.status ? payload.status : "-"}`,
-    `readiness_status: ${readiness.readiness_status || payload.readiness_status || "-"}`,
-    `message: ${payload && payload.message ? payload.message : "-"}`,
-  ].concat((payload && payload.warnings ? payload.warnings : []).map((warning) => `warning: ${warning}`)));
-}
-
-function renderLocalQueueCodexPromptResult(payload) {
-  setList("queue-lifecycle-codex-summary", "queue-lifecycle-codex-summary-empty", [
-    `item_id: ${payload && payload.item_id ? payload.item_id : "-"}`,
-    `readiness_status: ${payload && payload.readiness_status ? payload.readiness_status : "-"}`,
-    `output_path: ${payload && payload.output_path ? payload.output_path : "-"}`,
-    `commit_message: ${payload && payload.commit_message ? payload.commit_message : "-"}`,
-  ].concat((payload && payload.warnings ? payload.warnings : []).map((warning) => `warning: ${warning}`)));
-  setCodeBlock("queue-lifecycle-codex-prompt", "queue-lifecycle-codex-prompt-empty", (payload && payload.prompt) || "");
-}
-
-function renderLocalQueueCompleteResult(payload) {
-  setList("queue-lifecycle-complete-summary", "queue-lifecycle-complete-summary-empty", [
-    `item_id: ${payload && payload.item_id ? payload.item_id : "-"}`,
-    `previous_status: ${payload && payload.previous_status ? payload.previous_status : "-"}`,
-    `status: ${payload && payload.status ? payload.status : "-"}`,
-    `completion_commit: ${payload && payload.completion_commit ? payload.completion_commit : "-"}`,
-    `validation_summary: ${payload && payload.validation_summary ? payload.validation_summary : "-"}`,
-  ]);
-  setList("queue-lifecycle-complete-warnings", "queue-lifecycle-complete-warnings-empty", (payload && payload.warnings) || []);
+  renderLocalQueueAddResultSection(payload);
 }
 
 function renderActiveProjectIntakeResult(payload) {
@@ -1584,128 +1474,6 @@ function bindForms() {
   });
   on("milestone-plan-form", "submit", (event) => {
     event.preventDefault();
-  });
-
-  on("queue-lifecycle-add-form", "submit", async (event) => {
-    event.preventDefault();
-    const submitButton = byId("queue-lifecycle-add-submit");
-    const originalLabel = submitButton ? submitButton.textContent : "";
-    try {
-      if (submitButton) {
-        submitButton.disabled = true;
-        submitButton.textContent = "Adding...";
-      }
-      setMessage("queue-lifecycle-message", "Adding local queue task...", "loading");
-      const payload = await fetchJson("/api/local-queue/items", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(buildLocalQueueAddPayload()),
-      });
-      renderLocalQueueAddResult(payload);
-      await loadQueue();
-      await refreshSummaryAndReport();
-      setMessage("queue-lifecycle-message", `Added ${payload.item_id}.`, "success");
-    } catch (error) {
-      renderLocalQueueAddResult((error && error.payload) || null);
-      setMessage("queue-lifecycle-message", String(error.message || error), "error");
-    } finally {
-      if (submitButton) {
-        submitButton.disabled = false;
-        submitButton.textContent = originalLabel;
-      }
-    }
-  });
-
-  on("queue-lifecycle-readiness", "click", async () => {
-    try {
-      const itemId = requireLocalQueueLifecycleItemId();
-      setMessage("queue-lifecycle-message", `Inspecting readiness for ${itemId}...`, "loading");
-      const payload = await fetchJson(`/api/local-queue/items/${encodeURIComponent(itemId)}/readiness`, { method: "GET" });
-      renderLocalQueueReadinessResult(payload);
-      setMessage("queue-lifecycle-message", `Readiness loaded for ${itemId}.`, "success");
-    } catch (error) {
-      renderLocalQueueReadinessResult((error && error.payload) || { item_id: selectedLocalQueueLifecycleItemId(), blockers: [], warnings: [] });
-      setMessage("queue-lifecycle-message", String(error.message || error), "error");
-    }
-  });
-
-  on("queue-lifecycle-start", "click", async () => {
-    try {
-      const itemId = requireLocalQueueLifecycleItemId();
-      setMessage("queue-lifecycle-message", `Starting ${itemId}...`, "loading");
-      const payload = await fetchJson(`/api/local-queue/items/${encodeURIComponent(itemId)}/start`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
-      });
-      renderLocalQueueStartResult(payload);
-      await loadQueue();
-      await refreshSummaryAndReport();
-      setMessage("queue-lifecycle-message", `Started ${itemId}.`, "success");
-    } catch (error) {
-      renderLocalQueueStartResult((error && error.payload) || { item_id: selectedLocalQueueLifecycleItemId() });
-      setMessage("queue-lifecycle-message", String(error.message || error), "error");
-    }
-  });
-
-  on("queue-lifecycle-codex-form", "submit", async (event) => {
-    event.preventDefault();
-    const submitButton = byId("queue-lifecycle-codex-submit");
-    const originalLabel = submitButton ? submitButton.textContent : "";
-    try {
-      if (submitButton) {
-        submitButton.disabled = true;
-        submitButton.textContent = "Generating...";
-      }
-      const itemId = requireLocalQueueLifecycleItemId();
-      setMessage("queue-lifecycle-message", `Generating local Codex prompt for ${itemId}...`, "loading");
-      const payload = await fetchJson(`/api/local-queue/items/${encodeURIComponent(itemId)}/codex-prompt`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(buildLocalQueueCodexPromptPayload()),
-      });
-      renderLocalQueueCodexPromptResult(payload);
-      setMessage("queue-lifecycle-message", `Codex prompt generated for ${itemId}.`, "success");
-    } catch (error) {
-      renderLocalQueueCodexPromptResult((error && error.payload) || null);
-      setMessage("queue-lifecycle-message", String(error.message || error), "error");
-    } finally {
-      if (submitButton) {
-        submitButton.disabled = false;
-        submitButton.textContent = originalLabel;
-      }
-    }
-  });
-
-  on("queue-lifecycle-complete-form", "submit", async (event) => {
-    event.preventDefault();
-    const submitButton = byId("queue-lifecycle-complete-submit");
-    const originalLabel = submitButton ? submitButton.textContent : "";
-    try {
-      if (submitButton) {
-        submitButton.disabled = true;
-        submitButton.textContent = "Completing...";
-      }
-      const itemId = requireLocalQueueLifecycleItemId();
-      setMessage("queue-lifecycle-message", `Completing ${itemId} with local evidence...`, "loading");
-      const payload = await fetchJson(`/api/local-queue/items/${encodeURIComponent(itemId)}/complete`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(buildLocalQueueCompletePayload()),
-      });
-      renderLocalQueueCompleteResult(payload);
-      await loadQueue();
-      await refreshSummaryAndReport();
-      setMessage("queue-lifecycle-message", `Completed ${itemId}.`, "success");
-    } catch (error) {
-      renderLocalQueueCompleteResult((error && error.payload) || null);
-      setMessage("queue-lifecycle-message", String(error.message || error), "error");
-    } finally {
-      if (submitButton) {
-        submitButton.disabled = false;
-        submitButton.textContent = originalLabel;
-      }
-    }
   });
 
   on("intake-form", "submit", async (event) => {
@@ -2234,6 +2002,12 @@ async function init() {
     activeProjectId,
     activeRepoId,
     buildQueuePayload,
+    refreshSummaryAndReport,
+  });
+  bindQueueLifecycleActions({
+    parseCommaList,
+    parseLineList,
+    loadQueueData: loadQueue,
     refreshSummaryAndReport,
   });
   bindReposActions({
