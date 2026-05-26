@@ -50,6 +50,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-work-item-lifecycle",
         "build-work-item-execution-dossier",
         "export-work-item-operator-prompt",
+        "archive-work-item-operator-packet",
         "inspect-queue-work-state",
         "inspect-work-item-readiness",
         "inspect-queue-readiness",
@@ -4628,6 +4629,78 @@ def test_export_work_item_operator_prompt_dispatch_markdown(
     output = capsys.readouterr().out
     assert exit_code == 1
     assert output == "# Export Work Item Operator Prompt\n\n"
+
+
+def test_archive_work_item_operator_packet_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    packet_payload = {
+        "ok": True,
+        "changed": True,
+        "work_item_id": "work-1",
+        "packet_dir": "artifacts/local-smoke/operator-packets/work-1/abc123",
+    }
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(
+        cli,
+        "archive_work_item_operator_packet",
+        lambda _conn, _work_item_id, _output_dir, actor, force: packet_payload,
+    )
+    exit_code = cli.main(
+        [
+            "archive-work-item-operator-packet",
+            "--work-item-id",
+            "work-1",
+            "--output-dir",
+            "artifacts/local-smoke/operator-packets",
+            "--actor",
+            "local-test",
+            "--format",
+            "json",
+        ]
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload == packet_payload
+
+
+def test_archive_work_item_operator_packet_dispatch_markdown(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    packet_payload = {
+        "ok": False,
+        "changed": False,
+        "work_item_id": "work-missing",
+        "reason": "work_item_not_found",
+    }
+    monkeypatch.setattr(cli, "connect", fake_connect)
+    monkeypatch.setattr(
+        cli,
+        "archive_work_item_operator_packet",
+        lambda _conn, _work_item_id, _output_dir, actor, force: packet_payload,
+    )
+    monkeypatch.setattr(
+        cli,
+        "render_archive_work_item_operator_packet_markdown",
+        lambda _payload: "# Archive Work Item Operator Packet\n",
+    )
+    exit_code = cli.main(
+        [
+            "archive-work-item-operator-packet",
+            "--work-item-id",
+            "work-missing",
+            "--output-dir",
+            "artifacts/local-smoke/operator-packets",
+            "--actor",
+            "local-test",
+            "--force",
+            "--format",
+            "markdown",
+        ]
+    )
+    output = capsys.readouterr().out
+    assert exit_code == 1
+    assert output == "# Archive Work Item Operator Packet\n\n"
 
 
 def test_add_roadmap_task_dependency_dispatch_json(

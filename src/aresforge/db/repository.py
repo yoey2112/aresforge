@@ -1,13 +1,17 @@
 from __future__ import annotations
 
 import json
+import hashlib
+import shutil
 from dataclasses import dataclass
+from datetime import datetime, UTC
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
 from psycopg import Connection
 
+from aresforge import __version__ as ARESFORGE_VERSION
 from aresforge.config import AppConfig
 
 
@@ -3282,6 +3286,148 @@ def render_export_work_item_operator_prompt_markdown(payload: dict[str, Any]) ->
         "## Suggested Operator Prompt Preview",
         payload.get("suggested_operator_prompt", ""),
     ]
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def _sha256_text(content: str) -> str:
+    return hashlib.sha256(content.encode("utf-8")).hexdigest()
+
+
+def archive_work_item_operator_packet(
+    conn: Connection,
+    work_item_id: str,
+    output_dir: str | Path,
+    *,
+    actor: str,
+    force: bool = False,
+) -> dict[str, Any]:
+    dossier = build_work_item_execution_dossier(conn, work_item_id)
+    if not bool(dossier.get("ok")):
+        return {
+            "ok": False,
+            "changed": False,
+            "reason": "work_item_not_found",
+            "work_item_id": work_item_id,
+            "output_dir": str(Path(output_dir).expanduser().resolve()),
+            "packet_dir": "",
+        }
+
+    dossier_json = json.dumps(dossier, indent=2, sort_keys=True)
+    dossier_markdown = render_work_item_execution_dossier_markdown(dossier)
+    operator_prompt = str(dossier.get("suggested_operator_prompt") or "")
+    project_id = str(dossier.get("project_id") or DEFAULT_PROJECT_ID)
+    output_root = Path(output_dir).expanduser().resolve()
+    created_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+    packet_key = _sha256_text(
+        json.dumps(
+            {
+                "work_item_id": work_item_id,
+                "actor": actor,
+            },
+            sort_keys=True,
+        )
+    )[:12]
+    packet_dir = output_root / work_item_id / packet_key
+
+    existed_before = packet_dir.exists()
+    if existed_before and not force:
+        return {
+            "ok": False,
+            "changed": False,
+            "reason": "packet_exists",
+            "work_item_id": work_item_id,
+            "project_id": project_id,
+            "output_dir": str(output_root),
+            "packet_dir": str(packet_dir),
+            "packet_key": packet_key,
+        }
+
+    staging_dir = packet_dir.parent / f"{packet_dir.name}.tmp-{uuid4().hex[:8]}"
+    if staging_dir.exists():
+        shutil.rmtree(staging_dir)
+    staging_dir.mkdir(parents=True, exist_ok=False)
+
+    dossier_json_path = staging_dir / "dossier.json"
+    dossier_md_path = staging_dir / "dossier.md"
+    operator_prompt_path = staging_dir / "operator-prompt.txt"
+    metadata_path = staging_dir / "packet-metadata.json"
+
+    dossier_json_path.write_text(dossier_json, encoding="utf-8")
+    dossier_md_path.write_text(dossier_markdown, encoding="utf-8")
+    operator_prompt_path.write_text(operator_prompt, encoding="utf-8")
+
+    file_hashes = {
+        "dossier.json": _sha256_text(dossier_json),
+        "dossier.md": _sha256_text(dossier_markdown),
+        "operator-prompt.txt": _sha256_text(operator_prompt),
+    }
+    metadata = {
+        "project_id": project_id,
+        "work_item_id": work_item_id,
+        "actor": actor,
+        "created_at": created_at,
+        "source_command": "archive-work-item-operator-packet",
+        "source_version": ARESFORGE_VERSION,
+        "packet_key": packet_key,
+        "files": ["dossier.json", "dossier.md", "operator-prompt.txt", "packet-metadata.json"],
+        "content_hashes": file_hashes,
+    }
+    metadata_json = json.dumps(metadata, indent=2, sort_keys=True)
+    metadata_path.write_text(metadata_json, encoding="utf-8")
+    file_hashes["packet-metadata.json"] = _sha256_text(metadata_json)
+    metadata["content_hashes"] = file_hashes
+    metadata_path.write_text(json.dumps(metadata, indent=2, sort_keys=True), encoding="utf-8")
+
+    if packet_dir.exists():
+        shutil.rmtree(packet_dir)
+    packet_dir.parent.mkdir(parents=True, exist_ok=True)
+    staging_dir.replace(packet_dir)
+
+    return {
+        "ok": True,
+        "changed": True,
+        "reason": "packet_archived_overwritten" if existed_before and force else "packet_archived",
+        "project_id": project_id,
+        "work_item_id": work_item_id,
+        "actor": actor,
+        "created_at": created_at,
+        "output_dir": str(output_root),
+        "packet_dir": str(packet_dir),
+        "packet_key": packet_key,
+        "files": metadata["files"],
+        "content_hashes": metadata["content_hashes"],
+        "dossier_status": dossier.get("dossier_status", ""),
+    }
+
+
+def render_archive_work_item_operator_packet_markdown(payload: dict[str, Any]) -> str:
+    lines = [
+        "# Archive Work Item Operator Packet",
+        "",
+        f"- Work item ID: `{payload.get('work_item_id', '')}`",
+        f"- Project ID: `{payload.get('project_id', '')}`",
+        f"- Changed: `{payload.get('changed', False)}`",
+        f"- Reason: `{payload.get('reason', '')}`",
+        f"- Output dir: `{payload.get('output_dir', '')}`",
+        f"- Packet dir: `{payload.get('packet_dir', '')}`",
+        f"- Packet key: `{payload.get('packet_key', '')}`",
+        f"- Dossier status: `{payload.get('dossier_status', '')}`",
+        "",
+        "## Files",
+    ]
+    files = list(payload.get("files") or [])
+    if files:
+        for file_name in files:
+            lines.append(f"- `{file_name}`")
+    else:
+        lines.append("- none")
+    lines.extend(["", "## Content Hashes"])
+    content_hashes = payload.get("content_hashes") or {}
+    if content_hashes:
+        for name in sorted(content_hashes):
+            lines.append(f"- `{name}` sha256=`{content_hashes[name]}`")
+    else:
+        lines.append("- none")
     return "\n".join(lines).rstrip() + "\n"
 
 

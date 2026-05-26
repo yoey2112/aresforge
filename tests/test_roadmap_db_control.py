@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
@@ -22,6 +23,7 @@ from aresforge.db.repository import (
     plan_work_item_queue_transition,
     build_work_item_execution_dossier,
     export_work_item_operator_prompt,
+    archive_work_item_operator_packet,
     handoff_work_item_to_implementation,
     render_start_work_item_markdown,
     render_work_item_completion_markdown,
@@ -40,6 +42,7 @@ from aresforge.db.repository import (
     render_work_item_lifecycle_markdown,
     render_work_item_execution_dossier_markdown,
     render_export_work_item_operator_prompt_markdown,
+    render_archive_work_item_operator_packet_markdown,
     render_roadmap_markdown,
     render_roadmap_work_item_links_markdown,
     inspect_work_item_queue_approval_state,
@@ -1357,6 +1360,27 @@ def test_render_export_work_item_operator_prompt_markdown_is_deterministic() -> 
     assert "## Suggested Operator Prompt Preview" in markdown
 
 
+def test_render_archive_work_item_operator_packet_markdown_is_deterministic() -> None:
+    payload = {
+        "ok": True,
+        "changed": True,
+        "project_id": "project-aresforge",
+        "work_item_id": "work-1",
+        "reason": "packet_archived",
+        "output_dir": "artifacts/local-smoke/operator-packets",
+        "packet_dir": "artifacts/local-smoke/operator-packets/work-1/abc123",
+        "packet_key": "abc123",
+        "dossier_status": "active",
+        "files": ["dossier.json", "dossier.md", "operator-prompt.txt", "packet-metadata.json"],
+        "content_hashes": {"dossier.json": "h1"},
+    }
+    markdown = render_archive_work_item_operator_packet_markdown(payload)
+    assert "# Archive Work Item Operator Packet" in markdown
+    assert "- Work item ID: `work-1`" in markdown
+    assert "## Files" in markdown
+    assert "packet-metadata.json" in markdown
+
+
 def test_build_work_item_execution_dossier_missing_is_non_mutating(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -2199,6 +2223,40 @@ def test_cli_parser_recognizes_export_work_item_operator_prompt_formats() -> Non
     assert export_markdown_args.force is True
     assert export_markdown_args.format == "markdown"
 
+    archive_json_args = parser.parse_args(
+        [
+            "archive-work-item-operator-packet",
+            "--work-item-id",
+            "work-1",
+            "--output-dir",
+            "artifacts/local-smoke/operator-packets",
+            "--actor",
+            "local-test",
+            "--format",
+            "json",
+        ]
+    )
+    assert archive_json_args.command == "archive-work-item-operator-packet"
+    assert archive_json_args.format == "json"
+
+    archive_markdown_args = parser.parse_args(
+        [
+            "archive-work-item-operator-packet",
+            "--work-item-id",
+            "work-1",
+            "--output-dir",
+            "artifacts/local-smoke/operator-packets",
+            "--actor",
+            "local-test",
+            "--force",
+            "--format",
+            "markdown",
+        ]
+    )
+    assert archive_markdown_args.command == "archive-work-item-operator-packet"
+    assert archive_markdown_args.force is True
+    assert archive_markdown_args.format == "markdown"
+
 
 def test_export_work_item_operator_prompt_missing_does_not_write(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
@@ -2289,6 +2347,155 @@ def test_export_work_item_operator_prompt_existing_with_force_overwrites(
     assert payload["changed"] is True
     assert payload["reason"] == "output_file_overwritten"
     assert output_path.read_text(encoding="utf-8") == "new prompt"
+
+
+def test_archive_work_item_operator_packet_missing_is_non_mutating(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(
+        repository_module,
+        "build_work_item_execution_dossier",
+        lambda *_args, **_kwargs: {"ok": False, "dossier_status": "missing"},
+    )
+    payload = archive_work_item_operator_packet(
+        _FakeConnection(),
+        "work-missing",
+        tmp_path / "operator-packets",
+        actor="local-test",
+    )
+    assert payload["ok"] is False
+    assert payload["changed"] is False
+    assert payload["reason"] == "work_item_not_found"
+
+
+def test_archive_work_item_operator_packet_creates_expected_files_and_metadata(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(
+        repository_module,
+        "build_work_item_execution_dossier",
+        lambda *_args, **_kwargs: {
+            "ok": True,
+            "project_id": "project-aresforge",
+            "work_item_id": "work-1",
+            "dossier_status": "active",
+            "suggested_operator_prompt": "Continue AresForge work item work-1.",
+        },
+    )
+    monkeypatch.setattr(
+        repository_module,
+        "render_work_item_execution_dossier_markdown",
+        lambda _payload: "# Work Item Execution Dossier\n",
+    )
+    payload = archive_work_item_operator_packet(
+        _FakeConnection(),
+        "work-1",
+        tmp_path / "operator-packets",
+        actor="local-test",
+    )
+    assert payload["ok"] is True
+    packet_dir = Path(payload["packet_dir"])
+    assert (packet_dir / "dossier.json").exists()
+    assert (packet_dir / "dossier.md").exists()
+    assert (packet_dir / "operator-prompt.txt").exists()
+    metadata_path = packet_dir / "packet-metadata.json"
+    assert metadata_path.exists()
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    assert metadata["project_id"] == "project-aresforge"
+    assert metadata["work_item_id"] == "work-1"
+    assert metadata["actor"] == "local-test"
+    assert "content_hashes" in metadata
+    assert sorted(metadata["files"]) == sorted(
+        ["dossier.json", "dossier.md", "operator-prompt.txt", "packet-metadata.json"]
+    )
+
+
+def test_archive_work_item_operator_packet_existing_without_force_fails_safely(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(
+        repository_module,
+        "build_work_item_execution_dossier",
+        lambda *_args, **_kwargs: {
+            "ok": True,
+            "project_id": "project-aresforge",
+            "work_item_id": "work-1",
+            "dossier_status": "active",
+            "suggested_operator_prompt": "Continue AresForge work item work-1.",
+        },
+    )
+    monkeypatch.setattr(
+        repository_module,
+        "render_work_item_execution_dossier_markdown",
+        lambda _payload: "# Work Item Execution Dossier\n",
+    )
+    first = archive_work_item_operator_packet(
+        _FakeConnection(),
+        "work-1",
+        tmp_path / "operator-packets",
+        actor="local-test",
+    )
+    packet_dir = Path(first["packet_dir"])
+    original_prompt = (packet_dir / "operator-prompt.txt").read_text(encoding="utf-8")
+    second = archive_work_item_operator_packet(
+        _FakeConnection(),
+        "work-1",
+        tmp_path / "operator-packets",
+        actor="local-test",
+        force=False,
+    )
+    assert second["ok"] is False
+    assert second["reason"] == "packet_exists"
+    assert (packet_dir / "operator-prompt.txt").read_text(encoding="utf-8") == original_prompt
+
+
+def test_archive_work_item_operator_packet_force_overwrites(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(
+        repository_module,
+        "build_work_item_execution_dossier",
+        lambda *_args, **_kwargs: {
+            "ok": True,
+            "project_id": "project-aresforge",
+            "work_item_id": "work-1",
+            "dossier_status": "active",
+            "suggested_operator_prompt": "prompt-v1",
+        },
+    )
+    monkeypatch.setattr(
+        repository_module,
+        "render_work_item_execution_dossier_markdown",
+        lambda _payload: "# v1\n",
+    )
+    first = archive_work_item_operator_packet(
+        _FakeConnection(),
+        "work-1",
+        tmp_path / "operator-packets",
+        actor="local-test",
+    )
+    packet_dir = Path(first["packet_dir"])
+    monkeypatch.setattr(
+        repository_module,
+        "build_work_item_execution_dossier",
+        lambda *_args, **_kwargs: {
+            "ok": True,
+            "project_id": "project-aresforge",
+            "work_item_id": "work-1",
+            "dossier_status": "active",
+            "suggested_operator_prompt": "prompt-v2",
+        },
+    )
+    overwritten = archive_work_item_operator_packet(
+        _FakeConnection(),
+        "work-1",
+        tmp_path / "operator-packets",
+        actor="local-test",
+        force=True,
+    )
+    assert overwritten["ok"] is True
+    assert overwritten["reason"] == "packet_archived_overwritten"
+    assert (packet_dir / "operator-prompt.txt").read_text(encoding="utf-8") == "prompt-v2"
 
 
 def test_inspect_project_queue_dashboard_empty_is_stable(

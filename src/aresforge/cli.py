@@ -36,6 +36,7 @@ from aresforge.db.repository import (
     inspect_work_item_lifecycle,
     build_work_item_execution_dossier,
     export_work_item_operator_prompt,
+    archive_work_item_operator_packet,
     handoff_work_item_to_implementation,
     start_work_item_if_ready,
     complete_work_item_if_ready,
@@ -57,6 +58,7 @@ from aresforge.db.repository import (
     render_work_item_lifecycle_markdown,
     render_work_item_execution_dossier_markdown,
     render_export_work_item_operator_prompt_markdown,
+    render_archive_work_item_operator_packet_markdown,
     render_implementation_handoff_markdown,
     render_start_work_item_markdown,
     render_work_item_completion_markdown,
@@ -543,6 +545,19 @@ def build_parser() -> argparse.ArgumentParser:
     export_operator_prompt_parser.add_argument("--output", required=True)
     export_operator_prompt_parser.add_argument("--force", action="store_true")
     export_operator_prompt_parser.add_argument(
+        "--format",
+        choices=("json", "markdown"),
+        default="json",
+    )
+    archive_operator_packet_parser = subparsers.add_parser(
+        "archive-work-item-operator-packet",
+        help="Archive a local operator packet with dossier and prompt for one work item.",
+    )
+    archive_operator_packet_parser.add_argument("--work-item-id", required=True)
+    archive_operator_packet_parser.add_argument("--output-dir", required=True)
+    archive_operator_packet_parser.add_argument("--actor", required=True)
+    archive_operator_packet_parser.add_argument("--force", action="store_true")
+    archive_operator_packet_parser.add_argument(
         "--format",
         choices=("json", "markdown"),
         default="json",
@@ -2386,6 +2401,21 @@ def main(argv: list[str] | None = None) -> int:
             )
         if args.format == "markdown":
             print(render_export_work_item_operator_prompt_markdown(payload))
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "archive-work-item-operator-packet":
+        with connect(config) as conn:
+            payload = archive_work_item_operator_packet(
+                conn,
+                args.work_item_id,
+                args.output_dir,
+                actor=args.actor,
+                force=bool(args.force),
+            )
+        if args.format == "markdown":
+            print(render_archive_work_item_operator_packet_markdown(payload))
             return 0 if bool(payload.get("ok")) else 1
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
