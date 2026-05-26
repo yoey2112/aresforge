@@ -43,6 +43,18 @@ QUEUE_ITEM_TYPES: tuple[str, ...] = (
     'other',
 )
 
+_QUEUE_ITEM_READINESS_BOUNDARY_CONFIRMATIONS: tuple[str, ...] = (
+    'Local-only queue item readiness inspection.',
+    'Read-only local queue inspection.',
+    'No GitHub API calls.',
+    'No gh calls.',
+    'No network service calls.',
+    'No mutations performed.',
+)
+_STARTABLE_QUEUE_STATUSES: frozenset[str] = frozenset({'ready'})
+_RESOLVED_DEPENDENCY_STATUSES: frozenset[str] = frozenset({'done'})
+_BLOCKED_QUEUE_STATUSES: frozenset[str] = frozenset({'blocked'})
+
 _SLUG_NON_ALNUM_RE = re.compile(r'[^a-z0-9]+')
 
 
@@ -603,6 +615,50 @@ def inspect_queue_item(
     )
 
 
+def inspect_local_queue_item_readiness(
+    config: AppConfig,
+    *,
+    item_id: str,
+    queue_path: str | Path | None = None,
+    registry_path: str | Path | None = None,
+) -> dict[str, Any]:
+    resolved_queue_path = resolve_project_queue_path(config.repo_root, queue_path)
+    loaded = _load_queue_required(resolved_queue_path)
+    if not loaded.get('ok', False):
+        return loaded
+    queue = loaded['queue']
+
+    items = [_item_view(item) for item in queue.get('work_items', []) if isinstance(item, dict)]
+    normalized_item_id = str(item_id or '').strip()
+    item = next((candidate for candidate in items if candidate.get('item_id') == normalized_item_id), None)
+    if item is None:
+        return {
+            'command': 'inspect-local-queue-item-readiness',
+            'ok': False,
+            'local_only': True,
+            'item_id': normalized_item_id,
+            'title': '',
+            'status': '',
+            'project_id': '',
+            'repo_id': '',
+            'readiness_status': 'not_found',
+            'can_start': False,
+            'blockers': [f'Queue item not found: {normalized_item_id}'],
+            'warnings': [],
+            'missing_fields': [],
+            'dependency_summary': _empty_dependency_summary(),
+            'recommended_next_action': 'Inspect the local queue and choose a valid item_id.',
+            'boundary_confirmations': list(_QUEUE_ITEM_READINESS_BOUNDARY_CONFIRMATIONS),
+        }
+
+    return _evaluate_local_queue_item_readiness(
+        repo_root=config.repo_root,
+        item=item,
+        items=items,
+        registry_path=registry_path,
+    )
+
+
 def project_queue_summary_for_handoff(config: AppConfig) -> dict[str, Any] | None:
     queue_path = resolve_project_queue_path(config.repo_root, None)
     if not queue_path.exists():
@@ -783,6 +839,257 @@ def _normalize_list(values: list[str]) -> list[str]:
         if item and item not in normalized:
             normalized.append(item)
     return normalized
+
+
+def _evaluate_local_queue_item_readiness(
+    *,
+    repo_root: Path,
+    item: dict[str, Any],
+    items: list[dict[str, Any]],
+    registry_path: str | Path | None,
+) -> dict[str, Any]:
+    blockers: list[str] = []
+    warnings: list[str] = []
+    missing_fields = _missing_queue_item_fields(item)
+    dependency_summary = _dependency_readiness_summary(item, items)
+
+    status = str(item.get('status', '')).strip()
+    project_id = str(item.get('project_id', '')).strip()
+    repo_id = str(item.get('repo_id', '')).strip()
+    title = str(item.get('title', '')).strip()
+
+    if status in _BLOCKED_QUEUE_STATUSES:
+        blockers.append('Queue item status is blocked.')
+    elif status == 'in_progress':
+        blockers.append('Queue item is already in progress.')
+    elif status == 'done':
+        blockers.append('Queue item is already done.')
+    elif status == 'cancelled':
+        blockers.append('Queue item is cancelled.')
+    elif status not in _STARTABLE_QUEUE_STATUSES:
+        warnings.append('Queue item status must be ready before work should start.')
+
+    binding_check = _inspect_registry_binding_readiness(
+        repo_root=repo_root,
+        project_id=project_id,
+        repo_id=repo_id,
+        registry_path=registry_path,
+    )
+    blockers.extend(binding_check['blockers'])
+    warnings.extend(binding_check['warnings'])
+
+    blockers.extend(dependency_summary['blockers'])
+    warnings.extend(dependency_summary['warnings'])
+
+    can_start = status in _STARTABLE_QUEUE_STATUSES and not blockers and not missing_fields
+    if can_start:
+        readiness_status = 'ready'
+    elif blockers:
+        readiness_status = 'blocked'
+    else:
+        readiness_status = 'needs_attention'
+
+    return {
+        'command': 'inspect-local-queue-item-readiness',
+        'ok': True,
+        'local_only': True,
+        'item_id': str(item.get('item_id', '')).strip(),
+        'title': title,
+        'status': status,
+        'project_id': project_id,
+        'repo_id': repo_id,
+        'readiness_status': readiness_status,
+        'can_start': can_start,
+        'blockers': sorted(set(blockers)),
+        'warnings': sorted(set(warnings)),
+        'missing_fields': missing_fields,
+        'dependency_summary': dependency_summary['payload'],
+        'recommended_next_action': _recommended_queue_item_next_action(
+            item_id=str(item.get('item_id', '')).strip(),
+            status=status,
+            readiness_status=readiness_status,
+            missing_fields=missing_fields,
+            dependency_payload=dependency_summary['payload'],
+            binding_blockers=binding_check['blockers'],
+        ),
+        'boundary_confirmations': list(_QUEUE_ITEM_READINESS_BOUNDARY_CONFIRMATIONS),
+    }
+
+
+def _missing_queue_item_fields(item: dict[str, Any]) -> list[str]:
+    missing_fields: list[str] = []
+    if not str(item.get('title', '')).strip():
+        missing_fields.append('title')
+    if not str(item.get('project_id', '')).strip():
+        missing_fields.append('project_id')
+    if not str(item.get('repo_id', '')).strip():
+        missing_fields.append('repo_id')
+    has_execution_context = bool(str(item.get('description', '')).strip() or str(item.get('notes', '')).strip())
+    if not has_execution_context:
+        missing_fields.append('execution_context')
+    return sorted(set(missing_fields))
+
+
+def _empty_dependency_summary() -> dict[str, Any]:
+    return {
+        'total_dependencies': 0,
+        'resolved_dependencies': [],
+        'unresolved_dependencies': [],
+        'total_blocked_by': 0,
+        'unresolved_blockers': [],
+    }
+
+
+def _dependency_readiness_summary(item: dict[str, Any], items: list[dict[str, Any]]) -> dict[str, Any]:
+    by_id = {str(candidate.get('item_id', '')).strip(): candidate for candidate in items if str(candidate.get('item_id', '')).strip()}
+    dependencies = _normalize_list(item.get('dependencies', []) if isinstance(item.get('dependencies'), list) else [])
+    blocked_by = _normalize_list(item.get('blocked_by', []) if isinstance(item.get('blocked_by'), list) else [])
+    resolved_dependencies: list[str] = []
+    unresolved_dependencies: list[dict[str, str]] = []
+    unresolved_blockers: list[dict[str, str]] = []
+    blockers: list[str] = []
+    warnings: list[str] = []
+
+    for dependency_id in dependencies:
+        dependency_item = by_id.get(dependency_id)
+        if dependency_item is None:
+            unresolved_dependencies.append(
+                {'item_id': dependency_id, 'status': 'unknown', 'reason': 'dependency_not_found'}
+            )
+            blockers.append(f'Dependency item not found in local queue: {dependency_id}')
+            continue
+        dependency_status = str(dependency_item.get('status', '')).strip()
+        if dependency_status in _RESOLVED_DEPENDENCY_STATUSES:
+            resolved_dependencies.append(dependency_id)
+            continue
+        reason = 'dependency_incomplete'
+        if dependency_status in _BLOCKED_QUEUE_STATUSES:
+            reason = 'dependency_blocked'
+        unresolved_dependencies.append(
+            {'item_id': dependency_id, 'status': dependency_status or 'unknown', 'reason': reason}
+        )
+        blockers.append(
+            f'Dependency must be done before start: {dependency_id} (status={dependency_status or "unknown"})'
+        )
+
+    for blocker_id in blocked_by:
+        blocker_item = by_id.get(blocker_id)
+        if blocker_item is None:
+            unresolved_blockers.append(
+                {'item_id': blocker_id, 'status': 'unknown', 'reason': 'blocker_not_found'}
+            )
+            blockers.append(f'Blocked-by item not found in local queue: {blocker_id}')
+            continue
+        blocker_status = str(blocker_item.get('status', '')).strip()
+        if blocker_status in _RESOLVED_DEPENDENCY_STATUSES:
+            continue
+        unresolved_blockers.append(
+            {'item_id': blocker_id, 'status': blocker_status or 'unknown', 'reason': 'blocker_not_resolved'}
+        )
+        blockers.append(
+            f'Blocked-by item must be resolved before start: {blocker_id} (status={blocker_status or "unknown"})'
+        )
+
+    if dependencies and not unresolved_dependencies:
+        warnings.append('Dependencies are present and currently resolved.')
+
+    return {
+        'payload': {
+            'total_dependencies': len(dependencies),
+            'resolved_dependencies': resolved_dependencies,
+            'unresolved_dependencies': unresolved_dependencies,
+            'total_blocked_by': len(blocked_by),
+            'unresolved_blockers': unresolved_blockers,
+        },
+        'blockers': blockers,
+        'warnings': warnings,
+    }
+
+
+def _inspect_registry_binding_readiness(
+    *,
+    repo_root: Path,
+    project_id: str,
+    repo_id: str,
+    registry_path: str | Path | None,
+) -> dict[str, list[str]]:
+    blockers: list[str] = []
+    warnings: list[str] = []
+
+    if not project_id:
+        blockers.append('Queue item project_id is missing.')
+    if not repo_id:
+        blockers.append('Queue item repo_id is missing.')
+    if blockers:
+        return {'blockers': blockers, 'warnings': warnings}
+
+    project_lookup = _lookup_registry_project(
+        repo_root=repo_root,
+        project_id=project_id,
+        registry_path=registry_path,
+    )
+    warnings.extend(
+        str(warning).strip()
+        for warning in project_lookup.get('warnings', [])
+        if str(warning).strip()
+    )
+    if not project_lookup.get('ok', False):
+        details = project_lookup.get('details', {}) if isinstance(project_lookup.get('details'), dict) else {}
+        blockers.append(str(details.get('message', project_lookup.get('error', 'registry_validation_failed'))))
+        return {'blockers': blockers, 'warnings': warnings}
+    if project_lookup.get('project') is None:
+        blockers.append('Managed project registry is unavailable for project/repo validation.')
+        return {'blockers': blockers, 'warnings': warnings}
+
+    binding = _validate_registry_binding(
+        repo_root=repo_root,
+        project_id=project_id,
+        repo_id=repo_id,
+        registry_path=registry_path,
+    )
+    warnings.extend(
+        str(warning).strip()
+        for warning in binding.get('warnings', [])
+        if str(warning).strip()
+    )
+    if not binding.get('ok', False):
+        details = binding.get('details', {}) if isinstance(binding.get('details'), dict) else {}
+        blockers.append(str(details.get('message', binding.get('error', 'registry_binding_invalid'))))
+
+    return {
+        'blockers': sorted(set(blockers)),
+        'warnings': sorted(set(warnings)),
+    }
+
+
+def _recommended_queue_item_next_action(
+    *,
+    item_id: str,
+    status: str,
+    readiness_status: str,
+    missing_fields: list[str],
+    dependency_payload: dict[str, Any],
+    binding_blockers: list[str],
+) -> str:
+    if readiness_status == 'ready':
+        return f'Queue item is ready to start. Continue local operator work for {item_id}.'
+    if readiness_status == 'not_found':
+        return 'Inspect the local queue and choose a valid item_id.'
+    if binding_blockers:
+        return 'Repair local project/repo registry bindings before starting work.'
+    if list(dependency_payload.get('unresolved_dependencies', [])) or list(dependency_payload.get('unresolved_blockers', [])):
+        return 'Resolve or complete local queue dependencies before starting work.'
+    if missing_fields:
+        return 'Fill missing queue item execution fields before starting work.'
+    if status == 'proposed':
+        return f'Move {item_id} to ready after execution prep is complete.'
+    if status == 'in_progress':
+        return 'Continue the in-progress item instead of starting it again.'
+    if status in {'done', 'cancelled'}:
+        return 'No start action is available for completed or cancelled items.'
+    if status == 'blocked':
+        return 'Resolve the blocked state before attempting to start this queue item.'
+    return 'Inspect the queue item and resolve remaining local readiness gaps.'
 
 
 def _compose_notes_with_acceptance_criteria(acceptance_criteria: list[str] | None) -> str | None:

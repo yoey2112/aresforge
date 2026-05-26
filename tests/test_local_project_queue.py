@@ -7,6 +7,7 @@ from aresforge.operator.local_project_queue import (
     add_local_queue_item,
     add_queue_item,
     init_project_queue,
+    inspect_local_queue_item_readiness,
     inspect_project_queue,
     inspect_queue_item,
     resolve_project_queue_path,
@@ -495,3 +496,167 @@ def test_add_local_queue_item_infers_existing_prefix_when_state_milestone_missin
 
     assert payload['ok'] is True
     assert payload['item_id'].startswith('m15-infer-queue-prefix')
+
+
+def test_inspect_local_queue_item_readiness_ready_item(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert init_managed_project_registry(config)['ok'] is True
+    assert register_managed_project(
+        config,
+        project_id='project-one',
+        name='Project One',
+        root_path=str(tmp_path),
+        primary_repo_id='repo-main',
+    )['ok'] is True
+    assert register_managed_repo(
+        config,
+        project_id='project-one',
+        repo_id='repo-main',
+        name='Repo Main',
+        path=str(tmp_path),
+        role='primary',
+    )['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='dep-done',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Done dependency',
+        description='Already complete.',
+        status='done',
+    )['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='ready-item',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Ready item',
+        description='Ready to start.',
+        status='ready',
+        dependencies=['dep-done'],
+    )['ok'] is True
+
+    payload = inspect_local_queue_item_readiness(config, item_id='ready-item')
+
+    assert payload['ok'] is True
+    assert payload['readiness_status'] == 'ready'
+    assert payload['can_start'] is True
+    assert payload['missing_fields'] == []
+    assert payload['dependency_summary']['resolved_dependencies'] == ['dep-done']
+
+
+def test_inspect_local_queue_item_readiness_missing_item(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+
+    payload = inspect_local_queue_item_readiness(config, item_id='missing-item')
+
+    assert payload['ok'] is False
+    assert payload['readiness_status'] == 'not_found'
+    assert payload['can_start'] is False
+
+
+def test_inspect_local_queue_item_readiness_missing_required_field(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert init_managed_project_registry(config)['ok'] is True
+    assert register_managed_project(
+        config,
+        project_id='project-one',
+        name='Project One',
+        root_path=str(tmp_path),
+        primary_repo_id='repo-main',
+    )['ok'] is True
+    assert register_managed_repo(
+        config,
+        project_id='project-one',
+        repo_id='repo-main',
+        name='Repo Main',
+        path=str(tmp_path),
+        role='primary',
+    )['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='missing-context',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Missing context',
+        status='ready',
+    )['ok'] is True
+
+    payload = inspect_local_queue_item_readiness(config, item_id='missing-context')
+
+    assert payload['ok'] is True
+    assert payload['readiness_status'] == 'needs_attention'
+    assert payload['can_start'] is False
+    assert 'execution_context' in payload['missing_fields']
+
+
+def test_inspect_local_queue_item_readiness_blocked_by_dependency(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert init_managed_project_registry(config)['ok'] is True
+    assert register_managed_project(
+        config,
+        project_id='project-one',
+        name='Project One',
+        root_path=str(tmp_path),
+        primary_repo_id='repo-main',
+    )['ok'] is True
+    assert register_managed_repo(
+        config,
+        project_id='project-one',
+        repo_id='repo-main',
+        name='Repo Main',
+        path=str(tmp_path),
+        role='primary',
+    )['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='blocked-dependency',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Blocked dependency',
+        description='Still blocked.',
+        status='blocked',
+    )['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='waiting-item',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Waiting item',
+        description='Depends on blocked work.',
+        status='ready',
+        dependencies=['blocked-dependency'],
+    )['ok'] is True
+
+    payload = inspect_local_queue_item_readiness(config, item_id='waiting-item')
+
+    assert payload['ok'] is True
+    assert payload['readiness_status'] == 'blocked'
+    assert payload['can_start'] is False
+    assert payload['dependency_summary']['unresolved_dependencies'][0]['item_id'] == 'blocked-dependency'
+
+
+def test_inspect_local_queue_item_readiness_is_read_only(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='readonly-item',
+        project_id='p1',
+        repo_id='r1',
+        title='Read only',
+        description='Do not mutate queue file.',
+        status='ready',
+    )['ok'] is True
+    queue_path = resolve_project_queue_path(config.repo_root, None)
+    before = queue_path.read_text(encoding='utf-8')
+
+    payload = inspect_local_queue_item_readiness(config, item_id='readonly-item')
+
+    after = queue_path.read_text(encoding='utf-8')
+    assert payload['ok'] is True
+    assert before == after

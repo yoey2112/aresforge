@@ -197,6 +197,7 @@ from aresforge.operator.local_project_queue import (
     add_local_queue_item,
     add_queue_item,
     init_project_queue,
+    inspect_local_queue_item_readiness,
     inspect_project_queue,
     inspect_queue_item,
     update_queue_item,
@@ -1439,6 +1440,13 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["json", "markdown"],
         default="json",
     )
+    inspect_local_queue_item_readiness_parser = subparsers.add_parser(
+        "inspect-local-queue-item-readiness",
+        help="Inspect whether one local queue item is ready to start.",
+    )
+    inspect_local_queue_item_readiness_parser.add_argument("--item-id", required=True)
+    inspect_local_queue_item_readiness_parser.add_argument("--queue-path")
+    inspect_local_queue_item_readiness_parser.add_argument("--registry-path")
     inspect_local_project_dashboard_parser = subparsers.add_parser(
         "inspect-local-project-dashboard",
         help="Inspect read-only local project dashboard contract payload.",
@@ -3470,6 +3478,16 @@ def main(argv: list[str] | None = None) -> int:
         if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
             print(payload["stdout"])
             return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-local-queue-item-readiness":
+        payload = inspect_local_queue_item_readiness(
+            config,
+            item_id=args.item_id,
+            queue_path=args.queue_path,
+            registry_path=args.registry_path,
+        )
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 

@@ -187,3 +187,70 @@ def test_cli_add_local_queue_item_missing_title_validation(monkeypatch, capsys, 
     payload = json.loads(capsys.readouterr().out)
     assert payload['ok'] is False
     assert payload['error'] == 'invalid_local_queue_item_payload'
+
+
+def test_cli_inspect_local_queue_item_readiness_stable_keys(monkeypatch, capsys, tmp_path: Path) -> None:
+    monkeypatch.setattr(cli.AppConfig, 'from_env', lambda: _config(tmp_path))
+    config = _config(tmp_path)
+    assert init_managed_project_registry(config)['ok'] is True
+    assert register_managed_project(
+        config,
+        project_id='project-one',
+        name='Project One',
+        root_path=str(tmp_path),
+        primary_repo_id='repo-main',
+    )['ok'] is True
+    assert register_managed_repo(
+        config,
+        project_id='project-one',
+        repo_id='repo-main',
+        name='Repo Main',
+        path=str(tmp_path),
+        role='primary',
+    )['ok'] is True
+    assert cli.main(['init-project-queue']) == 0
+    _ = capsys.readouterr().out
+    assert (
+        cli.main(
+            [
+                'add-queue-item',
+                '--item-id',
+                'ready-item',
+                '--project-id',
+                'project-one',
+                '--repo-id',
+                'repo-main',
+                '--title',
+                'Ready item',
+                '--description',
+                'Ready to start.',
+                '--status',
+                'ready',
+            ]
+        )
+        == 0
+    )
+    _ = capsys.readouterr().out
+
+    assert cli.main(['inspect-local-queue-item-readiness', '--item-id', 'ready-item']) == 0
+    payload = json.loads(capsys.readouterr().out)
+    for key in (
+        'ok',
+        'local_only',
+        'item_id',
+        'title',
+        'status',
+        'project_id',
+        'repo_id',
+        'readiness_status',
+        'can_start',
+        'blockers',
+        'warnings',
+        'missing_fields',
+        'dependency_summary',
+        'recommended_next_action',
+        'boundary_confirmations',
+    ):
+        assert key in payload
+    assert payload['item_id'] == 'ready-item'
+    assert payload['readiness_status'] == 'ready'
