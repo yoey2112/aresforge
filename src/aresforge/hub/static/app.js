@@ -47,6 +47,22 @@ import {
   statusBadgeText,
 } from "/js/sections/reports.js";
 import {
+  approveArchitecture as approveArchitectureSection,
+  approveScope as approveScopeSection,
+  bindProjectFactoryArchitectureActions,
+  bindProjectFactoryScopeActions,
+  buildArchitectureAuthoringPayload as buildArchitectureAuthoringPayloadSection,
+  buildScopeAuthoringPayload as buildScopeAuthoringPayloadSection,
+  loadArchitectureContract as loadArchitectureContractSection,
+  loadScopePackage as loadScopePackageSection,
+  prepareArchitectureContract as prepareArchitectureContractSection,
+  prepareScopePackage as prepareScopePackageSection,
+  renderArchitectureAuthoring as renderArchitectureAuthoringSection,
+  renderScopeAuthoring as renderScopeAuthoringSection,
+  saveArchitectureDraft as saveArchitectureDraftSection,
+  saveScopeDraft as saveScopeDraftSection,
+} from "/js/sections/projectFactory/index.js";
+import {
   bindReposActions,
   inspectRepoGitHubLinkSection,
   loadReposSection,
@@ -290,138 +306,29 @@ async function loadProjectFactoryDossier(projectId) {
 }
 
 async function prepareScopePackage() {
-  const payload = await fetchJson("/api/project-factory/scope-package", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(prunePayload({ project_id: activeProjectId() })),
-  });
-  return payload;
+  return prepareScopePackageSection(activeProjectId);
 }
 
 function buildScopeAuthoringPayload() {
-  return prunePayload({
-    project_id: activeProjectId(),
-    requirements: parseLineList(byId("scope-requirements").value),
-    constraints: parseLineList(byId("scope-constraints").value),
-    assumptions: parseLineList(byId("scope-assumptions").value),
-    acceptance_criteria: parseLineList(byId("scope-acceptance-criteria").value),
-    risks: parseLineList(byId("scope-risks").value),
-    out_of_scope: parseLineList(byId("scope-out-of-scope").value),
-    stakeholders: parseLineList(byId("scope-stakeholders").value),
-    notes: byId("scope-notes").value.trim(),
+  return buildScopeAuthoringPayloadSection({
+    activeProjectId,
+    parseLineList,
   });
 }
 
 function renderScopeAuthoring(payload) {
-  state.scopePackage = payload || null;
-  const message = byId("home-scope-authoring-message");
-  const stateLine = byId("home-scope-authoring-state");
-  const scopeExists = Boolean(payload && payload.scope_package_exists);
-  const scopePackage = (payload && payload.scope_package) || {};
-  if (!scopeExists) {
-    byId("scope-requirements").value = "";
-    byId("scope-constraints").value = "";
-    byId("scope-assumptions").value = "";
-    byId("scope-acceptance-criteria").value = "";
-    byId("scope-risks").value = "";
-    byId("scope-out-of-scope").value = "";
-    byId("scope-stakeholders").value = "";
-    byId("scope-notes").value = "";
-    setList("home-scope-audit-trail", "home-scope-audit-trail-empty", []);
-    if (message) {
-      message.textContent = "No scope package found. Use Prepare Scope Package first for the active project.";
-    }
-    if (stateLine) {
-      stateLine.textContent = "Scope lifecycle state: not_started";
-    }
-    return;
-  }
-
-  byId("scope-requirements").value = toTextareaList(scopePackage.requirements);
-  byId("scope-constraints").value = toTextareaList(scopePackage.constraints);
-  byId("scope-assumptions").value = toTextareaList(scopePackage.assumptions);
-  byId("scope-acceptance-criteria").value = toTextareaList(scopePackage.acceptance_criteria);
-  byId("scope-risks").value = toTextareaList(scopePackage.risks);
-  byId("scope-out-of-scope").value = toTextareaList(scopePackage.out_of_scope);
-  byId("scope-stakeholders").value = toTextareaList(scopePackage.stakeholders);
-  byId("scope-notes").value = String(scopePackage.notes || "");
-  setList(
-    "home-scope-audit-trail",
-    "home-scope-audit-trail-empty",
-    (scopePackage.audit_trail || []).map((entry) => `${entry.timestamp || "-"} | ${entry.event_type || "-"} | state=${entry.lifecycle_state || "-"} | actor=${entry.actor || "-"}`)
-  );
-  if (message) {
-    message.textContent = "Scope authoring is local-only. No GitHub or model execution is triggered.";
-  }
-  if (stateLine) {
-    stateLine.textContent = `Scope lifecycle state: ${scopePackage.lifecycle_state || "not_started"}`;
-  }
+  renderScopeAuthoringSection(state, payload, { toTextareaList });
 }
 
 function buildArchitectureAuthoringPayload() {
-  return prunePayload({
-    project_id: activeProjectId(),
-    architecture_summary: byId("architecture-summary").value.trim(),
-    system_components: parseLineList(byId("architecture-system-components").value),
-    data_model_notes: parseLineList(byId("architecture-data-model-notes").value),
-    integration_points: parseLineList(byId("architecture-integration-points").value),
-    security_considerations: parseLineList(byId("architecture-security-considerations").value),
-    deployment_notes: parseLineList(byId("architecture-deployment-notes").value),
-    testing_strategy: parseLineList(byId("architecture-testing-strategy").value),
-    documentation_plan: parseLineList(byId("architecture-documentation-plan").value),
-    open_questions: parseLineList(byId("architecture-open-questions").value),
-    milestone_planning_notes: byId("architecture-milestone-planning-notes").value.trim(),
+  return buildArchitectureAuthoringPayloadSection({
+    activeProjectId,
+    parseLineList,
   });
 }
 
 function renderArchitectureAuthoring(payload) {
-  state.architectureContract = payload || null;
-  const message = byId("home-architecture-authoring-message");
-  const stateLine = byId("home-architecture-authoring-state");
-  const exists = Boolean(payload && payload.architecture_contract_exists);
-  const contract = (payload && payload.architecture_contract) || {};
-  if (!exists) {
-    byId("architecture-summary").value = "";
-    byId("architecture-system-components").value = "";
-    byId("architecture-data-model-notes").value = "";
-    byId("architecture-integration-points").value = "";
-    byId("architecture-security-considerations").value = "";
-    byId("architecture-deployment-notes").value = "";
-    byId("architecture-testing-strategy").value = "";
-    byId("architecture-documentation-plan").value = "";
-    byId("architecture-open-questions").value = "";
-    byId("architecture-milestone-planning-notes").value = "";
-    setList("home-architecture-audit-trail", "home-architecture-audit-trail-empty", []);
-    if (message) {
-      message.textContent = "No architecture contract found. Approve scope first, then prepare architecture contract.";
-    }
-    if (stateLine) {
-      stateLine.textContent = "Architecture lifecycle state: not_started";
-    }
-    return;
-  }
-
-  byId("architecture-summary").value = String(contract.architecture_summary || "");
-  byId("architecture-system-components").value = toTextareaList(contract.system_components);
-  byId("architecture-data-model-notes").value = toTextareaList(contract.data_model_notes);
-  byId("architecture-integration-points").value = toTextareaList(contract.integration_points);
-  byId("architecture-security-considerations").value = toTextareaList(contract.security_considerations);
-  byId("architecture-deployment-notes").value = toTextareaList(contract.deployment_notes);
-  byId("architecture-testing-strategy").value = toTextareaList(contract.testing_strategy);
-  byId("architecture-documentation-plan").value = toTextareaList(contract.documentation_plan);
-  byId("architecture-open-questions").value = toTextareaList(contract.open_questions);
-  byId("architecture-milestone-planning-notes").value = String(contract.milestone_planning_notes || "");
-  setList(
-    "home-architecture-audit-trail",
-    "home-architecture-audit-trail-empty",
-    (contract.audit_trail || []).map((entry) => `${entry.timestamp || "-"} | ${entry.event_type || "-"} | state=${entry.lifecycle_state || "-"} | actor=${entry.actor || "-"}`)
-  );
-  if (message) {
-    message.textContent = "Architecture authoring is local-only. No GitHub or model execution is triggered.";
-  }
-  if (stateLine) {
-    stateLine.textContent = `Architecture lifecycle state: ${contract.lifecycle_state || "not_started"}`;
-  }
+  renderArchitectureAuthoringSection(state, payload, { toTextareaList });
 }
 
 function _parseJsonArray(text, fieldName) {
@@ -884,17 +791,11 @@ function renderExecutionReadiness(payload) {
 }
 
 async function loadScopePackage(projectId) {
-  const query = toQuery({ project_id: projectId || "" });
-  const payload = await fetchJson(`/api/project-factory/scope-package${query}`, { method: "GET" });
-  renderScopeAuthoring(payload);
-  return payload;
+  return loadScopePackageSection(projectId, { renderScopeAuthoringForState: renderScopeAuthoring });
 }
 
 async function loadArchitectureContract(projectId) {
-  const query = toQuery({ project_id: projectId || "" });
-  const payload = await fetchJson(`/api/project-factory/architecture-contract${query}`, { method: "GET" });
-  renderArchitectureAuthoring(payload);
-  return payload;
+  return loadArchitectureContractSection(projectId, { renderArchitectureAuthoringForState: renderArchitectureAuthoring });
 }
 
 async function loadMilestoneIssuePlan(projectId) {
@@ -947,48 +848,23 @@ async function loadExecutionReadiness(projectId) {
 }
 
 async function saveScopeDraft() {
-  const payload = await fetchJson("/api/project-factory/scope-package", {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(buildScopeAuthoringPayload()),
-  });
-  return payload;
+  return saveScopeDraftSection(buildScopeAuthoringPayload);
 }
 
 async function approveScope() {
-  const payload = await fetchJson("/api/project-factory/scope-package/approve", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(prunePayload({ project_id: activeProjectId() })),
-  });
-  return payload;
+  return approveScopeSection(activeProjectId);
 }
 
 async function prepareArchitectureContract() {
-  const payload = await fetchJson("/api/project-factory/architecture-contract", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(prunePayload({ project_id: activeProjectId() })),
-  });
-  return payload;
+  return prepareArchitectureContractSection(activeProjectId);
 }
 
 async function saveArchitectureDraft() {
-  const payload = await fetchJson("/api/project-factory/architecture-contract", {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(buildArchitectureAuthoringPayload()),
-  });
-  return payload;
+  return saveArchitectureDraftSection(buildArchitectureAuthoringPayload);
 }
 
 async function approveArchitecture() {
-  const payload = await fetchJson("/api/project-factory/architecture-contract/approve", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(prunePayload({ project_id: activeProjectId() })),
-  });
-  return payload;
+  return approveArchitectureSection(activeProjectId);
 }
 
 async function prepareMilestoneIssuePlan() {
@@ -1599,87 +1475,6 @@ function bindForms() {
     }
   });
 
-  on("home-prepare-scope-package", "click", async () => {
-    try {
-      setMessage("projects-message", "Preparing local scope package placeholder...", "loading");
-      await prepareScopePackage();
-      await loadProjectFactoryDossier(activeProjectId());
-      await loadScopePackage(activeProjectId());
-      await refreshSummaryAndReport();
-      setMessage("projects-message", "Scope package prepared locally.", "success");
-    } catch (error) {
-      setMessage("projects-message", String(error.message || error), "error");
-    }
-  });
-
-  on("scope-save-draft", "click", async () => {
-    try {
-      setMessage("projects-message", "Saving local scope draft...", "loading");
-      await saveScopeDraft();
-      await loadScopePackage(activeProjectId());
-      await loadProjectFactoryDossier(activeProjectId());
-      await refreshSummaryAndReport();
-      setMessage("projects-message", "Scope draft saved.", "success");
-    } catch (error) {
-      setMessage("projects-message", String(error.message || error), "error");
-    }
-  });
-
-  on("scope-approve", "click", async () => {
-    try {
-      setMessage("projects-message", "Approving local scope package...", "loading");
-      await approveScope();
-      await loadScopePackage(activeProjectId());
-      await loadProjectFactoryDossier(activeProjectId());
-      await loadArchitectureContract(activeProjectId());
-      await refreshSummaryAndReport();
-      setMessage("projects-message", "Scope approved.", "success");
-    } catch (error) {
-      setMessage("projects-message", String(error.message || error), "error");
-    }
-  });
-
-  on("home-prepare-architecture-contract", "click", async () => {
-    try {
-      setMessage("projects-message", "Preparing local architecture contract placeholder...", "loading");
-      await prepareArchitectureContract();
-      await loadArchitectureContract(activeProjectId());
-      await loadProjectFactoryDossier(activeProjectId());
-      await refreshSummaryAndReport();
-      setMessage("projects-message", "Architecture contract prepared locally.", "success");
-    } catch (error) {
-      setMessage("projects-message", String(error.message || error), "error");
-    }
-  });
-
-  on("architecture-save-draft", "click", async () => {
-    try {
-      setMessage("projects-message", "Saving local architecture draft...", "loading");
-      await saveArchitectureDraft();
-      await loadArchitectureContract(activeProjectId());
-      await loadProjectFactoryDossier(activeProjectId());
-      await refreshSummaryAndReport();
-      setMessage("projects-message", "Architecture draft saved.", "success");
-    } catch (error) {
-      setMessage("projects-message", String(error.message || error), "error");
-    }
-  });
-
-  on("architecture-approve", "click", async () => {
-    try {
-      setMessage("projects-message", "Approving local architecture contract...", "loading");
-      await approveArchitecture();
-      await loadArchitectureContract(activeProjectId());
-      await loadProjectFactoryDossier(activeProjectId());
-      await loadMilestoneIssuePlan(activeProjectId());
-      await loadGithubApplyPlan(activeProjectId());
-      await refreshSummaryAndReport();
-      setMessage("projects-message", "Architecture approved.", "success");
-    } catch (error) {
-      setMessage("projects-message", String(error.message || error), "error");
-    }
-  });
-
   on("home-prepare-milestone-issue-plan", "click", async () => {
     try {
       setMessage("projects-message", "Preparing local milestone/issue plan placeholder...", "loading");
@@ -1934,6 +1729,27 @@ async function init() {
   bindNavigation();
   bindHomeQuickNavActions({ activateSection });
   bindForms();
+  bindProjectFactoryScopeActions({
+    activeProjectId,
+    prepareScopePackageForState: prepareScopePackage,
+    saveScopeDraftForState: saveScopeDraft,
+    approveScopeForState: approveScope,
+    loadProjectFactoryDossier,
+    loadScopePackageForState: loadScopePackage,
+    loadArchitectureContractForState: loadArchitectureContract,
+    refreshSummaryAndReport,
+  });
+  bindProjectFactoryArchitectureActions({
+    activeProjectId,
+    prepareArchitectureContractForState: prepareArchitectureContract,
+    saveArchitectureDraftForState: saveArchitectureDraft,
+    approveArchitectureForState: approveArchitecture,
+    loadArchitectureContractForState: loadArchitectureContract,
+    loadProjectFactoryDossier,
+    loadMilestoneIssuePlan,
+    loadGithubApplyPlan,
+    refreshSummaryAndReport,
+  });
   bindProjectsActions({
     parseCommaList,
     reloadProjects: loadProjects,
