@@ -224,6 +224,7 @@ from aresforge.operator.local_project_readiness import (
     inspect_local_project_readiness,
     list_local_projects,
 )
+from aresforge.operator.local_queue_agent_summary import inspect_local_queue_agent_summary
 from aresforge.hub.server import serve_hub
 from aresforge.operator.milestone_reconciliation_planner import plan_milestone_final_reconciliation
 from aresforge.operator.preflight_snapshot import (
@@ -1443,6 +1444,15 @@ def build_parser() -> argparse.ArgumentParser:
     )
     inspect_local_project_readiness_parser.add_argument("--project-id", required=True)
     inspect_local_project_readiness_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+    )
+    inspect_local_queue_agent_summary_parser = subparsers.add_parser(
+        "inspect-local-queue-agent-summary",
+        help="Inspect read-only local queue and agent workload summary contract.",
+    )
+    inspect_local_queue_agent_summary_parser.add_argument(
         "--format",
         choices=["json"],
         default="json",
@@ -3427,6 +3437,10 @@ def main(argv: list[str] | None = None) -> int:
         payload = inspect_local_project_readiness(config, project_id=args.project_id)
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-local-queue-agent-summary":
+        emit_json(inspect_local_queue_agent_summary(config))
+        return 0
 
     if args.command == "init-agent-profiles":
         payload = init_agent_profiles(
