@@ -26,6 +26,7 @@ _VAGUE_TEXT_VALUES = {
 
 _BLOCKED_STATUSES = {"blocked"}
 _DONE_STATUSES = {"done", "cancelled"}
+_ACTIVE_QUEUE_STATUSES = {"proposed", "ready", "in_progress", "blocked"}
 
 
 def generate_llm_escalation_plan(
@@ -373,10 +374,10 @@ def _apply_filters(
     repo_id: str | None,
     status: str | None,
 ) -> list[dict[str, Any]]:
-    item_value = item_id.strip() if isinstance(item_id, str) else None
-    project_value = project_id.strip() if isinstance(project_id, str) else None
-    repo_value = repo_id.strip() if isinstance(repo_id, str) else None
-    status_value = status.strip() if isinstance(status, str) else None
+    item_value = item_id.strip() if isinstance(item_id, str) and item_id.strip() else None
+    project_value = project_id.strip() if isinstance(project_id, str) and project_id.strip() else None
+    repo_value = repo_id.strip() if isinstance(repo_id, str) and repo_id.strip() else None
+    status_value = status.strip() if isinstance(status, str) and status.strip() else None
 
     filtered: list[dict[str, Any]] = []
     for item in items:
@@ -386,7 +387,10 @@ def _apply_filters(
             continue
         if repo_value is not None and item.get("repo_id") != repo_value:
             continue
-        if status_value is not None and item.get("status") != status_value:
+        item_status = str(item.get("status", "")).strip().lower()
+        if status_value is not None and item_status != status_value:
+            continue
+        if status_value is None and item_status not in _ACTIVE_QUEUE_STATUSES:
             continue
         filtered.append(item)
     return filtered
