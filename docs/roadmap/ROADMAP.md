@@ -1,5 +1,24 @@
 # AresForge Roadmap
 
+## M42 Queue Item Detail Panel
+
+Status: Completed locally on `main`.
+
+Delivered scope:
+
+- added Queue Item Detail Panel for read-only queue item inspection
+- reused existing queue detail/readiness APIs
+- surfaced M41 metadata context (requested outcome/acceptance/validation notes) in panel
+- added empty/error/readiness-unavailable states
+
+Constraints preserved:
+
+- no new mutation actions introduced in detail panel
+- no auto-start
+- no auto prompt generation
+- no GitHub/`gh` behavior
+- no agent/Codex/LLM execution
+
 ## M41 Active Project Task Intake v2
 
 Status: Completed locally on `main`.

@@ -1002,6 +1002,38 @@
               </section>
             </section>
             <section class="subpanel">
+              <h3>Queue Item Detail Panel</h3>
+              <p class="message-note">Read-only/advisory detail panel. Inspect local queue item context before taking any lifecycle action.</p>
+              <p id="queue-detail-message" class="message-note">No queue item selected yet.</p>
+              <div class="stats-grid">
+                <article class="card"><h4>Item ID</h4><p id="queue-detail-item-id">-</p></article>
+                <article class="card"><h4>Status</h4><p id="queue-detail-status">-</p></article>
+                <article class="card"><h4>Type</h4><p id="queue-detail-type">-</p></article>
+                <article class="card"><h4>Priority</h4><p id="queue-detail-priority">-</p></article>
+              </div>
+              <ul id="queue-detail-summary" class="list"></ul>
+              <p id="queue-detail-summary-empty" class="empty">No queue item selected. Select a queue item to inspect details.</p>
+              <h4>Description</h4>
+              <p id="queue-detail-description" class="placeholder">No description available.</p>
+              <h4>Requested Outcome</h4>
+              <p id="queue-detail-requested-outcome" class="placeholder">No requested outcome captured.</p>
+              <h4>Acceptance Notes</h4>
+              <ul id="queue-detail-acceptance-notes" class="list"></ul>
+              <p id="queue-detail-acceptance-notes-empty" class="empty">No acceptance notes captured.</p>
+              <h4>Validation Notes</h4>
+              <ul id="queue-detail-validation-notes" class="list"></ul>
+              <p id="queue-detail-validation-notes-empty" class="empty">No validation notes captured.</p>
+              <h4>Readiness Summary</h4>
+              <ul id="queue-detail-readiness-summary" class="list"></ul>
+              <p id="queue-detail-readiness-summary-empty" class="empty">No readiness data loaded for the selected queue item.</p>
+              <h4>Readiness Blockers</h4>
+              <ul id="queue-detail-readiness-blockers" class="list"></ul>
+              <p id="queue-detail-readiness-blockers-empty" class="empty">No readiness blockers.</p>
+              <h4>Readiness Warnings</h4>
+              <ul id="queue-detail-readiness-warnings" class="list"></ul>
+              <p id="queue-detail-readiness-warnings-empty" class="empty">No readiness warnings.</p>
+            </section>
+            <section class="subpanel">
               <h3>Add Or Update Queue Item</h3>
               <form id="queue-form" class="form-grid">
                 <label>Item ID<input id="queue-item-id" name="item_id" required /></label>

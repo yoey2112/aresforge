@@ -1,5 +1,26 @@
 # Runnable Skeleton
 
+## M42 Queue Item Detail Panel
+
+Status: Completed locally on `main`.
+
+Implementation mapping:
+
+- Queue panel UI updates:
+  - `src/aresforge/hub/static/index.html`
+  - `src/aresforge/hub/static/js/sections/queue.js`
+- API reuse (no new route):
+  - `GET /api/queue/{item_id}`
+  - `GET /api/local-queue/items/{item_id}/readiness`
+
+Behavior contract:
+
+- read-only/advisory queue item inspection
+- detail panel renders core item fields plus M41 notes-derived metadata when present
+- readiness context is displayed when available
+- empty/error/readiness-unavailable states are explicit
+- panel does not trigger lifecycle mutations automatically
+
 ## M41 Active Project Task Intake v2
 
 Status: Completed locally on `main`.

@@ -1,6 +1,131 @@
 import { byId, on, setCodeBlock, setList, setMessage, setText } from "/js/core/dom.js";
 import { fetchJson, prunePayload, toQuery } from "/js/core/http.js";
 
+function parseQueueNotesSections(notesValue) {
+  const lines = String(notesValue || "").split(/\r?\n/);
+  const sections = {
+    acceptance: [],
+    requestedOutcome: "",
+    validation: [],
+  };
+  let mode = "";
+  lines.forEach((rawLine) => {
+    const line = String(rawLine || "").trim();
+    if (!line) {
+      return;
+    }
+    const lower = line.toLowerCase();
+    if (lower === "acceptance criteria:") {
+      mode = "acceptance";
+      return;
+    }
+    if (lower === "requested outcome:") {
+      mode = "requested";
+      return;
+    }
+    if (lower === "validation notes:") {
+      mode = "validation";
+      return;
+    }
+    const value = line.startsWith("- ") ? line.slice(2).trim() : line;
+    if (!value) {
+      return;
+    }
+    if (mode === "acceptance") {
+      sections.acceptance.push(value);
+    } else if (mode === "requested") {
+      if (!sections.requestedOutcome) {
+        sections.requestedOutcome = value;
+      }
+    } else if (mode === "validation") {
+      sections.validation.push(value);
+    }
+  });
+  return sections;
+}
+
+function renderQueueDetailUnavailable(messageText) {
+  setText("queue-detail-item-id", "-");
+  setText("queue-detail-status", "-");
+  setText("queue-detail-type", "-");
+  setText("queue-detail-priority", "-");
+  setText("queue-detail-message", messageText || "Queue item detail is unavailable.");
+  setList("queue-detail-summary", "queue-detail-summary-empty", []);
+  setText("queue-detail-description", "No description available.");
+  setText("queue-detail-requested-outcome", "No requested outcome captured.");
+  setList("queue-detail-acceptance-notes", "queue-detail-acceptance-notes-empty", []);
+  setList("queue-detail-validation-notes", "queue-detail-validation-notes-empty", []);
+  setList("queue-detail-readiness-summary", "queue-detail-readiness-summary-empty", []);
+  setList("queue-detail-readiness-blockers", "queue-detail-readiness-blockers-empty", []);
+  setList("queue-detail-readiness-warnings", "queue-detail-readiness-warnings-empty", []);
+}
+
+function renderQueueItemDetail(item, readinessPayload) {
+  const parsedNotes = parseQueueNotesSections(item && item.notes);
+  setText("queue-detail-item-id", (item && item.item_id) || "-");
+  setText("queue-detail-status", (item && item.status) || "-");
+  setText("queue-detail-type", (item && item.item_type) || "-");
+  setText("queue-detail-priority", (item && item.priority) || "-");
+  setText("queue-detail-message", "Queue item details loaded (read-only).");
+  setList("queue-detail-summary", "queue-detail-summary-empty", [
+    `title: ${item && item.title ? item.title : "-"}`,
+    `project_id: ${item && item.project_id ? item.project_id : "-"}`,
+    `repo_id: ${item && item.repo_id ? item.repo_id : "-"}`,
+    `source: ${item && item.source ? item.source : "-"}`,
+    `assigned_agent: ${item && item.assigned_agent ? item.assigned_agent : "unassigned"}`,
+    `tags: ${(item && item.tags && item.tags.length ? item.tags.join(", ") : "none")}`,
+    `created_at: ${item && item.created_at ? item.created_at : "-"}`,
+    `updated_at: ${item && item.updated_at ? item.updated_at : "-"}`,
+  ]);
+  setText("queue-detail-description", (item && item.description) || "No description available.");
+  setText("queue-detail-requested-outcome", parsedNotes.requestedOutcome || "No requested outcome captured.");
+  setList("queue-detail-acceptance-notes", "queue-detail-acceptance-notes-empty", parsedNotes.acceptance);
+  setList("queue-detail-validation-notes", "queue-detail-validation-notes-empty", parsedNotes.validation);
+
+  if (readinessPayload && readinessPayload.ok) {
+    const readinessSummary = [
+      `readiness_status: ${readinessPayload.readiness_status || "-"}`,
+      `can_start: ${Boolean(readinessPayload.can_start)}`,
+      `status: ${readinessPayload.status || "-"}`,
+      `next_safe_action: ${(readinessPayload.recommended_next_action || readinessPayload.next_safe_action || "-")}`,
+    ];
+    setList("queue-detail-readiness-summary", "queue-detail-readiness-summary-empty", readinessSummary);
+    setList("queue-detail-readiness-blockers", "queue-detail-readiness-blockers-empty", readinessPayload.blockers || []);
+    setList("queue-detail-readiness-warnings", "queue-detail-readiness-warnings-empty", readinessPayload.warnings || []);
+  } else {
+    setList(
+      "queue-detail-readiness-summary",
+      "queue-detail-readiness-summary-empty",
+      ["Readiness data unavailable for this item. Use Inspect Readiness in lifecycle controls if needed."],
+    );
+    setList("queue-detail-readiness-blockers", "queue-detail-readiness-blockers-empty", []);
+    setList("queue-detail-readiness-warnings", "queue-detail-readiness-warnings-empty", []);
+  }
+}
+
+async function loadQueueItemDetail(itemId, { setLocalQueueLifecycleItemId }) {
+  const normalizedItemId = String(itemId || "").trim();
+  if (!normalizedItemId) {
+    renderQueueDetailUnavailable("No queue item selected. Select a queue item to inspect details.");
+    return;
+  }
+  setText("queue-detail-message", `Loading details for ${normalizedItemId}...`);
+  try {
+    const detailPayload = await fetchJson(`/api/queue/${encodeURIComponent(normalizedItemId)}`, { method: "GET" });
+    let readinessPayload = null;
+    try {
+      readinessPayload = await fetchJson(`/api/local-queue/items/${encodeURIComponent(normalizedItemId)}/readiness`, { method: "GET" });
+    } catch (_readinessError) {
+      readinessPayload = null;
+    }
+    renderQueueItemDetail(detailPayload.item || {}, readinessPayload);
+    setLocalQueueLifecycleItemId(normalizedItemId);
+  } catch (error) {
+    renderQueueDetailUnavailable(`Failed to load queue item details for ${normalizedItemId}.`);
+    setMessage("queue-message", String(error.message || error), "error");
+  }
+}
+
 export function renderQueueReadOnlySummary(payload) {
   const queueTotals = payload.queue_totals || {};
   const activeProject = payload.active_project || {};
@@ -61,6 +186,7 @@ export function renderQueueItems(items, { setLocalQueueLifecycleItemId, reloadQu
   container.innerHTML = "";
   if (!items || items.length === 0) {
     empty.style.display = "block";
+    renderQueueDetailUnavailable("No queue items available. Add or load queue items to inspect details.");
     return;
   }
   empty.style.display = "none";
@@ -85,6 +211,13 @@ export function renderQueueItems(items, { setLocalQueueLifecycleItemId, reloadQu
       setMessage("queue-lifecycle-message", `Selected ${item.item_id} for local lifecycle actions.`, "success");
     });
     controls.appendChild(selectButton);
+    const detailButton = document.createElement("button");
+    detailButton.type = "button";
+    detailButton.textContent = "View Details";
+    detailButton.addEventListener("click", async () => {
+      await loadQueueItemDetail(item.item_id, { setLocalQueueLifecycleItemId });
+    });
+    controls.appendChild(detailButton);
     ["ready", "in_progress", "blocked", "done"].forEach((status) => {
       const button = document.createElement("button");
       button.type = "button";
@@ -138,6 +271,11 @@ export async function loadQueue({ state, countLines, setLocalQueueLifecycleItemI
     payload.warnings && payload.warnings.length ? payload.warnings.join(" | ") : "Queue loaded.",
     payload.warnings && payload.warnings.length ? "warn" : "success",
   );
+  if (!payload.items || payload.items.length === 0) {
+    renderQueueDetailUnavailable("No queue items available. Add or load queue items to inspect details.");
+  } else {
+    renderQueueDetailUnavailable("No queue item selected. Select a queue item to inspect details.");
+  }
 }
 
 export function bindQueueActions({

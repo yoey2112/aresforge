@@ -1,5 +1,28 @@
 # Local Operator Usage
 
+## M42 Queue Item Detail Panel
+
+Status: Completed locally on `main`.
+
+Operator visibility updates:
+
+- Queue section now includes a read-only Queue Item Detail Panel
+- use `View Details` on a queue card to load item detail and readiness context
+- panel shows:
+  - item basics (id/title/status/type/priority)
+  - project/repo/source/tags/timestamps
+  - description
+  - requested outcome, acceptance notes, validation notes (when captured)
+  - readiness summary/blockers/warnings (when available)
+
+Operational boundaries remain unchanged:
+
+- detail panel is advisory/read-only
+- no automatic lifecycle mutations
+- no auto-start and no auto prompt generation
+- no GitHub/`gh`/GitHub mutation
+- no agent/model execution behavior
+
 ## M41 Active Project Task Intake v2
 
 Status: Completed locally on `main`.

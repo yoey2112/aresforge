@@ -1,5 +1,26 @@
 # AresForge Agent Context
 
+## M42 Queue Item Detail Panel
+
+Status: Completed locally on `main`.
+
+Queue detail panel contract:
+
+- queue detail uses existing read-only routes:
+  - `GET /api/queue/{item_id}`
+  - `GET /api/local-queue/items/{item_id}/readiness`
+- no new mutation route introduced
+- panel content is read-only/advisory and intended for inspection before lifecycle actions
+
+Detail fields shown include:
+
+- item id/title/status/type/priority
+- project/repo association
+- source/tags/created/updated
+- description
+- requested outcome, acceptance notes, and validation notes when present in notes metadata
+- readiness summary/blockers/warnings when available
+
 ## M41 Active Project Task Intake v2
 
 Status: Completed locally on `main`.

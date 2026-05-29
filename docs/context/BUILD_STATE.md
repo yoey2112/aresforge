@@ -1,5 +1,24 @@
 # AresForge Build State
 
+## M42 Queue Item Detail Panel
+
+Status: Completed locally on `main`.
+
+Delivered:
+
+- added a read-only Queue Item Detail Panel in Hub Queue section
+- panel displays selected queue item details, source/context fields, and parsed M41 notes metadata
+- panel attempts read-only readiness context load for selected item
+- added explicit empty and error states for detail/readiness visibility
+
+Boundaries:
+
+- read-only/advisory detail panel
+- no new lifecycle mutation behavior introduced by the panel
+- no auto-start, no auto prompt generation
+- no GitHub/`gh`/GitHub mutation behavior
+- no agent/Codex/LLM execution behavior
+
 ## M41 Active Project Task Intake v2
 
 Status: Completed locally on `main`.

@@ -401,6 +401,14 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "Grouped Queue Items" in index_text
     assert "Blocked Items" in index_text
     assert "Ready Items" in index_text
+    assert "Queue Item Detail Panel" in index_text
+    assert "Read-only/advisory detail panel. Inspect local queue item context before taking any lifecycle action." in index_text
+    assert "queue-detail-item-id" in index_text
+    assert "queue-detail-summary" in index_text
+    assert "queue-detail-description" in index_text
+    assert "queue-detail-requested-outcome" in index_text
+    assert "queue-detail-readiness-summary" in index_text
+    assert "No queue item selected. Select a queue item to inspect details." in index_text
     assert "Local-only and read-only queue view: no queue mutation, no agent execution, no GitHub sync/mutation." in index_text
     assert "Recommended Next Action" in index_text
     assert "Blockers" in index_text
@@ -1527,6 +1535,11 @@ def test_m44_active_project_intake_static_contract() -> None:
     assert "acceptance_notes" in combined_text
     assert "validation_notes" in combined_text
     assert "active-project-intake" in combined_text
+    assert "No queue items available. Add or load queue items to inspect details." in combined_text
+    assert 'fetchJson(`/api/queue/${encodeURIComponent(normalizedItemId)}`' in combined_text
+    assert 'fetchJson(`/api/local-queue/items/${encodeURIComponent(normalizedItemId)}/readiness`' in combined_text
+    assert "View Details" in combined_text
+    assert "Readiness data unavailable for this item. Use Inspect Readiness in lifecycle controls if needed." in combined_text
     assert 'intakeType === "direction" || intakeType === "ui" || intakeType === "refactor"' in app_text
     assert 'intakeType === "docs"' in app_text
     assert "loadLocalProjectReportFoundation" in combined_text
