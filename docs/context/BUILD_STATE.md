@@ -1,5 +1,31 @@
 # AresForge Build State
 
+## M51 Project AI Settings Contract
+
+Status: Completed locally on `main`.
+
+Delivered:
+
+- added a file-backed Project AI Settings Contract at `.aresforge/projects/{project_id}/ai_settings.json`
+- added operator functions `read_project_ai_settings(...)`, `update_project_ai_settings(...)`, and `validate_project_ai_settings(...)`
+- added Hub API wrappers for `GET /api/projects/{project_id}/ai-settings` and `POST /api/projects/{project_id}/ai-settings`
+- settings support `project_ai_mode`, `available_engines`, `disabled_engines`, `default_engine`, optional `default_model`, `operator_override_allowed`, `notes`, and `updated_at`
+- supported modes are `balanced`, `local_only`, `codex_only`, `cost_saver`, `high_confidence`, and `manual_only`
+- supported engine keys are `local_reasoning_llm`, `local_coding_llm`, and `codex_cli`
+- validation rejects unsupported modes/engines, disabled defaults, local-only Codex defaults, Codex-only local defaults, and missing defaults except for `manual_only`
+
+Boundaries:
+
+- local-only, file-backed, non-executing, and operator-gated
+- no routing decisions are executed
+- no queue routing metadata is written
+- no local LLM, Codex, agent, GitHub, `gh`, workflow, network, or external execution is performed
+- no Hub UI settings surface was added in M51
+
+Recommended next milestone:
+
+- M52 - Agent and Engine Registry Contract.
+
 ## M50 Handoff Generator
 
 Status: Completed locally on `main`.

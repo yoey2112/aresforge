@@ -30,6 +30,7 @@ from aresforge.hub.api import (
     get_local_queue_agent_summary,
     get_orchestration_plan,
     get_project,
+    get_project_ai_settings,
     get_project_factory_dossier,
     get_project_factory_architecture_contract,
     get_project_factory_agent_dispatch_plan,
@@ -70,6 +71,7 @@ from aresforge.hub.api import (
     post_local_queue_item_start,
     post_orchestration_plan,
     post_project,
+    post_project_ai_settings,
     post_project_factory_new_project,
     post_project_factory_scope_package_approve,
     post_project_factory_architecture_contract_approve,
@@ -968,6 +970,26 @@ def _build_handler(config: AppConfig, static_root: Path) -> type[BaseHTTPRequest
                     return True
                 if len(segments) == 4 and segments[3] == "progress-rollup" and method == "GET":
                     payload = get_project_progress_rollup(config, project_id)
+                    _render_json(self, _status_from_payload(payload), payload)
+                    return True
+                if len(segments) == 4 and segments[3] == "ai-settings" and method == "GET":
+                    payload = get_project_ai_settings(config, project_id)
+                    _render_json(self, _status_from_payload(payload), payload)
+                    return True
+                if len(segments) == 4 and segments[3] == "ai-settings" and method == "POST":
+                    if body is None:
+                        _render_json(
+                            self,
+                            HTTPStatus.BAD_REQUEST,
+                            {
+                                "ok": False,
+                                "local_only": True,
+                                "error": "invalid_json_body",
+                                "message": "Request body must be a JSON object.",
+                            },
+                        )
+                        return True
+                    payload = post_project_ai_settings(config, project_id, body)
                     _render_json(self, _status_from_payload(payload), payload)
                     return True
                 if len(segments) == 4 and segments[3] == "repos" and method == "GET":

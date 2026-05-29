@@ -30,6 +30,19 @@ GITHUB_MODES: tuple[str, ...] = (
     "link-existing",
     "create-with-approval-later",
 )
+PROJECT_AI_MODES: tuple[str, ...] = (
+    "balanced",
+    "local_only",
+    "codex_only",
+    "cost_saver",
+    "high_confidence",
+    "manual_only",
+)
+AI_ENGINE_KEYS: tuple[str, ...] = (
+    "local_reasoning_llm",
+    "local_coding_llm",
+    "codex_cli",
+)
 
 _BOUNDARY_CONFIRMATIONS: tuple[str, ...] = (
     "Local-only project factory operation.",
@@ -133,6 +146,10 @@ def resolve_project_documentation_closeout_plan_path(repo_root: Path, project_id
 
 def resolve_project_execution_phase_approval_path(repo_root: Path, project_id: str) -> Path:
     return (repo_root / ".aresforge" / "projects" / project_id.strip() / "execution_phase_approval.json").resolve()
+
+
+def resolve_project_ai_settings_path(repo_root: Path, project_id: str) -> Path:
+    return (repo_root / ".aresforge" / "projects" / project_id.strip() / "ai_settings.json").resolve()
 
 
 def create_project_factory_dossier(config: AppConfig, payload: dict[str, Any]) -> dict[str, Any]:
@@ -2906,6 +2923,180 @@ def approve_project_execution_phase_approval(config: AppConfig, project_id: str,
     }
 
 
+def validate_project_ai_settings(settings: dict[str, Any]) -> dict[str, Any]:
+    blockers: list[str] = []
+    warnings: list[str] = []
+
+    project_ai_mode = str(settings.get("project_ai_mode", "")).strip()
+    if project_ai_mode not in PROJECT_AI_MODES:
+        blockers.append("project_ai_mode must be one of the supported values.")
+
+    available_raw = settings.get("available_engines", [])
+    disabled_raw = settings.get("disabled_engines", [])
+    if not isinstance(available_raw, list):
+        blockers.append("available_engines must be a list of supported engine keys.")
+        available_engines: list[str] = []
+    else:
+        available_engines = _normalize_text_list(available_raw)
+    if not isinstance(disabled_raw, list):
+        blockers.append("disabled_engines must be a list of supported engine keys.")
+        disabled_engines: list[str] = []
+    else:
+        disabled_engines = _normalize_text_list(disabled_raw)
+
+    invalid_available = [engine for engine in available_engines if engine not in AI_ENGINE_KEYS]
+    invalid_disabled = [engine for engine in disabled_engines if engine not in AI_ENGINE_KEYS]
+    if invalid_available:
+        blockers.append(f"available_engines contains unsupported engine keys: {', '.join(invalid_available)}.")
+    if invalid_disabled:
+        blockers.append(f"disabled_engines contains unsupported engine keys: {', '.join(invalid_disabled)}.")
+
+    default_engine = str(settings.get("default_engine", "")).strip()
+    if default_engine:
+        if default_engine not in AI_ENGINE_KEYS:
+            blockers.append("default_engine must be a supported engine key.")
+        if project_ai_mode != "manual_only" and default_engine not in available_engines:
+            blockers.append("default_engine must be included in available_engines unless project_ai_mode is manual_only.")
+        if default_engine in disabled_engines:
+            blockers.append("default_engine must not be included in disabled_engines.")
+        if project_ai_mode == "local_only" and default_engine == "codex_cli":
+            blockers.append("local_only mode must not default to codex_cli.")
+        if project_ai_mode == "codex_only" and default_engine in {"local_reasoning_llm", "local_coding_llm"}:
+            blockers.append("codex_only mode must not default to a local LLM engine.")
+    elif project_ai_mode != "manual_only":
+        blockers.append("default_engine is required unless project_ai_mode is manual_only.")
+
+    overlap = sorted(set(available_engines).intersection(disabled_engines))
+    if overlap:
+        warnings.append(f"Engines listed as both available and disabled are treated as unavailable for future routing: {', '.join(overlap)}.")
+    if project_ai_mode == "cost_saver":
+        warnings.append("cost_saver is a preference contract only; no routing execution is performed.")
+    if project_ai_mode == "high_confidence":
+        warnings.append("high_confidence is a preference contract only; no routing execution is performed.")
+
+    return {
+        "valid": not blockers,
+        "blockers": sorted(set(blockers)),
+        "warnings": sorted(set(warnings)),
+        "supported_project_ai_modes": list(PROJECT_AI_MODES),
+        "supported_engines": list(AI_ENGINE_KEYS),
+        "routing_execution_status": "not_implemented",
+    }
+
+
+def read_project_ai_settings(config: AppConfig, project_id: str) -> dict[str, Any]:
+    normalized_project_id = str(project_id or "").strip()
+    dossier_payload = read_project_factory_dossier(config, normalized_project_id)
+    if not dossier_payload.get("dossier_exists", False):
+        return _error(
+            "project_factory_dossier_not_found",
+            {
+                "message": "Project factory dossier is required before reading project AI settings.",
+                "project_id": normalized_project_id,
+                "dossier_path": dossier_payload.get("dossier_path", ""),
+            },
+        )
+
+    dossier = dossier_payload.get("dossier", {}) if isinstance(dossier_payload.get("dossier"), dict) else {}
+    settings_path = resolve_project_ai_settings_path(config.repo_root, normalized_project_id)
+    warnings: list[str] = []
+    settings_exists = settings_path.exists()
+    settings = _default_project_ai_settings()
+    if settings_exists:
+        try:
+            loaded = json.loads(settings_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            warnings.append(f"Project AI settings could not be parsed: {exc}")
+        else:
+            if isinstance(loaded, dict):
+                settings.update(_normalize_project_ai_settings_payload(loaded))
+            else:
+                warnings.append("Project AI settings have invalid schema; expected JSON object.")
+
+    validation = validate_project_ai_settings(settings)
+    warnings.extend(list(validation.get("warnings", [])))
+    return {
+        "ok": True,
+        "local_only": True,
+        "project_id": normalized_project_id,
+        "project_name": str(dossier.get("name", "")).strip(),
+        "settings_path": str(settings_path),
+        "settings_exists": settings_exists,
+        "project_ai_settings": settings,
+        "validation": validation,
+        "next_safe_action": "review_project_ai_settings_before_future_routing",
+        "warnings": sorted(set(warnings)),
+        "blockers": list(validation.get("blockers", [])),
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS)
+        + [
+            "Project AI settings are non-executing routing preferences.",
+            "No routing decision, model invocation, agent execution, Codex execution, or local LLM execution is performed.",
+        ],
+    }
+
+
+def update_project_ai_settings(config: AppConfig, project_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+    current = read_project_ai_settings(config, project_id)
+    if not current.get("ok", False):
+        return current
+
+    settings = dict(current.get("project_ai_settings", {}))
+    for key in (
+        "project_ai_mode",
+        "available_engines",
+        "disabled_engines",
+        "default_engine",
+        "default_model",
+        "operator_override_allowed",
+        "notes",
+    ):
+        if key not in payload:
+            continue
+        value = payload.get(key)
+        if key in {"available_engines", "disabled_engines"}:
+            settings[key] = _normalize_text_list(value) if isinstance(value, list) else value
+        elif key == "operator_override_allowed":
+            settings[key] = value
+        else:
+            settings[key] = str(value or "").strip()
+
+    settings["updated_at"] = _now_iso()
+    settings = _normalize_project_ai_settings_payload(settings)
+    validation = validate_project_ai_settings(settings)
+    if not validation.get("valid", False):
+        return _error(
+            "project_ai_settings_validation_failed",
+            {
+                "message": "Project AI settings failed validation.",
+                "project_id": current.get("project_id", ""),
+                "project_ai_settings": settings,
+                "validation": validation,
+            },
+        )
+
+    settings_path = resolve_project_ai_settings_path(config.repo_root, str(current.get("project_id", "")))
+    settings_path.parent.mkdir(parents=True, exist_ok=True)
+    settings_path.write_text(json.dumps(settings, indent=2) + "\n", encoding="utf-8")
+    return {
+        "ok": True,
+        "local_only": True,
+        "project_id": current.get("project_id", ""),
+        "project_name": current.get("project_name", ""),
+        "settings_path": str(settings_path),
+        "settings_exists": True,
+        "project_ai_settings": settings,
+        "validation": validation,
+        "next_safe_action": "use_settings_for_future_advisory_routing_contract_only",
+        "warnings": list(validation.get("warnings", [])),
+        "blockers": [],
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS)
+        + [
+            "Project AI settings update is local-only and non-executing.",
+            "No routing decision, model invocation, agent execution, Codex execution, or local LLM execution is performed.",
+        ],
+    }
+
+
 def start_new_project_factory(config: AppConfig, payload: dict[str, Any]) -> dict[str, Any]:
     name = str(payload.get("name", "")).strip()
     if not name:
@@ -3382,6 +3573,45 @@ def _error(error: str, details: dict[str, Any]) -> dict[str, Any]:
 
 def _now_iso() -> str:
     return datetime.now(UTC).isoformat()
+
+
+def _default_project_ai_settings() -> dict[str, Any]:
+    return {
+        "schema_version": "1.0",
+        "project_ai_mode": "balanced",
+        "available_engines": list(AI_ENGINE_KEYS),
+        "disabled_engines": [],
+        "default_engine": "local_coding_llm",
+        "default_model": "",
+        "operator_override_allowed": True,
+        "notes": "",
+        "updated_at": "",
+    }
+
+
+def _normalize_project_ai_settings_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    default_settings = _default_project_ai_settings()
+    normalized = {
+        "schema_version": str(payload.get("schema_version", default_settings["schema_version"])).strip() or "1.0",
+        "project_ai_mode": str(payload.get("project_ai_mode", default_settings["project_ai_mode"])).strip(),
+        "available_engines": _normalize_text_list(payload.get("available_engines"))
+        if isinstance(payload.get("available_engines"), list)
+        else payload.get("available_engines", default_settings["available_engines"]),
+        "disabled_engines": _normalize_text_list(payload.get("disabled_engines"))
+        if isinstance(payload.get("disabled_engines"), list)
+        else payload.get("disabled_engines", default_settings["disabled_engines"]),
+        "default_engine": str(payload.get("default_engine", default_settings["default_engine"]) or "").strip(),
+        "default_model": str(payload.get("default_model", default_settings["default_model"]) or "").strip(),
+        "operator_override_allowed": payload.get(
+            "operator_override_allowed",
+            default_settings["operator_override_allowed"],
+        ),
+        "notes": str(payload.get("notes", default_settings["notes"]) or "").strip(),
+        "updated_at": str(payload.get("updated_at", default_settings["updated_at"]) or "").strip(),
+    }
+    if not isinstance(normalized["operator_override_allowed"], bool):
+        normalized["operator_override_allowed"] = bool(normalized["operator_override_allowed"])
+    return normalized
 
 
 def _build_workflow_steps(*, lifecycle_state: str, github_mode: str) -> list[dict[str, Any]]:

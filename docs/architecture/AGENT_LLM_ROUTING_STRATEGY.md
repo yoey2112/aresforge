@@ -2,9 +2,50 @@
 
 ## Status
 
-M44A documents the future Agent/LLM routing strategy only. It does not implement runtime routing, model invocation, Codex execution, new Hub routes, frontend settings UI, or queue schema changes.
+M44A documented the future Agent/LLM routing strategy. M51 adds the first non-executing Project AI Settings Contract, but still does not implement runtime routing, model invocation, Codex execution, frontend settings UI, queue routing metadata, or queue schema changes.
 
 Current implemented behavior remains M43 prompt-pack generation: local-only grouped prompt packs for manual operator use, without LLM/model routing.
+
+## M51 Project AI Settings Contract
+
+M51 stores project-level AI routing preferences locally at `.aresforge/projects/{project_id}/ai_settings.json`.
+
+The contract is intentionally non-executing. It validates settings for future routing milestones but does not decide a route, generate routed prompt-pack entries, update queue routing metadata, invoke a local LLM, invoke Codex, run an agent, or call GitHub.
+
+Current operator functions:
+
+- `read_project_ai_settings(...)`
+- `update_project_ai_settings(...)`
+- `validate_project_ai_settings(...)`
+
+Current Hub routes:
+
+- `GET /api/projects/{project_id}/ai-settings`
+- `POST /api/projects/{project_id}/ai-settings`
+
+Settings fields:
+
+- `project_ai_mode`
+- `available_engines`
+- `disabled_engines`
+- `default_engine`
+- `default_model`
+- `operator_override_allowed`
+- `notes`
+- `updated_at`
+
+Validation rules:
+
+- `project_ai_mode` must be one of the supported project AI modes.
+- `available_engines` and `disabled_engines` may only contain supported engine keys.
+- `default_engine` must be in `available_engines` unless the mode is `manual_only`.
+- `default_engine` must not be in `disabled_engines`.
+- `local_only` must not default to `codex_cli`.
+- `codex_only` must not default to `local_reasoning_llm` or `local_coding_llm`.
+- `manual_only` may omit `default_engine`.
+- `cost_saver` and `high_confidence` are preference contracts only until later routing milestones.
+
+M52 should add the Agent and Engine Registry Contract so these project settings can be evaluated against known agent lanes and engine profiles without executing routing.
 
 ## Operating Boundaries
 

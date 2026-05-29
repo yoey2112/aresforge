@@ -1,5 +1,44 @@
 # Local Operator Usage
 
+## M51 Project AI Settings Contract
+
+Status: Completed locally on `main`.
+
+Operator workflow:
+
+1. Confirm or create a local project through the existing Project Factory flow.
+2. Read project AI settings through the Hub API or operator helper.
+3. Update settings only when choosing a project-level routing preference contract.
+4. Review validation output, blockers, warnings, and `next_safe_action`.
+5. Treat the settings as future routing input only.
+
+Supported modes:
+
+- `balanced`
+- `local_only`
+- `codex_only`
+- `cost_saver`
+- `high_confidence`
+- `manual_only`
+
+Supported engines:
+
+- `local_reasoning_llm`
+- `local_coding_llm`
+- `codex_cli`
+
+Operator safety notes:
+
+- settings are local-only and file-backed
+- settings do not execute routing
+- settings do not invoke Codex, agents, local LLMs, GitHub, `gh`, workflows, push, or external services
+- settings do not change queue routing metadata
+- no Hub settings UI was added in M51
+
+Recommended next milestone:
+
+- M52 - Agent and Engine Registry Contract.
+
 ## M50 Handoff Generator
 
 Status: Completed locally on `main`.

@@ -52,12 +52,14 @@ from aresforge.operator.local_bootstrap_wizard import (
     plan_bootstrap,
 )
 from aresforge.operator.local_project_factory import (
+    AI_ENGINE_KEYS,
     approve_project_documentation_closeout_plan,
     approve_project_execution_phase_approval,
     approve_project_validation_execution_plan,
     approve_project_agent_dispatch_plan,
     approve_project_github_apply_plan,
     GITHUB_MODES,
+    PROJECT_AI_MODES,
     PROJECT_TYPES,
     approve_project_architecture_contract,
     approve_project_milestone_issue_plan,
@@ -76,10 +78,12 @@ from aresforge.operator.local_project_factory import (
     read_project_execution_readiness,
     read_project_execution_phase_approval,
     read_project_agent_dispatch_plan,
+    read_project_ai_settings,
     read_project_validation_execution_plan,
     read_project_github_apply_plan,
     read_project_milestone_issue_plan,
     read_project_scope_package,
+    update_project_ai_settings,
     update_project_architecture_contract,
     update_project_documentation_closeout_plan,
     update_project_execution_phase_approval,
@@ -2213,6 +2217,92 @@ def get_project_progress_rollup(config: AppConfig, project_id: str) -> dict[str,
     result["service"] = SERVICE_NAME
     result["boundary_confirmations"] = list(
         dict.fromkeys(list(result.get("boundary_confirmations", [])) + list(_BOUNDARY_CONFIRMATIONS))
+    )
+    return result
+
+
+def get_project_ai_settings(config: AppConfig, project_id: str) -> dict[str, Any]:
+    result = read_project_ai_settings(config, project_id=project_id)
+    if not result.get("ok", False):
+        details = dict(result.get("details", {}))
+        error = str(result.get("error", "project_ai_settings_read_failed"))
+        status = 404 if error == "project_factory_dossier_not_found" else 400
+        return _api_error(
+            error,
+            str(details.get("message", "Failed to read project AI settings.")),
+            details=details,
+            status=status,
+        )
+    result["service"] = SERVICE_NAME
+    result["boundary_confirmations"] = _merge_boundary_confirmations(
+        result,
+        "Project AI settings are local-only preferences and do not execute routing.",
+    )
+    return result
+
+
+def post_project_ai_settings(config: AppConfig, project_id: str, body: dict[str, Any]) -> dict[str, Any]:
+    mode = _normalize_optional_str(body.get("project_ai_mode"))
+    if mode is not None and mode not in PROJECT_AI_MODES:
+        return _invalid_choice_error(
+            field="project_ai_mode",
+            value=mode,
+            supported=PROJECT_AI_MODES,
+            label="project AI mode",
+        )
+
+    for field in ("available_engines", "disabled_engines"):
+        valid_list, list_error = _require_list_field(body, field)
+        if not valid_list:
+            return list_error or _api_error(f"invalid_{field}", f"{field} must be a list of strings.")
+        invalid = [engine for engine in _normalize_str_list(body.get(field, [])) if engine not in AI_ENGINE_KEYS]
+        if invalid:
+            return _api_error(
+                f"invalid_{field}",
+                f"{field} contains unsupported engine keys.",
+                details={
+                    field: invalid,
+                    "supported_engines": list(AI_ENGINE_KEYS),
+                },
+            )
+
+    default_engine = _normalize_optional_str(body.get("default_engine"))
+    if default_engine is not None and default_engine not in AI_ENGINE_KEYS:
+        return _invalid_choice_error(
+            field="default_engine",
+            value=default_engine,
+            supported=AI_ENGINE_KEYS,
+            label="default engine",
+        )
+
+    valid_bool, bool_error = _require_boolean_field(body, "operator_override_allowed")
+    if not valid_bool:
+        return bool_error or _api_error("invalid_operator_override_allowed", "operator_override_allowed must be boolean.")
+
+    allowed_fields = {
+        "project_ai_mode",
+        "available_engines",
+        "disabled_engines",
+        "default_engine",
+        "default_model",
+        "operator_override_allowed",
+        "notes",
+    }
+    result = update_project_ai_settings(config, project_id=project_id, payload={key: body[key] for key in allowed_fields if key in body})
+    if not result.get("ok", False):
+        details = dict(result.get("details", {}))
+        error = str(result.get("error", "project_ai_settings_update_failed"))
+        status = 404 if error == "project_factory_dossier_not_found" else 400
+        return _api_error(
+            error,
+            str(details.get("message", "Failed to update project AI settings.")),
+            details=details,
+            status=status,
+        )
+    result["service"] = SERVICE_NAME
+    result["boundary_confirmations"] = _merge_boundary_confirmations(
+        result,
+        "Project AI settings update stores preferences only and does not execute routing.",
     )
     return result
 

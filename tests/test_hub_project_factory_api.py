@@ -13,6 +13,7 @@ from aresforge.hub.api import (
     get_project_factory_github_apply_plan,
     get_project_factory_milestone_issue_plan,
     get_project_factory_scope_package,
+    get_project_ai_settings,
     patch_project_factory_architecture_contract,
     patch_project_factory_agent_dispatch_plan,
     patch_project_factory_documentation_closeout_plan,
@@ -40,6 +41,7 @@ from aresforge.hub.api import (
     post_project_factory_new_project,
     post_project_factory_scope_package_approve,
     post_project_factory_scope_package,
+    post_project_ai_settings,
 )
 
 
@@ -142,6 +144,85 @@ def test_get_project_factory_dossier_missing_state_is_friendly(tmp_path: Path) -
     assert payload["ok"] is True
     assert payload["dossier_exists"] is False
     assert payload["warnings"]
+
+
+def test_project_ai_settings_api_reads_default_and_updates_contract(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    created = post_project_factory_new_project(
+        config,
+        {
+            "name": "AI Settings API",
+            "root_path": str(tmp_path / "workspace"),
+        },
+    )
+    project_id = str(created["active_project_id"])
+
+    default_payload = get_project_ai_settings(config, project_id)
+    assert default_payload["ok"] is True
+    assert default_payload["settings_exists"] is False
+    assert default_payload["project_ai_settings"]["project_ai_mode"] == "balanced"
+    assert default_payload["validation"]["valid"] is True
+
+    updated = post_project_ai_settings(
+        config,
+        project_id,
+        {
+            "project_ai_mode": "codex_only",
+            "available_engines": ["codex_cli"],
+            "disabled_engines": ["local_reasoning_llm", "local_coding_llm"],
+            "default_engine": "codex_cli",
+            "operator_override_allowed": True,
+            "notes": "Codex-only preference contract.",
+        },
+    )
+    assert updated["ok"] is True
+    assert updated["project_ai_settings"]["project_ai_mode"] == "codex_only"
+    assert updated["project_ai_settings"]["default_engine"] == "codex_cli"
+    assert updated["next_safe_action"] == "use_settings_for_future_advisory_routing_contract_only"
+
+
+def test_project_ai_settings_api_rejects_invalid_inputs(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    created = post_project_factory_new_project(
+        config,
+        {
+            "name": "AI Settings Invalid API",
+            "root_path": str(tmp_path / "workspace"),
+        },
+    )
+    project_id = str(created["active_project_id"])
+
+    invalid_mode = post_project_ai_settings(config, project_id, {"project_ai_mode": "bad-mode"})
+    assert invalid_mode["ok"] is False
+    assert invalid_mode["error"] == "invalid_project_ai_mode"
+
+    invalid_engine = post_project_ai_settings(
+        config,
+        project_id,
+        {"available_engines": ["local_coding_llm", "bad_engine"]},
+    )
+    assert invalid_engine["ok"] is False
+    assert invalid_engine["error"] == "invalid_available_engines"
+
+    invalid_bool = post_project_ai_settings(config, project_id, {"operator_override_allowed": "yes"})
+    assert invalid_bool["ok"] is False
+    assert invalid_bool["error"] == "invalid_operator_override_allowed"
+
+    invalid_cross_field = post_project_ai_settings(
+        config,
+        project_id,
+        {"project_ai_mode": "local_only", "default_engine": "codex_cli"},
+    )
+    assert invalid_cross_field["ok"] is False
+    assert invalid_cross_field["error"] == "project_ai_settings_validation_failed"
+    assert invalid_cross_field["_status"] == 400
+
+
+def test_project_ai_settings_api_returns_404_for_missing_project(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    payload = get_project_ai_settings(config, "missing-project")
+    assert payload["ok"] is False
+    assert payload["_status"] == 404
 
 
 def test_post_project_factory_scope_package_prepares_for_active_project(tmp_path: Path) -> None:

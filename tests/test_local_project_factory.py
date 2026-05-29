@@ -13,6 +13,7 @@ from aresforge.operator.local_project_factory import (
     approve_project_github_apply_plan,
     approve_project_milestone_issue_plan,
     approve_project_scope_package,
+    read_project_ai_settings,
     inspect_project_factory_dossier,
     prepare_project_architecture_contract,
     prepare_project_documentation_closeout_plan,
@@ -37,11 +38,13 @@ from aresforge.operator.local_project_factory import (
     resolve_project_factory_dossier_path,
     resolve_project_documentation_closeout_plan_path,
     resolve_project_execution_phase_approval_path,
+    resolve_project_ai_settings_path,
     resolve_project_github_apply_plan_path,
     resolve_project_milestone_issue_plan_path,
     resolve_project_validation_execution_plan_path,
     resolve_project_scope_package_path,
     start_new_project_factory,
+    update_project_ai_settings,
     update_project_architecture_contract,
     update_project_documentation_closeout_plan,
     update_project_execution_phase_approval,
@@ -169,6 +172,119 @@ def test_read_project_factory_dossier_existing_returns_dossier(tmp_path: Path) -
     assert payload["ok"] is True
     assert payload["dossier_exists"] is True
     assert payload["dossier"]["project_id"] == created["project"]["project_id"]
+
+
+def test_read_project_ai_settings_returns_default_contract_without_writing(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    created = start_new_project_factory(config, _payload(tmp_path))
+    project_id = str(created["project"]["project_id"])
+
+    payload = read_project_ai_settings(config, project_id)
+
+    assert payload["ok"] is True
+    assert payload["settings_exists"] is False
+    assert payload["project_ai_settings"]["project_ai_mode"] == "balanced"
+    assert payload["project_ai_settings"]["default_engine"] == "local_coding_llm"
+    assert "codex_cli" in payload["project_ai_settings"]["available_engines"]
+    assert payload["validation"]["valid"] is True
+    assert payload["next_safe_action"] == "review_project_ai_settings_before_future_routing"
+    assert not resolve_project_ai_settings_path(tmp_path, project_id).exists()
+
+
+def test_update_project_ai_settings_writes_valid_local_contract(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    created = start_new_project_factory(config, _payload(tmp_path))
+    project_id = str(created["project"]["project_id"])
+
+    payload = update_project_ai_settings(
+        config,
+        project_id,
+        {
+            "project_ai_mode": "local_only",
+            "available_engines": ["local_reasoning_llm", "local_coding_llm"],
+            "disabled_engines": ["codex_cli"],
+            "default_engine": "local_coding_llm",
+            "default_model": "local-code-model",
+            "operator_override_allowed": True,
+            "notes": "Prefer local coding model.",
+        },
+    )
+
+    assert payload["ok"] is True
+    settings = payload["project_ai_settings"]
+    assert settings["project_ai_mode"] == "local_only"
+    assert settings["default_model"] == "local-code-model"
+    assert settings["updated_at"]
+    settings_path = resolve_project_ai_settings_path(tmp_path, project_id)
+    assert settings_path.exists()
+    rendered = json.loads(settings_path.read_text(encoding="utf-8"))
+    assert rendered["disabled_engines"] == ["codex_cli"]
+
+
+def test_project_ai_settings_reject_invalid_mode_and_engine(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    created = start_new_project_factory(config, _payload(tmp_path))
+    project_id = str(created["project"]["project_id"])
+
+    invalid_mode = update_project_ai_settings(config, project_id, {"project_ai_mode": "turbo_magic"})
+    assert invalid_mode["ok"] is False
+    assert invalid_mode["error"] == "project_ai_settings_validation_failed"
+
+    invalid_engine = update_project_ai_settings(
+        config,
+        project_id,
+        {"available_engines": ["local_coding_llm", "mystery_engine"]},
+    )
+    assert invalid_engine["ok"] is False
+    assert invalid_engine["error"] == "project_ai_settings_validation_failed"
+
+
+def test_project_ai_settings_reject_default_disabled_or_wrong_mode(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    created = start_new_project_factory(config, _payload(tmp_path))
+    project_id = str(created["project"]["project_id"])
+
+    disabled_default = update_project_ai_settings(
+        config,
+        project_id,
+        {"default_engine": "local_coding_llm", "disabled_engines": ["local_coding_llm"]},
+    )
+    assert disabled_default["ok"] is False
+
+    local_codex = update_project_ai_settings(
+        config,
+        project_id,
+        {"project_ai_mode": "local_only", "default_engine": "codex_cli"},
+    )
+    assert local_codex["ok"] is False
+
+    codex_local = update_project_ai_settings(
+        config,
+        project_id,
+        {"project_ai_mode": "codex_only", "default_engine": "local_coding_llm"},
+    )
+    assert codex_local["ok"] is False
+
+
+def test_project_ai_settings_manual_only_can_omit_default_engine(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    created = start_new_project_factory(config, _payload(tmp_path))
+    project_id = str(created["project"]["project_id"])
+
+    payload = update_project_ai_settings(
+        config,
+        project_id,
+        {
+            "project_ai_mode": "manual_only",
+            "available_engines": ["local_reasoning_llm", "local_coding_llm", "codex_cli"],
+            "disabled_engines": [],
+            "default_engine": "",
+        },
+    )
+
+    assert payload["ok"] is True
+    assert payload["project_ai_settings"]["project_ai_mode"] == "manual_only"
+    assert payload["project_ai_settings"]["default_engine"] == ""
 
 
 def test_inspect_project_factory_dossier_includes_workflow_steps(tmp_path: Path) -> None:

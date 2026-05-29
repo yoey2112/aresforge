@@ -1,5 +1,37 @@
 # Runnable Skeleton
 
+## M51 Project AI Settings Contract
+
+Status: Completed locally on `main`.
+
+Implemented runnable path:
+
+- operator functions: `read_project_ai_settings(...)`, `update_project_ai_settings(...)`, `validate_project_ai_settings(...)`
+- file-backed artifact: `.aresforge/projects/{project_id}/ai_settings.json`
+- Hub routes: `GET /api/projects/{project_id}/ai-settings` and `POST /api/projects/{project_id}/ai-settings`
+
+Behavior contract:
+
+- returns default valid settings for a project with no explicit AI settings file
+- writes validated project settings only when the operator/API submits a valid contract
+- validates supported project modes, supported engine keys, default engine availability, disabled engine conflicts, local-only/Codex-only restrictions, and `manual_only` default omission
+- reports `next_safe_action`, warnings, blockers, and `routing_execution_status: not_implemented`
+
+Still absent by design:
+
+- runtime Agent/LLM routing
+- routed queue metadata
+- prompt-pack routing assignment
+- Codex CLI execution
+- local LLM execution
+- real agent execution
+- GitHub integration or mutation
+- Hub settings UI
+
+Next skeleton focus:
+
+- M52 should add the Agent and Engine Registry Contract.
+
 ## M50 Handoff Generator
 
 Status: Completed locally on `main`.

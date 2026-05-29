@@ -1,5 +1,31 @@
 # AresForge Roadmap
 
+## M51 Project AI Settings Contract
+
+Status: Completed locally on `main`.
+
+Delivered scope:
+
+- added local-only project AI settings contract support
+- added file-backed settings storage under each project directory
+- added validation for supported project modes and engine keys
+- added Hub API support for `GET /api/projects/{project_id}/ai-settings` and `POST /api/projects/{project_id}/ai-settings`
+- added targeted tests for defaults, successful update, invalid modes/engines, disabled defaults, mode-specific default restrictions, `manual_only`, and API failures
+
+Constraints preserved:
+
+- settings are local-only, file-backed, and non-executing
+- no routing implementation or execution
+- no queue routing metadata changes
+- no local LLM execution
+- no Codex execution
+- no real agent execution
+- no GitHub API, no `gh`, no GitHub issues/PRs/workflow activity, no GitHub mutation from the app
+
+Recommended next milestone:
+
+- M52 - Agent and Engine Registry Contract.
+
 ## M50 Handoff Generator
 
 Status: Completed locally on `main`.
