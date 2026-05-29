@@ -15,6 +15,7 @@ from aresforge.operator.local_project_queue import (
     inspect_local_queue_item_readiness,
     inspect_project_queue,
     inspect_queue_item,
+    read_local_project_progress_rollup,
     resolve_project_queue_path,
     start_local_queue_item,
     update_queue_item,
@@ -1356,3 +1357,125 @@ def test_close_local_queue_item_requires_required_evidence_fields(tmp_path: Path
     assert payload['ok'] is False
     assert payload['status'] == 'in_progress'
     assert any('evidence_summary, validation_results, and diff_check_result' in warning for warning in payload['warnings'])
+
+
+def test_read_local_project_progress_rollup_counts_status_evidence_and_closeout(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_managed_project_registry(config)['ok'] is True
+    assert register_managed_project(
+        config,
+        project_id='project-one',
+        name='Project One',
+        root_path=tmp_path,
+        status='active',
+    )['ok'] is True
+    assert register_managed_repo(
+        config,
+        project_id='project-one',
+        repo_id='repo-main',
+        name='Repo Main',
+        path=tmp_path,
+        role='primary',
+        status='active',
+    )['ok'] is True
+    assert set_active_project(config, project_id='project-one')['ok'] is True
+    assert init_project_queue(config)['ok'] is True
+
+    for item_id, status, item_type, assigned_agent in (
+        ('ready-item', 'ready', 'task', 'coding-agent'),
+        ('blocked-item', 'blocked', 'bug', 'reviewer-agent'),
+        ('eligible-item', 'in_progress', 'validation', 'test-agent'),
+        ('closeout-item', 'in_progress', 'documentation', 'documentation-agent'),
+    ):
+        assert add_queue_item(
+            config,
+            item_id=item_id,
+            project_id='project-one',
+            repo_id='repo-main',
+            title=f'{item_id} title',
+            description=f'{item_id} description',
+            status=status,
+            item_type=item_type,
+            assigned_agent=assigned_agent,
+        )['ok'] is True
+
+    assert capture_local_queue_completion_evidence(
+        config,
+        item_id='eligible-item',
+        evidence_summary='Eligible evidence.',
+        validation_results=['pytest -> passed'],
+        diff_check_result='git diff --check -> pass',
+    )['ok'] is True
+    assert capture_local_queue_completion_evidence(
+        config,
+        item_id='closeout-item',
+        evidence_summary='Closeout evidence.',
+        validation_results=['pytest -> passed'],
+        diff_check_result='git diff --check -> pass',
+    )['ok'] is True
+    assert close_local_queue_item(
+        config,
+        item_id='closeout-item',
+        closeout_summary='Evidence reviewed for closeout.',
+    )['ok'] is True
+
+    rollup = read_local_project_progress_rollup(config, project_id='project-one')
+
+    assert rollup['ok'] is True
+    assert rollup['local_only'] is True
+    assert rollup['read_only'] is True
+    assert rollup['project_id'] == 'project-one'
+    assert rollup['project_name'] == 'Project One'
+    assert rollup['active_project'] is True
+    assert rollup['total_queue_items'] == 4
+    assert rollup['items_by_status']['ready'] == 1
+    assert rollup['items_by_status']['blocked'] == 1
+    assert rollup['items_by_status']['in_progress'] == 1
+    assert rollup['items_by_status']['done'] == 1
+    assert rollup['items_by_type']['validation'] == 1
+    assert rollup['items_by_lane']['test-agent'] == 1
+    assert rollup['ready_item_count'] == 1
+    assert rollup['blocked_item_count'] == 1
+    assert rollup['in_progress_item_count'] == 1
+    assert rollup['items_with_evidence_captured_count'] == 2
+    assert rollup['items_eligible_for_closeout_count'] == 1
+    assert rollup['closed_completed_item_count'] == 1
+    assert rollup['latest_activity_timestamp']
+    assert rollup['blockers'] == ['Queue item blocked-item is blocked: blocked-item title']
+    assert rollup['future_routing_metadata']['implemented'] is False
+    assert any('Read-only local queue' in entry for entry in rollup['boundary_confirmations'])
+
+
+def test_read_local_project_progress_rollup_handles_empty_queue_state(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_managed_project_registry(config)['ok'] is True
+    assert register_managed_project(
+        config,
+        project_id='empty-project',
+        name='Empty Project',
+        root_path=tmp_path,
+    )['ok'] is True
+
+    rollup = read_local_project_progress_rollup(config, project_id='empty-project')
+
+    assert rollup['ok'] is True
+    assert rollup['project_id'] == 'empty-project'
+    assert rollup['total_queue_items'] == 0
+    assert rollup['ready_item_count'] == 0
+    assert rollup['blocked_item_count'] == 0
+    assert rollup['items_with_evidence_captured_count'] == 0
+    assert rollup['items_eligible_for_closeout_count'] == 0
+    assert rollup['closed_completed_item_count'] == 0
+    assert rollup['items_by_status']['ready'] == 0
+    assert rollup['next_safe_action'] == 'Add local queue items for this project when the next milestone is ready.'
+    assert any('queue not found' in warning.lower() for warning in rollup['warnings'])
+
+
+def test_read_local_project_progress_rollup_missing_project_fails_when_registry_exists(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_managed_project_registry(config)['ok'] is True
+
+    rollup = read_local_project_progress_rollup(config, project_id='missing-project')
+
+    assert rollup['ok'] is False
+    assert rollup['error'] == 'managed_project_not_found'

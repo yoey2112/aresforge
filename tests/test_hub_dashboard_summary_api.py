@@ -120,3 +120,104 @@ def test_get_dashboard_summary_route_includes_active_project_and_queue_counts(tm
         server.shutdown()
         server.server_close()
         thread.join(timeout=2)
+
+
+def test_get_project_progress_rollup_route_returns_read_only_counts(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert post_project(
+        config,
+        {
+            "project_id": "aresforge",
+            "name": "AresForge",
+            "root_path": str(tmp_path),
+            "status": "active",
+        },
+    )["ok"]
+    assert post_project_repo(
+        config,
+        "aresforge",
+        {
+            "repo_id": "aresforge-primary",
+            "name": "AresForge Repo",
+            "path": str(tmp_path),
+            "role": "primary",
+            "status": "active",
+        },
+    )["ok"]
+    assert post_active_project(config, {"project_id": "aresforge"})["ok"]
+    assert post_queue_item(
+        config,
+        {
+            "item_id": "rollup-ready",
+            "project_id": "aresforge",
+            "repo_id": "aresforge-primary",
+            "title": "Ready task",
+            "status": "ready",
+            "priority": "high",
+            "item_type": "task",
+            "assigned_agent": "coding-agent",
+        },
+    )["ok"]
+    assert post_queue_item(
+        config,
+        {
+            "item_id": "rollup-blocked",
+            "project_id": "aresforge",
+            "repo_id": "aresforge-primary",
+            "title": "Blocked task",
+            "status": "blocked",
+            "priority": "high",
+            "item_type": "bug",
+            "assigned_agent": "reviewer-agent",
+        },
+    )["ok"]
+
+    server, thread = _start_server(config)
+    try:
+        status, payload = _request_json(int(server.server_address[1]), "/api/projects/aresforge/progress-rollup")
+        assert status == 200
+        assert payload["ok"] is True
+        assert payload["local_only"] is True
+        assert payload["read_only"] is True
+        assert payload["project_id"] == "aresforge"
+        assert payload["active_project"] is True
+        assert payload["total_queue_items"] == 2
+        assert payload["items_by_status"]["ready"] == 1
+        assert payload["items_by_status"]["blocked"] == 1
+        assert payload["items_by_type"]["task"] == 1
+        assert payload["items_by_lane"]["coding-agent"] == 1
+        assert payload["ready_item_count"] == 1
+        assert payload["blocked_item_count"] == 1
+        assert payload["items_with_evidence_captured_count"] == 0
+        assert payload["items_eligible_for_closeout_count"] == 0
+        assert payload["closed_completed_item_count"] == 0
+        assert payload["blockers"] == ["Queue item rollup-blocked is blocked: Blocked task"]
+        assert payload["future_routing_metadata"]["implemented"] is False
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
+
+
+def test_get_project_progress_rollup_route_returns_not_found_for_missing_project(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert post_project(
+        config,
+        {
+            "project_id": "aresforge",
+            "name": "AresForge",
+            "root_path": str(tmp_path),
+            "status": "active",
+        },
+    )["ok"]
+
+    server, thread = _start_server(config)
+    try:
+        status, payload = _request_json(int(server.server_address[1]), "/api/projects/missing/progress-rollup")
+        assert status == 404
+        assert payload["ok"] is False
+        assert payload["error"] == "managed_project_not_found"
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)

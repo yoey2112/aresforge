@@ -24,6 +24,7 @@ from aresforge.operator.local_project_queue import (
     generate_local_queue_item_codex_prompt,
     init_project_queue,
     inspect_local_queue_item_readiness,
+    read_local_project_progress_rollup,
     resolve_project_queue_path,
     start_local_queue_item,
     update_queue_item,
@@ -2181,6 +2182,25 @@ def get_project_repos(config: AppConfig, project_id: str) -> dict[str, Any]:
         "warnings": list(project_payload.get("warnings", [])),
         "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
     }
+
+
+def get_project_progress_rollup(config: AppConfig, project_id: str) -> dict[str, Any]:
+    result = read_local_project_progress_rollup(config, project_id=project_id)
+    if not result.get("ok", False):
+        details = dict(result.get("details", {}))
+        error = str(result.get("error", "project_progress_rollup_failed"))
+        status = 404 if error == "managed_project_not_found" else 400
+        return _api_error(
+            error,
+            str(details.get("message", "Failed to read local project progress rollup.")),
+            details=details,
+            status=status,
+        )
+    result["service"] = SERVICE_NAME
+    result["boundary_confirmations"] = list(
+        dict.fromkeys(list(result.get("boundary_confirmations", [])) + list(_BOUNDARY_CONFIRMATIONS))
+    )
+    return result
 
 
 def post_project_repo(config: AppConfig, project_id: str, body: dict[str, Any]) -> dict[str, Any]:

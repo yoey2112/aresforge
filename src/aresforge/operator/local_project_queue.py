@@ -92,6 +92,17 @@ _QUEUE_ITEM_CLOSEOUT_BOUNDARY_CONFIRMATIONS: tuple[str, ...] = (
     'No model invocation.',
     'No prompt generation or execution.',
 )
+_PROJECT_PROGRESS_ROLLUP_BOUNDARY_CONFIRMATIONS: tuple[str, ...] = (
+    'Local-only project progress rollup.',
+    'Read-only local queue and project inspection.',
+    'No GitHub API calls.',
+    'No gh calls.',
+    'No network service calls.',
+    'No agent execution.',
+    'No model invocation.',
+    'No prompt generation or execution.',
+    'No queue mutation performed.',
+)
 _STARTABLE_QUEUE_STATUSES: frozenset[str] = frozenset({'proposed', 'ready'})
 _COMPLETABLE_QUEUE_STATUSES: frozenset[str] = frozenset({'in_progress'})
 _RESOLVED_DEPENDENCY_STATUSES: frozenset[str] = frozenset({'done'})
@@ -1159,6 +1170,147 @@ def close_local_queue_item(
     }
 
 
+def read_local_project_progress_rollup(
+    config: AppConfig,
+    *,
+    project_id: str,
+    queue_path: str | Path | None = None,
+    registry_path: str | Path | None = None,
+) -> dict[str, Any]:
+    normalized_project_id = str(project_id or '').strip()
+    if not normalized_project_id:
+        return _error(
+            'invalid_project_progress_rollup_payload',
+            {
+                'message': 'project_id is required.',
+                'required_fields': ['project_id'],
+            },
+        )
+
+    resolved_queue_path = resolve_project_queue_path(config.repo_root, queue_path)
+    resolved_registry_path = resolve_managed_project_registry_path(config.repo_root, registry_path)
+    registry_projects, registry_warnings = _load_registry_projects_for_rollup(resolved_registry_path)
+    registry_available = resolved_registry_path.exists() and not registry_warnings
+    if registry_available and normalized_project_id not in {
+        str(project.get('project_id', '')).strip()
+        for project in registry_projects
+        if isinstance(project, dict)
+    }:
+        return _error(
+            'managed_project_not_found',
+            {
+                'message': 'Project id was not found in managed project registry.',
+                'project_id': normalized_project_id,
+                'registry_path': str(resolved_registry_path),
+            },
+        )
+
+    project = next(
+        (
+            candidate
+            for candidate in registry_projects
+            if isinstance(candidate, dict)
+            and str(candidate.get('project_id', '')).strip() == normalized_project_id
+        ),
+        {},
+    )
+    queue_items, queue_updated_at, queue_warnings = _load_queue_items_for_rollup(resolved_queue_path)
+    project_items = [
+        item
+        for item in queue_items
+        if str(item.get('project_id', '')).strip() == normalized_project_id
+    ]
+    item_views = [_item_view(item) for item in project_items]
+
+    active_payload = inspect_active_project(config)
+    active_project_id = str(active_payload.get('active_project_id', '')).strip()
+    items_by_status = {status: 0 for status in QUEUE_STATUSES}
+    items_by_status.update(_count_items_by(item_views, 'status'))
+    items_by_type = _count_items_by(item_views, 'item_type')
+    items_by_lane = _count_items_by(item_views, 'assigned_agent')
+
+    ready_items = [_rollup_item_summary(item) for item in item_views if item.get('status') == 'ready']
+    blocked_items = [_rollup_item_summary(item) for item in item_views if item.get('status') == 'blocked']
+    in_progress_items = [_rollup_item_summary(item) for item in item_views if item.get('status') == 'in_progress']
+    evidence_items = [
+        _rollup_item_summary(item)
+        for item in item_views
+        if isinstance(item.get('completion_evidence'), dict) and bool(item.get('completion_evidence'))
+    ]
+    closeout_eligible_items = [
+        _rollup_item_summary(item)
+        for item in item_views
+        if _completion_evidence_closeout_eligible(item)
+    ]
+    closed_completed_items = [
+        _rollup_item_summary(item)
+        for item in item_views
+        if item.get('status') == 'done'
+    ]
+    blockers = [
+        f"Queue item {item.get('item_id')} is blocked: {item.get('title') or '-'}"
+        for item in blocked_items
+    ]
+    latest_activity_timestamp = _latest_rollup_activity(project, project_items, queue_updated_at)
+    warnings = sorted(
+        {
+            *registry_warnings,
+            *queue_warnings,
+            *[
+                str(warning).strip()
+                for warning in active_payload.get('warnings', [])
+                if str(warning).strip()
+                and normalized_project_id == active_project_id
+            ],
+        }
+    )
+
+    return {
+        'command': 'read-local-project-progress-rollup',
+        'ok': True,
+        'local_only': True,
+        'read_only': True,
+        'project_id': normalized_project_id,
+        'project_name': str(project.get('name', '')).strip(),
+        'active_project': normalized_project_id == active_project_id,
+        'queue_path': str(resolved_queue_path),
+        'registry_path': str(resolved_registry_path),
+        'total_queue_items': len(item_views),
+        'items_by_status': dict(sorted(items_by_status.items())),
+        'items_by_type': items_by_type,
+        'items_by_lane': items_by_lane,
+        'ready_item_count': len(ready_items),
+        'ready_items': ready_items,
+        'blocked_item_count': len(blocked_items),
+        'blocked_items': blocked_items,
+        'in_progress_item_count': len(in_progress_items),
+        'in_progress_items': in_progress_items,
+        'items_with_evidence_captured_count': len(evidence_items),
+        'items_with_evidence_captured': evidence_items,
+        'items_eligible_for_closeout_count': len(closeout_eligible_items),
+        'items_eligible_for_closeout': closeout_eligible_items,
+        'closed_completed_item_count': len(closed_completed_items),
+        'closed_completed_items': closed_completed_items,
+        'latest_activity_timestamp': latest_activity_timestamp,
+        'next_safe_action': _project_progress_next_safe_action(
+            total_items=len(item_views),
+            ready_count=len(ready_items),
+            blocked_count=len(blocked_items),
+            in_progress_count=len(in_progress_items),
+            closeout_eligible_count=len(closeout_eligible_items),
+            closed_completed_count=len(closed_completed_items),
+        ),
+        'blockers': blockers,
+        'warnings': warnings,
+        'future_routing_metadata': {
+            'implemented': False,
+            'status': 'future_not_implemented',
+            'note': 'Agent/LLM routing metadata remains future work and is not used by this read-only rollup.',
+        },
+        'boundary_confirmations': list(_PROJECT_PROGRESS_ROLLUP_BOUNDARY_CONFIRMATIONS),
+    }
+
+
 def generate_local_queue_item_codex_prompt(
     config: AppConfig,
     *,
@@ -1777,6 +1929,104 @@ def _completion_evidence_has_required_closeout_fields(evidence: dict[str, Any]) 
         and any(str(value).strip() for value in validation_results)
         and diff_check_result
     )
+
+
+def _load_registry_projects_for_rollup(path: Path) -> tuple[list[dict[str, Any]], list[str]]:
+    if not path.exists():
+        return [], ['Managed project registry not found. Project name and active-project validation may be unavailable.']
+    try:
+        raw = json.loads(path.read_text(encoding='utf-8'))
+    except (OSError, json.JSONDecodeError) as exc:
+        return [], [f'Managed project registry could not be parsed: {exc}']
+    if not isinstance(raw, dict):
+        return [], ['Managed project registry has invalid schema. Project name may be unavailable.']
+    projects = raw.get('projects', [])
+    if not isinstance(projects, list):
+        return [], ['Managed project registry contains non-list projects field. Project name may be unavailable.']
+    return [project for project in projects if isinstance(project, dict)], []
+
+
+def _load_queue_items_for_rollup(path: Path) -> tuple[list[dict[str, Any]], str, list[str]]:
+    if not path.exists():
+        return [], '', ['Local project queue not found. Progress rollup is empty.']
+    try:
+        raw = json.loads(path.read_text(encoding='utf-8'))
+    except (OSError, json.JSONDecodeError) as exc:
+        return [], '', [f'Local project queue could not be parsed: {exc}']
+    if not isinstance(raw, dict):
+        return [], '', ['Local project queue has invalid schema. Progress rollup is empty.']
+    items = raw.get('work_items', [])
+    if not isinstance(items, list):
+        return [], str(raw.get('updated_at', '')).strip(), ['Local project queue contains non-list work_items field. Progress rollup is empty.']
+    return [item for item in items if isinstance(item, dict)], str(raw.get('updated_at', '')).strip(), []
+
+
+def _count_items_by(items: list[dict[str, Any]], field: str) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for item in items:
+        if field == 'assigned_agent':
+            value = str(item.get(field, '')).strip() or 'unassigned'
+        else:
+            value = str(item.get(field, '')).strip() or 'unknown'
+        counts[value] = counts.get(value, 0) + 1
+    return dict(sorted(counts.items()))
+
+
+def _rollup_item_summary(item: dict[str, Any]) -> dict[str, str]:
+    return {
+        'item_id': str(item.get('item_id', '')).strip(),
+        'title': str(item.get('title', '')).strip(),
+        'status': str(item.get('status', '')).strip(),
+        'priority': str(item.get('priority', '')).strip(),
+        'item_type': str(item.get('item_type', '')).strip(),
+        'assigned_agent': str(item.get('assigned_agent', '')).strip(),
+    }
+
+
+def _latest_rollup_activity(project: dict[str, Any], items: list[dict[str, Any]], queue_updated_at: str) -> str:
+    timestamps: list[str] = [
+        str(project.get('updated_at', '')).strip(),
+        str(project.get('created_at', '')).strip(),
+        str(queue_updated_at or '').strip(),
+    ]
+    for item in items:
+        evidence = item.get('completion_evidence', {})
+        timestamps.extend(
+            [
+                str(item.get('closed_at', '')).strip(),
+                str(item.get('completed_at', '')).strip(),
+                str(item.get('updated_at', '')).strip(),
+                str(item.get('started_at', '')).strip(),
+                str(item.get('created_at', '')).strip(),
+                str(evidence.get('captured_at', '')).strip() if isinstance(evidence, dict) else '',
+            ]
+        )
+    normalized = [value for value in timestamps if value]
+    return max(normalized) if normalized else ''
+
+
+def _project_progress_next_safe_action(
+    *,
+    total_items: int,
+    ready_count: int,
+    blocked_count: int,
+    in_progress_count: int,
+    closeout_eligible_count: int,
+    closed_completed_count: int,
+) -> str:
+    if blocked_count:
+        return 'Review blocked local queue items and resolve blockers before starting more work.'
+    if closeout_eligible_count:
+        return 'Review closeout-eligible queue items and close them out explicitly when the operator is satisfied.'
+    if in_progress_count:
+        return 'Capture or review completion evidence for in-progress queue items.'
+    if ready_count:
+        return 'Inspect readiness and explicitly start the next ready queue item when appropriate.'
+    if total_items == 0:
+        return 'Add local queue items for this project when the next milestone is ready.'
+    if closed_completed_count == total_items:
+        return 'Review project progress and prepare the next local planning/reporting milestone.'
+    return 'Inspect local queue status and choose the next operator-gated action.'
 
 
 def _empty_dependency_summary() -> dict[str, Any]:

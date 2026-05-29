@@ -1,5 +1,27 @@
 # AresForge Build State
 
+## M48 Project Progress Rollup
+
+Status: Completed locally on `main`.
+
+Delivered:
+
+- added `read_local_project_progress_rollup(...)` for read-only project queue progress inspection
+- added Hub route `GET /api/projects/{project_id}/progress-rollup`
+- added a minimal Projects UI Project Progress Rollup panel
+- rollup summarizes total queue items, status/type/lane counts, ready/blocked/in-progress items, evidence capture count, closeout eligibility, closed/completed count, latest activity, blockers, warnings, and `next_safe_action`
+
+Boundaries:
+
+- local-only, file-backed, read-only, and operator-gated
+- rollup does not mutate queue/project state, generate reports, execute prompts, call Codex/local LLMs/agents, route models, call GitHub/`gh`, push code, or run external workflows
+- future routing metadata is only reported as future/not implemented
+- full Reports v1 remains future work
+
+Recommended next milestone:
+
+- M49 - Reports v1.
+
 ## M47 Queue Item Closeout Workflow
 
 Status: Completed locally on `main`.

@@ -1,5 +1,30 @@
 # AresForge Roadmap
 
+## M48 Project Progress Rollup
+
+Status: Completed locally on `main`.
+
+Delivered scope:
+
+- added read-only local Project Progress Rollup support
+- added Hub API support for `GET /api/projects/{project_id}/progress-rollup`
+- added minimal Projects UI display for active project progress counts and next safe action
+- added targeted tests for rollup success, empty queue/project state, status/type/lane counts, evidence and closeout counts, API success/failure, and UI contract references
+
+Constraints preserved:
+
+- rollup is local-only, file-backed, and read-only
+- no Reports v1 implementation
+- no routing implementation
+- no local LLM execution
+- no Codex execution
+- no real agent execution
+- no GitHub API, no `gh`, no GitHub issues/PRs/workflow activity, no GitHub mutation from the app
+
+Recommended next milestone:
+
+- M49 - Reports v1.
+
 ## M47 Queue Item Closeout Workflow
 
 Status: Completed locally on `main`.

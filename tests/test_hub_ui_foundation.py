@@ -399,6 +399,17 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "Projects Read-Only Overview" in index_text
     assert "projects-readonly-list" in index_text
     assert "Local-only and read-only project view: no project mutations, no GitHub sync/mutation, no agent/model execution." in index_text
+    assert "Project Progress Rollup" in index_text
+    assert "Read-only local project progress: no report generation, no queue mutation, no routing, no agent/model execution." in index_text
+    assert "projects-progress-rollup-total" in index_text
+    assert "projects-progress-rollup-ready" in index_text
+    assert "projects-progress-rollup-evidence" in index_text
+    assert "projects-progress-rollup-closeout" in index_text
+    assert "projects-progress-rollup-closed" in index_text
+    assert "projects-progress-rollup-next-safe-action" in index_text
+    assert "projects-progress-rollup-summary" in index_text
+    assert "projects-progress-rollup-blockers" in index_text
+    assert "projects-progress-rollup-warnings" in index_text
     assert "Local Home Dashboard" in index_text
     assert "home-local-dashboard-last-loaded" in index_text
     assert "home-local-dashboard-error" in index_text
@@ -505,6 +516,7 @@ def test_frontend_scripts_reference_m39_api_endpoints_and_forms() -> None:
         "/api/active-project/workspace",
         "/api/local-projects",
         "/api/local-queue-agent-summary",
+        "/progress-rollup",
     ):
         assert endpoint in combined_text
     assert "ACTIVE" in combined_text
@@ -620,6 +632,8 @@ def test_frontend_scripts_reference_m39_api_endpoints_and_forms() -> None:
     assert "renderLocalQueueEvidenceResult" in combined_text
     assert "renderLocalQueueCloseoutResult" in combined_text
     assert "renderLocalQueueCompleteResult" in combined_text
+    assert "renderProjectProgressRollup" in combined_text
+    assert "loadProjectProgressRollup" in combined_text
     assert "home-github-apply-plan-milestones" in combined_text
     assert "home-github-apply-plan-issues" in combined_text
     assert "home-agent-dispatch-items" in combined_text

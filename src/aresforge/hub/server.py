@@ -40,6 +40,7 @@ from aresforge.hub.api import (
     get_project_factory_github_apply_plan,
     get_project_factory_milestone_issue_plan,
     get_project_factory_scope_package,
+    get_project_progress_rollup,
     get_project_repo_github_link,
     get_project_repos,
     get_reports_action_center,
@@ -942,6 +943,10 @@ def _build_handler(config: AppConfig, static_root: Path) -> type[BaseHTTPRequest
                 project_id = segments[2]
                 if len(segments) == 3 and method == "GET":
                     payload = get_project(config, project_id)
+                    _render_json(self, _status_from_payload(payload), payload)
+                    return True
+                if len(segments) == 4 and segments[3] == "progress-rollup" and method == "GET":
+                    payload = get_project_progress_rollup(config, project_id)
                     _render_json(self, _status_from_payload(payload), payload)
                     return True
                 if len(segments) == 4 and segments[3] == "repos" and method == "GET":

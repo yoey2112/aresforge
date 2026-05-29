@@ -1,4 +1,4 @@
-import { byId, on, setList, setMessage } from "/js/core/dom.js";
+import { byId, on, setList, setMessage, setText } from "/js/core/dom.js";
 import { fetchJson, prunePayload } from "/js/core/http.js";
 
 export function buildProjectPayload(parseCommaList) {
@@ -41,6 +41,54 @@ export function renderProjectsReadOnly(payload) {
 
 export function renderProjectsReadOnlyUnavailable() {
   setList("projects-readonly-list", "projects-readonly-empty-state", []);
+}
+
+export function renderProjectProgressRollup(payload) {
+  setText("projects-progress-rollup-total", payload.total_queue_items || 0);
+  setText("projects-progress-rollup-ready", payload.ready_item_count || 0);
+  setText("projects-progress-rollup-evidence", payload.items_with_evidence_captured_count || 0);
+  setText("projects-progress-rollup-closeout", payload.items_eligible_for_closeout_count || 0);
+  setText("projects-progress-rollup-closed", payload.closed_completed_item_count || 0);
+  setText("projects-progress-rollup-next-safe-action", payload.next_safe_action || "Inspect local project progress.");
+  const statusLines = Object.entries(payload.items_by_status || {}).map(([status, count]) => `${status}: ${count}`);
+  const typeLines = Object.entries(payload.items_by_type || {}).map(([type, count]) => `type:${type}: ${count}`);
+  const laneLines = Object.entries(payload.items_by_lane || {}).map(([lane, count]) => `lane:${lane}: ${count}`);
+  setList("projects-progress-rollup-summary", "projects-progress-rollup-summary-empty", [
+    `project: ${payload.project_id || "-"} | active=${payload.active_project ? "true" : "false"} | latest=${payload.latest_activity_timestamp || "-"}`,
+    ...statusLines,
+    ...typeLines,
+    ...laneLines,
+  ]);
+  setList("projects-progress-rollup-blockers", "projects-progress-rollup-blockers-empty", payload.blockers || []);
+  setList("projects-progress-rollup-warnings", "projects-progress-rollup-warnings-empty", payload.warnings || []);
+}
+
+export function renderProjectProgressRollupUnavailable(messageText) {
+  setText("projects-progress-rollup-total", "0");
+  setText("projects-progress-rollup-ready", "0");
+  setText("projects-progress-rollup-evidence", "0");
+  setText("projects-progress-rollup-closeout", "0");
+  setText("projects-progress-rollup-closed", "0");
+  setText("projects-progress-rollup-next-safe-action", messageText || "Select an active project to inspect progress.");
+  setList("projects-progress-rollup-summary", "projects-progress-rollup-summary-empty", []);
+  setList("projects-progress-rollup-blockers", "projects-progress-rollup-blockers-empty", []);
+  setList("projects-progress-rollup-warnings", "projects-progress-rollup-warnings-empty", []);
+}
+
+export async function loadProjectProgressRollup(projectId) {
+  const normalizedProjectId = String(projectId || "").trim();
+  if (!normalizedProjectId) {
+    renderProjectProgressRollupUnavailable("Select an active project to inspect progress.");
+    return null;
+  }
+  try {
+    const payload = await fetchJson(`/api/projects/${encodeURIComponent(normalizedProjectId)}/progress-rollup`);
+    renderProjectProgressRollup(payload);
+    return payload;
+  } catch (error) {
+    renderProjectProgressRollupUnavailable(String(error.message || error));
+    return null;
+  }
 }
 
 export function refreshProjectSelectors(state, projects, { activeProjectId }) {
@@ -97,6 +145,7 @@ export async function loadProjectsData(state, { loadActiveProject, renderActiveP
   }
   renderProjects(state.projects);
   refreshProjectSelectors(state, state.projects, { activeProjectId });
+  await loadProjectProgressRollup(activeProjectId());
   setMessage(
     "projects-message",
     payload.warnings && payload.warnings.length ? payload.warnings.join(" | ") : "Projects loaded.",

@@ -1,5 +1,29 @@
 # Local Operator Usage
 
+## M48 Project Progress Rollup
+
+Status: Completed locally on `main`.
+
+Operator workflow:
+
+1. Select or confirm the active project in Projects.
+2. Review Project Progress Rollup counts for queue status, type/lane, evidence capture, closeout eligibility, and closed/completed work.
+3. Use the returned `next_safe_action`, blockers, and warnings to choose the next operator-gated action.
+4. Continue to Queue for evidence capture, closeout, or intake as needed.
+
+Operator safety notes:
+
+- the rollup is read-only and local-only
+- it does not generate Reports v1 output
+- it does not mutate queue/project state
+- it does not generate or execute prompts
+- it does not call Codex, agents, local LLMs, routing, GitHub, `gh`, workflows, push, or external services
+- future routing metadata is a not-implemented placeholder only
+
+Recommended next milestone:
+
+- M49 - Reports v1.
+
 ## M47 Queue Item Closeout Workflow
 
 Status: Completed locally on `main`.

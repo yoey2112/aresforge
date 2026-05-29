@@ -1,5 +1,37 @@
 # AresForge Agent Context
 
+## M48 Project Progress Rollup Context
+
+Status: Completed locally on `main`.
+
+Current progress rollup contract:
+
+- operator function: `read_local_project_progress_rollup(...)` in `src/aresforge/operator/local_project_queue.py`
+- Hub route: `GET /api/projects/{project_id}/progress-rollup`
+- Projects UI includes a small read-only Project Progress Rollup panel
+
+Rollup content:
+
+- project id/name and active-project flag
+- total queue items
+- counts by status, type, and assigned lane/agent
+- ready, blocked, and in-progress item counts/lists
+- evidence captured count/list
+- closeout-eligible count/list
+- closed/completed count/list
+- latest activity timestamp, blockers, warnings, and `next_safe_action`
+
+Boundary reminders:
+
+- rollup is read-only and local-only
+- no queue mutation, report generation, prompt generation/execution, Codex/local LLM/agent execution, model routing, GitHub/`gh`, push, workflow, or external execution
+- routing metadata remains future/not implemented placeholder information only
+- Reports v1 is not implemented by M48
+
+Recommended next milestone:
+
+- M49 - Reports v1.
+
 ## M47 Queue Item Closeout Workflow Context
 
 Status: Completed locally on `main`.

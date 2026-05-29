@@ -636,6 +636,26 @@
             </div>
           </section>
           <section class="subpanel">
+            <h3>Project Progress Rollup</h3>
+            <p class="boundary-banner">Read-only local project progress: no report generation, no queue mutation, no routing, no agent/model execution.</p>
+            <div class="cards">
+              <article class="card"><h4>Total Queue Items</h4><p id="projects-progress-rollup-total">0</p></article>
+              <article class="card"><h4>Ready Items</h4><p id="projects-progress-rollup-ready">0</p></article>
+              <article class="card"><h4>Evidence Captured</h4><p id="projects-progress-rollup-evidence">0</p></article>
+              <article class="card"><h4>Closeout Eligible</h4><p id="projects-progress-rollup-closeout">0</p></article>
+              <article class="card"><h4>Closed/Completed</h4><p id="projects-progress-rollup-closed">0</p></article>
+            </div>
+            <p id="projects-progress-rollup-next-safe-action" class="message-note">Select an active project to inspect progress.</p>
+            <ul id="projects-progress-rollup-summary" class="list"></ul>
+            <p id="projects-progress-rollup-summary-empty" class="empty">No progress rollup loaded.</p>
+            <h4>Blockers</h4>
+            <ul id="projects-progress-rollup-blockers" class="list"></ul>
+            <p id="projects-progress-rollup-blockers-empty" class="empty">No progress blockers reported.</p>
+            <h4>Warnings</h4>
+            <ul id="projects-progress-rollup-warnings" class="list"></ul>
+            <p id="projects-progress-rollup-warnings-empty" class="empty">No progress warnings reported.</p>
+          </section>
+          <section class="subpanel">
             <h3>New Project Wizard</h3>
             <p class="message-note">Local-only initialization. This does not create a live GitHub repository and does not execute agents/models.</p>
             <form id="new-project-wizard-form" class="form-grid">

@@ -1,5 +1,35 @@
 # Runnable Skeleton
 
+## M48 Project Progress Rollup
+
+Status: Completed locally on `main`.
+
+Implemented runnable path:
+
+- operator function: `read_local_project_progress_rollup(...)`
+- Hub route: `GET /api/projects/{project_id}/progress-rollup`
+- Projects UI panel: Project Progress Rollup
+
+Behavior contract:
+
+- reads existing managed project, active project, and local queue files
+- summarizes project queue progress without mutating state
+- reports total items, counts by status/type/lane, ready items, blocked items, in-progress items, evidence captured, closeout eligibility, closed/completed items, latest activity, blockers, warnings, and `next_safe_action`
+- includes future routing metadata only as explicitly not implemented
+
+Still absent by design:
+
+- Reports v1
+- runtime Agent/LLM routing
+- Codex CLI execution
+- local LLM execution
+- real agent execution
+- GitHub integration or mutation
+
+Next skeleton focus:
+
+- M49 should implement Reports v1.
+
 ## M47 Queue Item Closeout Workflow
 
 Status: Completed locally on `main`.
