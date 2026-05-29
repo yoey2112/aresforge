@@ -327,7 +327,7 @@ Fields:
 - `notes`
 - `updated_at`
 
-The contract is configuration only. Model names are placeholders/config values and do not claim that a model is installed. `health_check_enabled` may be stored, but no health check runs in M58. `execution_enabled` must remain false and `operator_gate_required` must remain true.
+The contract is configuration only in M58. Model names are placeholders/config values and do not claim that a model is installed. `health_check_enabled` may be stored, but no health check runs in M58. M62 allows `execution_enabled: true` only for the operator-gated local prototype, and `operator_gate_required` must remain true.
 
 M58 does not call Ollama, call model APIs, perform health checks, send prompts, execute routing, invoke local LLMs, invoke Codex, run agents, call GitHub, or run external workflows.
 
@@ -359,7 +359,7 @@ The health check returns:
 - checked timestamp
 - warnings and blockers
 
-M59 does not send prompts, call generate/chat/completion endpoints, run model inference, generate text, execute routing, invoke Codex, run agents, mutate queue/project state, call GitHub, or run external workflows. M61 adds Local LLM Prompt Preview. M62 remains the future point for an operator-gated local execution prototype.
+M59 does not send prompts, call generate/chat/completion endpoints, run model inference, generate text, execute routing, invoke Codex, run agents, mutate queue/project state, call GitHub, or run external workflows. M61 adds Local LLM Prompt Preview. M62 adds an operator-gated local execution prototype.
 
 ## M60 Codex CLI Model Profile Contract
 
@@ -382,7 +382,7 @@ Storage path:
 
 Codex CLI remains engine `codex_cli`. The contract stores default, high-value, and fast Codex model preferences, an allowed model list, and optional per-project/per-agent allowed model mappings.
 
-The contract is configuration only. `execution_enabled` must remain false and `operator_gate_required` must remain true.
+The contract is configuration only. `execution_enabled` must remain false and `operator_gate_required` must remain true for Codex CLI model profiles.
 
 M60 does not execute Codex CLI, execute prompts, run agents, call GitHub, call `gh`, or run external workflows. M63 should add Codex CLI High-Value Lane planning and still must remain operator-gated unless a later execution milestone explicitly changes that boundary.
 
@@ -417,7 +417,40 @@ Preview output includes:
 
 Preview is allowed for queue items routed to `local_reasoning_llm` or `local_coding_llm` when the local environment/model configuration is present. It blocks or warns for `codex_cli` routes, unrouted items, missing local model configuration, malformed environment contract, high-risk policy concerns, and `manual_only` mode without operator override.
 
-M61 does not call Ollama, send prompts, run model inference, generate text, execute routing, invoke Codex, run agents, mutate GitHub, call `gh`, or run external workflows. M62 should add the first operator-gated local LLM execution prototype.
+M61 does not call Ollama, send prompts, run model inference, generate text, execute routing, invoke Codex, run agents, mutate GitHub, call `gh`, or run external workflows. M62 adds the first operator-gated local LLM execution prototype.
+
+## M62 Operator-Gated Local LLM Execution Prototype
+
+M62 adds the first conservative local LLM execution prototype.
+
+Current operator helper:
+
+- `execute_local_llm_for_queue_item(...)`
+
+Current Hub route:
+
+- `POST /api/local-queue/items/{item_id}/local-llm-execute`
+
+Current UI path:
+
+- Queue -> Prototype: Run Local LLM
+
+Execution gates:
+
+- explicit operator request
+- queue item exists
+- routing metadata recommends `local_reasoning_llm` or `local_coding_llm`
+- local LLM environment has `execution_enabled: true`
+- local LLM environment keeps `operator_gate_required: true`
+- provider is local `ollama`
+- provider URL is local-only
+- prompt preview is generated
+- health check confirms provider reachability and model availability for real execution
+- high or critical risk requires operator override
+
+Dry run validates gates and returns the prompt preview without calling the provider. Real execution calls only the configured local provider and captures advisory response text. Optional result artifacts are local-only and refuse overwrite unless `force=true`.
+
+M62 does not execute Codex CLI, call GitHub, call `gh`, mutate GitHub, execute external/non-local LLM providers, auto-run agents, apply response text to files, start/complete/close queue items, create commits, push code, or run workflows. M63 should add Codex CLI High-Value Lane as a non-automatic, operator-gated lane.
 
 ## Operating Boundaries
 

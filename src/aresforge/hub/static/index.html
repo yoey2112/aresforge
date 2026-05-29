@@ -1057,6 +1057,20 @@
                 <p id="queue-local-llm-preview-summary-empty" class="empty">No local LLM prompt preview yet.</p>
                 <pre id="queue-local-llm-preview" class="code-block"></pre>
                 <p id="queue-local-llm-preview-empty" class="empty">No preview generated yet.</p>
+                <h4>Prototype: Run Local LLM</h4>
+                <p class="message-note">Explicit operator-gated local LLM prototype. Advisory output only; does not apply changes, complete queue items, run Codex, GitHub, gh, agents, or workflows.</p>
+                <form id="queue-local-llm-execute-form" class="form-grid">
+                  <label>Result Artifact Path (optional)<input id="queue-local-llm-execute-output" name="output" placeholder="optional local result artifact path" /></label>
+                  <label class="inline-checkbox"><input id="queue-local-llm-execute-confirm" name="confirm_operator_gate" type="checkbox" /> Confirm explicit operator gate</label>
+                  <label class="inline-checkbox"><input id="queue-local-llm-execute-dry-run" name="dry_run" type="checkbox" checked /> Dry run</label>
+                  <label class="inline-checkbox"><input id="queue-local-llm-execute-operator-override" name="operator_override" type="checkbox" /> Operator override high-risk/manual gate</label>
+                  <label class="inline-checkbox"><input id="queue-local-llm-execute-force" name="force" type="checkbox" /> Force overwrite existing artifact</label>
+                  <button id="queue-local-llm-execute-submit" type="submit">Prototype: Run Local LLM</button>
+                </form>
+                <ul id="queue-local-llm-execute-summary" class="list"></ul>
+                <p id="queue-local-llm-execute-summary-empty" class="empty">No local LLM execution result yet.</p>
+                <pre id="queue-local-llm-execute-response" class="code-block"></pre>
+                <p id="queue-local-llm-execute-response-empty" class="empty">No advisory response captured yet.</p>
               </section>
             </div>
             <div class="split two-col">

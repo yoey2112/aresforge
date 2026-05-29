@@ -484,6 +484,17 @@ function buildLocalLlmPromptPreviewPayload() {
   });
 }
 
+function buildLocalLlmExecutePayload() {
+  return prunePayload({
+    confirm_operator_gate: Boolean(byId("queue-local-llm-execute-confirm") && byId("queue-local-llm-execute-confirm").checked),
+    use_preview: true,
+    output: byId("queue-local-llm-execute-output").value.trim(),
+    force: Boolean(byId("queue-local-llm-execute-force") && byId("queue-local-llm-execute-force").checked),
+    operator_override: Boolean(byId("queue-local-llm-execute-operator-override") && byId("queue-local-llm-execute-operator-override").checked),
+    dry_run: Boolean(byId("queue-local-llm-execute-dry-run") && byId("queue-local-llm-execute-dry-run").checked),
+  });
+}
+
 function buildLocalQueuePromptPackPayload({ parseCommaList }) {
   return prunePayload({
     item_ids: parseCommaList(byId("queue-prompt-pack-item-ids").value),
@@ -601,6 +612,24 @@ function renderLocalLlmPromptPreviewResult(payload) {
     ...((payload && payload.blockers) || []).map((blocker) => `blocker: ${blocker}`),
   ]));
   setCodeBlock("queue-local-llm-preview", "queue-local-llm-preview-empty", (payload && payload.prompt_preview) || "");
+}
+
+function renderLocalLlmExecuteResult(payload) {
+  setList("queue-local-llm-execute-summary", "queue-local-llm-execute-summary-empty", [
+    `item_id: ${payload && payload.item_id ? payload.item_id : "-"}`,
+    `provider: ${payload && payload.provider ? payload.provider : "-"}`,
+    `model: ${payload && payload.model ? payload.model : "-"}`,
+    `execution_allowed: ${Boolean(payload && payload.execution_allowed)}`,
+    `executed: ${Boolean(payload && payload.executed)}`,
+    `dry_run: ${Boolean(payload && payload.dry_run)}`,
+    `result_artifact_path: ${payload && payload.result_artifact_path ? payload.result_artifact_path : "-"}`,
+    `captured_at: ${payload && payload.captured_at ? payload.captured_at : "-"}`,
+    `next_safe_action: ${payload && payload.next_safe_action ? payload.next_safe_action : "-"}`,
+  ].concat([
+    ...((payload && payload.warnings) || []).map((warning) => `warning: ${warning}`),
+    ...((payload && payload.blockers) || []).map((blocker) => `blocker: ${blocker}`),
+  ]));
+  setCodeBlock("queue-local-llm-execute-response", "queue-local-llm-execute-response-empty", (payload && payload.response_text) || "");
 }
 
 function renderLocalQueuePromptPackResult(payload) {
@@ -850,6 +879,35 @@ export function bindQueueLifecycleActions({
       setMessage("queue-lifecycle-message", `Local LLM prompt preview generated for ${itemId}. No execution performed.`, "success");
     } catch (error) {
       renderLocalLlmPromptPreviewResult((error && error.payload) || null);
+      setMessage("queue-lifecycle-message", String(error.message || error), "error");
+    } finally {
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = originalLabel;
+      }
+    }
+  });
+
+  on("queue-local-llm-execute-form", "submit", async (event) => {
+    event.preventDefault();
+    const submitButton = byId("queue-local-llm-execute-submit");
+    const originalLabel = submitButton ? submitButton.textContent : "";
+    try {
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = "Running...";
+      }
+      const itemId = requireLocalQueueLifecycleItemId();
+      setMessage("queue-lifecycle-message", `Running operator-gated local LLM prototype for ${itemId}...`, "loading");
+      const payload = await fetchJson(`/api/local-queue/items/${encodeURIComponent(itemId)}/local-llm-execute`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildLocalLlmExecutePayload()),
+      });
+      renderLocalLlmExecuteResult(payload);
+      setMessage("queue-lifecycle-message", `Local LLM prototype result captured for ${itemId}. Advisory output only.`, "success");
+    } catch (error) {
+      renderLocalLlmExecuteResult((error && error.payload) || null);
       setMessage("queue-lifecycle-message", String(error.message || error), "error");
     } finally {
       if (submitButton) {

@@ -5,6 +5,9 @@ import re
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+from urllib.error import HTTPError, URLError
+from urllib.parse import urlparse
+from urllib.request import Request, urlopen
 
 from aresforge.config import AppConfig
 from aresforge.operator.local_active_project import inspect_active_project
@@ -773,8 +776,10 @@ def generate_local_llm_prompt_preview(
         local_provider = str(local_environment.get('local_llm_provider', '')).strip()
         if local_provider in {'', 'none', 'unknown'}:
             blockers.append('Local LLM provider must be configured before generating a local LLM prompt preview.')
-        if local_environment.get('execution_enabled') is not False:
-            blockers.append('Local LLM environment execution_enabled must remain false for prompt preview.')
+        if not isinstance(local_environment.get('execution_enabled'), bool):
+            blockers.append('Local LLM environment execution_enabled must be boolean for prompt preview.')
+        elif local_environment.get('execution_enabled') is True:
+            warnings.append('Local LLM execution is enabled for the M62 operator-gated prototype; prompt preview remains non-executing.')
         if local_environment.get('operator_gate_required') is not True:
             blockers.append('Local LLM environment operator_gate_required must remain true for prompt preview.')
 
@@ -896,6 +901,159 @@ def generate_local_llm_prompt_preview(
         payload['warnings'] = sorted({*payload['warnings'], f'Failed to write output file: {exc}'})
         return payload
     payload['output_path'] = str(output_path)
+    return payload
+
+
+def execute_local_llm_for_queue_item(
+    config: AppConfig,
+    *,
+    item_id: str,
+    confirm_operator_gate: bool = False,
+    use_preview: bool = True,
+    output: str | Path | None = None,
+    force: bool = False,
+    operator_override: bool = False,
+    dry_run: bool = False,
+    queue_path: str | Path | None = None,
+    registry_path: str | Path | None = None,
+    health_check_fn: Any | None = None,
+    provider_generate_fn: Any | None = None,
+) -> dict[str, Any]:
+    normalized_item_id = str(item_id or '').strip()
+    captured_at = _now_iso()
+    warnings: list[str] = []
+    blockers: list[str] = []
+    response_text = ''
+    prompt_used = ''
+
+    preview = generate_local_llm_prompt_preview(
+        config,
+        item_id=normalized_item_id,
+        include_context=True,
+        include_validation_expectations=True,
+        queue_path=queue_path,
+        registry_path=registry_path,
+    )
+    if preview.get('error') == 'queue_item_not_found':
+        return _error(
+            'queue_item_not_found',
+            {
+                'item_id': normalized_item_id,
+                'message': 'Queue item was not found for local LLM execution.',
+            },
+        )
+    warnings.extend([str(warning) for warning in preview.get('warnings', [])])
+    blockers.extend([str(blocker) for blocker in preview.get('blockers', [])])
+    if use_preview:
+        prompt_used = str(preview.get('prompt_preview', ''))
+    if not prompt_used and not blockers:
+        blockers.append('Prompt preview is required before local LLM execution.')
+
+    routing_metadata = preview.get('routing_metadata', {}) if isinstance(preview.get('routing_metadata'), dict) else {}
+    recommended_engine = str(preview.get('recommended_engine', '')).strip()
+    model = str(preview.get('recommended_model', '')).strip()
+    risk_level = str(routing_metadata.get('risk_level', 'unknown')).strip() or 'unknown'
+    project_ai_mode = str(routing_metadata.get('project_ai_mode', '')).strip()
+
+    environment = _read_local_llm_environment_for_preview(config.repo_root)
+    local_environment = environment.get('environment', {}) if isinstance(environment.get('environment'), dict) else {}
+    provider = str(local_environment.get('local_llm_provider', 'unknown')).strip() or 'unknown'
+    provider_base_url = str(local_environment.get('provider_base_url', '')).strip()
+    if provider != 'ollama':
+        blockers.append('Only local provider ollama is supported for the M62 execution prototype.')
+    if provider_base_url and not _is_local_llm_provider_url(provider_base_url):
+        blockers.append('provider_base_url must point to localhost, 127.0.0.1, or ::1 for local LLM execution.')
+    if local_environment.get('execution_enabled') is not True:
+        blockers.append('Local LLM environment execution_enabled must be true for the M62 execution prototype.')
+    if local_environment.get('operator_gate_required') is not True:
+        blockers.append('Local LLM environment operator_gate_required must remain true for local LLM execution.')
+    if project_ai_mode in {'codex_only', 'manual_only'} and not operator_override:
+        blockers.append(f'Project AI mode {project_ai_mode} does not allow local execution without operator override.')
+    if risk_level in {'high', 'critical'} and not operator_override:
+        blockers.append('High or critical risk local LLM execution requires operator_override=true.')
+    if recommended_engine not in {'local_reasoning_llm', 'local_coding_llm'}:
+        blockers.append('Queue item must be routed to local_reasoning_llm or local_coding_llm for local LLM execution.')
+    if not dry_run and not confirm_operator_gate:
+        blockers.append('confirm_operator_gate must be true for real local LLM execution.')
+
+    health_payload: dict[str, Any] = {}
+    if not blockers and not dry_run:
+        from aresforge.operator.local_project_factory import check_local_llm_health
+
+        checker = health_check_fn or check_local_llm_health
+        try:
+            health_payload = checker(config)
+        except TypeError:
+            health_payload = checker()
+        if not isinstance(health_payload, dict):
+            blockers.append('Local LLM health check did not return a stable payload.')
+        else:
+            warnings.extend([str(warning) for warning in health_payload.get('warnings', [])])
+            if not health_payload.get('provider_reachable', False):
+                blockers.append('Local LLM provider health check must be reachable before execution.')
+            available_models = health_payload.get('available_models', [])
+            if isinstance(available_models, list) and model and model not in [str(value) for value in available_models]:
+                blockers.append('Recommended local LLM model is not available according to the health check.')
+
+    execution_allowed = not blockers and not dry_run
+    executed = False
+    if execution_allowed:
+        generator = provider_generate_fn or _call_ollama_generate_for_queue_item
+        try:
+            response_text = generator(
+                provider_base_url=provider_base_url,
+                model=model,
+                prompt=prompt_used,
+                timeout_seconds=local_environment.get('request_timeout_seconds') if isinstance(local_environment.get('request_timeout_seconds'), int) else 60,
+            )
+        except (HTTPError, URLError, OSError, TimeoutError, ValueError) as exc:
+            blockers.append(f'Local LLM provider execution failed: {exc}')
+            execution_allowed = False
+        else:
+            executed = True
+
+    payload: dict[str, Any] = {
+        'command': 'execute-local-llm-for-queue-item',
+        'ok': not blockers,
+        'local_only': True,
+        'item_id': normalized_item_id,
+        'provider': provider,
+        'provider_base_url': provider_base_url,
+        'model': model,
+        'prompt_used': prompt_used,
+        'response_text': response_text,
+        'execution_allowed': execution_allowed,
+        'executed': executed,
+        'dry_run': bool(dry_run),
+        'captured_at': captured_at,
+        'next_safe_action': 'Review advisory local LLM output manually; do not apply changes automatically.' if executed else 'Resolve blockers before local LLM execution.',
+        'warnings': sorted(set(warnings)),
+        'blockers': sorted(set(blockers)),
+        'health_check': health_payload,
+        'boundary_confirmations': [
+            'Local LLM execution is explicit and operator-gated.',
+            'Output is advisory only and is not applied to repo files, queue status, project state, GitHub, gh, Codex, agents, or workflows.',
+        ],
+    }
+
+    if output is None:
+        return payload
+    output_path = Path(output)
+    payload['result_artifact_path'] = str(output_path)
+    if output_path.exists() and not force:
+        payload['ok'] = False
+        payload['execution_allowed'] = False
+        payload['warnings'] = sorted({*payload['warnings'], 'Output file already exists. Re-run with force=true to overwrite.'})
+        return payload
+    if not executed and not dry_run:
+        return payload
+    try:
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(json.dumps(_json_safe(payload), indent=2) + '\n', encoding='utf-8')
+    except OSError as exc:
+        payload['ok'] = False
+        payload['execution_allowed'] = False
+        payload['warnings'] = sorted({*payload['warnings'], f'Failed to write result artifact: {exc}'})
     return payload
 
 
@@ -3385,6 +3543,50 @@ def _read_project_ai_settings_for_preview(repo_root: Path, project_id: str) -> d
     except (OSError, json.JSONDecodeError):
         return {}
     return loaded if isinstance(loaded, dict) else {}
+
+
+def _is_local_llm_provider_url(provider_base_url: str) -> bool:
+    parsed = urlparse(provider_base_url)
+    host = (parsed.hostname or '').lower()
+    return parsed.scheme in {'http', 'https'} and host in {'localhost', '127.0.0.1', '::1'}
+
+
+def _call_ollama_generate_for_queue_item(
+    *,
+    provider_base_url: str,
+    model: str,
+    prompt: str,
+    timeout_seconds: int,
+) -> str:
+    if not _is_local_llm_provider_url(provider_base_url):
+        raise ValueError('provider_base_url must be local for Ollama execution.')
+    if not model:
+        raise ValueError('model is required for Ollama execution.')
+    body = json.dumps({'model': model, 'prompt': prompt, 'stream': False}).encode('utf-8')
+    request = Request(
+        provider_base_url.rstrip('/') + '/api/generate',
+        data=body,
+        method='POST',
+        headers={'Content-Type': 'application/json'},
+    )
+    with urlopen(request, timeout=timeout_seconds) as response:
+        raw = response.read()
+    parsed = json.loads(raw.decode('utf-8'))
+    if not isinstance(parsed, dict):
+        raise ValueError('Ollama generate response must be a JSON object.')
+    return str(parsed.get('response', '')).strip()
+
+
+def _json_safe(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {str(key): _json_safe(child) for key, child in value.items()}
+    if isinstance(value, list):
+        return [_json_safe(child) for child in value]
+    try:
+        json.dumps(value)
+    except TypeError:
+        return str(value)
+    return value
 
 
 def _build_local_llm_prompt_preview_text(

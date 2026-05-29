@@ -116,10 +116,12 @@ def test_local_llm_environment_api_rejects_invalid_inputs(tmp_path: Path) -> Non
         {
             "local_llm_provider": "ollama",
             "execution_enabled": True,
+            "operator_gate_required": True,
         },
     )
-    assert invalid_execution["ok"] is False
-    assert invalid_execution["error"] == "local_llm_environment_validation_failed"
+    assert invalid_execution["ok"] is True
+    assert invalid_execution["local_llm_environment"]["execution_enabled"] is True
+    assert invalid_execution["validation"]["execution_status"] == "operator_gated_prototype"
 
     invalid_timeout = post_local_llm_environment(
         config,

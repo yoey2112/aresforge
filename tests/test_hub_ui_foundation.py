@@ -412,6 +412,17 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "buildLocalLlmPromptPreviewPayload" in queue_js
     assert "renderLocalLlmPromptPreviewResult" in queue_js
     assert "/local-llm-prompt-preview" in queue_js
+    assert "Prototype: Run Local LLM" in index_text
+    assert "queue-local-llm-execute-form" in index_text
+    assert "queue-local-llm-execute-confirm" in index_text
+    assert "queue-local-llm-execute-dry-run" in index_text
+    assert "queue-local-llm-execute-operator-override" in index_text
+    assert "queue-local-llm-execute-output" in index_text
+    assert "queue-local-llm-execute-submit" in index_text
+    assert "Advisory output only; does not apply changes" in index_text
+    assert "buildLocalLlmExecutePayload" in queue_js
+    assert "renderLocalLlmExecuteResult" in queue_js
+    assert "/local-llm-execute" in queue_js
     assert "Active Project Report Focus" in index_text
     assert "settings-active-project-path" in index_text
     assert "Active Project Task Intake" in index_text

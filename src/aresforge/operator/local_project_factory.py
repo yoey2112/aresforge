@@ -3157,8 +3157,10 @@ def validate_local_llm_environment_contract(environment: dict[str, Any]) -> dict
     elif environment.get("health_check_enabled") is True:
         warnings.append("health_check_enabled is configuration only in M58; no health check is executed.")
 
-    if environment.get("execution_enabled") is not False:
-        blockers.append("execution_enabled must remain false.")
+    if not isinstance(environment.get("execution_enabled"), bool):
+        blockers.append("execution_enabled must be a boolean.")
+    elif environment.get("execution_enabled") is True:
+        warnings.append("execution_enabled enables only the M62 operator-gated local LLM execution prototype.")
     if environment.get("operator_gate_required") is not True:
         blockers.append("operator_gate_required must remain true.")
 
@@ -3168,7 +3170,7 @@ def validate_local_llm_environment_contract(environment: dict[str, Any]) -> dict
         "warnings": sorted(set(warnings)),
         "supported_local_llm_providers": list(LOCAL_LLM_PROVIDERS),
         "health_check_status": "not_implemented",
-        "execution_status": "not_implemented",
+        "execution_status": "operator_gated_prototype" if environment.get("execution_enabled") is True else "not_enabled",
     }
 
 

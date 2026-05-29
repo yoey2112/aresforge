@@ -1,5 +1,39 @@
 # AresForge Agent Context
 
+## M62 Operator-Gated Local LLM Execution Prototype Context
+
+Status: Completed locally on `main`.
+
+Current execution prototype:
+
+- operator helper: `execute_local_llm_for_queue_item(...)`
+- Hub route: `POST /api/local-queue/items/{item_id}/local-llm-execute`
+- Queue UI panel: Prototype: Run Local LLM
+- supported provider: local `ollama`
+
+Eligibility gates:
+
+- queue item exists
+- routing metadata recommends `local_reasoning_llm` or `local_coding_llm`
+- local LLM environment has `execution_enabled: true`
+- local LLM environment keeps `operator_gate_required: true`
+- provider URL is local: `localhost`, `127.0.0.1`, or `::1`
+- prompt preview is generated
+- real execution has `confirm_operator_gate: true`
+- real execution passes local health check and model availability
+- high or critical risk requires `operator_override: true`
+
+Boundary reminders:
+
+- dry run does not call the provider
+- real execution calls only configured local `ollama`
+- output is advisory only
+- do not apply output to repo files, queue status, project state, GitHub, `gh`, Codex, agents, commits, pushes, or workflows
+
+Recommended next milestone:
+
+- M63 - Codex CLI High-Value Lane.
+
 ## M61 Local LLM Prompt Preview Context
 
 Status: Completed locally on `main`.
@@ -28,9 +62,9 @@ Boundary reminders:
 - do not send prompts, run inference, or claim execution
 - artifact output is optional and local only; existing files are not overwritten unless `force=true`
 
-Recommended next milestone:
+Follow-up:
 
-- M62 - Operator-Gated Local LLM Execution Prototype.
+- M62 added Operator-Gated Local LLM Execution Prototype.
 
 ## M60 Codex CLI Model Profile Contract Context
 
@@ -47,7 +81,7 @@ Boundary reminders:
 
 - Codex CLI is represented as engine `codex_cli`
 - model profiles are configuration only
-- `execution_enabled` must remain false
+- `execution_enabled` may be true only for the M62 operator-gated local prototype
 - `operator_gate_required` must remain true
 - no Codex CLI execution, prompt execution, real agent execution, GitHub integration, `gh`, or external workflow is added
 - High-Value Codex Lane execution remains future work
@@ -80,7 +114,7 @@ Boundary reminders:
 Follow-up:
 
 - M61 added Local LLM Prompt Preview.
-- M62 remains the future Operator-Gated Local LLM Execution Prototype.
+- M62 added Operator-Gated Local LLM Execution Prototype.
 
 ## M58 Local LLM Environment Contract Context
 
@@ -103,7 +137,7 @@ Boundary reminders:
 
 - this is configuration only
 - model names are placeholders/config fields and do not prove installation
-- `execution_enabled` must remain false
+- `execution_enabled` may be true only for the M62 operator-gated local prototype
 - `operator_gate_required` must remain true
 - `health_check_enabled` does not run a health check yet
 - no Ollama call, model API call, prompt execution, routing execution, local LLM execution, Codex execution, real agent execution, GitHub integration, or external workflow is added

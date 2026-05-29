@@ -1,5 +1,34 @@
 # Local Operator Usage
 
+## M62 Operator-Gated Local LLM Execution Prototype
+
+Status: Completed locally on `main`.
+
+Operator workflow:
+
+1. Configure `.aresforge/local_llm_environment.json` for local `ollama`, local provider URL, model names, `execution_enabled: true`, and `operator_gate_required: true`.
+2. Run Local LLM Health Check and confirm provider/model availability.
+3. Confirm the queue item is routed to `local_reasoning_llm` or `local_coding_llm`.
+4. Generate Local LLM Prompt Preview.
+5. In Queue, use Prototype: Run Local LLM.
+6. Leave Dry run enabled to validate gates without calling the provider.
+7. For real execution, explicitly check Confirm explicit operator gate.
+8. Use Operator override only for high/critical risk or manual policy cases the operator accepts.
+9. Optionally provide a local result artifact path; existing files are not overwritten unless Force overwrite is enabled.
+
+Operator safety notes:
+
+- dry run does not call Ollama
+- real execution calls only the configured local `ollama` provider
+- response text is advisory only
+- AresForge does not apply changes, edit files, complete queue items, commit, push, run Codex, call GitHub, call `gh`, run agents, or run workflows
+- non-local provider URLs are blocked
+- `codex_cli` and unrouted items are blocked
+
+Recommended next milestone:
+
+- M63 - Codex CLI High-Value Lane.
+
 ## M61 Local LLM Prompt Preview
 
 Status: Completed locally on `main`.
@@ -22,9 +51,9 @@ Operator safety notes:
 - `manual_only` project policy requires operator override before preview
 - generated text tells the downstream local LLM not to claim execution when only reviewing or planning
 
-Recommended next milestone:
+Follow-up:
 
-- M62 - Operator-Gated Local LLM Execution Prototype.
+- M62 added Operator-Gated Local LLM Execution Prototype.
 
 ## M60 Codex CLI Model Profile Contract
 
@@ -74,7 +103,7 @@ Operator safety notes:
 Follow-up:
 
 - M61 added Local LLM Prompt Preview.
-- M62 remains the future Operator-Gated Local LLM Execution Prototype.
+- M62 added Operator-Gated Local LLM Execution Prototype.
 
 ## M58 Local LLM Environment Contract
 

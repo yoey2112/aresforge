@@ -183,7 +183,7 @@ def test_local_llm_environment_contract_accepts_provider_none(tmp_path: Path) ->
     assert payload["validation"]["valid"] is True
 
 
-def test_local_llm_environment_contract_rejects_invalid_provider_execution_and_numbers(tmp_path: Path) -> None:
+def test_local_llm_environment_contract_rejects_invalid_provider_and_numbers_accepts_prototype_execution(tmp_path: Path) -> None:
     config = _config(tmp_path)
 
     invalid_provider = update_local_llm_environment_contract(config, {"local_llm_provider": "remote-api"})
@@ -192,10 +192,11 @@ def test_local_llm_environment_contract_rejects_invalid_provider_execution_and_n
 
     execution_enabled = update_local_llm_environment_contract(
         config,
-        {"local_llm_provider": "ollama", "execution_enabled": True},
+        {"local_llm_provider": "ollama", "execution_enabled": True, "operator_gate_required": True},
     )
-    assert execution_enabled["ok"] is False
-    assert execution_enabled["error"] == "local_llm_environment_validation_failed"
+    assert execution_enabled["ok"] is True
+    assert execution_enabled["local_llm_environment"]["execution_enabled"] is True
+    assert execution_enabled["validation"]["execution_status"] == "operator_gated_prototype"
 
     invalid_timeout = update_local_llm_environment_contract(
         config,

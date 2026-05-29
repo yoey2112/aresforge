@@ -10,6 +10,8 @@ M59 adds an explicitly invoked Local LLM Health Check. The health check reads th
 
 M61 adds Local LLM Prompt Preview. The preview reads this contract to resolve configured local provider/model fields for routed queue items, but it does not call Ollama, send prompts, run inference, generate text, execute routing, execute Codex, run agents, or call GitHub.
 
+M62 adds an operator-gated local LLM execution prototype. Execution is allowed only when this contract explicitly has `execution_enabled: true`, `operator_gate_required: true`, a supported local provider, and the request passes prompt preview, health check, routing, risk, and operator confirmation gates.
+
 ## Storage
 
 The contract is stored locally at:
@@ -30,6 +32,7 @@ Reading defaults does not write this file. Updating the contract writes the file
 - `POST /api/local-llm/environment`
 - `POST /api/local-llm/health-check`
 - `POST /api/local-queue/items/{item_id}/local-llm-prompt-preview`
+- `POST /api/local-queue/items/{item_id}/local-llm-execute`
 
 ## Fields
 
@@ -58,7 +61,7 @@ Model fields are placeholders/configuration only. A non-empty model name does no
 
 - `local_llm_provider` must be `ollama`, `none`, or `unknown`.
 - `provider_base_url` may be blank for `none` or `unknown`.
-- `execution_enabled` must remain `false`.
+- `execution_enabled` may be `false` or `true`; `true` enables only the M62 operator-gated local execution prototype.
 - `operator_gate_required` must remain `true`.
 - `health_check_enabled` may be true or false, but does not trigger a health check in M58.
 - Model names may be blank; non-blank values are strings.
@@ -108,6 +111,25 @@ Preview blocks or warns for:
 
 Preview output includes local-only operating rules, validation expectations, routing metadata, and `execution_allowed: false`. Optional artifact output is local-only and refuses to overwrite existing files unless `force=true`.
 
+## M62 Execution Prototype
+
+Local LLM execution is conservative and operator-gated.
+
+Execution may proceed only when:
+
+- the queue item exists
+- routing metadata recommends `local_reasoning_llm` or `local_coding_llm`
+- provider is local `ollama`
+- provider URL points to `localhost`, `127.0.0.1`, or `::1`
+- `execution_enabled` is `true`
+- `operator_gate_required` remains `true`
+- prompt preview is generated
+- local health check confirms provider reachability and model availability
+- real execution request has `confirm_operator_gate: true`
+- high or critical risk has `operator_override: true`
+
+Execution output is advisory only. It may be written to a local result artifact if the operator provides an output path. It is never applied to repo files, queue status, project state, GitHub, `gh`, Codex, agents, commits, pushes, or workflows.
+
 ## Boundaries
 
 - local-only
@@ -115,17 +137,15 @@ Preview output includes local-only operating rules, validation expectations, rou
 - operator-gated
 - configuration and health metadata only
 - prompt preview metadata only
-- no prompt execution
-- no model inference
-- no local LLM generation
+- local LLM execution only through M62 explicit operator-gated prototype
 - no routing execution
 - no Codex execution
 - no agent execution
 - no GitHub API or `gh`
-- no external/network execution beyond explicitly operator-invoked local provider health check behavior
+- no external/network execution beyond explicitly operator-invoked local provider health check and local provider execution behavior
 
 ## Next Milestones
 
 M61 added Local LLM Prompt Preview without execution.
 
-M62 should be the future point for any operator-gated local execution prototype, after health checks and additional gates exist.
+M62 added the first operator-gated local execution prototype.

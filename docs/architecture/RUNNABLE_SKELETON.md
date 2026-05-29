@@ -1,5 +1,39 @@
 # Runnable Skeleton
 
+## M62 Operator-Gated Local LLM Execution Prototype
+
+Status: Completed locally on `main`.
+
+Implemented runnable path:
+
+- operator helper: `execute_local_llm_for_queue_item(...)`
+- Hub route: `POST /api/local-queue/items/{item_id}/local-llm-execute`
+- Queue UI panel: Prototype: Run Local LLM
+- optional local result artifact output with `force` overwrite gate
+
+Behavior contract:
+
+- dry run validates preview and local gates without calling the provider
+- real execution requires `confirm_operator_gate: true`
+- reads routing metadata from the canonical local queue
+- generates prompt preview before execution
+- requires local LLM environment `execution_enabled: true` and `operator_gate_required: true`
+- requires local `ollama` provider URL and reachable health check
+- requires model availability from the local health check
+- returns advisory response text and `executed` state
+
+Still absent by design:
+
+- Codex CLI execution
+- GitHub integration or mutation
+- non-local provider execution
+- automatic agent execution
+- automatic file edits, queue completion, commits, pushes, or workflow execution
+
+Next skeleton focus:
+
+- M63 should add Codex CLI High-Value Lane as non-automatic and operator-gated.
+
 ## M61 Local LLM Prompt Preview
 
 Status: Completed locally on `main`.
@@ -30,9 +64,9 @@ Still absent by design:
 - GitHub integration or mutation
 - external workflow execution
 
-Next skeleton focus:
+Follow-up skeleton focus:
 
-- M62 should add the first operator-gated local LLM execution prototype.
+- M62 added the first operator-gated local LLM execution prototype.
 
 ## M60 Codex CLI Model Profile Contract
 
@@ -100,7 +134,7 @@ Still absent by design:
 Follow-up skeleton focus:
 
 - M61 added Local LLM Prompt Preview.
-- M62 should add an Operator-Gated Local LLM Execution Prototype after additional gates exist.
+- M62 added an Operator-Gated Local LLM Execution Prototype after additional gates were added.
 
 ## M58 Local LLM Environment Contract
 

@@ -25,6 +25,7 @@ from aresforge.operator.local_project_queue import (
     close_local_queue_item,
     complete_local_queue_item,
     default_queue_routing_metadata,
+    execute_local_llm_for_queue_item,
     generate_local_queue_prompt_pack,
     generate_local_queue_item_codex_prompt,
     generate_local_llm_prompt_preview,
@@ -3101,6 +3102,33 @@ def post_local_queue_item_local_llm_prompt_preview(config: AppConfig, item_id: s
     payload["boundary_confirmations"] = _merge_boundary_confirmations(
         payload,
         "Local LLM prompt preview is preview-only and does not call Ollama or execute inference.",
+    )
+    if not payload.get("ok", False):
+        payload["_status"] = _status_for_local_queue_result(payload)
+    return payload
+
+
+def post_local_queue_item_local_llm_execute(config: AppConfig, item_id: str, body: dict[str, Any]) -> dict[str, Any]:
+    for field in ("confirm_operator_gate", "use_preview", "force", "operator_override", "dry_run"):
+        valid_bool, bool_error = _require_boolean_field(body, field)
+        if not valid_bool:
+            return bool_error or _api_error(f"invalid_{field}", f"{field} must be a boolean value.")
+    payload = dict(
+        execute_local_llm_for_queue_item(
+            config,
+            item_id=item_id.strip(),
+            confirm_operator_gate=bool(body.get("confirm_operator_gate", False)),
+            use_preview=bool(body.get("use_preview", True)),
+            output=_normalize_optional_str(body.get("output")),
+            force=bool(body.get("force", False)),
+            operator_override=bool(body.get("operator_override", False)),
+            dry_run=bool(body.get("dry_run", False)),
+        )
+    )
+    payload["service"] = SERVICE_NAME
+    payload["boundary_confirmations"] = _merge_boundary_confirmations(
+        payload,
+        "Local LLM execution is explicit, local-only, operator-gated, and advisory only.",
     )
     if not payload.get("ok", False):
         payload["_status"] = _status_for_local_queue_result(payload)

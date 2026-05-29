@@ -9,6 +9,7 @@ from aresforge.operator.local_project_queue import (
     capture_local_queue_completion_evidence,
     close_local_queue_item,
     complete_local_queue_item,
+    execute_local_llm_for_queue_item,
     generate_local_llm_prompt_preview,
     generate_local_queue_item_codex_prompt,
     generate_local_queue_prompt_pack,
@@ -51,7 +52,7 @@ def _config(tmp_path: Path) -> AppConfig:
     )
 
 
-def _write_local_llm_environment(repo_root: Path, *, reasoning_model: str = 'local-reason', coding_model: str = 'local-code') -> Path:
+def _write_local_llm_environment(repo_root: Path, *, reasoning_model: str = 'local-reason', coding_model: str = 'local-code', execution_enabled: bool = False) -> Path:
     path = repo_root / '.aresforge' / 'local_llm_environment.json'
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
@@ -64,7 +65,7 @@ def _write_local_llm_environment(repo_root: Path, *, reasoning_model: str = 'loc
                 'coding_model': coding_model,
                 'fallback_model': '',
                 'health_check_enabled': False,
-                'execution_enabled': False,
+                'execution_enabled': execution_enabled,
                 'operator_gate_required': True,
                 'notes': '',
                 'updated_at': '',
@@ -864,6 +865,168 @@ def test_generate_local_llm_prompt_preview_blocks_missing_environment_and_manual
     assert payload['ok'] is False
     assert any('environment contract' in blocker for blocker in payload['blockers'])
     assert any('manual_only' in blocker for blocker in payload['blockers'])
+
+
+def _healthy_local_llm_payload(*, model: str = 'local-code') -> dict[str, object]:
+    return {
+        'ok': True,
+        'provider': 'ollama',
+        'provider_base_url': 'http://127.0.0.1:11434',
+        'provider_reachable': True,
+        'available_models': [model, 'local-reason'],
+        'warnings': [],
+        'blockers': [],
+    }
+
+
+def test_execute_local_llm_for_queue_item_dry_run_does_not_call_provider(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _write_local_llm_environment(tmp_path, coding_model='local-code', execution_enabled=True)
+    _seed_preview_item(config, item_id='q-execute-dry-run', engine='local_coding_llm', model='local-code')
+    called = {'provider': False}
+
+    payload = execute_local_llm_for_queue_item(
+        config,
+        item_id='q-execute-dry-run',
+        dry_run=True,
+        health_check_fn=lambda _config: _healthy_local_llm_payload(),
+        provider_generate_fn=lambda **_kwargs: called.__setitem__('provider', True),
+    )
+
+    assert payload['ok'] is True
+    assert payload['dry_run'] is True
+    assert payload['executed'] is False
+    assert payload['execution_allowed'] is False
+    assert called['provider'] is False
+
+
+def test_execute_local_llm_for_queue_item_blocks_without_confirmation_codex_and_unrouted(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _write_local_llm_environment(tmp_path, execution_enabled=True)
+    _seed_preview_item(config, item_id='q-execute-no-confirm', engine='local_coding_llm', model='local-code')
+
+    no_confirm = execute_local_llm_for_queue_item(
+        config,
+        item_id='q-execute-no-confirm',
+        health_check_fn=lambda _config: _healthy_local_llm_payload(),
+        provider_generate_fn=lambda **_kwargs: 'unused',
+    )
+    assert no_confirm['ok'] is False
+    assert no_confirm['executed'] is False
+    assert any('confirm_operator_gate' in blocker for blocker in no_confirm['blockers'])
+
+    assert update_local_queue_item_routing_metadata(
+        config,
+        item_id='q-execute-no-confirm',
+        routing_metadata={'recommended_engine': 'codex_cli', 'recommended_model': 'default-codex'},
+    )['ok'] is True
+    codex = execute_local_llm_for_queue_item(
+        config,
+        item_id='q-execute-no-confirm',
+        confirm_operator_gate=True,
+        health_check_fn=lambda _config: _healthy_local_llm_payload(),
+        provider_generate_fn=lambda **_kwargs: 'unused',
+    )
+    assert codex['ok'] is False
+    assert any('codex_cli' in blocker for blocker in codex['blockers'])
+
+    assert add_queue_item(
+        config,
+        item_id='q-execute-unrouted',
+        project_id='p1',
+        repo_id='r1',
+        title='Unrouted execution',
+        description='Should block.',
+        status='ready',
+    )['ok'] is True
+    unrouted = execute_local_llm_for_queue_item(
+        config,
+        item_id='q-execute-unrouted',
+        confirm_operator_gate=True,
+        health_check_fn=lambda _config: _healthy_local_llm_payload(),
+        provider_generate_fn=lambda **_kwargs: 'unused',
+    )
+    assert unrouted['ok'] is False
+    assert any('unrouted' in blocker.lower() for blocker in unrouted['blockers'])
+
+
+def test_execute_local_llm_for_queue_item_with_mocked_provider_succeeds_and_preserves_queue(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _write_local_llm_environment(tmp_path, coding_model='local-code', execution_enabled=True)
+    _seed_preview_item(config, item_id='q-execute-success', engine='local_coding_llm', model='local-code')
+    output = tmp_path / 'artifacts' / 'local_llm_results' / 'result.json'
+
+    payload = execute_local_llm_for_queue_item(
+        config,
+        item_id='q-execute-success',
+        confirm_operator_gate=True,
+        output=output,
+        health_check_fn=lambda _config: _healthy_local_llm_payload(),
+        provider_generate_fn=lambda **kwargs: f"advisory response for {kwargs['model']}",
+    )
+
+    assert payload['ok'] is True
+    assert payload['execution_allowed'] is True
+    assert payload['executed'] is True
+    assert payload['response_text'] == 'advisory response for local-code'
+    assert payload['result_artifact_path'] == str(output)
+    assert output.exists()
+    detail = inspect_queue_item(config, item_id='q-execute-success')
+    assert detail['payload']['item']['status'] == 'ready'
+    assert not (tmp_path / 'unexpected_repo_mutation.txt').exists()
+
+    duplicate = execute_local_llm_for_queue_item(
+        config,
+        item_id='q-execute-success',
+        confirm_operator_gate=True,
+        output=output,
+        health_check_fn=lambda _config: _healthy_local_llm_payload(),
+        provider_generate_fn=lambda **_kwargs: 'second response',
+    )
+    assert duplicate['ok'] is False
+    assert any('already exists' in warning for warning in duplicate['warnings'])
+
+
+def test_execute_local_llm_for_queue_item_high_risk_requires_override(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _write_local_llm_environment(tmp_path, reasoning_model='local-reason', execution_enabled=True)
+    _seed_preview_item(config, item_id='q-execute-risk', engine='local_reasoning_llm', model='local-reason')
+    assert update_local_queue_item_routing_metadata(
+        config,
+        item_id='q-execute-risk',
+        routing_metadata={
+            'recommended_agent_lane': 'coding',
+            'recommended_engine': 'local_reasoning_llm',
+            'recommended_model': 'local-reason',
+            'routing_policy_source': 'test',
+            'routing_reason': 'High-risk local reasoning prototype.',
+            'risk_level': 'high',
+            'complexity_level': 'high',
+            'project_ai_mode': 'balanced',
+        },
+    )['ok'] is True
+
+    blocked = execute_local_llm_for_queue_item(
+        config,
+        item_id='q-execute-risk',
+        confirm_operator_gate=True,
+        health_check_fn=lambda _config: _healthy_local_llm_payload(model='local-reason'),
+        provider_generate_fn=lambda **_kwargs: 'blocked',
+    )
+    assert blocked['ok'] is False
+    assert any('High or critical risk' in blocker for blocker in blocked['blockers'])
+
+    allowed = execute_local_llm_for_queue_item(
+        config,
+        item_id='q-execute-risk',
+        confirm_operator_gate=True,
+        operator_override=True,
+        health_check_fn=lambda _config: _healthy_local_llm_payload(model='local-reason'),
+        provider_generate_fn=lambda **_kwargs: 'override advisory response',
+    )
+    assert allowed['ok'] is True
+    assert allowed['executed'] is True
+    assert allowed['response_text'] == 'override advisory response'
 
 
 def test_add_local_queue_item_with_explicit_project_and_repo(tmp_path: Path) -> None:

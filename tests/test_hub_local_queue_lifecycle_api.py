@@ -117,7 +117,7 @@ def _seed_queue_item(
     assert payload["ok"] is True
 
 
-def _write_local_llm_environment(repo_root: Path) -> None:
+def _write_local_llm_environment(repo_root: Path, *, execution_enabled: bool = False) -> None:
     path = repo_root / ".aresforge" / "local_llm_environment.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
@@ -130,7 +130,7 @@ def _write_local_llm_environment(repo_root: Path) -> None:
                 "coding_model": "local-code",
                 "fallback_model": "",
                 "health_check_enabled": False,
-                "execution_enabled": False,
+                "execution_enabled": execution_enabled,
                 "operator_gate_required": True,
                 "notes": "",
                 "updated_at": "",
@@ -989,6 +989,103 @@ def test_post_local_llm_prompt_preview_route_blocks_codex_routed_items(tmp_path:
         assert payload["execution_allowed"] is False
         assert payload["prompt_preview"] == ""
         assert any("codex_cli" in blocker for blocker in payload["blockers"])
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
+
+
+def test_post_local_llm_execute_route_dry_run_returns_prompt_without_provider_call(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_active_project(config, tmp_path)
+    _write_local_llm_environment(tmp_path, execution_enabled=True)
+    _seed_queue_item(
+        config,
+        item_id="local-execute-dry-run-api",
+        status="ready",
+        title="Dry run local LLM execution",
+        description="Dry run should produce a gated execution payload without calling a provider.",
+    )
+    server, thread = _start_server(config)
+
+    try:
+        port = int(server.server_address[1])
+        metadata_status, metadata_payload = _request_json(
+            port,
+            "POST",
+            "/api/local-queue/items/local-execute-dry-run-api/routing-metadata",
+            {
+                "recommended_agent_lane": "coding",
+                "recommended_engine": "local_coding_llm",
+                "recommended_model": "local-code",
+                "routing_policy_source": "m54_decision_matrix_v1",
+                "routing_reason": "Low-risk local execution dry run.",
+                "risk_level": "low",
+                "complexity_level": "low",
+                "project_ai_mode": "balanced",
+            },
+        )
+        assert metadata_status == 200
+        assert metadata_payload["ok"] is True
+
+        status, payload = _request_json(
+            port,
+            "POST",
+            "/api/local-queue/items/local-execute-dry-run-api/local-llm-execute",
+            {"dry_run": True, "confirm_operator_gate": False},
+        )
+        assert status == 200
+        assert payload["ok"] is True
+        assert payload["dry_run"] is True
+        assert payload["executed"] is False
+        assert payload["execution_allowed"] is False
+        assert "Local LLM Prompt Preview" in payload["prompt_used"]
+        assert payload["response_text"] == ""
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
+
+
+def test_post_local_llm_execute_route_requires_operator_confirmation_for_real_execution(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_active_project(config, tmp_path)
+    _write_local_llm_environment(tmp_path, execution_enabled=True)
+    _seed_queue_item(
+        config,
+        item_id="local-execute-confirm-api",
+        status="ready",
+        title="Require confirmation",
+        description="Real local execution should require explicit operator confirmation.",
+    )
+    server, thread = _start_server(config)
+
+    try:
+        port = int(server.server_address[1])
+        assert _request_json(
+            port,
+            "POST",
+            "/api/local-queue/items/local-execute-confirm-api/routing-metadata",
+            {
+                "recommended_agent_lane": "coding",
+                "recommended_engine": "local_coding_llm",
+                "recommended_model": "local-code",
+                "risk_level": "low",
+                "complexity_level": "low",
+                "project_ai_mode": "balanced",
+            },
+        )[0] == 200
+
+        status, payload = _request_json(
+            port,
+            "POST",
+            "/api/local-queue/items/local-execute-confirm-api/local-llm-execute",
+            {"confirm_operator_gate": False, "dry_run": False},
+        )
+        assert status == 400
+        assert payload["ok"] is False
+        assert payload["executed"] is False
+        assert any("confirm_operator_gate" in blocker for blocker in payload["blockers"])
     finally:
         server.shutdown()
         server.server_close()
