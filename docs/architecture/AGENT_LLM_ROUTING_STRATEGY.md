@@ -2,9 +2,19 @@
 
 ## Status
 
-M44A documented the future Agent/LLM routing strategy. M51 through M68 now add non-executing contracts and local Hub surfaces for project AI settings, agent/engine registry, queue routing metadata, recommendation-only routing decisions, Project AI Settings UI, routed queue views, routing-aware prompt packs, local LLM environment/health checks, Codex CLI model profile configuration, local LLM prompt preview/execution gates, Codex high-value prompt generation, a local execution audit log, centralized AI action safety gate decisions, a local AI artifact registry, an Operator Run History panel, and closeout reconciliation documentation.
+M44A documented the future Agent/LLM routing strategy. M51 through M69 now add non-executing contracts and local Hub surfaces for project AI settings, agent/engine registry, queue routing metadata, recommendation-only routing decisions, Project AI Settings UI, routed queue views, routing-aware prompt packs, local LLM environment/health checks, Codex CLI model profile configuration, local LLM prompt preview/execution gates, Codex high-value prompt generation, a local execution audit log, centralized AI action safety gate decisions, a local AI artifact registry, an Operator Run History panel, closeout reconciliation documentation, and local AI operations hardening.
 
 Current prompt-pack and Codex high-value lane behavior are advisory prompt generation only. Runtime routing, Codex execution, real agent execution, and GitHub integration remain unimplemented. Local LLM execution exists only as the M62 operator-gated local prototype.
+
+## M69 Local AI Operations Hardening
+
+M69 tightens the AI-adjacent safety posture without adding execution behavior.
+
+The safety gate now reports explicit safety status, gate status, blocked action, blocked reason category, and next safe operator action fields. Blocked categories distinguish policy-blocked external/automatic paths, gate-blocked local paths, missing operator approval, and invalid local state where applicable.
+
+Execution audit entries, AI artifact registry records, and Operator Run History timeline entries now carry consistent non-mutation flags for repository mutation, external mutation, and automatic execution. Advisory local LLM and Codex prompt artifacts remain evidence/handoff records only.
+
+M69 does not add routing execution, Codex execution, agent execution, GitHub API calls, `gh` calls, issues, PRs, workflow activity, external workflow execution, or automatic repository mutation from local LLM/Codex output.
 
 ## M68 Local AI Operations Closeout Reconciliation
 

@@ -1,5 +1,28 @@
 # Runnable Skeleton
 
+## M69 Local AI Operations Hardening
+
+Status: Completed locally on `main`.
+
+Hardened runnable path:
+
+- AI action safety gate remains local-only decision/reporting logic and now reports explicit safety status, gate status, blocked action, blocked reason category, and operator next safe action
+- execution audit log records blocked/allowed/dry-run outcomes with consistent non-mutation flags
+- AI artifact registry records generated advisory artifacts with explicit advisory-only and non-mutation metadata
+- Operator Run History combines audit and artifact entries while preserving safety/gate status and non-execution flags
+
+Still absent by design:
+
+- automatic Codex execution or Codex CLI invocation
+- automatic agent execution
+- GitHub API, `gh`, issues, PRs, workflows, or GitHub mutation
+- automatic repository mutation from generated local LLM or Codex output
+- local LLM execution beyond the M62 explicit operator-gated local prototype
+
+Next skeleton focus:
+
+- M70 may review operator-facing readiness/report polish over the hardened local AI operation records if needed.
+
 ## M68 Local AI Operations Closeout Reconciliation
 
 Status: Completed locally on `main`.

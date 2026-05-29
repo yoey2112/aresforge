@@ -153,6 +153,11 @@ def test_ai_artifact_registry_reads_empty_registers_and_filters(tmp_path: Path) 
     assert registered['artifact']['warnings'] == ['[redacted]']
     assert by_item['total_artifacts'] == 1
     assert by_type['total_artifacts'] == 1
+    assert registered['artifact']['advisory_only'] is True
+    assert registered['artifact']['repo_mutation_allowed'] is False
+    assert registered['artifact']['external_mutation_allowed'] is False
+    assert registered['artifact']['automatic_execution_allowed'] is False
+    assert registered['artifact']['safety_status'] == 'advisory_artifact'
 
 
 def test_ai_artifact_registry_marks_missing_artifact_false(tmp_path: Path) -> None:
@@ -293,6 +298,11 @@ def test_execution_audit_log_reads_empty_and_appends_entry(tmp_path: Path) -> No
     assert loaded['total_entries'] == 1
     assert loaded['entries'][0]['action_type'] == 'local_llm_prompt_preview'
     assert loaded['entries'][0]['execution_allowed'] is False
+    assert loaded['entries'][0]['safety_status'] == 'allowed'
+    assert loaded['entries'][0]['gate_status'] == 'preview_only'
+    assert loaded['entries'][0]['repo_mutation_allowed'] is False
+    assert loaded['entries'][0]['external_mutation_allowed'] is False
+    assert loaded['entries'][0]['automatic_execution_allowed'] is False
 
 
 def test_execution_audit_log_filters_and_redacts_secret_like_values(tmp_path: Path) -> None:
@@ -346,6 +356,12 @@ def test_ai_action_safety_gate_local_preview_allowed_as_preview_only(tmp_path: P
     assert payload['allowed'] is True
     assert payload['decision'] == 'preview_only'
     assert payload['execution_allowed'] is False
+    assert payload['safety_status'] == 'allowed'
+    assert payload['gate_status'] == 'preview_only'
+    assert payload['blocked_reason_category'] == ''
+    assert payload['repo_mutation_allowed'] is False
+    assert payload['external_mutation_allowed'] is False
+    assert payload['automatic_execution_allowed'] is False
 
 
 def test_ai_action_safety_gate_local_execute_requires_gate_and_local_routing(tmp_path: Path) -> None:
@@ -368,6 +384,9 @@ def test_ai_action_safety_gate_local_execute_requires_gate_and_local_routing(tmp
 
     assert blocked['allowed'] is False
     assert blocked['decision'] == 'requires_operator_gate'
+    assert blocked['safety_status'] == 'blocked'
+    assert blocked['gate_status'] == 'missing_operator_approval'
+    assert blocked['blocked_reason_category'] == 'missing_operator_approval'
     assert any('confirm_operator_gate' in blocker for blocker in blocked['blockers'])
     assert allowed['allowed'] is True
     assert allowed['decision'] == 'allowed'
@@ -445,8 +464,24 @@ def test_ai_action_safety_gate_blocks_codex_execution_and_github_actions(tmp_pat
     assert github['allowed'] is False
     assert codex['decision'] == 'blocked'
     assert github['decision'] == 'blocked'
+    assert codex['blocked_reason_category'] == 'policy_blocked'
+    assert github['blocked_reason_category'] == 'policy_blocked'
     assert codex['execution_allowed'] is False
     assert github['execution_allowed'] is False
+
+
+def test_ai_action_safety_gate_blocks_automatic_agent_and_repo_mutation_paths(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+
+    agent = evaluate_ai_action_safety_gate(config, action_type='agent_execute', engine='local_coding_llm')
+    repo_mutation = evaluate_ai_action_safety_gate(config, action_type='apply_llm_output_to_repo', engine='local_coding_llm')
+
+    assert agent['allowed'] is False
+    assert repo_mutation['allowed'] is False
+    assert agent['blocked_reason_category'] == 'policy_blocked'
+    assert repo_mutation['blocked_reason_category'] == 'policy_blocked'
+    assert agent['automatic_execution_allowed'] is False
+    assert repo_mutation['repo_mutation_allowed'] is False
 
 
 def test_ai_action_safety_gate_routing_metadata_update_requires_explicit_action(tmp_path: Path) -> None:
@@ -464,6 +499,112 @@ def test_ai_action_safety_gate_routing_metadata_update_requires_explicit_action(
     assert allowed['allowed'] is True
     assert allowed['decision'] == 'allowed'
     assert allowed['execution_allowed'] is False
+
+
+def test_blocked_local_llm_execution_does_not_call_provider_or_mutate_repo(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _write_local_llm_environment(tmp_path, execution_enabled=True)
+    _seed_preview_item(config, item_id='q-no-auto-llm', engine='local_coding_llm', model='local-code')
+    queue_path = tmp_path / '.aresforge' / 'queue' / 'work_items.json'
+    before_queue = queue_path.read_text(encoding='utf-8')
+    called = {'provider': False}
+
+    def provider_generate_fn(**_: object) -> str:
+        called['provider'] = True
+        raise AssertionError('provider must not be called without operator gate')
+
+    payload = execute_local_llm_for_queue_item(
+        config,
+        item_id='q-no-auto-llm',
+        confirm_operator_gate=False,
+        dry_run=False,
+        provider_generate_fn=provider_generate_fn,
+    )
+    after_queue = queue_path.read_text(encoding='utf-8')
+    audit = filter_execution_audit_log(config, item_id='q-no-auto-llm')
+    history = read_operator_run_history(config, item_id='q-no-auto-llm')
+
+    assert payload['ok'] is False
+    assert payload['executed'] is False
+    assert payload['execution_allowed'] is False
+    assert payload['advisory_only'] is True
+    assert payload['repo_mutation_allowed'] is False
+    assert payload['automatic_execution_allowed'] is False
+    assert payload['gate_status'] == 'missing_operator_approval'
+    assert payload['blocked_reason_category'] == 'missing_operator_approval'
+    assert called['provider'] is False
+    assert before_queue == after_queue
+    assert audit['entries'][-1]['outcome'] == 'blocked'
+    assert audit['entries'][-1]['safety_status'] == 'blocked'
+    assert history['timeline'][0]['gate_status'] == 'missing_operator_approval'
+
+
+def test_codex_high_value_lane_is_prompt_handoff_only_and_does_not_mutate_repo(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_preview_item(config, item_id='q-codex-handoff-only', engine='codex_cli', model='gpt-5-codex')
+    assert update_local_queue_item_routing_metadata(
+        config,
+        item_id='q-codex-handoff-only',
+        routing_metadata={
+            'recommended_agent_lane': 'high_value_codex',
+            'recommended_engine': 'codex_cli',
+            'recommended_model': 'gpt-5-codex',
+            'risk_level': 'high',
+            'complexity_level': 'high',
+            'project_ai_mode': 'high_confidence',
+        },
+    )['ok'] is True
+    before_queue = (tmp_path / '.aresforge' / 'queue' / 'work_items.json').read_text(encoding='utf-8')
+
+    payload = generate_codex_high_value_lane_prompt(config, item_id='q-codex-handoff-only')
+    after_queue = (tmp_path / '.aresforge' / 'queue' / 'work_items.json').read_text(encoding='utf-8')
+    audit = filter_execution_audit_log(config, item_id='q-codex-handoff-only')
+
+    assert payload['ok'] is True
+    assert payload['execution_allowed'] is False
+    assert payload['executed'] is False
+    assert payload['advisory_only'] is True
+    assert payload['repo_mutation_allowed'] is False
+    assert payload['external_mutation_allowed'] is False
+    assert payload['automatic_execution_allowed'] is False
+    assert 'AresForge must not automatically execute Codex.' in payload['prompt_preview']
+    assert before_queue == after_queue
+    assert audit['entries'][-1]['action_type'] == 'codex_high_value_prompt'
+    assert audit['entries'][-1]['executed'] is False
+    assert audit['entries'][-1]['execution_allowed'] is False
+
+
+def test_codex_high_value_artifact_registry_and_run_history_are_consistent(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_preview_item(config, item_id='q-codex-artifact-consistency', engine='codex_cli', model='gpt-5-codex')
+    assert update_local_queue_item_routing_metadata(
+        config,
+        item_id='q-codex-artifact-consistency',
+        routing_metadata={
+            'recommended_agent_lane': 'high_value_codex',
+            'recommended_engine': 'codex_cli',
+            'recommended_model': 'gpt-5-codex',
+            'risk_level': 'medium',
+            'complexity_level': 'high',
+            'project_ai_mode': 'balanced',
+        },
+    )['ok'] is True
+    output = tmp_path / 'artifacts' / 'codex' / 'handoff.txt'
+
+    payload = generate_codex_high_value_lane_prompt(config, item_id='q-codex-artifact-consistency', output=output)
+    artifacts = filter_ai_artifacts(config, item_id='q-codex-artifact-consistency')
+    history = read_operator_run_history(config, item_id='q-codex-artifact-consistency')
+
+    assert payload['ok'] is True
+    assert output.exists()
+    assert artifacts['total_artifacts'] == 1
+    assert artifacts['artifacts'][0]['artifact_type'] == 'codex_high_value_prompt'
+    assert artifacts['artifacts'][0]['safety_status'] == 'allowed'
+    assert artifacts['artifacts'][0]['gate_status'] == 'preview_only'
+    assert artifacts['artifacts'][0]['advisory_only'] is True
+    assert history['timeline'][0]['kind'] == 'artifact'
+    assert history['timeline'][0]['item_id'] == 'q-codex-artifact-consistency'
+    assert history['timeline'][0]['execution_allowed'] is False
 
 
 def test_queue_initialization_creates_default_file_and_schema(tmp_path: Path) -> None:

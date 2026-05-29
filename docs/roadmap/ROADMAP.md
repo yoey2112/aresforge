@@ -1,5 +1,27 @@
 # AresForge Roadmap
 
+## M69 Local AI Operations Hardening
+
+Status: Completed locally on `main`.
+
+Delivered scope:
+
+- tightened AI-adjacent safety-gate reporting for blocked, preview-only, allowed, operator-gated, and override-required outcomes
+- made blocked states more explicit with blocked action, blocked reason category, gate status, safety status, and next safe operator action
+- aligned execution audit log, AI artifact registry, and Operator Run History payloads around consistent project/item/action/lane metadata and non-mutation flags
+- added targeted regressions for prohibited automatic execution paths, blocked local LLM provider calls, non-mutating local LLM output, Codex prompt-only handoff behavior, and read-only history/artifact consistency
+
+Constraints preserved:
+
+- local LLM execution remains local-only, advisory-only, operator-gated, and prototype-scoped
+- Codex high-value lane remains prompt-generation/operator-handoff only
+- no GitHub API, no `gh`, no GitHub issues/PRs/workflow activity, no GitHub mutation from the app
+- no automatic Codex execution, automatic agent execution, external workflow execution, or automatic repo mutation from local LLM/Codex output
+
+Recommended next milestone:
+
+- M70 - Local AI Operations Readiness Review, if operator-facing readiness/report polish is needed after hardening.
+
 ## M68 Local AI Operations Closeout Reconciliation
 
 Status: Completed locally on `main`.

@@ -242,6 +242,27 @@ def test_app_js_imports_section_modules() -> None:
     assert 'from "/js/sections/projectFactory/index.js"' in app_text
 
 
+def test_local_ai_hardening_sources_do_not_shell_out_or_call_github_api() -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    source_paths = [
+        repo_root / "src" / "aresforge" / "hub" / "api.py",
+        repo_root / "src" / "aresforge" / "hub" / "server.py",
+        repo_root / "src" / "aresforge" / "operator" / "local_ai_action_safety.py",
+        repo_root / "src" / "aresforge" / "operator" / "local_ai_artifacts.py",
+        repo_root / "src" / "aresforge" / "operator" / "local_execution_audit.py",
+        repo_root / "src" / "aresforge" / "operator" / "local_operator_run_history.py",
+        repo_root / "src" / "aresforge" / "operator" / "local_project_queue.py",
+    ]
+    combined = "\n".join(path.read_text(encoding="utf-8") for path in source_paths)
+
+    assert "import subprocess" not in combined
+    assert "subprocess." not in combined
+    assert "os.system(" not in combined
+    assert "api.github.com" not in combined
+    assert "gh issue" not in combined
+    assert "gh pr" not in combined
+
+
 def test_project_factory_index_exports_remaining_project_factory_modules() -> None:
     index_text = (_static_dir() / "js" / "sections" / "projectFactory" / "index.js").read_text(encoding="utf-8")
     assert 'from "/js/sections/projectFactory/milestonePlan.js"' in index_text

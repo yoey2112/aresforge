@@ -54,6 +54,9 @@ def append_execution_audit_entry(
     blockers: list[str] | None = None,
     warnings: list[str] | None = None,
     artifact_path: str | Path | None = None,
+    safety_status: str | None = None,
+    gate_status: str | None = None,
+    blocked_reason_category: str | None = None,
     audit_path: str | Path | None = None,
     timestamp: str | None = None,
 ) -> dict[str, Any]:
@@ -82,6 +85,25 @@ def append_execution_audit_entry(
             'blockers': blockers or [],
             'warnings': warnings or [],
             'artifact_path': str(artifact_path or '').strip(),
+            'safety_status': safety_status or _derive_safety_status(
+                outcome=outcome,
+                executed=executed,
+                execution_allowed=execution_allowed,
+                blockers=blockers or [],
+            ),
+            'gate_status': gate_status or _derive_gate_status(
+                operator_gate_confirmed=operator_gate_confirmed,
+                dry_run=dry_run,
+                executed=executed,
+                blockers=blockers or [],
+            ),
+            'blocked_reason_category': blocked_reason_category or _derive_blocked_reason_category(
+                blockers=blockers or [],
+                outcome=outcome,
+            ),
+            'repo_mutation_allowed': False,
+            'external_mutation_allowed': False,
+            'automatic_execution_allowed': False,
             'summary': summary,
             'source_function': source_function,
         }
@@ -220,6 +242,25 @@ def _normalize_audit_entry(entry: dict[str, Any]) -> dict[str, Any]:
         'blockers': _redact_list(entry.get('blockers')),
         'warnings': _redact_list(entry.get('warnings')),
         'artifact_path': _redact_text(entry.get('artifact_path')),
+        'safety_status': _redact_text(entry.get('safety_status')) or _derive_safety_status(
+            outcome=entry.get('outcome'),
+            executed=bool(entry.get('executed', False)),
+            execution_allowed=bool(entry.get('execution_allowed', False)),
+            blockers=_redact_list(entry.get('blockers')),
+        ),
+        'gate_status': _redact_text(entry.get('gate_status')) or _derive_gate_status(
+            operator_gate_confirmed=bool(entry.get('operator_gate_confirmed', False)),
+            dry_run=bool(entry.get('dry_run', False)),
+            executed=bool(entry.get('executed', False)),
+            blockers=_redact_list(entry.get('blockers')),
+        ),
+        'blocked_reason_category': _redact_text(entry.get('blocked_reason_category')) or _derive_blocked_reason_category(
+            blockers=_redact_list(entry.get('blockers')),
+            outcome=entry.get('outcome'),
+        ),
+        'repo_mutation_allowed': False,
+        'external_mutation_allowed': False,
+        'automatic_execution_allowed': False,
         'summary': _redact_text(entry.get('summary')),
         'source_function': _redact_text(entry.get('source_function')),
     }
@@ -261,6 +302,57 @@ def _redact_text(value: Any) -> str:
     if _SECRET_PATTERN.search(text):
         return '[redacted]'
     return text
+
+
+def _derive_safety_status(
+    *,
+    outcome: Any,
+    executed: bool,
+    execution_allowed: bool,
+    blockers: list[str],
+) -> str:
+    lowered_outcome = str(outcome or '').strip().lower()
+    if blockers or lowered_outcome == 'blocked':
+        return 'blocked'
+    if executed or execution_allowed:
+        return 'allowed'
+    if lowered_outcome in {'preview_generated', 'generated', 'prompt_generated', 'dry_run'}:
+        return 'allowed'
+    return 'unknown'
+
+
+def _derive_gate_status(
+    *,
+    operator_gate_confirmed: bool,
+    dry_run: bool,
+    executed: bool,
+    blockers: list[str],
+) -> str:
+    blocker_text = ' '.join(blockers).lower()
+    if 'confirm_operator_gate' in blocker_text or 'operator action confirmation' in blocker_text:
+        return 'missing_operator_approval'
+    if 'override' in blocker_text:
+        return 'requires_operator_override'
+    if operator_gate_confirmed:
+        return 'operator_gate_confirmed'
+    if dry_run:
+        return 'preview_only'
+    if executed:
+        return 'operator_gate_confirmed'
+    return 'not_required'
+
+
+def _derive_blocked_reason_category(*, blockers: list[str], outcome: Any) -> str:
+    if not blockers and str(outcome or '').strip().lower() != 'blocked':
+        return ''
+    blocker_text = ' '.join(blockers).lower()
+    if any(token in blocker_text for token in ('github', 'gh ', 'codex execution', 'workflow', 'agent execution')):
+        return 'policy_blocked'
+    if 'confirm_operator_gate' in blocker_text or 'operator action confirmation' in blocker_text:
+        return 'missing_operator_approval'
+    if any(token in blocker_text for token in ('requires', 'must be', 'cannot', 'override', 'blocked')):
+        return 'gate_blocked'
+    return 'invalid_state'
 
 
 def _now_iso() -> str:

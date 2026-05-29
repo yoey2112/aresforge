@@ -1,5 +1,28 @@
 # AresForge Agent Context
 
+## M69 Local AI Operations Hardening Context
+
+Status: Completed locally on `main`.
+
+Current hardened local AI operations surface:
+
+- safety gate decisions now expose explicit `safety_status`, `gate_status`, `blocked_action`, `blocked_reason_category`, and operator next-action metadata
+- blocked categories distinguish policy-blocked, gate-blocked, missing-operator-approval, and invalid-state outcomes where applicable
+- execution audit entries carry safety/gate status plus fixed `repo_mutation_allowed: false`, `external_mutation_allowed: false`, and `automatic_execution_allowed: false`
+- AI artifact registry entries remain advisory local records and now carry explicit advisory/non-mutation metadata
+- Operator Run History timeline entries reflect audit/artifact safety and non-mutation status consistently
+
+Boundary reminders:
+
+- local LLM execution remains prototype-scoped, local-only, advisory-only, and operator-gated
+- local LLM output is not applied to repository files, queue state, project state, GitHub, `gh`, Codex, agents, commits, pushes, or workflows
+- Codex high-value lane remains prompt generation and manual operator handoff only
+- no GitHub API, `gh`, issues, PRs, workflows, GitHub mutation, automatic Codex execution, automatic agent execution, external workflow execution, or automatic repo mutation was added
+
+Recommended next milestone:
+
+- M70 - Local AI Operations Readiness Review, if the next logical step is operator-facing readiness/report polish over these hardened records.
+
 ## M68 Local AI Operations Closeout Context
 
 Status: Completed locally on `main`.

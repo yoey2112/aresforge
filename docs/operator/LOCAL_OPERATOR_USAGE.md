@@ -1,5 +1,28 @@
 # Local Operator Usage
 
+## M69 Local AI Operations Hardening
+
+Status: Completed locally on `main`.
+
+Operator workflow notes:
+
+1. Continue using local LLM preview/execution, Codex high-value prompt generation, prompt packs, routing, audit log, artifact registry, and Operator Run History through the existing explicit operator actions.
+2. When an AI-adjacent action is blocked, inspect `blocked_action`, `blocked_reason_category`, `gate_status`, blockers, and `next_safe_action`.
+3. Treat `policy_blocked` as non-overridable for GitHub/`gh`, issue/PR/workflow, Codex execution, automatic agent execution, and automatic repo-mutation paths.
+4. Treat `missing_operator_approval` and `gate_blocked` as instructions to use only the existing explicit local operator-gated workflows.
+5. Treat artifact registry and run-history records as local evidence only; they do not approve, execute, apply, delete, post, commit, push, or mutate anything.
+
+Operator safety notes:
+
+- local LLM execution remains local-only, advisory-only, operator-gated, and prototype-scoped
+- local LLM output is never applied to repo files automatically
+- Codex high-value lane remains prompt-generation/operator-handoff only and never runs Codex
+- no GitHub API, `gh`, GitHub mutation, issues, PRs, workflows, automatic Codex execution, automatic agent execution, external workflow execution, or automatic repo mutation was introduced
+
+Recommended next milestone:
+
+- M70 - Local AI Operations Readiness Review, if the next step should be operator-facing readiness/report polish.
+
 ## M68 Local AI Operations Closeout Reconciliation
 
 Status: Completed locally on `main`.

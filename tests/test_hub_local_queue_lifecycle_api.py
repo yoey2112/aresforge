@@ -559,6 +559,11 @@ def test_post_local_queue_item_codex_high_value_prompt_route_returns_preview_wit
         assert payload["eligible_for_codex_lane"] is True
         assert payload["recommended_engine"] == "codex_cli"
         assert payload["execution_allowed"] is False
+        assert payload["executed"] is False
+        assert payload["repo_mutation_allowed"] is False
+        assert payload["external_mutation_allowed"] is False
+        assert payload["automatic_execution_allowed"] is False
+        assert payload["advisory_only"] is True
         assert "AresForge must not automatically execute Codex." in payload["prompt_preview"]
         assert "git diff --check" in payload["prompt_preview"]
         assert any("does not execute Codex" in entry for entry in payload["boundary_confirmations"])
@@ -607,6 +612,9 @@ def test_get_execution_audit_log_route_returns_filtered_entries(tmp_path: Path) 
         assert payload["total_entries"] == 1
         assert payload["entries"][0]["item_id"] == "audit-api-item"
         assert payload["entries"][0]["executed"] is False
+        assert payload["entries"][0]["repo_mutation_allowed"] is False
+        assert payload["entries"][0]["external_mutation_allowed"] is False
+        assert payload["entries"][0]["automatic_execution_allowed"] is False
         assert payload["filters"]["limit"] == 5
         assert any("read-only" in entry for entry in payload["boundary_confirmations"])
     finally:
@@ -654,6 +662,9 @@ def test_post_ai_action_safety_gate_route_returns_decision(tmp_path: Path) -> No
         assert payload["allowed"] is True
         assert payload["decision"] == "allowed"
         assert payload["execution_allowed"] is True
+        assert payload["repo_mutation_allowed"] is False
+        assert payload["external_mutation_allowed"] is False
+        assert payload["automatic_execution_allowed"] is False
         assert any("decision/reporting" in entry for entry in payload["boundary_confirmations"])
         assert bad_status == 400
         assert bad_payload["ok"] is False
@@ -696,6 +707,10 @@ def test_get_ai_artifacts_route_returns_filtered_registry(tmp_path: Path) -> Non
         assert payload["artifacts"][0]["artifact_type"] == "prompt_pack"
         assert payload["artifacts"][0]["artifact_path"] == str(artifact_path)
         assert payload["artifacts"][0]["exists"] is True
+        assert payload["artifacts"][0]["advisory_only"] is True
+        assert payload["artifacts"][0]["repo_mutation_allowed"] is False
+        assert payload["artifacts"][0]["external_mutation_allowed"] is False
+        assert payload["artifacts"][0]["automatic_execution_allowed"] is False
         assert any("read-only" in entry for entry in payload["boundary_confirmations"])
         assert bad_status == 400
         assert bad_payload["error"] == "invalid_exists"
@@ -749,6 +764,10 @@ def test_get_operator_run_history_route_returns_timeline(tmp_path: Path) -> None
         assert payload["total_artifacts"] == 1
         assert [entry["kind"] for entry in payload["timeline"]] == ["artifact", "audit"]
         assert payload["timeline"][0]["artifact_path"] == str(artifact_path)
+        assert payload["timeline"][0]["execution_allowed"] is False
+        assert payload["timeline"][0]["repo_mutation_allowed"] is False
+        assert payload["timeline"][0]["external_mutation_allowed"] is False
+        assert payload["timeline"][0]["automatic_execution_allowed"] is False
         assert any("read-only" in entry for entry in payload["boundary_confirmations"])
         assert bad_status == 400
         assert bad_payload["error"] == "invalid_limit"

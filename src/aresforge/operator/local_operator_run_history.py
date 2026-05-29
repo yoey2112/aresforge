@@ -77,10 +77,16 @@ def _timeline_from_audit(entry: dict[str, Any]) -> dict[str, Any]:
         'action_type': str(entry.get('action_type', '')).strip(),
         'artifact_type': '',
         'outcome': str(entry.get('outcome', '')).strip(),
+        'safety_status': str(entry.get('safety_status', '')).strip(),
+        'gate_status': str(entry.get('gate_status', '')).strip(),
+        'blocked_reason_category': str(entry.get('blocked_reason_category', '')).strip(),
         'summary': str(entry.get('summary', '')).strip(),
         'artifact_path': str(entry.get('artifact_path', '')).strip(),
         'executed': bool(entry.get('executed', False)),
         'execution_allowed': bool(entry.get('execution_allowed', False)),
+        'repo_mutation_allowed': False,
+        'external_mutation_allowed': False,
+        'automatic_execution_allowed': False,
     }
 
 
@@ -93,10 +99,16 @@ def _timeline_from_artifact(artifact: dict[str, Any]) -> dict[str, Any]:
         'action_type': str(artifact.get('source_action', '')).strip(),
         'artifact_type': str(artifact.get('artifact_type', '')).strip(),
         'outcome': 'exists' if artifact.get('exists', False) else 'missing',
+        'safety_status': str(artifact.get('safety_status', 'advisory_artifact')).strip() or 'advisory_artifact',
+        'gate_status': str(artifact.get('gate_status', 'artifact_only')).strip() or 'artifact_only',
+        'blocked_reason_category': '',
         'summary': str(artifact.get('summary', '')).strip(),
         'artifact_path': str(artifact.get('artifact_path', '')).strip(),
         'executed': False,
         'execution_allowed': False,
+        'repo_mutation_allowed': False,
+        'external_mutation_allowed': False,
+        'automatic_execution_allowed': False,
     }
 
 

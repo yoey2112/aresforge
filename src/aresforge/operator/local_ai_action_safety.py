@@ -24,6 +24,19 @@ _PREVIEW_ONLY_ACTIONS = {
     'routing_recommendation',
 }
 
+_PROHIBITED_ACTION_TOKENS = (
+    'github',
+    'pull_request',
+    'issue',
+    'workflow',
+    'codex_execute',
+    'codex_execution',
+    'agent_execute',
+    'agent_execution',
+    'repo_mutation',
+    'apply_llm_output',
+)
+
 
 def evaluate_ai_action_safety_gate(
     config: AppConfig,
@@ -62,7 +75,7 @@ def evaluate_ai_action_safety_gate(
     override_allowed = True
     execution_allowed = False
 
-    if _is_github_or_codex_execution_action(action):
+    if _is_prohibited_external_or_automatic_action(action):
         blockers.append('GitHub/gh mutation and Codex execution actions are blocked; they are not implemented by AresForge.')
     elif action not in SAFETY_GATE_ACTION_TYPES:
         blockers.append(f'Unsupported AI action type: {action or "(empty)"}.')
@@ -120,11 +133,28 @@ def evaluate_ai_action_safety_gate(
     if action == 'local_llm_execute' and dry_run and allowed:
         decision = 'preview_only'
 
+    blocked_category = _blocked_reason_category(
+        action=action,
+        blockers=blockers,
+        requires_operator_gate=requires_operator_gate,
+        confirm_operator_gate=confirm_operator_gate,
+        dry_run=dry_run,
+        requires_operator_override=requires_operator_override,
+    )
+    safety_status = 'allowed' if allowed else 'blocked'
+    gate_status = _gate_status(
+        decision=decision,
+        requires_operator_gate=requires_operator_gate,
+        confirm_operator_gate=confirm_operator_gate,
+        dry_run=dry_run,
+    )
+
     return {
         'ok': True,
         'local_only': True,
         'generated_at': _now_iso(),
         'action_type': action,
+        'blocked_action': action if blockers else '',
         'project_id': resolved_project_id,
         'item_id': str(item_id or '').strip(),
         'engine': resolved_engine,
@@ -140,6 +170,14 @@ def evaluate_ai_action_safety_gate(
         'override_allowed': override_allowed,
         'execution_allowed': bool(execution_allowed),
         'decision': decision,
+        'safety_status': safety_status,
+        'gate_status': gate_status,
+        'blocked_reason_category': blocked_category,
+        'operator_next_safe_action': _safety_gate_next_safe_action(decision),
+        'repo_mutation_allowed': False,
+        'external_mutation_allowed': False,
+        'automatic_execution_allowed': False,
+        'advisory_only': action in _PREVIEW_ONLY_ACTIONS or action == 'local_llm_execute',
         'blockers': sorted(set(blockers)),
         'warnings': sorted(set(warnings)),
         'next_safe_action': _safety_gate_next_safe_action(decision),
@@ -185,9 +223,57 @@ def _resolve_queue_path(repo_root: Path, queue_path: str | Path | None) -> Path:
     return candidate / 'work_items.json'
 
 
-def _is_github_or_codex_execution_action(action: str) -> bool:
+def _is_prohibited_external_or_automatic_action(action: str) -> bool:
     lowered = action.lower()
-    return any(token in lowered for token in ('github', 'gh_', 'gh-', 'pull_request', 'issue', 'workflow', 'codex_execute', 'codex_execution'))
+    if lowered == 'gh' or lowered.startswith(('gh_', 'gh-')):
+        return True
+    return any(token in lowered for token in _PROHIBITED_ACTION_TOKENS)
+
+
+def _blocked_reason_category(
+    *,
+    action: str,
+    blockers: list[str],
+    requires_operator_gate: bool,
+    confirm_operator_gate: bool,
+    dry_run: bool,
+    requires_operator_override: bool,
+) -> str:
+    if not blockers:
+        return ''
+    lowered_action = action.lower()
+    lowered_blockers = ' '.join(blockers).lower()
+    if _is_prohibited_external_or_automatic_action(lowered_action):
+        return 'policy_blocked'
+    if requires_operator_gate and not confirm_operator_gate and not dry_run:
+        return 'missing_operator_approval'
+    if requires_operator_override:
+        return 'gate_blocked'
+    if any(token in lowered_blockers for token in ('github', 'gh ', 'codex execution', 'agent execution', 'workflow')):
+        return 'policy_blocked'
+    if any(token in lowered_blockers for token in ('requires', 'must be', 'cannot', 'blocks', 'blocked')):
+        return 'gate_blocked'
+    return 'invalid_state'
+
+
+def _gate_status(
+    *,
+    decision: str,
+    requires_operator_gate: bool,
+    confirm_operator_gate: bool,
+    dry_run: bool,
+) -> str:
+    if decision == 'preview_only':
+        return 'preview_only'
+    if decision == 'requires_operator_override':
+        return 'requires_operator_override'
+    if requires_operator_gate and not confirm_operator_gate and not dry_run:
+        return 'missing_operator_approval'
+    if decision == 'blocked':
+        return 'blocked'
+    if requires_operator_gate and confirm_operator_gate:
+        return 'operator_gate_confirmed'
+    return 'not_required'
 
 
 def _safety_gate_next_safe_action(decision: str) -> str:

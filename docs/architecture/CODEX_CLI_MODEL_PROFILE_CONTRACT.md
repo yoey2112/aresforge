@@ -14,6 +14,8 @@ M67 adds an Operator Run History panel that can display Codex high-value prompt 
 
 M68 reconciles local AI operations documentation and confirms that Codex high-value lane behavior remains prompt generation/operator handoff only.
 
+M69 hardens the Codex-adjacent safety posture. Codex high-value lane payloads, audit entries, artifacts, and run-history records now make prompt-only, advisory-only, non-mutation, safety-status, and gate-status state explicit. Codex execution, Codex CLI invocation, GitHub API calls, `gh`, issues, PRs, workflows, and automatic repository mutation remain blocked and unimplemented.
+
 This contract represents future Codex CLI model preferences for routing and high-value lane planning. It does not execute Codex CLI, send prompts, run agents, call GitHub, call `gh`, or run external workflows.
 
 ## Storage
