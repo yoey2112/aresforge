@@ -1,5 +1,36 @@
 # AresForge Roadmap
 
+## M63 Codex CLI High-Value Lane
+
+Status: Completed locally on `main`.
+
+Delivered scope:
+
+- added a local-only Codex CLI high-value lane prompt generator
+- added operator/API/UI support for `POST /api/local-queue/items/{item_id}/codex-high-value-prompt`
+- generated Codex-ready prompts for eligible queue items without running Codex
+- included operating rules, files to inspect, pre-checks, implementation goal, constraints, validation commands, smoke checks, `git diff --check`, commit/push-after-validation guidance, and required final response format
+- supported optional local artifact output with safe non-overwrite behavior
+- preserved one canonical local queue as the source of truth
+- added targeted operator, API, and UI foundation tests
+
+Eligibility:
+
+- `recommended_engine=codex_cli`, `recommended_agent_lane=high_value_codex`, high/critical risk, high complexity, high validation burden, high-value affected areas, `codex_only`/`high_confidence`, or operator override
+
+Constraints preserved:
+
+- no automatic Codex execution
+- no Codex CLI command execution from AresForge
+- no GitHub API, no `gh`, no GitHub issues/PRs/workflow activity, no GitHub mutation from the app
+- no repo mutation from Codex output
+- local LLM execution remains operator-gated and unaffected
+- Codex lane output is advisory/copy-paste/operator-controlled
+
+Recommended next milestone:
+
+- M64 - Execution Audit Log.
+
 ## M62 Operator-Gated Local LLM Execution Prototype
 
 Status: Completed locally on `main`.

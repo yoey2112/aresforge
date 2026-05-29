@@ -1,5 +1,40 @@
 # AresForge Agent Context
 
+## M63 Codex CLI High-Value Lane Context
+
+Status: Completed locally on `main`.
+
+Current Codex lane contract:
+
+- operator helper: `generate_codex_high_value_lane_prompt(...)`
+- Hub route: `POST /api/local-queue/items/{item_id}/codex-high-value-prompt`
+- Queue UI panel: Codex High-Value Lane
+- source queue: one canonical local queue
+- output: advisory `prompt_preview` and optional local artifact
+
+Eligibility:
+
+- `recommended_engine` is `codex_cli`
+- `recommended_agent_lane` is `high_value_codex`
+- `risk_level` is high or critical
+- `complexity_level` is high
+- affected area includes backend/operator lifecycle, data contracts, API routes, queue lifecycle, routing matrix, execution path, evidence/closeout, or docs source-of-truth reconciliation
+- validation burden is high
+- `project_ai_mode` is `codex_only` or `high_confidence`
+- operator override requests Codex
+
+Boundary reminders:
+
+- `execution_allowed` is always false
+- AresForge does not execute Codex, call Codex CLI, call GitHub API, call `gh`, create issues, create PRs, run workflows, or mutate repo files from Codex output
+- Codex may perform coding only when a human operator manually copies the prompt into Codex
+- Codex output must be validated locally before commit/push
+- M62 local LLM execution remains explicitly operator-gated and unaffected
+
+Recommended next milestone:
+
+- M64 - Execution Audit Log.
+
 ## M62 Operator-Gated Local LLM Execution Prototype Context
 
 Status: Completed locally on `main`.

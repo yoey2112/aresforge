@@ -10,6 +10,7 @@ from aresforge.operator.local_project_queue import (
     close_local_queue_item,
     complete_local_queue_item,
     execute_local_llm_for_queue_item,
+    generate_codex_high_value_lane_prompt,
     generate_local_llm_prompt_preview,
     generate_local_queue_item_codex_prompt,
     generate_local_queue_prompt_pack,
@@ -1532,6 +1533,107 @@ def test_generate_local_queue_item_codex_prompt_writes_output_file(tmp_path: Pat
     assert output_path.exists()
     rendered = output_path.read_text(encoding='utf-8')
     assert 'Commit message guidance: Custom commit guidance' in rendered
+
+
+def test_generate_codex_high_value_lane_prompt_for_codex_cli_route(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_preview_item(config, item_id='q-codex-cli', engine='codex_cli', model='gpt-5-codex')
+
+    payload = generate_codex_high_value_lane_prompt(config, item_id='q-codex-cli')
+
+    assert payload['ok'] is True
+    assert payload['eligible_for_codex_lane'] is True
+    assert payload['recommended_engine'] == 'codex_cli'
+    assert payload['recommended_model'] == 'gpt-5-codex'
+    assert payload['execution_allowed'] is False
+    assert 'recommended_engine is codex_cli' in payload['codex_lane_reason']
+    assert 'AresForge must not automatically execute Codex.' in payload['prompt_preview']
+    assert 'No GitHub API.' in payload['prompt_preview']
+    assert 'python -m pytest tests/test_local_project_queue.py tests/test_hub_local_queue_lifecycle_api.py tests/test_hub_ui_foundation.py tests/test_local_project_factory.py tests/test_hub_project_factory_api.py' in payload['prompt_preview']
+    assert 'git diff --check' in payload['prompt_preview']
+
+
+def test_generate_codex_high_value_lane_prompt_for_high_value_lane(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_preview_item(config, item_id='q-high-value-lane', engine='local_reasoning_llm', model='local-reason')
+    assert update_local_queue_item_routing_metadata(
+        config,
+        item_id='q-high-value-lane',
+        routing_metadata={
+            'recommended_agent_lane': 'high_value_codex',
+            'recommended_engine': 'local_reasoning_llm',
+            'recommended_model': 'local-reason',
+            'routing_policy_source': 'test',
+            'routing_reason': 'Route to Codex review for backend API route.',
+            'risk_level': 'medium',
+            'complexity_level': 'medium',
+            'project_ai_mode': 'balanced',
+        },
+    )['ok'] is True
+
+    payload = generate_codex_high_value_lane_prompt(config, item_id='q-high-value-lane')
+
+    assert payload['ok'] is True
+    assert payload['eligible_for_codex_lane'] is True
+    assert 'recommended_agent_lane is high_value_codex' in payload['codex_lane_reason']
+    assert payload['execution_allowed'] is False
+
+
+def test_generate_codex_high_value_lane_prompt_for_high_risk_item(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_preview_item(config, item_id='q-high-risk', engine='local_reasoning_llm', model='local-reason')
+    assert update_local_queue_item_routing_metadata(
+        config,
+        item_id='q-high-risk',
+        routing_metadata={
+            'recommended_agent_lane': 'reviewer_validator',
+            'recommended_engine': 'local_reasoning_llm',
+            'recommended_model': 'local-reason',
+            'risk_level': 'high',
+            'complexity_level': 'low',
+            'project_ai_mode': 'balanced',
+        },
+    )['ok'] is True
+
+    payload = generate_codex_high_value_lane_prompt(config, item_id='q-high-risk')
+
+    assert payload['ok'] is True
+    assert payload['eligible_for_codex_lane'] is True
+    assert 'risk_level is high' in payload['codex_lane_reason']
+
+
+def test_generate_codex_high_value_lane_prompt_low_risk_local_llm_requires_override(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_preview_item(config, item_id='q-low-local', engine='local_coding_llm', model='local-code')
+
+    blocked = generate_codex_high_value_lane_prompt(config, item_id='q-low-local')
+    allowed = generate_codex_high_value_lane_prompt(config, item_id='q-low-local', operator_override=True)
+
+    assert blocked['ok'] is False
+    assert blocked['eligible_for_codex_lane'] is False
+    assert blocked['prompt_preview'] == ''
+    assert blocked['execution_allowed'] is False
+    assert blocked['blockers']
+    assert allowed['ok'] is True
+    assert allowed['eligible_for_codex_lane'] is True
+    assert 'operator override requests Codex' in allowed['codex_lane_reason']
+
+
+def test_generate_codex_high_value_lane_prompt_artifact_non_overwrite(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_preview_item(config, item_id='q-codex-artifact', engine='codex_cli', model='gpt-5-codex')
+    output_path = tmp_path / 'artifacts' / 'codex_high_value' / 'prompt.txt'
+
+    first = generate_codex_high_value_lane_prompt(config, item_id='q-codex-artifact', output=output_path)
+    duplicate = generate_codex_high_value_lane_prompt(config, item_id='q-codex-artifact', output=output_path)
+    forced = generate_codex_high_value_lane_prompt(config, item_id='q-codex-artifact', output=output_path, force=True)
+
+    assert first['ok'] is True
+    assert output_path.exists()
+    assert duplicate['ok'] is False
+    assert 'Output file already exists. Re-run with force=true to overwrite.' in duplicate['warnings']
+    assert forced['ok'] is True
+    assert output_path.read_text(encoding='utf-8').startswith('Codex CLI High-Value Lane Prompt')
 
 
 def test_complete_local_queue_item_in_progress_with_evidence(tmp_path: Path) -> None:

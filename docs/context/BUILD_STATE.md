@@ -1,5 +1,32 @@
 # AresForge Build State
 
+## M63 Codex CLI High-Value Lane
+
+Status: Completed locally on `main`.
+
+Delivered:
+
+- added `generate_codex_high_value_lane_prompt(...)` for conservative Codex-ready prompt generation
+- added Hub route `POST /api/local-queue/items/{item_id}/codex-high-value-prompt`
+- added Queue UI controls for Generate Codex High-Value Prompt with copy/paste preview output
+- supports optional local prompt artifact output with safe non-overwrite behavior unless `force=true`
+- uses the canonical local queue and routing metadata as the source of truth
+- marks items Codex-worthy for `codex_cli`, `high_value_codex`, high/critical risk, high complexity, high-value affected areas, high validation burden, `codex_only`/`high_confidence`, or operator override
+- returns `execution_allowed: false` and advisory `prompt_preview` only
+
+Boundaries:
+
+- no automatic Codex execution
+- no Codex CLI command execution from the app
+- no GitHub API, `gh`, issues, PRs, workflow activity, or GitHub mutation
+- no repository mutation from Codex output
+- local LLM execution from M62 remains operator-gated and unchanged
+- generated Codex prompts must be manually copied by the operator and validated locally before commit/push
+
+Recommended next milestone:
+
+- M64 - Execution Audit Log.
+
 ## M62 Operator-Gated Local LLM Execution Prototype
 
 Status: Completed locally on `main`.

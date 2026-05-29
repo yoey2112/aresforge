@@ -474,6 +474,17 @@ function buildLocalQueueCodexPromptPayload() {
   };
 }
 
+function buildCodexHighValuePromptPayload() {
+  return prunePayload({
+    output: byId("queue-codex-high-value-output").value.trim(),
+    include_context: Boolean(byId("queue-codex-high-value-include-context") && byId("queue-codex-high-value-include-context").checked),
+    include_validation_expectations: Boolean(byId("queue-codex-high-value-include-validation") && byId("queue-codex-high-value-include-validation").checked),
+    include_operating_rules: Boolean(byId("queue-codex-high-value-include-rules") && byId("queue-codex-high-value-include-rules").checked),
+    operator_override: Boolean(byId("queue-codex-high-value-operator-override") && byId("queue-codex-high-value-operator-override").checked),
+    force: Boolean(byId("queue-codex-high-value-force") && byId("queue-codex-high-value-force").checked),
+  });
+}
+
 function buildLocalLlmPromptPreviewPayload() {
   return prunePayload({
     prompt_style: byId("queue-local-llm-preview-style").value.trim(),
@@ -596,6 +607,23 @@ function renderLocalQueueCodexPromptResult(payload) {
     `commit_message: ${payload && payload.commit_message ? payload.commit_message : "-"}`,
   ].concat((payload && payload.warnings ? payload.warnings : []).map((warning) => `warning: ${warning}`)));
   setCodeBlock("queue-lifecycle-codex-prompt", "queue-lifecycle-codex-prompt-empty", (payload && payload.prompt) || "");
+}
+
+function renderCodexHighValuePromptResult(payload) {
+  setList("queue-codex-high-value-summary", "queue-codex-high-value-summary-empty", [
+    `item_id: ${payload && payload.item_id ? payload.item_id : "-"}`,
+    `eligible_for_codex_lane: ${Boolean(payload && payload.eligible_for_codex_lane)}`,
+    `recommended_engine: ${payload && payload.recommended_engine ? payload.recommended_engine : "-"}`,
+    `recommended_model: ${payload && payload.recommended_model ? payload.recommended_model : "-"}`,
+    `execution_allowed: ${Boolean(payload && payload.execution_allowed)}`,
+    `codex_lane_reason: ${payload && payload.codex_lane_reason ? payload.codex_lane_reason : "-"}`,
+    `output_path: ${payload && payload.output_path ? payload.output_path : "-"}`,
+    `next_safe_action: ${payload && payload.next_safe_action ? payload.next_safe_action : "-"}`,
+  ].concat([
+    ...((payload && payload.warnings) || []).map((warning) => `warning: ${warning}`),
+    ...((payload && payload.blockers) || []).map((blocker) => `blocker: ${blocker}`),
+  ]));
+  setCodeBlock("queue-codex-high-value-preview", "queue-codex-high-value-preview-empty", (payload && payload.prompt_preview) || "");
 }
 
 function renderLocalLlmPromptPreviewResult(payload) {
@@ -850,6 +878,35 @@ export function bindQueueLifecycleActions({
       setMessage("queue-lifecycle-message", `Codex prompt generated for ${itemId}.`, "success");
     } catch (error) {
       renderLocalQueueCodexPromptResult((error && error.payload) || null);
+      setMessage("queue-lifecycle-message", String(error.message || error), "error");
+    } finally {
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = originalLabel;
+      }
+    }
+  });
+
+  on("queue-codex-high-value-form", "submit", async (event) => {
+    event.preventDefault();
+    const submitButton = byId("queue-codex-high-value-submit");
+    const originalLabel = submitButton ? submitButton.textContent : "";
+    try {
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = "Generating...";
+      }
+      const itemId = requireLocalQueueLifecycleItemId();
+      setMessage("queue-lifecycle-message", `Generating Codex high-value lane prompt for ${itemId}...`, "loading");
+      const payload = await fetchJson(`/api/local-queue/items/${encodeURIComponent(itemId)}/codex-high-value-prompt`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildCodexHighValuePromptPayload()),
+      });
+      renderCodexHighValuePromptResult(payload);
+      setMessage("queue-lifecycle-message", `Codex high-value prompt generated for ${itemId}. Copy/paste manually only.`, "success");
+    } catch (error) {
+      renderCodexHighValuePromptResult((error && error.payload) || null);
       setMessage("queue-lifecycle-message", String(error.message || error), "error");
     } finally {
       if (submitButton) {

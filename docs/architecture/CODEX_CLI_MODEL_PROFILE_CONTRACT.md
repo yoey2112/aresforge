@@ -2,7 +2,7 @@
 
 ## Status
 
-M60 adds a local-only Codex CLI Model Profile Contract.
+M60 adds a local-only Codex CLI Model Profile Contract. M63 adds Codex CLI High-Value Lane prompt generation that may reference queue routing metadata and model profile intent, but still does not execute Codex.
 
 This contract represents future Codex CLI model preferences for routing and high-value lane planning. It does not execute Codex CLI, send prompts, run agents, call GitHub, call `gh`, or run external workflows.
 
@@ -66,4 +66,6 @@ Reading defaults does not write this file. Updating the contract writes the file
 
 ## Next Milestone Relationship
 
-M63 should use this contract for Codex CLI High-Value Lane planning. M60 does not implement the lane or execute Codex.
+M63 uses the `codex_cli` engine key and high-value lane concept for prompt generation only. It keeps output advisory and copy/paste/operator-controlled, returns `execution_allowed: false`, and preserves the no GitHub/`gh` boundary.
+
+M64 should add an Execution Audit Log for operator-gated local execution and advisory outputs without adding automatic Codex or GitHub execution.

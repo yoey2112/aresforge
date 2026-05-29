@@ -510,6 +510,71 @@ def test_post_local_queue_item_codex_prompt_route_returns_prompt_metadata_withou
         thread.join(timeout=2)
 
 
+def test_post_local_queue_item_codex_high_value_prompt_route_returns_preview_without_execution(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_active_project(config, tmp_path)
+    _seed_queue_item(
+        config,
+        item_id="codex-high-value-api",
+        status="ready",
+        title="Codex high value prompt",
+        description="Generate a Codex high-value lane prompt for an API route task.",
+    )
+    server, thread = _start_server(config)
+
+    try:
+        port = int(server.server_address[1])
+        routing_status, routing_payload = _request_json(
+            port,
+            "POST",
+            "/api/local-queue/items/codex-high-value-api/routing-metadata",
+            {
+                "routing_metadata": {
+                    "recommended_agent_lane": "high_value_codex",
+                    "recommended_engine": "codex_cli",
+                    "recommended_model": "gpt-5-codex",
+                    "routing_policy_source": "api-test",
+                    "routing_reason": "High-value backend API route work.",
+                    "risk_level": "medium",
+                    "complexity_level": "medium",
+                    "project_ai_mode": "balanced",
+                }
+            },
+        )
+        assert routing_status == 200
+        assert routing_payload["ok"] is True
+
+        status, payload = _request_json(
+            port,
+            "POST",
+            "/api/local-queue/items/codex-high-value-api/codex-high-value-prompt",
+            {"include_context": True, "include_validation_expectations": True, "include_operating_rules": True},
+        )
+
+        assert status == 200
+        assert payload["ok"] is True
+        assert payload["local_only"] is True
+        assert payload["eligible_for_codex_lane"] is True
+        assert payload["recommended_engine"] == "codex_cli"
+        assert payload["execution_allowed"] is False
+        assert "AresForge must not automatically execute Codex." in payload["prompt_preview"]
+        assert "git diff --check" in payload["prompt_preview"]
+        assert any("does not execute Codex" in entry for entry in payload["boundary_confirmations"])
+
+        missing_status, missing_payload = _request_json(
+            port,
+            "POST",
+            "/api/local-queue/items/missing-codex/codex-high-value-prompt",
+            {},
+        )
+        assert missing_status == 404
+        assert missing_payload["ok"] is False
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
+
+
 def test_post_local_queue_item_complete_route_records_validation_evidence(tmp_path: Path) -> None:
     config = _config(tmp_path)
     _seed_active_project(config, tmp_path)

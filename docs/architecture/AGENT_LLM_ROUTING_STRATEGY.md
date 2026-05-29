@@ -2,9 +2,42 @@
 
 ## Status
 
-M44A documented the future Agent/LLM routing strategy. M51 through M61 now add non-executing contracts and local Hub surfaces for project AI settings, agent/engine registry, queue routing metadata, recommendation-only routing decisions, Project AI Settings UI, routed queue views, routing-aware prompt packs, local LLM environment/health checks, Codex CLI model profile configuration, and local LLM prompt preview.
+M44A documented the future Agent/LLM routing strategy. M51 through M63 now add non-executing contracts and local Hub surfaces for project AI settings, agent/engine registry, queue routing metadata, recommendation-only routing decisions, Project AI Settings UI, routed queue views, routing-aware prompt packs, local LLM environment/health checks, Codex CLI model profile configuration, local LLM prompt preview/execution gates, and Codex high-value prompt generation.
 
-Current prompt-pack behavior extends M43 local-only grouped prompt packs with advisory routing metadata. Runtime routing, model invocation, Codex execution, local LLM execution, real agent execution, and GitHub integration remain unimplemented.
+Current prompt-pack and Codex high-value lane behavior are advisory prompt generation only. Runtime routing, Codex execution, real agent execution, and GitHub integration remain unimplemented. Local LLM execution exists only as the M62 operator-gated local prototype.
+
+## M63 Codex CLI High-Value Lane
+
+M63 adds a local-only high-value Codex prompt lane over the canonical local queue.
+
+Current operator helper:
+
+- `generate_codex_high_value_lane_prompt(...)`
+
+Current Hub route:
+
+- `POST /api/local-queue/items/{item_id}/codex-high-value-prompt`
+
+Eligibility inputs:
+
+- queue routing metadata (`recommended_engine`, `recommended_agent_lane`, `recommended_model`, `risk_level`, `complexity_level`, `project_ai_mode`, and reasons)
+- queue item title, description, notes, and tags for affected-area and validation-burden signals
+- optional operator override
+
+Codex-worthy criteria:
+
+- `recommended_engine` is `codex_cli`
+- `recommended_agent_lane` is `high_value_codex`
+- `risk_level` is high or critical
+- `complexity_level` is high
+- affected area includes backend/operator lifecycle, data contracts, API routes, queue lifecycle, routing matrix, execution path, evidence/closeout, or docs source-of-truth reconciliation
+- validation burden is high
+- `project_ai_mode` is `codex_only` or `high_confidence`
+- operator override requests Codex
+
+The generated prompt includes operating rules, files to inspect, pre-checks, implementation goal, constraints, validation commands, smoke checks, `git diff --check`, commit/push-after-validation guidance, and required final response format.
+
+M63 does not execute Codex, call Codex CLI, call GitHub API, call `gh`, create issues, create PRs, run workflows, or mutate repository files from Codex output. `execution_allowed` is always false.
 
 ## M51 Project AI Settings Contract
 

@@ -170,6 +170,18 @@ _QUEUE_ROUTING_METADATA_BOUNDARY_CONFIRMATIONS: tuple[str, ...] = (
     'No agent execution.',
     'No model invocation.',
 )
+_CODEX_HIGH_VALUE_LANE_BOUNDARY_CONFIRMATIONS: tuple[str, ...] = (
+    'Local-only Codex CLI high-value lane prompt generation.',
+    'Canonical local queue remains the source of truth.',
+    'Prompt output is advisory and copy/paste/operator-controlled.',
+    'No automatic Codex execution.',
+    'No Codex CLI command is executed.',
+    'No GitHub API calls.',
+    'No gh calls.',
+    'No GitHub issues, PRs, workflows, or mutation.',
+    'No repository files are mutated from Codex output.',
+    'No local LLM execution is changed or performed.',
+)
 _STARTABLE_QUEUE_STATUSES: frozenset[str] = frozenset({'proposed', 'ready'})
 _COMPLETABLE_QUEUE_STATUSES: frozenset[str] = frozenset({'in_progress'})
 _RESOLVED_DEPENDENCY_STATUSES: frozenset[str] = frozenset({'done'})
@@ -2031,6 +2043,131 @@ def generate_local_queue_item_codex_prompt(
     return payload
 
 
+def generate_codex_high_value_lane_prompt(
+    config: AppConfig,
+    *,
+    item_id: str,
+    include_context: bool = True,
+    include_validation_expectations: bool = True,
+    include_operating_rules: bool = True,
+    output: str | Path | None = None,
+    force: bool = False,
+    operator_override: bool = False,
+    queue_path: str | Path | None = None,
+    registry_path: str | Path | None = None,
+) -> dict[str, Any]:
+    normalized_item_id = str(item_id or '').strip()
+    resolved_queue_path = resolve_project_queue_path(config.repo_root, queue_path)
+    loaded = _load_queue_required(resolved_queue_path)
+    if not loaded.get('ok', False):
+        return loaded
+
+    queue = loaded['queue']
+    items = [_item_view(item) for item in queue.get('work_items', []) if isinstance(item, dict)]
+    item = next((candidate for candidate in items if candidate.get('item_id') == normalized_item_id), None)
+    if item is None:
+        return _error(
+            'queue_item_not_found',
+            {
+                'item_id': normalized_item_id,
+                'message': 'Queue item was not found for Codex high-value lane prompt generation.',
+            },
+        )
+
+    routing_metadata = default_queue_routing_metadata(item.get('routing_metadata', {}))
+    project_id = str(item.get('project_id', '')).strip()
+    project_ai_settings = _read_project_ai_settings_for_preview(config.repo_root, project_id)
+    project_ai_mode = str(
+        routing_metadata.get('project_ai_mode') or project_ai_settings.get('project_ai_mode', '')
+    ).strip()
+    if project_ai_mode:
+        routing_metadata['project_ai_mode'] = project_ai_mode
+
+    eligibility = _evaluate_codex_high_value_lane_eligibility(
+        item=item,
+        routing_metadata=routing_metadata,
+        operator_override=operator_override,
+    )
+    eligible = bool(eligibility['eligible'])
+    recommended_engine = str(routing_metadata.get('recommended_engine', '')).strip()
+    recommended_model = str(routing_metadata.get('recommended_model', '')).strip()
+    if eligible and not recommended_engine:
+        recommended_engine = 'codex_cli'
+
+    warnings: list[str] = []
+    blockers: list[str] = []
+    if not eligible:
+        blockers.append(
+            'Queue item does not meet Codex high-value lane eligibility; use local routing, local LLM preview, or set operator_override for manual Codex review.'
+        )
+    if recommended_engine and recommended_engine != 'codex_cli' and not operator_override:
+        warnings.append(
+            f'Queue item is currently routed to {recommended_engine}; Codex prompt generation remains advisory only.'
+        )
+
+    readiness = _evaluate_local_queue_item_readiness(
+        repo_root=config.repo_root,
+        item=item,
+        items=items,
+        registry_path=registry_path,
+    )
+    prompt_preview = ''
+    if eligible:
+        prompt_preview = _build_codex_high_value_lane_prompt_preview(
+            repo_root=config.repo_root,
+            item=item,
+            readiness=readiness,
+            routing_metadata=routing_metadata,
+            codex_lane_reason=str(eligibility['reason']),
+            include_context=include_context,
+            include_validation_expectations=include_validation_expectations,
+            include_operating_rules=include_operating_rules,
+        )
+
+    payload: dict[str, Any] = {
+        'command': 'generate-codex-high-value-lane-prompt',
+        'ok': eligible,
+        'local_only': True,
+        'item_id': normalized_item_id,
+        'eligible_for_codex_lane': eligible,
+        'recommended_engine': recommended_engine,
+        'recommended_model': recommended_model,
+        'codex_lane_reason': str(eligibility['reason']),
+        'execution_allowed': False,
+        'prompt_preview': prompt_preview,
+        'output_path': '',
+        'next_safe_action': (
+            'Copy the prompt manually into Codex only if the operator chooses to start a Codex session.'
+            if eligible
+            else 'Keep this item in the local lane or explicitly request Codex with operator_override.'
+        ),
+        'warnings': sorted(set(warnings)),
+        'blockers': sorted(set(blockers)),
+        'eligibility_reasons': eligibility['reasons'],
+        'routing_metadata': routing_metadata,
+        'boundary_confirmations': list(_CODEX_HIGH_VALUE_LANE_BOUNDARY_CONFIRMATIONS),
+    }
+
+    if output is None:
+        return payload
+
+    output_path = Path(output)
+    payload['output_path'] = str(output_path)
+    if output_path.exists() and not force:
+        payload['ok'] = False
+        payload['warnings'] = sorted({*payload['warnings'], 'Output file already exists. Re-run with force=true to overwrite.'})
+        return payload
+    if not eligible:
+        return payload
+    try:
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(prompt_preview + '\n', encoding='utf-8')
+    except OSError as exc:
+        payload['ok'] = False
+        payload['warnings'] = sorted({*payload['warnings'], f'Failed to write output file: {exc}'})
+    return payload
+
+
 def generate_local_queue_prompt_pack(
     config: AppConfig,
     *,
@@ -3663,6 +3800,234 @@ def _build_local_llm_prompt_preview_text(
     lines.extend(['', '## Requested Work', f'- prompt_style: {prompt_style}', '- Provide a plan or implementation guidance for the task above.', '- Do not execute commands, mutate files, call services, or claim validation unless explicitly performed outside this prompt preview.'])
     lines.extend(['', '## Final Response Format'])
     lines.extend([f'- {entry}' for entry in final_response_format])
+    return '\n'.join(lines).rstrip()
+
+
+def _evaluate_codex_high_value_lane_eligibility(
+    *,
+    item: dict[str, Any],
+    routing_metadata: dict[str, Any],
+    operator_override: bool,
+) -> dict[str, Any]:
+    reasons: list[str] = []
+    recommended_engine = str(routing_metadata.get('recommended_engine', '')).strip()
+    recommended_agent_lane = str(routing_metadata.get('recommended_agent_lane', '')).strip()
+    risk_level = str(routing_metadata.get('risk_level', 'unknown')).strip()
+    complexity_level = str(routing_metadata.get('complexity_level', 'unknown')).strip()
+    project_ai_mode = str(routing_metadata.get('project_ai_mode', '')).strip()
+    routing_reason = str(routing_metadata.get('routing_reason', '')).strip()
+    escalation_reason = str(routing_metadata.get('escalation_reason', '')).strip()
+
+    if recommended_engine == 'codex_cli':
+        reasons.append('recommended_engine is codex_cli')
+    if recommended_agent_lane == 'high_value_codex':
+        reasons.append('recommended_agent_lane is high_value_codex')
+    if risk_level in {'high', 'critical'}:
+        reasons.append(f'risk_level is {risk_level}')
+    if complexity_level == 'high':
+        reasons.append('complexity_level is high')
+    if project_ai_mode in {'codex_only', 'high_confidence'}:
+        reasons.append(f'project_ai_mode is {project_ai_mode}')
+    if operator_override or bool(routing_metadata.get('operator_override')):
+        reasons.append('operator override requests Codex')
+
+    area_text = ' '.join(
+        [
+            str(item.get('title', '')),
+            str(item.get('description', '')),
+            str(item.get('notes', '')),
+            ' '.join(_normalize_list(item.get('tags', []) if isinstance(item.get('tags'), list) else [])),
+            routing_reason,
+            escalation_reason,
+        ]
+    ).lower()
+    high_value_area_markers = {
+        'backend',
+        'operator lifecycle',
+        'data contract',
+        'data contracts',
+        'api route',
+        'api routes',
+        'queue lifecycle',
+        'routing matrix',
+        'execution path',
+        'evidence',
+        'closeout',
+        'source-of-truth',
+        'source of truth',
+        'reconciliation',
+    }
+    matched_areas = sorted(marker for marker in high_value_area_markers if marker in area_text)
+    if matched_areas:
+        reasons.append(f'affected area includes {", ".join(matched_areas)}')
+    if 'validation burden' in area_text and 'high' in area_text:
+        reasons.append('validation burden is high')
+    if 'high validation' in area_text or 'validation: high' in area_text:
+        reasons.append('validation burden is high')
+
+    return {
+        'eligible': bool(reasons),
+        'reason': '; '.join(reasons) if reasons else 'No high-value Codex lane eligibility criteria matched.',
+        'reasons': reasons,
+    }
+
+
+def _build_codex_high_value_lane_prompt_preview(
+    *,
+    repo_root: Path,
+    item: dict[str, Any],
+    readiness: dict[str, Any],
+    routing_metadata: dict[str, Any],
+    codex_lane_reason: str,
+    include_context: bool,
+    include_validation_expectations: bool,
+    include_operating_rules: bool,
+) -> str:
+    parsed_notes = _parse_queue_item_notes(str(item.get('notes', '')).strip())
+    acceptance = parsed_notes.get('acceptance_criteria', []) if isinstance(parsed_notes, dict) else []
+    extra_notes = str(parsed_notes.get('notes', '')).strip() if isinstance(parsed_notes, dict) else ''
+    validation_commands = [
+        'python -m pytest tests/test_local_project_queue.py tests/test_hub_local_queue_lifecycle_api.py tests/test_hub_ui_foundation.py tests/test_local_project_factory.py tests/test_hub_project_factory_api.py',
+        'python -m aresforge inspect-local-queue-agent-summary',
+        'python -m aresforge inspect-local-project-report',
+        'git diff --check',
+        'git status --short',
+    ]
+    files_to_inspect = [
+        'src/aresforge/operator/local_project_queue.py',
+        'src/aresforge/operator/local_project_factory.py',
+        'src/aresforge/hub/api.py',
+        'src/aresforge/hub/server.py',
+        'src/aresforge/hub/static/index.html',
+        'src/aresforge/hub/static/js/sections/queue.js',
+        'tests/test_local_project_queue.py',
+        'tests/test_hub_local_queue_lifecycle_api.py',
+        'tests/test_hub_ui_foundation.py',
+        'docs/context/BUILD_STATE.md',
+        'docs/context/AGENT_CONTEXT.md',
+        'docs/roadmap/ROADMAP.md',
+    ]
+    lines: list[str] = [
+        'Codex CLI High-Value Lane Prompt (Manual Operator Copy/Paste Only)',
+        '',
+        f'Milestone/task title: {item.get("title", "") or item.get("item_id", "")}',
+        f'Repo path: {repo_root}',
+        '',
+        'Important boundary:',
+        '- Codex may perform coding only when the human operator manually provides this prompt to Codex.',
+        '- AresForge must not automatically execute Codex.',
+        '- AresForge must not call GitHub API, gh, issues, PRs, or workflows.',
+        '- Codex output must be validated locally before commit/push.',
+        '',
+    ]
+    if include_operating_rules:
+        lines.extend(
+            [
+                'Operating rules:',
+                '- Local-first.',
+                '- File-backed.',
+                '- Operator-gated.',
+                '- One canonical local queue remains the source of truth.',
+                '- No GitHub API.',
+                '- No gh.',
+                '- No GitHub issues.',
+                '- No GitHub PRs.',
+                '- No GitHub workflow activity.',
+                '- No GitHub mutation from the app.',
+                '- No automatic agent execution.',
+                '- No automatic Codex execution.',
+                '- No external workflow execution.',
+                '- Codex lane output is advisory/copy-paste/operator-controlled.',
+                '- Keep changes small and focused.',
+                '- Use targeted validation.',
+                '',
+            ]
+        )
+    if include_context:
+        lines.extend(
+            [
+                'Queue item context:',
+                f'- item_id: {item.get("item_id", "")}',
+                f'- project_id: {item.get("project_id", "") or "-"}',
+                f'- repo_id: {item.get("repo_id", "") or "-"}',
+                f'- status: {item.get("status", "") or "-"}',
+                f'- priority: {item.get("priority", "") or "-"}',
+                f'- item_type: {item.get("item_type", "") or "-"}',
+                f'- readiness_status: {readiness.get("readiness_status", "unknown")}',
+                f'- recommended_engine: {routing_metadata.get("recommended_engine") or "-"}',
+                f'- recommended_model: {routing_metadata.get("recommended_model") or "-"}',
+                f'- recommended_agent_lane: {routing_metadata.get("recommended_agent_lane") or "-"}',
+                f'- risk_level: {routing_metadata.get("risk_level") or "unknown"}',
+                f'- complexity_level: {routing_metadata.get("complexity_level") or "unknown"}',
+                f'- project_ai_mode: {routing_metadata.get("project_ai_mode") or "-"}',
+                f'- codex_lane_reason: {codex_lane_reason}',
+                '',
+                'Implementation goal:',
+                str(item.get('description', '')).strip() or 'Implement the queue item conservatively.',
+                '',
+            ]
+        )
+    lines.extend(['Files to inspect:'])
+    lines.extend([f'- {path}' for path in files_to_inspect])
+    lines.extend(
+        [
+            '',
+            'Pre-check commands:',
+            '- git status --short',
+            '- git branch --show-current',
+            '- git log -1 --oneline',
+            '',
+            'Constraints:',
+            '- Do not execute Codex from AresForge.',
+            '- Do not use GitHub API, gh, issues, PRs, workflows, or GitHub mutation.',
+            '- Do not mutate repository files from generated Codex output without local human/operator control.',
+            '- Preserve M62 local LLM execution gates and do not weaken local LLM safety checks.',
+            '- Avoid nested markdown fences inside PowerShell here-string bodies or generated prompt bodies.',
+            '',
+            'Acceptance criteria:',
+        ]
+    )
+    if isinstance(acceptance, list) and acceptance:
+        lines.extend([f'- {entry}' for entry in acceptance if str(entry).strip()])
+    else:
+        lines.append('- Implement the requested item with focused local changes and tests.')
+    if extra_notes:
+        lines.extend(['', 'Additional notes:', extra_notes])
+    if include_validation_expectations:
+        lines.extend(['', 'Validation commands:'])
+        lines.extend([f'- {command}' for command in validation_commands])
+        lines.extend(
+            [
+                '',
+                'Smoke checks:',
+                '- python -m aresforge inspect-local-queue-agent-summary',
+                '- python -m aresforge inspect-local-project-report',
+                '',
+                'Diff check:',
+                '- git diff --check',
+            ]
+        )
+    lines.extend(
+        [
+            '',
+            'Commit and push instructions only after validation:',
+            '- git add .',
+            '- git commit -m "<operator-approved message>"',
+            '- git push origin main',
+            '- git log -1 --oneline',
+            '- git status --short',
+            '',
+            'Required final response format:',
+            '- Files changed',
+            '- What was changed',
+            '- Tests updated and why',
+            '- Validation results',
+            '- Smoke check results',
+            '- Diff check result',
+            '- Commit hash',
+            '- Push result',
+        ]
+    )
     return '\n'.join(lines).rstrip()
 
 

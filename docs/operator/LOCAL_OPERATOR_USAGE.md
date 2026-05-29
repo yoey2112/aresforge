@@ -1,5 +1,36 @@
 # Local Operator Usage
 
+## M63 Codex CLI High-Value Lane
+
+Status: Completed locally on `main`.
+
+Operator workflow:
+
+1. Select a queue item in Queue lifecycle controls.
+2. Confirm routing metadata or task context makes the item Codex-worthy.
+3. Use Generate Codex High-Value Prompt.
+4. Review eligibility, blockers, warnings, and `execution_allowed: false`.
+5. Copy the prompt manually into Codex only if the operator chooses to run Codex outside AresForge.
+6. Validate Codex output locally before applying commit/push instructions.
+7. Optionally provide a local artifact path; existing files are not overwritten unless Force overwrite is enabled.
+
+Eligibility:
+
+- `codex_cli` engine, `high_value_codex` lane, high/critical risk, high complexity, high validation burden, high-value affected area, `codex_only`/`high_confidence`, or operator override
+
+Operator safety notes:
+
+- prompt generation does not run Codex
+- no Codex CLI process is invoked
+- no GitHub API, `gh`, issues, PRs, workflows, or GitHub mutation is used
+- no repository file is changed from Codex output by AresForge
+- Codex lane output is advisory copy/paste text only
+- M62 local LLM execution stays behind its explicit operator gate
+
+Recommended next milestone:
+
+- M64 - Execution Audit Log.
+
 ## M62 Operator-Gated Local LLM Execution Prototype
 
 Status: Completed locally on `main`.

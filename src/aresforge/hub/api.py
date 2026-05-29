@@ -26,6 +26,7 @@ from aresforge.operator.local_project_queue import (
     complete_local_queue_item,
     default_queue_routing_metadata,
     execute_local_llm_for_queue_item,
+    generate_codex_high_value_lane_prompt,
     generate_local_queue_prompt_pack,
     generate_local_queue_item_codex_prompt,
     generate_local_llm_prompt_preview,
@@ -3169,6 +3170,42 @@ def post_local_queue_item_codex_prompt(config: AppConfig, item_id: str, body: di
     payload["boundary_confirmations"] = _merge_boundary_confirmations(
         payload,
         "Prompt generation writes local artifacts only and does not execute Codex.",
+    )
+    if not payload.get("ok", False):
+        payload["_status"] = _status_for_local_queue_result(payload)
+    return payload
+
+
+def post_local_queue_item_codex_high_value_prompt(config: AppConfig, item_id: str, body: dict[str, Any]) -> dict[str, Any]:
+    for field in (
+        "include_context",
+        "include_validation_expectations",
+        "include_operating_rules",
+        "force",
+        "operator_override",
+    ):
+        valid_bool, bool_error = _require_boolean_field(body, field)
+        if not valid_bool:
+            return bool_error or _api_error(f"invalid_{field}", f"{field} must be a boolean value.")
+
+    payload = dict(
+        generate_codex_high_value_lane_prompt(
+            config,
+            item_id=item_id.strip(),
+            include_context=bool(body.get("include_context", True)),
+            include_validation_expectations=bool(body.get("include_validation_expectations", True)),
+            include_operating_rules=bool(body.get("include_operating_rules", True)),
+            output=_normalize_optional_str(body.get("output")),
+            force=bool(body.get("force", False)),
+            operator_override=bool(body.get("operator_override", False)),
+            queue_path=_normalize_optional_str(body.get("queue_path")),
+            registry_path=_normalize_optional_str(body.get("registry_path")),
+        )
+    )
+    payload["service"] = SERVICE_NAME
+    payload["boundary_confirmations"] = _merge_boundary_confirmations(
+        payload,
+        "Codex high-value lane prompt generation is preview-only and does not execute Codex, gh, GitHub, issues, PRs, or workflows.",
     )
     if not payload.get("ok", False):
         payload["_status"] = _status_for_local_queue_result(payload)

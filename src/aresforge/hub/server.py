@@ -70,6 +70,7 @@ from aresforge.hub.api import (
     post_local_llm_environment,
     post_local_llm_health_check,
     post_local_queue_item,
+    post_local_queue_item_codex_high_value_prompt,
     post_local_queue_item_codex_prompt,
     post_local_queue_item_complete,
     post_local_queue_item_closeout,
@@ -300,6 +301,22 @@ def _build_handler(config: AppConfig, static_root: Path) -> type[BaseHTTPRequest
                     )
                     return True
                 payload = post_local_queue_item_codex_prompt(config, segments[3], body)
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+            if len(segments) == 5 and segments[1] == "local-queue" and segments[2] == "items" and segments[4] == "codex-high-value-prompt" and method == "POST":
+                if body is None:
+                    _render_json(
+                        self,
+                        HTTPStatus.BAD_REQUEST,
+                        {
+                            "ok": False,
+                            "local_only": True,
+                            "error": "invalid_json_body",
+                            "message": "Request body must be a JSON object.",
+                        },
+                    )
+                    return True
+                payload = post_local_queue_item_codex_high_value_prompt(config, segments[3], body)
                 _render_json(self, _status_from_payload(payload), payload)
                 return True
             if len(segments) == 5 and segments[1] == "local-queue" and segments[2] == "items" and segments[4] == "complete" and method == "POST":

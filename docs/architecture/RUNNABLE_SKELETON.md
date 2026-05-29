@@ -1,5 +1,37 @@
 # Runnable Skeleton
 
+## M63 Codex CLI High-Value Lane
+
+Status: Completed locally on `main`.
+
+Implemented runnable path:
+
+- operator helper: `generate_codex_high_value_lane_prompt(...)`
+- Hub route: `POST /api/local-queue/items/{item_id}/codex-high-value-prompt`
+- Queue UI panel: Codex High-Value Lane
+- optional local prompt artifact output with `force` overwrite gate
+
+Behavior contract:
+
+- reads queue item routing metadata from the canonical local queue
+- evaluates Codex-worthiness using engine, lane, risk, complexity, affected area, validation burden, project AI mode, and operator override
+- produces a copy/paste prompt preview only
+- includes local-first operating rules, files to inspect, pre-checks, validation commands, smoke checks, `git diff --check`, and final response expectations
+- returns `execution_allowed: false`
+
+Still absent by design:
+
+- automatic Codex execution
+- Codex CLI process invocation
+- GitHub API, `gh`, issues, PRs, or workflow activity
+- repo mutation from Codex output
+- automatic agent execution
+- automatic file edits, queue completion, commits, pushes, or external workflow execution
+
+Next skeleton focus:
+
+- M64 should add an Execution Audit Log for operator-gated runs and advisory outputs.
+
 ## M62 Operator-Gated Local LLM Execution Prototype
 
 Status: Completed locally on `main`.
