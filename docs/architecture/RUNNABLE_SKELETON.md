@@ -1,5 +1,34 @@
 # Runnable Skeleton
 
+## M49 Reports v1
+
+Status: Completed locally on `main`.
+
+Implemented runnable path:
+
+- operator function: `read_local_project_reports(...)`
+- Hub route: `GET /api/reports/local-projects`
+- Reports UI panel: Reports v1
+
+Behavior contract:
+
+- reads existing local project, active project, queue, evidence, closeout, and M48 progress rollup state
+- summarizes project counts, active project, queue totals, status/type/lane counts, blocked/ready/in-progress items, evidence capture, closeout eligibility, closed/completed items, latest activity, blockers, warnings, limitations, and `next_safe_action`
+- reports local-only operating boundaries in the payload
+
+Still absent by design:
+
+- PDF/CSV/export workflow expansion
+- runtime Agent/LLM routing
+- Codex CLI execution
+- local LLM execution
+- real agent execution
+- GitHub integration or mutation
+
+Next skeleton focus:
+
+- M50 should implement Handoff Generator.
+
 ## M48 Project Progress Rollup
 
 Status: Completed locally on `main`.

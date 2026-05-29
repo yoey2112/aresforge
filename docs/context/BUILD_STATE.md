@@ -1,5 +1,27 @@
 # AresForge Build State
 
+## M49 Reports v1
+
+Status: Completed locally on `main`.
+
+Delivered:
+
+- added `read_local_project_reports(...)` for local Reports v1
+- added Hub route `GET /api/reports/local-projects`
+- added a read-only Reports v1 panel to the existing Reports section
+- Reports v1 summarizes project count/statuses, active project, queue totals, counts by status/type/lane, blocked/ready/in-progress work, evidence capture, closeout eligibility, closed/completed work, latest activity, M48 progress rollup, blockers, warnings, limitations, and `next_safe_action`
+
+Boundaries:
+
+- local-only, file-backed, read-only, and operator-gated
+- no export/PDF/CSV expansion beyond existing in-page JSON text behavior
+- no queue/project mutation, prompt execution, Codex execution, local LLM execution, agent execution, GitHub/`gh`, workflow activity, push, external service call, or routing execution
+- routing implementation remains future work after the workflow/reporting sequence
+
+Recommended next milestone:
+
+- M50 - Handoff Generator.
+
 ## M48 Project Progress Rollup
 
 Status: Completed locally on `main`.

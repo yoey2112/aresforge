@@ -1,5 +1,30 @@
 # AresForge Roadmap
 
+## M49 Reports v1
+
+Status: Completed locally on `main`.
+
+Delivered scope:
+
+- added local-only Reports v1 operator support
+- added Hub API support for `GET /api/reports/local-projects`
+- added a read-only Reports v1 panel to the existing Reports UI
+- added targeted tests for operator success, empty state, status/type/lane count accuracy, active project summary, evidence/closeout counts, API route behavior, and UI contract references
+
+Constraints preserved:
+
+- Reports v1 is local-only, file-backed, and read-only
+- no export/PDF/CSV expansion beyond existing in-page JSON text behavior
+- no routing implementation or execution
+- no local LLM execution
+- no Codex execution
+- no real agent execution
+- no GitHub API, no `gh`, no GitHub issues/PRs/workflow activity, no GitHub mutation from the app
+
+Recommended next milestone:
+
+- M50 - Handoff Generator.
+
 ## M48 Project Progress Rollup
 
 Status: Completed locally on `main`.

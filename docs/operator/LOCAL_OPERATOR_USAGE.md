@@ -1,5 +1,28 @@
 # Local Operator Usage
 
+## M49 Reports v1
+
+Status: Completed locally on `main`.
+
+Operator workflow:
+
+1. Open Reports.
+2. Review Reports v1 summary cards for projects, queue, evidence, closeout eligibility, and closed/completed work.
+3. Review queue counts, active project progress rollup, local-only boundaries, limitations, blockers, warnings, and `next_safe_action`.
+4. Continue to Queue, Projects, or the next local handoff workflow only after choosing an explicit operator action.
+
+Operator safety notes:
+
+- Reports v1 is read-only and local-only
+- it does not mutate queue/project state
+- it does not execute prompts, Codex, agents, local LLMs, routing, GitHub, `gh`, workflows, push, or external services
+- it does not add PDF/CSV/export workflow complexity beyond existing in-page JSON text behavior
+- routing implementation remains future work after the workflow/reporting sequence
+
+Recommended next milestone:
+
+- M50 - Handoff Generator.
+
 ## M48 Project Progress Rollup
 
 Status: Completed locally on `main`.

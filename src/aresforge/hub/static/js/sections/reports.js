@@ -195,11 +195,72 @@ export function renderReportSummary(state, report, deps) {
   setList("boundary-list", "boundary-empty-state", report.boundary_confirmations || []);
 }
 
+export function renderReportsV1(report, countLines) {
+  const queueTotals = (report && report.queue_item_totals) || {};
+  const evidence = (report && report.evidence_summary) || {};
+  const closeout = (report && report.closeout_summary) || {};
+  const progress = (report && report.project_progress_rollup) || {};
+
+  setText("reports-v1-project-count", (report && report.overall_project_count) || 0);
+  setText("reports-v1-queue-total", queueTotals.total || 0);
+  setText("reports-v1-ready-count", queueTotals.ready || 0);
+  setText("reports-v1-blocked-count", queueTotals.blocked || 0);
+  setText("reports-v1-evidence-count", evidence.items_with_evidence_captured || 0);
+  setText("reports-v1-closeout-eligible-count", closeout.items_eligible_for_closeout || 0);
+  setText("reports-v1-closed-count", closeout.closed_completed_items || 0);
+  setText("reports-v1-next-safe-action", (report && report.next_safe_action) || "No Reports v1 guidance loaded.");
+  setList("reports-v1-queue-counts", "reports-v1-queue-counts-empty", [
+    ...countLines("status", (report && report.queue_item_counts_by_status) || {}),
+    ...countLines("type", (report && report.queue_item_counts_by_type) || {}),
+    ...countLines("lane", (report && report.queue_item_counts_by_lane) || {}),
+    `evidence_item_ids: ${(evidence.item_ids || []).join(", ") || "none"}`,
+    `closeout_eligible_item_ids: ${(closeout.eligible_item_ids || []).join(", ") || "none"}`,
+    `closed_completed_item_ids: ${(closeout.closed_completed_item_ids || []).join(", ") || "none"}`,
+  ]);
+  setList("reports-v1-progress-rollup", "reports-v1-progress-rollup-empty", progress && progress.project_id ? [
+    `project_id: ${progress.project_id}`,
+    `project_name: ${progress.project_name || "-"}`,
+    `active_project: ${Boolean(progress.active_project)}`,
+    `total_queue_items: ${progress.total_queue_items || 0}`,
+    `latest_activity: ${progress.latest_activity_timestamp || "-"}`,
+    `next_safe_action: ${progress.next_safe_action || "-"}`,
+  ] : []);
+  setList("reports-v1-boundaries", "reports-v1-boundaries-empty", (report && report.local_only_operating_boundary_summary) || []);
+  setList("reports-v1-limitations", "reports-v1-limitations-empty", (report && report.limitations) || []);
+}
+
+export function renderReportsV1Unavailable(messageText) {
+  setText("reports-v1-project-count", "0");
+  setText("reports-v1-queue-total", "0");
+  setText("reports-v1-ready-count", "0");
+  setText("reports-v1-blocked-count", "0");
+  setText("reports-v1-evidence-count", "0");
+  setText("reports-v1-closeout-eligible-count", "0");
+  setText("reports-v1-closed-count", "0");
+  setText("reports-v1-next-safe-action", messageText || "Reports v1 endpoint unavailable.");
+  setList("reports-v1-queue-counts", "reports-v1-queue-counts-empty", []);
+  setList("reports-v1-progress-rollup", "reports-v1-progress-rollup-empty", []);
+  setList("reports-v1-boundaries", "reports-v1-boundaries-empty", []);
+  setList("reports-v1-limitations", "reports-v1-limitations-empty", []);
+}
+
+export async function loadReportsV1(countLines) {
+  try {
+    const payload = await fetchJson("/api/reports/local-projects", { method: "GET" });
+    renderReportsV1(payload, countLines);
+    return payload;
+  } catch (error) {
+    renderReportsV1Unavailable(String(error.message || error));
+    return null;
+  }
+}
+
 export async function loadDashboardReport(state, deps) {
   setMessage("reports-message", "Loading dashboard report...", "loading");
   const payload = await fetchJson("/api/reports/dashboard", { method: "GET" });
   state.report = payload;
   renderReportSummary(state, payload, deps);
+  await loadReportsV1(deps.countLines);
   setMessage("reports-message", "Report loaded.", "success");
 }
 

@@ -46,6 +46,7 @@ from aresforge.hub.api import (
     get_reports_action_center,
     get_reports_dashboard,
     get_reports_export,
+    get_reports_local_projects,
     get_reports_operator_workflows,
     get_reports_readiness,
     get_projects,
@@ -350,6 +351,9 @@ def _build_handler(config: AppConfig, static_root: Path) -> type[BaseHTTPRequest
 
             if method == "GET" and path == "/api/reports/dashboard":
                 _render_json(self, HTTPStatus.OK, get_reports_dashboard(config))
+                return True
+            if method == "GET" and path == "/api/reports/local-projects":
+                _render_json(self, HTTPStatus.OK, get_reports_local_projects(config))
                 return True
             if method == "GET" and path == "/api/reports/action-center":
                 _render_json(self, HTTPStatus.OK, get_reports_action_center(config))

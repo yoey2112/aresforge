@@ -1395,6 +1395,38 @@
           <p>Local control-plane reporting for project, repo, queue, agent, orchestration, escalation, docs, and readiness.</p>
           <p id="reports-message" class="message"></p>
           <section class="subpanel">
+            <h3>Reports v1</h3>
+            <p class="message-note">Local-only and read-only Reports v1: project, queue, evidence, closeout, and progress summaries with no routing or execution.</p>
+            <div class="stats-grid">
+              <article class="card"><h4>Projects</h4><p id="reports-v1-project-count">0</p></article>
+              <article class="card"><h4>Queue Items</h4><p id="reports-v1-queue-total">0</p></article>
+              <article class="card"><h4>Ready</h4><p id="reports-v1-ready-count">0</p></article>
+              <article class="card"><h4>Blocked</h4><p id="reports-v1-blocked-count">0</p></article>
+              <article class="card"><h4>Evidence</h4><p id="reports-v1-evidence-count">0</p></article>
+              <article class="card"><h4>Closeout Eligible</h4><p id="reports-v1-closeout-eligible-count">0</p></article>
+              <article class="card"><h4>Closed/Completed</h4><p id="reports-v1-closed-count">0</p></article>
+            </div>
+            <p id="reports-v1-next-safe-action" class="message-note">No Reports v1 guidance loaded.</p>
+            <div class="split two-col">
+              <section>
+                <h4>Queue Counts</h4>
+                <ul id="reports-v1-queue-counts" class="list"></ul>
+                <p id="reports-v1-queue-counts-empty" class="empty">No Reports v1 queue counts loaded.</p>
+                <h4>Progress Rollup</h4>
+                <ul id="reports-v1-progress-rollup" class="list"></ul>
+                <p id="reports-v1-progress-rollup-empty" class="empty">No progress rollup loaded.</p>
+              </section>
+              <section>
+                <h4>Boundary Summary</h4>
+                <ul id="reports-v1-boundaries" class="list"></ul>
+                <p id="reports-v1-boundaries-empty" class="empty">No Reports v1 boundary summary loaded.</p>
+                <h4>Limitations</h4>
+                <ul id="reports-v1-limitations" class="list"></ul>
+                <p id="reports-v1-limitations-empty" class="empty">No Reports v1 limitations loaded.</p>
+              </section>
+            </div>
+          </section>
+          <section class="subpanel">
             <h3>Local Project Report Foundation</h3>
             <p class="message-note">Local-only and read-only reports view: no report mutations, no GitHub sync/mutation, no agent/model execution.</p>
             <div class="stats-grid">

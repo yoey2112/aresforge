@@ -7,7 +7,7 @@ from typing import Any
 from aresforge.config import AppConfig
 from aresforge.operator.local_project_dashboard import summarize_docs_status, summarize_local_project_dashboard
 from aresforge.operator.local_dashboard_summary import summarize_hub_home_dashboard
-from aresforge.operator.local_project_report import inspect_local_project_report
+from aresforge.operator.local_project_report import inspect_local_project_report, read_local_project_reports
 from aresforge.operator.local_project_readiness import list_local_projects
 from aresforge.operator.local_queue_agent_summary import inspect_local_queue_agent_summary
 from aresforge.operator.local_active_project import inspect_active_project, set_active_project
@@ -644,6 +644,19 @@ def get_reports_dashboard(config: AppConfig) -> dict[str, Any]:
         {
             "ok": True,
             "service": SERVICE_NAME,
+        }
+    )
+    return payload
+
+
+def get_reports_local_projects(config: AppConfig) -> dict[str, Any]:
+    payload = read_local_project_reports(config)
+    payload.update(
+        {
+            "service": SERVICE_NAME,
+            "boundary_confirmations": list(
+                dict.fromkeys(list(payload.get("boundary_confirmations", [])) + list(_BOUNDARY_CONFIRMATIONS))
+            ),
         }
     )
     return payload

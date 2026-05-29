@@ -1,13 +1,33 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+import json
 import re
 from pathlib import Path
 from typing import Any
 
 from aresforge.config import AppConfig
 from aresforge.operator.local_project_dashboard import summarize_local_project_dashboard
+from aresforge.operator.local_project_queue import (
+    QUEUE_STATUSES,
+    read_local_project_progress_rollup,
+    resolve_project_queue_path,
+)
 from aresforge.operator.local_project_readiness import inspect_local_project_readiness
+
+_REPORTS_V1_BOUNDARY_CONFIRMATIONS: tuple[str, ...] = (
+    "Local-only Reports v1.",
+    "Read-only local project and queue reporting.",
+    "File-backed local state only.",
+    "No GitHub API calls.",
+    "No gh calls.",
+    "No GitHub workflow activity.",
+    "No agent execution.",
+    "No Codex execution.",
+    "No local LLM execution.",
+    "No LLM/model routing execution.",
+    "No queue or project mutation.",
+)
 
 
 def inspect_local_project_report(config: AppConfig) -> dict[str, Any]:
@@ -82,6 +102,110 @@ def inspect_local_project_report(config: AppConfig) -> dict[str, Any]:
     }
 
 
+def read_local_project_reports(config: AppConfig) -> dict[str, Any]:
+    dashboard = summarize_local_project_dashboard(config)
+    foundation = inspect_local_project_report(config)
+    active_project = foundation.get("active_project", {}) if isinstance(foundation.get("active_project"), dict) else {}
+    active_project_id = str(active_project.get("active_project_id", "")).strip()
+    queue_items, queue_warnings = _load_report_queue_items(config)
+    queue_counts_by_status = {status: 0 for status in QUEUE_STATUSES}
+    queue_counts_by_status.update(_count_by(queue_items, "status"))
+    queue_counts_by_type = _count_by(queue_items, "item_type")
+    queue_counts_by_lane = _count_by(queue_items, "assigned_agent", empty_label="unassigned")
+    evidence_items = [
+        item for item in queue_items
+        if isinstance(item.get("completion_evidence"), dict) and bool(item.get("completion_evidence"))
+    ]
+    closeout_eligible_items = [item for item in queue_items if _report_item_closeout_eligible(item)]
+    closed_completed_items = [
+        item for item in queue_items
+        if str(item.get("status", "")).strip() in {"done", "cancelled"}
+    ]
+
+    progress_rollup: dict[str, Any] = {}
+    progress_warnings: list[str] = []
+    if active_project_id:
+        progress = read_local_project_progress_rollup(config, project_id=active_project_id)
+        if progress.get("ok", False):
+            progress_rollup = progress
+        else:
+            progress_warnings.append(
+                str((progress.get("details") or {}).get("message", progress.get("error", "progress_rollup_failed")))
+            )
+
+    blockers = _unique_list(
+        [
+            *[str(item).strip() for item in foundation.get("blockers", []) if str(item).strip()],
+            *[
+                f"Queue item {str(item.get('item_id', '')).strip()} is blocked."
+                for item in queue_items
+                if str(item.get("status", "")).strip() == "blocked"
+            ],
+        ]
+    )
+    warnings = _unique_list(
+        [
+            *[str(item).strip() for item in dashboard.get("warnings", []) if str(item).strip()],
+            *[str(item).strip() for item in foundation.get("warnings", []) if str(item).strip()],
+            *queue_warnings,
+            *progress_warnings,
+        ]
+    )
+    latest_activity = _latest_report_activity(queue_items, progress_rollup)
+
+    return {
+        "ok": True,
+        "local_only": True,
+        "read_only": True,
+        "report_type": "local_reports_v1",
+        "generated_at": datetime.now(UTC).isoformat(),
+        "overall_project_count": int((foundation.get("project_health") or {}).get("total_projects", 0)),
+        "project_counts_by_status": dict((foundation.get("project_health") or {}).get("project_counts_by_status", {})),
+        "active_project_summary": active_project,
+        "queue_item_totals": {
+            "total": len(queue_items),
+            "blocked": len([item for item in queue_items if str(item.get("status", "")).strip() == "blocked"]),
+            "ready": len([item for item in queue_items if str(item.get("status", "")).strip() == "ready"]),
+            "in_progress": len([item for item in queue_items if str(item.get("status", "")).strip() == "in_progress"]),
+            "closed_completed": len(closed_completed_items),
+        },
+        "queue_item_counts_by_status": dict(sorted(queue_counts_by_status.items())),
+        "queue_item_counts_by_type": queue_counts_by_type,
+        "queue_item_counts_by_lane": queue_counts_by_lane,
+        "evidence_summary": {
+            "items_with_evidence_captured": len(evidence_items),
+            "item_ids": _item_ids(evidence_items),
+        },
+        "closeout_summary": {
+            "items_eligible_for_closeout": len(closeout_eligible_items),
+            "eligible_item_ids": _item_ids(closeout_eligible_items),
+            "closed_completed_items": len(closed_completed_items),
+            "closed_completed_item_ids": _item_ids(closed_completed_items),
+        },
+        "latest_activity_summary": {
+            "latest_activity_timestamp": latest_activity,
+            "available": bool(latest_activity),
+        },
+        "project_progress_rollup": progress_rollup,
+        "local_only_operating_boundary_summary": list(_REPORTS_V1_BOUNDARY_CONFIRMATIONS),
+        "next_safe_action": _reports_v1_next_safe_action(
+            blockers=blockers,
+            closeout_eligible_count=len(closeout_eligible_items),
+            ready_count=len([item for item in queue_items if str(item.get("status", "")).strip() == "ready"]),
+            total_items=len(queue_items),
+            foundation_next_action=str(foundation.get("recommended_next_action", "")).strip(),
+        ),
+        "blockers": blockers,
+        "warnings": warnings,
+        "limitations": [
+            "Reports v1 is an in-Hub read-only reporting layer.",
+            "Reports v1 does not implement PDF, CSV, or external export workflows.",
+            "Agent/LLM routing remains future work and is not executed.",
+        ],
+        "boundary_confirmations": list(_REPORTS_V1_BOUNDARY_CONFIRMATIONS),
+    }
+
+
 def _roadmap_summary_from_docs(dashboard: dict[str, Any]) -> dict[str, Any]:
     docs = (dashboard.get("docs_summary") or {}).get("docs", [])
     roadmap_exists = False
@@ -119,3 +243,96 @@ def _extract_active_milestone(markdown: str) -> str:
     if not match:
         return ""
     return match.group(1).strip()
+
+
+def _load_report_queue_items(config: AppConfig) -> tuple[list[dict[str, Any]], list[str]]:
+    queue_path = resolve_project_queue_path(config.repo_root, None)
+    if not queue_path.exists():
+        return [], [f"Project queue not found: {queue_path}"]
+    try:
+        raw = json.loads(queue_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return [], [f"Project queue could not be parsed: {exc}"]
+    if not isinstance(raw, dict):
+        return [], ["Project queue has invalid schema; expected JSON object."]
+    items = raw.get("work_items", [])
+    if not isinstance(items, list):
+        return [], ["Project queue contains non-list work_items field."]
+    return [item for item in items if isinstance(item, dict)], []
+
+
+def _count_by(items: list[dict[str, Any]], field: str, *, empty_label: str = "unknown") -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for item in items:
+        value = str(item.get(field, "")).strip() or empty_label
+        counts[value] = counts.get(value, 0) + 1
+    return dict(sorted(counts.items()))
+
+
+def _report_item_closeout_eligible(item: dict[str, Any]) -> bool:
+    if str(item.get("status", "")).strip() != "in_progress":
+        return False
+    evidence = item.get("completion_evidence", {})
+    if not isinstance(evidence, dict):
+        return False
+    validation_results = evidence.get("validation_results", [])
+    return bool(
+        str(evidence.get("evidence_summary", "")).strip()
+        and isinstance(validation_results, list)
+        and any(str(value).strip() for value in validation_results)
+        and str(evidence.get("diff_check_result", "")).strip()
+    )
+
+
+def _item_ids(items: list[dict[str, Any]]) -> list[str]:
+    return [
+        str(item.get("item_id", "")).strip()
+        for item in items
+        if str(item.get("item_id", "")).strip()
+    ]
+
+
+def _latest_report_activity(items: list[dict[str, Any]], progress_rollup: dict[str, Any]) -> str:
+    timestamps = [str(progress_rollup.get("latest_activity_timestamp", "")).strip()]
+    for item in items:
+        evidence = item.get("completion_evidence", {})
+        timestamps.extend(
+            [
+                str(item.get("closed_at", "")).strip(),
+                str(item.get("completed_at", "")).strip(),
+                str(item.get("updated_at", "")).strip(),
+                str(item.get("started_at", "")).strip(),
+                str(item.get("created_at", "")).strip(),
+                str(evidence.get("captured_at", "")).strip() if isinstance(evidence, dict) else "",
+            ]
+        )
+    normalized = [value for value in timestamps if value]
+    return max(normalized) if normalized else ""
+
+
+def _reports_v1_next_safe_action(
+    *,
+    blockers: list[str],
+    closeout_eligible_count: int,
+    ready_count: int,
+    total_items: int,
+    foundation_next_action: str,
+) -> str:
+    if blockers:
+        return "Review Reports v1 blockers and resolve local queue/project issues before new work."
+    if closeout_eligible_count:
+        return "Review closeout-eligible queue items and close them out explicitly when evidence is sufficient."
+    if ready_count:
+        return "Inspect readiness and explicitly start the next ready queue item when appropriate."
+    if total_items == 0:
+        return "Add local queue items or continue project planning before reporting progress."
+    return foundation_next_action or "Review Reports v1 and continue the next operator-gated local workflow."
+
+
+def _unique_list(values: list[str]) -> list[str]:
+    result: list[str] = []
+    for value in values:
+        normalized = str(value).strip()
+        if normalized and normalized not in result:
+            result.append(normalized)
+    return result

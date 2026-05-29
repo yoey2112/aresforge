@@ -1,5 +1,36 @@
 # AresForge Agent Context
 
+## M49 Reports v1 Context
+
+Status: Completed locally on `main`.
+
+Current Reports v1 contract:
+
+- operator function: `read_local_project_reports(...)` in `src/aresforge/operator/local_project_report.py`
+- Hub route: `GET /api/reports/local-projects`
+- Reports UI includes a read-only Reports v1 panel
+
+Reports v1 sections:
+
+- overall project count and project status counts
+- active project summary
+- queue totals and counts by status, type, and assigned lane/agent
+- blocked, ready, in-progress, evidence captured, closeout eligible, and closed/completed work
+- latest activity summary
+- M48 active project progress rollup integration
+- local-only operating boundary summary, limitations, blockers, warnings, and `next_safe_action`
+
+Boundary reminders:
+
+- Reports v1 is local-only, file-backed, and read-only
+- it does not mutate queue/project state or implement PDF/CSV/export workflows
+- no Codex, local LLM, real agent, GitHub, `gh`, workflow, push, external execution, prompt execution, or routing execution
+- routing implementation remains future work after workflow/reporting milestones
+
+Recommended next milestone:
+
+- M50 - Handoff Generator.
+
 ## M48 Project Progress Rollup Context
 
 Status: Completed locally on `main`.

@@ -507,6 +507,7 @@ def test_frontend_scripts_reference_m39_api_endpoints_and_forms() -> None:
         "/api/orchestration/plan",
         "/api/escalation/plan",
         "/api/reports/dashboard",
+        "/api/reports/local-projects",
         "/api/reports/action-center",
         "/api/reports/readiness",
         "/api/reports/operator-workflows",
@@ -634,6 +635,8 @@ def test_frontend_scripts_reference_m39_api_endpoints_and_forms() -> None:
     assert "renderLocalQueueCompleteResult" in combined_text
     assert "renderProjectProgressRollup" in combined_text
     assert "loadProjectProgressRollup" in combined_text
+    assert "renderReportsV1" in combined_text
+    assert "loadReportsV1" in combined_text
     assert "home-github-apply-plan-milestones" in combined_text
     assert "home-github-apply-plan-issues" in combined_text
     assert "home-agent-dispatch-items" in combined_text
@@ -724,6 +727,14 @@ def test_bootstrap_api_status_plan_apply(tmp_path: Path) -> None:
 
 def test_reports_and_settings_sections_contain_m40_concepts() -> None:
     index_text = (_static_dir() / "index.html").read_text(encoding="utf-8")
+    assert "Reports v1" in index_text
+    assert "Local-only and read-only Reports v1: project, queue, evidence, closeout, and progress summaries with no routing or execution." in index_text
+    assert "reports-v1-project-count" in index_text
+    assert "reports-v1-queue-total" in index_text
+    assert "reports-v1-evidence-count" in index_text
+    assert "reports-v1-closeout-eligible-count" in index_text
+    assert "reports-v1-progress-rollup" in index_text
+    assert "reports-v1-boundaries" in index_text
     assert "Project/Repo Summary" in index_text
     assert "Queue Summary" in index_text
     assert "Agent Summary" in index_text
