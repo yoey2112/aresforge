@@ -359,6 +359,19 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "Inspect Readiness" in index_text
     assert "Start Task" in index_text
     assert "Generate Codex Prompt" in index_text
+    assert "Capture Completion Evidence" in index_text
+    assert "Records local evidence on the queue item only. Does not complete or close out the item." in index_text
+    assert "queue-lifecycle-evidence-form" in index_text
+    assert "queue-lifecycle-evidence-summary" in index_text
+    assert "queue-lifecycle-evidence-validation-commands" in index_text
+    assert "queue-lifecycle-evidence-validation-results" in index_text
+    assert "queue-lifecycle-evidence-smoke-checks" in index_text
+    assert "queue-lifecycle-evidence-diff-check-result" in index_text
+    assert "queue-lifecycle-evidence-files-changed" in index_text
+    assert "queue-lifecycle-evidence-commit-hash" in index_text
+    assert "queue-lifecycle-evidence-push-result" in index_text
+    assert "queue-lifecycle-evidence-operator-notes" in index_text
+    assert "queue-lifecycle-evidence-summary-list" in index_text
     assert "Complete With Evidence" in index_text
     assert "Implementation Commit" in index_text
     assert "Validation Summary" in index_text
@@ -463,6 +476,7 @@ def test_frontend_scripts_reference_m39_api_endpoints_and_forms() -> None:
         "/api/queue",
         "/api/local-queue/items",
         "/api/local-queue/prompt-pack",
+        "/evidence",
         "/readiness",
         "/start",
         "/codex-prompt",
@@ -497,6 +511,7 @@ def test_frontend_scripts_reference_m39_api_endpoints_and_forms() -> None:
         "queue-lifecycle-add-form",
         "queue-lifecycle-codex-form",
         "queue-prompt-pack-form",
+        "queue-lifecycle-evidence-form",
         "queue-lifecycle-complete-form",
         "intake-form",
         "agent-form",
@@ -535,6 +550,7 @@ def test_frontend_scripts_reference_m39_api_endpoints_and_forms() -> None:
         "queue-lifecycle-start",
         "queue-lifecycle-codex-submit",
         "queue-prompt-pack-submit",
+        "queue-lifecycle-evidence-submit",
         "queue-lifecycle-complete-submit",
         "intake-submit",
         "scope-save-draft",
@@ -585,10 +601,12 @@ def test_frontend_scripts_reference_m39_api_endpoints_and_forms() -> None:
     assert "buildLocalQueueAddPayload" in combined_text
     assert "buildLocalQueueCodexPromptPayload" in combined_text
     assert "buildLocalQueuePromptPackPayload" in combined_text
+    assert "buildLocalQueueEvidencePayload" in combined_text
     assert "buildLocalQueueCompletePayload" in combined_text
     assert "renderLocalQueueReadinessResult" in combined_text
     assert "renderLocalQueueCodexPromptResult" in combined_text
     assert "renderLocalQueuePromptPackResult" in combined_text
+    assert "renderLocalQueueEvidenceResult" in combined_text
     assert "renderLocalQueueCompleteResult" in combined_text
     assert "home-github-apply-plan-milestones" in combined_text
     assert "home-github-apply-plan-issues" in combined_text

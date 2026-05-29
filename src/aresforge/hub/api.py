@@ -17,6 +17,7 @@ from aresforge.operator.local_project_queue import (
     QUEUE_STATUSES,
     add_local_queue_item,
     add_queue_item,
+    capture_local_queue_completion_evidence,
     complete_local_queue_item,
     generate_local_queue_prompt_pack,
     generate_local_queue_item_codex_prompt,
@@ -244,6 +245,7 @@ def _item_view(item: dict[str, Any]) -> dict[str, Any]:
         "assigned_agent": str(item.get("assigned_agent", "")).strip(),
         "source": str(item.get("source", "")).strip(),
         "notes": str(item.get("notes", "")).strip(),
+        "completion_evidence": item.get("completion_evidence", {}) if isinstance(item.get("completion_evidence"), dict) else {},
         "created_at": str(item.get("created_at", "")).strip(),
         "updated_at": str(item.get("updated_at", "")).strip(),
     }
@@ -2685,6 +2687,37 @@ def post_local_queue_item_complete(config: AppConfig, item_id: str, body: dict[s
         )
     )
     payload["boundary_confirmations"] = _merge_boundary_confirmations(payload)
+    if not payload.get("ok", False):
+        payload["_status"] = _status_for_local_queue_result(payload)
+    return payload
+
+
+def post_local_queue_item_evidence(config: AppConfig, item_id: str, body: dict[str, Any]) -> dict[str, Any]:
+    for field in ("validation_commands", "validation_results", "smoke_checks", "files_changed"):
+        valid, error_payload = _require_list_field(body, field)
+        if not valid:
+            return error_payload or _api_error(f"invalid_{field}", f"{field} must be a list of strings.")
+
+    payload = dict(
+        capture_local_queue_completion_evidence(
+            config,
+            item_id=item_id.strip(),
+            evidence_summary=_normalize_optional_str(body.get("evidence_summary")),
+            validation_commands=_normalize_optional_list(body.get("validation_commands")),
+            validation_results=_normalize_optional_list(body.get("validation_results")),
+            smoke_checks=_normalize_optional_list(body.get("smoke_checks")),
+            diff_check_result=_normalize_optional_str(body.get("diff_check_result")),
+            files_changed=_normalize_optional_list(body.get("files_changed")),
+            commit_hash=_normalize_optional_str(body.get("commit_hash")),
+            push_result=_normalize_optional_str(body.get("push_result")),
+            operator_notes=_normalize_optional_str(body.get("operator_notes")),
+            queue_path=_normalize_optional_str(body.get("queue_path")),
+        )
+    )
+    payload["boundary_confirmations"] = _merge_boundary_confirmations(
+        payload,
+        "Evidence capture records local queue metadata only and does not complete the item.",
+    )
     if not payload.get("ok", False):
         payload["_status"] = _status_for_local_queue_result(payload)
     return payload

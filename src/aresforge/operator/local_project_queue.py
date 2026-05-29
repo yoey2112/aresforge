@@ -70,6 +70,17 @@ _QUEUE_ITEM_COMPLETE_BOUNDARY_CONFIRMATIONS: tuple[str, ...] = (
     'No model invocation.',
     'No remote commit verification.',
 )
+_QUEUE_ITEM_EVIDENCE_BOUNDARY_CONFIRMATIONS: tuple[str, ...] = (
+    'Local-only queue item completion evidence capture.',
+    'File-backed local queue evidence mutation only.',
+    'No queue item completion is performed.',
+    'No GitHub API calls.',
+    'No gh calls.',
+    'No network service calls.',
+    'No agent execution.',
+    'No model invocation.',
+    'No remote commit or push verification.',
+)
 _STARTABLE_QUEUE_STATUSES: frozenset[str] = frozenset({'proposed', 'ready'})
 _COMPLETABLE_QUEUE_STATUSES: frozenset[str] = frozenset({'in_progress'})
 _RESOLVED_DEPENDENCY_STATUSES: frozenset[str] = frozenset({'done'})
@@ -322,6 +333,7 @@ def add_queue_item(
             'tests_run': [],
             'changed_files': [],
             'artifact_paths': [],
+            'completion_evidence': {},
             'created_at': now,
             'updated_at': now,
         }
@@ -909,6 +921,114 @@ def complete_local_queue_item(
     }
 
 
+def capture_local_queue_completion_evidence(
+    config: AppConfig,
+    *,
+    item_id: str,
+    evidence_summary: str | None = None,
+    validation_commands: list[str] | None = None,
+    validation_results: list[str] | None = None,
+    smoke_checks: list[str] | None = None,
+    diff_check_result: str | None = None,
+    files_changed: list[str] | None = None,
+    commit_hash: str | None = None,
+    push_result: str | None = None,
+    operator_notes: str | None = None,
+    queue_path: str | Path | None = None,
+) -> dict[str, Any]:
+    resolved_queue_path = resolve_project_queue_path(config.repo_root, queue_path)
+    loaded = _load_queue_required(resolved_queue_path)
+    if not loaded.get('ok', False):
+        return loaded
+    queue = loaded['queue']
+
+    items = queue.get('work_items', [])
+    if not isinstance(items, list):
+        items = []
+
+    normalized_item_id = str(item_id or '').strip()
+    raw_item = next(
+        (
+            candidate
+            for candidate in items
+            if isinstance(candidate, dict) and str(candidate.get('item_id', '')).strip() == normalized_item_id
+        ),
+        None,
+    )
+    if raw_item is None:
+        return {
+            'command': 'capture-local-queue-completion-evidence',
+            'ok': False,
+            'local_only': True,
+            'item_id': normalized_item_id,
+            'status': '',
+            'completion_evidence': {},
+            'closeout_eligible': False,
+            'next_safe_action': 'Inspect the local queue and choose a valid item_id before capturing evidence.',
+            'warnings': [f'Queue item not found: {normalized_item_id}'],
+            'boundary_confirmations': list(_QUEUE_ITEM_EVIDENCE_BOUNDARY_CONFIRMATIONS),
+        }
+
+    normalized_evidence = {
+        'evidence_summary': str(evidence_summary or '').strip(),
+        'validation_commands': _normalize_list(validation_commands or []),
+        'validation_results': _normalize_list(validation_results or []),
+        'smoke_checks': _normalize_list(smoke_checks or []),
+        'diff_check_result': str(diff_check_result or '').strip(),
+        'files_changed': _normalize_list(files_changed or []),
+        'commit_hash': str(commit_hash or '').strip(),
+        'push_result': str(push_result or '').strip(),
+        'operator_notes': str(operator_notes or '').strip(),
+    }
+    if not _completion_evidence_has_meaningful_content(normalized_evidence):
+        return {
+            'command': 'capture-local-queue-completion-evidence',
+            'ok': False,
+            'local_only': True,
+            'item_id': normalized_item_id,
+            'status': str(raw_item.get('status', '')).strip(),
+            'completion_evidence': {},
+            'closeout_eligible': False,
+            'next_safe_action': 'Add evidence summary, validation results, smoke checks, diff check, files changed, commit hash, push result, or operator notes before retrying.',
+            'warnings': ['At least one meaningful evidence field is required.'],
+            'boundary_confirmations': list(_QUEUE_ITEM_EVIDENCE_BOUNDARY_CONFIRMATIONS),
+        }
+
+    now = _now_iso()
+    previous_status = str(raw_item.get('status', '')).strip()
+    evidence = {
+        **normalized_evidence,
+        'captured_at': now,
+    }
+    raw_item['completion_evidence'] = evidence
+    raw_item['updated_at'] = now
+    queue['work_items'] = items
+    queue['updated_at'] = now
+    _write_queue(resolved_queue_path, queue)
+
+    captured_item = _item_view(raw_item)
+    closeout_eligible = _completion_evidence_closeout_eligible(captured_item)
+    return {
+        'command': 'capture-local-queue-completion-evidence',
+        'ok': True,
+        'local_only': True,
+        'item_id': normalized_item_id,
+        'previous_status': previous_status,
+        'status': str(captured_item.get('status', '')).strip(),
+        'completion_evidence': evidence,
+        'captured_at': now,
+        'closeout_eligible': closeout_eligible,
+        'next_safe_action': (
+            'Review captured evidence and run the future closeout workflow when available.'
+            if closeout_eligible
+            else 'Continue local validation or start the item before closeout.'
+        ),
+        'warnings': [],
+        'boundary_confirmations': list(_QUEUE_ITEM_EVIDENCE_BOUNDARY_CONFIRMATIONS),
+        'item': captured_item,
+    }
+
+
 def generate_local_queue_item_codex_prompt(
     config: AppConfig,
     *,
@@ -1485,6 +1605,36 @@ def _missing_queue_item_fields(item: dict[str, Any]) -> list[str]:
 
 def _prompt_recommended(item: dict[str, Any]) -> bool:
     return bool(str(item.get('title', '')).strip() and (str(item.get('description', '')).strip() or str(item.get('notes', '')).strip()))
+
+
+def _completion_evidence_has_meaningful_content(evidence: dict[str, Any]) -> bool:
+    for field_name in (
+        'evidence_summary',
+        'diff_check_result',
+        'commit_hash',
+        'push_result',
+        'operator_notes',
+    ):
+        if str(evidence.get(field_name, '')).strip():
+            return True
+    for field_name in (
+        'validation_commands',
+        'validation_results',
+        'smoke_checks',
+        'files_changed',
+    ):
+        values = evidence.get(field_name, [])
+        if isinstance(values, list) and any(str(value).strip() for value in values):
+            return True
+    return False
+
+
+def _completion_evidence_closeout_eligible(item: dict[str, Any]) -> bool:
+    status = str(item.get('status', '')).strip()
+    evidence = item.get('completion_evidence', {})
+    if not isinstance(evidence, dict):
+        return False
+    return status == 'in_progress' and _completion_evidence_has_meaningful_content(evidence)
 
 
 def _empty_dependency_summary() -> dict[str, Any]:
@@ -2103,6 +2253,7 @@ def _item_view(item: dict[str, Any]) -> dict[str, Any]:
         'artifact_paths': _normalize_list(
             item.get('artifact_paths', []) if isinstance(item.get('artifact_paths'), list) else []
         ),
+        'completion_evidence': item.get('completion_evidence', {}) if isinstance(item.get('completion_evidence'), dict) else {},
         'created_at': str(item.get('created_at', '')).strip(),
         'updated_at': str(item.get('updated_at', '')).strip(),
     }

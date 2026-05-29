@@ -440,6 +440,102 @@ def test_post_local_queue_item_complete_route_rejects_missing_evidence_and_wrong
         thread.join(timeout=2)
 
 
+def test_post_local_queue_item_evidence_route_records_without_completing(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_active_project(config, tmp_path)
+    _seed_queue_item(
+        config,
+        item_id="evidence-route-item",
+        status="in_progress",
+        title="Evidence route item",
+        description="Capture evidence through Hub API.",
+    )
+    server, thread = _start_server(config)
+
+    try:
+        port = int(server.server_address[1])
+        status, payload = _request_json(
+            port,
+            "POST",
+            "/api/local-queue/items/evidence-route-item/evidence",
+            {
+                "evidence_summary": "Hub route evidence captured.",
+                "validation_commands": ["python -m pytest tests/test_hub_local_queue_lifecycle_api.py"],
+                "validation_results": ["passed"],
+                "smoke_checks": ["inspect-local-queue-agent-summary -> ok"],
+                "diff_check_result": "git diff --check -> pass",
+                "files_changed": ["src/aresforge/hub/api.py"],
+                "commit_hash": "abc123def",
+                "push_result": "not pushed yet",
+                "operator_notes": "Ready for closeout review.",
+            },
+        )
+
+        assert status == 200
+        assert payload["ok"] is True
+        assert payload["local_only"] is True
+        assert payload["status"] == "in_progress"
+        assert payload["closeout_eligible"] is True
+        assert payload["completion_evidence"]["evidence_summary"] == "Hub route evidence captured."
+        assert payload["completion_evidence"]["captured_at"]
+        assert any("does not complete the item" in entry for entry in payload["boundary_confirmations"])
+
+        detail_status, detail_payload = _request_json(port, "GET", "/api/queue/evidence-route-item")
+        assert detail_status == 200
+        assert detail_payload["item"]["status"] == "in_progress"
+        assert detail_payload["item"]["completion_evidence"]["commit_hash"] == "abc123def"
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
+
+
+def test_post_local_queue_item_evidence_route_returns_safe_failures(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_active_project(config, tmp_path)
+    _seed_queue_item(
+        config,
+        item_id="empty-evidence-route-item",
+        status="in_progress",
+        title="Empty evidence route item",
+        description="Empty evidence should fail.",
+    )
+    server, thread = _start_server(config)
+
+    try:
+        port = int(server.server_address[1])
+        missing_status, missing_payload = _request_json(
+            port,
+            "POST",
+            "/api/local-queue/items/missing-evidence-item/evidence",
+            {"evidence_summary": "Evidence exists."},
+        )
+        assert missing_status == 404
+        assert missing_payload["ok"] is False
+        assert missing_payload["closeout_eligible"] is False
+
+        empty_status, empty_payload = _request_json(
+            port,
+            "POST",
+            "/api/local-queue/items/empty-evidence-route-item/evidence",
+            {
+                "evidence_summary": "   ",
+                "validation_commands": [],
+                "validation_results": [],
+                "smoke_checks": [],
+                "files_changed": [],
+            },
+        )
+        assert empty_status == 400
+        assert empty_payload["ok"] is False
+        assert empty_payload["status"] == "in_progress"
+        assert any("meaningful evidence field" in warning for warning in empty_payload["warnings"])
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
+
+
 def test_post_local_queue_prompt_pack_route_returns_local_copy_paste_payload(tmp_path: Path) -> None:
     config = _config(tmp_path)
     _seed_active_project(config, tmp_path)

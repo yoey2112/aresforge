@@ -6,6 +6,7 @@ from aresforge.operator.local_active_project import set_active_project
 from aresforge.operator.local_project_queue import (
     add_local_queue_item,
     add_queue_item,
+    capture_local_queue_completion_evidence,
     complete_local_queue_item,
     generate_local_queue_item_codex_prompt,
     generate_local_queue_prompt_pack,
@@ -1079,3 +1080,134 @@ def test_complete_local_queue_item_persists_completion_metadata(tmp_path: Path) 
     assert persisted['changed_files'] == ['src/aresforge/cli.py']
     assert persisted['artifact_paths'] == ['artifacts/evidence/complete.json']
     assert persisted['completed_at']
+
+
+def test_capture_local_queue_completion_evidence_records_evidence_without_completing(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='evidence-item',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Evidence item',
+        description='Capture local evidence before closeout.',
+        status='in_progress',
+        priority='high',
+        item_type='validation',
+    )['ok'] is True
+
+    payload = capture_local_queue_completion_evidence(
+        config,
+        item_id='evidence-item',
+        evidence_summary='Targeted validation passed locally.',
+        validation_commands=['python -m pytest tests/test_local_project_queue.py'],
+        validation_results=['1 passed'],
+        smoke_checks=['python -m aresforge inspect-local-project-report -> ok'],
+        diff_check_result='git diff --check -> pass',
+        files_changed=['src/aresforge/operator/local_project_queue.py'],
+        commit_hash='abc123def',
+        push_result='not pushed yet',
+        operator_notes='Ready for future closeout review.',
+    )
+
+    assert payload['ok'] is True
+    assert payload['local_only'] is True
+    assert payload['status'] == 'in_progress'
+    assert payload['closeout_eligible'] is True
+    assert payload['completion_evidence']['evidence_summary'] == 'Targeted validation passed locally.'
+    assert payload['completion_evidence']['validation_commands'] == ['python -m pytest tests/test_local_project_queue.py']
+    assert payload['completion_evidence']['files_changed'] == ['src/aresforge/operator/local_project_queue.py']
+    assert payload['completion_evidence']['captured_at']
+    assert any('No queue item completion is performed' in entry for entry in payload['boundary_confirmations'])
+
+    item_payload = inspect_queue_item(config, item_id='evidence-item')
+    parsed = json.loads(item_payload['stdout'])
+    persisted = parsed['item']
+    assert persisted['status'] == 'in_progress'
+    assert persisted['completed_at'] == ''
+    assert persisted['completion_commit'] == ''
+    assert persisted['priority'] == 'high'
+    assert persisted['item_type'] == 'validation'
+    assert persisted['completion_evidence']['commit_hash'] == 'abc123def'
+
+
+def test_capture_local_queue_completion_evidence_missing_item_fails(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+
+    payload = capture_local_queue_completion_evidence(
+        config,
+        item_id='missing-item',
+        evidence_summary='Evidence exists.',
+    )
+
+    assert payload['ok'] is False
+    assert payload['local_only'] is True
+    assert payload['item_id'] == 'missing-item'
+    assert payload['closeout_eligible'] is False
+    assert any('Queue item not found' in warning for warning in payload['warnings'])
+
+
+def test_capture_local_queue_completion_evidence_requires_meaningful_content(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='empty-evidence-item',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Empty evidence item',
+        description='No evidence should fail.',
+        status='in_progress',
+    )['ok'] is True
+
+    payload = capture_local_queue_completion_evidence(
+        config,
+        item_id='empty-evidence-item',
+        evidence_summary='   ',
+        validation_commands=[],
+        validation_results=[],
+        smoke_checks=[],
+        diff_check_result='   ',
+        files_changed=[],
+        commit_hash='   ',
+        push_result='   ',
+        operator_notes='   ',
+    )
+
+    assert payload['ok'] is False
+    assert payload['status'] == 'in_progress'
+    assert payload['closeout_eligible'] is False
+    assert any('meaningful evidence field' in warning for warning in payload['warnings'])
+    item_payload = inspect_queue_item(config, item_id='empty-evidence-item')
+    parsed = json.loads(item_payload['stdout'])
+    assert parsed['item']['completion_evidence'] == {}
+
+
+def test_capture_local_queue_completion_evidence_preserves_non_closeout_status(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='proposed-evidence-item',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Proposed evidence item',
+        description='Evidence can be attached before start but not closeout eligible.',
+        status='proposed',
+    )['ok'] is True
+
+    payload = capture_local_queue_completion_evidence(
+        config,
+        item_id='proposed-evidence-item',
+        evidence_summary='Operator captured planning validation notes.',
+    )
+
+    assert payload['ok'] is True
+    assert payload['status'] == 'proposed'
+    assert payload['closeout_eligible'] is False
+    item_payload = inspect_queue_item(config, item_id='proposed-evidence-item')
+    parsed = json.loads(item_payload['stdout'])
+    assert parsed['item']['status'] == 'proposed'
+    assert parsed['item']['completion_evidence']['evidence_summary'] == 'Operator captured planning validation notes.'

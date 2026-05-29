@@ -905,6 +905,25 @@
                 <p id="queue-prompt-pack-preview-empty" class="empty">No prompt pack generated yet.</p>
               </section>
               <section>
+                <h4>Capture Completion Evidence</h4>
+                <p class="message-note">Records local evidence on the queue item only. Does not complete or close out the item.</p>
+                <form id="queue-lifecycle-evidence-form" class="form-grid">
+                  <label class="full">Evidence Summary<textarea id="queue-lifecycle-evidence-summary" name="evidence_summary"></textarea></label>
+                  <label class="full">Validation Commands<textarea id="queue-lifecycle-evidence-validation-commands" name="validation_commands" placeholder="One command per line"></textarea></label>
+                  <label class="full">Validation Results<textarea id="queue-lifecycle-evidence-validation-results" name="validation_results" placeholder="One result per line"></textarea></label>
+                  <label class="full">Smoke Checks<textarea id="queue-lifecycle-evidence-smoke-checks" name="smoke_checks" placeholder="One smoke check per line"></textarea></label>
+                  <label class="full">Diff Check Result<textarea id="queue-lifecycle-evidence-diff-check-result" name="diff_check_result"></textarea></label>
+                  <label class="full">Files Changed<textarea id="queue-lifecycle-evidence-files-changed" name="files_changed" placeholder="One path per line"></textarea></label>
+                  <label>Commit Hash<input id="queue-lifecycle-evidence-commit-hash" name="commit_hash" /></label>
+                  <label>Push Result<input id="queue-lifecycle-evidence-push-result" name="push_result" /></label>
+                  <label class="full">Operator Notes<textarea id="queue-lifecycle-evidence-operator-notes" name="operator_notes"></textarea></label>
+                  <button id="queue-lifecycle-evidence-submit" type="submit">Capture Evidence</button>
+                </form>
+                <ul id="queue-lifecycle-evidence-summary-list" class="list"></ul>
+                <p id="queue-lifecycle-evidence-summary-list-empty" class="empty">No captured evidence result yet.</p>
+                <h4>Evidence Warnings</h4>
+                <ul id="queue-lifecycle-evidence-warnings" class="list"></ul>
+                <p id="queue-lifecycle-evidence-warnings-empty" class="empty">No evidence warnings.</p>
                 <h4>Complete With Evidence</h4>
                 <form id="queue-lifecycle-complete-form" class="form-grid">
                   <label>Implementation Commit<input id="queue-lifecycle-complete-commit-hash" name="commit_hash" required /></label>

@@ -1,5 +1,41 @@
 # AresForge Agent Context
 
+## M46 Completion Evidence Capture Context
+
+Status: Completed locally on `main`.
+
+Current evidence capture contract:
+
+- operator function: `capture_local_queue_completion_evidence(...)` in `src/aresforge/operator/local_project_queue.py`
+- Hub route: `POST /api/local-queue/items/{item_id}/evidence`
+- Queue UI includes a minimal Capture Completion Evidence form in the local lifecycle area
+- captured evidence is stored on the queue item as `completion_evidence`
+
+Evidence fields:
+
+- `evidence_summary`
+- `validation_commands`
+- `validation_results`
+- `smoke_checks`
+- `diff_check_result`
+- `files_changed`
+- `commit_hash`
+- `push_result`
+- `operator_notes`
+- `captured_at`
+
+Boundary reminders:
+
+- evidence capture is local-only, file-backed, and operator-gated
+- evidence capture does not complete or close out a queue item
+- `closeout_eligible` is advisory only
+- Agent/LLM routing implementation remains future work
+- no local LLM execution, Codex execution, real agent execution, automatic prompt execution, or GitHub mutation
+
+Recommended next milestone:
+
+- M47 - Queue Item Closeout Workflow.
+
 ## M45 Local Hub End-to-End Operator Workflow Context
 
 Status: Completed locally on `main`.

@@ -446,6 +446,20 @@ function buildLocalQueueCompletePayload({ parseLineList }) {
   });
 }
 
+function buildLocalQueueEvidencePayload({ parseLineList }) {
+  return prunePayload({
+    evidence_summary: byId("queue-lifecycle-evidence-summary").value.trim(),
+    validation_commands: parseLineList(byId("queue-lifecycle-evidence-validation-commands").value),
+    validation_results: parseLineList(byId("queue-lifecycle-evidence-validation-results").value),
+    smoke_checks: parseLineList(byId("queue-lifecycle-evidence-smoke-checks").value),
+    diff_check_result: byId("queue-lifecycle-evidence-diff-check-result").value.trim(),
+    files_changed: parseLineList(byId("queue-lifecycle-evidence-files-changed").value),
+    commit_hash: byId("queue-lifecycle-evidence-commit-hash").value.trim(),
+    push_result: byId("queue-lifecycle-evidence-push-result").value.trim(),
+    operator_notes: byId("queue-lifecycle-evidence-operator-notes").value.trim(),
+  });
+}
+
 export function renderLocalQueueAddResult(payload) {
   setList("queue-lifecycle-add-result", "queue-lifecycle-add-result-empty", [
     `item_id: ${payload && payload.item_id ? payload.item_id : "-"}`,
@@ -511,6 +525,20 @@ function renderLocalQueueCompleteResult(payload) {
     `validation_summary: ${payload && payload.validation_summary ? payload.validation_summary : "-"}`,
   ]);
   setList("queue-lifecycle-complete-warnings", "queue-lifecycle-complete-warnings-empty", (payload && payload.warnings) || []);
+}
+
+function renderLocalQueueEvidenceResult(payload) {
+  const evidence = (payload && payload.completion_evidence) || {};
+  setList("queue-lifecycle-evidence-summary-list", "queue-lifecycle-evidence-summary-list-empty", [
+    `item_id: ${payload && payload.item_id ? payload.item_id : "-"}`,
+    `status: ${payload && payload.status ? payload.status : "-"}`,
+    `captured_at: ${payload && payload.captured_at ? payload.captured_at : evidence.captured_at || "-"}`,
+    `closeout_eligible: ${Boolean(payload && payload.closeout_eligible)}`,
+    `commit_hash: ${evidence.commit_hash || "-"}`,
+    `diff_check_result: ${evidence.diff_check_result || "-"}`,
+    `next_safe_action: ${payload && payload.next_safe_action ? payload.next_safe_action : "-"}`,
+  ]);
+  setList("queue-lifecycle-evidence-warnings", "queue-lifecycle-evidence-warnings-empty", (payload && payload.warnings) || []);
 }
 
 export function bindQueueLifecycleActions({
@@ -660,6 +688,37 @@ export function bindQueueLifecycleActions({
       setMessage("queue-lifecycle-message", `Completed ${itemId}.`, "success");
     } catch (error) {
       renderLocalQueueCompleteResult((error && error.payload) || null);
+      setMessage("queue-lifecycle-message", String(error.message || error), "error");
+    } finally {
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = originalLabel;
+      }
+    }
+  });
+
+  on("queue-lifecycle-evidence-form", "submit", async (event) => {
+    event.preventDefault();
+    const submitButton = byId("queue-lifecycle-evidence-submit");
+    const originalLabel = submitButton ? submitButton.textContent : "";
+    try {
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = "Capturing...";
+      }
+      const itemId = requireLocalQueueLifecycleItemId();
+      setMessage("queue-lifecycle-message", `Capturing local evidence for ${itemId}...`, "loading");
+      const payload = await fetchJson(`/api/local-queue/items/${encodeURIComponent(itemId)}/evidence`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildLocalQueueEvidencePayload({ parseLineList })),
+      });
+      renderLocalQueueEvidenceResult(payload);
+      await loadQueueData();
+      await refreshSummaryAndReport();
+      setMessage("queue-lifecycle-message", `Captured local evidence for ${itemId}.`, "success");
+    } catch (error) {
+      renderLocalQueueEvidenceResult((error && error.payload) || null);
       setMessage("queue-lifecycle-message", String(error.message || error), "error");
     } finally {
       if (submitButton) {

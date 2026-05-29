@@ -1,5 +1,30 @@
 # AresForge Roadmap
 
+## M46 Completion Evidence Capture
+
+Status: Completed locally on `main`.
+
+Delivered scope:
+
+- added local-only queue completion evidence capture
+- added Hub API support for `POST /api/local-queue/items/{item_id}/evidence`
+- added minimal Queue UI support for pasteable validation and evidence details
+- added targeted tests for successful capture, safe failures, non-completion behavior, field preservation, API route behavior, and UI contract references
+
+Constraints preserved:
+
+- evidence capture is not closeout
+- no automatic queue completion
+- no routing implementation
+- no local LLM execution
+- no Codex execution
+- no real agent execution
+- no GitHub API, no `gh`, no GitHub issues/PRs/workflow activity, no GitHub mutation from the app
+
+Recommended next milestone:
+
+- M47 - Queue Item Closeout Workflow.
+
 ## M45 Local Hub End-to-End Operator Workflow Validation
 
 Status: Completed locally on `main`.

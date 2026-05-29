@@ -1,5 +1,28 @@
 # Local Operator Usage
 
+## M46 Completion Evidence Capture
+
+Status: Completed locally on `main`.
+
+Operator workflow:
+
+1. Select or enter a queue item id in the Queue lifecycle area.
+2. Use Capture Completion Evidence to paste local validation evidence.
+3. Record validation commands, validation results, smoke checks, diff check result, changed files, known commit/push state, and operator notes.
+4. Review the returned `closeout_eligible` and `next_safe_action`.
+
+Operator safety notes:
+
+- evidence capture records local queue metadata only
+- evidence capture does not complete the queue item
+- evidence capture does not run validation commands
+- evidence capture does not run Codex, agents, local LLMs, routing, GitHub actions, or external workflows
+- closeout remains a separate future workflow
+
+Recommended next milestone:
+
+- M47 - Queue Item Closeout Workflow.
+
 ## M45 Local Hub End-to-End Operator Workflow
 
 Status: Completed locally on `main`.

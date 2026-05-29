@@ -1,5 +1,42 @@
 # Runnable Skeleton
 
+## M46 Completion Evidence Capture
+
+Status: Completed locally on `main`.
+
+Implemented runnable path:
+
+- operator function: `capture_local_queue_completion_evidence(...)`
+- Hub route: `POST /api/local-queue/items/{item_id}/evidence`
+- Queue UI lifecycle form: `queue-lifecycle-evidence-form`
+
+Behavior contract:
+
+- validates that the queue item exists
+- validates at least one meaningful evidence field
+- writes a `completion_evidence` object to the existing file-backed queue item
+- records `captured_at`
+- preserves existing queue item fields and lifecycle status
+- returns stable JSON with `next_safe_action` and advisory `closeout_eligible`
+
+Evidence capture versus closeout:
+
+- evidence capture prepares local evidence before closeout
+- evidence capture does not complete, close out, execute, push, route, or invoke models
+- final Queue Item Closeout Workflow remains future work
+
+Still absent by design:
+
+- runtime Agent/LLM routing
+- Codex CLI execution
+- local LLM execution
+- real agent execution
+- GitHub integration or mutation
+
+Next skeleton focus:
+
+- M47 should implement Queue Item Closeout Workflow.
+
 ## M45 Local Hub End-to-End Operator Workflow Validation
 
 Status: Completed locally on `main`.
