@@ -12,6 +12,7 @@ from aresforge.operator.local_project_readiness import list_local_projects
 from aresforge.operator.local_queue_agent_summary import inspect_local_queue_agent_summary
 from aresforge.operator.local_active_project import inspect_active_project, set_active_project
 from aresforge.operator.local_ai_action_safety import evaluate_ai_action_safety_gate
+from aresforge.operator.local_ai_artifacts import filter_ai_artifacts
 from aresforge.operator.local_execution_audit import filter_execution_audit_log
 from aresforge.operator.local_project_queue import (
     QUEUE_ITEM_TYPES,
@@ -617,6 +618,47 @@ def get_execution_audit_log(config: AppConfig, params: dict[str, str | None]) ->
     payload["boundary_confirmations"] = _merge_boundary_confirmations(
         payload,
         "Execution audit log is read-only and does not execute Codex, local LLMs, agents, GitHub, gh, or workflows.",
+    )
+    return payload
+
+
+def get_ai_artifacts(config: AppConfig, params: dict[str, str | None]) -> dict[str, Any]:
+    exists_value = _normalize_optional_str(params.get("exists"))
+    exists: bool | None = None
+    if exists_value is not None:
+        lowered = exists_value.lower()
+        if lowered not in {"true", "false"}:
+            return _api_error(
+                "invalid_exists",
+                "exists must be true or false when supplied.",
+                details={"exists": exists_value},
+            )
+        exists = lowered == "true"
+
+    limit_value = _normalize_optional_str(params.get("limit"))
+    limit: int | None = None
+    if limit_value is not None:
+        try:
+            limit = int(limit_value)
+        except ValueError:
+            return _api_error("invalid_limit", "limit must be an integer.", details={"limit": limit_value})
+        if limit <= 0:
+            return _api_error("invalid_limit", "limit must be greater than zero.", details={"limit": limit_value})
+
+    payload = filter_ai_artifacts(
+        config,
+        project_id=_normalize_optional_str(params.get("project_id")),
+        item_id=_normalize_optional_str(params.get("item_id")),
+        artifact_type=_normalize_optional_str(params.get("artifact_type")),
+        source_action=_normalize_optional_str(params.get("source_action")),
+        engine=_normalize_optional_str(params.get("engine")),
+        exists=exists,
+        limit=limit,
+    )
+    payload["service"] = SERVICE_NAME
+    payload["boundary_confirmations"] = _merge_boundary_confirmations(
+        payload,
+        "AI artifact registry is read-only through the Hub and does not execute actions.",
     )
     return payload
 

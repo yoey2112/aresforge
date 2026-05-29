@@ -530,6 +530,17 @@ function buildExecutionAuditQuery() {
   });
 }
 
+function buildAiArtifactsQuery() {
+  return toQuery({
+    item_id: byId("queue-ai-artifacts-item-id") && byId("queue-ai-artifacts-item-id").value.trim(),
+    artifact_type: byId("queue-ai-artifacts-type") && byId("queue-ai-artifacts-type").value.trim(),
+    source_action: byId("queue-ai-artifacts-source-action") && byId("queue-ai-artifacts-source-action").value.trim(),
+    engine: byId("queue-ai-artifacts-engine") && byId("queue-ai-artifacts-engine").value.trim(),
+    exists: byId("queue-ai-artifacts-exists") && byId("queue-ai-artifacts-exists").value,
+    limit: byId("queue-ai-artifacts-limit") && byId("queue-ai-artifacts-limit").value.trim(),
+  });
+}
+
 function buildLocalQueueCompletePayload({ parseLineList }) {
   return prunePayload({
     commit_hash: byId("queue-lifecycle-complete-commit-hash").value.trim(),
@@ -693,6 +704,19 @@ function renderExecutionAuditLog(payload) {
     "queue-execution-audit-entries",
     "queue-execution-audit-entries-empty",
     ((payload && payload.entries) || []).map((entry) => `${entry.timestamp || "-"} | ${entry.action_type || "-"} | item=${entry.item_id || "-"} | engine=${entry.engine || "-"} | outcome=${entry.outcome || "-"} | executed=${Boolean(entry.executed)}`),
+  );
+}
+
+function renderAiArtifactRegistry(payload) {
+  setList("queue-ai-artifacts-summary", "queue-ai-artifacts-summary-empty", [
+    `total_artifacts: ${payload && typeof payload.total_artifacts === "number" ? payload.total_artifacts : 0}`,
+    `generated_at: ${payload && payload.generated_at ? payload.generated_at : "-"}`,
+    `next_safe_action: ${payload && payload.next_safe_action ? payload.next_safe_action : "-"}`,
+  ].concat((payload && payload.warnings ? payload.warnings : []).map((warning) => `warning: ${warning}`)));
+  setList(
+    "queue-ai-artifacts-entries",
+    "queue-ai-artifacts-entries-empty",
+    ((payload && payload.artifacts) || []).map((artifact) => `${artifact.created_at || "-"} | ${artifact.artifact_type || "-"} | item=${artifact.item_id || "-"} | exists=${Boolean(artifact.exists)} | ${artifact.artifact_path || "-"}`),
   );
 }
 
@@ -1039,6 +1063,30 @@ export function bindQueueLifecycleActions({
       setMessage("queue-lifecycle-message", "Execution audit log loaded. No execution performed.", "success");
     } catch (error) {
       renderExecutionAuditLog((error && error.payload) || null);
+      setMessage("queue-lifecycle-message", String(error.message || error), "error");
+    } finally {
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = originalLabel;
+      }
+    }
+  });
+
+  on("queue-ai-artifacts-form", "submit", async (event) => {
+    event.preventDefault();
+    const submitButton = byId("queue-ai-artifacts-submit");
+    const originalLabel = submitButton ? submitButton.textContent : "";
+    try {
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = "Loading...";
+      }
+      setMessage("queue-lifecycle-message", "Loading AI artifact registry...", "loading");
+      const payload = await fetchJson(`/api/ai-artifacts${buildAiArtifactsQuery()}`, { method: "GET" });
+      renderAiArtifactRegistry(payload);
+      setMessage("queue-lifecycle-message", "AI artifact registry loaded. No execution performed.", "success");
+    } catch (error) {
+      renderAiArtifactRegistry((error && error.payload) || null);
       setMessage("queue-lifecycle-message", String(error.message || error), "error");
     } finally {
       if (submitButton) {

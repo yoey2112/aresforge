@@ -8,6 +8,7 @@ from typing import Any
 
 from aresforge.config import AppConfig
 from aresforge.operator.local_active_project import inspect_active_project
+from aresforge.operator.local_ai_artifacts import artifact_warning, register_ai_artifact
 from aresforge.operator.local_project_report import read_local_project_reports
 from aresforge.operator.local_project_queue import read_local_project_progress_rollup
 
@@ -183,6 +184,17 @@ def generate_local_project_handoff(
             "next_safe_action": "Review the local handoff artifact before copying it into the next operator chat.",
         }
     )
+    artifact_result = register_ai_artifact(
+        config,
+        artifact_type="handoff",
+        artifact_path=output_path,
+        source_action="generate_local_project_handoff",
+        project_id=resolved_project_id,
+        summary="Local project handoff artifact generated for manual operator continuity.",
+        warnings=warnings,
+    )
+    payload["artifact_registry"] = artifact_result.get("artifact", {})
+    payload["warnings"] = _unique_list([*payload["warnings"], *artifact_warning(artifact_result)])
     return payload
 
 

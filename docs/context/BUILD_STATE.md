@@ -1,5 +1,30 @@
 # AresForge Build State
 
+## M66 AI Artifact Registry
+
+Status: Completed locally on `main`.
+
+Delivered:
+
+- added local file-backed AI artifact registry helpers: `register_ai_artifact(...)`, `read_ai_artifact_registry(...)`, `filter_ai_artifacts(...)`, and `verify_ai_artifact_exists(...)`
+- stores artifact records at `.aresforge/ai_artifact_registry.json`
+- added read-only Hub route `GET /api/ai-artifacts`
+- added a small read-only Queue UI AI Artifact Registry panel with simple filters
+- registers successful local artifact writes for prompt packs, local LLM prompt previews, local LLM advisory execution results, Codex high-value prompts, and local project handoffs
+- tracks artifact type, source action, local path, project/item ids when available, engine/model/lane metadata, checksum, existence state, warnings, and summary
+
+Boundaries:
+
+- artifact registry does not execute anything
+- registry entries do not overwrite artifact content
+- no Codex CLI execution
+- no GitHub API, `gh`, issues, PRs, workflow activity, or GitHub mutation
+- no local LLM execution expansion beyond M62
+
+Recommended next milestone:
+
+- M67 - Operator Run History Panel.
+
 ## M65 AI Action Safety Gate
 
 Status: Completed locally on `main`.

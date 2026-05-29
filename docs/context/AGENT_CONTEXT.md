@@ -1,5 +1,39 @@
 # AresForge Agent Context
 
+## M66 AI Artifact Registry Context
+
+Status: Completed locally on `main`.
+
+Current artifact registry contract:
+
+- operator helpers: `register_ai_artifact(...)`, `read_ai_artifact_registry(...)`, `filter_ai_artifacts(...)`, `verify_ai_artifact_exists(...)`
+- storage path: `.aresforge/ai_artifact_registry.json`
+- Hub route: `GET /api/ai-artifacts`
+- Queue UI panel: AI Artifact Registry
+
+Supported artifact types:
+
+- `prompt_pack`
+- `handoff`
+- `local_llm_prompt_preview`
+- `local_llm_execution_result`
+- `codex_high_value_prompt`
+- `report`
+- `audit_export`
+- `other`
+
+Boundary reminders:
+
+- registry reads and writes never execute Codex, local LLMs, agents, GitHub, `gh`, issues, PRs, workflows, or external services
+- registering an artifact records metadata only and never overwrites artifact content
+- missing artifact files are represented with `exists: false`
+- checksum is local and deterministic when the artifact file exists
+- audit log records actions; artifact registry records local generated artifact files
+
+Recommended next milestone:
+
+- M67 - Operator Run History Panel.
+
 ## M65 AI Action Safety Gate Context
 
 Status: Completed locally on `main`.

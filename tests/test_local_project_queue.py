@@ -3,6 +3,11 @@ from pathlib import Path
 
 from aresforge.config import AppConfig
 from aresforge.operator.local_ai_action_safety import evaluate_ai_action_safety_gate
+from aresforge.operator.local_ai_artifacts import (
+    filter_ai_artifacts,
+    read_ai_artifact_registry,
+    register_ai_artifact,
+)
 from aresforge.operator.local_execution_audit import (
     append_execution_audit_entry,
     filter_execution_audit_log,
@@ -113,6 +118,62 @@ def _seed_preview_item(config: AppConfig, *, item_id: str, engine: str, model: s
             'project_ai_mode': 'balanced',
         },
     )['ok'] is True
+
+
+def test_ai_artifact_registry_reads_empty_registers_and_filters(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    artifact_path = tmp_path / 'artifacts' / 'prompt_packs' / 'pack.txt'
+    artifact_path.parent.mkdir(parents=True, exist_ok=True)
+    artifact_path.write_text('local prompt pack\n', encoding='utf-8')
+
+    empty = read_ai_artifact_registry(config)
+    registered = register_ai_artifact(
+        config,
+        artifact_type='prompt_pack',
+        artifact_path=artifact_path,
+        source_action='prompt_pack_generate',
+        project_id='p1',
+        item_id='q1',
+        engine='prompt_pack',
+        summary='Generated prompt pack without secret token details.',
+        warnings=['api_key must be redacted'],
+        created_at='2026-05-29T00:00:00+00:00',
+    )
+    by_item = filter_ai_artifacts(config, item_id='q1')
+    by_type = filter_ai_artifacts(config, artifact_type='prompt_pack')
+
+    assert empty['ok'] is True
+    assert empty['artifacts'] == []
+    assert registered['ok'] is True
+    assert registered['artifact']['artifact_id'] == 'artifact-20260529T0000000000-prompt-pack-0001'
+    assert registered['artifact']['exists'] is True
+    assert registered['artifact']['checksum'].startswith('sha256:')
+    assert registered['artifact']['summary'] == '[redacted]'
+    assert registered['artifact']['warnings'] == ['[redacted]']
+    assert by_item['total_artifacts'] == 1
+    assert by_type['total_artifacts'] == 1
+
+
+def test_ai_artifact_registry_marks_missing_artifact_false(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    missing_path = tmp_path / 'artifacts' / 'missing' / 'result.txt'
+
+    registered = register_ai_artifact(
+        config,
+        artifact_type='local_llm_execution_result',
+        artifact_path=missing_path,
+        source_action='local_llm_execute',
+        item_id='q-missing-artifact',
+        summary='Missing artifact record for verification.',
+        created_at='2026-05-29T00:00:00+00:00',
+    )
+    loaded = filter_ai_artifacts(config, exists=False)
+
+    assert registered['ok'] is True
+    assert registered['artifact']['exists'] is False
+    assert registered['artifact']['checksum'] == ''
+    assert loaded['total_artifacts'] == 1
+    assert loaded['artifacts'][0]['artifact_path'] == str(missing_path)
 
 
 def test_execution_audit_log_reads_empty_and_appends_entry(tmp_path: Path) -> None:
@@ -891,6 +952,10 @@ def test_generate_local_queue_prompt_pack_groups_and_writes_artifact(tmp_path: P
     assert payload['item_count'] == 2
     assert payload['output_path'] == str(output)
     assert output.exists()
+    assert payload['artifact_registry']['artifact_type'] == 'prompt_pack'
+    assert payload['artifact_registry']['artifact_path'] == str(output)
+    assert payload['artifact_registry']['exists'] is True
+    assert filter_ai_artifacts(config, artifact_type='prompt_pack')['total_artifacts'] == 1
     assert 'Agent Prompt Pack (Local-Only)' in payload['prompt_pack']
     assert payload['include_routing'] is True
     assert payload['execution_allowed'] is False
@@ -1015,6 +1080,9 @@ def test_generate_local_llm_prompt_preview_succeeds_for_local_coding_llm_and_wri
     assert 'No GitHub API, no gh, and no GitHub mutation.' in payload['prompt_preview']
     assert 'The local LLM must not claim execution' in payload['prompt_preview']
     assert output.exists()
+    assert payload['artifact_registry']['artifact_type'] == 'local_llm_prompt_preview'
+    assert payload['artifact_registry']['item_id'] == 'q-local-code'
+    assert filter_ai_artifacts(config, item_id='q-local-code', artifact_type='local_llm_prompt_preview')['total_artifacts'] == 1
 
     duplicate = generate_local_llm_prompt_preview(config, item_id='q-local-code', output=output)
     assert duplicate['ok'] is False
@@ -1190,6 +1258,9 @@ def test_execute_local_llm_for_queue_item_with_mocked_provider_succeeds_and_pres
     assert payload['response_text'] == 'advisory response for local-code'
     assert payload['result_artifact_path'] == str(output)
     assert output.exists()
+    assert payload['artifact_registry']['artifact_type'] == 'local_llm_execution_result'
+    assert payload['artifact_registry']['item_id'] == 'q-execute-success'
+    assert filter_ai_artifacts(config, artifact_type='local_llm_execution_result')['total_artifacts'] == 1
     detail = inspect_queue_item(config, item_id='q-execute-success')
     assert detail['payload']['item']['status'] == 'ready'
     assert not (tmp_path / 'unexpected_repo_mutation.txt').exists()
@@ -1848,9 +1919,12 @@ def test_generate_codex_high_value_lane_prompt_artifact_non_overwrite(tmp_path: 
 
     assert first['ok'] is True
     assert output_path.exists()
+    assert first['artifact_registry']['artifact_type'] == 'codex_high_value_prompt'
+    assert first['artifact_registry']['item_id'] == 'q-codex-artifact'
     assert duplicate['ok'] is False
     assert 'Output file already exists. Re-run with force=true to overwrite.' in duplicate['warnings']
     assert forced['ok'] is True
+    assert filter_ai_artifacts(config, item_id='q-codex-artifact', artifact_type='codex_high_value_prompt')['total_artifacts'] == 2
     assert output_path.read_text(encoding='utf-8').startswith('Codex CLI High-Value Lane Prompt')
 
 

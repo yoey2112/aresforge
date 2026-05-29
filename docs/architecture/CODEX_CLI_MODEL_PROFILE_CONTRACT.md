@@ -8,6 +8,8 @@ M64 adds a local Execution Audit Log. Codex high-value prompt generation is summ
 
 M65 adds a centralized AI Action Safety Gate. Codex high-value prompt generation may consult the gate as preview-only decision/reporting logic, while Codex execution remains blocked and unimplemented.
 
+M66 adds a local AI Artifact Registry. Codex high-value prompt artifacts are registered when explicitly written, but the registry does not execute Codex or invoke Codex CLI.
+
 This contract represents future Codex CLI model preferences for routing and high-value lane planning. It does not execute Codex CLI, send prompts, run agents, call GitHub, call `gh`, or run external workflows.
 
 ## Storage
@@ -30,6 +32,7 @@ Reading defaults does not write this file. Updating the contract writes the file
 - `POST /api/codex-cli/model-profiles`
 - `GET /api/execution-audit-log`
 - `POST /api/ai-action-safety-gate`
+- `GET /api/ai-artifacts`
 
 ## Fields
 
@@ -71,6 +74,7 @@ Reading defaults does not write this file. Updating the contract writes the file
 - no external workflow execution
 - audit logging is local-only and non-executing
 - safety gate decisions are local-only and non-executing
+- artifact registry tracking is local-only and non-executing
 
 ## Next Milestone Relationship
 
@@ -80,4 +84,6 @@ M64 adds an Execution Audit Log for operator-gated local execution and advisory 
 
 M65 adds an AI Action Safety Gate before any future expansion of AI execution behavior. Codex prompt generation remains advisory and preview-only, while Codex execution remains blocked.
 
-M66 should add an AI Artifact Registry for generated advisory artifacts without adding automatic Codex or GitHub execution.
+M66 adds an AI Artifact Registry for generated advisory artifacts without adding automatic Codex or GitHub execution.
+
+M67 should add an Operator Run History Panel.

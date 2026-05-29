@@ -1,5 +1,31 @@
 # AresForge Roadmap
 
+## M66 AI Artifact Registry
+
+Status: Completed locally on `main`.
+
+Delivered scope:
+
+- added local-only file-backed AI artifact registry at `.aresforge/ai_artifact_registry.json`
+- added append/read/filter/verify operator helpers for artifact records
+- added read-only Hub API support for `GET /api/ai-artifacts`
+- added a minimal read-only Queue UI artifact registry panel
+- registered artifact writes from prompt-pack generation, local LLM prompt previews, local LLM advisory result output, Codex high-value prompt generation, and local project handoff generation
+- added targeted tests for registering, empty reads, filtering, missing artifacts, artifact-producing workflows, API route behavior, and UI contract references
+
+Constraints preserved:
+
+- no new execution capability
+- no Codex CLI execution
+- no GitHub API, no `gh`, no GitHub issues/PRs/workflow activity, no GitHub mutation from the app
+- no external workflow execution
+- no expansion of M62 local LLM execution
+- artifact registry records metadata only and does not overwrite artifact files
+
+Recommended next milestone:
+
+- M67 - Operator Run History Panel.
+
 ## M65 AI Action Safety Gate
 
 Status: Completed locally on `main`.

@@ -1,5 +1,38 @@
 # Runnable Skeleton
 
+## M66 AI Artifact Registry
+
+Status: Completed locally on `main`.
+
+Implemented runnable path:
+
+- operator helpers: `register_ai_artifact(...)`, `read_ai_artifact_registry(...)`, `filter_ai_artifacts(...)`, `verify_ai_artifact_exists(...)`
+- local storage: `.aresforge/ai_artifact_registry.json`
+- Hub route: `GET /api/ai-artifacts`
+- Queue UI panel: AI Artifact Registry
+
+Behavior contract:
+
+- register metadata for successful local artifact writes
+- read missing/empty registry files safely
+- filter by project, item, artifact type, source action, engine, exists state, and limit
+- recompute local file existence/checksum on read
+- avoid storing secret-like strings
+- never overwrite artifact content
+
+Still absent by design:
+
+- artifact execution or application
+- Codex CLI execution
+- GitHub API, `gh`, issues, PRs, or workflow activity
+- local LLM execution beyond M62
+- automatic agent execution
+- automatic file edits, queue completion, commits, pushes, or external workflow execution
+
+Next skeleton focus:
+
+- M67 should add an Operator Run History Panel over local action history.
+
 ## M65 AI Action Safety Gate
 
 Status: Completed locally on `main`.

@@ -16,6 +16,8 @@ M64 adds a local Execution Audit Log. Health checks, prompt previews, dry runs, 
 
 M65 adds a centralized AI Action Safety Gate. Local LLM prompt preview and execution paths may consult the gate for consistent decision reporting, but the gate does not execute anything and does not expand M62 local LLM behavior.
 
+M66 adds a local AI Artifact Registry. Local LLM prompt preview artifacts and advisory local LLM result artifacts are registered when explicitly written, but registry writes do not execute providers or expand M62 behavior.
+
 ## Storage
 
 The contract is stored locally at:
@@ -39,6 +41,7 @@ Reading defaults does not write this file. Updating the contract writes the file
 - `POST /api/local-queue/items/{item_id}/local-llm-execute`
 - `GET /api/execution-audit-log`
 - `POST /api/ai-action-safety-gate`
+- `GET /api/ai-artifacts`
 
 ## Fields
 
@@ -170,4 +173,6 @@ M64 added the local Execution Audit Log without expanding execution.
 
 M65 added the AI Action Safety Gate for consistent decision reporting without expanding execution.
 
-M66 should add an AI Artifact Registry for generated advisory artifacts.
+M66 added the AI Artifact Registry for generated advisory artifacts without expanding execution.
+
+M67 should add an Operator Run History Panel.

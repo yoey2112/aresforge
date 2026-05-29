@@ -1,5 +1,40 @@
 # Local Operator Usage
 
+## M66 AI Artifact Registry
+
+Status: Completed locally on `main`.
+
+Operator workflow:
+
+1. Generate local artifacts through existing prompt pack, local LLM preview/result, Codex high-value prompt, or handoff workflows.
+2. Open the AI Artifact Registry panel in Queue.
+3. Optionally filter by item id, artifact type, source action, engine, exists state, or limit.
+4. Review artifact type, item id, local path, exists state, and timestamp.
+5. Treat the registry as local discovery/evidence only; it does not approve, execute, delete, or apply artifacts.
+
+Artifact types:
+
+- `prompt_pack`
+- `handoff`
+- `local_llm_prompt_preview`
+- `local_llm_execution_result`
+- `codex_high_value_prompt`
+- `report`
+- `audit_export`
+- `other`
+
+Operator safety notes:
+
+- registering artifacts records metadata only and does not overwrite artifact content
+- missing files are shown as `exists: false`
+- checksum is local-only when the file exists
+- the execution audit log records action outcomes; the artifact registry records generated local artifact files
+- no Codex, local LLM, agent, GitHub, `gh`, workflow, or external execution is performed by the registry
+
+Recommended next milestone:
+
+- M67 - Operator Run History Panel.
+
 ## M65 AI Action Safety Gate
 
 Status: Completed locally on `main`.

@@ -9,6 +9,7 @@ import threading
 from aresforge.config import AppConfig
 from aresforge.hub.server import _build_handler
 from aresforge.hub.api import post_active_project, post_project, post_project_repo, post_queue_item
+from aresforge.operator.local_ai_artifacts import register_ai_artifact
 from aresforge.operator.local_execution_audit import append_execution_audit_entry
 
 
@@ -657,6 +658,47 @@ def test_post_ai_action_safety_gate_route_returns_decision(tmp_path: Path) -> No
         assert bad_status == 400
         assert bad_payload["ok"] is False
         assert bad_payload["error"] == "invalid_confirm_operator_gate"
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
+
+
+def test_get_ai_artifacts_route_returns_filtered_registry(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    artifact_path = tmp_path / "artifacts" / "prompt_packs" / "api-pack.txt"
+    artifact_path.parent.mkdir(parents=True, exist_ok=True)
+    artifact_path.write_text("api prompt pack\n", encoding="utf-8")
+    assert register_ai_artifact(
+        config,
+        artifact_type="prompt_pack",
+        artifact_path=artifact_path,
+        source_action="prompt_pack_generate",
+        item_id="artifact-api-item",
+        engine="prompt_pack",
+        summary="API route artifact registry entry.",
+        created_at="2026-05-29T00:00:00+00:00",
+    )["ok"] is True
+    server, thread = _start_server(config)
+
+    try:
+        port = int(server.server_address[1])
+        status, payload = _request_json(
+            port,
+            "GET",
+            "/api/ai-artifacts?item_id=artifact-api-item&artifact_type=prompt_pack&exists=true&limit=1",
+        )
+        bad_status, bad_payload = _request_json(port, "GET", "/api/ai-artifacts?exists=maybe")
+
+        assert status == 200
+        assert payload["ok"] is True
+        assert payload["total_artifacts"] == 1
+        assert payload["artifacts"][0]["artifact_type"] == "prompt_pack"
+        assert payload["artifacts"][0]["artifact_path"] == str(artifact_path)
+        assert payload["artifacts"][0]["exists"] is True
+        assert any("read-only" in entry for entry in payload["boundary_confirmations"])
+        assert bad_status == 400
+        assert bad_payload["error"] == "invalid_exists"
     finally:
         server.shutdown()
         server.server_close()

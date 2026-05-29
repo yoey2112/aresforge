@@ -11,6 +11,7 @@ from urllib.request import Request, urlopen
 
 from aresforge.config import AppConfig
 from aresforge.operator.local_ai_action_safety import evaluate_ai_action_safety_gate
+from aresforge.operator.local_ai_artifacts import artifact_warning, register_ai_artifact
 from aresforge.operator.local_execution_audit import append_execution_audit_entry, audit_warning
 from aresforge.operator.local_active_project import inspect_active_project
 from aresforge.operator.local_project_state import resolve_project_state_path
@@ -1010,6 +1011,20 @@ def generate_local_llm_prompt_preview(
         payload['warnings'] = sorted(set(payload['warnings'] + audit_warning(audit_result)))
         return payload
     payload['output_path'] = str(output_path)
+    artifact_result = register_ai_artifact(
+        config,
+        artifact_type='local_llm_prompt_preview',
+        artifact_path=output_path,
+        source_action='local_llm_prompt_preview',
+        project_id=project_id,
+        item_id=normalized_item_id,
+        engine=recommended_engine,
+        model=recommended_model,
+        agent_lane=str(routing_metadata.get('recommended_agent_lane', '')).strip(),
+        summary='Local LLM prompt preview artifact generated for manual operator review.',
+        warnings=warnings,
+    )
+    payload['artifact_registry'] = artifact_result.get('artifact', {})
     audit_result = append_execution_audit_entry(
         config,
         action_type='local_llm_prompt_preview',
@@ -1028,7 +1043,7 @@ def generate_local_llm_prompt_preview(
         summary='Local LLM prompt preview generated and written to a local artifact.',
         source_function='generate_local_llm_prompt_preview',
     )
-    payload['warnings'] = sorted(set(payload['warnings'] + audit_warning(audit_result)))
+    payload['warnings'] = sorted(set(payload['warnings'] + audit_warning(audit_result) + artifact_warning(artifact_result)))
     return payload
 
 
@@ -1294,7 +1309,20 @@ def execute_local_llm_for_queue_item(
         summary='Local LLM execution audit recorded with local result artifact.' if executed else 'Local LLM dry run audit recorded with local result artifact.',
         source_function='execute_local_llm_for_queue_item',
     )
-    payload['warnings'] = sorted(set(payload['warnings'] + audit_warning(audit_result)))
+    artifact_result = register_ai_artifact(
+        config,
+        artifact_type='local_llm_execution_result',
+        artifact_path=output_path,
+        source_action='local_llm_execute',
+        item_id=normalized_item_id,
+        engine=recommended_engine,
+        model=model,
+        agent_lane=str(routing_metadata.get('recommended_agent_lane', '')).strip(),
+        summary='Local LLM advisory execution result artifact generated.',
+        warnings=warnings,
+    )
+    payload['artifact_registry'] = artifact_result.get('artifact', {})
+    payload['warnings'] = sorted(set(payload['warnings'] + audit_warning(audit_result) + artifact_warning(artifact_result)))
     return payload
 
 
@@ -2512,7 +2540,21 @@ def generate_codex_high_value_lane_prompt(
         summary='Codex high-value prompt generated and written to a local artifact.',
         source_function='generate_codex_high_value_lane_prompt',
     )
-    payload['warnings'] = sorted(set(payload['warnings'] + audit_warning(audit_result)))
+    artifact_result = register_ai_artifact(
+        config,
+        artifact_type='codex_high_value_prompt',
+        artifact_path=output_path,
+        source_action='codex_high_value_prompt',
+        project_id=str(item.get('project_id', '')).strip(),
+        item_id=normalized_item_id,
+        engine=recommended_engine,
+        model=recommended_model,
+        agent_lane=str(routing_metadata.get('recommended_agent_lane', '')).strip(),
+        summary='Codex high-value prompt artifact generated for manual operator copy/paste.',
+        warnings=warnings,
+    )
+    payload['artifact_registry'] = artifact_result.get('artifact', {})
+    payload['warnings'] = sorted(set(payload['warnings'] + audit_warning(audit_result) + artifact_warning(artifact_result)))
     return payload
 
 
@@ -2840,6 +2882,16 @@ def generate_local_queue_prompt_pack(
         return payload
 
     payload['output_path'] = str(output_path)
+    artifact_result = register_ai_artifact(
+        config,
+        artifact_type='prompt_pack',
+        artifact_path=output_path,
+        source_action='prompt_pack_generate',
+        engine='prompt_pack',
+        summary=f'Local prompt pack artifact generated for {len(item_summaries)} queue item(s).',
+        warnings=warnings,
+    )
+    payload['artifact_registry'] = artifact_result.get('artifact', {})
     audit_result = append_execution_audit_entry(
         config,
         action_type='prompt_pack_generate',
@@ -2854,7 +2906,7 @@ def generate_local_queue_prompt_pack(
         summary=f'Local prompt pack generated for {len(item_summaries)} queue item(s) and written to artifact.',
         source_function='generate_local_queue_prompt_pack',
     )
-    payload['warnings'] = sorted(set(payload['warnings'] + audit_warning(audit_result)))
+    payload['warnings'] = sorted(set(payload['warnings'] + audit_warning(audit_result) + artifact_warning(artifact_result)))
     return payload
 
 

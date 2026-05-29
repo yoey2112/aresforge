@@ -2,9 +2,34 @@
 
 ## Status
 
-M44A documented the future Agent/LLM routing strategy. M51 through M65 now add non-executing contracts and local Hub surfaces for project AI settings, agent/engine registry, queue routing metadata, recommendation-only routing decisions, Project AI Settings UI, routed queue views, routing-aware prompt packs, local LLM environment/health checks, Codex CLI model profile configuration, local LLM prompt preview/execution gates, Codex high-value prompt generation, a local execution audit log, and centralized AI action safety gate decisions.
+M44A documented the future Agent/LLM routing strategy. M51 through M66 now add non-executing contracts and local Hub surfaces for project AI settings, agent/engine registry, queue routing metadata, recommendation-only routing decisions, Project AI Settings UI, routed queue views, routing-aware prompt packs, local LLM environment/health checks, Codex CLI model profile configuration, local LLM prompt preview/execution gates, Codex high-value prompt generation, a local execution audit log, centralized AI action safety gate decisions, and a local AI artifact registry.
 
 Current prompt-pack and Codex high-value lane behavior are advisory prompt generation only. Runtime routing, Codex execution, real agent execution, and GitHub integration remain unimplemented. Local LLM execution exists only as the M62 operator-gated local prototype.
+
+## M66 AI Artifact Registry
+
+M66 adds local-only artifact discovery for generated AI-adjacent artifacts.
+
+Current operator helpers:
+
+- `register_ai_artifact(...)`
+- `read_ai_artifact_registry(...)`
+- `filter_ai_artifacts(...)`
+- `verify_ai_artifact_exists(...)`
+
+Current Hub route:
+
+- `GET /api/ai-artifacts`
+
+Storage:
+
+- `.aresforge/ai_artifact_registry.json`
+
+Supported artifact types are `prompt_pack`, `handoff`, `local_llm_prompt_preview`, `local_llm_execution_result`, `codex_high_value_prompt`, `report`, `audit_export`, and `other`.
+
+The registry records successful local artifact writes for prompt packs, handoffs, local LLM prompt previews, local LLM advisory output artifacts, and Codex high-value prompts. It stores local artifact paths, source actions, optional queue/project/routing metadata, summary, checksum, existence state, and warnings.
+
+M66 complements M64: the audit log records what action happened, while the artifact registry records where generated local artifacts live. M66 does not execute Codex, expand local LLM execution beyond M62, call GitHub API, call `gh`, create issues, create PRs, run workflows, overwrite artifact content, or mutate repository files from AI output.
 
 ## M65 AI Action Safety Gate
 
