@@ -61,6 +61,7 @@ from aresforge.hub.api import (
     post_local_queue_item,
     post_local_queue_item_codex_prompt,
     post_local_queue_item_complete,
+    post_local_queue_prompt_pack,
     post_local_queue_item_start,
     post_orchestration_plan,
     post_project,
@@ -200,6 +201,22 @@ def _build_handler(config: AppConfig, static_root: Path) -> type[BaseHTTPRequest
                     )
                     return True
                 payload = post_local_queue_item(config, body)
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+            if method == "POST" and path == "/api/local-queue/prompt-pack":
+                if body is None:
+                    _render_json(
+                        self,
+                        HTTPStatus.BAD_REQUEST,
+                        {
+                            "ok": False,
+                            "local_only": True,
+                            "error": "invalid_json_body",
+                            "message": "Request body must be a JSON object.",
+                        },
+                    )
+                    return True
+                payload = post_local_queue_prompt_pack(config, body)
                 _render_json(self, _status_from_payload(payload), payload)
                 return True
             if len(segments) == 5 and segments[1] == "local-queue" and segments[2] == "items" and segments[4] == "readiness" and method == "GET":

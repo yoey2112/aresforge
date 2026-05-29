@@ -1,5 +1,34 @@
 # Runnable Skeleton
 
+## M43 Agent Prompt Pack Generator
+
+Status: Completed locally on `main`.
+
+Implementation mapping:
+
+- operator generation logic:
+  - `src/aresforge/operator/local_project_queue.py` (`generate_local_queue_prompt_pack`)
+- Hub API/route wiring:
+  - `src/aresforge/hub/api.py` (`post_local_queue_prompt_pack`)
+  - `src/aresforge/hub/server.py` (`POST /api/local-queue/prompt-pack`)
+- Queue UI contract:
+  - `src/aresforge/hub/static/index.html`
+  - `src/aresforge/hub/static/js/sections/queue.js`
+
+Behavior contract:
+
+- local-only prompt-pack text/artifact generation for queue items
+- grouped copy/paste-ready prompts with sequence and explicit operating boundaries
+- read-only/advisory result surface in Hub UI (no execution side effects)
+- optional output artifact path with non-overwrite default unless `force` is provided
+
+Safety contract:
+
+- operator-gated, local-first, file-backed only
+- no automatic Codex/agent/model execution
+- no auto-start/auto-complete queue mutations
+- no GitHub API, no `gh`, no GitHub mutation, no external service calls
+
 ## M42 Queue Item Detail Panel
 
 Status: Completed locally on `main`.

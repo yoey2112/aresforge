@@ -1005,6 +1005,213 @@ def generate_local_queue_item_codex_prompt(
     return payload
 
 
+def generate_local_queue_prompt_pack(
+    config: AppConfig,
+    *,
+    item_ids: list[str] | None = None,
+    statuses: list[str] | None = None,
+    queue_path: str | Path | None = None,
+    registry_path: str | Path | None = None,
+    output: str | Path | None = None,
+    force: bool = False,
+) -> dict[str, Any]:
+    resolved_queue_path = resolve_project_queue_path(config.repo_root, queue_path)
+    loaded = _load_queue_required(resolved_queue_path)
+    if not loaded.get('ok', False):
+        return loaded
+    queue = loaded['queue']
+    items = [_item_view(item) for item in queue.get('work_items', []) if isinstance(item, dict)]
+    by_id = {str(item.get('item_id', '')).strip(): item for item in items if str(item.get('item_id', '')).strip()}
+
+    normalized_item_ids = _normalize_list(item_ids or [])
+    supported_statuses = set(QUEUE_STATUSES)
+    normalized_statuses = _normalize_list(statuses or ['ready', 'in_progress', 'proposed'])
+    invalid_statuses = [value for value in normalized_statuses if value not in supported_statuses]
+    if invalid_statuses:
+        return _error(
+            'invalid_queue_status_filter',
+            {
+                'message': 'One or more status filters are invalid.',
+                'invalid_statuses': invalid_statuses,
+                'supported_statuses': list(QUEUE_STATUSES),
+            },
+        )
+
+    warnings: list[str] = []
+    selected: list[dict[str, Any]] = []
+    if normalized_item_ids:
+        missing_ids = [value for value in normalized_item_ids if value not in by_id]
+        if missing_ids:
+            warnings.append(f"Ignored missing queue item ids: {', '.join(missing_ids)}")
+        for value in normalized_item_ids:
+            if value in by_id:
+                selected.append(by_id[value])
+    else:
+        selected = [
+            item for item in items
+            if str(item.get('status', '')).strip() in set(normalized_statuses)
+            and _prompt_recommended(item)
+        ]
+
+    readiness_by_id: dict[str, dict[str, Any]] = {}
+    for item in selected:
+        item_id = str(item.get('item_id', '')).strip()
+        readiness_by_id[item_id] = _evaluate_local_queue_item_readiness(
+            repo_root=config.repo_root,
+            item=item,
+            items=items,
+            registry_path=registry_path,
+        )
+
+    groups: dict[str, list[dict[str, Any]]] = {}
+    for item in selected:
+        project_id = str(item.get('project_id', '')).strip() or 'unknown-project'
+        priority = str(item.get('priority', '')).strip() or 'normal'
+        item_type = str(item.get('item_type', '')).strip() or 'task'
+        lane = f'{project_id} | {priority} | {item_type}'
+        groups.setdefault(lane, []).append(item)
+
+    group_keys = sorted(groups.keys())
+    sequence = 1
+    pack_lines: list[str] = [
+        'Agent Prompt Pack (Local-Only)',
+        '',
+        'This output is a local copy/paste prompt pack only.',
+        'It does not execute Codex, agents, models, GitHub actions, or network calls.',
+        'Operator must manually copy prompts into external tools if desired.',
+        '',
+    ]
+    item_summaries: list[dict[str, Any]] = []
+    for lane in group_keys:
+        pack_lines.extend([f'=== Lane: {lane} ===', ''])
+        for item in groups[lane]:
+            item_id = str(item.get('item_id', '')).strip()
+            readiness = readiness_by_id.get(item_id, {})
+            parsed_notes = _parse_queue_item_notes(str(item.get('notes', '')).strip())
+            pack_lines.extend(
+                [
+                    f'--- Prompt {sequence}: {item_id} ---',
+                    f'Sequence: {sequence}',
+                    f'Queue Item ID: {item_id}',
+                    f'Title: {str(item.get("title", "")).strip()}',
+                    f'Project ID: {str(item.get("project_id", "")).strip() or "-"}',
+                    f'Repo ID: {str(item.get("repo_id", "")).strip() or "-"}',
+                    f'Status: {str(item.get("status", "")).strip() or "-"}',
+                    f'Priority: {str(item.get("priority", "")).strip() or "-"}',
+                    f'Type: {str(item.get("item_type", "")).strip() or "-"}',
+                    f'Source: {str(item.get("source", "")).strip() or "-"}',
+                    f'Readiness: {str(readiness.get("readiness_status", "")).strip() or "unknown"}',
+                    f'Next safe action: {str(readiness.get("recommended_next_action", "")).strip() or "Inspect readiness locally."}',
+                    '',
+                    'Task summary/details:',
+                    str(item.get('description', '')).strip() or 'No description supplied.',
+                    '',
+                    'Acceptance criteria:',
+                ]
+            )
+            acceptance = parsed_notes.get('acceptance_criteria', []) if isinstance(parsed_notes, dict) else []
+            if isinstance(acceptance, list) and acceptance:
+                pack_lines.extend([f'- {entry}' for entry in acceptance if str(entry).strip()])
+            else:
+                pack_lines.append('- No explicit acceptance criteria recorded.')
+            extra_notes = str(parsed_notes.get('notes', '')).strip() if isinstance(parsed_notes, dict) else ''
+            pack_lines.extend(
+                [
+                    '',
+                    'Validation/smoke expectations:',
+                    '- Run targeted local pytest for touched areas.',
+                    '- Run: python -m aresforge inspect-local-queue-agent-summary',
+                    '- Run: python -m aresforge inspect-local-project-report',
+                    '- Run: git diff --check',
+                    '',
+                    'Operating rules:',
+                    '- Local-first only.',
+                    '- No GitHub API, no gh, no GitHub mutation.',
+                    '- No Codex or agent execution from this prompt.',
+                    '- No LLM/model routing.',
+                    '- No external dependencies/services.',
+                    '- Do not auto-start or auto-complete queue items.',
+                    '',
+                    'Final response format:',
+                    '- Files changed',
+                    '- What was changed',
+                    '- Tests updated and why',
+                    '- Validation results',
+                    '- Smoke check results',
+                    '- Diff check result',
+                    '- Commit hash',
+                    '- Push result',
+                ]
+            )
+            if extra_notes:
+                pack_lines.extend(['', 'Additional notes:', extra_notes])
+            pack_lines.extend(['', '--- End Prompt ---', ''])
+            item_summaries.append(
+                {
+                    'sequence': sequence,
+                    'item_id': item_id,
+                    'title': str(item.get('title', '')).strip(),
+                    'status': str(item.get('status', '')).strip(),
+                    'priority': str(item.get('priority', '')).strip(),
+                    'item_type': str(item.get('item_type', '')).strip(),
+                    'project_id': str(item.get('project_id', '')).strip(),
+                    'source': str(item.get('source', '')).strip(),
+                    'readiness_status': str(readiness.get('readiness_status', '')).strip(),
+                    'next_safe_action': str(readiness.get('recommended_next_action', '')).strip(),
+                    'lane': lane,
+                }
+            )
+            sequence += 1
+
+    if not item_summaries:
+        warnings.append('No eligible queue items found for prompt pack generation.')
+    prompt_pack_text = '\n'.join(pack_lines).rstrip()
+    payload: dict[str, Any] = {
+        'command': 'generate-local-queue-prompt-pack',
+        'ok': True,
+        'local_only': True,
+        'item_count': len(item_summaries),
+        'selected_item_ids': normalized_item_ids,
+        'status_filter': normalized_statuses,
+        'groups': group_keys,
+        'items': item_summaries,
+        'prompt_pack': prompt_pack_text,
+        'next_safe_action': 'Copy prompt text manually into your operator workflow. No automatic execution occurs.',
+        'warnings': sorted(set(warnings)),
+    }
+
+    if output is None:
+        return payload
+
+    output_path = Path(output)
+    if output_path.exists() and not force:
+        payload['ok'] = False
+        payload['output_path'] = str(output_path)
+        payload['warnings'] = sorted(
+            {
+                *payload['warnings'],
+                'Output file already exists. Re-run with --force to overwrite.',
+            }
+        )
+        return payload
+    try:
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(prompt_pack_text + '\n', encoding='utf-8')
+    except OSError as exc:
+        payload['ok'] = False
+        payload['output_path'] = str(output_path)
+        payload['warnings'] = sorted(
+            {
+                *payload['warnings'],
+                f'Failed to write output file: {exc}',
+            }
+        )
+        return payload
+
+    payload['output_path'] = str(output_path)
+    return payload
+
+
 def project_queue_summary_for_handoff(config: AppConfig) -> dict[str, Any] | None:
     queue_path = resolve_project_queue_path(config.repo_root, None)
     if not queue_path.exists():

@@ -1,5 +1,23 @@
 # AresForge Roadmap
 
+## M43 Agent Prompt Pack Generator
+
+Status: Completed locally on `main`.
+
+Delivered scope:
+
+- added local operator prompt-pack generator for selected/eligible queue items
+- added `POST /api/local-queue/prompt-pack` for operator-triggered local generation
+- added Queue UI prompt-pack controls with summary and copy/paste preview/output path
+- added operator/API/UI tests for stable prompt-pack shape and route behavior
+
+Constraints preserved:
+
+- prompt-pack generation only; no automatic execution behavior
+- no queue auto-start or auto-complete
+- no Codex execution, no agent execution, no LLM/model routing
+- no GitHub API, no `gh`, no GitHub mutation, no external calls
+
 ## M42 Queue Item Detail Panel
 
 Status: Completed locally on `main`.

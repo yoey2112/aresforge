@@ -424,6 +424,16 @@ function buildLocalQueueCodexPromptPayload() {
   };
 }
 
+function buildLocalQueuePromptPackPayload({ parseCommaList }) {
+  return prunePayload({
+    item_ids: parseCommaList(byId("queue-prompt-pack-item-ids").value),
+    statuses: parseCommaList(byId("queue-prompt-pack-statuses").value),
+    output: byId("queue-prompt-pack-output").value.trim(),
+    force: Boolean(byId("queue-prompt-pack-force") && byId("queue-prompt-pack-force").checked),
+    include_prompt_text: true,
+  });
+}
+
 function buildLocalQueueCompletePayload({ parseLineList }) {
   return prunePayload({
     commit_hash: byId("queue-lifecycle-complete-commit-hash").value.trim(),
@@ -480,6 +490,16 @@ function renderLocalQueueCodexPromptResult(payload) {
     `commit_message: ${payload && payload.commit_message ? payload.commit_message : "-"}`,
   ].concat((payload && payload.warnings ? payload.warnings : []).map((warning) => `warning: ${warning}`)));
   setCodeBlock("queue-lifecycle-codex-prompt", "queue-lifecycle-codex-prompt-empty", (payload && payload.prompt) || "");
+}
+
+function renderLocalQueuePromptPackResult(payload) {
+  setList("queue-prompt-pack-summary", "queue-prompt-pack-summary-empty", [
+    `item_count: ${payload && typeof payload.item_count === "number" ? payload.item_count : 0}`,
+    `groups: ${payload && payload.groups && payload.groups.length ? payload.groups.join(" | ") : "none"}`,
+    `output_path: ${payload && payload.output_path ? payload.output_path : "-"}`,
+    `next_safe_action: ${payload && payload.next_safe_action ? payload.next_safe_action : "-"}`,
+  ].concat((payload && payload.warnings ? payload.warnings : []).map((warning) => `warning: ${warning}`)));
+  setCodeBlock("queue-prompt-pack-preview", "queue-prompt-pack-preview-empty", (payload && payload.prompt_pack) || "");
 }
 
 function renderLocalQueueCompleteResult(payload) {
@@ -581,6 +601,34 @@ export function bindQueueLifecycleActions({
       setMessage("queue-lifecycle-message", `Codex prompt generated for ${itemId}.`, "success");
     } catch (error) {
       renderLocalQueueCodexPromptResult((error && error.payload) || null);
+      setMessage("queue-lifecycle-message", String(error.message || error), "error");
+    } finally {
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = originalLabel;
+      }
+    }
+  });
+
+  on("queue-prompt-pack-form", "submit", async (event) => {
+    event.preventDefault();
+    const submitButton = byId("queue-prompt-pack-submit");
+    const originalLabel = submitButton ? submitButton.textContent : "";
+    try {
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = "Generating...";
+      }
+      setMessage("queue-lifecycle-message", "Generating local prompt pack...", "loading");
+      const payload = await fetchJson("/api/local-queue/prompt-pack", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildLocalQueuePromptPackPayload({ parseCommaList })),
+      });
+      renderLocalQueuePromptPackResult(payload);
+      setMessage("queue-lifecycle-message", "Local prompt pack generated. Copy/paste manually.", "success");
+    } catch (error) {
+      renderLocalQueuePromptPackResult((error && error.payload) || null);
       setMessage("queue-lifecycle-message", String(error.message || error), "error");
     } finally {
       if (submitButton) {

@@ -1,5 +1,35 @@
 # Local Operator Usage
 
+## M43 Agent Prompt Pack Generator
+
+Status: Completed locally on `main`.
+
+Operator workflow:
+
+- In Queue -> Local Queue Lifecycle, use `Generate Agent Prompt Pack`.
+- Optional inputs:
+  - specific queue item ids (comma-separated)
+  - status filter list (comma-separated)
+  - optional output path and overwrite force toggle
+- Output:
+  - prompt-pack summary (count, groups, path)
+  - copy/paste-ready prompt-pack preview text
+
+Route and behavior:
+
+- `POST /api/local-queue/prompt-pack`
+- local-only prompt generation artifact/preview
+- no queue lifecycle execution is started automatically
+- operator must manually copy prompts into external AI tools if desired
+
+Boundaries:
+
+- no Codex execution from Hub
+- no real agent execution
+- no LLM/model routing
+- no GitHub API, no `gh`, no GitHub mutation
+- no external service calls
+
 ## M42 Queue Item Detail Panel
 
 Status: Completed locally on `main`.

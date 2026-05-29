@@ -8,6 +8,7 @@ from aresforge.operator.local_project_queue import (
     add_queue_item,
     complete_local_queue_item,
     generate_local_queue_item_codex_prompt,
+    generate_local_queue_prompt_pack,
     init_project_queue,
     inspect_local_queue_item_readiness,
     inspect_project_queue,
@@ -375,6 +376,44 @@ def test_registry_validation_skipped_warning_when_no_registry_exists(tmp_path: P
     )
     assert payload['ok'] is True
     assert any('validation was skipped' in warning.lower() for warning in payload['warnings'])
+
+
+def test_generate_local_queue_prompt_pack_groups_and_writes_artifact(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='q-ready',
+        project_id='p1',
+        repo_id='r1',
+        title='Ready task',
+        description='Queue item ready for local execution prep.',
+        status='ready',
+        priority='high',
+        item_type='feature',
+        notes='Acceptance criteria:\n- Preserve local-only boundaries',
+    )['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='q-progress',
+        project_id='p1',
+        repo_id='r1',
+        title='In progress task',
+        description='Already started.',
+        status='in_progress',
+        priority='normal',
+        item_type='task',
+    )['ok'] is True
+
+    output = tmp_path / 'artifacts' / 'prompt_packs' / 'pack.txt'
+    payload = generate_local_queue_prompt_pack(config, output=output)
+    assert payload['ok'] is True
+    assert payload['local_only'] is True
+    assert payload['item_count'] == 2
+    assert payload['output_path'] == str(output)
+    assert output.exists()
+    assert 'Agent Prompt Pack (Local-Only)' in payload['prompt_pack']
+    assert 'Final response format:' in payload['prompt_pack']
 
 
 def test_add_local_queue_item_with_explicit_project_and_repo(tmp_path: Path) -> None:

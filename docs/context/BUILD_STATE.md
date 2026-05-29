@@ -1,5 +1,24 @@
 # AresForge Build State
 
+## M43 Agent Prompt Pack Generator
+
+Status: Completed locally on `main`.
+
+Delivered:
+
+- added operator function `generate_local_queue_prompt_pack` in `src/aresforge/operator/local_project_queue.py`
+- added Hub route `POST /api/local-queue/prompt-pack` for local-only prompt-pack generation
+- added Queue UI panel controls/results for Agent Prompt Pack generation and copy/paste preview
+- optional local artifact output is supported with safe non-overwrite behavior unless `force=true`
+
+Boundaries:
+
+- local-only, file-backed, operator-triggered prompt generation only
+- generated packs are copy/paste-ready and manual-run only
+- no queue auto-start or auto-complete behavior
+- no Codex execution, no agent execution, no LLM/model routing
+- no GitHub API, no `gh`, no GitHub mutation, no external service calls
+
 ## M42 Queue Item Detail Panel
 
 Status: Completed locally on `main`.

@@ -890,6 +890,19 @@
                 <p id="queue-lifecycle-codex-summary-empty" class="empty">No Codex prompt metadata yet.</p>
                 <pre id="queue-lifecycle-codex-prompt" class="code-block"></pre>
                 <p id="queue-lifecycle-codex-prompt-empty" class="empty">No Codex prompt generated yet.</p>
+                <h4>Agent Prompt Pack Generator</h4>
+                <p class="message-note">Generates local copy/paste prompt pack only. Does not execute Codex or agents. Operator must manually run prompts.</p>
+                <form id="queue-prompt-pack-form" class="form-grid">
+                  <label>Item IDs (optional, comma-separated)<input id="queue-prompt-pack-item-ids" name="item_ids" placeholder="item-1,item-2" /></label>
+                  <label>Statuses (optional, comma-separated)<input id="queue-prompt-pack-statuses" name="statuses" value="ready,in_progress,proposed" /></label>
+                  <label>Output Path (optional)<input id="queue-prompt-pack-output" name="output" placeholder="optional local artifact path" /></label>
+                  <label><input id="queue-prompt-pack-force" name="force" type="checkbox" /> Force overwrite existing artifact</label>
+                  <button id="queue-prompt-pack-submit" type="submit">Generate Agent Prompt Pack</button>
+                </form>
+                <ul id="queue-prompt-pack-summary" class="list"></ul>
+                <p id="queue-prompt-pack-summary-empty" class="empty">No prompt pack result yet.</p>
+                <pre id="queue-prompt-pack-preview" class="code-block"></pre>
+                <p id="queue-prompt-pack-preview-empty" class="empty">No prompt pack generated yet.</p>
               </section>
               <section>
                 <h4>Complete With Evidence</h4>

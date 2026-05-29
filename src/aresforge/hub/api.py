@@ -18,6 +18,7 @@ from aresforge.operator.local_project_queue import (
     add_local_queue_item,
     add_queue_item,
     complete_local_queue_item,
+    generate_local_queue_prompt_pack,
     generate_local_queue_item_codex_prompt,
     init_project_queue,
     inspect_local_queue_item_readiness,
@@ -2622,6 +2623,41 @@ def post_local_queue_item_codex_prompt(config: AppConfig, item_id: str, body: di
     payload["boundary_confirmations"] = _merge_boundary_confirmations(
         payload,
         "Prompt generation writes local artifacts only and does not execute Codex.",
+    )
+    if not payload.get("ok", False):
+        payload["_status"] = _status_for_local_queue_result(payload)
+    return payload
+
+
+def post_local_queue_prompt_pack(config: AppConfig, body: dict[str, Any]) -> dict[str, Any]:
+    valid_force, force_error = _require_boolean_field(body, "force")
+    if not valid_force:
+        return force_error or _api_error("invalid_force", "force must be a boolean value.")
+    valid_include_text, include_text_error = _require_boolean_field(body, "include_prompt_text")
+    if not valid_include_text:
+        return include_text_error or _api_error("invalid_include_prompt_text", "include_prompt_text must be a boolean value.")
+
+    for field in ("item_ids", "statuses"):
+        valid, error_payload = _require_list_field(body, field)
+        if not valid:
+            return error_payload or _api_error(f"invalid_{field}", f"{field} must be a list of strings.")
+
+    payload = dict(
+        generate_local_queue_prompt_pack(
+            config,
+            item_ids=_normalize_optional_list(body.get("item_ids")),
+            statuses=_normalize_optional_list(body.get("statuses")),
+            queue_path=_normalize_optional_str(body.get("queue_path")),
+            registry_path=_normalize_optional_str(body.get("registry_path")),
+            output=_normalize_optional_str(body.get("output")),
+            force=bool(body.get("force", False)),
+        )
+    )
+    if not bool(body.get("include_prompt_text", True)):
+        payload.pop("prompt_pack", None)
+    payload["boundary_confirmations"] = _merge_boundary_confirmations(
+        payload,
+        "Prompt pack generation writes local artifacts only and does not execute Codex or agents.",
     )
     if not payload.get("ok", False):
         payload["_status"] = _status_for_local_queue_result(payload)

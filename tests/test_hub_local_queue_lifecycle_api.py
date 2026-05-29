@@ -385,6 +385,7 @@ def test_post_local_queue_item_complete_route_records_validation_evidence(tmp_pa
         thread.join(timeout=2)
 
 
+
 def test_post_local_queue_item_complete_route_rejects_missing_evidence_and_wrong_status(tmp_path: Path) -> None:
     config = _config(tmp_path)
     _seed_active_project(config, tmp_path)
@@ -433,6 +434,45 @@ def test_post_local_queue_item_complete_route_rejects_missing_evidence_and_wrong
         assert wrong_status_payload["ok"] is False
         assert wrong_status_payload["status"] == "proposed"
         assert any("in_progress" in warning for warning in wrong_status_payload["warnings"])
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
+
+
+def test_post_local_queue_prompt_pack_route_returns_local_copy_paste_payload(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_active_project(config, tmp_path)
+    _seed_queue_item(
+        config,
+        item_id="pack-ready",
+        status="ready",
+        title="Pack ready item",
+        description="Ready for prompt pack generation.",
+        notes="Acceptance criteria:\n- Keep local-only behavior",
+    )
+    output_path = tmp_path / "artifacts" / "prompt_packs" / "pack.txt"
+    server, thread = _start_server(config)
+
+    try:
+        port = int(server.server_address[1])
+        status, payload = _request_json(
+            port,
+            "POST",
+            "/api/local-queue/prompt-pack",
+            {
+                "statuses": ["ready"],
+                "output": str(output_path),
+            },
+        )
+        assert status == 200
+        assert payload["ok"] is True
+        assert payload["local_only"] is True
+        assert payload["item_count"] == 1
+        assert payload["output_path"] == str(output_path)
+        assert "Agent Prompt Pack (Local-Only)" in payload["prompt_pack"]
+        assert any("does not execute Codex or agents" in entry for entry in payload["boundary_confirmations"])
+        assert output_path.exists()
     finally:
         server.shutdown()
         server.server_close()

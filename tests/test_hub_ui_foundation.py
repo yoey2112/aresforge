@@ -462,6 +462,7 @@ def test_frontend_scripts_reference_m39_api_endpoints_and_forms() -> None:
         "/api/bootstrap/apply",
         "/api/queue",
         "/api/local-queue/items",
+        "/api/local-queue/prompt-pack",
         "/readiness",
         "/start",
         "/codex-prompt",
@@ -495,6 +496,7 @@ def test_frontend_scripts_reference_m39_api_endpoints_and_forms() -> None:
         "queue-filter-form",
         "queue-lifecycle-add-form",
         "queue-lifecycle-codex-form",
+        "queue-prompt-pack-form",
         "queue-lifecycle-complete-form",
         "intake-form",
         "agent-form",
@@ -532,6 +534,7 @@ def test_frontend_scripts_reference_m39_api_endpoints_and_forms() -> None:
         "queue-lifecycle-readiness",
         "queue-lifecycle-start",
         "queue-lifecycle-codex-submit",
+        "queue-prompt-pack-submit",
         "queue-lifecycle-complete-submit",
         "intake-submit",
         "scope-save-draft",
@@ -581,9 +584,11 @@ def test_frontend_scripts_reference_m39_api_endpoints_and_forms() -> None:
     assert "setLocalQueueLifecycleItemId" in combined_text
     assert "buildLocalQueueAddPayload" in combined_text
     assert "buildLocalQueueCodexPromptPayload" in combined_text
+    assert "buildLocalQueuePromptPackPayload" in combined_text
     assert "buildLocalQueueCompletePayload" in combined_text
     assert "renderLocalQueueReadinessResult" in combined_text
     assert "renderLocalQueueCodexPromptResult" in combined_text
+    assert "renderLocalQueuePromptPackResult" in combined_text
     assert "renderLocalQueueCompleteResult" in combined_text
     assert "home-github-apply-plan-milestones" in combined_text
     assert "home-github-apply-plan-issues" in combined_text
