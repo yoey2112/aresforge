@@ -541,6 +541,16 @@ function buildAiArtifactsQuery() {
   });
 }
 
+function buildOperatorRunHistoryQuery() {
+  return toQuery({
+    project_id: byId("queue-operator-run-history-project-id") && byId("queue-operator-run-history-project-id").value.trim(),
+    item_id: byId("queue-operator-run-history-item-id") && byId("queue-operator-run-history-item-id").value.trim(),
+    action_type: byId("queue-operator-run-history-action-type") && byId("queue-operator-run-history-action-type").value.trim(),
+    artifact_type: byId("queue-operator-run-history-artifact-type") && byId("queue-operator-run-history-artifact-type").value.trim(),
+    limit: byId("queue-operator-run-history-limit") && byId("queue-operator-run-history-limit").value.trim(),
+  });
+}
+
 function buildLocalQueueCompletePayload({ parseLineList }) {
   return prunePayload({
     commit_hash: byId("queue-lifecycle-complete-commit-hash").value.trim(),
@@ -717,6 +727,21 @@ function renderAiArtifactRegistry(payload) {
     "queue-ai-artifacts-entries",
     "queue-ai-artifacts-entries-empty",
     ((payload && payload.artifacts) || []).map((artifact) => `${artifact.created_at || "-"} | ${artifact.artifact_type || "-"} | item=${artifact.item_id || "-"} | exists=${Boolean(artifact.exists)} | ${artifact.artifact_path || "-"}`),
+  );
+}
+
+function renderOperatorRunHistory(payload) {
+  setList("queue-operator-run-history-summary", "queue-operator-run-history-summary-empty", [
+    `total_audit_entries: ${payload && typeof payload.total_audit_entries === "number" ? payload.total_audit_entries : 0}`,
+    `total_artifacts: ${payload && typeof payload.total_artifacts === "number" ? payload.total_artifacts : 0}`,
+    `timeline_entries: ${payload && payload.timeline ? payload.timeline.length : 0}`,
+    `generated_at: ${payload && payload.generated_at ? payload.generated_at : "-"}`,
+    `next_safe_action: ${payload && payload.next_safe_action ? payload.next_safe_action : "-"}`,
+  ].concat((payload && payload.warnings ? payload.warnings : []).map((warning) => `warning: ${warning}`)));
+  setList(
+    "queue-operator-run-history-timeline",
+    "queue-operator-run-history-timeline-empty",
+    ((payload && payload.timeline) || []).map((entry) => `${entry.timestamp || "-"} | ${entry.kind || "-"} | item=${entry.item_id || "-"} | action=${entry.action_type || "-"} | artifact=${entry.artifact_type || "-"} | outcome=${entry.outcome || "-"} | executed=${Boolean(entry.executed)} | allowed=${Boolean(entry.execution_allowed)} | path=${entry.artifact_path || "-"}`),
   );
 }
 
@@ -1087,6 +1112,30 @@ export function bindQueueLifecycleActions({
       setMessage("queue-lifecycle-message", "AI artifact registry loaded. No execution performed.", "success");
     } catch (error) {
       renderAiArtifactRegistry((error && error.payload) || null);
+      setMessage("queue-lifecycle-message", String(error.message || error), "error");
+    } finally {
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = originalLabel;
+      }
+    }
+  });
+
+  on("queue-operator-run-history-form", "submit", async (event) => {
+    event.preventDefault();
+    const submitButton = byId("queue-operator-run-history-submit");
+    const originalLabel = submitButton ? submitButton.textContent : "";
+    try {
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = "Loading...";
+      }
+      setMessage("queue-lifecycle-message", "Loading operator run history...", "loading");
+      const payload = await fetchJson(`/api/operator-run-history${buildOperatorRunHistoryQuery()}`, { method: "GET" });
+      renderOperatorRunHistory(payload);
+      setMessage("queue-lifecycle-message", "Operator run history loaded. No execution performed.", "success");
+    } catch (error) {
+      renderOperatorRunHistory((error && error.payload) || null);
       setMessage("queue-lifecycle-message", String(error.message || error), "error");
     } finally {
       if (submitButton) {

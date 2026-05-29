@@ -13,6 +13,7 @@ from aresforge.operator.local_execution_audit import (
     filter_execution_audit_log,
     read_execution_audit_log,
 )
+from aresforge.operator.local_operator_run_history import read_operator_run_history
 from aresforge.operator.local_active_project import set_active_project
 from aresforge.operator.local_project_queue import (
     add_local_queue_item,
@@ -174,6 +175,90 @@ def test_ai_artifact_registry_marks_missing_artifact_false(tmp_path: Path) -> No
     assert registered['artifact']['checksum'] == ''
     assert loaded['total_artifacts'] == 1
     assert loaded['artifacts'][0]['artifact_path'] == str(missing_path)
+
+
+def test_operator_run_history_empty_state_and_combined_timeline(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    artifact_path = tmp_path / 'artifacts' / 'codex' / 'prompt.txt'
+    artifact_path.parent.mkdir(parents=True, exist_ok=True)
+    artifact_path.write_text('prompt\n', encoding='utf-8')
+
+    empty = read_operator_run_history(config)
+    assert append_execution_audit_entry(
+        config,
+        action_type='codex_high_value_prompt',
+        project_id='p1',
+        item_id='q-history',
+        engine='codex_cli',
+        outcome='prompt_generated',
+        dry_run=True,
+        executed=False,
+        execution_allowed=False,
+        blockers=[],
+        warnings=[],
+        summary='Audit entry for run history.',
+        source_function='test',
+        timestamp='2026-05-29T00:00:01+00:00',
+    )['ok'] is True
+    assert register_ai_artifact(
+        config,
+        artifact_type='codex_high_value_prompt',
+        artifact_path=artifact_path,
+        source_action='codex_high_value_prompt',
+        project_id='p1',
+        item_id='q-history',
+        engine='codex_cli',
+        summary='Artifact entry for run history.',
+        created_at='2026-05-29T00:00:02+00:00',
+    )['ok'] is True
+
+    history = read_operator_run_history(config)
+
+    assert empty['ok'] is True
+    assert empty['timeline'] == []
+    assert history['total_audit_entries'] == 1
+    assert history['total_artifacts'] == 1
+    assert [entry['kind'] for entry in history['timeline']] == ['artifact', 'audit']
+    assert history['timeline'][0]['timestamp'] == '2026-05-29T00:00:02+00:00'
+    assert history['timeline'][0]['artifact_path'] == str(artifact_path)
+    assert history['timeline'][1]['outcome'] == 'prompt_generated'
+
+
+def test_operator_run_history_filters_by_item_and_project(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    artifact_path = tmp_path / 'artifacts' / 'prompt_packs' / 'pack.txt'
+    artifact_path.parent.mkdir(parents=True, exist_ok=True)
+    artifact_path.write_text('pack\n', encoding='utf-8')
+    assert append_execution_audit_entry(
+        config,
+        action_type='prompt_pack_generate',
+        project_id='p-filter',
+        item_id='q-filter',
+        engine='prompt_pack',
+        outcome='generated',
+        summary='Filtered audit entry.',
+        source_function='test',
+        timestamp='2026-05-29T00:00:01+00:00',
+    )['ok'] is True
+    assert register_ai_artifact(
+        config,
+        artifact_type='prompt_pack',
+        artifact_path=artifact_path,
+        source_action='prompt_pack_generate',
+        project_id='p-filter',
+        item_id='q-filter',
+        engine='prompt_pack',
+        summary='Filtered artifact entry.',
+        created_at='2026-05-29T00:00:02+00:00',
+    )['ok'] is True
+
+    by_item = read_operator_run_history(config, item_id='q-filter')
+    by_project = read_operator_run_history(config, project_id='p-filter')
+    missing = read_operator_run_history(config, item_id='q-other')
+
+    assert len(by_item['timeline']) == 2
+    assert len(by_project['timeline']) == 2
+    assert missing['timeline'] == []
 
 
 def test_execution_audit_log_reads_empty_and_appends_entry(tmp_path: Path) -> None:

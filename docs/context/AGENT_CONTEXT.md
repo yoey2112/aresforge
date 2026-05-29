@@ -1,5 +1,32 @@
 # AresForge Agent Context
 
+## M67 Operator Run History Panel Context
+
+Status: Completed locally on `main`.
+
+Current run history contract:
+
+- operator helper: `read_operator_run_history(...)`
+- Hub route: `GET /api/operator-run-history`
+- Queue UI panel: Operator Run History
+
+Timeline behavior:
+
+- combines M64 execution audit entries and M66 AI artifact records
+- returns `audit_entries`, `artifacts`, and a normalized `timeline`
+- sorts timeline entries newest first
+- supports project id, item id, action type, artifact type, and limit filters
+
+Boundary reminders:
+
+- run history is read-only local evidence
+- no execution, apply, delete, GitHub, `gh`, Codex run, local LLM, agent, workflow, issue, or PR controls are exposed
+- audit log records action outcomes; artifact registry records generated local artifact files; run history is an operator-facing combined view
+
+Recommended next milestone:
+
+- M68 - Local AI Operations Closeout Reconciliation.
+
 ## M66 AI Artifact Registry Context
 
 Status: Completed locally on `main`.

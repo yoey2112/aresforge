@@ -1162,6 +1162,20 @@
                 <p id="queue-ai-artifacts-summary-empty" class="empty">No artifact registry loaded yet.</p>
                 <ul id="queue-ai-artifacts-entries" class="list"></ul>
                 <p id="queue-ai-artifacts-entries-empty" class="empty">No artifact records to show.</p>
+                <h4>Operator Run History</h4>
+                <p class="message-note">Read-only timeline combining execution audit entries and AI artifact registry records. No execution, apply, GitHub, or Codex run controls.</p>
+                <form id="queue-operator-run-history-form" class="form-grid">
+                  <label>Project ID<input id="queue-operator-run-history-project-id" name="project_id" placeholder="optional project filter" /></label>
+                  <label>Item ID<input id="queue-operator-run-history-item-id" name="item_id" placeholder="optional item filter" /></label>
+                  <label>Action Type<input id="queue-operator-run-history-action-type" name="action_type" placeholder="optional action_type" /></label>
+                  <label>Artifact Type<input id="queue-operator-run-history-artifact-type" name="artifact_type" placeholder="optional artifact_type" /></label>
+                  <label>Limit<input id="queue-operator-run-history-limit" name="limit" placeholder="25" /></label>
+                  <button id="queue-operator-run-history-submit" type="submit">Load Run History</button>
+                </form>
+                <ul id="queue-operator-run-history-summary" class="list"></ul>
+                <p id="queue-operator-run-history-summary-empty" class="empty">No operator run history loaded yet.</p>
+                <ul id="queue-operator-run-history-timeline" class="list"></ul>
+                <p id="queue-operator-run-history-timeline-empty" class="empty">No run history timeline entries to show.</p>
               </section>
               <section>
                 <h4>Capture Completion Evidence</h4>

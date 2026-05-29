@@ -1,5 +1,30 @@
 # AresForge Roadmap
 
+## M67 Operator Run History Panel
+
+Status: Completed locally on `main`.
+
+Delivered scope:
+
+- added a local-only operator run history helper that combines audit entries and artifact records
+- added read-only Hub API support for `GET /api/operator-run-history`
+- added a minimal read-only Queue UI Operator Run History panel
+- added newest-first timeline entries for audit and artifact events
+- added targeted tests for empty state, combined timeline, sorting, project/item filters, API behavior, and UI contract references
+
+Constraints preserved:
+
+- no new execution capability
+- no Codex CLI execution
+- no GitHub API, no `gh`, no GitHub issues/PRs/workflow activity, no GitHub mutation from the app
+- no external workflow execution
+- no expansion of M62 local LLM execution
+- run history panel is read-only and exposes no execution/apply/delete controls
+
+Recommended next milestone:
+
+- M68 - Local AI Operations Closeout Reconciliation.
+
 ## M66 AI Artifact Registry
 
 Status: Completed locally on `main`.

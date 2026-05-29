@@ -1,5 +1,36 @@
 # Runnable Skeleton
 
+## M67 Operator Run History Panel
+
+Status: Completed locally on `main`.
+
+Implemented runnable path:
+
+- operator helper: `read_operator_run_history(...)`
+- Hub route: `GET /api/operator-run-history`
+- Queue UI panel: Operator Run History
+
+Behavior contract:
+
+- read execution audit log and AI artifact registry as local data sources
+- combine audit and artifact records into a normalized timeline
+- sort timeline entries newest first
+- filter by project id, item id, action type, artifact type, and limit
+- report totals, warnings, blockers, and next safe action
+
+Still absent by design:
+
+- execution controls
+- apply/delete controls
+- Codex CLI execution
+- GitHub API, `gh`, issues, PRs, or workflow activity
+- local LLM execution beyond M62
+- automatic agent execution
+
+Next skeleton focus:
+
+- M68 should add Local AI Operations Closeout Reconciliation.
+
 ## M66 AI Artifact Registry
 
 Status: Completed locally on `main`.

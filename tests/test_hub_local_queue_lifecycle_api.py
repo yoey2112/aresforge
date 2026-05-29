@@ -705,6 +705,59 @@ def test_get_ai_artifacts_route_returns_filtered_registry(tmp_path: Path) -> Non
         thread.join(timeout=2)
 
 
+def test_get_operator_run_history_route_returns_timeline(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    artifact_path = tmp_path / "artifacts" / "history" / "prompt.txt"
+    artifact_path.parent.mkdir(parents=True, exist_ok=True)
+    artifact_path.write_text("history prompt\n", encoding="utf-8")
+    assert append_execution_audit_entry(
+        config,
+        action_type="codex_high_value_prompt",
+        project_id="p-history",
+        item_id="history-api-item",
+        engine="codex_cli",
+        outcome="prompt_generated",
+        summary="Run history API audit entry.",
+        source_function="test",
+        timestamp="2026-05-29T00:00:01+00:00",
+    )["ok"] is True
+    assert register_ai_artifact(
+        config,
+        artifact_type="codex_high_value_prompt",
+        artifact_path=artifact_path,
+        source_action="codex_high_value_prompt",
+        project_id="p-history",
+        item_id="history-api-item",
+        engine="codex_cli",
+        summary="Run history API artifact entry.",
+        created_at="2026-05-29T00:00:02+00:00",
+    )["ok"] is True
+    server, thread = _start_server(config)
+
+    try:
+        port = int(server.server_address[1])
+        status, payload = _request_json(
+            port,
+            "GET",
+            "/api/operator-run-history?project_id=p-history&item_id=history-api-item&limit=5",
+        )
+        bad_status, bad_payload = _request_json(port, "GET", "/api/operator-run-history?limit=zero")
+
+        assert status == 200
+        assert payload["ok"] is True
+        assert payload["total_audit_entries"] == 1
+        assert payload["total_artifacts"] == 1
+        assert [entry["kind"] for entry in payload["timeline"]] == ["artifact", "audit"]
+        assert payload["timeline"][0]["artifact_path"] == str(artifact_path)
+        assert any("read-only" in entry for entry in payload["boundary_confirmations"])
+        assert bad_status == 400
+        assert bad_payload["error"] == "invalid_limit"
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
+
+
 def test_post_local_queue_item_complete_route_records_validation_evidence(tmp_path: Path) -> None:
     config = _config(tmp_path)
     _seed_active_project(config, tmp_path)

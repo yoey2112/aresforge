@@ -1,5 +1,29 @@
 # AresForge Build State
 
+## M67 Operator Run History Panel
+
+Status: Completed locally on `main`.
+
+Delivered:
+
+- added `read_operator_run_history(...)` to combine execution audit entries and AI artifact registry records
+- added read-only Hub route `GET /api/operator-run-history`
+- added a read-only Queue UI Operator Run History panel with simple filters
+- timeline shows audit and artifact entries newest first with action type, artifact type, outcome, summary, artifact path, execution state, and permission state
+- supports filters for project id, item id, action type, artifact type, and limit
+
+Boundaries:
+
+- run history is read-only
+- no execution controls, apply controls, GitHub buttons, or Codex run buttons
+- no Codex CLI execution
+- no GitHub API, `gh`, issues, PRs, workflow activity, or GitHub mutation
+- no local LLM execution expansion beyond M62
+
+Recommended next milestone:
+
+- M68 - Local AI Operations Closeout Reconciliation.
+
 ## M66 AI Artifact Registry
 
 Status: Completed locally on `main`.

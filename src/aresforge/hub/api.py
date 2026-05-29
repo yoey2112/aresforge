@@ -14,6 +14,7 @@ from aresforge.operator.local_active_project import inspect_active_project, set_
 from aresforge.operator.local_ai_action_safety import evaluate_ai_action_safety_gate
 from aresforge.operator.local_ai_artifacts import filter_ai_artifacts
 from aresforge.operator.local_execution_audit import filter_execution_audit_log
+from aresforge.operator.local_operator_run_history import read_operator_run_history
 from aresforge.operator.local_project_queue import (
     QUEUE_ITEM_TYPES,
     QUEUE_PRIORITIES,
@@ -659,6 +660,33 @@ def get_ai_artifacts(config: AppConfig, params: dict[str, str | None]) -> dict[s
     payload["boundary_confirmations"] = _merge_boundary_confirmations(
         payload,
         "AI artifact registry is read-only through the Hub and does not execute actions.",
+    )
+    return payload
+
+
+def get_operator_run_history(config: AppConfig, params: dict[str, str | None]) -> dict[str, Any]:
+    limit_value = _normalize_optional_str(params.get("limit"))
+    limit: int | None = None
+    if limit_value is not None:
+        try:
+            limit = int(limit_value)
+        except ValueError:
+            return _api_error("invalid_limit", "limit must be an integer.", details={"limit": limit_value})
+        if limit <= 0:
+            return _api_error("invalid_limit", "limit must be greater than zero.", details={"limit": limit_value})
+
+    payload = read_operator_run_history(
+        config,
+        project_id=_normalize_optional_str(params.get("project_id")),
+        item_id=_normalize_optional_str(params.get("item_id")),
+        action_type=_normalize_optional_str(params.get("action_type")),
+        artifact_type=_normalize_optional_str(params.get("artifact_type")),
+        limit=limit,
+    )
+    payload["service"] = SERVICE_NAME
+    payload["boundary_confirmations"] = _merge_boundary_confirmations(
+        payload,
+        "Operator run history is read-only and does not execute actions.",
     )
     return payload
 

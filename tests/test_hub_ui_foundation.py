@@ -402,6 +402,10 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "AI Artifact Registry" in index_text
     assert "queue-ai-artifacts-form" in index_text
     assert "queue-ai-artifacts-entries" in index_text
+    assert "Operator Run History" in index_text
+    assert "queue-operator-run-history-form" in index_text
+    assert "queue-operator-run-history-timeline" in index_text
+    assert "Read-only timeline combining execution audit entries and AI artifact registry records" in index_text
     assert "No execution controls" in index_text
     assert "buildCodexHighValuePromptPayload" in queue_js
     assert "renderCodexHighValuePromptResult" in queue_js
@@ -409,9 +413,12 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "renderExecutionAuditLog" in queue_js
     assert "buildAiArtifactsQuery" in queue_js
     assert "renderAiArtifactRegistry" in queue_js
+    assert "buildOperatorRunHistoryQuery" in queue_js
+    assert "renderOperatorRunHistory" in queue_js
     assert "/codex-high-value-prompt" in queue_js
     assert "/api/execution-audit-log" in queue_js
     assert "/api/ai-artifacts" in queue_js
+    assert "/api/operator-run-history" in queue_js
     assert "Generates local copy/paste prompt pack only with advisory routing metadata" in index_text
     assert "queue-prompt-pack-include-routing" in index_text
     assert "queue-prompt-pack-group-by-routing" in index_text
@@ -586,6 +593,7 @@ def test_frontend_scripts_reference_m39_api_endpoints_and_forms() -> None:
         "/api/local-queue/prompt-pack",
         "/api/execution-audit-log",
         "/api/ai-artifacts",
+        "/api/operator-run-history",
         "/evidence",
         "/closeout",
         "/readiness",

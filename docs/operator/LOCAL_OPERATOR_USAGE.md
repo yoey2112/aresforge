@@ -1,5 +1,36 @@
 # Local Operator Usage
 
+## M67 Operator Run History Panel
+
+Status: Completed locally on `main`.
+
+Operator workflow:
+
+1. Open the Operator Run History panel in Queue.
+2. Optionally filter by project id, item id, action type, artifact type, or limit.
+3. Review recent timeline entries across audit events and generated artifact records.
+4. Use the timeline for local evidence and operator orientation only.
+
+Timeline fields:
+
+- timestamp
+- kind: `audit` or `artifact`
+- project id and item id when available
+- action type and artifact type when available
+- outcome, summary, artifact path, executed state, and execution-allowed state
+
+Operator safety notes:
+
+- the panel is read-only
+- no execution, apply, delete, GitHub, `gh`, Codex run, local LLM, agent, workflow, issue, or PR controls are available
+- audit log records action outcomes
+- artifact registry records generated local artifact files
+- run history combines both into a single operator-facing timeline
+
+Recommended next milestone:
+
+- M68 - Local AI Operations Closeout Reconciliation.
+
 ## M66 AI Artifact Registry
 
 Status: Completed locally on `main`.
