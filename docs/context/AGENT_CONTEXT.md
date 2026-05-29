@@ -1,5 +1,42 @@
 # AresForge Agent Context
 
+## M47 Queue Item Closeout Workflow Context
+
+Status: Completed locally on `main`.
+
+Current closeout contract:
+
+- operator function: `close_local_queue_item(...)` in `src/aresforge/operator/local_project_queue.py`
+- Hub route: `POST /api/local-queue/items/{item_id}/closeout`
+- Queue UI includes a minimal Close Out Queue Item form in the local lifecycle area
+
+Closeout requirements:
+
+- queue item must exist
+- queue item must be `in_progress`
+- completion evidence must exist
+- completion evidence must include `evidence_summary`, `validation_results`, and `diff_check_result`
+- operator must provide a closeout summary
+- closeout must be explicitly requested by the operator
+
+Closeout result:
+
+- status transitions to existing `done` convention
+- records `closed_at`, `closed_by`, `closeout_summary`, and `closeout_history`
+- preserves `completion_evidence`
+- returns stable local JSON with `next_safe_action`
+
+Boundary reminders:
+
+- local-only, file-backed, operator-gated
+- no prompt generation or execution
+- no Codex, local LLM, real agent, GitHub, `gh`, workflow, push, or external execution
+- Agent/LLM routing remains future work
+
+Recommended next milestone:
+
+- M48 - Project Progress Rollup.
+
 ## M46 Completion Evidence Capture Context
 
 Status: Completed locally on `main`.

@@ -460,6 +460,13 @@ function buildLocalQueueEvidencePayload({ parseLineList }) {
   });
 }
 
+function buildLocalQueueCloseoutPayload() {
+  return prunePayload({
+    closed_by: byId("queue-lifecycle-closeout-closed-by").value.trim(),
+    closeout_summary: byId("queue-lifecycle-closeout-summary").value.trim(),
+  });
+}
+
 export function renderLocalQueueAddResult(payload) {
   setList("queue-lifecycle-add-result", "queue-lifecycle-add-result-empty", [
     `item_id: ${payload && payload.item_id ? payload.item_id : "-"}`,
@@ -539,6 +546,18 @@ function renderLocalQueueEvidenceResult(payload) {
     `next_safe_action: ${payload && payload.next_safe_action ? payload.next_safe_action : "-"}`,
   ]);
   setList("queue-lifecycle-evidence-warnings", "queue-lifecycle-evidence-warnings-empty", (payload && payload.warnings) || []);
+}
+
+function renderLocalQueueCloseoutResult(payload) {
+  setList("queue-lifecycle-closeout-summary-list", "queue-lifecycle-closeout-summary-list-empty", [
+    `item_id: ${payload && payload.item_id ? payload.item_id : "-"}`,
+    `previous_status: ${payload && payload.previous_status ? payload.previous_status : "-"}`,
+    `status: ${payload && payload.status ? payload.status : "-"}`,
+    `closed_at: ${payload && payload.closed_at ? payload.closed_at : "-"}`,
+    `closed_by: ${payload && payload.closed_by ? payload.closed_by : "-"}`,
+    `next_safe_action: ${payload && payload.next_safe_action ? payload.next_safe_action : "-"}`,
+  ]);
+  setList("queue-lifecycle-closeout-warnings", "queue-lifecycle-closeout-warnings-empty", (payload && payload.warnings) || []);
 }
 
 export function bindQueueLifecycleActions({
@@ -719,6 +738,37 @@ export function bindQueueLifecycleActions({
       setMessage("queue-lifecycle-message", `Captured local evidence for ${itemId}.`, "success");
     } catch (error) {
       renderLocalQueueEvidenceResult((error && error.payload) || null);
+      setMessage("queue-lifecycle-message", String(error.message || error), "error");
+    } finally {
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = originalLabel;
+      }
+    }
+  });
+
+  on("queue-lifecycle-closeout-form", "submit", async (event) => {
+    event.preventDefault();
+    const submitButton = byId("queue-lifecycle-closeout-submit");
+    const originalLabel = submitButton ? submitButton.textContent : "";
+    try {
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = "Closing...";
+      }
+      const itemId = requireLocalQueueLifecycleItemId();
+      setMessage("queue-lifecycle-message", `Closing out ${itemId} locally...`, "loading");
+      const payload = await fetchJson(`/api/local-queue/items/${encodeURIComponent(itemId)}/closeout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildLocalQueueCloseoutPayload()),
+      });
+      renderLocalQueueCloseoutResult(payload);
+      await loadQueueData();
+      await refreshSummaryAndReport();
+      setMessage("queue-lifecycle-message", `Closed out ${itemId}.`, "success");
+    } catch (error) {
+      renderLocalQueueCloseoutResult((error && error.payload) || null);
       setMessage("queue-lifecycle-message", String(error.message || error), "error");
     } finally {
       if (submitButton) {

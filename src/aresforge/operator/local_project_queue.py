@@ -81,6 +81,17 @@ _QUEUE_ITEM_EVIDENCE_BOUNDARY_CONFIRMATIONS: tuple[str, ...] = (
     'No model invocation.',
     'No remote commit or push verification.',
 )
+_QUEUE_ITEM_CLOSEOUT_BOUNDARY_CONFIRMATIONS: tuple[str, ...] = (
+    'Local-only queue item closeout workflow.',
+    'File-backed local queue mutation only.',
+    'Requires captured completion evidence.',
+    'No GitHub API calls.',
+    'No gh calls.',
+    'No network service calls.',
+    'No agent execution.',
+    'No model invocation.',
+    'No prompt generation or execution.',
+)
 _STARTABLE_QUEUE_STATUSES: frozenset[str] = frozenset({'proposed', 'ready'})
 _COMPLETABLE_QUEUE_STATUSES: frozenset[str] = frozenset({'in_progress'})
 _RESOLVED_DEPENDENCY_STATUSES: frozenset[str] = frozenset({'done'})
@@ -334,6 +345,10 @@ def add_queue_item(
             'changed_files': [],
             'artifact_paths': [],
             'completion_evidence': {},
+            'closed_at': '',
+            'closed_by': '',
+            'closeout_summary': '',
+            'closeout_history': [],
             'created_at': now,
             'updated_at': now,
         }
@@ -1029,6 +1044,121 @@ def capture_local_queue_completion_evidence(
     }
 
 
+def close_local_queue_item(
+    config: AppConfig,
+    *,
+    item_id: str,
+    closeout_summary: str,
+    closed_by: str = 'local_operator',
+    queue_path: str | Path | None = None,
+) -> dict[str, Any]:
+    resolved_queue_path = resolve_project_queue_path(config.repo_root, queue_path)
+    loaded = _load_queue_required(resolved_queue_path)
+    if not loaded.get('ok', False):
+        return loaded
+    queue = loaded['queue']
+
+    items = queue.get('work_items', [])
+    if not isinstance(items, list):
+        items = []
+
+    normalized_item_id = str(item_id or '').strip()
+    normalized_summary = str(closeout_summary or '').strip()
+    normalized_closed_by = str(closed_by or 'local_operator').strip() or 'local_operator'
+    raw_item = next(
+        (
+            candidate
+            for candidate in items
+            if isinstance(candidate, dict) and str(candidate.get('item_id', '')).strip() == normalized_item_id
+        ),
+        None,
+    )
+    if raw_item is None:
+        return {
+            'command': 'close-local-queue-item',
+            'ok': False,
+            'local_only': True,
+            'item_id': normalized_item_id,
+            'previous_status': '',
+            'status': '',
+            'closeout_eligible': False,
+            'closed_at': '',
+            'next_safe_action': 'Inspect the local queue and choose a valid item_id before closeout.',
+            'warnings': [f'Queue item not found: {normalized_item_id}'],
+            'boundary_confirmations': list(_QUEUE_ITEM_CLOSEOUT_BOUNDARY_CONFIRMATIONS),
+        }
+
+    previous_status = str(raw_item.get('status', '')).strip()
+    evidence = raw_item.get('completion_evidence', {})
+    warnings: list[str] = []
+    if previous_status != 'in_progress':
+        warnings.append('Queue item must be in_progress before local closeout.')
+    if not isinstance(evidence, dict) or not evidence:
+        warnings.append('Completion evidence is required before local closeout.')
+    elif not _completion_evidence_has_required_closeout_fields(evidence):
+        warnings.append('Completion evidence must include evidence_summary, validation_results, and diff_check_result before closeout.')
+    if not normalized_summary:
+        warnings.append('closeout_summary is required for local closeout.')
+
+    if warnings:
+        return {
+            'command': 'close-local-queue-item',
+            'ok': False,
+            'local_only': True,
+            'item_id': normalized_item_id,
+            'previous_status': previous_status,
+            'status': previous_status,
+            'closeout_eligible': False,
+            'closed_at': str(raw_item.get('closed_at', '')).strip(),
+            'next_safe_action': 'Capture required evidence, keep the item in progress, and retry closeout explicitly.',
+            'warnings': sorted(set(warnings)),
+            'boundary_confirmations': list(_QUEUE_ITEM_CLOSEOUT_BOUNDARY_CONFIRMATIONS),
+        }
+
+    now = _now_iso()
+    closeout_entry = {
+        'closed_at': now,
+        'closed_by': normalized_closed_by,
+        'closeout_summary': normalized_summary,
+        'previous_status': previous_status,
+        'status': 'done',
+        'completion_evidence': evidence,
+    }
+    history = raw_item.get('closeout_history', [])
+    if not isinstance(history, list):
+        history = []
+    history.append(closeout_entry)
+
+    raw_item['previous_status'] = previous_status
+    raw_item['status'] = 'done'
+    raw_item['closed_at'] = now
+    raw_item['closed_by'] = normalized_closed_by
+    raw_item['closeout_summary'] = normalized_summary
+    raw_item['closeout_history'] = history
+    raw_item['updated_at'] = now
+    queue['work_items'] = items
+    queue['updated_at'] = now
+    _write_queue(resolved_queue_path, queue)
+
+    closed_item = _item_view(raw_item)
+    return {
+        'command': 'close-local-queue-item',
+        'ok': True,
+        'local_only': True,
+        'item_id': normalized_item_id,
+        'previous_status': previous_status,
+        'status': str(closed_item.get('status', '')).strip(),
+        'closed_at': now,
+        'closed_by': normalized_closed_by,
+        'closeout_summary': normalized_summary,
+        'closeout_eligible': False,
+        'next_safe_action': 'Inspect local queue and project reports for updated progress rollup.',
+        'warnings': [],
+        'boundary_confirmations': list(_QUEUE_ITEM_CLOSEOUT_BOUNDARY_CONFIRMATIONS),
+        'item': closed_item,
+    }
+
+
 def generate_local_queue_item_codex_prompt(
     config: AppConfig,
     *,
@@ -1634,7 +1764,19 @@ def _completion_evidence_closeout_eligible(item: dict[str, Any]) -> bool:
     evidence = item.get('completion_evidence', {})
     if not isinstance(evidence, dict):
         return False
-    return status == 'in_progress' and _completion_evidence_has_meaningful_content(evidence)
+    return status == 'in_progress' and _completion_evidence_has_required_closeout_fields(evidence)
+
+
+def _completion_evidence_has_required_closeout_fields(evidence: dict[str, Any]) -> bool:
+    evidence_summary = str(evidence.get('evidence_summary', '')).strip()
+    validation_results = evidence.get('validation_results', [])
+    diff_check_result = str(evidence.get('diff_check_result', '')).strip()
+    return bool(
+        evidence_summary
+        and isinstance(validation_results, list)
+        and any(str(value).strip() for value in validation_results)
+        and diff_check_result
+    )
 
 
 def _empty_dependency_summary() -> dict[str, Any]:
@@ -2254,6 +2396,10 @@ def _item_view(item: dict[str, Any]) -> dict[str, Any]:
             item.get('artifact_paths', []) if isinstance(item.get('artifact_paths'), list) else []
         ),
         'completion_evidence': item.get('completion_evidence', {}) if isinstance(item.get('completion_evidence'), dict) else {},
+        'closed_at': str(item.get('closed_at', '')).strip(),
+        'closed_by': str(item.get('closed_by', '')).strip(),
+        'closeout_summary': str(item.get('closeout_summary', '')).strip(),
+        'closeout_history': item.get('closeout_history', []) if isinstance(item.get('closeout_history'), list) else [],
         'created_at': str(item.get('created_at', '')).strip(),
         'updated_at': str(item.get('updated_at', '')).strip(),
     }

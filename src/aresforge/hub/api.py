@@ -18,6 +18,7 @@ from aresforge.operator.local_project_queue import (
     add_local_queue_item,
     add_queue_item,
     capture_local_queue_completion_evidence,
+    close_local_queue_item,
     complete_local_queue_item,
     generate_local_queue_prompt_pack,
     generate_local_queue_item_codex_prompt,
@@ -246,6 +247,10 @@ def _item_view(item: dict[str, Any]) -> dict[str, Any]:
         "source": str(item.get("source", "")).strip(),
         "notes": str(item.get("notes", "")).strip(),
         "completion_evidence": item.get("completion_evidence", {}) if isinstance(item.get("completion_evidence"), dict) else {},
+        "closed_at": str(item.get("closed_at", "")).strip(),
+        "closed_by": str(item.get("closed_by", "")).strip(),
+        "closeout_summary": str(item.get("closeout_summary", "")).strip(),
+        "closeout_history": item.get("closeout_history", []) if isinstance(item.get("closeout_history"), list) else [],
         "created_at": str(item.get("created_at", "")).strip(),
         "updated_at": str(item.get("updated_at", "")).strip(),
     }
@@ -463,6 +468,7 @@ def _status_for_local_queue_result(result: dict[str, Any]) -> int:
         "start-local-queue-item",
         "complete-local-queue-item",
         "generate-local-queue-item-codex-prompt",
+        "close-local-queue-item",
     }:
         return 409
     return 400
@@ -2717,6 +2723,25 @@ def post_local_queue_item_evidence(config: AppConfig, item_id: str, body: dict[s
     payload["boundary_confirmations"] = _merge_boundary_confirmations(
         payload,
         "Evidence capture records local queue metadata only and does not complete the item.",
+    )
+    if not payload.get("ok", False):
+        payload["_status"] = _status_for_local_queue_result(payload)
+    return payload
+
+
+def post_local_queue_item_closeout(config: AppConfig, item_id: str, body: dict[str, Any]) -> dict[str, Any]:
+    payload = dict(
+        close_local_queue_item(
+            config,
+            item_id=item_id.strip(),
+            closeout_summary=str(body.get("closeout_summary", "")).strip(),
+            closed_by=str(body.get("closed_by", "local_operator")).strip() or "local_operator",
+            queue_path=_normalize_optional_str(body.get("queue_path")),
+        )
+    )
+    payload["boundary_confirmations"] = _merge_boundary_confirmations(
+        payload,
+        "Closeout updates local queue state only and does not execute external actions.",
     )
     if not payload.get("ok", False):
         payload["_status"] = _status_for_local_queue_result(payload)

@@ -536,6 +536,124 @@ def test_post_local_queue_item_evidence_route_returns_safe_failures(tmp_path: Pa
         thread.join(timeout=2)
 
 
+def test_post_local_queue_item_closeout_route_closes_with_evidence(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_active_project(config, tmp_path)
+    _seed_queue_item(
+        config,
+        item_id="closeout-route-item",
+        status="in_progress",
+        title="Closeout route item",
+        description="Close out through Hub API.",
+    )
+    server, thread = _start_server(config)
+
+    try:
+        port = int(server.server_address[1])
+        evidence_status, evidence_payload = _request_json(
+            port,
+            "POST",
+            "/api/local-queue/items/closeout-route-item/evidence",
+            {
+                "evidence_summary": "Hub route evidence captured.",
+                "validation_results": ["targeted tests passed"],
+                "diff_check_result": "git diff --check -> pass",
+            },
+        )
+        assert evidence_status == 200
+        assert evidence_payload["closeout_eligible"] is True
+
+        status, payload = _request_json(
+            port,
+            "POST",
+            "/api/local-queue/items/closeout-route-item/closeout",
+            {
+                "closeout_summary": "Evidence reviewed; closeout approved locally.",
+                "closed_by": "local_operator",
+            },
+        )
+
+        assert status == 200
+        assert payload["ok"] is True
+        assert payload["local_only"] is True
+        assert payload["previous_status"] == "in_progress"
+        assert payload["status"] == "done"
+        assert payload["closed_at"]
+        assert payload["closed_by"] == "local_operator"
+        assert payload["item"]["completion_evidence"]["evidence_summary"] == "Hub route evidence captured."
+        assert any("does not execute external actions" in entry for entry in payload["boundary_confirmations"])
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
+
+
+def test_post_local_queue_item_closeout_route_returns_safe_failures(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_active_project(config, tmp_path)
+    _seed_queue_item(
+        config,
+        item_id="no-evidence-route-closeout",
+        status="in_progress",
+        title="No evidence closeout",
+        description="Missing evidence should fail.",
+    )
+    _seed_queue_item(
+        config,
+        item_id="wrong-status-route-closeout",
+        status="proposed",
+        title="Wrong status closeout",
+        description="Wrong status should fail.",
+    )
+    server, thread = _start_server(config)
+
+    try:
+        port = int(server.server_address[1])
+        missing_status, missing_payload = _request_json(
+            port,
+            "POST",
+            "/api/local-queue/items/missing-closeout-route/closeout",
+            {"closeout_summary": "Close it."},
+        )
+        assert missing_status == 404
+        assert missing_payload["ok"] is False
+
+        no_evidence_status, no_evidence_payload = _request_json(
+            port,
+            "POST",
+            "/api/local-queue/items/no-evidence-route-closeout/closeout",
+            {"closeout_summary": "Close it."},
+        )
+        assert no_evidence_status == 409
+        assert no_evidence_payload["ok"] is False
+        assert any("Completion evidence is required" in warning for warning in no_evidence_payload["warnings"])
+
+        assert _request_json(
+            port,
+            "POST",
+            "/api/local-queue/items/wrong-status-route-closeout/evidence",
+            {
+                "evidence_summary": "Evidence captured.",
+                "validation_results": ["passed"],
+                "diff_check_result": "pass",
+            },
+        )[0] == 200
+        wrong_status, wrong_payload = _request_json(
+            port,
+            "POST",
+            "/api/local-queue/items/wrong-status-route-closeout/closeout",
+            {"closeout_summary": "Close it."},
+        )
+        assert wrong_status == 409
+        assert wrong_payload["ok"] is False
+        assert wrong_payload["status"] == "proposed"
+        assert any("in_progress" in warning for warning in wrong_payload["warnings"])
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
+
+
 def test_post_local_queue_prompt_pack_route_returns_local_copy_paste_payload(tmp_path: Path) -> None:
     config = _config(tmp_path)
     _seed_active_project(config, tmp_path)

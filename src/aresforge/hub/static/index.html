@@ -924,6 +924,18 @@
                 <h4>Evidence Warnings</h4>
                 <ul id="queue-lifecycle-evidence-warnings" class="list"></ul>
                 <p id="queue-lifecycle-evidence-warnings-empty" class="empty">No evidence warnings.</p>
+                <h4>Close Out Queue Item</h4>
+                <p class="message-note">Explicit local closeout only. Requires captured evidence and does not run prompts, Codex, agents, LLMs, GitHub, or external workflows.</p>
+                <form id="queue-lifecycle-closeout-form" class="form-grid">
+                  <label>Closed By<input id="queue-lifecycle-closeout-closed-by" name="closed_by" value="local_operator" /></label>
+                  <label class="full">Closeout Summary<textarea id="queue-lifecycle-closeout-summary" name="closeout_summary" required></textarea></label>
+                  <button id="queue-lifecycle-closeout-submit" type="submit">Close Out Queue Item</button>
+                </form>
+                <ul id="queue-lifecycle-closeout-summary-list" class="list"></ul>
+                <p id="queue-lifecycle-closeout-summary-list-empty" class="empty">No closeout result yet.</p>
+                <h4>Closeout Warnings</h4>
+                <ul id="queue-lifecycle-closeout-warnings" class="list"></ul>
+                <p id="queue-lifecycle-closeout-warnings-empty" class="empty">No closeout warnings.</p>
                 <h4>Complete With Evidence</h4>
                 <form id="queue-lifecycle-complete-form" class="form-grid">
                   <label>Implementation Commit<input id="queue-lifecycle-complete-commit-hash" name="commit_hash" required /></label>

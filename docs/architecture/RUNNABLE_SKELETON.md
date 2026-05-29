@@ -1,5 +1,38 @@
 # Runnable Skeleton
 
+## M47 Queue Item Closeout Workflow
+
+Status: Completed locally on `main`.
+
+Implemented runnable path:
+
+- operator function: `close_local_queue_item(...)`
+- Hub route: `POST /api/local-queue/items/{item_id}/closeout`
+- Queue UI lifecycle form: `queue-lifecycle-closeout-form`
+
+Behavior contract:
+
+- validates that the queue item exists
+- validates eligible status (`in_progress`)
+- validates completion evidence exists
+- validates required evidence fields: `evidence_summary`, `validation_results`, and `diff_check_result`
+- requires explicit operator closeout summary
+- transitions the item to existing `done` status
+- records `closed_at`, `closed_by`, `closeout_summary`, and `closeout_history`
+- preserves captured completion evidence
+- returns stable JSON with `next_safe_action`
+
+Non-execution contract:
+
+- no prompt generation
+- no prompt execution
+- no Codex, local LLM, real agent, GitHub, push, workflow, or external action
+- no Agent/LLM routing implementation
+
+Next skeleton focus:
+
+- M48 should implement Project Progress Rollup.
+
 ## M46 Completion Evidence Capture
 
 Status: Completed locally on `main`.

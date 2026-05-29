@@ -1,5 +1,27 @@
 # AresForge Build State
 
+## M47 Queue Item Closeout Workflow
+
+Status: Completed locally on `main`.
+
+Delivered:
+
+- added `close_local_queue_item(...)` for explicit local queue item closeout
+- added Hub route `POST /api/local-queue/items/{item_id}/closeout`
+- added minimal Queue UI controls for operator-gated closeout
+- closeout requires eligible `in_progress` status, captured completion evidence, required evidence fields, and a closeout summary
+- closeout transitions the queue item to existing `done` status and records `closed_at`, `closed_by`, `closeout_summary`, and `closeout_history`
+
+Boundaries:
+
+- local-only, file-backed, operator-gated closeout
+- closeout does not generate prompts, execute prompts, call Codex, call local LLMs, call GitHub, push code, or run external workflows
+- Agent/LLM routing remains future work
+
+Recommended next milestone:
+
+- M48 - Project Progress Rollup.
+
 ## M46 Completion Evidence Capture
 
 Status: Completed locally on `main`.

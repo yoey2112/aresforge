@@ -1,5 +1,29 @@
 # AresForge Roadmap
 
+## M47 Queue Item Closeout Workflow
+
+Status: Completed locally on `main`.
+
+Delivered scope:
+
+- added explicit local queue item closeout workflow
+- added Hub API support for `POST /api/local-queue/items/{item_id}/closeout`
+- added minimal Queue UI support for operator-gated closeout
+- added targeted tests for successful closeout, missing item, missing evidence, ineligible status, required evidence fields, evidence preservation, API route behavior, and UI contract references
+
+Constraints preserved:
+
+- closeout is local-only and file-backed
+- no routing implementation
+- no local LLM execution
+- no Codex execution
+- no real agent execution
+- no GitHub API, no `gh`, no GitHub issues/PRs/workflow activity, no GitHub mutation from the app
+
+Recommended next milestone:
+
+- M48 - Project Progress Rollup.
+
 ## M46 Completion Evidence Capture
 
 Status: Completed locally on `main`.

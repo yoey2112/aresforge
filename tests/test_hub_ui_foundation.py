@@ -372,6 +372,13 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "queue-lifecycle-evidence-push-result" in index_text
     assert "queue-lifecycle-evidence-operator-notes" in index_text
     assert "queue-lifecycle-evidence-summary-list" in index_text
+    assert "Close Out Queue Item" in index_text
+    assert "Explicit local closeout only. Requires captured evidence and does not run prompts, Codex, agents, LLMs, GitHub, or external workflows." in index_text
+    assert "queue-lifecycle-closeout-form" in index_text
+    assert "queue-lifecycle-closeout-closed-by" in index_text
+    assert "queue-lifecycle-closeout-summary" in index_text
+    assert "queue-lifecycle-closeout-submit" in index_text
+    assert "queue-lifecycle-closeout-summary-list" in index_text
     assert "Complete With Evidence" in index_text
     assert "Implementation Commit" in index_text
     assert "Validation Summary" in index_text
@@ -477,6 +484,7 @@ def test_frontend_scripts_reference_m39_api_endpoints_and_forms() -> None:
         "/api/local-queue/items",
         "/api/local-queue/prompt-pack",
         "/evidence",
+        "/closeout",
         "/readiness",
         "/start",
         "/codex-prompt",
@@ -512,6 +520,7 @@ def test_frontend_scripts_reference_m39_api_endpoints_and_forms() -> None:
         "queue-lifecycle-codex-form",
         "queue-prompt-pack-form",
         "queue-lifecycle-evidence-form",
+        "queue-lifecycle-closeout-form",
         "queue-lifecycle-complete-form",
         "intake-form",
         "agent-form",
@@ -551,6 +560,7 @@ def test_frontend_scripts_reference_m39_api_endpoints_and_forms() -> None:
         "queue-lifecycle-codex-submit",
         "queue-prompt-pack-submit",
         "queue-lifecycle-evidence-submit",
+        "queue-lifecycle-closeout-submit",
         "queue-lifecycle-complete-submit",
         "intake-submit",
         "scope-save-draft",
@@ -602,11 +612,13 @@ def test_frontend_scripts_reference_m39_api_endpoints_and_forms() -> None:
     assert "buildLocalQueueCodexPromptPayload" in combined_text
     assert "buildLocalQueuePromptPackPayload" in combined_text
     assert "buildLocalQueueEvidencePayload" in combined_text
+    assert "buildLocalQueueCloseoutPayload" in combined_text
     assert "buildLocalQueueCompletePayload" in combined_text
     assert "renderLocalQueueReadinessResult" in combined_text
     assert "renderLocalQueueCodexPromptResult" in combined_text
     assert "renderLocalQueuePromptPackResult" in combined_text
     assert "renderLocalQueueEvidenceResult" in combined_text
+    assert "renderLocalQueueCloseoutResult" in combined_text
     assert "renderLocalQueueCompleteResult" in combined_text
     assert "home-github-apply-plan-milestones" in combined_text
     assert "home-github-apply-plan-issues" in combined_text

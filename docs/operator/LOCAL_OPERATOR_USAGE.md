@@ -1,5 +1,29 @@
 # Local Operator Usage
 
+## M47 Queue Item Closeout Workflow
+
+Status: Completed locally on `main`.
+
+Operator workflow:
+
+1. Start or keep a queue item in `in_progress`.
+2. Capture completion evidence with evidence summary, validation results, and diff check result.
+3. Review evidence and provide a closeout summary.
+4. Use Close Out Queue Item to explicitly close the item locally.
+5. Inspect queue summary and local project report for updated progress.
+
+Operator safety notes:
+
+- closeout uses existing `done` status
+- closeout preserves captured evidence and records local closeout metadata
+- closeout does not generate or execute prompts
+- closeout does not call Codex, agents, local LLMs, routing, GitHub, `gh`, workflows, push, or external services
+- routing implementation remains future work
+
+Recommended next milestone:
+
+- M48 - Project Progress Rollup.
+
 ## M46 Completion Evidence Capture
 
 Status: Completed locally on `main`.
