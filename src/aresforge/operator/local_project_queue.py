@@ -92,8 +92,12 @@ def add_local_queue_item(
     assigned_agent: str | None = None,
     target_area: str | None = None,
     acceptance_criteria: list[str] | None = None,
+    acceptance_notes: list[str] | None = None,
+    validation_notes: list[str] | None = None,
+    requested_outcome: str | None = None,
     dependencies: list[str] | None = None,
     tags: list[str] | None = None,
+    source: str | None = None,
 ) -> dict[str, Any]:
     normalized_title = str(title or '').strip()
     if not normalized_title:
@@ -148,8 +152,13 @@ def add_local_queue_item(
         dependencies=dependencies,
         blocked_by=None,
         assigned_agent=assigned_agent,
-        source='local_cli',
-        notes=_compose_notes_with_acceptance_criteria(acceptance_criteria),
+        source=str(source or '').strip() or 'local_cli',
+        notes=_compose_intake_notes(
+            acceptance_criteria=acceptance_criteria,
+            acceptance_notes=acceptance_notes,
+            validation_notes=validation_notes,
+            requested_outcome=requested_outcome,
+        ),
     )
     if not result.get('ok', False):
         return result
@@ -163,6 +172,7 @@ def add_local_queue_item(
         'status': str(item.get('status', '')).strip(),
         'project_id': str(item.get('project_id', '')).strip(),
         'repo_id': str(item.get('repo_id', '')).strip(),
+        'source': str(item.get('source', '')).strip(),
         'next_safe_action': (
             'Inspect the queue item locally with '
             f"python -m aresforge inspect-queue-item --item-id {str(item.get('item_id', '')).strip()}"
@@ -1432,11 +1442,30 @@ def _recommended_queue_item_next_action(
     return 'Inspect the queue item and resolve remaining local readiness gaps.'
 
 
-def _compose_notes_with_acceptance_criteria(acceptance_criteria: list[str] | None) -> str | None:
-    criteria = _normalize_list(acceptance_criteria or [])
-    if not criteria:
+def _compose_intake_notes(
+    *,
+    acceptance_criteria: list[str] | None,
+    acceptance_notes: list[str] | None,
+    validation_notes: list[str] | None,
+    requested_outcome: str | None,
+) -> str | None:
+    criteria = _normalize_list((acceptance_criteria or []) + (acceptance_notes or []))
+    validations = _normalize_list(validation_notes or [])
+    outcome = str(requested_outcome or '').strip()
+    lines: list[str] = []
+    if criteria:
+        lines.extend(['Acceptance criteria:'] + [f'- {criterion}' for criterion in criteria])
+    if outcome:
+        if lines:
+            lines.append('')
+        lines.extend(['Requested outcome:', f'- {outcome}'])
+    if validations:
+        if lines:
+            lines.append('')
+        lines.extend(['Validation notes:'] + [f'- {item}' for item in validations])
+    if not lines:
         return None
-    return '\n'.join(['Acceptance criteria:'] + [f'- {criterion}' for criterion in criteria])
+    return '\n'.join(lines)
 
 
 def _parse_queue_item_notes(notes: str) -> dict[str, Any]:

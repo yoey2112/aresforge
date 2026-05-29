@@ -939,8 +939,18 @@
                   <option value="urgent">urgent</option>
                 </select>
               </label>
+              <label>Source
+                <select id="intake-source" name="source">
+                  <option value="active_project_workspace">active_project_workspace</option>
+                  <option value="workspace">workspace</option>
+                  <option value="operator_intake">operator_intake</option>
+                </select>
+              </label>
               <label>Tags (comma-separated)<input id="intake-tags" name="tags" /></label>
               <label class="full">Task Summary / Details<textarea id="intake-description" name="description" required></textarea></label>
+              <label class="full">Requested Outcome<textarea id="intake-requested-outcome" name="requested_outcome" placeholder="What should be true when this intake item is complete?"></textarea></label>
+              <label class="full">Acceptance Notes (comma-separated)<input id="intake-acceptance-notes" name="acceptance_notes" /></label>
+              <label class="full">Validation Notes (comma-separated)<input id="intake-validation-notes" name="validation_notes" /></label>
               <button id="intake-submit" type="submit">Create Local Queue Item</button>
             </form>
             <ul id="intake-result" class="list"></ul>

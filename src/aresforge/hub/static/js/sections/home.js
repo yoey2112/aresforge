@@ -344,6 +344,7 @@ export function renderActiveProjectIntakeResult(state, setLocalQueueLifecycleIte
     `status: ${payload && payload.status ? payload.status : "-"}`,
     `active_project: ${projectId} | ${projectName}`,
     `repo_id: ${repoId}`,
+    `source: ${payload && payload.source ? payload.source : "-"}`,
     `next_safe_action: ${payload && payload.next_safe_action ? payload.next_safe_action : "-"}`,
   ].concat((payload && payload.warnings ? payload.warnings : []).map((warning) => `warning: ${warning}`)));
 
@@ -383,6 +384,10 @@ export function buildIntakePayload({ activeProjectId, activeRepoId, parseCommaLi
     description: byId("intake-description").value.trim(),
     priority: byId("intake-priority").value.trim() || "normal",
     item_type: itemType,
+    source: byId("intake-source").value.trim() || "active_project_workspace",
+    requested_outcome: byId("intake-requested-outcome").value.trim(),
+    acceptance_notes: parseCommaList(byId("intake-acceptance-notes").value),
+    validation_notes: parseCommaList(byId("intake-validation-notes").value),
     tags,
   });
 }

@@ -1,5 +1,34 @@
 # Runnable Skeleton
 
+## M41 Active Project Task Intake v2
+
+Status: Completed locally on `main`.
+
+Implementation mapping:
+
+- intake API path unchanged:
+  - `POST /api/local-queue/items` in `src/aresforge/hub/api.py` and `src/aresforge/hub/server.py`
+- queue intake operator logic:
+  - `src/aresforge/operator/local_project_queue.py`
+- intake UI contract:
+  - `src/aresforge/hub/static/index.html`
+  - `src/aresforge/hub/static/js/sections/home.js`
+  - `src/aresforge/hub/static/app.js`
+
+Data contract notes:
+
+- intake now supports optional `source`, `requested_outcome`, `acceptance_notes`, and `validation_notes`
+- queue schema remains backward compatible
+- additional structured intake details are persisted using existing queue item `source` and `notes`
+
+Safety/behavior contract:
+
+- creation-only intake flow
+- no automatic status transitions
+- no automatic prompt generation
+- local-only and operator-gated
+- no GitHub/agent/Codex/LLM execution behavior
+
 ## M40 Dashboard Milestone Closeout And Docs Reconciliation
 
 Status: Completed locally on `main`.

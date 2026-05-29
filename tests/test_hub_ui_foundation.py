@@ -1509,7 +1509,12 @@ def test_m44_active_project_intake_static_contract() -> None:
     assert "intake-title" in index_text
     assert "intake-type" in index_text
     assert "intake-priority" in index_text
+    assert "intake-source" in index_text
     assert "Task Summary / Details" in index_text
+    assert "Requested Outcome" in index_text
+    assert "intake-requested-outcome" in index_text
+    assert "intake-acceptance-notes" in index_text
+    assert "intake-validation-notes" in index_text
     assert "Create Local Queue Item" in index_text
     assert "intake-active-project-summary" in index_text
     assert "intake-result" in index_text
@@ -1517,6 +1522,10 @@ def test_m44_active_project_intake_static_contract() -> None:
 
     assert 'fetchJson("/api/project-factory/new-project"' in combined_text
     assert 'fetchJson("/api/local-queue/items"' in combined_text
+    assert '"active_project_workspace"' in combined_text
+    assert "requested_outcome" in combined_text
+    assert "acceptance_notes" in combined_text
+    assert "validation_notes" in combined_text
     assert "active-project-intake" in combined_text
     assert 'intakeType === "direction" || intakeType === "ui" || intakeType === "refactor"' in app_text
     assert 'intakeType === "docs"' in app_text

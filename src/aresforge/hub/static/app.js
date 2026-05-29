@@ -848,7 +848,14 @@ function buildIntakePayload() {
 }
 
 function clearIntakeForm() {
-  ["intake-title", "intake-tags", "intake-description"].forEach((id) => {
+  [
+    "intake-title",
+    "intake-tags",
+    "intake-description",
+    "intake-requested-outcome",
+    "intake-acceptance-notes",
+    "intake-validation-notes",
+  ].forEach((id) => {
     if (byId(id)) {
       byId(id).value = "";
     }
@@ -858,6 +865,9 @@ function clearIntakeForm() {
   }
   if (byId("intake-priority")) {
     byId("intake-priority").value = "normal";
+  }
+  if (byId("intake-source")) {
+    byId("intake-source").value = "active_project_workspace";
   }
 }
 

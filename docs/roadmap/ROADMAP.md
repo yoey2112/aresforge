@@ -1,5 +1,24 @@
 # AresForge Roadmap
 
+## M41 Active Project Task Intake v2
+
+Status: Completed locally on `main`.
+
+Delivered scope:
+
+- improved local Active Project intake UX for better queue item quality
+- added structured intake fields (source, requested outcome, acceptance notes, validation notes)
+- reused existing local intake endpoint (`POST /api/local-queue/items`) and queue model
+- maintained backward compatibility and local-only behavior
+
+Constraints preserved:
+
+- no execution side effects
+- no auto-start
+- no auto prompt generation
+- no GitHub/`gh` behavior
+- no agent/Codex/LLM execution
+
 ## M40 Dashboard Milestone Closeout And Docs Reconciliation
 
 Status: Completed locally on `main`.

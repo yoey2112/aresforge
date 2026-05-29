@@ -2522,7 +2522,7 @@ def post_local_queue_item(config: AppConfig, body: dict[str, Any]) -> dict[str, 
             label="queue item type",
         )
 
-    for field in ("acceptance_criteria", "dependencies", "tags"):
+    for field in ("acceptance_criteria", "acceptance_notes", "validation_notes", "dependencies", "tags"):
         valid, error_payload = _require_list_field(body, field)
         if not valid:
             return error_payload or _api_error(f"invalid_{field}", f"{field} must be a list of strings.")
@@ -2553,8 +2553,12 @@ def post_local_queue_item(config: AppConfig, body: dict[str, Any]) -> dict[str, 
             priority=priority,
             item_type=item_type,
             assigned_agent=_normalize_optional_str(body.get("assigned_agent")),
+            source=_normalize_optional_str(body.get("source")),
             target_area=_normalize_optional_str(body.get("target_area")),
             acceptance_criteria=_normalize_optional_list(body.get("acceptance_criteria")),
+            acceptance_notes=_normalize_optional_list(body.get("acceptance_notes")),
+            validation_notes=_normalize_optional_list(body.get("validation_notes")),
+            requested_outcome=_normalize_optional_str(body.get("requested_outcome")),
             dependencies=_normalize_optional_list(body.get("dependencies")),
             tags=_normalize_optional_list(body.get("tags")),
         )

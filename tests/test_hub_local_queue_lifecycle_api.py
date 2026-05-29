@@ -133,8 +133,11 @@ def test_post_local_queue_item_route_adds_item_with_active_project_defaults(tmp_
                 "description": "Expose local-only Hub queue lifecycle endpoints.",
                 "item_type": "feature",
                 "priority": "high",
+                "source": "active_project_workspace",
                 "target_area": "hub-api queue-lifecycle",
                 "acceptance_criteria": ["Stable JSON", "No execution"],
+                "requested_outcome": "Queue intake provides a richer local-only payload.",
+                "validation_notes": ["Run targeted pytest", "Keep queue item proposed"],
                 "tags": ["m18", "hub-api"],
             },
         )
@@ -144,9 +147,20 @@ def test_post_local_queue_item_route_adds_item_with_active_project_defaults(tmp_
         assert payload["local_only"] is True
         assert payload["project_id"] == "aresforge"
         assert payload["repo_id"] == "aresforge-primary"
+        assert payload["source"] == "active_project_workspace"
         assert str(payload["item_id"]).startswith("local-build-hub-queue-lifecycle-api-foundation")
         assert payload["boundary_confirmations"]
         assert "initialized automatically" in " ".join(payload["warnings"])
+
+        queue_status, queue_item = _request_json(
+            port,
+            "GET",
+            f"/api/queue/{payload['item_id']}",
+        )
+        assert queue_status == 200
+        assert queue_item["item"]["source"] == "active_project_workspace"
+        assert "Requested outcome:" in queue_item["item"]["notes"]
+        assert "Validation notes:" in queue_item["item"]["notes"]
     finally:
         server.shutdown()
         server.server_close()

@@ -1,5 +1,35 @@
 # Local Operator Usage
 
+## M41 Active Project Task Intake v2
+
+Status: Completed locally on `main`.
+
+Operator intake flow updates:
+
+- Active Project Task Intake now captures:
+  - title
+  - summary/details
+  - type
+  - priority
+  - tags
+  - source (defaults to `active_project_workspace`)
+  - requested outcome
+  - acceptance notes
+  - validation notes
+- successful intake result now shows:
+  - queue item id
+  - status
+  - active project association
+  - source
+  - next safe action
+
+Behavior remains local-only and gated:
+
+- no auto-start of queue items
+- no auto-generated Codex prompt
+- no GitHub/`gh`/GitHub mutation actions
+- no agent/model execution behavior
+
 ## M40 Dashboard Milestone Closeout And Docs Reconciliation
 
 Status: Completed locally on `main`.

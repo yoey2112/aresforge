@@ -1,5 +1,23 @@
 # AresForge Build State
 
+## M41 Active Project Task Intake v2
+
+Status: Completed locally on `main`.
+
+Delivered:
+
+- improved Active Project intake form with structured fields for local queue item quality
+- intake now captures source, requested outcome, acceptance notes, and validation notes in addition to title/details/type/priority/tags
+- retained `POST /api/local-queue/items` and extended optional payload handling without adding new routes
+- persisted intake quality fields via existing local queue `source` and `notes` fields (file-backed, backward compatible)
+
+Boundaries:
+
+- local-only, operator-gated, file-backed queue creation only
+- no auto-start and no auto prompt generation
+- no GitHub/`gh`/GitHub mutation behavior
+- no agent execution and no Codex/LLM execution behavior
+
 ## M40 Dashboard Milestone Closeout And Docs Reconciliation
 
 Status: Completed locally on `main`.

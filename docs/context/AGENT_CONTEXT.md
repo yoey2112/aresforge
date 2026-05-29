@@ -1,5 +1,37 @@
 # AresForge Agent Context
 
+## M41 Active Project Task Intake v2
+
+Status: Completed locally on `main`.
+
+Current intake contract:
+
+- local intake uses `POST /api/local-queue/items`
+- required: `title`
+- optional structured fields:
+  - `description`
+  - `item_type`
+  - `priority`
+  - `tags`
+  - `source` (defaulted by UI to `active_project_workspace`)
+  - `requested_outcome`
+  - `acceptance_notes`
+  - `validation_notes`
+
+Persistence model:
+
+- keeps queue schema backward compatible
+- stores `source` directly on queue item
+- stores requested outcome and notes as structured local text in queue item `notes`
+
+Boundary reminders:
+
+- local-only, file-backed, operator-gated
+- queue item creation only
+- no auto-start, no auto-prompt generation
+- no GitHub/`gh`/GitHub mutation
+- no agent/Codex/LLM execution
+
 ## M40 Dashboard Milestone Closeout And Docs Reconciliation
 
 Status: Completed locally on `main`.
