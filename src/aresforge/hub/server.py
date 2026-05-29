@@ -29,6 +29,7 @@ from aresforge.hub.api import (
     get_local_project_report,
     get_local_queue_item_readiness,
     get_local_queue_agent_summary,
+    get_local_queue_routed_views,
     get_orchestration_plan,
     get_project,
     get_project_ai_settings,
@@ -197,6 +198,27 @@ def _build_handler(config: AppConfig, static_root: Path) -> type[BaseHTTPRequest
                 return True
             if method == "GET" and path == "/api/local-queue-agent-summary":
                 _render_json(self, HTTPStatus.OK, get_local_queue_agent_summary(config))
+                return True
+            if method == "GET" and path == "/api/local-queue/routed-views":
+                payload = get_local_queue_routed_views(
+                    config,
+                    {
+                        "project_id": query_values.get("project_id", [None])[0],
+                        "status": query_values.get("status", [None])[0],
+                        "agent_lane": query_values.get("agent_lane", [None])[0],
+                        "engine": query_values.get("engine", [None])[0],
+                        "model": query_values.get("model", [None])[0],
+                        "fallback_engine": query_values.get("fallback_engine", [None])[0],
+                        "risk_level": query_values.get("risk_level", [None])[0],
+                        "complexity_level": query_values.get("complexity_level", [None])[0],
+                        "project_ai_mode": query_values.get("project_ai_mode", [None])[0],
+                        "routing_policy_source": query_values.get("routing_policy_source", [None])[0],
+                        "operator_override": query_values.get("operator_override", [None])[0],
+                        "group_by": query_values.get("group_by", [None])[0],
+                        "include_unrouted": query_values.get("include_unrouted", [None])[0],
+                    },
+                )
+                _render_json(self, _status_from_payload(payload), payload)
                 return True
             if method == "POST" and path == "/api/local-queue/items":
                 if body is None:

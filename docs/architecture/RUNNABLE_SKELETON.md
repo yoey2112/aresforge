@@ -1,5 +1,38 @@
 # Runnable Skeleton
 
+## M56 Routed Queue Views
+
+Status: Completed locally on `main`.
+
+Implemented runnable path:
+
+- operator helper: `read_local_routed_queue_views(...)`
+- Hub route: `GET /api/local-queue/routed-views`
+- Queue UI panel: Routed Queue Views
+
+Behavior contract:
+
+- reads from the canonical local queue only
+- filters queue items by project, status, agent lane, engine, model, fallback engine, risk, complexity, project AI mode, routing policy source, and operator override state
+- groups queue items by agent lane, engine, model, project policy, risk level, complexity level, or status
+- includes unrouted items by default
+- safely handles queue items without routing metadata and empty queue state
+- returns stable JSON with `execution_allowed: false`
+
+Still absent by design:
+
+- separate routed queues or split queue storage
+- prompt-pack routing integration
+- local LLM execution
+- Codex execution
+- real agent execution
+- GitHub integration or mutation
+- prompt execution
+
+Next skeleton focus:
+
+- M57 should add Prompt Pack Routing Integration.
+
 ## M55 Project AI Settings UI
 
 Status: Completed locally on `main`.

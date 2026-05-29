@@ -1,5 +1,31 @@
 # Local Operator Usage
 
+## M56 Routed Queue Views
+
+Status: Completed locally on `main`.
+
+Operator workflow:
+
+1. Open Queue.
+2. Use the Routed Queue Views panel.
+3. Choose optional status, agent lane, engine, risk, complexity, and grouping filters.
+4. Use Load Routed Queue Views.
+5. Review grouped counts and item summaries as read-only context.
+
+Operator safety notes:
+
+- routed views read the one canonical local queue
+- routed views do not create separate queue storage
+- routed views do not mutate queue items
+- unrouted items are included by default
+- loading routed views does not generate prompt packs or execute prompts
+- loading routed views does not call Codex, local LLMs, agents, GitHub, `gh`, workflows, push, or external services
+- prompt-pack routing integration remains future work
+
+Recommended next milestone:
+
+- M57 - Prompt Pack Routing Integration.
+
 ## M55 Project AI Settings UI
 
 Status: Completed locally on `main`.

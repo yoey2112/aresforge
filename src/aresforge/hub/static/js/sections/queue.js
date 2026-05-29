@@ -178,6 +178,50 @@ export function renderQueueReadOnlySummaryUnavailable() {
   setList("queue-readonly-ready-items", "queue-readonly-ready-items-empty", []);
 }
 
+function routedViewQuery() {
+  return toQuery({
+    status: byId("queue-routed-status") && byId("queue-routed-status").value,
+    agent_lane: byId("queue-routed-agent-lane") && byId("queue-routed-agent-lane").value,
+    engine: byId("queue-routed-engine") && byId("queue-routed-engine").value,
+    risk_level: byId("queue-routed-risk") && byId("queue-routed-risk").value,
+    complexity_level: byId("queue-routed-complexity") && byId("queue-routed-complexity").value,
+    group_by: byId("queue-routed-group-by") && byId("queue-routed-group-by").value,
+    include_unrouted: byId("queue-routed-include-unrouted") && byId("queue-routed-include-unrouted").checked ? "true" : "false",
+  });
+}
+
+export function renderRoutedQueueViews(payload) {
+  setText("queue-routed-next-safe-action", (payload && payload.next_safe_action) || "Routed views unavailable.");
+  setList("queue-routed-summary", "queue-routed-summary-empty", [
+    `source_queue: ${payload && payload.source_queue ? payload.source_queue : "-"}`,
+    `group_by: ${payload && payload.group_by ? payload.group_by : "-"}`,
+    `total_items: ${payload && typeof payload.total_items === "number" ? payload.total_items : 0}`,
+    `routed_items_count: ${payload && typeof payload.routed_items_count === "number" ? payload.routed_items_count : 0}`,
+    `unrouted_items_count: ${payload && typeof payload.unrouted_items_count === "number" ? payload.unrouted_items_count : 0}`,
+    `execution_allowed: ${Boolean(payload && payload.execution_allowed)}`,
+  ]);
+  const groups = (payload && payload.groups) || {};
+  setList(
+    "queue-routed-groups",
+    "queue-routed-groups-empty",
+    Object.keys(groups).sort().map((key) => `${key}: ${groups[key].count || 0}`),
+  );
+  setList(
+    "queue-routed-items",
+    "queue-routed-items-empty",
+    ((payload && payload.items) || []).map((item) => {
+      const metadata = item.routing_metadata || {};
+      return `${item.item_id || "-"} | ${item.title || "(untitled)"} | status=${item.status || "-"} | lane=${metadata.recommended_agent_lane || "unrouted"} | engine=${metadata.recommended_engine || "unrouted"} | risk=${metadata.risk_level || "unknown"} | routed=${Boolean(item.routed)}`;
+    }),
+  );
+}
+
+export async function loadRoutedQueueViews() {
+  const payload = await fetchJson(`/api/local-queue/routed-views${routedViewQuery()}`, { method: "GET" });
+  renderRoutedQueueViews(payload);
+  return payload;
+}
+
 export async function loadQueueReadOnlySummary() {
   const payload = await fetchJson("/api/local-queue-agent-summary");
   renderQueueReadOnlySummary(payload);
@@ -627,6 +671,18 @@ export function bindQueueLifecycleActions({
         submitButton.disabled = false;
         submitButton.textContent = originalLabel;
       }
+    }
+  });
+
+  on("queue-routed-views-form", "submit", async (event) => {
+    event.preventDefault();
+    try {
+      setMessage("queue-lifecycle-message", "Loading routed queue views...", "loading");
+      await loadRoutedQueueViews();
+      setMessage("queue-lifecycle-message", "Routed queue views loaded. No execution performed.", "success");
+    } catch (error) {
+      renderRoutedQueueViews((error && error.payload) || null);
+      setMessage("queue-lifecycle-message", String(error.message || error), "error");
     }
   });
 

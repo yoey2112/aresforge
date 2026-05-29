@@ -2,9 +2,9 @@
 
 ## Status
 
-M44A documented the future Agent/LLM routing strategy. M51 adds the first non-executing Project AI Settings Contract, but still does not implement runtime routing, model invocation, Codex execution, frontend settings UI, queue routing metadata, or queue schema changes.
+M44A documented the future Agent/LLM routing strategy. M51 through M56 now add non-executing contracts and local Hub surfaces for project AI settings, agent/engine registry, queue routing metadata, recommendation-only routing decisions, Project AI Settings UI, and routed queue views.
 
-Current implemented behavior remains M43 prompt-pack generation: local-only grouped prompt packs for manual operator use, without LLM/model routing.
+Current prompt-pack behavior remains M43 local-only grouped prompt packs for manual operator use. Prompt-pack routing integration, runtime routing, model invocation, Codex execution, local LLM execution, real agent execution, and GitHub integration remain unimplemented.
 
 ## M51 Project AI Settings Contract
 
@@ -193,7 +193,51 @@ The UI allows operators to view and update:
 
 The UI displays validation status, warnings, blockers, and next safe action. Invalid settings are rejected by the API and shown in the panel.
 
-M55 does not execute routing, invoke local LLMs, invoke Codex, run agents, generate or execute prompts, call GitHub, or run external workflows. M56 should add Routed Queue Views.
+M55 does not execute routing, invoke local LLMs, invoke Codex, run agents, generate or execute prompts, call GitHub, or run external workflows.
+
+## M56 Routed Queue Views
+
+M56 adds read-only routed queue views over the one canonical local queue.
+
+Current operator helper:
+
+- `read_local_routed_queue_views(...)`
+
+Current Hub route:
+
+- `GET /api/local-queue/routed-views`
+
+Current UI path:
+
+- Queue -> Routed Queue Views
+
+Supported filters:
+
+- `project_id`
+- `status`
+- `recommended_agent_lane`
+- `recommended_engine`
+- `recommended_model`
+- `fallback_engine`
+- `risk_level`
+- `complexity_level`
+- `project_ai_mode`
+- `routing_policy_source`
+- `operator_override`
+
+Supported grouped views:
+
+- `by_agent_lane`
+- `by_engine`
+- `by_model`
+- `by_project_policy`
+- `by_risk_level`
+- `by_complexity_level`
+- `by_status`
+
+Routed views are not separate queues. They read and group the canonical local queue, include unrouted items by default, handle empty queue state, and return `execution_allowed: false`.
+
+M56 does not split queue storage, implement prompt-pack routing integration, execute routing, invoke local LLMs, invoke Codex, run agents, generate or execute prompts, call GitHub, or run external workflows. M57 should add Prompt Pack Routing Integration.
 
 ## Operating Boundaries
 
@@ -228,7 +272,7 @@ AresForge should keep one canonical local queue. Future routing should add routi
 
 Do not physically split queue storage too early. Separate queue files by agent, engine, model, or policy would make dependency ordering, lifecycle evidence, and project-wide status harder to reason about.
 
-Future routed queue views should be filters over the canonical queue:
+M56 implements routed queue views as filters over the canonical queue:
 
 - by agent
 - by engine

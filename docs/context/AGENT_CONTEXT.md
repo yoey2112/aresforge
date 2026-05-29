@@ -1,5 +1,52 @@
 # AresForge Agent Context
 
+## M56 Routed Queue Views Context
+
+Status: Completed locally on `main`.
+
+Current routed view contract:
+
+- operator helper: `read_local_routed_queue_views(...)`
+- Hub route: `GET /api/local-queue/routed-views`
+- Queue UI includes a Routed Queue Views panel
+- views read from the one canonical local queue and do not write queue state
+- unrouted queue items are included by default and can be filtered out
+- output includes `execution_allowed: false`
+
+Supported filters:
+
+- `project_id`
+- `status`
+- `recommended_agent_lane`
+- `recommended_engine`
+- `recommended_model`
+- `fallback_engine`
+- `risk_level`
+- `complexity_level`
+- `project_ai_mode`
+- `routing_policy_source`
+- `operator_override`
+
+Supported groups:
+
+- `by_agent_lane`
+- `by_engine`
+- `by_model`
+- `by_project_policy`
+- `by_risk_level`
+- `by_complexity_level`
+- `by_status`
+
+Boundary reminders:
+
+- routed views are read-only filtered/grouped views, not separate queues
+- one canonical local queue remains the source of truth
+- no queue storage split, prompt-pack routing integration, routing execution, local LLM execution, Codex execution, real agent execution, GitHub integration, prompt execution, or external workflow is added
+
+Recommended next milestone:
+
+- M57 - Prompt Pack Routing Integration.
+
 ## M55 Project AI Settings UI Context
 
 Status: Completed locally on `main`.

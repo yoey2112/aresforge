@@ -144,6 +144,18 @@ _PROJECT_PROGRESS_ROLLUP_BOUNDARY_CONFIRMATIONS: tuple[str, ...] = (
     'No prompt generation or execution.',
     'No queue mutation performed.',
 )
+_ROUTED_QUEUE_VIEWS_BOUNDARY_CONFIRMATIONS: tuple[str, ...] = (
+    'Local-only routed queue views.',
+    'Read-only filtered view over the canonical local queue.',
+    'No queue storage split.',
+    'No queue mutation performed.',
+    'No prompt generation or execution.',
+    'No GitHub API calls.',
+    'No gh calls.',
+    'No network service calls.',
+    'No agent execution.',
+    'No model invocation.',
+)
 _QUEUE_ROUTING_METADATA_BOUNDARY_CONFIRMATIONS: tuple[str, ...] = (
     'Local-only queue routing metadata contract.',
     'File-backed local queue metadata mutation only.',
@@ -710,6 +722,149 @@ def update_local_queue_item_routing_metadata(
         'blockers': [],
         'item': _item_view(item),
         'boundary_confirmations': list(_QUEUE_ROUTING_METADATA_BOUNDARY_CONFIRMATIONS),
+    }
+
+
+def read_local_routed_queue_views(
+    config: AppConfig,
+    *,
+    queue_path: str | Path | None = None,
+    project_id: str | None = None,
+    status: str | None = None,
+    recommended_agent_lane: str | None = None,
+    recommended_engine: str | None = None,
+    recommended_model: str | None = None,
+    fallback_engine: str | None = None,
+    risk_level: str | None = None,
+    complexity_level: str | None = None,
+    project_ai_mode: str | None = None,
+    routing_policy_source: str | None = None,
+    operator_override: str | bool | None = None,
+    group_by: str | None = None,
+    include_unrouted: bool = True,
+) -> dict[str, Any]:
+    resolved_queue_path = resolve_project_queue_path(config.repo_root, queue_path)
+    loaded = _load_queue_required(resolved_queue_path)
+    if not loaded.get('ok', False):
+        if loaded.get('error') == 'project_queue_not_found':
+            return {
+                'command': 'read-local-routed-queue-views',
+                'ok': True,
+                'local_only': True,
+                'generated_at': _now_iso(),
+                'source_queue': str(resolved_queue_path),
+                'filters': _routed_view_filters(
+                    project_id=project_id,
+                    status=status,
+                    recommended_agent_lane=recommended_agent_lane,
+                    recommended_engine=recommended_engine,
+                    recommended_model=recommended_model,
+                    fallback_engine=fallback_engine,
+                    risk_level=risk_level,
+                    complexity_level=complexity_level,
+                    project_ai_mode=project_ai_mode,
+                    routing_policy_source=routing_policy_source,
+                    operator_override=operator_override,
+                    include_unrouted=include_unrouted,
+                ),
+                'group_by': group_by or 'by_agent_lane',
+                'total_items': 0,
+                'routed_items_count': 0,
+                'unrouted_items_count': 0,
+                'groups': {},
+                'items': [],
+                'next_safe_action': 'Initialize or add local queue items before reviewing routed views.',
+                'warnings': ['Local project queue not found. Returning empty routed views.'],
+                'blockers': [],
+                'execution_allowed': False,
+                'boundary_confirmations': list(_ROUTED_QUEUE_VIEWS_BOUNDARY_CONFIRMATIONS),
+            }
+        return loaded
+
+    queue = loaded['queue']
+    raw_items = queue.get('work_items', [])
+    items = [_item_view(item) for item in raw_items if isinstance(item, dict)]
+    normalized_group_by = str(group_by or 'by_agent_lane').strip() or 'by_agent_lane'
+    supported_groups = {
+        'by_agent_lane': 'recommended_agent_lane',
+        'by_engine': 'recommended_engine',
+        'by_model': 'recommended_model',
+        'by_project_policy': 'project_ai_mode',
+        'by_risk_level': 'risk_level',
+        'by_complexity_level': 'complexity_level',
+        'by_status': 'status',
+    }
+    warnings: list[str] = []
+    if normalized_group_by not in supported_groups:
+        warnings.append(f"Unsupported group_by '{normalized_group_by}' supplied. Falling back to by_agent_lane.")
+        normalized_group_by = 'by_agent_lane'
+
+    filtered: list[dict[str, Any]] = []
+    for item in items:
+        metadata = default_queue_routing_metadata(item.get('routing_metadata', {}))
+        routed = _is_routed_metadata(metadata)
+        if not include_unrouted and not routed:
+            continue
+        if project_id and item.get('project_id') != project_id.strip():
+            continue
+        if status and item.get('status') != status.strip():
+            continue
+        if recommended_agent_lane and metadata.get('recommended_agent_lane') != recommended_agent_lane.strip():
+            continue
+        if recommended_engine and metadata.get('recommended_engine') != recommended_engine.strip():
+            continue
+        if recommended_model and metadata.get('recommended_model') != recommended_model.strip():
+            continue
+        if fallback_engine and metadata.get('fallback_engine') != fallback_engine.strip():
+            continue
+        if risk_level and metadata.get('risk_level') != risk_level.strip():
+            continue
+        if complexity_level and metadata.get('complexity_level') != complexity_level.strip():
+            continue
+        if project_ai_mode and metadata.get('project_ai_mode') != project_ai_mode.strip():
+            continue
+        if routing_policy_source and metadata.get('routing_policy_source') != routing_policy_source.strip():
+            continue
+        if operator_override is not None and not _operator_override_matches(metadata.get('operator_override'), operator_override):
+            continue
+        view = dict(item)
+        view['routing_metadata'] = metadata
+        view['routed'] = routed
+        filtered.append(view)
+
+    groups = _group_routed_items(filtered, supported_groups[normalized_group_by])
+    routed_count = sum(1 for item in filtered if item.get('routed'))
+    return {
+        'command': 'read-local-routed-queue-views',
+        'ok': True,
+        'local_only': True,
+        'generated_at': _now_iso(),
+        'source_queue': str(resolved_queue_path),
+        'filters': _routed_view_filters(
+            project_id=project_id,
+            status=status,
+            recommended_agent_lane=recommended_agent_lane,
+            recommended_engine=recommended_engine,
+            recommended_model=recommended_model,
+            fallback_engine=fallback_engine,
+            risk_level=risk_level,
+            complexity_level=complexity_level,
+            project_ai_mode=project_ai_mode,
+            routing_policy_source=routing_policy_source,
+            operator_override=operator_override,
+            include_unrouted=include_unrouted,
+        ),
+        'group_by': normalized_group_by,
+        'total_items': len(filtered),
+        'routed_items_count': routed_count,
+        'unrouted_items_count': len(filtered) - routed_count,
+        'groups': groups,
+        'items': filtered,
+        'next_safe_action': 'Review routed queue views as read-only filters over the canonical local queue.',
+        'warnings': sorted(set(warnings)),
+        'blockers': [],
+        'execution_allowed': False,
+        'boundary_confirmations': list(_ROUTED_QUEUE_VIEWS_BOUNDARY_CONFIRMATIONS),
     }
 
 
@@ -2859,6 +3014,90 @@ def validate_queue_routing_metadata(metadata: dict[str, Any] | None) -> dict[str
         'supported_risk_levels': list(QUEUE_ROUTING_RISK_LEVELS),
         'supported_complexity_levels': list(QUEUE_ROUTING_COMPLEXITY_LEVELS),
     }
+
+
+def _is_routed_metadata(metadata: dict[str, Any]) -> bool:
+    normalized = default_queue_routing_metadata(metadata)
+    override = normalized.get('operator_override')
+    has_routing_value = any(
+        str(value or '').strip() and str(value or '').strip() != 'unknown'
+        for key, value in normalized.items()
+        if key != 'operator_override'
+    )
+    return has_routing_value or (override not in (False, None, '') and override != {})
+
+
+def _operator_override_matches(value: Any, expected: str | bool) -> bool:
+    if isinstance(expected, bool):
+        return bool(value) is expected
+    normalized = str(expected or '').strip().lower()
+    if normalized == 'present':
+        return value not in (False, None, '') and value != {}
+    if normalized == 'true':
+        return bool(value) is True
+    if normalized == 'false':
+        return bool(value) is False
+    return True
+
+
+def _routed_view_filters(
+    *,
+    project_id: str | None,
+    status: str | None,
+    recommended_agent_lane: str | None,
+    recommended_engine: str | None,
+    recommended_model: str | None,
+    fallback_engine: str | None,
+    risk_level: str | None,
+    complexity_level: str | None,
+    project_ai_mode: str | None,
+    routing_policy_source: str | None,
+    operator_override: str | bool | None,
+    include_unrouted: bool,
+) -> dict[str, Any]:
+    return {
+        'project_id': str(project_id or '').strip(),
+        'status': str(status or '').strip(),
+        'recommended_agent_lane': str(recommended_agent_lane or '').strip(),
+        'recommended_engine': str(recommended_engine or '').strip(),
+        'recommended_model': str(recommended_model or '').strip(),
+        'fallback_engine': str(fallback_engine or '').strip(),
+        'risk_level': str(risk_level or '').strip(),
+        'complexity_level': str(complexity_level or '').strip(),
+        'project_ai_mode': str(project_ai_mode or '').strip(),
+        'routing_policy_source': str(routing_policy_source or '').strip(),
+        'operator_override': operator_override,
+        'include_unrouted': bool(include_unrouted),
+    }
+
+
+def _group_routed_items(items: list[dict[str, Any]], field: str) -> dict[str, dict[str, Any]]:
+    groups: dict[str, dict[str, Any]] = {}
+    for item in items:
+        metadata = item.get('routing_metadata', {}) if isinstance(item.get('routing_metadata'), dict) else {}
+        if field == 'status':
+            value = str(item.get('status', '')).strip()
+        else:
+            value = str(metadata.get(field, '')).strip()
+        group_key = value or 'unrouted'
+        if group_key == 'unknown' and field in {'risk_level', 'complexity_level'} and not item.get('routed'):
+            group_key = 'unrouted'
+        entry = groups.setdefault(group_key, {'count': 0, 'items': []})
+        entry['count'] += 1
+        entry['items'].append(
+            {
+                'item_id': item.get('item_id', ''),
+                'title': item.get('title', ''),
+                'status': item.get('status', ''),
+                'project_id': item.get('project_id', ''),
+                'recommended_agent_lane': metadata.get('recommended_agent_lane', ''),
+                'recommended_engine': metadata.get('recommended_engine', ''),
+                'risk_level': metadata.get('risk_level', 'unknown'),
+                'complexity_level': metadata.get('complexity_level', 'unknown'),
+                'routed': bool(item.get('routed', False)),
+            }
+        )
+    return dict(sorted(groups.items()))
 
 
 def _dependency_warnings(item: dict[str, Any], queue_items: list[dict[str, Any]]) -> list[str]:

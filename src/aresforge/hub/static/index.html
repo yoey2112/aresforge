@@ -888,6 +888,84 @@
               <button id="queue-filter-active-project" type="button">Filter To Active Project</button>
             </div>
           </section>
+          <section class="subpanel">
+            <h3>Routed Queue Views</h3>
+            <p class="boundary-banner">Read-only filters over the one canonical local queue. No separate queues, prompt execution, Codex, local LLMs, agents, GitHub, or workflows.</p>
+            <form id="queue-routed-views-form" class="form-grid">
+              <label>Status
+                <select id="queue-routed-status">
+                  <option value="">any</option>
+                  <option value="proposed">proposed</option>
+                  <option value="ready">ready</option>
+                  <option value="in_progress">in_progress</option>
+                  <option value="blocked">blocked</option>
+                  <option value="done">done</option>
+                  <option value="cancelled">cancelled</option>
+                </select>
+              </label>
+              <label>Agent Lane
+                <select id="queue-routed-agent-lane">
+                  <option value="">any</option>
+                  <option value="architect_planner">architect_planner</option>
+                  <option value="coding">coding</option>
+                  <option value="reviewer_validator">reviewer_validator</option>
+                  <option value="documentation">documentation</option>
+                  <option value="test">test</option>
+                  <option value="local_operator_assistant">local_operator_assistant</option>
+                  <option value="high_value_codex">high_value_codex</option>
+                </select>
+              </label>
+              <label>Engine
+                <select id="queue-routed-engine">
+                  <option value="">any</option>
+                  <option value="local_reasoning_llm">local_reasoning_llm</option>
+                  <option value="local_coding_llm">local_coding_llm</option>
+                  <option value="codex_cli">codex_cli</option>
+                </select>
+              </label>
+              <label>Risk
+                <select id="queue-routed-risk">
+                  <option value="">any</option>
+                  <option value="low">low</option>
+                  <option value="medium">medium</option>
+                  <option value="high">high</option>
+                  <option value="critical">critical</option>
+                  <option value="unknown">unknown</option>
+                </select>
+              </label>
+              <label>Complexity
+                <select id="queue-routed-complexity">
+                  <option value="">any</option>
+                  <option value="low">low</option>
+                  <option value="medium">medium</option>
+                  <option value="high">high</option>
+                  <option value="unknown">unknown</option>
+                </select>
+              </label>
+              <label>Group By
+                <select id="queue-routed-group-by">
+                  <option value="by_agent_lane">by_agent_lane</option>
+                  <option value="by_engine">by_engine</option>
+                  <option value="by_model">by_model</option>
+                  <option value="by_project_policy">by_project_policy</option>
+                  <option value="by_risk_level">by_risk_level</option>
+                  <option value="by_complexity_level">by_complexity_level</option>
+                  <option value="by_status">by_status</option>
+                </select>
+              </label>
+              <label class="inline-checkbox"><input id="queue-routed-include-unrouted" type="checkbox" checked /> Include unrouted items</label>
+              <button id="queue-routed-refresh" type="submit">Load Routed Queue Views</button>
+            </form>
+            <p id="queue-routed-next-safe-action" class="message-note">Load routed views to inspect grouped metadata.</p>
+            <ul id="queue-routed-summary" class="list"></ul>
+            <p id="queue-routed-summary-empty" class="empty">No routed queue view loaded.</p>
+            <h4>Groups</h4>
+            <ul id="queue-routed-groups" class="list"></ul>
+            <p id="queue-routed-groups-empty" class="empty">No routed groups yet.</p>
+            <h4>Items</h4>
+            <ul id="queue-routed-items" class="list"></ul>
+            <p id="queue-routed-items-empty" class="empty">No routed items yet.</p>
+          </section>
 
           <section class="subpanel">
             <h3>Local Queue Lifecycle</h3>

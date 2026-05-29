@@ -263,6 +263,52 @@ def test_post_local_queue_item_routing_metadata_route_rejects_invalid_metadata(t
         thread.join(timeout=2)
 
 
+def test_get_local_queue_routed_views_route_returns_grouped_read_only_view(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_active_project(config, tmp_path)
+    _seed_queue_item(
+        config,
+        item_id="routed-api-item",
+        status="ready",
+        title="Routed API item",
+        description="Routed view item.",
+    )
+    server, thread = _start_server(config)
+
+    try:
+        port = int(server.server_address[1])
+        metadata_status, metadata_payload = _request_json(
+            port,
+            "POST",
+            "/api/local-queue/items/routed-api-item/routing-metadata",
+            {
+                "recommended_agent_lane": "coding",
+                "recommended_engine": "local_coding_llm",
+                "risk_level": "low",
+                "complexity_level": "medium",
+                "project_ai_mode": "balanced",
+            },
+        )
+        assert metadata_status == 200
+        assert metadata_payload["ok"] is True
+
+        status, payload = _request_json(
+            port,
+            "GET",
+            "/api/local-queue/routed-views?agent_lane=coding&group_by=by_engine&include_unrouted=false",
+        )
+        assert status == 200
+        assert payload["ok"] is True
+        assert payload["execution_allowed"] is False
+        assert payload["total_items"] == 1
+        assert "local_coding_llm" in payload["groups"]
+        assert payload["items"][0]["item_id"] == "routed-api-item"
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
+
+
 def test_get_active_project_workspace_route_returns_local_only_payload(tmp_path: Path) -> None:
     config = _config(tmp_path)
     _seed_active_project(config, tmp_path)

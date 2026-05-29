@@ -16,6 +16,7 @@ from aresforge.operator.local_project_queue import (
     inspect_project_queue,
     inspect_queue_item,
     read_local_project_progress_rollup,
+    read_local_routed_queue_views,
     resolve_project_queue_path,
     start_local_queue_item,
     update_local_queue_item_routing_metadata,
@@ -190,6 +191,100 @@ def test_update_local_queue_item_routing_metadata_rejects_invalid_metadata(tmp_p
         routing_metadata={'risk_level': 'extreme'},
     )
     assert invalid_level['ok'] is False
+
+
+def _seed_routed_view_items(config: AppConfig) -> None:
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(config, item_id='routed-coding', project_id='p1', repo_id='r1', title='Coding routed', status='ready')['ok'] is True
+    assert add_queue_item(config, item_id='routed-review', project_id='p1', repo_id='r1', title='Review routed', status='blocked')['ok'] is True
+    assert add_queue_item(config, item_id='unrouted-item', project_id='p1', repo_id='r1', title='Unrouted item', status='proposed')['ok'] is True
+    assert update_local_queue_item_routing_metadata(
+        config,
+        item_id='routed-coding',
+        routing_metadata={
+            'recommended_agent_lane': 'coding',
+            'recommended_engine': 'local_coding_llm',
+            'recommended_model': 'code-model',
+            'risk_level': 'low',
+            'complexity_level': 'medium',
+            'project_ai_mode': 'balanced',
+            'routing_policy_source': 'test_policy',
+        },
+    )['ok'] is True
+    assert update_local_queue_item_routing_metadata(
+        config,
+        item_id='routed-review',
+        routing_metadata={
+            'recommended_agent_lane': 'reviewer_validator',
+            'recommended_engine': 'local_reasoning_llm',
+            'risk_level': 'high',
+            'complexity_level': 'high',
+            'project_ai_mode': 'high_confidence',
+            'routing_policy_source': 'test_policy',
+            'operator_override': True,
+        },
+    )['ok'] is True
+
+
+def test_routed_queue_views_success_with_mixed_items_and_canonical_queue_read_only(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_routed_view_items(config)
+    queue_path = resolve_project_queue_path(config.repo_root, None)
+    before = queue_path.read_text(encoding='utf-8')
+
+    payload = read_local_routed_queue_views(config)
+
+    assert payload['ok'] is True
+    assert payload['execution_allowed'] is False
+    assert payload['total_items'] == 3
+    assert payload['routed_items_count'] == 2
+    assert payload['unrouted_items_count'] == 1
+    assert 'coding' in payload['groups']
+    assert 'unrouted' in payload['groups']
+    assert queue_path.read_text(encoding='utf-8') == before
+
+
+def test_routed_queue_views_filters_and_groups(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_routed_view_items(config)
+
+    by_lane = read_local_routed_queue_views(config, recommended_agent_lane='coding', include_unrouted=False)
+    assert by_lane['total_items'] == 1
+    assert by_lane['items'][0]['item_id'] == 'routed-coding'
+
+    by_engine = read_local_routed_queue_views(config, recommended_engine='local_reasoning_llm', include_unrouted=False)
+    assert by_engine['total_items'] == 1
+    assert by_engine['items'][0]['item_id'] == 'routed-review'
+
+    by_risk = read_local_routed_queue_views(config, risk_level='high', include_unrouted=False)
+    assert by_risk['total_items'] == 1
+
+    by_complexity = read_local_routed_queue_views(config, complexity_level='medium', include_unrouted=False)
+    assert by_complexity['items'][0]['item_id'] == 'routed-coding'
+
+    by_override = read_local_routed_queue_views(config, operator_override='present', include_unrouted=False)
+    assert by_override['total_items'] == 1
+    assert by_override['items'][0]['item_id'] == 'routed-review'
+
+    group_engine = read_local_routed_queue_views(config, group_by='by_engine')
+    assert 'local_coding_llm' in group_engine['groups']
+    assert 'local_reasoning_llm' in group_engine['groups']
+
+    group_status = read_local_routed_queue_views(config, group_by='by_status')
+    assert group_status['groups']['ready']['count'] == 1
+    assert group_status['groups']['blocked']['count'] == 1
+
+
+def test_routed_queue_views_empty_queue_is_stable(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+
+    payload = read_local_routed_queue_views(config)
+
+    assert payload['ok'] is True
+    assert payload['total_items'] == 0
+    assert payload['groups'] == {}
+    assert payload['items'] == []
 
 
 def test_add_queue_item_is_idempotent_and_updates_existing_item(tmp_path: Path) -> None:

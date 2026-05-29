@@ -1,5 +1,30 @@
 # AresForge Build State
 
+## M56 Routed Queue Views
+
+Status: Completed locally on `main`.
+
+Delivered:
+
+- added read-only routed queue view helper `read_local_routed_queue_views(...)`
+- added Hub route `GET /api/local-queue/routed-views`
+- added Queue UI panel for routed view filters and grouped counts
+- supported filters for project, status, agent lane, engine, model, fallback engine, risk, complexity, project AI mode, routing policy source, and operator override state
+- supported grouped views by agent lane, engine, model, project policy, risk level, complexity level, and status
+- handled mixed routed/unrouted items, empty queues, and legacy items without routing metadata
+
+Boundaries:
+
+- one canonical local queue remains the source of truth
+- routed queue views are read-only filters over the canonical queue
+- no queue storage split
+- no prompt-pack routing integration yet
+- no routing execution, local LLM execution, Codex execution, agent execution, GitHub/`gh`, prompt execution, workflow activity, network call, or external execution
+
+Recommended next milestone:
+
+- M57 - Prompt Pack Routing Integration.
+
 ## M55 Project AI Settings UI
 
 Status: Completed locally on `main`.

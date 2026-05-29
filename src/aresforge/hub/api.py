@@ -29,6 +29,7 @@ from aresforge.operator.local_project_queue import (
     generate_local_queue_item_codex_prompt,
     init_project_queue,
     inspect_local_queue_item_readiness,
+    read_local_routed_queue_views,
     read_local_project_progress_rollup,
     resolve_project_queue_path,
     start_local_queue_item,
@@ -2496,6 +2497,41 @@ def get_queue(config: AppConfig, filters: dict[str, str | None]) -> dict[str, An
         "warnings": sorted(set(warnings)),
         "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
     }
+
+
+def get_local_queue_routed_views(config: AppConfig, filters: dict[str, str | None]) -> dict[str, Any]:
+    include_unrouted_value = str(filters.get("include_unrouted") or "true").strip().lower()
+    include_unrouted = include_unrouted_value not in {"0", "false", "no", "off"}
+    result = read_local_routed_queue_views(
+        config,
+        project_id=_normalize_optional_str(filters.get("project_id")),
+        status=_normalize_optional_str(filters.get("status")),
+        recommended_agent_lane=_normalize_optional_str(filters.get("agent_lane")),
+        recommended_engine=_normalize_optional_str(filters.get("engine")),
+        recommended_model=_normalize_optional_str(filters.get("model")),
+        fallback_engine=_normalize_optional_str(filters.get("fallback_engine")),
+        risk_level=_normalize_optional_str(filters.get("risk_level")),
+        complexity_level=_normalize_optional_str(filters.get("complexity_level")),
+        project_ai_mode=_normalize_optional_str(filters.get("project_ai_mode")),
+        routing_policy_source=_normalize_optional_str(filters.get("routing_policy_source")),
+        operator_override=_normalize_optional_str(filters.get("operator_override")),
+        group_by=_normalize_optional_str(filters.get("group_by")),
+        include_unrouted=include_unrouted,
+    )
+    if not result.get("ok", False):
+        details = dict(result.get("details", {}))
+        return _api_error(
+            str(result.get("error", "routed_queue_views_failed")),
+            str(details.get("message", "Failed to read local routed queue views.")),
+            details=details,
+            status=400,
+        )
+    result["service"] = SERVICE_NAME
+    result["boundary_confirmations"] = _merge_boundary_confirmations(
+        result,
+        "Routed queue views are read-only filters over the canonical local queue.",
+    )
+    return result
 
 
 def post_queue_item(config: AppConfig, body: dict[str, Any]) -> dict[str, Any]:

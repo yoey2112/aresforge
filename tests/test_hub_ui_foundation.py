@@ -462,6 +462,18 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "Apply Routing Metadata" in index_text
     assert "/routing-recommendation" in queue_js
     assert "/apply-routing-recommendation" in queue_js
+    assert "Routed Queue Views" in index_text
+    assert "Read-only filters over the one canonical local queue" in index_text
+    assert "queue-routed-views-form" in index_text
+    assert "queue-routed-agent-lane" in index_text
+    assert "queue-routed-engine" in index_text
+    assert "queue-routed-risk" in index_text
+    assert "queue-routed-complexity" in index_text
+    assert "queue-routed-group-by" in index_text
+    assert "queue-routed-refresh" in index_text
+    assert "queue-routed-groups" in index_text
+    assert "queue-routed-items" in index_text
+    assert "/api/local-queue/routed-views" in queue_js
     assert "No queue item selected. Select a queue item to inspect details." in index_text
     assert "Local-only and read-only queue view: no queue mutation, no agent execution, no GitHub sync/mutation." in index_text
     assert "Recommended Next Action" in index_text
@@ -540,6 +552,7 @@ def test_frontend_scripts_reference_m39_api_endpoints_and_forms() -> None:
         "/api/active-project/workspace",
         "/api/local-projects",
         "/api/local-queue-agent-summary",
+        "/api/local-queue/routed-views",
         "/progress-rollup",
         "/api/local-project/handoff",
     ):
