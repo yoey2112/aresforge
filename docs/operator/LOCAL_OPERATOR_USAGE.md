@@ -1,5 +1,34 @@
 # Local Operator Usage
 
+## M45 Local Hub End-to-End Operator Workflow
+
+Status: Completed locally on `main`.
+
+Validated operator workflow:
+
+1. Inspect the Hub dashboard summary.
+2. Confirm active project context.
+3. Create or inspect a local queue item.
+4. Open local queue item details.
+5. Check local readiness.
+6. Generate a local-only prompt pack.
+7. Inspect the local project report.
+8. Inspect the local queue agent summary.
+
+Operator safety notes:
+
+- prompt packs are copy/paste-ready advisory output only
+- no prompt is automatically executed
+- prompt-pack generation does not start queue items
+- prompt-pack generation does not complete queue items
+- routing implementation remains future work
+- local LLM execution, Codex execution, and real agent execution remain unimplemented
+- the queue remains one canonical local queue
+
+Recommended next milestone:
+
+- M46 - completion evidence capture for local operator workflow closeout.
+
 ## M44A Agent LLM Routing Strategy Operator Note
 
 Status: Completed locally on `main`.

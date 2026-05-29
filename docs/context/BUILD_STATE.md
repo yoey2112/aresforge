@@ -1,5 +1,26 @@
 # AresForge Build State
 
+## M45 Local Hub End-to-End Operator Workflow Validation
+
+Status: Completed locally on `main`.
+
+Delivered:
+
+- added focused Hub end-to-end operator workflow validation in `tests/test_hub_end_to_end_operator_workflow.py`
+- validated the existing local Hub path from dashboard inspection through active project context, queue intake, queue detail, readiness, prompt-pack generation, local project report, and queue agent summary
+- confirmed prompt-pack generation remains advisory and does not start, complete, or otherwise mutate queue item lifecycle state
+- documented the current validated operator workflow across source-of-truth docs
+
+Boundaries:
+
+- validation and documentation only
+- no routing implementation, local LLM execution, Codex execution, real agent execution, GitHub integration, or queue storage split
+- no backend route additions, no frontend settings UI, no queue schema changes
+
+Recommended next milestone:
+
+- M46 - completion evidence capture for local operator workflow closeout.
+
 ## M44A Agent LLM Routing Strategy Documentation Update
 
 Status: Completed locally on `main`.

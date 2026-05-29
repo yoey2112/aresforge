@@ -1,5 +1,29 @@
 # AresForge Roadmap
 
+## M45 Local Hub End-to-End Operator Workflow Validation
+
+Status: Completed locally on `main`.
+
+Delivered scope:
+
+- added focused end-to-end Hub operator workflow coverage
+- validated dashboard summary, active project context, local queue intake, queue item detail, readiness inspection, prompt-pack generation, local project report, and local queue agent summary together
+- confirmed M43 prompt-pack generation remains local-only and advisory
+- confirmed prompt-pack generation does not automatically start or complete queue items
+
+Constraints preserved:
+
+- no routing implementation
+- no local LLM execution
+- no Codex execution
+- no real agent execution
+- no GitHub API, no `gh`, no GitHub issues/PRs/workflow activity, no GitHub mutation from the app
+- no queue storage split
+
+Recommended next milestone:
+
+- M46 - completion evidence capture for local operator workflow closeout.
+
 ## M44A Agent LLM Routing Strategy Documentation Update
 
 Status: Completed locally on `main`.

@@ -1,5 +1,38 @@
 # AresForge Agent Context
 
+## M45 Local Hub End-to-End Operator Workflow Context
+
+Status: Completed locally on `main`.
+
+Validated workflow:
+
+1. Operator inspects dashboard/local project state.
+2. Operator identifies active project context.
+3. Operator creates a local queue item through Hub intake.
+4. Operator views local queue item details.
+5. Operator checks local readiness.
+6. Operator generates a local-only prompt pack.
+7. Operator inspects the local project report.
+8. Operator inspects the local queue agent summary.
+
+Validation guarantees:
+
+- workflow remains local-only, file-backed, and operator-gated
+- prompt-pack generation is advisory copy/paste output only
+- prompt-pack generation does not automatically execute prompts
+- prompt-pack generation does not auto-start or auto-complete queue items
+- the canonical local queue remains the single queue storage model
+
+Still not implemented:
+
+- Agent/LLM routing implementation remains future work
+- no local LLM execution, Codex execution, real agent execution, or automatic prompt execution
+- no GitHub API, `gh`, GitHub issues/PRs/workflows, or GitHub mutation from the app
+
+Recommended next milestone:
+
+- M46 - completion evidence capture for local operator workflow closeout.
+
 ## M44A Agent LLM Routing Strategy Context
 
 Status: Completed locally on `main`.

@@ -1,5 +1,39 @@
 # Runnable Skeleton
 
+## M45 Local Hub End-to-End Operator Workflow Validation
+
+Status: Completed locally on `main`.
+
+Validated runnable path:
+
+- `GET /api/dashboard/summary`
+- `GET /api/projects/active`
+- `POST /api/local-queue/items`
+- `GET /api/queue/{item_id}`
+- `GET /api/local-queue/items/{item_id}/readiness`
+- `POST /api/local-queue/prompt-pack`
+- `GET /api/local-project-report`
+- `GET /api/local-queue-agent-summary`
+
+Behavior confirmed:
+
+- operators can move from project/dashboard context to queue intake, detail review, readiness, prompt-pack generation, and local reports using existing Hub surfaces
+- readiness inspection is advisory/read-only
+- prompt-pack generation produces local copy/paste output and optional local artifact output
+- prompt-pack generation does not auto-start, auto-complete, execute Codex, execute agents, execute local LLMs, or route models
+
+Still absent by design:
+
+- runtime Agent/LLM routing
+- Codex CLI execution
+- local LLM execution
+- GitHub integration or mutation
+- split queue storage
+
+Next skeleton focus:
+
+- M46 should focus on completion evidence capture for the local operator workflow.
+
 ## M44A Agent LLM Routing Strategy Documentation Update
 
 Status: Completed locally on `main`.
