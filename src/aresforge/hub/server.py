@@ -12,6 +12,7 @@ from aresforge.config import AppConfig
 from aresforge.hub.api import (
     get_bootstrap_plan,
     get_bootstrap_status,
+    get_codex_cli_model_profiles,
     get_dashboard_summary,
     get_active_project,
     get_active_project_workspace,
@@ -62,6 +63,7 @@ from aresforge.hub.api import (
     post_active_project,
     post_agent,
     post_bootstrap_apply,
+    post_codex_cli_model_profiles,
     post_escalation_plan,
     post_handoff_target,
     post_local_project_handoff,
@@ -494,6 +496,25 @@ def _build_handler(config: AppConfig, static_root: Path) -> type[BaseHTTPRequest
                     )
                     return True
                 payload = post_local_llm_health_check(config, body)
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+            if method == "GET" and path == "/api/codex-cli/model-profiles":
+                _render_json(self, HTTPStatus.OK, get_codex_cli_model_profiles(config))
+                return True
+            if method == "POST" and path == "/api/codex-cli/model-profiles":
+                if body is None:
+                    _render_json(
+                        self,
+                        HTTPStatus.BAD_REQUEST,
+                        {
+                            "ok": False,
+                            "local_only": True,
+                            "error": "invalid_json_body",
+                            "message": "Request body must be a JSON object.",
+                        },
+                    )
+                    return True
+                payload = post_codex_cli_model_profiles(config, body)
                 _render_json(self, _status_from_payload(payload), payload)
                 return True
             if method == "POST" and path == "/api/agents":

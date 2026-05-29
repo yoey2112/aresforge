@@ -2,7 +2,7 @@
 
 ## Status
 
-M44A documented the future Agent/LLM routing strategy. M51 through M58 now add non-executing contracts and local Hub surfaces for project AI settings, agent/engine registry, queue routing metadata, recommendation-only routing decisions, Project AI Settings UI, routed queue views, routing-aware prompt packs, and local LLM environment configuration.
+M44A documented the future Agent/LLM routing strategy. M51 through M60 now add non-executing contracts and local Hub surfaces for project AI settings, agent/engine registry, queue routing metadata, recommendation-only routing decisions, Project AI Settings UI, routed queue views, routing-aware prompt packs, local LLM environment/health checks, and Codex CLI model profile configuration.
 
 Current prompt-pack behavior extends M43 local-only grouped prompt packs with advisory routing metadata. Runtime routing, model invocation, Codex execution, local LLM execution, real agent execution, and GitHub integration remain unimplemented.
 
@@ -360,6 +360,31 @@ The health check returns:
 - warnings and blockers
 
 M59 does not send prompts, call generate/chat/completion endpoints, run model inference, generate text, execute routing, invoke Codex, run agents, mutate queue/project state, call GitHub, or run external workflows. M61 should add Local LLM Prompt Preview. M62 remains the future point for an operator-gated local execution prototype.
+
+## M60 Codex CLI Model Profile Contract
+
+M60 adds a local-only Codex CLI Model Profile Contract.
+
+Current operator helpers:
+
+- `read_codex_cli_model_profile_contract(...)`
+- `update_codex_cli_model_profile_contract(...)`
+- `validate_codex_cli_model_profile_contract(...)`
+
+Current Hub routes:
+
+- `GET /api/codex-cli/model-profiles`
+- `POST /api/codex-cli/model-profiles`
+
+Storage path:
+
+- `.aresforge/codex_cli_model_profiles.json`
+
+Codex CLI remains engine `codex_cli`. The contract stores default, high-value, and fast Codex model preferences, an allowed model list, and optional per-project/per-agent allowed model mappings.
+
+The contract is configuration only. `execution_enabled` must remain false and `operator_gate_required` must remain true.
+
+M60 does not execute Codex CLI, execute prompts, run agents, call GitHub, call `gh`, or run external workflows. M63 should add Codex CLI High-Value Lane planning and still must remain operator-gated unless a later execution milestone explicitly changes that boundary.
 
 ## Operating Boundaries
 

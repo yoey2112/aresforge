@@ -1,5 +1,29 @@
 # Local Operator Usage
 
+## M60 Codex CLI Model Profile Contract
+
+Status: Completed locally on `main`.
+
+Operator workflow:
+
+1. Read Codex CLI model profiles with `GET /api/codex-cli/model-profiles`.
+2. Optionally update allowed model names and role preferences with `POST /api/codex-cli/model-profiles`.
+3. Keep `execution_enabled` false and `operator_gate_required` true.
+4. Treat profiles as future routing configuration only.
+
+Operator safety notes:
+
+- Codex CLI model profiles are configuration only
+- model names do not execute or verify Codex availability
+- no Codex CLI command is run
+- no prompt is executed
+- no agent, GitHub, `gh`, workflow, push, or external service is used
+- High-Value Codex Lane execution remains future work
+
+Recommended next milestone:
+
+- M63 - Codex CLI High-Value Lane.
+
 ## M59 Local LLM Health Check
 
 Status: Completed locally on `main`.

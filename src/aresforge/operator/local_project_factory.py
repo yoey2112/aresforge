@@ -177,6 +177,10 @@ def resolve_local_llm_environment_path(repo_root: Path) -> Path:
     return (repo_root / ".aresforge" / "local_llm_environment.json").resolve()
 
 
+def resolve_codex_cli_model_profile_path(repo_root: Path) -> Path:
+    return (repo_root / ".aresforge" / "codex_cli_model_profiles.json").resolve()
+
+
 def create_project_factory_dossier(config: AppConfig, payload: dict[str, Any]) -> dict[str, Any]:
     dossier_path = resolve_project_factory_dossier_path(config.repo_root, str(payload.get("project_id", "")).strip())
     dossier_path.parent.mkdir(parents=True, exist_ok=True)
@@ -3398,6 +3402,159 @@ def check_local_llm_health(config: AppConfig, *, urlopen_fn: Any | None = None) 
     )
 
 
+def validate_codex_cli_model_profile_contract(profiles: dict[str, Any]) -> dict[str, Any]:
+    blockers: list[str] = []
+    warnings: list[str] = []
+
+    if str(profiles.get("codex_engine_key", "")).strip() != "codex_cli":
+        blockers.append("codex_engine_key must be codex_cli.")
+
+    allowed_raw = profiles.get("allowed_codex_models", [])
+    if not isinstance(allowed_raw, list):
+        blockers.append("allowed_codex_models must be a list of strings.")
+        allowed_models: list[str] = []
+    else:
+        allowed_models = _normalize_text_list(allowed_raw)
+        if len(allowed_models) != len([value for value in allowed_raw if isinstance(value, str) and value.strip()]):
+            blockers.append("allowed_codex_models must contain only non-empty strings.")
+
+    for field in ("default_codex_model", "high_value_codex_model", "fast_codex_model", "notes"):
+        value = profiles.get(field, "")
+        if value is not None and not isinstance(value, str):
+            blockers.append(f"{field} must be a string when supplied.")
+
+    for field in ("default_codex_model", "high_value_codex_model", "fast_codex_model"):
+        model = str(profiles.get(field, "")).strip()
+        if model and model not in allowed_models:
+            blockers.append(f"{field} must be included in allowed_codex_models when provided.")
+
+    for field in ("per_project_allowed_models", "per_agent_allowed_models"):
+        raw_mapping = profiles.get(field, {})
+        if raw_mapping in (None, ""):
+            raw_mapping = {}
+        if not isinstance(raw_mapping, dict):
+            blockers.append(f"{field} must be an object mapping keys to model lists.")
+            continue
+        for key, values in raw_mapping.items():
+            if not str(key).strip():
+                blockers.append(f"{field} contains an empty key.")
+            if not isinstance(values, list):
+                blockers.append(f"{field}.{key} must be a list of models.")
+                continue
+            normalized_values = _normalize_text_list(values)
+            if len(normalized_values) != len([value for value in values if isinstance(value, str) and value.strip()]):
+                blockers.append(f"{field}.{key} must contain only non-empty strings.")
+            invalid_values = [value for value in normalized_values if value not in allowed_models]
+            if invalid_values:
+                blockers.append(f"{field}.{key} contains models not listed in allowed_codex_models: {', '.join(invalid_values)}.")
+
+    if profiles.get("execution_enabled") is not False:
+        blockers.append("execution_enabled must remain false.")
+    if profiles.get("operator_gate_required") is not True:
+        blockers.append("operator_gate_required must remain true.")
+
+    if not allowed_models:
+        warnings.append("No allowed Codex models configured yet; future Codex routing will require operator configuration.")
+
+    return {
+        "valid": not blockers,
+        "blockers": sorted(set(blockers)),
+        "warnings": sorted(set(warnings)),
+        "codex_engine_key": "codex_cli",
+        "execution_status": "not_implemented",
+    }
+
+
+def read_codex_cli_model_profile_contract(config: AppConfig) -> dict[str, Any]:
+    profile_path = resolve_codex_cli_model_profile_path(config.repo_root)
+    warnings: list[str] = []
+    profiles_exists = profile_path.exists()
+    profiles = _default_codex_cli_model_profile_contract()
+    if profiles_exists:
+        try:
+            loaded = json.loads(profile_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            warnings.append(f"Codex CLI model profile contract could not be parsed: {exc}")
+        else:
+            if isinstance(loaded, dict):
+                profiles.update(_normalize_codex_cli_model_profile_payload(loaded))
+            else:
+                warnings.append("Codex CLI model profile contract has invalid schema; expected JSON object.")
+
+    validation = validate_codex_cli_model_profile_contract(profiles)
+    warnings.extend(list(validation.get("warnings", [])))
+    return {
+        "ok": True,
+        "local_only": True,
+        "profile_path": str(profile_path),
+        "profiles_exists": profiles_exists,
+        "codex_cli_model_profiles": profiles,
+        "validation": validation,
+        "execution_allowed": False,
+        "next_safe_action": "review_codex_cli_model_profiles_before_future_high_value_routing",
+        "warnings": sorted(set(warnings)),
+        "blockers": list(validation.get("blockers", [])),
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS)
+        + [
+            "Codex CLI model profiles are configuration only.",
+            "No Codex CLI call, prompt execution, agent execution, GitHub operation, or external workflow is performed.",
+        ],
+    }
+
+
+def update_codex_cli_model_profile_contract(config: AppConfig, payload: dict[str, Any]) -> dict[str, Any]:
+    current = read_codex_cli_model_profile_contract(config)
+    profiles = dict(current.get("codex_cli_model_profiles", {}))
+    allowed_fields = {
+        "codex_engine_key",
+        "default_codex_model",
+        "high_value_codex_model",
+        "fast_codex_model",
+        "allowed_codex_models",
+        "per_project_allowed_models",
+        "per_agent_allowed_models",
+        "execution_enabled",
+        "operator_gate_required",
+        "notes",
+    }
+    for key in allowed_fields:
+        if key in payload:
+            profiles[key] = payload.get(key)
+    profiles["updated_at"] = _now_iso()
+    profiles = _normalize_codex_cli_model_profile_payload(profiles)
+    validation = validate_codex_cli_model_profile_contract(profiles)
+    if not validation.get("valid", False):
+        return _error(
+            "codex_cli_model_profile_validation_failed",
+            {
+                "message": "Codex CLI model profile contract failed validation.",
+                "codex_cli_model_profiles": profiles,
+                "validation": validation,
+            },
+        )
+
+    profile_path = resolve_codex_cli_model_profile_path(config.repo_root)
+    profile_path.parent.mkdir(parents=True, exist_ok=True)
+    profile_path.write_text(json.dumps(profiles, indent=2) + "\n", encoding="utf-8")
+    return {
+        "ok": True,
+        "local_only": True,
+        "profile_path": str(profile_path),
+        "profiles_exists": True,
+        "codex_cli_model_profiles": profiles,
+        "validation": validation,
+        "execution_allowed": False,
+        "next_safe_action": "use_codex_cli_model_profiles_for_future_high_value_routing_contract_only",
+        "warnings": list(validation.get("warnings", [])),
+        "blockers": [],
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS)
+        + [
+            "Codex CLI model profile update is local-only and non-executing.",
+            "No Codex CLI call, prompt execution, agent execution, GitHub operation, or external workflow is performed.",
+        ],
+    }
+
+
 def read_agent_engine_registry(config: AppConfig) -> dict[str, Any]:
     del config
     return {
@@ -4274,6 +4431,64 @@ def _local_llm_health_payload(
             "Only provider availability and model listing are checked.",
             "No prompts, inference, generation, routing execution, Codex execution, agent execution, GitHub, or gh operation is performed.",
         ],
+    }
+
+
+def _default_codex_cli_model_profile_contract() -> dict[str, Any]:
+    return {
+        "schema_version": "1.0",
+        "codex_engine_key": "codex_cli",
+        "default_codex_model": "",
+        "high_value_codex_model": "",
+        "fast_codex_model": "",
+        "allowed_codex_models": [],
+        "per_project_allowed_models": {},
+        "per_agent_allowed_models": {},
+        "execution_enabled": False,
+        "operator_gate_required": True,
+        "notes": "",
+        "updated_at": "",
+    }
+
+
+def _normalize_codex_model_mapping(value: Any) -> Any:
+    if value in (None, ""):
+        return {}
+    if not isinstance(value, dict):
+        return value
+    normalized: dict[str, Any] = {}
+    for key, models in value.items():
+        normalized[str(key).strip()] = _normalize_text_list(models) if isinstance(models, list) else models
+    return normalized
+
+
+def _normalize_codex_cli_model_profile_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    default_profiles = _default_codex_cli_model_profile_contract()
+    return {
+        "schema_version": str(payload.get("schema_version", default_profiles["schema_version"])).strip() or "1.0",
+        "codex_engine_key": str(payload.get("codex_engine_key", default_profiles["codex_engine_key"]) or "").strip(),
+        "default_codex_model": _normalize_contract_string(
+            payload.get("default_codex_model", default_profiles["default_codex_model"])
+        ),
+        "high_value_codex_model": _normalize_contract_string(
+            payload.get("high_value_codex_model", default_profiles["high_value_codex_model"])
+        ),
+        "fast_codex_model": _normalize_contract_string(
+            payload.get("fast_codex_model", default_profiles["fast_codex_model"])
+        ),
+        "allowed_codex_models": _normalize_text_list(payload.get("allowed_codex_models"))
+        if isinstance(payload.get("allowed_codex_models"), list)
+        else payload.get("allowed_codex_models", default_profiles["allowed_codex_models"]),
+        "per_project_allowed_models": _normalize_codex_model_mapping(
+            payload.get("per_project_allowed_models", default_profiles["per_project_allowed_models"])
+        ),
+        "per_agent_allowed_models": _normalize_codex_model_mapping(
+            payload.get("per_agent_allowed_models", default_profiles["per_agent_allowed_models"])
+        ),
+        "execution_enabled": payload.get("execution_enabled", default_profiles["execution_enabled"]),
+        "operator_gate_required": payload.get("operator_gate_required", default_profiles["operator_gate_required"]),
+        "notes": _normalize_contract_string(payload.get("notes", default_profiles["notes"])),
+        "updated_at": str(payload.get("updated_at", default_profiles["updated_at"]) or "").strip(),
     }
 
 

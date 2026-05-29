@@ -1,5 +1,38 @@
 # Runnable Skeleton
 
+## M60 Codex CLI Model Profile Contract
+
+Status: Completed locally on `main`.
+
+Implemented runnable path:
+
+- operator helpers: `read_codex_cli_model_profile_contract(...)`, `update_codex_cli_model_profile_contract(...)`, `validate_codex_cli_model_profile_contract(...)`
+- Hub routes: `GET /api/codex-cli/model-profiles`, `POST /api/codex-cli/model-profiles`
+- storage path: `.aresforge/codex_cli_model_profiles.json`
+
+Behavior contract:
+
+- reads default profile contract without writing a file
+- writes settings only after validation passes
+- fixes `codex_engine_key` to `codex_cli`
+- validates default, high-value, and fast models against `allowed_codex_models`
+- validates per-project and per-agent allowed model mappings
+- forces `execution_enabled` to remain false and `operator_gate_required` to remain true
+- returns `execution_allowed: false`
+
+Still absent by design:
+
+- Codex CLI execution
+- prompt execution
+- High-Value Codex Lane execution
+- real agent execution
+- GitHub integration or mutation
+- external workflow execution
+
+Next skeleton focus:
+
+- M63 should add Codex CLI High-Value Lane.
+
 ## M59 Local LLM Health Check
 
 Status: Completed locally on `main`.

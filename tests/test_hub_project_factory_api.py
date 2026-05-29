@@ -5,6 +5,7 @@ from pathlib import Path
 from aresforge.config import AppConfig
 from aresforge.hub.api import (
     get_agent_engine_registry,
+    get_codex_cli_model_profiles,
     get_local_llm_environment,
     get_project_factory_architecture_contract,
     get_project_factory_agent_dispatch_plan,
@@ -44,6 +45,7 @@ from aresforge.hub.api import (
     post_project_factory_scope_package_approve,
     post_project_factory_scope_package,
     post_project_ai_settings,
+    post_codex_cli_model_profiles,
     post_local_llm_environment,
     post_local_llm_health_check,
     post_local_queue_item_apply_routing_recommendation,
@@ -152,6 +154,54 @@ def test_local_llm_health_check_api_requires_safe_payload_and_returns_provider_n
     rejected = post_local_llm_health_check(config, {"prompt": "do not send this"})
     assert rejected["ok"] is False
     assert rejected["error"] == "unsupported_local_llm_health_check_fields"
+
+
+def test_codex_cli_model_profiles_api_reads_default_and_updates_contract(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+
+    default_payload = get_codex_cli_model_profiles(config)
+    assert default_payload["ok"] is True
+    assert default_payload["execution_allowed"] is False
+    assert default_payload["codex_cli_model_profiles"]["codex_engine_key"] == "codex_cli"
+
+    updated = post_codex_cli_model_profiles(
+        config,
+        {
+            "codex_engine_key": "codex_cli",
+            "allowed_codex_models": ["gpt-5-codex", "gpt-5-codex-fast", "gpt-5-codex-high"],
+            "default_codex_model": "gpt-5-codex",
+            "high_value_codex_model": "gpt-5-codex-high",
+            "fast_codex_model": "gpt-5-codex-fast",
+            "execution_enabled": False,
+            "operator_gate_required": True,
+        },
+    )
+    assert updated["ok"] is True
+    assert updated["codex_cli_model_profiles"]["default_codex_model"] == "gpt-5-codex"
+    assert updated["codex_cli_model_profiles"]["execution_enabled"] is False
+    assert any("does not execute Codex" in entry for entry in updated["boundary_confirmations"])
+
+
+def test_codex_cli_model_profiles_api_rejects_invalid_inputs(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+
+    invalid_engine = post_codex_cli_model_profiles(config, {"codex_engine_key": "codex"})
+    assert invalid_engine["ok"] is False
+    assert invalid_engine["error"] == "invalid_codex_engine_key"
+
+    invalid_default = post_codex_cli_model_profiles(
+        config,
+        {"allowed_codex_models": ["gpt-5-codex"], "default_codex_model": "other"},
+    )
+    assert invalid_default["ok"] is False
+    assert invalid_default["error"] == "codex_cli_model_profile_validation_failed"
+
+    invalid_execution = post_codex_cli_model_profiles(
+        config,
+        {"allowed_codex_models": ["gpt-5-codex"], "execution_enabled": True},
+    )
+    assert invalid_execution["ok"] is False
+    assert invalid_execution["error"] == "codex_cli_model_profile_validation_failed"
 
 
 def test_post_project_factory_new_project_returns_expected_payload(tmp_path: Path) -> None:

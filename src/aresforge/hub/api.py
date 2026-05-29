@@ -76,6 +76,7 @@ from aresforge.operator.local_project_factory import (
     approve_project_scope_package,
     check_local_llm_health,
     inspect_project_factory_dossier,
+    read_codex_cli_model_profile_contract,
     prepare_project_architecture_contract,
     prepare_project_documentation_closeout_plan,
     prepare_project_execution_phase_approval,
@@ -99,6 +100,7 @@ from aresforge.operator.local_project_factory import (
     read_project_scope_package,
     update_project_ai_settings,
     update_local_llm_environment_contract,
+    update_codex_cli_model_profile_contract,
     update_project_architecture_contract,
     update_project_documentation_closeout_plan,
     update_project_execution_phase_approval,
@@ -2365,6 +2367,60 @@ def post_local_llm_health_check(config: AppConfig, body: dict[str, Any]) -> dict
     )
     if not result.get("ok", False):
         result["_status"] = 400
+    return result
+
+
+def get_codex_cli_model_profiles(config: AppConfig) -> dict[str, Any]:
+    result = read_codex_cli_model_profile_contract(config)
+    result["service"] = SERVICE_NAME
+    result["boundary_confirmations"] = _merge_boundary_confirmations(
+        result,
+        "Codex CLI model profiles are configuration only and do not execute Codex.",
+    )
+    return result
+
+
+def post_codex_cli_model_profiles(config: AppConfig, body: dict[str, Any]) -> dict[str, Any]:
+    if "codex_engine_key" in body and str(body.get("codex_engine_key", "")).strip() != "codex_cli":
+        return _api_error(
+            "invalid_codex_engine_key",
+            "codex_engine_key must be codex_cli.",
+            details={"codex_engine_key": body.get("codex_engine_key")},
+        )
+    for field in ("allowed_codex_models",):
+        valid_list, list_error = _require_list_field(body, field)
+        if not valid_list:
+            return list_error or _api_error(f"invalid_{field}", f"{field} must be a list of strings.")
+    for field in ("execution_enabled", "operator_gate_required"):
+        valid_bool, bool_error = _require_boolean_field(body, field)
+        if not valid_bool:
+            return bool_error or _api_error(f"invalid_{field}", f"{field} must be a boolean value.")
+    allowed_fields = {
+        "codex_engine_key",
+        "default_codex_model",
+        "high_value_codex_model",
+        "fast_codex_model",
+        "allowed_codex_models",
+        "per_project_allowed_models",
+        "per_agent_allowed_models",
+        "execution_enabled",
+        "operator_gate_required",
+        "notes",
+    }
+    result = update_codex_cli_model_profile_contract(config, payload={key: body[key] for key in allowed_fields if key in body})
+    if not result.get("ok", False):
+        details = dict(result.get("details", {}))
+        return _api_error(
+            str(result.get("error", "codex_cli_model_profile_update_failed")),
+            str(details.get("message", "Failed to update Codex CLI model profile contract.")),
+            details=details,
+            status=400,
+        )
+    result["service"] = SERVICE_NAME
+    result["boundary_confirmations"] = _merge_boundary_confirmations(
+        result,
+        "Codex CLI model profile update stores configuration only and does not execute Codex.",
+    )
     return result
 
 

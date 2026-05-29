@@ -1,5 +1,35 @@
 # AresForge Roadmap
 
+## M60 Codex CLI Model Profile Contract
+
+Status: Completed locally on `main`.
+
+Delivered scope:
+
+- added local-only Codex CLI Model Profile Contract
+- added file-backed read/update/validation helpers
+- added Hub API support for `GET /api/codex-cli/model-profiles` and `POST /api/codex-cli/model-profiles`
+- represented Codex CLI as engine `codex_cli`
+- represented default, high-value, and fast model preferences
+- represented allowed models plus optional per-project and per-agent allowed model mappings
+- enforced non-execution fields: `execution_enabled: false` and `operator_gate_required: true`
+- added `docs/architecture/CODEX_CLI_MODEL_PROFILE_CONTRACT.md`
+- added targeted tests for default state, valid updates, invalid engine key, invalid role models, execution rejection, model mapping validation, and API behavior
+
+Constraints preserved:
+
+- no Codex CLI execution
+- no prompt execution
+- no local LLM execution
+- no real agent execution
+- no GitHub API, no `gh`, no GitHub issues/PRs/workflow activity, no GitHub mutation from the app
+- no external workflow execution
+- no High-Value Codex Lane execution
+
+Recommended next milestone:
+
+- M63 - Codex CLI High-Value Lane.
+
 ## M59 Local LLM Health Check
 
 Status: Completed locally on `main`.

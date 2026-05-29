@@ -1,5 +1,29 @@
 # AresForge Agent Context
 
+## M60 Codex CLI Model Profile Contract Context
+
+Status: Completed locally on `main`.
+
+Current contract:
+
+- operator helpers: `read_codex_cli_model_profile_contract(...)`, `update_codex_cli_model_profile_contract(...)`, and `validate_codex_cli_model_profile_contract(...)`
+- Hub routes: `GET /api/codex-cli/model-profiles` and `POST /api/codex-cli/model-profiles`
+- storage path: `.aresforge/codex_cli_model_profiles.json`
+- source doc: `docs/architecture/CODEX_CLI_MODEL_PROFILE_CONTRACT.md`
+
+Boundary reminders:
+
+- Codex CLI is represented as engine `codex_cli`
+- model profiles are configuration only
+- `execution_enabled` must remain false
+- `operator_gate_required` must remain true
+- no Codex CLI execution, prompt execution, real agent execution, GitHub integration, `gh`, or external workflow is added
+- High-Value Codex Lane execution remains future work
+
+Recommended next milestone:
+
+- M63 - Codex CLI High-Value Lane.
+
 ## M59 Local LLM Health Check Context
 
 Status: Completed locally on `main`.

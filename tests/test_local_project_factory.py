@@ -18,6 +18,7 @@ from aresforge.operator.local_project_factory import (
     approve_project_scope_package,
     check_local_llm_health,
     read_agent_engine_registry,
+    read_codex_cli_model_profile_contract,
     read_local_llm_environment_contract,
     recommend_queue_item_routing,
     read_project_ai_settings,
@@ -47,12 +48,14 @@ from aresforge.operator.local_project_factory import (
     resolve_project_execution_phase_approval_path,
     resolve_project_ai_settings_path,
     resolve_local_llm_environment_path,
+    resolve_codex_cli_model_profile_path,
     resolve_project_github_apply_plan_path,
     resolve_project_milestone_issue_plan_path,
     resolve_project_validation_execution_plan_path,
     resolve_project_scope_package_path,
     start_new_project_factory,
     update_local_llm_environment_contract,
+    update_codex_cli_model_profile_contract,
     update_project_ai_settings,
     update_project_architecture_contract,
     update_project_documentation_closeout_plan,
@@ -325,6 +328,90 @@ def test_check_local_llm_health_ollama_unavailable_is_non_inference_health_resul
     assert payload["coding_model_available"] is False
     assert payload["inference_tested"] is False
     assert calls == ["http://localhost:11434/api/tags"]
+
+
+def test_read_codex_cli_model_profile_contract_returns_default_without_writing(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+
+    payload = read_codex_cli_model_profile_contract(config)
+
+    assert payload["ok"] is True
+    assert payload["local_only"] is True
+    assert payload["execution_allowed"] is False
+    assert payload["codex_cli_model_profiles"]["codex_engine_key"] == "codex_cli"
+    assert payload["codex_cli_model_profiles"]["execution_enabled"] is False
+    assert payload["codex_cli_model_profiles"]["operator_gate_required"] is True
+    assert payload["validation"]["valid"] is True
+    assert not resolve_codex_cli_model_profile_path(tmp_path).exists()
+
+
+def test_update_codex_cli_model_profile_contract_writes_valid_local_contract(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+
+    payload = update_codex_cli_model_profile_contract(
+        config,
+        {
+            "codex_engine_key": "codex_cli",
+            "allowed_codex_models": ["gpt-5-codex", "gpt-5-codex-fast", "gpt-5-codex-high"],
+            "default_codex_model": "gpt-5-codex",
+            "high_value_codex_model": "gpt-5-codex-high",
+            "fast_codex_model": "gpt-5-codex-fast",
+            "per_project_allowed_models": {"aresforge": ["gpt-5-codex", "gpt-5-codex-high"]},
+            "per_agent_allowed_models": {"high_value_codex": ["gpt-5-codex-high"]},
+            "execution_enabled": False,
+            "operator_gate_required": True,
+            "notes": "Configuration only.",
+        },
+    )
+
+    assert payload["ok"] is True
+    profiles = payload["codex_cli_model_profiles"]
+    assert profiles["codex_engine_key"] == "codex_cli"
+    assert profiles["default_codex_model"] == "gpt-5-codex"
+    assert profiles["high_value_codex_model"] == "gpt-5-codex-high"
+    assert profiles["fast_codex_model"] == "gpt-5-codex-fast"
+    assert profiles["execution_enabled"] is False
+    assert payload["execution_allowed"] is False
+    assert resolve_codex_cli_model_profile_path(tmp_path).exists()
+    assert any("No Codex CLI call" in entry for entry in payload["boundary_confirmations"])
+
+
+def test_codex_cli_model_profile_contract_rejects_invalid_values(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+
+    invalid_engine = update_codex_cli_model_profile_contract(config, {"codex_engine_key": "codex"})
+    assert invalid_engine["ok"] is False
+    assert invalid_engine["error"] == "codex_cli_model_profile_validation_failed"
+
+    default_not_allowed = update_codex_cli_model_profile_contract(
+        config,
+        {"allowed_codex_models": ["gpt-5-codex"], "default_codex_model": "other"},
+    )
+    assert default_not_allowed["ok"] is False
+
+    high_value_not_allowed = update_codex_cli_model_profile_contract(
+        config,
+        {"allowed_codex_models": ["gpt-5-codex"], "high_value_codex_model": "other"},
+    )
+    assert high_value_not_allowed["ok"] is False
+
+    fast_not_allowed = update_codex_cli_model_profile_contract(
+        config,
+        {"allowed_codex_models": ["gpt-5-codex"], "fast_codex_model": "other"},
+    )
+    assert fast_not_allowed["ok"] is False
+
+    execution_enabled = update_codex_cli_model_profile_contract(
+        config,
+        {"allowed_codex_models": ["gpt-5-codex"], "execution_enabled": True},
+    )
+    assert execution_enabled["ok"] is False
+
+    project_model_not_allowed = update_codex_cli_model_profile_contract(
+        config,
+        {"allowed_codex_models": ["gpt-5-codex"], "per_project_allowed_models": {"p1": ["other"]}},
+    )
+    assert project_model_not_allowed["ok"] is False
 
 
 def test_start_new_project_factory_creates_expected_local_state(tmp_path: Path) -> None:
