@@ -129,6 +129,45 @@ Empty or unassigned routing metadata is allowed. Non-empty lane and engine value
 
 M53 does not compute routing decisions, split queue storage, execute prompts, invoke Codex, invoke local LLMs, run agents, call GitHub, or run external workflows. M54 should implement Routing Decision Matrix v1.
 
+## M54 Routing Decision Matrix v1
+
+M54 adds recommendation-only routing decisions for local queue items.
+
+Current operator helpers:
+
+- `recommend_queue_item_routing(...)`
+- `apply_queue_item_routing_recommendation(...)`
+
+Current Hub routes:
+
+- `POST /api/local-queue/items/{item_id}/routing-recommendation`
+- `POST /api/local-queue/items/{item_id}/apply-routing-recommendation`
+
+Decision hierarchy:
+
+1. Project policy
+2. Agent policy
+3. Task classification
+4. Risk/complexity
+5. Affected area/files
+6. Validation burden
+7. Engine/model availability
+8. Cost/credit preference
+9. Operator override
+
+Mode outcomes:
+
+- `balanced`: recommends local engines for simple work and may recommend `codex_cli` for high-value/high-risk work.
+- `local_only`: recommends local engines only and blocks Codex-worthy work unless an operator override is provided.
+- `codex_only`: recommends `codex_cli` only.
+- `cost_saver`: prefers local engines for low/medium risk and warns on high-risk Codex-worthy work.
+- `high_confidence`: prefers `codex_cli` for high-risk or high-complexity work when allowed.
+- `manual_only`: requires explicit operator decision and does not auto-recommend an engine.
+
+Recommendation preview does not write metadata. Explicit apply writes M53 queue routing metadata only. Every recommendation includes `execution_allowed: false`.
+
+M54 does not execute local LLMs, Codex, agents, GitHub, prompts, workflows, or external services. M55 should add Project AI Settings UI.
+
 ## Operating Boundaries
 
 Routing must remain:

@@ -1,5 +1,40 @@
 # Runnable Skeleton
 
+## M54 Routing Decision Matrix v1
+
+Status: Completed locally on `main`.
+
+Implemented runnable path:
+
+- operator helpers: `recommend_queue_item_routing(...)`, `apply_queue_item_routing_recommendation(...)`
+- Hub routes: `POST /api/local-queue/items/{item_id}/routing-recommendation`, `POST /api/local-queue/items/{item_id}/apply-routing-recommendation`
+- Queue UI actions: Recommend Routing and Apply Routing Metadata
+
+Behavior contract:
+
+- reads queue item context, M51 settings, M52 registry, and M53 metadata validation
+- recommends agent lane, engine, fallback engine, risk/complexity, routing reason, escalation reason, policy source, and operator override context
+- `balanced` recommends local engines for simple work and can recommend Codex for high-value work
+- `codex_only` recommends `codex_cli`
+- `local_only` avoids `codex_cli` and blocks Codex-worthy work without override
+- `cost_saver` prefers local engines and warns on high-risk Codex-worthy work
+- `high_confidence` prefers `codex_cli` for high-risk or high-complexity work
+- `manual_only` requires an explicit operator decision
+- explicit apply writes M53 queue routing metadata only
+
+Still absent by design:
+
+- local LLM execution
+- Codex execution
+- real agent execution
+- GitHub integration or mutation
+- prompt execution
+- queue storage split
+
+Next skeleton focus:
+
+- M55 should add Project AI Settings UI.
+
 ## M53 Queue Routing Metadata Contract
 
 Status: Completed locally on `main`.

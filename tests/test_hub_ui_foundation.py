@@ -442,6 +442,12 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "queue-detail-readiness-summary" in index_text
     assert "routing_agent_lane" in queue_js
     assert "routing_execution: not implemented" in queue_js
+    assert "Routing Decision Matrix v1" in index_text
+    assert "queue-lifecycle-routing-form" in index_text
+    assert "Recommend Routing" in index_text
+    assert "Apply Routing Metadata" in index_text
+    assert "/routing-recommendation" in queue_js
+    assert "/apply-routing-recommendation" in queue_js
     assert "No queue item selected. Select a queue item to inspect details." in index_text
     assert "Local-only and read-only queue view: no queue mutation, no agent execution, no GitHub sync/mutation." in index_text
     assert "Recommended Next Action" in index_text

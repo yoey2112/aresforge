@@ -43,6 +43,9 @@ from aresforge.hub.api import (
     post_project_factory_scope_package_approve,
     post_project_factory_scope_package,
     post_project_ai_settings,
+    post_local_queue_item_apply_routing_recommendation,
+    post_local_queue_item_routing_recommendation,
+    post_queue_item,
 )
 
 
@@ -161,6 +164,56 @@ def test_agent_engine_registry_api_returns_read_only_contract(tmp_path: Path) ->
     codex = next(engine for engine in payload["engines"] if engine["key"] == "codex_cli")
     assert codex["display_name"] == "Codex CLI"
     assert codex["model_profiles"]["placeholder_only"] is True
+
+
+def test_routing_recommendation_api_preview_and_apply(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    created = post_project_factory_new_project(
+        config,
+        {
+            "name": "Routing API Project",
+            "root_path": str(tmp_path / "workspace"),
+        },
+    )
+    project_id = str(created["active_project_id"])
+    created_item = post_queue_item(
+        config,
+        {
+            "item_id": "routing-api-item",
+            "project_id": project_id,
+            "repo_id": str(created["repo"]["repo_id"]),
+            "title": "Update UI wording",
+            "description": "Small copy change.",
+            "status": "ready",
+            "item_type": "task",
+        },
+    )
+    assert created_item["ok"] is True
+
+    preview = post_local_queue_item_routing_recommendation(
+        config,
+        "routing-api-item",
+        {"risk_level": "low", "complexity_level": "low"},
+    )
+    assert preview["ok"] is True
+    assert preview["recommended_engine"] == "local_coding_llm"
+    assert preview["metadata_written"] is False
+
+    applied = post_local_queue_item_apply_routing_recommendation(
+        config,
+        "routing-api-item",
+        {"risk_level": "low", "complexity_level": "low"},
+    )
+    assert applied["ok"] is True
+    assert applied["metadata_written"] is True
+    assert applied["apply_result"]["routing_metadata"]["recommended_engine"] == "local_coding_llm"
+
+
+def test_routing_recommendation_api_returns_safe_failures(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    missing = post_local_queue_item_routing_recommendation(config, "missing", {})
+    assert missing["ok"] is False
+    assert missing["_status"] == 404
 
 
 def test_project_ai_settings_api_reads_default_and_updates_contract(tmp_path: Path) -> None:

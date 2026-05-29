@@ -1,5 +1,35 @@
 # AresForge Agent Context
 
+## M54 Routing Decision Matrix v1 Context
+
+Status: Completed locally on `main`.
+
+Current recommendation contract:
+
+- operator helpers: `recommend_queue_item_routing(...)` and `apply_queue_item_routing_recommendation(...)`
+- Hub routes: `POST /api/local-queue/items/{item_id}/routing-recommendation` and `POST /api/local-queue/items/{item_id}/apply-routing-recommendation`
+- Queue UI includes separate Recommend Routing and Apply Routing Metadata actions
+
+Decision inputs:
+
+- queue item details
+- optional risk and complexity overrides
+- optional affected files and validation burden
+- M51 project AI settings
+- M52 agent and engine registry
+- M53 queue routing metadata validation
+
+Boundary reminders:
+
+- recommendations do not write metadata unless `write_metadata` is requested or the explicit apply helper/route is used
+- apply writes metadata only; it does not execute routing
+- all outputs keep `execution_allowed: false`
+- no local LLM execution, Codex execution, real agent execution, GitHub integration, prompt execution, queue split, or external workflow is added
+
+Recommended next milestone:
+
+- M55 - Project AI Settings UI.
+
 ## M53 Queue Routing Metadata Contract Context
 
 Status: Completed locally on `main`.

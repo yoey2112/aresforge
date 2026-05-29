@@ -1,5 +1,32 @@
 # AresForge Roadmap
 
+## M54 Routing Decision Matrix v1
+
+Status: Completed locally on `main`.
+
+Delivered scope:
+
+- added local-only Routing Decision Matrix v1 recommendation support
+- used project AI settings, agent/engine registry, queue item classification, risk/complexity inputs, affected files, validation burden, and operator override context
+- added explicit apply support that writes M53 routing metadata only when requested
+- added Hub API support for recommendation preview and explicit apply
+- added minimal Queue UI controls for recommendation preview and metadata apply
+- added targeted tests for balanced, `codex_only`, `local_only`, `cost_saver`, `high_confidence`, and `manual_only` outcomes; non-writing previews; explicit apply; invalid item failure; API behavior; and UI references
+
+Constraints preserved:
+
+- recommendation-only behavior
+- no local LLM execution
+- no Codex execution
+- no real agent execution
+- no GitHub API, no `gh`, no GitHub issues/PRs/workflow activity, no GitHub mutation from the app
+- no external workflow execution
+- no queue storage split
+
+Recommended next milestone:
+
+- M55 - Project AI Settings UI.
+
 ## M53 Queue Routing Metadata Contract
 
 Status: Completed locally on `main`.

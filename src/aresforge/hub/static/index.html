@@ -895,6 +895,20 @@
                 <h4>Start Result</h4>
                 <ul id="queue-lifecycle-start-summary" class="list"></ul>
                 <p id="queue-lifecycle-start-summary-empty" class="empty">No start result yet.</p>
+                <h4>Routing Decision Matrix v1</h4>
+                <p class="message-note">Recommendation-only metadata preview. Applying writes queue metadata only and does not execute prompts, agents, Codex, local LLMs, GitHub, or workflows.</p>
+                <form id="queue-lifecycle-routing-form" class="form-grid">
+                  <label>Risk Level<input id="queue-lifecycle-routing-risk" name="risk_level" placeholder="unknown" /></label>
+                  <label>Complexity Level<input id="queue-lifecycle-routing-complexity" name="complexity_level" placeholder="unknown" /></label>
+                  <label class="full">Affected Files<textarea id="queue-lifecycle-routing-affected-files" name="affected_files" placeholder="One path per line"></textarea></label>
+                  <label class="full">Validation Burden<textarea id="queue-lifecycle-routing-validation-burden" name="validation_burden"></textarea></label>
+                  <button id="queue-lifecycle-routing-recommend-submit" type="submit">Recommend Routing</button>
+                  <button id="queue-lifecycle-routing-apply" type="button">Apply Routing Metadata</button>
+                </form>
+                <ul id="queue-lifecycle-routing-summary" class="list"></ul>
+                <p id="queue-lifecycle-routing-summary-empty" class="empty">No routing recommendation yet.</p>
+                <ul id="queue-lifecycle-routing-warnings" class="list"></ul>
+                <p id="queue-lifecycle-routing-warnings-empty" class="empty">No routing warnings.</p>
               </section>
             </div>
             <div class="split two-col">

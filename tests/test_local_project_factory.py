@@ -7,6 +7,7 @@ from aresforge.config import AppConfig
 from aresforge.operator.local_project_factory import (
     AGENT_LANE_KEYS,
     AI_ENGINE_KEYS,
+    apply_queue_item_routing_recommendation,
     approve_project_documentation_closeout_plan,
     approve_project_execution_phase_approval,
     approve_project_validation_execution_plan,
@@ -16,6 +17,7 @@ from aresforge.operator.local_project_factory import (
     approve_project_milestone_issue_plan,
     approve_project_scope_package,
     read_agent_engine_registry,
+    recommend_queue_item_routing,
     read_project_ai_settings,
     inspect_project_factory_dossier,
     prepare_project_architecture_contract,
@@ -57,6 +59,7 @@ from aresforge.operator.local_project_factory import (
     update_project_validation_execution_plan,
     update_project_scope_package,
 )
+from aresforge.operator.local_project_queue import add_queue_item, inspect_queue_item
 
 
 def _config(tmp_path: Path) -> AppConfig:
@@ -309,6 +312,164 @@ def test_project_ai_settings_manual_only_can_omit_default_engine(tmp_path: Path)
     assert payload["ok"] is True
     assert payload["project_ai_settings"]["project_ai_mode"] == "manual_only"
     assert payload["project_ai_settings"]["default_engine"] == ""
+
+
+def _seed_routing_queue_item(
+    config: AppConfig,
+    tmp_path: Path,
+    *,
+    item_id: str = "m54-routing-item",
+    title: str = "Update UI wording",
+    item_type: str = "task",
+    description: str = "Simple UI copy change.",
+) -> str:
+    created = start_new_project_factory(config, _payload(tmp_path))
+    project_id = str(created["project"]["project_id"])
+    add_result = add_queue_item(
+        config,
+        item_id=item_id,
+        project_id=project_id,
+        repo_id=str(created["repo"]["repo_id"]),
+        title=title,
+        description=description,
+        item_type=item_type,
+        status="ready",
+    )
+    assert add_result["ok"] is True
+    return project_id
+
+
+def test_routing_matrix_balanced_simple_task_recommends_local_without_writing(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    project_id = _seed_routing_queue_item(config, tmp_path)
+
+    payload = recommend_queue_item_routing(config, item_id="m54-routing-item", risk_level="low", complexity_level="low")
+
+    assert payload["ok"] is True
+    assert payload["project_id"] == project_id
+    assert payload["project_ai_mode"] == "balanced"
+    assert payload["recommended_agent_lane"] == "coding"
+    assert payload["recommended_engine"] == "local_coding_llm"
+    assert payload["execution_allowed"] is False
+    assert payload["metadata_written"] is False
+    item = inspect_queue_item(config, item_id="m54-routing-item")["payload"]["item"]
+    assert item["routing_metadata"]["recommended_engine"] == ""
+
+
+def test_routing_matrix_codex_only_recommends_codex_cli(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    project_id = _seed_routing_queue_item(config, tmp_path)
+    update_project_ai_settings(
+        config,
+        project_id,
+        {
+            "project_ai_mode": "codex_only",
+            "available_engines": ["codex_cli"],
+            "disabled_engines": ["local_reasoning_llm", "local_coding_llm"],
+            "default_engine": "codex_cli",
+        },
+    )
+
+    payload = recommend_queue_item_routing(config, item_id="m54-routing-item")
+
+    assert payload["ok"] is True
+    assert payload["recommended_engine"] == "codex_cli"
+    assert payload["project_ai_mode"] == "codex_only"
+
+
+def test_routing_matrix_local_only_blocks_codex_worthy_without_codex_recommendation(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    project_id = _seed_routing_queue_item(
+        config,
+        tmp_path,
+        title="Backend operator lifecycle change",
+        description="High-risk queue closeout lifecycle API change.",
+    )
+    update_project_ai_settings(
+        config,
+        project_id,
+        {
+            "project_ai_mode": "local_only",
+            "available_engines": ["local_reasoning_llm", "local_coding_llm"],
+            "disabled_engines": ["codex_cli"],
+            "default_engine": "local_reasoning_llm",
+        },
+    )
+
+    payload = recommend_queue_item_routing(config, item_id="m54-routing-item", risk_level="high", complexity_level="high")
+
+    assert payload["ok"] is False
+    assert payload["recommended_agent_lane"] == "high_value_codex"
+    assert payload["recommended_engine"] != "codex_cli"
+    assert payload["blockers"]
+
+
+def test_routing_matrix_cost_saver_prefers_local_for_low_risk(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    project_id = _seed_routing_queue_item(config, tmp_path)
+    update_project_ai_settings(config, project_id, {"project_ai_mode": "cost_saver"})
+
+    payload = recommend_queue_item_routing(config, item_id="m54-routing-item", risk_level="low", complexity_level="low")
+
+    assert payload["ok"] is True
+    assert payload["recommended_engine"] == "local_coding_llm"
+
+
+def test_routing_matrix_high_confidence_prefers_codex_for_high_risk(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    project_id = _seed_routing_queue_item(
+        config,
+        tmp_path,
+        title="Backend operator lifecycle change",
+        description="High-risk queue closeout lifecycle API change.",
+    )
+    update_project_ai_settings(config, project_id, {"project_ai_mode": "high_confidence"})
+
+    payload = recommend_queue_item_routing(config, item_id="m54-routing-item", risk_level="high", complexity_level="high")
+
+    assert payload["ok"] is True
+    assert payload["recommended_agent_lane"] == "high_value_codex"
+    assert payload["recommended_engine"] == "codex_cli"
+
+
+def test_routing_matrix_manual_only_requires_operator_decision(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    project_id = _seed_routing_queue_item(config, tmp_path)
+    update_project_ai_settings(config, project_id, {"project_ai_mode": "manual_only", "default_engine": ""})
+
+    payload = recommend_queue_item_routing(config, item_id="m54-routing-item")
+
+    assert payload["ok"] is False
+    assert payload["recommended_engine"] == ""
+    assert payload["blockers"]
+
+
+def test_apply_routing_recommendation_writes_metadata_explicitly(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_routing_queue_item(config, tmp_path)
+
+    payload = apply_queue_item_routing_recommendation(
+        config,
+        item_id="m54-routing-item",
+        risk_level="low",
+        complexity_level="low",
+    )
+
+    assert payload["ok"] is True
+    assert payload["metadata_written"] is True
+    item = inspect_queue_item(config, item_id="m54-routing-item")["payload"]["item"]
+    assert item["routing_metadata"]["recommended_engine"] == "local_coding_llm"
+    assert item["routing_metadata"]["routing_policy_source"].endswith("m54_decision_matrix_v1")
+
+
+def test_routing_matrix_invalid_item_fails(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    start_new_project_factory(config, _payload(tmp_path))
+
+    payload = recommend_queue_item_routing(config, item_id="missing-routing-item")
+
+    assert payload["ok"] is False
+    assert payload["error"] == "queue_item_not_found"
 
 
 def test_inspect_project_factory_dossier_includes_workflow_steps(tmp_path: Path) -> None:

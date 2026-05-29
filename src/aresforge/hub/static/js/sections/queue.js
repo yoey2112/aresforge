@@ -473,6 +473,15 @@ function buildLocalQueueCloseoutPayload() {
   });
 }
 
+function buildRoutingRecommendationPayload({ parseLineList }) {
+  return prunePayload({
+    risk_level: byId("queue-lifecycle-routing-risk").value.trim(),
+    complexity_level: byId("queue-lifecycle-routing-complexity").value.trim(),
+    affected_files: parseLineList(byId("queue-lifecycle-routing-affected-files").value),
+    validation_burden: byId("queue-lifecycle-routing-validation-burden").value.trim(),
+  });
+}
+
 export function renderLocalQueueAddResult(payload) {
   setList("queue-lifecycle-add-result", "queue-lifecycle-add-result-empty", [
     `item_id: ${payload && payload.item_id ? payload.item_id : "-"}`,
@@ -566,6 +575,25 @@ function renderLocalQueueCloseoutResult(payload) {
   setList("queue-lifecycle-closeout-warnings", "queue-lifecycle-closeout-warnings-empty", (payload && payload.warnings) || []);
 }
 
+function renderRoutingRecommendationResult(payload) {
+  setList("queue-lifecycle-routing-summary", "queue-lifecycle-routing-summary-empty", [
+    `item_id: ${payload && payload.item_id ? payload.item_id : "-"}`,
+    `project_ai_mode: ${payload && payload.project_ai_mode ? payload.project_ai_mode : "-"}`,
+    `recommended_agent_lane: ${payload && payload.recommended_agent_lane ? payload.recommended_agent_lane : "manual_required"}`,
+    `recommended_engine: ${payload && payload.recommended_engine ? payload.recommended_engine : "manual_required"}`,
+    `fallback_engine: ${payload && payload.fallback_engine ? payload.fallback_engine : "-"}`,
+    `risk_level: ${payload && payload.risk_level ? payload.risk_level : "unknown"}`,
+    `complexity_level: ${payload && payload.complexity_level ? payload.complexity_level : "unknown"}`,
+    `metadata_written: ${Boolean(payload && payload.metadata_written)}`,
+    `execution_allowed: ${Boolean(payload && payload.execution_allowed)}`,
+    `next_safe_action: ${payload && payload.next_safe_action ? payload.next_safe_action : "-"}`,
+  ]);
+  setList("queue-lifecycle-routing-warnings", "queue-lifecycle-routing-warnings-empty", [
+    ...((payload && payload.warnings) || []),
+    ...((payload && payload.blockers) || []),
+  ]);
+}
+
 export function bindQueueLifecycleActions({
   parseCommaList,
   parseLineList,
@@ -630,6 +658,54 @@ export function bindQueueLifecycleActions({
       setMessage("queue-lifecycle-message", `Started ${itemId}.`, "success");
     } catch (error) {
       renderLocalQueueStartResult((error && error.payload) || { item_id: selectedLocalQueueLifecycleItemId() });
+      setMessage("queue-lifecycle-message", String(error.message || error), "error");
+    }
+  });
+
+  on("queue-lifecycle-routing-form", "submit", async (event) => {
+    event.preventDefault();
+    const submitButton = byId("queue-lifecycle-routing-recommend-submit");
+    const originalLabel = submitButton ? submitButton.textContent : "";
+    try {
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = "Recommending...";
+      }
+      const itemId = requireLocalQueueLifecycleItemId();
+      setMessage("queue-lifecycle-message", `Recommending routing metadata for ${itemId}...`, "loading");
+      const payload = await fetchJson(`/api/local-queue/items/${encodeURIComponent(itemId)}/routing-recommendation`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildRoutingRecommendationPayload({ parseLineList })),
+      });
+      renderRoutingRecommendationResult(payload);
+      setMessage("queue-lifecycle-message", `Routing recommendation loaded for ${itemId}. No execution performed.`, "success");
+    } catch (error) {
+      renderRoutingRecommendationResult((error && error.payload) || null);
+      setMessage("queue-lifecycle-message", String(error.message || error), "error");
+    } finally {
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = originalLabel;
+      }
+    }
+  });
+
+  on("queue-lifecycle-routing-apply", "click", async () => {
+    try {
+      const itemId = requireLocalQueueLifecycleItemId();
+      setMessage("queue-lifecycle-message", `Applying routing metadata for ${itemId}...`, "loading");
+      const payload = await fetchJson(`/api/local-queue/items/${encodeURIComponent(itemId)}/apply-routing-recommendation`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildRoutingRecommendationPayload({ parseLineList })),
+      });
+      renderRoutingRecommendationResult(payload);
+      await loadQueueData();
+      await refreshSummaryAndReport();
+      setMessage("queue-lifecycle-message", `Routing metadata applied for ${itemId}. No execution performed.`, "success");
+    } catch (error) {
+      renderRoutingRecommendationResult((error && error.payload) || null);
       setMessage("queue-lifecycle-message", String(error.message || error), "error");
     }
   });

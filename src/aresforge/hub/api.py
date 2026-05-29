@@ -60,6 +60,7 @@ from aresforge.operator.local_bootstrap_wizard import (
 from aresforge.operator.local_project_factory import (
     AGENT_LANE_KEYS,
     AI_ENGINE_KEYS,
+    apply_queue_item_routing_recommendation,
     approve_project_documentation_closeout_plan,
     approve_project_execution_phase_approval,
     approve_project_validation_execution_plan,
@@ -81,6 +82,7 @@ from aresforge.operator.local_project_factory import (
     prepare_project_milestone_issue_plan,
     prepare_project_scope_package,
     read_agent_engine_registry,
+    recommend_queue_item_routing,
     read_project_architecture_contract,
     read_project_documentation_closeout_plan,
     read_project_execution_readiness,
@@ -2729,6 +2731,66 @@ def post_local_queue_item_routing_metadata(config: AppConfig, item_id: str, body
     )
     if not payload.get("ok", False):
         payload["_status"] = _status_for_local_queue_result(payload)
+    return payload
+
+
+def post_local_queue_item_routing_recommendation(config: AppConfig, item_id: str, body: dict[str, Any]) -> dict[str, Any]:
+    for field in ("affected_files",):
+        valid, error_payload = _require_list_field(body, field)
+        if not valid:
+            return error_payload or _api_error(f"invalid_{field}", f"{field} must be a list of strings.")
+    valid_bool, bool_error = _require_boolean_field(body, "write_metadata")
+    if not valid_bool:
+        return bool_error or _api_error("invalid_write_metadata", "write_metadata must be boolean.")
+
+    payload = dict(
+        recommend_queue_item_routing(
+            config,
+            item_id=item_id,
+            project_id=_normalize_optional_str(body.get("project_id")),
+            operator_override=body.get("operator_override") if "operator_override" in body else None,
+            risk_level=_normalize_optional_str(body.get("risk_level")),
+            complexity_level=_normalize_optional_str(body.get("complexity_level")),
+            affected_files=_normalize_optional_list(body.get("affected_files")),
+            validation_burden=_normalize_optional_str(body.get("validation_burden")),
+            write_metadata=bool(body.get("write_metadata", False)),
+        )
+    )
+    payload["service"] = SERVICE_NAME
+    payload["boundary_confirmations"] = _merge_boundary_confirmations(
+        payload,
+        "Routing recommendation is advisory and non-executing.",
+    )
+    if not payload.get("ok", False):
+        payload["_status"] = 404 if str(payload.get("error", "")) in {"project_queue_not_found", "queue_item_not_found"} else 409
+    return payload
+
+
+def post_local_queue_item_apply_routing_recommendation(config: AppConfig, item_id: str, body: dict[str, Any]) -> dict[str, Any]:
+    for field in ("affected_files",):
+        valid, error_payload = _require_list_field(body, field)
+        if not valid:
+            return error_payload or _api_error(f"invalid_{field}", f"{field} must be a list of strings.")
+
+    payload = dict(
+        apply_queue_item_routing_recommendation(
+            config,
+            item_id=item_id,
+            project_id=_normalize_optional_str(body.get("project_id")),
+            operator_override=body.get("operator_override") if "operator_override" in body else None,
+            risk_level=_normalize_optional_str(body.get("risk_level")),
+            complexity_level=_normalize_optional_str(body.get("complexity_level")),
+            affected_files=_normalize_optional_list(body.get("affected_files")),
+            validation_burden=_normalize_optional_str(body.get("validation_burden")),
+        )
+    )
+    payload["service"] = SERVICE_NAME
+    payload["boundary_confirmations"] = _merge_boundary_confirmations(
+        payload,
+        "Applying routing recommendation writes metadata only and does not execute routing.",
+    )
+    if not payload.get("ok", False):
+        payload["_status"] = 404 if str(payload.get("error", "")) in {"project_queue_not_found", "queue_item_not_found"} else 409
     return payload
 
 

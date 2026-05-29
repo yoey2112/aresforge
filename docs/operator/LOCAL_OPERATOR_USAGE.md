@@ -1,5 +1,29 @@
 # Local Operator Usage
 
+## M54 Routing Decision Matrix v1
+
+Status: Completed locally on `main`.
+
+Operator workflow:
+
+1. Select or enter a queue item in Queue lifecycle controls.
+2. Optionally enter risk level, complexity level, affected files, and validation burden.
+3. Use Recommend Routing to preview routing metadata.
+4. Review blockers, warnings, recommendation reason, and `execution_allowed: false`.
+5. Use Apply Routing Metadata only when the operator explicitly wants to write metadata to the queue item.
+
+Operator safety notes:
+
+- recommendation preview is read-only
+- applying a recommendation writes M53 metadata only
+- no prompt is generated or executed by routing recommendation
+- no Codex, agents, local LLMs, GitHub, `gh`, workflows, push, queue split, or external service is used
+- `manual_only` project mode requires operator decision instead of automatic engine recommendation
+
+Recommended next milestone:
+
+- M55 - Project AI Settings UI.
+
 ## M53 Queue Routing Metadata Contract
 
 Status: Completed locally on `main`.

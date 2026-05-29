@@ -8,7 +8,15 @@ from typing import Any
 
 from aresforge.config import AppConfig
 from aresforge.operator.local_active_project import inspect_active_project, set_active_project
-from aresforge.operator.local_project_queue import add_queue_item, init_project_queue, resolve_project_queue_path
+from aresforge.operator.local_project_queue import (
+    add_queue_item,
+    default_queue_routing_metadata,
+    init_project_queue,
+    inspect_queue_item,
+    resolve_project_queue_path,
+    update_local_queue_item_routing_metadata,
+    validate_queue_routing_metadata,
+)
 from aresforge.operator.managed_project_registry_local import (
     init_managed_project_registry,
     register_managed_project,
@@ -3126,6 +3134,219 @@ def read_agent_engine_registry(config: AppConfig) -> dict[str, Any]:
     }
 
 
+def recommend_queue_item_routing(
+    config: AppConfig,
+    *,
+    item_id: str,
+    project_id: str | None = None,
+    operator_override: bool | dict[str, Any] | None = None,
+    risk_level: str | None = None,
+    complexity_level: str | None = None,
+    affected_files: list[str] | None = None,
+    validation_burden: str | None = None,
+    write_metadata: bool = False,
+) -> dict[str, Any]:
+    item_result = inspect_queue_item(config, item_id=item_id, output_format="json")
+    if not item_result.get("ok", False):
+        return item_result
+
+    payload = item_result.get("payload", {}) if isinstance(item_result.get("payload"), dict) else {}
+    item = payload.get("item", {}) if isinstance(payload.get("item"), dict) else {}
+    normalized_item_id = str(item.get("item_id", item_id)).strip()
+    normalized_project_id = str(project_id or item.get("project_id", "")).strip()
+    if not normalized_project_id:
+        return _error(
+            "project_id_not_available",
+            {
+                "message": "Project id is required or must be derivable from the queue item.",
+                "item_id": normalized_item_id,
+            },
+        )
+
+    settings_result = read_project_ai_settings(config, normalized_project_id)
+    if not settings_result.get("ok", False):
+        return settings_result
+    settings = settings_result.get("project_ai_settings", {}) if isinstance(settings_result.get("project_ai_settings"), dict) else {}
+    project_ai_mode = str(settings.get("project_ai_mode", "balanced")).strip() or "balanced"
+    available_engines = [str(engine).strip() for engine in settings.get("available_engines", []) if str(engine).strip()]
+    disabled_engines = {str(engine).strip() for engine in settings.get("disabled_engines", []) if str(engine).strip()}
+    allowed_project_engines = [engine for engine in available_engines if engine not in disabled_engines]
+
+    registry = read_agent_engine_registry(config)
+    lanes = registry.get("agent_lanes", []) if isinstance(registry.get("agent_lanes"), list) else []
+    lane_by_key = {str(lane.get("key", "")).strip(): lane for lane in lanes if isinstance(lane, dict)}
+
+    normalized_affected_files = _normalize_text_list(affected_files)
+    normalized_risk = _normalize_routing_level(risk_level, supported={"low", "medium", "high", "critical", "unknown"})
+    normalized_complexity = _normalize_routing_level(complexity_level, supported={"low", "medium", "high", "unknown"})
+    classification = _classify_queue_item_for_routing(
+        item,
+        affected_files=normalized_affected_files,
+        risk_level=normalized_risk,
+        complexity_level=normalized_complexity,
+        validation_burden=validation_burden,
+    )
+    lane_key = str(classification.get("agent_lane", "coding")).strip() or "coding"
+    lane = lane_by_key.get(lane_key, {})
+    lane_allowed_engines = [
+        str(engine).strip()
+        for engine in lane.get("default_allowed_engines", [])
+        if str(engine).strip()
+    ]
+    candidate_engines = [engine for engine in lane_allowed_engines if engine in allowed_project_engines]
+
+    warnings: list[str] = []
+    blockers: list[str] = []
+    recommended_engine = ""
+    fallback_engine = ""
+    escalation_reason = str(classification.get("escalation_reason", "")).strip()
+    operator_override_value: bool | dict[str, Any] = operator_override if operator_override is not None else False
+    override_requested = bool(operator_override_value)
+
+    if project_ai_mode == "manual_only" and not override_requested:
+        blockers.append("manual_only project AI mode requires an explicit operator routing decision.")
+    elif project_ai_mode == "codex_only":
+        recommended_engine = "codex_cli" if "codex_cli" in candidate_engines or "codex_cli" in allowed_project_engines else ""
+        if not recommended_engine:
+            blockers.append("codex_only project policy has no allowed codex_cli engine available.")
+    elif project_ai_mode == "local_only":
+        local_candidates = [engine for engine in candidate_engines if engine != "codex_cli"]
+        if lane_key == "high_value_codex" and not override_requested:
+            blockers.append("local_only policy blocks Codex-worthy work until an operator override changes the metadata recommendation.")
+        else:
+            recommended_engine = _prefer_local_engine(local_candidates, lane_key)
+            if not recommended_engine:
+                blockers.append("local_only project policy has no allowed local engine for this lane.")
+    elif project_ai_mode == "cost_saver":
+        local_candidates = [engine for engine in candidate_engines if engine != "codex_cli"]
+        recommended_engine = _prefer_local_engine(local_candidates, lane_key)
+        if lane_key == "high_value_codex" or normalized_risk in {"high", "critical"}:
+            warnings.append("cost_saver prefers local engines; high-risk Codex-worthy work should be reviewed before applying metadata.")
+            if not recommended_engine:
+                blockers.append("cost_saver could not find an allowed local engine for high-risk work.")
+    elif project_ai_mode == "high_confidence" and (
+        lane_key == "high_value_codex" or normalized_risk in {"high", "critical"} or normalized_complexity == "high"
+    ):
+        if "codex_cli" in candidate_engines or "codex_cli" in allowed_project_engines:
+            recommended_engine = "codex_cli"
+        else:
+            recommended_engine = _prefer_local_engine(candidate_engines, lane_key)
+            warnings.append("high_confidence would prefer codex_cli, but it is not allowed by the current project/lane settings.")
+    else:
+        if lane_key == "high_value_codex" and "codex_cli" in candidate_engines:
+            recommended_engine = "codex_cli"
+        else:
+            recommended_engine = _prefer_local_engine(candidate_engines, lane_key)
+            if not recommended_engine and "codex_cli" in candidate_engines:
+                recommended_engine = "codex_cli"
+
+    if recommended_engine:
+        fallback_candidates = [engine for engine in candidate_engines if engine != recommended_engine]
+        fallback_engine = fallback_candidates[0] if fallback_candidates else ""
+    recommended_model = ""
+    fallback_model = ""
+    routing_reason = _build_routing_reason(
+        project_ai_mode=project_ai_mode,
+        lane_key=lane_key,
+        recommended_engine=recommended_engine,
+        classification=classification,
+    )
+    routing_policy_source = "project_ai_settings+m52_agent_engine_registry+m54_decision_matrix_v1"
+
+    metadata = default_queue_routing_metadata(
+        {
+            "recommended_agent_lane": lane_key if not blockers or recommended_engine else lane_key,
+            "recommended_engine": recommended_engine,
+            "recommended_model": recommended_model,
+            "fallback_engine": fallback_engine,
+            "fallback_model": fallback_model,
+            "routing_policy_source": routing_policy_source,
+            "routing_reason": routing_reason,
+            "risk_level": normalized_risk,
+            "complexity_level": normalized_complexity,
+            "escalation_reason": escalation_reason,
+            "project_ai_mode": project_ai_mode,
+            "operator_override": operator_override_value,
+        }
+    )
+    validation = validate_queue_routing_metadata(metadata)
+    blockers.extend(list(validation.get("blockers", [])))
+    warnings.extend(list(validation.get("warnings", [])))
+
+    result: dict[str, Any] = {
+        "ok": not blockers,
+        "local_only": True,
+        "recommendation_only": not write_metadata,
+        "item_id": normalized_item_id,
+        "project_id": normalized_project_id,
+        "project_ai_mode": project_ai_mode,
+        "recommended_agent_lane": metadata["recommended_agent_lane"],
+        "recommended_engine": metadata["recommended_engine"],
+        "recommended_model": metadata["recommended_model"],
+        "fallback_engine": metadata["fallback_engine"],
+        "fallback_model": metadata["fallback_model"],
+        "routing_policy_source": metadata["routing_policy_source"],
+        "routing_reason": metadata["routing_reason"],
+        "risk_level": metadata["risk_level"],
+        "complexity_level": metadata["complexity_level"],
+        "escalation_reason": metadata["escalation_reason"],
+        "operator_override": metadata["operator_override"],
+        "execution_allowed": False,
+        "routing_metadata": metadata,
+        "validation": validation,
+        "next_safe_action": "review_routing_recommendation_before_explicitly_applying_metadata",
+        "warnings": sorted(set(warnings)),
+        "blockers": sorted(set(blockers)),
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS)
+        + [
+            "Routing Decision Matrix v1 recommends metadata only.",
+            "No local LLM, Codex, agent, GitHub, prompt, workflow, or external execution is performed.",
+        ],
+    }
+    if blockers:
+        return result
+
+    if write_metadata:
+        applied = update_local_queue_item_routing_metadata(
+            config,
+            item_id=normalized_item_id,
+            routing_metadata=metadata,
+        )
+        result["metadata_written"] = bool(applied.get("ok", False))
+        result["apply_result"] = applied
+        result["next_safe_action"] = "routing_metadata_applied_review_queue_item_before_any_future_prompt_generation"
+        if not applied.get("ok", False):
+            result["ok"] = False
+            result["blockers"] = sorted(set(result["blockers"] + [str(applied.get("error", "metadata_apply_failed"))]))
+    else:
+        result["metadata_written"] = False
+    return result
+
+
+def apply_queue_item_routing_recommendation(
+    config: AppConfig,
+    *,
+    item_id: str,
+    project_id: str | None = None,
+    operator_override: bool | dict[str, Any] | None = None,
+    risk_level: str | None = None,
+    complexity_level: str | None = None,
+    affected_files: list[str] | None = None,
+    validation_burden: str | None = None,
+) -> dict[str, Any]:
+    return recommend_queue_item_routing(
+        config,
+        item_id=item_id,
+        project_id=project_id,
+        operator_override=operator_override,
+        risk_level=risk_level,
+        complexity_level=complexity_level,
+        affected_files=affected_files,
+        validation_burden=validation_burden,
+        write_metadata=True,
+    )
+
+
 def start_new_project_factory(config: AppConfig, payload: dict[str, Any]) -> dict[str, Any]:
     name = str(payload.get("name", "")).strip()
     if not name:
@@ -3760,6 +3981,87 @@ def _build_engine_registry() -> list[dict[str, Any]]:
             "operator_gate_required": True,
         },
     ]
+
+
+def _normalize_routing_level(value: str | None, *, supported: set[str]) -> str:
+    normalized = str(value or "").strip().lower()
+    if not normalized:
+        return "unknown"
+    return normalized if normalized in supported else "unknown"
+
+
+def _classify_queue_item_for_routing(
+    item: dict[str, Any],
+    *,
+    affected_files: list[str],
+    risk_level: str,
+    complexity_level: str,
+    validation_burden: str | None,
+) -> dict[str, Any]:
+    item_type = str(item.get("item_type", "")).strip()
+    text = " ".join(
+        [
+            str(item.get("title", "")),
+            str(item.get("description", "")),
+            str(item.get("notes", "")),
+            " ".join(str(tag) for tag in item.get("tags", []) if str(tag).strip()),
+            " ".join(affected_files),
+            str(validation_burden or ""),
+        ]
+    ).lower()
+    lane = "coding"
+    task_kind = "coding"
+    escalation_reason = ""
+
+    if item_type == "documentation" or any(token in text for token in ("docs", "documentation", "readme", ".md")):
+        lane = "documentation"
+        task_kind = "documentation"
+    if item_type == "validation" or any(token in text for token in ("test", "pytest", "validation", "smoke")):
+        lane = "test"
+        task_kind = "validation"
+    if any(token in text for token in ("review", "validator", "closeout", "evidence")):
+        lane = "reviewer_validator"
+        task_kind = "review"
+    if any(token in text for token in ("architecture", "architect", "planner", "design")):
+        lane = "architect_planner"
+        task_kind = "planning"
+    if any(token in text for token in ("operator", "lifecycle", "backend", "api", "queue", "closeout")) and (
+        risk_level in {"high", "critical"} or complexity_level == "high"
+    ):
+        lane = "high_value_codex"
+        task_kind = "high_value_backend_or_operator_lifecycle"
+        escalation_reason = "High-risk or high-complexity backend/operator lifecycle work."
+    if any(token in text for token in ("ui", "wording", "copy", "label")) and lane == "coding":
+        task_kind = "simple_ui_or_wording"
+
+    return {
+        "agent_lane": lane,
+        "task_kind": task_kind,
+        "escalation_reason": escalation_reason,
+    }
+
+
+def _prefer_local_engine(candidates: list[str], lane_key: str) -> str:
+    if lane_key in {"coding", "documentation"} and "local_coding_llm" in candidates:
+        return "local_coding_llm"
+    if "local_reasoning_llm" in candidates:
+        return "local_reasoning_llm"
+    if "local_coding_llm" in candidates:
+        return "local_coding_llm"
+    return candidates[0] if candidates else ""
+
+
+def _build_routing_reason(
+    *,
+    project_ai_mode: str,
+    lane_key: str,
+    recommended_engine: str,
+    classification: dict[str, Any],
+) -> str:
+    task_kind = str(classification.get("task_kind", "queue_item")).strip()
+    if not recommended_engine:
+        return f"{project_ai_mode} policy requires manual review for {task_kind} in lane {lane_key}."
+    return f"{project_ai_mode} policy recommends {recommended_engine} for {task_kind} in lane {lane_key}; recommendation only, no execution."
 
 
 def _build_workflow_steps(*, lifecycle_state: str, github_mode: str) -> list[dict[str, Any]]:
