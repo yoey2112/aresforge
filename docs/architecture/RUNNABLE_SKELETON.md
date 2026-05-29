@@ -1,5 +1,21 @@
 # Runnable Skeleton
 
+## M37 Dashboard Refresh, Empty States, and Error States
+
+Status: Completed locally on main.
+
+Delivered:
+
+- Home dashboard refresh remains manual and re-reads GET /api/dashboard/summary
+- clarified loading state messaging for local-only read-only advisory dashboard reads
+- refined empty/error state messaging for missing active project, zero work, and summary fetch failures
+- added a last-successful-load label for operator clarity
+
+Boundary posture:
+
+- local-only/read-only/advisory dashboard visibility
+- no polling or background refresh
+- no mutation, no execution, no GitHub/gh calls, no agent/Codex/model execution, no LLM routing
 ## M39 Queue And Agent Dashboard Drilldowns
 
 Status: Completed locally on main.

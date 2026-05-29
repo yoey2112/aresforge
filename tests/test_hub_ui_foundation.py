@@ -380,6 +380,8 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "projects-readonly-list" in index_text
     assert "Local-only and read-only project view: no project mutations, no GitHub sync/mutation, no agent/model execution." in index_text
     assert "Local Home Dashboard" in index_text
+    assert "home-local-dashboard-last-loaded" in index_text
+    assert "home-local-dashboard-error" in index_text
     assert "Total Projects" in index_text
     assert "Active Project" in index_text
     assert "Active Project Status" in index_text
@@ -585,6 +587,10 @@ def test_frontend_scripts_reference_m39_api_endpoints_and_forms() -> None:
     assert "home-documentation-closeout-items" in combined_text
     assert "home-documentation-closeout-evidence-packages" in combined_text
     assert "home-documentation-closeout-checks" in combined_text
+    home_text = _frontend_script_texts()["js/sections/home.js"]
+    assert "setInterval(" not in home_text
+    assert "setTimeout(" not in home_text
+    assert "/api/dashboard/summary" in home_text
 
 
 def test_active_project_workspace_api_reuses_local_only_dashboard_and_report_data(tmp_path: Path) -> None:

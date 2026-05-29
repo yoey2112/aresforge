@@ -1,6 +1,15 @@
 import { byId, on, setList, setMessage, setText } from "/js/core/dom.js";
 import { fetchJson } from "/js/core/http.js";
 
+function renderDashboardErrorState(message, hasError) {
+  const errorNote = byId("home-local-dashboard-error");
+  if (!errorNote) {
+    return;
+  }
+  errorNote.textContent = message;
+  errorNote.className = hasError ? "message-note status-pill-needs_attention" : "message-note";
+}
+
 function queueStatusAdvisory(statusName, count) {
   if (count <= 0) {
     return "none currently";
@@ -149,12 +158,24 @@ export function renderLocalHomeDashboard(dashboard) {
     "home-local-recommended-next-action",
     dashboard.next_safe_action || "No safe next action recommendation available yet.",
   );
-  setText("home-local-dashboard-message", "Read-only local dashboard snapshot loaded from /api/dashboard/summary.");
+  setText(
+    "home-local-dashboard-message",
+    "Read-only local dashboard snapshot loaded from /api/dashboard/summary. No execution started from this dashboard.",
+  );
+  setText(
+    "home-local-dashboard-last-loaded",
+    `Last successful local dashboard load: ${new Date().toISOString()} (manual refresh only)`,
+  );
+  renderDashboardErrorState("No local dashboard errors.", false);
 }
 
 export function renderLocalHomeDashboardUnavailable() {
-  setText("home-local-dashboard-message", "Local home dashboard data is unavailable.");
+  setText(
+    "home-local-dashboard-message",
+    "Local home dashboard data is unavailable. Dashboard remains local-only, read-only, and advisory.",
+  );
   setText("home-local-recommended-next-action", "Use Refresh Summary to retry /api/dashboard/summary.");
+  setText("home-local-dashboard-last-loaded", "Last successful local dashboard load: unavailable.");
   setText("home-local-total-projects", "0");
   setText("home-local-active-project", "No active project selected");
   setText("home-local-active-project-id", "project_id: -");
@@ -179,10 +200,18 @@ export function renderLocalHomeDashboardUnavailable() {
     "home-local-warnings-empty",
     ["Dashboard summary endpoint unavailable."],
   );
+  renderDashboardErrorState(
+    "Local-only dashboard error: unable to read /api/dashboard/summary. No background automation or execution was started.",
+    true,
+  );
 }
 
 export async function loadLocalHomeDashboard() {
-  setText("home-local-dashboard-message", "Loading local read-only dashboard summary...");
+  setText(
+    "home-local-dashboard-message",
+    "Loading local read-only advisory dashboard summary from /api/dashboard/summary (manual refresh only)...",
+  );
+  renderDashboardErrorState("No local dashboard errors.", false);
   const dashboard = await fetchJson("/api/dashboard/summary", { method: "GET" });
   renderLocalHomeDashboard(dashboard);
 }
