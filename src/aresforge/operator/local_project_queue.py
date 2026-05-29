@@ -1708,6 +1708,11 @@ def generate_local_queue_prompt_pack(
     registry_path: str | Path | None = None,
     output: str | Path | None = None,
     force: bool = False,
+    include_routing: bool = True,
+    group_by_routing: bool = False,
+    routing_group_by: str | None = None,
+    include_unrouted: bool = True,
+    recommend_missing_routing: bool = False,
 ) -> dict[str, Any]:
     resolved_queue_path = resolve_project_queue_path(config.repo_root, queue_path)
     loaded = _load_queue_required(resolved_queue_path)
@@ -1757,12 +1762,41 @@ def generate_local_queue_prompt_pack(
             registry_path=registry_path,
         )
 
+    routing_group_fields = {
+        'by_agent_lane': 'recommended_agent_lane',
+        'by_engine': 'recommended_engine',
+        'by_model': 'recommended_model',
+        'by_risk_level': 'risk_level',
+        'by_complexity_level': 'complexity_level',
+        'by_status': 'status',
+    }
+    normalized_routing_group_by = str(routing_group_by or 'by_agent_lane').strip() or 'by_agent_lane'
+    if normalized_routing_group_by not in routing_group_fields:
+        warnings.append(f"Unsupported routing_group_by '{normalized_routing_group_by}' supplied. Falling back to by_agent_lane.")
+        normalized_routing_group_by = 'by_agent_lane'
+    if recommend_missing_routing:
+        warnings.append('recommend_missing_routing is preview-only and not applied by prompt-pack generation.')
+
     groups: dict[str, list[dict[str, Any]]] = {}
     for item in selected:
-        project_id = str(item.get('project_id', '')).strip() or 'unknown-project'
-        priority = str(item.get('priority', '')).strip() or 'normal'
-        item_type = str(item.get('item_type', '')).strip() or 'task'
-        lane = f'{project_id} | {priority} | {item_type}'
+        routing_metadata = default_queue_routing_metadata(item.get('routing_metadata', {}))
+        routed = _is_routed_metadata(routing_metadata)
+        if include_routing and group_by_routing:
+            if not include_unrouted and not routed:
+                continue
+            group_field = routing_group_fields[normalized_routing_group_by]
+            if group_field == 'status':
+                group_value = str(item.get('status', '')).strip()
+            else:
+                group_value = str(routing_metadata.get(group_field, '')).strip()
+            if group_value == 'unknown' and group_field in {'risk_level', 'complexity_level'} and not routed:
+                group_value = ''
+            lane = f'{normalized_routing_group_by}: {group_value or "unrouted"}'
+        else:
+            project_id = str(item.get('project_id', '')).strip() or 'unknown-project'
+            priority = str(item.get('priority', '')).strip() or 'normal'
+            item_type = str(item.get('item_type', '')).strip() or 'task'
+            lane = f'{project_id} | {priority} | {item_type}'
         groups.setdefault(lane, []).append(item)
 
     group_keys = sorted(groups.keys())
@@ -1772,6 +1806,7 @@ def generate_local_queue_prompt_pack(
         '',
         'This output is a local copy/paste prompt pack only.',
         'It does not execute Codex, agents, models, GitHub actions, or network calls.',
+        'Routing recommendations are metadata only and execution_allowed is always false.',
         'Operator must manually copy prompts into external tools if desired.',
         '',
     ]
@@ -1782,21 +1817,50 @@ def generate_local_queue_prompt_pack(
             item_id = str(item.get('item_id', '')).strip()
             readiness = readiness_by_id.get(item_id, {})
             parsed_notes = _parse_queue_item_notes(str(item.get('notes', '')).strip())
+            routing_metadata = default_queue_routing_metadata(item.get('routing_metadata', {}))
+            routed = _is_routed_metadata(routing_metadata)
+            routing_guidance = _prompt_pack_routing_guidance(routing_metadata, routed)
+            dependencies = _normalize_list(item.get('blocked_by', []))
+            prompt_header_lines = [
+                f'--- Prompt {sequence}: {item_id} ---',
+                f'Sequence: {sequence}',
+                f'Dependencies: {", ".join(dependencies) if dependencies else "-"}',
+                f'Queue Item ID: {item_id}',
+                f'Title: {str(item.get("title", "")).strip()}',
+                f'Project ID: {str(item.get("project_id", "")).strip() or "-"}',
+                f'Repo ID: {str(item.get("repo_id", "")).strip() or "-"}',
+                f'Status: {str(item.get("status", "")).strip() or "-"}',
+                f'Priority: {str(item.get("priority", "")).strip() or "-"}',
+                f'Type: {str(item.get("item_type", "")).strip() or "-"}',
+                f'Source: {str(item.get("source", "")).strip() or "-"}',
+                f'Readiness: {str(readiness.get("readiness_status", "")).strip() or "unknown"}',
+                f'Next safe action: {str(readiness.get("recommended_next_action", "")).strip() or "Inspect readiness locally."}',
+                '',
+            ]
+            if include_routing:
+                prompt_header_lines.extend(
+                    [
+                        'Routing metadata:',
+                        f'- recommended_agent_lane: {routing_metadata.get("recommended_agent_lane") or "unrouted"}',
+                        f'- recommended_engine: {routing_metadata.get("recommended_engine") or "unrouted"}',
+                        f'- recommended_model: {routing_metadata.get("recommended_model") or "-"}',
+                        f'- fallback_engine: {routing_metadata.get("fallback_engine") or "-"}',
+                        f'- fallback_model: {routing_metadata.get("fallback_model") or "-"}',
+                        f'- routing_policy_source: {routing_metadata.get("routing_policy_source") or "manual_required"}',
+                        f'- routing_reason: {routing_metadata.get("routing_reason") or routing_guidance}',
+                        f'- risk_level: {routing_metadata.get("risk_level") or "unknown"}',
+                        f'- complexity_level: {routing_metadata.get("complexity_level") or "unknown"}',
+                        f'- escalation_reason: {routing_metadata.get("escalation_reason") or "-"}',
+                        f'- project_ai_mode: {routing_metadata.get("project_ai_mode") or "-"}',
+                        f'- operator_override: {routing_metadata.get("operator_override")}',
+                        '- execution_allowed: false',
+                        f'- guidance: {routing_guidance}',
+                        '',
+                    ]
+                )
             pack_lines.extend(
                 [
-                    f'--- Prompt {sequence}: {item_id} ---',
-                    f'Sequence: {sequence}',
-                    f'Queue Item ID: {item_id}',
-                    f'Title: {str(item.get("title", "")).strip()}',
-                    f'Project ID: {str(item.get("project_id", "")).strip() or "-"}',
-                    f'Repo ID: {str(item.get("repo_id", "")).strip() or "-"}',
-                    f'Status: {str(item.get("status", "")).strip() or "-"}',
-                    f'Priority: {str(item.get("priority", "")).strip() or "-"}',
-                    f'Type: {str(item.get("item_type", "")).strip() or "-"}',
-                    f'Source: {str(item.get("source", "")).strip() or "-"}',
-                    f'Readiness: {str(readiness.get("readiness_status", "")).strip() or "unknown"}',
-                    f'Next safe action: {str(readiness.get("recommended_next_action", "")).strip() or "Inspect readiness locally."}',
-                    '',
+                    *prompt_header_lines,
                     'Task summary/details:',
                     str(item.get('description', '')).strip() or 'No description supplied.',
                     '',
@@ -1820,9 +1884,11 @@ def generate_local_queue_prompt_pack(
                     '',
                     'Operating rules:',
                     '- Local-first only.',
+                    '- Prompt pack is an artifact/preview only.',
                     '- No GitHub API, no gh, no GitHub mutation.',
                     '- No Codex or agent execution from this prompt.',
-                    '- No LLM/model routing.',
+                    '- No prompt execution.',
+                    '- No local LLM execution and no routing execution.',
                     '- No external dependencies/services.',
                     '- Do not auto-start or auto-complete queue items.',
                     '',
@@ -1853,6 +1919,10 @@ def generate_local_queue_prompt_pack(
                     'readiness_status': str(readiness.get('readiness_status', '')).strip(),
                     'next_safe_action': str(readiness.get('recommended_next_action', '')).strip(),
                     'lane': lane,
+                    'dependencies': dependencies,
+                    'routing_metadata': routing_metadata if include_routing else {},
+                    'routing_guidance': routing_guidance if include_routing else '',
+                    'execution_allowed': False,
                 }
             )
             sequence += 1
@@ -1868,6 +1938,12 @@ def generate_local_queue_prompt_pack(
         'selected_item_ids': normalized_item_ids,
         'status_filter': normalized_statuses,
         'groups': group_keys,
+        'include_routing': bool(include_routing),
+        'group_by_routing': bool(group_by_routing),
+        'routing_group_by': normalized_routing_group_by if group_by_routing else '',
+        'include_unrouted': bool(include_unrouted),
+        'recommend_missing_routing': bool(recommend_missing_routing),
+        'execution_allowed': False,
         'items': item_summaries,
         'prompt_pack': prompt_pack_text,
         'next_safe_action': 'Copy prompt text manually into your operator workflow. No automatic execution occurs.',
@@ -3098,6 +3174,17 @@ def _group_routed_items(items: list[dict[str, Any]], field: str) -> dict[str, di
             }
         )
     return dict(sorted(groups.items()))
+
+
+def _prompt_pack_routing_guidance(metadata: dict[str, Any], routed: bool) -> str:
+    engine = str(metadata.get('recommended_engine', '')).strip()
+    if not routed:
+        return 'Manual routing required; this queue item is unrouted and no engine is executed by AresForge.'
+    if engine == 'codex_cli':
+        return 'Codex CLI is recommended for operator review, but AresForge does not execute Codex.'
+    if engine in {'local_reasoning_llm', 'local_coding_llm'}:
+        return f'{engine} is recommended for operator review, but AresForge does not execute local LLMs.'
+    return 'Routing metadata is advisory only; no engine, model, agent, prompt, or workflow is executed by AresForge.'
 
 
 def _dependency_warnings(item: dict[str, Any], queue_items: list[dict[str, Any]]) -> list[str]:

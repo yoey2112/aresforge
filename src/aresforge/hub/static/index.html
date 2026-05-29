@@ -1057,11 +1057,25 @@
                 <pre id="queue-lifecycle-codex-prompt" class="code-block"></pre>
                 <p id="queue-lifecycle-codex-prompt-empty" class="empty">No Codex prompt generated yet.</p>
                 <h4>Agent Prompt Pack Generator</h4>
-                <p class="message-note">Generates local copy/paste prompt pack only. Does not execute Codex or agents. Operator must manually run prompts.</p>
+                <p class="message-note">Generates local copy/paste prompt pack only with advisory routing metadata. Does not execute Codex, local LLMs, agents, prompts, or GitHub. Operator must manually run prompts.</p>
                 <form id="queue-prompt-pack-form" class="form-grid">
                   <label>Item IDs (optional, comma-separated)<input id="queue-prompt-pack-item-ids" name="item_ids" placeholder="item-1,item-2" /></label>
                   <label>Statuses (optional, comma-separated)<input id="queue-prompt-pack-statuses" name="statuses" value="ready,in_progress,proposed" /></label>
                   <label>Output Path (optional)<input id="queue-prompt-pack-output" name="output" placeholder="optional local artifact path" /></label>
+                  <label class="inline-checkbox"><input id="queue-prompt-pack-include-routing" name="include_routing" type="checkbox" checked /> Include routing metadata</label>
+                  <label class="inline-checkbox"><input id="queue-prompt-pack-group-by-routing" name="group_by_routing" type="checkbox" /> Group by routing metadata</label>
+                  <label>Routing Group By
+                    <select id="queue-prompt-pack-routing-group-by" name="routing_group_by">
+                      <option value="by_agent_lane">by_agent_lane</option>
+                      <option value="by_engine">by_engine</option>
+                      <option value="by_model">by_model</option>
+                      <option value="by_risk_level">by_risk_level</option>
+                      <option value="by_complexity_level">by_complexity_level</option>
+                      <option value="by_status">by_status</option>
+                    </select>
+                  </label>
+                  <label class="inline-checkbox"><input id="queue-prompt-pack-include-unrouted" name="include_unrouted" type="checkbox" checked /> Include unrouted items</label>
+                  <label class="inline-checkbox"><input id="queue-prompt-pack-recommend-missing-routing" name="recommend_missing_routing" type="checkbox" /> Preview missing routing only</label>
                   <label><input id="queue-prompt-pack-force" name="force" type="checkbox" /> Force overwrite existing artifact</label>
                   <button id="queue-prompt-pack-submit" type="submit">Generate Agent Prompt Pack</button>
                 </form>

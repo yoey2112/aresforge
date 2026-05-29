@@ -390,6 +390,14 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "queue-lifecycle-codex-form" in index_text
     assert "queue-lifecycle-complete-form" in index_text
     assert "queue-lifecycle-codex-prompt" in index_text
+    assert "Generates local copy/paste prompt pack only with advisory routing metadata" in index_text
+    assert "queue-prompt-pack-include-routing" in index_text
+    assert "queue-prompt-pack-group-by-routing" in index_text
+    assert "queue-prompt-pack-routing-group-by" in index_text
+    assert "queue-prompt-pack-include-unrouted" in index_text
+    assert "queue-prompt-pack-recommend-missing-routing" in index_text
+    assert "include_routing" in queue_js
+    assert "routing_group_by" in queue_js
     assert "Active Project Report Focus" in index_text
     assert "settings-active-project-path" in index_text
     assert "Active Project Task Intake" in index_text

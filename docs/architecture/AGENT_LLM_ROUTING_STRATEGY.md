@@ -2,9 +2,9 @@
 
 ## Status
 
-M44A documented the future Agent/LLM routing strategy. M51 through M56 now add non-executing contracts and local Hub surfaces for project AI settings, agent/engine registry, queue routing metadata, recommendation-only routing decisions, Project AI Settings UI, and routed queue views.
+M44A documented the future Agent/LLM routing strategy. M51 through M57 now add non-executing contracts and local Hub surfaces for project AI settings, agent/engine registry, queue routing metadata, recommendation-only routing decisions, Project AI Settings UI, routed queue views, and routing-aware prompt packs.
 
-Current prompt-pack behavior remains M43 local-only grouped prompt packs for manual operator use. Prompt-pack routing integration, runtime routing, model invocation, Codex execution, local LLM execution, real agent execution, and GitHub integration remain unimplemented.
+Current prompt-pack behavior extends M43 local-only grouped prompt packs with advisory routing metadata. Runtime routing, model invocation, Codex execution, local LLM execution, real agent execution, and GitHub integration remain unimplemented.
 
 ## M51 Project AI Settings Contract
 
@@ -237,7 +237,55 @@ Supported grouped views:
 
 Routed views are not separate queues. They read and group the canonical local queue, include unrouted items by default, handle empty queue state, and return `execution_allowed: false`.
 
-M56 does not split queue storage, implement prompt-pack routing integration, execute routing, invoke local LLMs, invoke Codex, run agents, generate or execute prompts, call GitHub, or run external workflows. M57 should add Prompt Pack Routing Integration.
+M56 does not split queue storage, execute routing, invoke local LLMs, invoke Codex, run agents, generate or execute prompts, call GitHub, or run external workflows.
+
+## M57 Prompt Pack Routing Integration
+
+M57 integrates routing metadata into local-only prompt-pack generation.
+
+Current operator helper:
+
+- `generate_local_queue_prompt_pack(...)`
+
+Current Hub route:
+
+- `POST /api/local-queue/prompt-pack`
+
+Current UI path:
+
+- Queue -> Agent Prompt Pack Generator
+
+Prompt-pack inputs now include:
+
+- `include_routing`
+- `group_by_routing`
+- `routing_group_by`
+- `include_unrouted`
+- `recommend_missing_routing`
+
+Each routed prompt can include:
+
+- project and queue item context
+- sequence and dependencies
+- recommended agent lane
+- recommended engine and model
+- fallback engine and model
+- routing policy source
+- routing reason
+- risk and complexity
+- escalation reason
+- project AI mode
+- operator override state
+- `execution_allowed: false`
+- local-only operating rules
+- validation/smoke expectations
+- final response format template
+
+Unrouted items are labeled as manual routing required. Items recommended for `codex_cli` state that Codex CLI is recommended but not executed by AresForge. Items recommended for `local_reasoning_llm` or `local_coding_llm` state that a local LLM is recommended but not executed by AresForge.
+
+Routing-aware prompt packs can group by agent lane, engine, model, risk level, complexity level, or status. The existing M43 local grouping remains available when routing grouping is disabled.
+
+M57 does not execute prompts, invoke local LLMs, invoke Codex, run agents, apply routing automatically, start or complete queue items, call GitHub, or run external workflows. M58 should add Local LLM Environment Contract.
 
 ## Operating Boundaries
 
@@ -264,7 +312,7 @@ Future routing should follow this flow:
 
 Project -> Agent Lane -> Allowed Engines/Models -> Routing Decision Matrix -> Prompt Pack Output
 
-Routing decisions should happen before prompt generation. A prompt pack should be generated only after the project policy, agent lane, engine/model recommendation, fallback, risk/complexity, routing reason, and sequencing context are known.
+Routing decisions should happen before prompt generation when metadata is available. M57 prompt packs include existing routing metadata and mark missing metadata as manual routing required.
 
 ## Canonical Queue Model
 

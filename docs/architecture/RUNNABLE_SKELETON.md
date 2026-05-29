@@ -1,5 +1,40 @@
 # Runnable Skeleton
 
+## M57 Prompt Pack Routing Integration
+
+Status: Completed locally on `main`.
+
+Implemented runnable path:
+
+- operator helper: `generate_local_queue_prompt_pack(...)`
+- Hub route: `POST /api/local-queue/prompt-pack`
+- Queue UI panel: Agent Prompt Pack Generator
+
+Behavior contract:
+
+- prompt packs include routing metadata by default
+- unrouted items are marked as manual routing required
+- Codex and local LLM recommendations are advisory only
+- prompt items include dependencies when available
+- routing grouping can be enabled for agent lane, engine, model, risk, complexity, or status
+- `execution_allowed` is always false
+- safe artifact output behavior still refuses overwrite unless `force=true`
+
+Still absent by design:
+
+- prompt execution
+- automatic routing apply
+- queue item start or completion
+- local LLM execution
+- Codex execution
+- real agent execution
+- GitHub integration or mutation
+- queue storage split
+
+Next skeleton focus:
+
+- M58 should add Local LLM Environment Contract.
+
 ## M56 Routed Queue Views
 
 Status: Completed locally on `main`.

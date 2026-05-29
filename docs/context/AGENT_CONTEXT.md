@@ -1,5 +1,38 @@
 # AresForge Agent Context
 
+## M57 Prompt Pack Routing Integration Context
+
+Status: Completed locally on `main`.
+
+Current prompt-pack routing contract:
+
+- `generate_local_queue_prompt_pack(...)` includes routing metadata in generated prompts by default
+- Hub prompt-pack API accepts `include_routing`, `group_by_routing`, `routing_group_by`, `include_unrouted`, and `recommend_missing_routing`
+- Queue UI exposes prompt-pack routing controls and preview output
+- output item summaries include routing metadata, dependencies, routing guidance, and `execution_allowed: false`
+- unrouted items say manual routing is required
+- `codex_cli` recommendations say Codex CLI is recommended but not executed
+- `local_reasoning_llm` and `local_coding_llm` recommendations say local LLMs are recommended but not executed
+
+Supported routing prompt-pack groups:
+
+- `by_agent_lane`
+- `by_engine`
+- `by_model`
+- `by_risk_level`
+- `by_complexity_level`
+- `by_status`
+
+Boundary reminders:
+
+- prompt packs are artifacts/previews only
+- generation does not start, complete, route, or execute queue items
+- no queue split, local LLM execution, Codex execution, real agent execution, GitHub integration, prompt execution, or external workflow is added
+
+Recommended next milestone:
+
+- M58 - Local LLM Environment Contract.
+
 ## M56 Routed Queue Views Context
 
 Status: Completed locally on `main`.

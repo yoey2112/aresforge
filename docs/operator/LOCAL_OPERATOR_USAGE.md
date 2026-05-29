@@ -1,5 +1,32 @@
 # Local Operator Usage
 
+## M57 Prompt Pack Routing Integration
+
+Status: Completed locally on `main`.
+
+Operator workflow:
+
+1. Open Queue.
+2. Use Agent Prompt Pack Generator.
+3. Leave Include routing metadata enabled for routed prompt-pack output.
+4. Optionally enable Group by routing metadata and choose agent lane, engine, model, risk, complexity, or status grouping.
+5. Generate the prompt pack and copy/paste the preview manually.
+6. Optionally write a local artifact path; existing files are not overwritten unless Force overwrite is enabled.
+
+Operator safety notes:
+
+- prompt packs are local artifacts/previews only
+- routing metadata is advisory and non-executing
+- unrouted items are labeled as manual routing required
+- Codex CLI recommendations do not execute Codex
+- local LLM recommendations do not execute local LLMs
+- prompt-pack generation does not start, complete, route, or execute queue items
+- prompt-pack generation does not call GitHub, `gh`, workflows, push, or external services
+
+Recommended next milestone:
+
+- M58 - Local LLM Environment Contract.
+
 ## M56 Routed Queue Views
 
 Status: Completed locally on `main`.

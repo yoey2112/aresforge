@@ -622,7 +622,109 @@ def test_generate_local_queue_prompt_pack_groups_and_writes_artifact(tmp_path: P
     assert payload['output_path'] == str(output)
     assert output.exists()
     assert 'Agent Prompt Pack (Local-Only)' in payload['prompt_pack']
+    assert payload['include_routing'] is True
+    assert payload['execution_allowed'] is False
+    assert '- recommended_agent_lane: unrouted' in payload['prompt_pack']
+    assert 'Manual routing required; this queue item is unrouted' in payload['prompt_pack']
+    assert '- execution_allowed: false' in payload['prompt_pack']
     assert 'Final response format:' in payload['prompt_pack']
+
+    duplicate = generate_local_queue_prompt_pack(config, output=output)
+    assert duplicate['ok'] is False
+    assert any('already exists' in warning for warning in duplicate['warnings'])
+
+
+def test_generate_local_queue_prompt_pack_includes_routing_metadata_and_groups_by_agent_lane(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='q-routed-codex',
+        project_id='p1',
+        repo_id='r1',
+        title='High value backend change',
+        description='Backend lifecycle change that should be reviewed carefully.',
+        status='ready',
+        priority='high',
+        item_type='feature',
+        blocked_by=['q-design'],
+    )['ok'] is True
+    assert update_local_queue_item_routing_metadata(
+        config,
+        item_id='q-routed-codex',
+        routing_metadata={
+            'recommended_agent_lane': 'high_value_codex',
+            'recommended_engine': 'codex_cli',
+            'recommended_model': 'codex-high',
+            'fallback_engine': 'local_reasoning_llm',
+            'fallback_model': 'local-reason',
+            'routing_policy_source': 'm54_decision_matrix_v1',
+            'routing_reason': 'High-value backend/operator lifecycle change.',
+            'risk_level': 'high',
+            'complexity_level': 'high',
+            'escalation_reason': 'Operator lifecycle change.',
+            'project_ai_mode': 'high_confidence',
+            'operator_override': True,
+        },
+    )['ok'] is True
+
+    payload = generate_local_queue_prompt_pack(
+        config,
+        statuses=['ready'],
+        group_by_routing=True,
+        routing_group_by='by_agent_lane',
+    )
+
+    assert payload['ok'] is True
+    assert payload['groups'] == ['by_agent_lane: high_value_codex']
+    assert payload['items'][0]['dependencies'] == ['q-design']
+    assert payload['items'][0]['execution_allowed'] is False
+    assert payload['items'][0]['routing_metadata']['recommended_engine'] == 'codex_cli'
+    assert 'recommended_agent_lane: high_value_codex' in payload['prompt_pack']
+    assert 'recommended_engine: codex_cli' in payload['prompt_pack']
+    assert 'Codex CLI is recommended for operator review, but AresForge does not execute Codex.' in payload['prompt_pack']
+    assert 'Dependencies: q-design' in payload['prompt_pack']
+
+
+def test_generate_local_queue_prompt_pack_groups_by_engine_and_marks_local_llm_recommendation_only(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='q-routed-local',
+        project_id='p1',
+        repo_id='r1',
+        title='Simple UI copy change',
+        description='Small wording update.',
+        status='ready',
+        priority='normal',
+        item_type='task',
+    )['ok'] is True
+    assert update_local_queue_item_routing_metadata(
+        config,
+        item_id='q-routed-local',
+        routing_metadata={
+            'recommended_agent_lane': 'coding',
+            'recommended_engine': 'local_coding_llm',
+            'recommended_model': 'local-code',
+            'routing_policy_source': 'm54_decision_matrix_v1',
+            'routing_reason': 'Simple UI wording task.',
+            'risk_level': 'low',
+            'complexity_level': 'low',
+            'project_ai_mode': 'cost_saver',
+        },
+    )['ok'] is True
+
+    payload = generate_local_queue_prompt_pack(
+        config,
+        statuses=['ready'],
+        group_by_routing=True,
+        routing_group_by='by_engine',
+    )
+
+    assert payload['ok'] is True
+    assert payload['groups'] == ['by_engine: local_coding_llm']
+    assert 'local_coding_llm is recommended for operator review, but AresForge does not execute local LLMs.' in payload['prompt_pack']
 
 
 def test_add_local_queue_item_with_explicit_project_and_repo(tmp_path: Path) -> None:

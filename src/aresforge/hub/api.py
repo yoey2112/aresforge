@@ -2970,6 +2970,10 @@ def post_local_queue_prompt_pack(config: AppConfig, body: dict[str, Any]) -> dic
     valid_include_text, include_text_error = _require_boolean_field(body, "include_prompt_text")
     if not valid_include_text:
         return include_text_error or _api_error("invalid_include_prompt_text", "include_prompt_text must be a boolean value.")
+    for field in ("include_routing", "group_by_routing", "include_unrouted", "recommend_missing_routing"):
+        valid_bool, bool_error = _require_boolean_field(body, field)
+        if not valid_bool:
+            return bool_error or _api_error(f"invalid_{field}", f"{field} must be a boolean value.")
 
     for field in ("item_ids", "statuses"):
         valid, error_payload = _require_list_field(body, field)
@@ -2985,13 +2989,18 @@ def post_local_queue_prompt_pack(config: AppConfig, body: dict[str, Any]) -> dic
             registry_path=_normalize_optional_str(body.get("registry_path")),
             output=_normalize_optional_str(body.get("output")),
             force=bool(body.get("force", False)),
+            include_routing=bool(body.get("include_routing", True)),
+            group_by_routing=bool(body.get("group_by_routing", False)),
+            routing_group_by=_normalize_optional_str(body.get("routing_group_by")),
+            include_unrouted=bool(body.get("include_unrouted", True)),
+            recommend_missing_routing=bool(body.get("recommend_missing_routing", False)),
         )
     )
     if not bool(body.get("include_prompt_text", True)):
         payload.pop("prompt_pack", None)
     payload["boundary_confirmations"] = _merge_boundary_confirmations(
         payload,
-        "Prompt pack generation writes local artifacts only and does not execute Codex or agents.",
+        "Prompt pack generation writes local artifacts only and does not execute Codex, local LLMs, agents, prompts, GitHub, or workflows.",
     )
     if not payload.get("ok", False):
         payload["_status"] = _status_for_local_queue_result(payload)

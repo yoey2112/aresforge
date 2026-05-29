@@ -1,5 +1,34 @@
 # AresForge Roadmap
 
+## M57 Prompt Pack Routing Integration
+
+Status: Completed locally on `main`.
+
+Delivered scope:
+
+- integrated M53 routing metadata into M43 local prompt-pack generation
+- preserved existing prompt-pack generation and artifact output behavior
+- added per-prompt routing metadata, routing guidance, dependencies, validation expectations, operating rules, final response template, and `execution_allowed: false`
+- added optional prompt-pack grouping by routing metadata
+- added local Hub API and Queue UI inputs for routing-aware prompt packs
+- added tests for routed, unrouted, Codex-recommended, local-LLM-recommended, grouped, artifact non-overwrite, API, and UI behavior
+
+Constraints preserved:
+
+- prompt packs are local copy/paste artifacts/previews only
+- no automatic routing apply
+- no queue item start or completion
+- no local LLM execution
+- no Codex execution
+- no real agent execution
+- no GitHub API, no `gh`, no GitHub issues/PRs/workflow activity, no GitHub mutation from the app
+- no external workflow execution
+- no queue storage split
+
+Recommended next milestone:
+
+- M58 - Local LLM Environment Contract.
+
 ## M56 Routed Queue Views
 
 Status: Completed locally on `main`.

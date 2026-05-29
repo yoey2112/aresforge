@@ -812,6 +812,24 @@ def test_post_local_queue_prompt_pack_route_returns_local_copy_paste_payload(tmp
 
     try:
         port = int(server.server_address[1])
+        metadata_status, metadata_payload = _request_json(
+            port,
+            "POST",
+            "/api/local-queue/items/pack-ready/routing-metadata",
+            {
+                "recommended_agent_lane": "coding",
+                "recommended_engine": "local_coding_llm",
+                "recommended_model": "local-code",
+                "routing_policy_source": "m54_decision_matrix_v1",
+                "routing_reason": "Simple local prompt-pack test.",
+                "risk_level": "low",
+                "complexity_level": "low",
+                "project_ai_mode": "balanced",
+            },
+        )
+        assert metadata_status == 200
+        assert metadata_payload["ok"] is True
+
         status, payload = _request_json(
             port,
             "POST",
@@ -819,15 +837,22 @@ def test_post_local_queue_prompt_pack_route_returns_local_copy_paste_payload(tmp
             {
                 "statuses": ["ready"],
                 "output": str(output_path),
+                "include_routing": True,
+                "group_by_routing": True,
+                "routing_group_by": "by_engine",
             },
         )
         assert status == 200
         assert payload["ok"] is True
         assert payload["local_only"] is True
         assert payload["item_count"] == 1
+        assert payload["execution_allowed"] is False
+        assert payload["groups"] == ["by_engine: local_coding_llm"]
         assert payload["output_path"] == str(output_path)
         assert "Agent Prompt Pack (Local-Only)" in payload["prompt_pack"]
-        assert any("does not execute Codex or agents" in entry for entry in payload["boundary_confirmations"])
+        assert "recommended_engine: local_coding_llm" in payload["prompt_pack"]
+        assert "AresForge does not execute local LLMs" in payload["prompt_pack"]
+        assert any("does not execute Codex, local LLMs, agents" in entry for entry in payload["boundary_confirmations"])
         assert output_path.exists()
     finally:
         server.shutdown()

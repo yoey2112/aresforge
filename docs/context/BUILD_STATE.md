@@ -1,5 +1,29 @@
 # AresForge Build State
 
+## M57 Prompt Pack Routing Integration
+
+Status: Completed locally on `main`.
+
+Delivered:
+
+- extended `generate_local_queue_prompt_pack(...)` so prompt packs include per-item routing metadata by default
+- included routing fields for agent lane, engine, model, fallback, policy source, routing reason, risk, complexity, escalation, project AI mode, operator override, and `execution_allowed: false`
+- represented unrouted items with manual routing guidance
+- represented `codex_cli` and local LLM engines as recommendations only, never execution
+- added optional routing grouping for prompt packs by agent lane, engine, model, risk level, complexity level, and status
+- exposed routing prompt-pack options through the local Hub API and Queue UI
+
+Boundaries:
+
+- prompt packs remain local artifacts/previews only
+- one canonical local queue remains the source of truth
+- prompt-pack generation does not start, complete, or mutate queue items
+- no routing execution, local LLM execution, Codex execution, agent execution, GitHub/`gh`, prompt execution, workflow activity, network call, or external execution
+
+Recommended next milestone:
+
+- M58 - Local LLM Environment Contract.
+
 ## M56 Routed Queue Views
 
 Status: Completed locally on `main`.

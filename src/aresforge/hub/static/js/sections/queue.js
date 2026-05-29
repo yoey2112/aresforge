@@ -480,6 +480,11 @@ function buildLocalQueuePromptPackPayload({ parseCommaList }) {
     statuses: parseCommaList(byId("queue-prompt-pack-statuses").value),
     output: byId("queue-prompt-pack-output").value.trim(),
     force: Boolean(byId("queue-prompt-pack-force") && byId("queue-prompt-pack-force").checked),
+    include_routing: Boolean(byId("queue-prompt-pack-include-routing") && byId("queue-prompt-pack-include-routing").checked),
+    group_by_routing: Boolean(byId("queue-prompt-pack-group-by-routing") && byId("queue-prompt-pack-group-by-routing").checked),
+    routing_group_by: byId("queue-prompt-pack-routing-group-by") && byId("queue-prompt-pack-routing-group-by").value,
+    include_unrouted: Boolean(byId("queue-prompt-pack-include-unrouted") && byId("queue-prompt-pack-include-unrouted").checked),
+    recommend_missing_routing: Boolean(byId("queue-prompt-pack-recommend-missing-routing") && byId("queue-prompt-pack-recommend-missing-routing").checked),
     include_prompt_text: true,
   });
 }
@@ -576,6 +581,10 @@ function renderLocalQueuePromptPackResult(payload) {
   setList("queue-prompt-pack-summary", "queue-prompt-pack-summary-empty", [
     `item_count: ${payload && typeof payload.item_count === "number" ? payload.item_count : 0}`,
     `groups: ${payload && payload.groups && payload.groups.length ? payload.groups.join(" | ") : "none"}`,
+    `include_routing: ${Boolean(payload && payload.include_routing)}`,
+    `group_by_routing: ${Boolean(payload && payload.group_by_routing)}`,
+    `routing_group_by: ${payload && payload.routing_group_by ? payload.routing_group_by : "-"}`,
+    `execution_allowed: ${Boolean(payload && payload.execution_allowed)}`,
     `output_path: ${payload && payload.output_path ? payload.output_path : "-"}`,
     `next_safe_action: ${payload && payload.next_safe_action ? payload.next_safe_action : "-"}`,
   ].concat((payload && payload.warnings ? payload.warnings : []).map((warning) => `warning: ${warning}`)));
