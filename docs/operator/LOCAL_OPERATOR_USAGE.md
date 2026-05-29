@@ -1,5 +1,38 @@
 # Local Operator Usage
 
+## M65 AI Action Safety Gate
+
+Status: Completed locally on `main`.
+
+Operator workflow:
+
+1. Use existing local LLM, Codex prompt, prompt-pack, and routing tools as before.
+2. For a direct gate preview, POST an action request to `/api/ai-action-safety-gate`.
+3. Review `decision`, `allowed`, `execution_allowed`, blockers, warnings, and `next_safe_action`.
+4. Treat the gate as decision/reporting evidence only; it does not approve work by itself or execute anything.
+
+Supported action types:
+
+- `local_llm_prompt_preview`
+- `local_llm_execute`
+- `codex_high_value_prompt`
+- `prompt_pack_generate`
+- `routing_recommendation`
+- `routing_metadata_update`
+
+Operator safety notes:
+
+- Codex execution and GitHub/`gh` mutation are always blocked.
+- local LLM execution still requires local engine routing and explicit operator gate confirmation.
+- high/critical risk local LLM execution requires operator override.
+- prompt previews and Codex prompt generation are preview-only with `execution_allowed: false`.
+- routing metadata updates require explicit operator action confirmation.
+- M65 adds no new execution behavior and does not expand M62.
+
+Recommended next milestone:
+
+- M66 - AI Artifact Registry.
+
 ## M64 Execution Audit Log
 
 Status: Completed locally on `main`.

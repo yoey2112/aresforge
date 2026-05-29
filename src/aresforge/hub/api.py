@@ -11,6 +11,7 @@ from aresforge.operator.local_project_report import inspect_local_project_report
 from aresforge.operator.local_project_readiness import list_local_projects
 from aresforge.operator.local_queue_agent_summary import inspect_local_queue_agent_summary
 from aresforge.operator.local_active_project import inspect_active_project, set_active_project
+from aresforge.operator.local_ai_action_safety import evaluate_ai_action_safety_gate
 from aresforge.operator.local_execution_audit import filter_execution_audit_log
 from aresforge.operator.local_project_queue import (
     QUEUE_ITEM_TYPES,
@@ -616,6 +617,43 @@ def get_execution_audit_log(config: AppConfig, params: dict[str, str | None]) ->
     payload["boundary_confirmations"] = _merge_boundary_confirmations(
         payload,
         "Execution audit log is read-only and does not execute Codex, local LLMs, agents, GitHub, gh, or workflows.",
+    )
+    return payload
+
+
+def post_ai_action_safety_gate(config: AppConfig, body: dict[str, Any]) -> dict[str, Any]:
+    for field in ("operator_override", "confirm_operator_gate", "dry_run"):
+        valid_bool, bool_error = _require_boolean_field(body, field)
+        if not valid_bool:
+            return bool_error or _api_error(f"invalid_{field}", f"{field} must be a boolean value.")
+
+    action_type = str(body.get("action_type", "")).strip()
+    if not action_type:
+        return _api_error(
+            "invalid_action_type",
+            "action_type is required.",
+            details={"required_fields": ["action_type"]},
+        )
+
+    payload = evaluate_ai_action_safety_gate(
+        config,
+        action_type=action_type,
+        item_id=_normalize_optional_str(body.get("item_id")),
+        project_id=_normalize_optional_str(body.get("project_id")),
+        engine=_normalize_optional_str(body.get("engine")),
+        model=_normalize_optional_str(body.get("model")),
+        agent_lane=_normalize_optional_str(body.get("agent_lane")),
+        risk_level=_normalize_optional_str(body.get("risk_level")),
+        complexity_level=_normalize_optional_str(body.get("complexity_level")),
+        project_ai_mode=_normalize_optional_str(body.get("project_ai_mode")),
+        operator_override=bool(body.get("operator_override", False)),
+        confirm_operator_gate=bool(body.get("confirm_operator_gate", False)),
+        dry_run=bool(body.get("dry_run", False)),
+    )
+    payload["service"] = SERVICE_NAME
+    payload["boundary_confirmations"] = _merge_boundary_confirmations(
+        payload,
+        "AI action safety gate is decision/reporting logic only and does not execute actions.",
     )
     return payload
 

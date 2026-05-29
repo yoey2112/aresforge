@@ -1,5 +1,46 @@
 # AresForge Agent Context
 
+## M65 AI Action Safety Gate Context
+
+Status: Completed locally on `main`.
+
+Current safety gate contract:
+
+- operator helper: `evaluate_ai_action_safety_gate(...)`
+- Hub route: `POST /api/ai-action-safety-gate`
+- behavior: local-only decision/reporting logic
+
+Supported action types:
+
+- `local_llm_prompt_preview`
+- `local_llm_execute`
+- `codex_high_value_prompt`
+- `prompt_pack_generate`
+- `routing_recommendation`
+- `routing_metadata_update`
+
+Decision values:
+
+- `allowed`
+- `blocked`
+- `warning`
+- `requires_operator_gate`
+- `requires_operator_override`
+- `preview_only`
+
+Boundary reminders:
+
+- Codex execution and GitHub/`gh` mutation are always blocked
+- local LLM execution requires local engine routing and explicit operator gate confirmation for real execution
+- high/critical risk local LLM execution requires operator override
+- preview-only actions return `execution_allowed: false`
+- routing metadata updates require explicit operator action confirmation
+- M65 does not add execution behavior or expand M62
+
+Recommended next milestone:
+
+- M66 - AI Artifact Registry.
+
 ## M64 Execution Audit Log Context
 
 Status: Completed locally on `main`.

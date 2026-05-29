@@ -2,9 +2,45 @@
 
 ## Status
 
-M44A documented the future Agent/LLM routing strategy. M51 through M64 now add non-executing contracts and local Hub surfaces for project AI settings, agent/engine registry, queue routing metadata, recommendation-only routing decisions, Project AI Settings UI, routed queue views, routing-aware prompt packs, local LLM environment/health checks, Codex CLI model profile configuration, local LLM prompt preview/execution gates, Codex high-value prompt generation, and a local execution audit log.
+M44A documented the future Agent/LLM routing strategy. M51 through M65 now add non-executing contracts and local Hub surfaces for project AI settings, agent/engine registry, queue routing metadata, recommendation-only routing decisions, Project AI Settings UI, routed queue views, routing-aware prompt packs, local LLM environment/health checks, Codex CLI model profile configuration, local LLM prompt preview/execution gates, Codex high-value prompt generation, a local execution audit log, and centralized AI action safety gate decisions.
 
 Current prompt-pack and Codex high-value lane behavior are advisory prompt generation only. Runtime routing, Codex execution, real agent execution, and GitHub integration remain unimplemented. Local LLM execution exists only as the M62 operator-gated local prototype.
+
+## M65 AI Action Safety Gate
+
+M65 adds centralized local-only decision/reporting logic for AI-adjacent actions.
+
+Current operator helper:
+
+- `evaluate_ai_action_safety_gate(...)`
+
+Current Hub route:
+
+- `POST /api/ai-action-safety-gate`
+
+Supported action types:
+
+- `local_llm_prompt_preview`
+- `local_llm_execute`
+- `codex_high_value_prompt`
+- `prompt_pack_generate`
+- `routing_recommendation`
+- `routing_metadata_update`
+
+Decision values:
+
+- `allowed`
+- `blocked`
+- `warning`
+- `requires_operator_gate`
+- `requires_operator_override`
+- `preview_only`
+
+The gate evaluates action type, queue/routing context, engine/model/lane, risk, complexity, project AI mode, dry-run state, operator gate confirmation, and operator override. It reports blockers, warnings, `execution_allowed`, and next safe action.
+
+M65 blocks Codex execution and GitHub/`gh` mutation representations, keeps preview-only actions non-executing, requires local engine routing for local LLM execution, requires explicit operator gate confirmation for real local LLM execution, and requires override for high/critical risk local execution.
+
+M65 does not add new execution behavior, execute Codex, call GitHub API, call `gh`, create issues, create PRs, run workflows, mutate repository files from AI output, or expand M62 local LLM execution.
 
 ## M64 Execution Audit Log
 

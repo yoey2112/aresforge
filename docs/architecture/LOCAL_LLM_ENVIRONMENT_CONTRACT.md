@@ -14,6 +14,8 @@ M62 adds an operator-gated local LLM execution prototype. Execution is allowed o
 
 M64 adds a local Execution Audit Log. Health checks, prompt previews, dry runs, blocked attempts, and advisory local LLM execution outputs are summarized in `.aresforge/execution_audit_log.json`. The audit log does not add execution behavior, does not store full prompt/response text, and does not execute anything.
 
+M65 adds a centralized AI Action Safety Gate. Local LLM prompt preview and execution paths may consult the gate for consistent decision reporting, but the gate does not execute anything and does not expand M62 local LLM behavior.
+
 ## Storage
 
 The contract is stored locally at:
@@ -36,6 +38,7 @@ Reading defaults does not write this file. Updating the contract writes the file
 - `POST /api/local-queue/items/{item_id}/local-llm-prompt-preview`
 - `POST /api/local-queue/items/{item_id}/local-llm-execute`
 - `GET /api/execution-audit-log`
+- `POST /api/ai-action-safety-gate`
 
 ## Fields
 
@@ -118,6 +121,8 @@ Preview output includes local-only operating rules, validation expectations, rou
 
 M64 records prompt preview audit entries for generated and blocked previews. Audit entries do not store the full generated prompt.
 
+M65 classifies prompt preview as a preview-only action. Gate output keeps `execution_allowed: false` for preview and reports blockers/warnings without calling a provider.
+
 ## M62 Execution Prototype
 
 Local LLM execution is conservative and operator-gated.
@@ -138,6 +143,8 @@ Execution may proceed only when:
 Execution output is advisory only. It may be written to a local result artifact if the operator provides an output path. It is never applied to repo files, queue status, project state, GitHub, `gh`, Codex, agents, commits, pushes, or workflows.
 
 M64 records dry runs, blocked attempts, and advisory execution outcomes in the local audit log. Audit entries prefer summaries and artifact paths over full response text.
+
+M65 centralizes execution gate reporting for this path. The local LLM execution helper consults the gate for operator confirmation, local routing, high/critical risk override, and manual policy decisions without adding any provider behavior.
 
 ## Boundaries
 
@@ -160,3 +167,7 @@ M61 added Local LLM Prompt Preview without execution.
 M62 added the first operator-gated local execution prototype.
 
 M64 added the local Execution Audit Log without expanding execution.
+
+M65 added the AI Action Safety Gate for consistent decision reporting without expanding execution.
+
+M66 should add an AI Artifact Registry for generated advisory artifacts.

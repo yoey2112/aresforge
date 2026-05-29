@@ -614,6 +614,55 @@ def test_get_execution_audit_log_route_returns_filtered_entries(tmp_path: Path) 
         thread.join(timeout=2)
 
 
+def test_post_ai_action_safety_gate_route_returns_decision(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_active_project(config, tmp_path)
+    _seed_queue_item(
+        config,
+        item_id="safety-gate-api-item",
+        status="ready",
+        title="Safety gate API item",
+        description="Preview safety gate decision.",
+    )
+    server, thread = _start_server(config)
+
+    try:
+        port = int(server.server_address[1])
+        status, payload = _request_json(
+            port,
+            "POST",
+            "/api/ai-action-safety-gate",
+            {
+                "action_type": "local_llm_execute",
+                "item_id": "safety-gate-api-item",
+                "engine": "local_coding_llm",
+                "risk_level": "low",
+                "complexity_level": "low",
+                "confirm_operator_gate": True,
+            },
+        )
+        bad_status, bad_payload = _request_json(
+            port,
+            "POST",
+            "/api/ai-action-safety-gate",
+            {"action_type": "local_llm_execute", "confirm_operator_gate": "yes"},
+        )
+
+        assert status == 200
+        assert payload["ok"] is True
+        assert payload["allowed"] is True
+        assert payload["decision"] == "allowed"
+        assert payload["execution_allowed"] is True
+        assert any("decision/reporting" in entry for entry in payload["boundary_confirmations"])
+        assert bad_status == 400
+        assert bad_payload["ok"] is False
+        assert bad_payload["error"] == "invalid_confirm_operator_gate"
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
+
+
 def test_post_local_queue_item_complete_route_records_validation_evidence(tmp_path: Path) -> None:
     config = _config(tmp_path)
     _seed_active_project(config, tmp_path)

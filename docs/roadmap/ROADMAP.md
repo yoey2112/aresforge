@@ -1,5 +1,29 @@
 # AresForge Roadmap
 
+## M65 AI Action Safety Gate
+
+Status: Completed locally on `main`.
+
+Delivered scope:
+
+- added centralized local-only AI action safety gate decision helper
+- added API support for `POST /api/ai-action-safety-gate`
+- integrated gate output into M62 local LLM execution and M63 Codex high-value prompt generation
+- added tests for preview-only decisions, missing operator gate, low-risk local execution allowance, high-risk override requirement, `codex_cli` local execution blocking, Codex/GitHub action blocking, routing metadata explicit action requirement, and API behavior
+
+Constraints preserved:
+
+- no new execution capability
+- no Codex CLI execution
+- no GitHub API, no `gh`, no GitHub issues/PRs/workflow activity, no GitHub mutation from the app
+- no external workflow execution
+- no expansion of M62 local LLM execution
+- one canonical local queue remains the source of truth for item routing context
+
+Recommended next milestone:
+
+- M66 - AI Artifact Registry.
+
 ## M64 Execution Audit Log
 
 Status: Completed locally on `main`.

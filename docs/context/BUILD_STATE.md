@@ -1,5 +1,30 @@
 # AresForge Build State
 
+## M65 AI Action Safety Gate
+
+Status: Completed locally on `main`.
+
+Delivered:
+
+- added `evaluate_ai_action_safety_gate(...)` as local-only decision/reporting logic
+- added Hub route `POST /api/ai-action-safety-gate` for previewing gate decisions
+- integrated safety gate decisions into M62 local LLM execution and M63 Codex high-value prompt generation
+- centralized decision values: `allowed`, `blocked`, `warning`, `requires_operator_gate`, `requires_operator_override`, and `preview_only`
+- supports local LLM preview/execution, Codex high-value prompt generation, prompt-pack generation, routing recommendation, and routing metadata update actions
+- reports required operator gate/override state, execution permission, blockers, warnings, and next safe action
+
+Boundaries:
+
+- safety gate is decision/reporting logic only
+- no new execution behavior
+- no Codex CLI execution
+- no GitHub API, `gh`, issues, PRs, workflow activity, or GitHub mutation
+- no local LLM execution expansion beyond M62
+
+Recommended next milestone:
+
+- M66 - AI Artifact Registry.
+
 ## M64 Execution Audit Log
 
 Status: Completed locally on `main`.

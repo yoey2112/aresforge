@@ -63,6 +63,7 @@ from aresforge.hub.api import (
     patch_queue_item,
     post_active_project,
     post_agent,
+    post_ai_action_safety_gate,
     post_bootstrap_apply,
     post_codex_cli_model_profiles,
     post_escalation_plan,
@@ -221,6 +222,22 @@ def _build_handler(config: AppConfig, static_root: Path) -> type[BaseHTTPRequest
                         "limit": query_values.get("limit", [None])[0],
                     },
                 )
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+            if method == "POST" and path == "/api/ai-action-safety-gate":
+                if body is None:
+                    _render_json(
+                        self,
+                        HTTPStatus.BAD_REQUEST,
+                        {
+                            "ok": False,
+                            "local_only": True,
+                            "error": "invalid_json_body",
+                            "message": "Request body must be a JSON object.",
+                        },
+                    )
+                    return True
+                payload = post_ai_action_safety_gate(config, body)
                 _render_json(self, _status_from_payload(payload), payload)
                 return True
             if method == "GET" and path == "/api/local-queue/routed-views":

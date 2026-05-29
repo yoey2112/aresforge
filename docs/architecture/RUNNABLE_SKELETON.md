@@ -1,5 +1,36 @@
 # Runnable Skeleton
 
+## M65 AI Action Safety Gate
+
+Status: Completed locally on `main`.
+
+Implemented runnable path:
+
+- operator helper: `evaluate_ai_action_safety_gate(...)`
+- Hub route: `POST /api/ai-action-safety-gate`
+- integrated decision payloads into local LLM execution and Codex high-value prompt generation
+
+Behavior contract:
+
+- evaluate action type, item/routing context, engine/model/lane, risk, complexity, operator override, operator gate confirmation, and dry-run state
+- return allowed/blocked/warning/operator-gate/operator-override/preview-only decisions
+- keep `execution_allowed: false` for preview-only actions
+- block Codex execution and GitHub/`gh` mutation representations
+- report blockers and next safe action without executing anything
+
+Still absent by design:
+
+- new execution behavior
+- Codex CLI execution
+- GitHub API, `gh`, issues, PRs, or workflow activity
+- local LLM execution beyond M62
+- automatic agent execution
+- automatic file edits, queue completion, commits, pushes, or external workflow execution
+
+Next skeleton focus:
+
+- M66 should add an AI Artifact Registry for advisory outputs and generated artifacts.
+
 ## M64 Execution Audit Log
 
 Status: Completed locally on `main`.

@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 from aresforge.config import AppConfig
+from aresforge.operator.local_ai_action_safety import evaluate_ai_action_safety_gate
 from aresforge.operator.local_execution_audit import (
     append_execution_audit_entry,
     filter_execution_audit_log,
@@ -183,6 +184,140 @@ def test_execution_audit_log_filters_and_redacts_secret_like_values(tmp_path: Pa
     assert 'password' not in json.dumps(by_item)
     assert by_action['total_entries'] == 1
     assert by_action['entries'][0]['item_id'] == 'q-codex'
+
+
+def test_ai_action_safety_gate_local_preview_allowed_as_preview_only(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_preview_item(config, item_id='q-gate-preview', engine='local_coding_llm', model='local-code')
+
+    payload = evaluate_ai_action_safety_gate(
+        config,
+        action_type='local_llm_prompt_preview',
+        item_id='q-gate-preview',
+    )
+
+    assert payload['ok'] is True
+    assert payload['allowed'] is True
+    assert payload['decision'] == 'preview_only'
+    assert payload['execution_allowed'] is False
+
+
+def test_ai_action_safety_gate_local_execute_requires_gate_and_local_routing(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_preview_item(config, item_id='q-gate-execute', engine='local_coding_llm', model='local-code')
+
+    blocked = evaluate_ai_action_safety_gate(
+        config,
+        action_type='local_llm_execute',
+        item_id='q-gate-execute',
+        dry_run=False,
+    )
+    allowed = evaluate_ai_action_safety_gate(
+        config,
+        action_type='local_llm_execute',
+        item_id='q-gate-execute',
+        confirm_operator_gate=True,
+        dry_run=False,
+    )
+
+    assert blocked['allowed'] is False
+    assert blocked['decision'] == 'requires_operator_gate'
+    assert any('confirm_operator_gate' in blocker for blocker in blocked['blockers'])
+    assert allowed['allowed'] is True
+    assert allowed['decision'] == 'allowed'
+    assert allowed['execution_allowed'] is True
+
+
+def test_ai_action_safety_gate_high_risk_requires_override_and_codex_cli_blocks_local_execute(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_preview_item(config, item_id='q-gate-risk', engine='local_reasoning_llm', model='local-reason')
+    assert update_local_queue_item_routing_metadata(
+        config,
+        item_id='q-gate-risk',
+        routing_metadata={
+            'recommended_engine': 'local_reasoning_llm',
+            'recommended_model': 'local-reason',
+            'risk_level': 'high',
+            'complexity_level': 'high',
+            'project_ai_mode': 'balanced',
+        },
+    )['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='q-gate-codex',
+        project_id='p1',
+        repo_id='r1',
+        title='Codex routed task',
+        description='Codex-routed task should not execute locally.',
+        status='ready',
+    )['ok'] is True
+    assert update_local_queue_item_routing_metadata(
+        config,
+        item_id='q-gate-codex',
+        routing_metadata={
+            'recommended_engine': 'codex_cli',
+            'recommended_model': 'gpt-5-codex',
+            'risk_level': 'low',
+            'complexity_level': 'low',
+        },
+    )['ok'] is True
+
+    risk_blocked = evaluate_ai_action_safety_gate(
+        config,
+        action_type='local_llm_execute',
+        item_id='q-gate-risk',
+        confirm_operator_gate=True,
+    )
+    risk_allowed = evaluate_ai_action_safety_gate(
+        config,
+        action_type='local_llm_execute',
+        item_id='q-gate-risk',
+        confirm_operator_gate=True,
+        operator_override=True,
+    )
+    codex_blocked = evaluate_ai_action_safety_gate(
+        config,
+        action_type='local_llm_execute',
+        item_id='q-gate-codex',
+        confirm_operator_gate=True,
+    )
+
+    assert risk_blocked['decision'] == 'requires_operator_override'
+    assert risk_blocked['requires_operator_override'] is True
+    assert risk_allowed['allowed'] is True
+    assert codex_blocked['allowed'] is False
+    assert any('codex_cli' in blocker for blocker in codex_blocked['blockers'])
+
+
+def test_ai_action_safety_gate_blocks_codex_execution_and_github_actions(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+
+    codex = evaluate_ai_action_safety_gate(config, action_type='codex_execute', engine='codex_cli')
+    github = evaluate_ai_action_safety_gate(config, action_type='github_pr_create', engine='github')
+
+    assert codex['allowed'] is False
+    assert github['allowed'] is False
+    assert codex['decision'] == 'blocked'
+    assert github['decision'] == 'blocked'
+    assert codex['execution_allowed'] is False
+    assert github['execution_allowed'] is False
+
+
+def test_ai_action_safety_gate_routing_metadata_update_requires_explicit_action(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+
+    blocked = evaluate_ai_action_safety_gate(config, action_type='routing_metadata_update')
+    allowed = evaluate_ai_action_safety_gate(
+        config,
+        action_type='routing_metadata_update',
+        confirm_operator_gate=True,
+    )
+
+    assert blocked['allowed'] is False
+    assert blocked['decision'] == 'requires_operator_gate'
+    assert allowed['allowed'] is True
+    assert allowed['decision'] == 'allowed'
+    assert allowed['execution_allowed'] is False
 
 
 def test_queue_initialization_creates_default_file_and_schema(tmp_path: Path) -> None:

@@ -10,6 +10,7 @@ from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
 from aresforge.config import AppConfig
+from aresforge.operator.local_ai_action_safety import evaluate_ai_action_safety_gate
 from aresforge.operator.local_execution_audit import append_execution_audit_entry, audit_warning
 from aresforge.operator.local_active_project import inspect_active_project
 from aresforge.operator.local_project_state import resolve_project_state_path
@@ -1081,6 +1082,23 @@ def execute_local_llm_for_queue_item(
     model = str(preview.get('recommended_model', '')).strip()
     risk_level = str(routing_metadata.get('risk_level', 'unknown')).strip() or 'unknown'
     project_ai_mode = str(routing_metadata.get('project_ai_mode', '')).strip()
+    safety_gate = evaluate_ai_action_safety_gate(
+        config,
+        action_type='local_llm_execute',
+        item_id=normalized_item_id,
+        engine=recommended_engine,
+        model=model,
+        agent_lane=str(routing_metadata.get('recommended_agent_lane', '')).strip(),
+        risk_level=risk_level,
+        complexity_level=str(routing_metadata.get('complexity_level', 'unknown')).strip() or 'unknown',
+        project_ai_mode=project_ai_mode,
+        operator_override=operator_override,
+        confirm_operator_gate=confirm_operator_gate,
+        dry_run=dry_run,
+        queue_path=queue_path,
+    )
+    blockers.extend([str(blocker) for blocker in safety_gate.get('blockers', [])])
+    warnings.extend([str(warning) for warning in safety_gate.get('warnings', [])])
 
     environment = _read_local_llm_environment_for_preview(config.repo_root)
     local_environment = environment.get('environment', {}) if isinstance(environment.get('environment'), dict) else {}
@@ -1156,6 +1174,7 @@ def execute_local_llm_for_queue_item(
         'next_safe_action': 'Review advisory local LLM output manually; do not apply changes automatically.' if executed else 'Resolve blockers before local LLM execution.',
         'warnings': sorted(set(warnings)),
         'blockers': sorted(set(blockers)),
+        'safety_gate': safety_gate,
         'health_check': health_payload,
         'boundary_confirmations': [
             'Local LLM execution is explicit and operator-gated.',
@@ -2314,6 +2333,24 @@ def generate_codex_high_value_lane_prompt(
         warnings.append(
             f'Queue item is currently routed to {recommended_engine}; Codex prompt generation remains advisory only.'
         )
+    safety_gate = evaluate_ai_action_safety_gate(
+        config,
+        action_type='codex_high_value_prompt',
+        item_id=normalized_item_id,
+        project_id=project_id,
+        engine=recommended_engine,
+        model=recommended_model,
+        agent_lane=str(routing_metadata.get('recommended_agent_lane', '')).strip(),
+        risk_level=str(routing_metadata.get('risk_level', 'unknown')).strip() or 'unknown',
+        complexity_level=str(routing_metadata.get('complexity_level', 'unknown')).strip() or 'unknown',
+        project_ai_mode=project_ai_mode,
+        operator_override=operator_override,
+        confirm_operator_gate=False,
+        dry_run=True,
+        queue_path=queue_path,
+    )
+    blockers.extend([str(blocker) for blocker in safety_gate.get('blockers', [])])
+    warnings.extend([str(warning) for warning in safety_gate.get('warnings', [])])
 
     readiness = _evaluate_local_queue_item_readiness(
         repo_root=config.repo_root,
@@ -2353,6 +2390,7 @@ def generate_codex_high_value_lane_prompt(
         ),
         'warnings': sorted(set(warnings)),
         'blockers': sorted(set(blockers)),
+        'safety_gate': safety_gate,
         'eligibility_reasons': eligibility['reasons'],
         'routing_metadata': routing_metadata,
         'boundary_confirmations': list(_CODEX_HIGH_VALUE_LANE_BOUNDARY_CONFIRMATIONS),
