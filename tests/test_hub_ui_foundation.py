@@ -382,10 +382,13 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "Local Home Dashboard" in index_text
     assert "Total Projects" in index_text
     assert "Active Project" in index_text
-    assert "Active Repo" in index_text
-    assert "Overall Readiness" in index_text
+    assert "Active Project Status" in index_text
     assert "Queue Item Count" in index_text
+    assert "Total Advisory Agent Lanes" in index_text
+    assert "Repo Availability" in index_text
     assert "Queue Status Summary" in index_text
+    assert "Agent Lane Details" in index_text
+    assert "Repo Warnings" in index_text
     assert "Local Queue Read-Only Summary" in index_text
     assert "Total Queue Item Count" in index_text
     assert "Active Project Context" in index_text
@@ -396,9 +399,9 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "Ready Items" in index_text
     assert "Local-only and read-only queue view: no queue mutation, no agent execution, no GitHub sync/mutation." in index_text
     assert "Recommended Next Action" in index_text
-    assert "Warnings And Blockers" in index_text
-    assert "Docs Readiness" in index_text
-    assert "Read-only local-only dashboard: no GitHub mutation, no agent execution, no model routing." in index_text
+    assert "Blockers" in index_text
+    assert "Warnings" in index_text
+    assert "Read-only local-only dashboard: no GitHub calls, no agent execution, no model routing." in index_text
     assert "Local Project Report Foundation" in index_text
     assert "Project Health" in index_text
     assert "Roadmap Summary" in index_text
@@ -455,7 +458,7 @@ def test_frontend_scripts_reference_m39_api_endpoints_and_forms() -> None:
         "/api/reports/readiness",
         "/api/reports/operator-workflows",
         "/api/reports/export",
-        "/api/local-project-dashboard",
+        "/api/dashboard/summary",
         "/api/local-project-report",
         "/api/active-project/workspace",
         "/api/local-projects",

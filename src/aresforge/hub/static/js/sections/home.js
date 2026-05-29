@@ -1,5 +1,5 @@
 import { byId, on, setList, setMessage, setText } from "/js/core/dom.js";
-import { fetchJson, prunePayload } from "/js/core/http.js";
+import { fetchJson } from "/js/core/http.js";
 
 export function bindHomeQuickNavActions({ activateSection }) {
   on("home-nav-workspace", "click", () => {
@@ -47,59 +47,73 @@ export function bindHomeActions({
   });
 }
 
-export function renderLocalHomeDashboard(dashboard, report) {
+export function renderLocalHomeDashboard(dashboard) {
   const projectSummary = (dashboard && dashboard.project_summary) || {};
   const queueSummary = (dashboard && dashboard.queue_summary) || {};
-  const docsSummary = (dashboard && dashboard.docs_summary) || {};
-  const activeProject = (dashboard && dashboard.active_project) || {};
-  const readinessSummary = (report && report.project_health) || {};
+  const laneSummary = (dashboard && dashboard.agent_lane_summary) || {};
+  const repoSummary = (dashboard && dashboard.repo_summary) || {};
+  const blockers = Array.isArray((dashboard && dashboard.blockers)) ? dashboard.blockers : [];
   const warnings = Array.isArray((dashboard && dashboard.warnings)) ? dashboard.warnings : [];
-  const blockers = Array.isArray((report && report.blockers)) ? report.blockers : [];
-  const recommended =
-    (report && report.recommended_next_action) ||
-    (dashboard && dashboard.recommended_next_action) ||
-    "No recommendation available yet.";
-  const overallStatus =
-    readinessSummary.overall_status ||
-    ((dashboard && dashboard.validation_summary) || {}).overall_status ||
-    "needs_attention";
   const queueStatuses = queueSummary.counts_by_status || {};
+  const laneDetails = Array.isArray(laneSummary.lanes) ? laneSummary.lanes : [];
+  const repoWarnings = Array.isArray(repoSummary.warnings) ? repoSummary.warnings : [];
+
   const queueLines = Object.keys(queueStatuses)
     .sort()
     .map((key) => `${key}: ${queueStatuses[key]}`);
+  const laneLines = laneDetails.map((lane) => `${lane.lane_id || "unknown"}: ${lane.item_count || 0}`);
 
-  setText("home-local-total-projects", String(projectSummary.project_count || dashboard.total_projects || 0));
-  setText("home-local-active-project", activeProject.name || "None selected");
-  setText("home-local-active-project-id", `project_id: ${dashboard.active_project_id || "-"}`);
-  setText("home-local-active-repo", dashboard.active_repo_id || "-");
-  setText("home-local-overall-readiness", overallStatus);
-  setText("home-local-queue-count", String(queueSummary.item_count || 0));
-  setText("home-local-docs-readiness", docsSummary.docs_ready ? "ready" : "needs docs");
+  const activeProjectId = String(projectSummary.active_project_id || "").trim();
+  const activeProjectName = String(projectSummary.active_project_name || "").trim();
+  const activeProjectLabel = activeProjectId ? (activeProjectName || activeProjectId) : "No active project selected";
+
+  setText("home-local-total-projects", String(projectSummary.total_projects || 0));
+  setText("home-local-active-project", activeProjectLabel);
+  setText("home-local-active-project-id", `project_id: ${activeProjectId || "-"}`);
+  setText("home-local-active-project-status", projectSummary.active_project_status || "unknown");
+  setText("home-local-queue-count", String(queueSummary.total_items || 0));
   setList("home-local-queue-status-summary", "home-local-queue-status-summary-empty", queueLines);
-  setText("home-local-recommended-next-action", recommended);
-  setList(
-    "home-local-warnings-blockers",
-    "home-local-warnings-blockers-empty",
-    blockers.concat(warnings).slice(0, 12),
+  setText("home-local-agent-lane-count", String(laneSummary.total_lanes || 0));
+  setList("home-local-agent-lane-details", "home-local-agent-lane-details-empty", laneLines);
+  setText("home-local-repo-availability", repoSummary.available ? "available" : "unavailable");
+  setText("home-local-repo-status", repoSummary.status || "unknown");
+  setList("home-local-repo-warnings", "home-local-repo-warnings-empty", repoWarnings);
+  setList("home-local-blockers", "home-local-blockers-empty", blockers);
+  setList("home-local-warnings", "home-local-warnings-empty", warnings);
+  setText(
+    "home-local-recommended-next-action",
+    dashboard.next_safe_action || "No safe next action recommendation available yet.",
   );
-  setText("home-local-dashboard-message", "Read-only local dashboard/report snapshot loaded.");
+  setText("home-local-dashboard-message", "Read-only local dashboard snapshot loaded from /api/dashboard/summary.");
 }
 
 export function renderLocalHomeDashboardUnavailable() {
   setText("home-local-dashboard-message", "Local home dashboard data is unavailable.");
-  setText("home-local-recommended-next-action", "Refresh Summary to retry local dashboard loading.");
+  setText("home-local-recommended-next-action", "Use Refresh Summary to retry /api/dashboard/summary.");
+  setText("home-local-total-projects", "0");
+  setText("home-local-active-project", "No active project selected");
+  setText("home-local-active-project-id", "project_id: -");
+  setText("home-local-active-project-status", "unknown");
+  setText("home-local-queue-count", "0");
+  setText("home-local-agent-lane-count", "0");
+  setText("home-local-repo-availability", "unavailable");
+  setText("home-local-repo-status", "unknown");
   setList("home-local-queue-status-summary", "home-local-queue-status-summary-empty", []);
+  setList("home-local-agent-lane-details", "home-local-agent-lane-details-empty", []);
+  setList("home-local-repo-warnings", "home-local-repo-warnings-empty", []);
+  setList("home-local-blockers", "home-local-blockers-empty", []);
+  setList("home-local-warnings", "home-local-warnings-empty", []);
   setList(
-    "home-local-warnings-blockers",
-    "home-local-warnings-blockers-empty",
-    ["Local dashboard/report endpoint unavailable."],
+    "home-local-warnings",
+    "home-local-warnings-empty",
+    ["Dashboard summary endpoint unavailable."],
   );
 }
 
 export async function loadLocalHomeDashboard() {
-  const dashboard = await fetchJson("/api/local-project-dashboard", { method: "GET" });
-  const report = await fetchJson("/api/local-project-report", { method: "GET" });
-  renderLocalHomeDashboard(dashboard, report);
+  setText("home-local-dashboard-message", "Loading local read-only dashboard summary...");
+  const dashboard = await fetchJson("/api/dashboard/summary", { method: "GET" });
+  renderLocalHomeDashboard(dashboard);
 }
 
 export function renderActiveProjectSummary(state, payload) {

@@ -1,5 +1,20 @@
 # Runnable Skeleton
 
+## M36 Home Dashboard UI Consumption
+
+Implemented:
+
+- Home UI consumes `GET /api/dashboard/summary`
+- renders read-only/advisory cards and status panels for project, queue, advisory agent lanes, repo status, blockers/warnings, and next safe action
+- uses explicit manual refresh only (no polling/auto-refresh)
+
+Boundaries preserved:
+
+- local-only/read-only/advisory
+- no GitHub/`gh` execution
+- no agent/Codex/model execution
+- no LLM/model routing
+
 ## M35 Hub Dashboard Summary Contract
 
 Implemented contract:

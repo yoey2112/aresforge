@@ -1,5 +1,24 @@
 # AresForge Roadmap
 
+## M36 Hub Dashboard UI Cards And Status Panels
+
+Status: Completed locally on `main`.
+
+Delivered M36 scope:
+
+- Home now consumes `GET /api/dashboard/summary`
+- read-only/advisory Home cards and status panels for project/queue/agent-lane/repo summaries
+- blockers/warnings and next safe action surfaced in Home
+- manual refresh retained without background polling
+
+Constraints preserved:
+
+- no GitHub calls
+- no `gh`
+- no mutation
+- no agent/Codex/model execution
+- no LLM/model routing
+
 ## M35 Hub Dashboard Data Contract And Read-Only Metrics
 
 Status: Completed locally on `main`.

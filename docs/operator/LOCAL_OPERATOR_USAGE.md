@@ -1,5 +1,28 @@
 # Local Operator Usage
 
+## M36 Home Dashboard Operator Note
+
+Home dashboard now uses:
+
+- `GET /api/dashboard/summary`
+
+Operator-visible read-only panels now include:
+
+- total/active project summary
+- queue totals and status counts
+- advisory agent lanes
+- repo availability/status/warnings
+- blockers and warnings
+- next safe action
+
+Boundary posture is unchanged:
+
+- local-only/read-only/advisory
+- no GitHub API calls and no `gh`
+- no agent/Codex/model execution
+- no LLM/model routing
+- no background polling; refresh is manual
+
 ## M35 Hub Dashboard Data Contract Operator Note
 
 New local-only read-only Hub endpoint:

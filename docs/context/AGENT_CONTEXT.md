@@ -1,5 +1,27 @@
 # AresForge Agent Context
 
+## M36 Home Dashboard UI Context
+
+Current Home dashboard now consumes:
+
+- `GET /api/dashboard/summary`
+
+Home panels now display read-only/advisory:
+
+- project summary (total projects, active project, active status)
+- queue summary (total items and status counts)
+- agent lane summary (lane totals/details)
+- repo summary (availability/status/warnings)
+- blockers and warnings (with empty-state messaging)
+- next safe action
+
+Boundary reminders remain:
+
+- local-only/read-only/advisory
+- no GitHub or `gh` calls
+- no agent/Codex/model execution
+- no LLM/model routing
+
 ## M35 Hub Dashboard Contract Context
 
 Current Hub dashboard contract now includes:

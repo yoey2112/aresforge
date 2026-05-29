@@ -47,48 +47,57 @@
           </div>
           <section class="subpanel">
             <h3>Local Home Dashboard</h3>
-            <p id="home-local-dashboard-message" class="message-note">Read-only local dashboard/report snapshot.</p>
-            <p class="boundary-banner">Read-only local-only dashboard: no GitHub mutation, no agent execution, no model routing.</p>
+            <p id="home-local-dashboard-message" class="message-note">Read-only local dashboard summary snapshot.</p>
+            <p class="boundary-banner">Read-only local-only dashboard: no GitHub calls, no agent execution, no model routing.</p>
             <div class="cards">
               <article class="card">
                 <h3>Total Projects</h3>
                 <p id="home-local-total-projects">0</p>
-                <p class="subvalue">From local project dashboard</p>
+                <p class="subvalue">Local managed project count</p>
               </article>
               <article class="card">
                 <h3>Active Project</h3>
-                <p id="home-local-active-project">None selected</p>
+                <p id="home-local-active-project">No active project selected</p>
                 <p class="subvalue" id="home-local-active-project-id">project_id: -</p>
               </article>
               <article class="card">
-                <h3>Active Repo</h3>
-                <p id="home-local-active-repo">-</p>
-                <p class="subvalue">Selected local default repo</p>
-              </article>
-              <article class="card">
-                <h3>Overall Readiness</h3>
-                <p id="home-local-overall-readiness">needs_attention</p>
-                <p class="subvalue">Local report status</p>
+                <h3>Active Project Status</h3>
+                <p id="home-local-active-project-status">unknown</p>
+                <p class="subvalue">Read-only project lifecycle status</p>
               </article>
               <article class="card">
                 <h3>Queue Item Count</h3>
                 <p id="home-local-queue-count">0</p>
-                <p class="subvalue">All local queue items</p>
+                <p class="subvalue">Total local queue items</p>
               </article>
               <article class="card">
-                <h3>Docs Readiness</h3>
-                <p id="home-local-docs-readiness">needs docs</p>
-                <p class="subvalue">Source-of-truth docs state</p>
+                <h3>Total Advisory Agent Lanes</h3>
+                <p id="home-local-agent-lane-count">0</p>
+                <p class="subvalue">Lane count from queue assignment summary</p>
+              </article>
+              <article class="card">
+                <h3>Repo Availability</h3>
+                <p id="home-local-repo-availability">unavailable</p>
+                <p class="subvalue" id="home-local-repo-status">unknown</p>
               </article>
             </div>
             <h4>Queue Status Summary</h4>
             <ul id="home-local-queue-status-summary" class="list"></ul>
             <p id="home-local-queue-status-summary-empty" class="empty">No queue status summary available.</p>
+            <h4>Agent Lane Details</h4>
+            <ul id="home-local-agent-lane-details" class="list"></ul>
+            <p id="home-local-agent-lane-details-empty" class="empty">No advisory agent lanes found.</p>
+            <h4>Repo Warnings</h4>
+            <ul id="home-local-repo-warnings" class="list"></ul>
+            <p id="home-local-repo-warnings-empty" class="empty">No repo warnings.</p>
             <h4>Recommended Next Action</h4>
             <p id="home-local-recommended-next-action" class="placeholder">No recommendation available yet.</p>
-            <h4>Warnings And Blockers</h4>
-            <ul id="home-local-warnings-blockers" class="list"></ul>
-            <p id="home-local-warnings-blockers-empty" class="empty">No warnings or blockers.</p>
+            <h4>Blockers</h4>
+            <ul id="home-local-blockers" class="list"></ul>
+            <p id="home-local-blockers-empty" class="empty">No blockers.</p>
+            <h4>Warnings</h4>
+            <ul id="home-local-warnings" class="list"></ul>
+            <p id="home-local-warnings-empty" class="empty">No warnings.</p>
             <h4>Running Actions / Agents</h4>
             <div class="card">
               <h3>Running Actions</h3>

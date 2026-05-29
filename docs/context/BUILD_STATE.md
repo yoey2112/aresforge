@@ -1,5 +1,22 @@
 # AresForge Build State
 
+## M36 Hub Dashboard UI Cards And Status Panels
+
+Status: Completed locally on `main`.
+
+Delivered:
+
+- Home dashboard now consumes `GET /api/dashboard/summary`
+- read-only cards/panels for project summary, queue summary, advisory agent lanes, repo summary, blockers/warnings, and next safe action
+- manual operator refresh path retained; no polling/auto-refresh added
+
+Boundary posture:
+
+- local-only and read-only/advisory UI
+- no GitHub API calls and no `gh` calls
+- no agent/Codex/model execution
+- no LLM/model routing
+
 ## M35 Hub Dashboard Data Contract And Read-Only Metrics
 
 Status: Completed locally on `main`.
