@@ -1,5 +1,43 @@
 # Local Operator Usage
 
+## M64 Execution Audit Log
+
+Status: Completed locally on `main`.
+
+Operator workflow:
+
+1. Use the existing local LLM health check, prompt preview, local LLM prototype, Codex high-value prompt, prompt pack, and routing tools as before.
+2. Open the Execution Audit Log panel in Queue.
+3. Optionally filter by item id, action type, engine, or limit.
+4. Review action type, item id, engine, outcome, executed state, and timestamp.
+5. Treat the audit log as local evidence only; it does not approve or execute work.
+
+What is logged:
+
+- local LLM health checks
+- local LLM prompt previews
+- local LLM dry runs, blocked attempts, and advisory execution outputs
+- Codex high-value prompt generation
+- prompt-pack generation
+- routing metadata updates
+
+What is not logged:
+
+- full prompt text
+- full LLM response text
+- secrets or secret-like strings
+- GitHub/`gh` activity, because none is performed by these local workflows
+
+Operator safety notes:
+
+- audit logging does not run Codex, local LLMs, agents, GitHub, `gh`, issues, PRs, workflows, or external services
+- audit logging does not apply AI output or mutate repo files
+- M62 local LLM execution remains explicitly operator-gated
+
+Recommended next milestone:
+
+- M65 - AI Action Safety Gate.
+
 ## M63 Codex CLI High-Value Lane
 
 Status: Completed locally on `main`.

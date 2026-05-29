@@ -1,5 +1,38 @@
 # Runnable Skeleton
 
+## M64 Execution Audit Log
+
+Status: Completed locally on `main`.
+
+Implemented runnable path:
+
+- operator helpers: `append_execution_audit_entry(...)`, `read_execution_audit_log(...)`, `filter_execution_audit_log(...)`
+- local storage: `.aresforge/execution_audit_log.json`
+- Hub route: `GET /api/execution-audit-log`
+- Queue UI panel: Execution Audit Log
+
+Behavior contract:
+
+- append audit entries for operator-gated AI/lane-adjacent actions
+- read missing/empty audit logs safely
+- filter by project, item, action type, engine, executed state, outcome, and limit
+- record summaries and artifact paths instead of full prompt or response bodies
+- redact secret-like strings
+- keep audit write failures best-effort and non-executing
+
+Still absent by design:
+
+- automatic Codex execution
+- new local LLM execution paths beyond M62
+- GitHub API, `gh`, issues, PRs, or workflow activity
+- repo mutation from AI output
+- automatic agent execution
+- automatic file edits, queue completion, commits, pushes, or external workflow execution
+
+Next skeleton focus:
+
+- M65 should add an AI Action Safety Gate before any future execution expansion.
+
 ## M63 Codex CLI High-Value Lane
 
 Status: Completed locally on `main`.

@@ -10,6 +10,7 @@ from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
 from aresforge.config import AppConfig
+from aresforge.operator.local_execution_audit import append_execution_audit_entry, audit_warning
 from aresforge.operator.local_active_project import inspect_active_project, set_active_project
 from aresforge.operator.local_project_queue import (
     add_queue_item,
@@ -3280,8 +3281,34 @@ def check_local_llm_health(config: AppConfig, *, urlopen_fn: Any | None = None) 
     available_models: list[str] = []
     provider_reachable = False
 
+    def _finalize_health_payload(payload: dict[str, Any]) -> dict[str, Any]:
+        outcome = 'reachable' if payload.get('provider_reachable', False) else ('blocked' if payload.get('blockers') else 'unreachable')
+        audit_result = append_execution_audit_entry(
+            config,
+            action_type='local_llm_health_check',
+            engine='local_llm',
+            model=','.join(
+                value
+                for value in (
+                    str(payload.get('configured_reasoning_model', '')).strip(),
+                    str(payload.get('configured_coding_model', '')).strip(),
+                )
+                if value
+            ),
+            dry_run=True,
+            executed=False,
+            execution_allowed=False,
+            outcome=outcome,
+            blockers=[str(blocker) for blocker in payload.get('blockers', [])],
+            warnings=[str(warning) for warning in payload.get('warnings', [])],
+            summary=f"Local LLM health check completed for provider {provider}.",
+            source_function='check_local_llm_health',
+        )
+        payload['warnings'] = sorted(set(list(payload.get('warnings', [])) + audit_warning(audit_result)))
+        return payload
+
     if blockers:
-        return _local_llm_health_payload(
+        return _finalize_health_payload(_local_llm_health_payload(
             ok=False,
             provider=provider,
             provider_base_url=provider_base_url,
@@ -3293,11 +3320,11 @@ def check_local_llm_health(config: AppConfig, *, urlopen_fn: Any | None = None) 
             warnings=warnings,
             blockers=blockers,
             next_safe_action="fix_local_llm_environment_contract_before_health_check",
-        )
+        ))
 
     if provider in {"none", "unknown"}:
         blockers.append(f"Local LLM provider is {provider}; no provider health check is available.")
-        return _local_llm_health_payload(
+        return _finalize_health_payload(_local_llm_health_payload(
             ok=True,
             provider=provider,
             provider_base_url=provider_base_url,
@@ -3309,11 +3336,11 @@ def check_local_llm_health(config: AppConfig, *, urlopen_fn: Any | None = None) 
             warnings=warnings,
             blockers=blockers,
             next_safe_action="configure_ollama_provider_before_running_local_llm_health_check",
-        )
+        ))
 
     if provider != "ollama":
         blockers.append("Only ollama provider health checks are supported in M59.")
-        return _local_llm_health_payload(
+        return _finalize_health_payload(_local_llm_health_payload(
             ok=False,
             provider=provider,
             provider_base_url=provider_base_url,
@@ -3325,11 +3352,11 @@ def check_local_llm_health(config: AppConfig, *, urlopen_fn: Any | None = None) 
             warnings=warnings,
             blockers=blockers,
             next_safe_action="use_supported_local_llm_provider_before_health_check",
-        )
+        ))
 
     if not provider_base_url:
         blockers.append("provider_base_url is required for ollama health checks.")
-        return _local_llm_health_payload(
+        return _finalize_health_payload(_local_llm_health_payload(
             ok=False,
             provider=provider,
             provider_base_url=provider_base_url,
@@ -3341,11 +3368,11 @@ def check_local_llm_health(config: AppConfig, *, urlopen_fn: Any | None = None) 
             warnings=warnings,
             blockers=blockers,
             next_safe_action="set_local_ollama_provider_base_url_before_health_check",
-        )
+        ))
 
     if not _is_local_provider_url(provider_base_url):
         blockers.append("provider_base_url must point to localhost, 127.0.0.1, or ::1 for M59 health checks.")
-        return _local_llm_health_payload(
+        return _finalize_health_payload(_local_llm_health_payload(
             ok=False,
             provider=provider,
             provider_base_url=provider_base_url,
@@ -3357,7 +3384,7 @@ def check_local_llm_health(config: AppConfig, *, urlopen_fn: Any | None = None) 
             warnings=warnings,
             blockers=blockers,
             next_safe_action="use_local_provider_base_url_before_health_check",
-        )
+        ))
 
     timeout = environment.get("request_timeout_seconds") if isinstance(environment.get("request_timeout_seconds"), int) else 5
     tags_url = provider_base_url.rstrip("/") + "/api/tags"
@@ -3368,7 +3395,7 @@ def check_local_llm_health(config: AppConfig, *, urlopen_fn: Any | None = None) 
             raw = response.read()
     except (HTTPError, URLError, OSError, TimeoutError) as exc:
         warnings.append(f"Local provider health check could not reach Ollama tags endpoint: {exc}")
-        return _local_llm_health_payload(
+        return _finalize_health_payload(_local_llm_health_payload(
             ok=True,
             provider=provider,
             provider_base_url=provider_base_url,
@@ -3380,7 +3407,7 @@ def check_local_llm_health(config: AppConfig, *, urlopen_fn: Any | None = None) 
             warnings=warnings,
             blockers=[],
             next_safe_action="start_or_configure_local_provider_before_retrying_health_check",
-        )
+        ))
 
     provider_reachable = True
     try:
@@ -3389,7 +3416,7 @@ def check_local_llm_health(config: AppConfig, *, urlopen_fn: Any | None = None) 
         warnings.append(f"Local provider returned an unreadable model list: {exc}")
         parsed = {}
     available_models = _parse_ollama_model_names(parsed)
-    return _local_llm_health_payload(
+    return _finalize_health_payload(_local_llm_health_payload(
         ok=True,
         provider=provider,
         provider_base_url=provider_base_url,
@@ -3401,7 +3428,7 @@ def check_local_llm_health(config: AppConfig, *, urlopen_fn: Any | None = None) 
         warnings=warnings,
         blockers=[],
         next_safe_action="review_local_model_availability_before_future_prompt_preview_or_execution_milestones",
-    )
+    ))
 
 
 def validate_codex_cli_model_profile_contract(profiles: dict[str, Any]) -> dict[str, Any]:

@@ -1,5 +1,31 @@
 # AresForge Build State
 
+## M64 Execution Audit Log
+
+Status: Completed locally on `main`.
+
+Delivered:
+
+- added local file-backed execution audit helpers: `append_execution_audit_entry(...)`, `read_execution_audit_log(...)`, and `filter_execution_audit_log(...)`
+- stores audit entries at `.aresforge/execution_audit_log.json`
+- added audit logging for local LLM health checks, local LLM prompt previews, local LLM execution/dry runs/blocked attempts, Codex high-value prompt generation, prompt-pack generation, and routing metadata updates
+- added read-only Hub route `GET /api/execution-audit-log`
+- added a small read-only Queue UI Execution Audit Log panel with simple filters
+- audit entries record action metadata, outcomes, blockers/warnings, artifact path, summary, source function, and whether anything executed
+- audit entries avoid full prompt/response text and redact secret-like strings
+
+Boundaries:
+
+- audit logging does not execute anything
+- no Codex CLI execution
+- no GitHub API, `gh`, issues, PRs, workflow activity, or GitHub mutation
+- no local LLM execution expansion beyond M62
+- audit write failures are best-effort warnings and do not widen execution behavior
+
+Recommended next milestone:
+
+- M65 - AI Action Safety Gate.
+
 ## M63 Codex CLI High-Value Lane
 
 Status: Completed locally on `main`.

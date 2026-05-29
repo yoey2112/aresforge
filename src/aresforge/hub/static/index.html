@@ -1128,6 +1128,19 @@
                 <p id="queue-prompt-pack-summary-empty" class="empty">No prompt pack result yet.</p>
                 <pre id="queue-prompt-pack-preview" class="code-block"></pre>
                 <p id="queue-prompt-pack-preview-empty" class="empty">No prompt pack generated yet.</p>
+                <h4>Execution Audit Log</h4>
+                <p class="message-note">Read-only local audit trail for operator-gated previews, blocked attempts, dry runs, health checks, and advisory outputs. No execution controls.</p>
+                <form id="queue-execution-audit-form" class="form-grid">
+                  <label>Item ID<input id="queue-execution-audit-item-id" name="item_id" placeholder="optional item filter" /></label>
+                  <label>Action Type<input id="queue-execution-audit-action-type" name="action_type" placeholder="optional action_type" /></label>
+                  <label>Engine<input id="queue-execution-audit-engine" name="engine" placeholder="optional engine" /></label>
+                  <label>Limit<input id="queue-execution-audit-limit" name="limit" placeholder="25" /></label>
+                  <button id="queue-execution-audit-submit" type="submit">Load Audit Log</button>
+                </form>
+                <ul id="queue-execution-audit-summary" class="list"></ul>
+                <p id="queue-execution-audit-summary-empty" class="empty">No audit log loaded yet.</p>
+                <ul id="queue-execution-audit-entries" class="list"></ul>
+                <p id="queue-execution-audit-entries-empty" class="empty">No audit entries to show.</p>
               </section>
               <section>
                 <h4>Capture Completion Evidence</h4>

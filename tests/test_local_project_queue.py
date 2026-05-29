@@ -2,6 +2,11 @@ import json
 from pathlib import Path
 
 from aresforge.config import AppConfig
+from aresforge.operator.local_execution_audit import (
+    append_execution_audit_entry,
+    filter_execution_audit_log,
+    read_execution_audit_log,
+)
 from aresforge.operator.local_active_project import set_active_project
 from aresforge.operator.local_project_queue import (
     add_local_queue_item,
@@ -107,6 +112,77 @@ def _seed_preview_item(config: AppConfig, *, item_id: str, engine: str, model: s
             'project_ai_mode': 'balanced',
         },
     )['ok'] is True
+
+
+def test_execution_audit_log_reads_empty_and_appends_entry(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+
+    empty = read_execution_audit_log(config)
+    appended = append_execution_audit_entry(
+        config,
+        action_type='local_llm_prompt_preview',
+        project_id='p1',
+        item_id='q1',
+        engine='local_reasoning_llm',
+        model='local-reason',
+        agent_lane='reviewer_validator',
+        operator_gate_confirmed=False,
+        dry_run=True,
+        executed=False,
+        execution_allowed=False,
+        outcome='preview_generated',
+        blockers=[],
+        warnings=[],
+        summary='Prompt preview generated without execution.',
+        source_function='test',
+        timestamp='2026-05-29T00:00:00+00:00',
+    )
+    loaded = read_execution_audit_log(config)
+
+    assert empty['ok'] is True
+    assert empty['entries'] == []
+    assert appended['ok'] is True
+    assert appended['entry']['audit_id'] == 'audit-20260529T0000000000-local-llm-prompt-preview-0001'
+    assert loaded['total_entries'] == 1
+    assert loaded['entries'][0]['action_type'] == 'local_llm_prompt_preview'
+    assert loaded['entries'][0]['execution_allowed'] is False
+
+
+def test_execution_audit_log_filters_and_redacts_secret_like_values(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert append_execution_audit_entry(
+        config,
+        action_type='local_llm_execute',
+        item_id='q-sensitive',
+        engine='local_coding_llm',
+        outcome='blocked',
+        blockers=['api_key should never be recorded'],
+        warnings=['safe warning'],
+        summary='password should not be stored',
+        source_function='test',
+        timestamp='2026-05-29T00:00:00+00:00',
+    )['ok'] is True
+    assert append_execution_audit_entry(
+        config,
+        action_type='codex_high_value_prompt',
+        item_id='q-codex',
+        engine='codex_cli',
+        outcome='prompt_generated',
+        summary='Codex prompt generated.',
+        source_function='test',
+        timestamp='2026-05-29T00:01:00+00:00',
+    )['ok'] is True
+
+    by_item = filter_execution_audit_log(config, item_id='q-sensitive')
+    by_action = filter_execution_audit_log(config, action_type='codex_high_value_prompt')
+
+    assert by_item['total_entries'] == 1
+    assert by_item['entries'][0]['blockers'] == ['[redacted]']
+    assert by_item['entries'][0]['summary'] == '[redacted]'
+    assert 'api_key' not in json.dumps(by_item)
+    assert 'password' not in json.dumps(by_item)
+    assert by_action['total_entries'] == 1
+    assert by_action['entries'][0]['item_id'] == 'q-codex'
 
 
 def test_queue_initialization_creates_default_file_and_schema(tmp_path: Path) -> None:
@@ -899,6 +975,10 @@ def test_execute_local_llm_for_queue_item_dry_run_does_not_call_provider(tmp_pat
     assert payload['executed'] is False
     assert payload['execution_allowed'] is False
     assert called['provider'] is False
+    audit = filter_execution_audit_log(config, item_id='q-execute-dry-run', action_type='local_llm_execute')
+    assert audit['total_entries'] == 1
+    assert audit['entries'][0]['outcome'] == 'dry_run'
+    assert audit['entries'][0]['executed'] is False
 
 
 def test_execute_local_llm_for_queue_item_blocks_without_confirmation_codex_and_unrouted(tmp_path: Path) -> None:
@@ -949,6 +1029,9 @@ def test_execute_local_llm_for_queue_item_blocks_without_confirmation_codex_and_
     )
     assert unrouted['ok'] is False
     assert any('unrouted' in blocker.lower() for blocker in unrouted['blockers'])
+    blocked_audit = filter_execution_audit_log(config, item_id='q-execute-no-confirm', outcome='blocked')
+    assert blocked_audit['total_entries'] >= 1
+    assert any(entry['action_type'] == 'blocked_attempt' for entry in blocked_audit['entries'])
 
 
 def test_execute_local_llm_for_queue_item_with_mocked_provider_succeeds_and_preserves_queue(tmp_path: Path) -> None:
@@ -1634,6 +1717,22 @@ def test_generate_codex_high_value_lane_prompt_artifact_non_overwrite(tmp_path: 
     assert 'Output file already exists. Re-run with force=true to overwrite.' in duplicate['warnings']
     assert forced['ok'] is True
     assert output_path.read_text(encoding='utf-8').startswith('Codex CLI High-Value Lane Prompt')
+
+
+def test_generate_codex_high_value_lane_prompt_creates_audit_entry(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_preview_item(config, item_id='q-codex-audit', engine='codex_cli', model='gpt-5-codex')
+
+    payload = generate_codex_high_value_lane_prompt(config, item_id='q-codex-audit')
+    audit = filter_execution_audit_log(config, item_id='q-codex-audit', action_type='codex_high_value_prompt')
+
+    assert payload['ok'] is True
+    assert audit['total_entries'] == 1
+    entry = audit['entries'][0]
+    assert entry['engine'] == 'codex_cli'
+    assert entry['outcome'] == 'prompt_generated'
+    assert entry['executed'] is False
+    assert entry['execution_allowed'] is False
 
 
 def test_complete_local_queue_item_in_progress_with_evidence(tmp_path: Path) -> None:

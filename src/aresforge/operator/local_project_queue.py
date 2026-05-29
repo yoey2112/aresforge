@@ -10,6 +10,7 @@ from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
 from aresforge.config import AppConfig
+from aresforge.operator.local_execution_audit import append_execution_audit_entry, audit_warning
 from aresforge.operator.local_active_project import inspect_active_project
 from aresforge.operator.local_project_state import resolve_project_state_path
 from aresforge.operator.managed_project_registry_local import resolve_managed_project_registry_path
@@ -724,6 +725,25 @@ def update_local_queue_item_routing_metadata(
     queue['updated_at'] = now
     _write_queue(resolved_queue_path, queue)
 
+    audit_result = append_execution_audit_entry(
+        config,
+        action_type='routing_metadata_update',
+        project_id=str(item.get('project_id', '')).strip(),
+        item_id=normalized_item_id,
+        engine=str(normalized_metadata.get('recommended_engine', '')).strip(),
+        model=str(normalized_metadata.get('recommended_model', '')).strip(),
+        agent_lane=str(normalized_metadata.get('recommended_agent_lane', '')).strip(),
+        operator_gate_confirmed=True,
+        dry_run=False,
+        executed=False,
+        execution_allowed=False,
+        outcome='updated',
+        blockers=[],
+        warnings=list(validation.get('warnings', [])),
+        summary='Routing metadata updated locally; no routing execution or model invocation performed.',
+        source_function='update_local_queue_item_routing_metadata',
+    )
+
     return {
         'command': 'update-local-queue-item-routing-metadata',
         'ok': True,
@@ -733,7 +753,7 @@ def update_local_queue_item_routing_metadata(
         'routing_metadata': normalized_metadata,
         'validation': validation,
         'next_safe_action': 'review_routing_metadata_as_non_executing_queue_context',
-        'warnings': list(validation.get('warnings', [])),
+        'warnings': sorted(set(list(validation.get('warnings', [])) + audit_warning(audit_result))),
         'blockers': [],
         'item': _item_view(item),
         'boundary_confirmations': list(_QUEUE_ROUTING_METADATA_BOUNDARY_CONFIRMATIONS),
@@ -894,15 +914,72 @@ def generate_local_llm_prompt_preview(
     }
 
     if output is None:
+        audit_result = append_execution_audit_entry(
+            config,
+            action_type='local_llm_prompt_preview' if preview_allowed else 'blocked_attempt',
+            project_id=project_id,
+            item_id=normalized_item_id,
+            engine=recommended_engine,
+            model=recommended_model,
+            agent_lane=str(routing_metadata.get('recommended_agent_lane', '')).strip(),
+            operator_gate_confirmed=False,
+            dry_run=True,
+            executed=False,
+            execution_allowed=False,
+            outcome='preview_generated' if preview_allowed else 'blocked',
+            blockers=blockers,
+            warnings=warnings,
+            summary='Local LLM prompt preview generated.' if preview_allowed else 'Local LLM prompt preview blocked by local gates.',
+            source_function='generate_local_llm_prompt_preview',
+        )
+        payload['warnings'] = sorted(set(payload['warnings'] + audit_warning(audit_result)))
         return payload
     output_path = Path(output)
     if output_path.exists() and not force:
         payload['ok'] = False
         payload['output_path'] = str(output_path)
         payload['warnings'] = sorted({*payload['warnings'], 'Output file already exists. Re-run with force=true to overwrite.'})
+        audit_result = append_execution_audit_entry(
+            config,
+            action_type='blocked_attempt',
+            project_id=project_id,
+            item_id=normalized_item_id,
+            engine=recommended_engine,
+            model=recommended_model,
+            agent_lane=str(routing_metadata.get('recommended_agent_lane', '')).strip(),
+            dry_run=True,
+            executed=False,
+            execution_allowed=False,
+            outcome='blocked',
+            blockers=['Output file already exists.'],
+            warnings=payload['warnings'],
+            artifact_path=output_path,
+            summary='Local LLM prompt preview artifact write blocked by non-overwrite gate.',
+            source_function='generate_local_llm_prompt_preview',
+        )
+        payload['warnings'] = sorted(set(payload['warnings'] + audit_warning(audit_result)))
         return payload
     if not preview_allowed:
         payload['output_path'] = str(output_path)
+        audit_result = append_execution_audit_entry(
+            config,
+            action_type='blocked_attempt',
+            project_id=project_id,
+            item_id=normalized_item_id,
+            engine=recommended_engine,
+            model=recommended_model,
+            agent_lane=str(routing_metadata.get('recommended_agent_lane', '')).strip(),
+            dry_run=True,
+            executed=False,
+            execution_allowed=False,
+            outcome='blocked',
+            blockers=blockers,
+            warnings=warnings,
+            artifact_path=output_path,
+            summary='Local LLM prompt preview blocked by local gates.',
+            source_function='generate_local_llm_prompt_preview',
+        )
+        payload['warnings'] = sorted(set(payload['warnings'] + audit_warning(audit_result)))
         return payload
     try:
         output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -911,8 +988,46 @@ def generate_local_llm_prompt_preview(
         payload['ok'] = False
         payload['output_path'] = str(output_path)
         payload['warnings'] = sorted({*payload['warnings'], f'Failed to write output file: {exc}'})
+        audit_result = append_execution_audit_entry(
+            config,
+            action_type='blocked_attempt',
+            project_id=project_id,
+            item_id=normalized_item_id,
+            engine=recommended_engine,
+            model=recommended_model,
+            agent_lane=str(routing_metadata.get('recommended_agent_lane', '')).strip(),
+            dry_run=True,
+            executed=False,
+            execution_allowed=False,
+            outcome='blocked',
+            blockers=[f'Failed to write output file: {exc}'],
+            warnings=payload['warnings'],
+            artifact_path=output_path,
+            summary='Local LLM prompt preview artifact write failed.',
+            source_function='generate_local_llm_prompt_preview',
+        )
+        payload['warnings'] = sorted(set(payload['warnings'] + audit_warning(audit_result)))
         return payload
     payload['output_path'] = str(output_path)
+    audit_result = append_execution_audit_entry(
+        config,
+        action_type='local_llm_prompt_preview',
+        project_id=project_id,
+        item_id=normalized_item_id,
+        engine=recommended_engine,
+        model=recommended_model,
+        agent_lane=str(routing_metadata.get('recommended_agent_lane', '')).strip(),
+        dry_run=True,
+        executed=False,
+        execution_allowed=False,
+        outcome='preview_generated',
+        blockers=[],
+        warnings=warnings,
+        artifact_path=output_path,
+        summary='Local LLM prompt preview generated and written to a local artifact.',
+        source_function='generate_local_llm_prompt_preview',
+    )
+    payload['warnings'] = sorted(set(payload['warnings'] + audit_warning(audit_result)))
     return payload
 
 
@@ -1049,6 +1164,24 @@ def execute_local_llm_for_queue_item(
     }
 
     if output is None:
+        audit_result = append_execution_audit_entry(
+            config,
+            action_type='local_llm_execute' if executed or dry_run else 'blocked_attempt',
+            item_id=normalized_item_id,
+            engine=recommended_engine,
+            model=model,
+            agent_lane=str(routing_metadata.get('recommended_agent_lane', '')).strip(),
+            operator_gate_confirmed=bool(confirm_operator_gate),
+            dry_run=bool(dry_run),
+            executed=executed,
+            execution_allowed=execution_allowed,
+            outcome='executed' if executed else ('dry_run' if dry_run and not blockers else 'blocked'),
+            blockers=blockers,
+            warnings=warnings,
+            summary='Local LLM execution prototype completed as advisory output.' if executed else ('Local LLM execution dry run completed without provider call.' if dry_run and not blockers else 'Local LLM execution attempt blocked by local gates.'),
+            source_function='execute_local_llm_for_queue_item',
+        )
+        payload['warnings'] = sorted(set(payload['warnings'] + audit_warning(audit_result)))
         return payload
     output_path = Path(output)
     payload['result_artifact_path'] = str(output_path)
@@ -1056,8 +1189,46 @@ def execute_local_llm_for_queue_item(
         payload['ok'] = False
         payload['execution_allowed'] = False
         payload['warnings'] = sorted({*payload['warnings'], 'Output file already exists. Re-run with force=true to overwrite.'})
+        audit_result = append_execution_audit_entry(
+            config,
+            action_type='blocked_attempt',
+            item_id=normalized_item_id,
+            engine=recommended_engine,
+            model=model,
+            agent_lane=str(routing_metadata.get('recommended_agent_lane', '')).strip(),
+            operator_gate_confirmed=bool(confirm_operator_gate),
+            dry_run=bool(dry_run),
+            executed=executed,
+            execution_allowed=False,
+            outcome='blocked',
+            blockers=['Output file already exists.'],
+            warnings=payload['warnings'],
+            artifact_path=output_path,
+            summary='Local LLM execution result artifact write blocked by non-overwrite gate.',
+            source_function='execute_local_llm_for_queue_item',
+        )
+        payload['warnings'] = sorted(set(payload['warnings'] + audit_warning(audit_result)))
         return payload
     if not executed and not dry_run:
+        audit_result = append_execution_audit_entry(
+            config,
+            action_type='blocked_attempt',
+            item_id=normalized_item_id,
+            engine=recommended_engine,
+            model=model,
+            agent_lane=str(routing_metadata.get('recommended_agent_lane', '')).strip(),
+            operator_gate_confirmed=bool(confirm_operator_gate),
+            dry_run=bool(dry_run),
+            executed=False,
+            execution_allowed=False,
+            outcome='blocked',
+            blockers=blockers,
+            warnings=warnings,
+            artifact_path=output_path,
+            summary='Local LLM execution attempt blocked by local gates.',
+            source_function='execute_local_llm_for_queue_item',
+        )
+        payload['warnings'] = sorted(set(payload['warnings'] + audit_warning(audit_result)))
         return payload
     try:
         output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -1066,6 +1237,45 @@ def execute_local_llm_for_queue_item(
         payload['ok'] = False
         payload['execution_allowed'] = False
         payload['warnings'] = sorted({*payload['warnings'], f'Failed to write result artifact: {exc}'})
+        audit_result = append_execution_audit_entry(
+            config,
+            action_type='blocked_attempt',
+            item_id=normalized_item_id,
+            engine=recommended_engine,
+            model=model,
+            agent_lane=str(routing_metadata.get('recommended_agent_lane', '')).strip(),
+            operator_gate_confirmed=bool(confirm_operator_gate),
+            dry_run=bool(dry_run),
+            executed=executed,
+            execution_allowed=False,
+            outcome='blocked',
+            blockers=[f'Failed to write result artifact: {exc}'],
+            warnings=payload['warnings'],
+            artifact_path=output_path,
+            summary='Local LLM execution result artifact write failed.',
+            source_function='execute_local_llm_for_queue_item',
+        )
+        payload['warnings'] = sorted(set(payload['warnings'] + audit_warning(audit_result)))
+        return payload
+    audit_result = append_execution_audit_entry(
+        config,
+        action_type='local_llm_execute',
+        item_id=normalized_item_id,
+        engine=recommended_engine,
+        model=model,
+        agent_lane=str(routing_metadata.get('recommended_agent_lane', '')).strip(),
+        operator_gate_confirmed=bool(confirm_operator_gate),
+        dry_run=bool(dry_run),
+        executed=executed,
+        execution_allowed=execution_allowed,
+        outcome='executed' if executed else 'dry_run',
+        blockers=blockers,
+        warnings=warnings,
+        artifact_path=output_path,
+        summary='Local LLM execution audit recorded with local result artifact.' if executed else 'Local LLM dry run audit recorded with local result artifact.',
+        source_function='execute_local_llm_for_queue_item',
+    )
+    payload['warnings'] = sorted(set(payload['warnings'] + audit_warning(audit_result)))
     return payload
 
 
@@ -2149,6 +2359,25 @@ def generate_codex_high_value_lane_prompt(
     }
 
     if output is None:
+        audit_result = append_execution_audit_entry(
+            config,
+            action_type='codex_high_value_prompt' if eligible else 'blocked_attempt',
+            project_id=str(item.get('project_id', '')).strip(),
+            item_id=normalized_item_id,
+            engine=recommended_engine,
+            model=recommended_model,
+            agent_lane=str(routing_metadata.get('recommended_agent_lane', '')).strip(),
+            operator_gate_confirmed=bool(operator_override),
+            dry_run=True,
+            executed=False,
+            execution_allowed=False,
+            outcome='prompt_generated' if eligible else 'blocked',
+            blockers=blockers,
+            warnings=warnings,
+            summary='Codex high-value prompt generated for manual operator copy/paste.' if eligible else 'Codex high-value prompt generation blocked by eligibility gates.',
+            source_function='generate_codex_high_value_lane_prompt',
+        )
+        payload['warnings'] = sorted(set(payload['warnings'] + audit_warning(audit_result)))
         return payload
 
     output_path = Path(output)
@@ -2156,8 +2385,48 @@ def generate_codex_high_value_lane_prompt(
     if output_path.exists() and not force:
         payload['ok'] = False
         payload['warnings'] = sorted({*payload['warnings'], 'Output file already exists. Re-run with force=true to overwrite.'})
+        audit_result = append_execution_audit_entry(
+            config,
+            action_type='blocked_attempt',
+            project_id=str(item.get('project_id', '')).strip(),
+            item_id=normalized_item_id,
+            engine=recommended_engine,
+            model=recommended_model,
+            agent_lane=str(routing_metadata.get('recommended_agent_lane', '')).strip(),
+            operator_gate_confirmed=bool(operator_override),
+            dry_run=True,
+            executed=False,
+            execution_allowed=False,
+            outcome='blocked',
+            blockers=['Output file already exists.'],
+            warnings=payload['warnings'],
+            artifact_path=output_path,
+            summary='Codex high-value prompt artifact write blocked by non-overwrite gate.',
+            source_function='generate_codex_high_value_lane_prompt',
+        )
+        payload['warnings'] = sorted(set(payload['warnings'] + audit_warning(audit_result)))
         return payload
     if not eligible:
+        audit_result = append_execution_audit_entry(
+            config,
+            action_type='blocked_attempt',
+            project_id=str(item.get('project_id', '')).strip(),
+            item_id=normalized_item_id,
+            engine=recommended_engine,
+            model=recommended_model,
+            agent_lane=str(routing_metadata.get('recommended_agent_lane', '')).strip(),
+            operator_gate_confirmed=bool(operator_override),
+            dry_run=True,
+            executed=False,
+            execution_allowed=False,
+            outcome='blocked',
+            blockers=blockers,
+            warnings=warnings,
+            artifact_path=output_path,
+            summary='Codex high-value prompt generation blocked by eligibility gates.',
+            source_function='generate_codex_high_value_lane_prompt',
+        )
+        payload['warnings'] = sorted(set(payload['warnings'] + audit_warning(audit_result)))
         return payload
     try:
         output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -2165,6 +2434,47 @@ def generate_codex_high_value_lane_prompt(
     except OSError as exc:
         payload['ok'] = False
         payload['warnings'] = sorted({*payload['warnings'], f'Failed to write output file: {exc}'})
+        audit_result = append_execution_audit_entry(
+            config,
+            action_type='blocked_attempt',
+            project_id=str(item.get('project_id', '')).strip(),
+            item_id=normalized_item_id,
+            engine=recommended_engine,
+            model=recommended_model,
+            agent_lane=str(routing_metadata.get('recommended_agent_lane', '')).strip(),
+            operator_gate_confirmed=bool(operator_override),
+            dry_run=True,
+            executed=False,
+            execution_allowed=False,
+            outcome='blocked',
+            blockers=[f'Failed to write output file: {exc}'],
+            warnings=payload['warnings'],
+            artifact_path=output_path,
+            summary='Codex high-value prompt artifact write failed.',
+            source_function='generate_codex_high_value_lane_prompt',
+        )
+        payload['warnings'] = sorted(set(payload['warnings'] + audit_warning(audit_result)))
+        return payload
+    audit_result = append_execution_audit_entry(
+        config,
+        action_type='codex_high_value_prompt',
+        project_id=str(item.get('project_id', '')).strip(),
+        item_id=normalized_item_id,
+        engine=recommended_engine,
+        model=recommended_model,
+        agent_lane=str(routing_metadata.get('recommended_agent_lane', '')).strip(),
+        operator_gate_confirmed=bool(operator_override),
+        dry_run=True,
+        executed=False,
+        execution_allowed=False,
+        outcome='prompt_generated',
+        blockers=[],
+        warnings=warnings,
+        artifact_path=output_path,
+        summary='Codex high-value prompt generated and written to a local artifact.',
+        source_function='generate_codex_high_value_lane_prompt',
+    )
+    payload['warnings'] = sorted(set(payload['warnings'] + audit_warning(audit_result)))
     return payload
 
 
@@ -2420,6 +2730,20 @@ def generate_local_queue_prompt_pack(
     }
 
     if output is None:
+        audit_result = append_execution_audit_entry(
+            config,
+            action_type='prompt_pack_generate',
+            engine='prompt_pack',
+            dry_run=True,
+            executed=False,
+            execution_allowed=False,
+            outcome='generated' if item_summaries else 'empty',
+            blockers=[],
+            warnings=warnings,
+            summary=f'Local prompt pack generated for {len(item_summaries)} queue item(s).',
+            source_function='generate_local_queue_prompt_pack',
+        )
+        payload['warnings'] = sorted(set(payload['warnings'] + audit_warning(audit_result)))
         return payload
 
     output_path = Path(output)
@@ -2432,6 +2756,21 @@ def generate_local_queue_prompt_pack(
                 'Output file already exists. Re-run with --force to overwrite.',
             }
         )
+        audit_result = append_execution_audit_entry(
+            config,
+            action_type='blocked_attempt',
+            engine='prompt_pack',
+            dry_run=True,
+            executed=False,
+            execution_allowed=False,
+            outcome='blocked',
+            blockers=['Output file already exists.'],
+            warnings=payload['warnings'],
+            artifact_path=output_path,
+            summary='Local prompt pack artifact write blocked by non-overwrite gate.',
+            source_function='generate_local_queue_prompt_pack',
+        )
+        payload['warnings'] = sorted(set(payload['warnings'] + audit_warning(audit_result)))
         return payload
     try:
         output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -2445,9 +2784,39 @@ def generate_local_queue_prompt_pack(
                 f'Failed to write output file: {exc}',
             }
         )
+        audit_result = append_execution_audit_entry(
+            config,
+            action_type='blocked_attempt',
+            engine='prompt_pack',
+            dry_run=True,
+            executed=False,
+            execution_allowed=False,
+            outcome='blocked',
+            blockers=[f'Failed to write output file: {exc}'],
+            warnings=payload['warnings'],
+            artifact_path=output_path,
+            summary='Local prompt pack artifact write failed.',
+            source_function='generate_local_queue_prompt_pack',
+        )
+        payload['warnings'] = sorted(set(payload['warnings'] + audit_warning(audit_result)))
         return payload
 
     payload['output_path'] = str(output_path)
+    audit_result = append_execution_audit_entry(
+        config,
+        action_type='prompt_pack_generate',
+        engine='prompt_pack',
+        dry_run=True,
+        executed=False,
+        execution_allowed=False,
+        outcome='generated' if item_summaries else 'empty',
+        blockers=[],
+        warnings=warnings,
+        artifact_path=output_path,
+        summary=f'Local prompt pack generated for {len(item_summaries)} queue item(s) and written to artifact.',
+        source_function='generate_local_queue_prompt_pack',
+    )
+    payload['warnings'] = sorted(set(payload['warnings'] + audit_warning(audit_result)))
     return payload
 
 

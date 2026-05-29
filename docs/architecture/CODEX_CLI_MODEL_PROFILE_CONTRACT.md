@@ -4,6 +4,8 @@
 
 M60 adds a local-only Codex CLI Model Profile Contract. M63 adds Codex CLI High-Value Lane prompt generation that may reference queue routing metadata and model profile intent, but still does not execute Codex.
 
+M64 adds a local Execution Audit Log. Codex high-value prompt generation is summarized in `.aresforge/execution_audit_log.json`, but the audit log does not execute Codex, invoke Codex CLI, or store full generated prompt text.
+
 This contract represents future Codex CLI model preferences for routing and high-value lane planning. It does not execute Codex CLI, send prompts, run agents, call GitHub, call `gh`, or run external workflows.
 
 ## Storage
@@ -24,6 +26,7 @@ Reading defaults does not write this file. Updating the contract writes the file
 
 - `GET /api/codex-cli/model-profiles`
 - `POST /api/codex-cli/model-profiles`
+- `GET /api/execution-audit-log`
 
 ## Fields
 
@@ -63,9 +66,12 @@ Reading defaults does not write this file. Updating the contract writes the file
 - no GitHub API or `gh`
 - no GitHub issues, PRs, workflow activity, or GitHub mutation
 - no external workflow execution
+- audit logging is local-only and non-executing
 
 ## Next Milestone Relationship
 
 M63 uses the `codex_cli` engine key and high-value lane concept for prompt generation only. It keeps output advisory and copy/paste/operator-controlled, returns `execution_allowed: false`, and preserves the no GitHub/`gh` boundary.
 
-M64 should add an Execution Audit Log for operator-gated local execution and advisory outputs without adding automatic Codex or GitHub execution.
+M64 adds an Execution Audit Log for operator-gated local execution and advisory outputs without adding automatic Codex or GitHub execution.
+
+M65 should add an AI Action Safety Gate before any future expansion of AI execution behavior.

@@ -21,6 +21,7 @@ from aresforge.hub.api import (
     get_agents,
     get_docs_status,
     get_escalation_plan,
+    get_execution_audit_log,
     get_health,
     get_handoff_preview,
     get_handoff_target,
@@ -206,6 +207,21 @@ def _build_handler(config: AppConfig, static_root: Path) -> type[BaseHTTPRequest
                 return True
             if method == "GET" and path == "/api/local-queue-agent-summary":
                 _render_json(self, HTTPStatus.OK, get_local_queue_agent_summary(config))
+                return True
+            if method == "GET" and path == "/api/execution-audit-log":
+                payload = get_execution_audit_log(
+                    config,
+                    {
+                        "project_id": query_values.get("project_id", [None])[0],
+                        "item_id": query_values.get("item_id", [None])[0],
+                        "action_type": query_values.get("action_type", [None])[0],
+                        "engine": query_values.get("engine", [None])[0],
+                        "executed": query_values.get("executed", [None])[0],
+                        "outcome": query_values.get("outcome", [None])[0],
+                        "limit": query_values.get("limit", [None])[0],
+                    },
+                )
+                _render_json(self, _status_from_payload(payload), payload)
                 return True
             if method == "GET" and path == "/api/local-queue/routed-views":
                 payload = get_local_queue_routed_views(

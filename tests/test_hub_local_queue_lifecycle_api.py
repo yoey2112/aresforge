@@ -9,6 +9,7 @@ import threading
 from aresforge.config import AppConfig
 from aresforge.hub.server import _build_handler
 from aresforge.hub.api import post_active_project, post_project, post_project_repo, post_queue_item
+from aresforge.operator.local_execution_audit import append_execution_audit_entry
 
 
 def _config(tmp_path: Path) -> AppConfig:
@@ -569,6 +570,44 @@ def test_post_local_queue_item_codex_high_value_prompt_route_returns_preview_wit
         )
         assert missing_status == 404
         assert missing_payload["ok"] is False
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
+
+
+def test_get_execution_audit_log_route_returns_filtered_entries(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert append_execution_audit_entry(
+        config,
+        action_type="local_llm_execute",
+        item_id="audit-api-item",
+        engine="local_coding_llm",
+        dry_run=True,
+        executed=False,
+        execution_allowed=False,
+        outcome="dry_run",
+        summary="Dry run recorded.",
+        source_function="test",
+        timestamp="2026-05-29T00:00:00+00:00",
+    )["ok"] is True
+    server, thread = _start_server(config)
+
+    try:
+        port = int(server.server_address[1])
+        status, payload = _request_json(
+            port,
+            "GET",
+            "/api/execution-audit-log?item_id=audit-api-item&action_type=local_llm_execute&limit=5",
+        )
+
+        assert status == 200
+        assert payload["ok"] is True
+        assert payload["total_entries"] == 1
+        assert payload["entries"][0]["item_id"] == "audit-api-item"
+        assert payload["entries"][0]["executed"] is False
+        assert payload["filters"]["limit"] == 5
+        assert any("read-only" in entry for entry in payload["boundary_confirmations"])
     finally:
         server.shutdown()
         server.server_close()

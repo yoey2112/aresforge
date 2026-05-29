@@ -2,9 +2,33 @@
 
 ## Status
 
-M44A documented the future Agent/LLM routing strategy. M51 through M63 now add non-executing contracts and local Hub surfaces for project AI settings, agent/engine registry, queue routing metadata, recommendation-only routing decisions, Project AI Settings UI, routed queue views, routing-aware prompt packs, local LLM environment/health checks, Codex CLI model profile configuration, local LLM prompt preview/execution gates, and Codex high-value prompt generation.
+M44A documented the future Agent/LLM routing strategy. M51 through M64 now add non-executing contracts and local Hub surfaces for project AI settings, agent/engine registry, queue routing metadata, recommendation-only routing decisions, Project AI Settings UI, routed queue views, routing-aware prompt packs, local LLM environment/health checks, Codex CLI model profile configuration, local LLM prompt preview/execution gates, Codex high-value prompt generation, and a local execution audit log.
 
 Current prompt-pack and Codex high-value lane behavior are advisory prompt generation only. Runtime routing, Codex execution, real agent execution, and GitHub integration remain unimplemented. Local LLM execution exists only as the M62 operator-gated local prototype.
+
+## M64 Execution Audit Log
+
+M64 adds a local-only audit trail for operator-gated AI/lane-adjacent actions.
+
+Current operator helpers:
+
+- `append_execution_audit_entry(...)`
+- `read_execution_audit_log(...)`
+- `filter_execution_audit_log(...)`
+
+Current Hub route:
+
+- `GET /api/execution-audit-log`
+
+Storage:
+
+- `.aresforge/execution_audit_log.json`
+
+Audit entries record action type, item/project identifiers when available, engine/model/lane metadata, operator gate state, dry-run/executed/execution-allowed booleans, outcome, blockers, warnings, artifact path, summary, and source function.
+
+M64 logs local LLM health checks, local LLM prompt previews, local LLM dry runs/execution/blocked attempts, Codex high-value prompt generation, prompt-pack generation, and routing metadata updates. It does not store full prompt text or full LLM response text, and it redacts secret-like strings.
+
+M64 does not execute Codex, expand local LLM execution beyond M62, call GitHub API, call `gh`, create issues, create PRs, run workflows, or mutate repository files from AI output.
 
 ## M63 Codex CLI High-Value Lane
 

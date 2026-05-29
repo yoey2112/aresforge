@@ -12,6 +12,8 @@ M61 adds Local LLM Prompt Preview. The preview reads this contract to resolve co
 
 M62 adds an operator-gated local LLM execution prototype. Execution is allowed only when this contract explicitly has `execution_enabled: true`, `operator_gate_required: true`, a supported local provider, and the request passes prompt preview, health check, routing, risk, and operator confirmation gates.
 
+M64 adds a local Execution Audit Log. Health checks, prompt previews, dry runs, blocked attempts, and advisory local LLM execution outputs are summarized in `.aresforge/execution_audit_log.json`. The audit log does not add execution behavior, does not store full prompt/response text, and does not execute anything.
+
 ## Storage
 
 The contract is stored locally at:
@@ -33,6 +35,7 @@ Reading defaults does not write this file. Updating the contract writes the file
 - `POST /api/local-llm/health-check`
 - `POST /api/local-queue/items/{item_id}/local-llm-prompt-preview`
 - `POST /api/local-queue/items/{item_id}/local-llm-execute`
+- `GET /api/execution-audit-log`
 
 ## Fields
 
@@ -88,6 +91,8 @@ For provider `ollama`, the health check may call only the local `/api/tags` endp
 
 Provider URLs must be local: `localhost`, `127.0.0.1`, or `::1`.
 
+M64 records a local audit summary for health check outcomes. The audit entry records provider/model metadata and outcome, not secrets or prompt content.
+
 ## M61 Prompt Preview
 
 Local LLM Prompt Preview is copy/paste preview generation only.
@@ -111,6 +116,8 @@ Preview blocks or warns for:
 
 Preview output includes local-only operating rules, validation expectations, routing metadata, and `execution_allowed: false`. Optional artifact output is local-only and refuses to overwrite existing files unless `force=true`.
 
+M64 records prompt preview audit entries for generated and blocked previews. Audit entries do not store the full generated prompt.
+
 ## M62 Execution Prototype
 
 Local LLM execution is conservative and operator-gated.
@@ -129,6 +136,8 @@ Execution may proceed only when:
 - high or critical risk has `operator_override: true`
 
 Execution output is advisory only. It may be written to a local result artifact if the operator provides an output path. It is never applied to repo files, queue status, project state, GitHub, `gh`, Codex, agents, commits, pushes, or workflows.
+
+M64 records dry runs, blocked attempts, and advisory execution outcomes in the local audit log. Audit entries prefer summaries and artifact paths over full response text.
 
 ## Boundaries
 
@@ -149,3 +158,5 @@ Execution output is advisory only. It may be written to a local result artifact 
 M61 added Local LLM Prompt Preview without execution.
 
 M62 added the first operator-gated local execution prototype.
+
+M64 added the local Execution Audit Log without expanding execution.

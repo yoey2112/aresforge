@@ -396,9 +396,16 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "queue-codex-high-value-preview" in index_text
     assert "Generate Codex High-Value Prompt" in index_text
     assert "No Run Codex control, no GitHub buttons" in index_text
+    assert "Execution Audit Log" in index_text
+    assert "queue-execution-audit-form" in index_text
+    assert "queue-execution-audit-entries" in index_text
+    assert "No execution controls" in index_text
     assert "buildCodexHighValuePromptPayload" in queue_js
     assert "renderCodexHighValuePromptResult" in queue_js
+    assert "buildExecutionAuditQuery" in queue_js
+    assert "renderExecutionAuditLog" in queue_js
     assert "/codex-high-value-prompt" in queue_js
+    assert "/api/execution-audit-log" in queue_js
     assert "Generates local copy/paste prompt pack only with advisory routing metadata" in index_text
     assert "queue-prompt-pack-include-routing" in index_text
     assert "queue-prompt-pack-group-by-routing" in index_text
@@ -571,6 +578,7 @@ def test_frontend_scripts_reference_m39_api_endpoints_and_forms() -> None:
         "/api/queue",
         "/api/local-queue/items",
         "/api/local-queue/prompt-pack",
+        "/api/execution-audit-log",
         "/evidence",
         "/closeout",
         "/readiness",

@@ -1,5 +1,41 @@
 # AresForge Agent Context
 
+## M64 Execution Audit Log Context
+
+Status: Completed locally on `main`.
+
+Current audit contract:
+
+- operator helpers: `append_execution_audit_entry(...)`, `read_execution_audit_log(...)`, `filter_execution_audit_log(...)`
+- storage path: `.aresforge/execution_audit_log.json`
+- Hub route: `GET /api/execution-audit-log`
+- Queue UI panel: Execution Audit Log
+
+Logged action types:
+
+- `local_llm_health_check`
+- `local_llm_prompt_preview`
+- `local_llm_execute`
+- `codex_high_value_prompt`
+- `prompt_pack_generate`
+- `routing_recommendation`
+- `routing_metadata_update`
+- `blocked_attempt`
+
+Logged fields include `audit_id`, `timestamp`, optional `project_id`/`item_id`, `action_type`, `engine`, optional `model`/`agent_lane`, operator gate state, dry-run/executed/execution-allowed booleans, outcome, blockers, warnings, optional artifact path, summary, and source function.
+
+Boundary reminders:
+
+- audit logging is local-only, file-backed, and best-effort
+- audit logging does not execute Codex, local LLMs, agents, GitHub, `gh`, issues, PRs, workflows, or external services
+- audit entries should not store full prompt text or full LLM response text
+- secret-like strings are redacted from audit fields
+- M62 local LLM execution behavior is not expanded
+
+Recommended next milestone:
+
+- M65 - AI Action Safety Gate.
+
 ## M63 Codex CLI High-Value Lane Context
 
 Status: Completed locally on `main`.

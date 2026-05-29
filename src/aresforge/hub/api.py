@@ -11,6 +11,7 @@ from aresforge.operator.local_project_report import inspect_local_project_report
 from aresforge.operator.local_project_readiness import list_local_projects
 from aresforge.operator.local_queue_agent_summary import inspect_local_queue_agent_summary
 from aresforge.operator.local_active_project import inspect_active_project, set_active_project
+from aresforge.operator.local_execution_audit import filter_execution_audit_log
 from aresforge.operator.local_project_queue import (
     QUEUE_ITEM_TYPES,
     QUEUE_PRIORITIES,
@@ -574,6 +575,47 @@ def get_local_queue_agent_summary(config: AppConfig) -> dict[str, Any]:
             "ok": True,
             "service": SERVICE_NAME,
         }
+    )
+    return payload
+
+
+def get_execution_audit_log(config: AppConfig, params: dict[str, str | None]) -> dict[str, Any]:
+    executed_value = _normalize_optional_str(params.get("executed"))
+    executed: bool | None = None
+    if executed_value is not None:
+        lowered = executed_value.lower()
+        if lowered not in {"true", "false"}:
+            return _api_error(
+                "invalid_executed",
+                "executed must be true or false when supplied.",
+                details={"executed": executed_value},
+            )
+        executed = lowered == "true"
+
+    limit_value = _normalize_optional_str(params.get("limit"))
+    limit: int | None = None
+    if limit_value is not None:
+        try:
+            limit = int(limit_value)
+        except ValueError:
+            return _api_error("invalid_limit", "limit must be an integer.", details={"limit": limit_value})
+        if limit <= 0:
+            return _api_error("invalid_limit", "limit must be greater than zero.", details={"limit": limit_value})
+
+    payload = filter_execution_audit_log(
+        config,
+        project_id=_normalize_optional_str(params.get("project_id")),
+        item_id=_normalize_optional_str(params.get("item_id")),
+        action_type=_normalize_optional_str(params.get("action_type")),
+        engine=_normalize_optional_str(params.get("engine")),
+        executed=executed,
+        outcome=_normalize_optional_str(params.get("outcome")),
+        limit=limit,
+    )
+    payload["service"] = SERVICE_NAME
+    payload["boundary_confirmations"] = _merge_boundary_confirmations(
+        payload,
+        "Execution audit log is read-only and does not execute Codex, local LLMs, agents, GitHub, gh, or workflows.",
     )
     return payload
 

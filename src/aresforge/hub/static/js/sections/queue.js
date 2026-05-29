@@ -521,6 +521,15 @@ function buildLocalQueuePromptPackPayload({ parseCommaList }) {
   });
 }
 
+function buildExecutionAuditQuery() {
+  return toQuery({
+    item_id: byId("queue-execution-audit-item-id") && byId("queue-execution-audit-item-id").value.trim(),
+    action_type: byId("queue-execution-audit-action-type") && byId("queue-execution-audit-action-type").value.trim(),
+    engine: byId("queue-execution-audit-engine") && byId("queue-execution-audit-engine").value.trim(),
+    limit: byId("queue-execution-audit-limit") && byId("queue-execution-audit-limit").value.trim(),
+  });
+}
+
 function buildLocalQueueCompletePayload({ parseLineList }) {
   return prunePayload({
     commit_hash: byId("queue-lifecycle-complete-commit-hash").value.trim(),
@@ -672,6 +681,19 @@ function renderLocalQueuePromptPackResult(payload) {
     `next_safe_action: ${payload && payload.next_safe_action ? payload.next_safe_action : "-"}`,
   ].concat((payload && payload.warnings ? payload.warnings : []).map((warning) => `warning: ${warning}`)));
   setCodeBlock("queue-prompt-pack-preview", "queue-prompt-pack-preview-empty", (payload && payload.prompt_pack) || "");
+}
+
+function renderExecutionAuditLog(payload) {
+  setList("queue-execution-audit-summary", "queue-execution-audit-summary-empty", [
+    `total_entries: ${payload && typeof payload.total_entries === "number" ? payload.total_entries : 0}`,
+    `generated_at: ${payload && payload.generated_at ? payload.generated_at : "-"}`,
+    `next_safe_action: ${payload && payload.next_safe_action ? payload.next_safe_action : "-"}`,
+  ].concat((payload && payload.warnings ? payload.warnings : []).map((warning) => `warning: ${warning}`)));
+  setList(
+    "queue-execution-audit-entries",
+    "queue-execution-audit-entries-empty",
+    ((payload && payload.entries) || []).map((entry) => `${entry.timestamp || "-"} | ${entry.action_type || "-"} | item=${entry.item_id || "-"} | engine=${entry.engine || "-"} | outcome=${entry.outcome || "-"} | executed=${Boolean(entry.executed)}`),
+  );
 }
 
 function renderLocalQueueCompleteResult(payload) {
@@ -993,6 +1015,30 @@ export function bindQueueLifecycleActions({
       setMessage("queue-lifecycle-message", "Local prompt pack generated. Copy/paste manually.", "success");
     } catch (error) {
       renderLocalQueuePromptPackResult((error && error.payload) || null);
+      setMessage("queue-lifecycle-message", String(error.message || error), "error");
+    } finally {
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = originalLabel;
+      }
+    }
+  });
+
+  on("queue-execution-audit-form", "submit", async (event) => {
+    event.preventDefault();
+    const submitButton = byId("queue-execution-audit-submit");
+    const originalLabel = submitButton ? submitButton.textContent : "";
+    try {
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = "Loading...";
+      }
+      setMessage("queue-lifecycle-message", "Loading execution audit log...", "loading");
+      const payload = await fetchJson(`/api/execution-audit-log${buildExecutionAuditQuery()}`, { method: "GET" });
+      renderExecutionAuditLog(payload);
+      setMessage("queue-lifecycle-message", "Execution audit log loaded. No execution performed.", "success");
+    } catch (error) {
+      renderExecutionAuditLog((error && error.payload) || null);
       setMessage("queue-lifecycle-message", String(error.message || error), "error");
     } finally {
       if (submitButton) {
