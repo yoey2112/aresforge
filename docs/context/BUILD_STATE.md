@@ -1,5 +1,54 @@
 # AresForge Build State
 
+## M40 Dashboard Milestone Closeout And Docs Reconciliation
+
+Status: Completed locally on `main`.
+
+Scope:
+
+- documentation and validation baseline reconciliation only for dashboard milestones M35-M39
+- no new dashboard runtime behavior, backend routes, or frontend interaction changes
+
+Reconciled dashboard source-of-truth (M35-M39):
+
+- M35: local operator summary contract in `src/aresforge/operator/local_dashboard_summary.py`
+- M35: `GET /api/dashboard/summary` exposed through Hub API/server for read-only Home dashboard use
+- M36: Home dashboard cards/status panels consume `GET /api/dashboard/summary`
+- M37: manual refresh only plus loading/empty/error states and last-successful-load label
+- M38: Home deep links into existing Workspace/Projects/Queue/Repos/Reports sections
+- M39: queue status drilldowns and advisory agent lane drilldowns
+
+Current frontend module structure (dashboard-related):
+
+- entrypoint: `src/aresforge/hub/static/app.js`
+- Home section: `src/aresforge/hub/static/js/sections/home.js`
+- Queue section: `src/aresforge/hub/static/js/sections/queue.js`
+- Projects section: `src/aresforge/hub/static/js/sections/projects.js`
+- Repos section: `src/aresforge/hub/static/js/sections/repos.js`
+- Reports section: `src/aresforge/hub/static/js/sections/reports.js`
+
+Boundary posture (reconfirmed):
+
+- local-only
+- file-backed/local inspection
+- operator-gated
+- read-only/advisory dashboard posture
+- no GitHub API calls
+- no `gh` calls
+- no GitHub issues/PRs/workflows mutation
+- no real agent execution
+- no Codex execution from the Hub app
+- no LLM/model routing or invocation
+
+Validation baseline for dashboard closeout:
+
+- `python -m pytest tests/test_hub_ui_foundation.py tests/test_hub_dashboard_summary_api.py tests/test_local_dashboard_summary.py tests/test_hub_project_factory_api.py tests/test_hub_local_queue_lifecycle_api.py tests/test_hub_active_project_api.py tests/test_local_project_factory.py tests/test_local_active_project.py`
+- smoke:
+  - `python -m aresforge inspect-local-queue-agent-summary`
+  - `python -m aresforge inspect-local-project-report`
+- diff check:
+  - `git diff --check`
+
 ## M37 Dashboard Refresh, Empty States, and Error States
 
 Status: Completed locally on main.

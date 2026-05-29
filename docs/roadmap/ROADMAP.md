@@ -1,5 +1,40 @@
 # AresForge Roadmap
 
+## M40 Dashboard Milestone Closeout And Docs Reconciliation
+
+Status: Completed locally on `main`.
+
+Scope:
+
+- source-of-truth documentation reconciliation after M35-M39 dashboard delivery
+- validation baseline reconciliation for dashboard coverage
+- no feature additions and no backend behavior changes
+
+Closed-out dashboard capabilities:
+
+- M35 dashboard summary data contract and `GET /api/dashboard/summary`
+- M36 Home dashboard cards/status panels
+- M37 manual refresh plus loading/empty/error states
+- M38 Home dashboard deep links to existing sections
+- M39 queue/advisory-lane drilldowns
+
+Reconfirmed boundaries:
+
+- local-only and file-backed
+- operator-gated
+- read-only/advisory dashboard experience
+- no GitHub API/`gh`/GitHub mutation
+- no real agent execution
+- no Codex execution from Hub app
+- no LLM/model routing or invocation
+
+Dashboard closeout validation baseline:
+
+- `python -m pytest tests/test_hub_ui_foundation.py tests/test_hub_dashboard_summary_api.py tests/test_local_dashboard_summary.py tests/test_hub_project_factory_api.py tests/test_hub_local_queue_lifecycle_api.py tests/test_hub_active_project_api.py tests/test_local_project_factory.py tests/test_local_active_project.py`
+- `python -m aresforge inspect-local-queue-agent-summary`
+- `python -m aresforge inspect-local-project-report`
+- `git diff --check`
+
 ## M37 Dashboard Refresh, Empty States, and Error States
 
 Status: Completed locally on main.

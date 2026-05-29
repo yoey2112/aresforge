@@ -1,5 +1,46 @@
 # AresForge Agent Context
 
+## M40 Dashboard Milestone Closeout And Docs Reconciliation
+
+Status: Completed locally on `main`.
+
+This closeout reconciles documentation for completed dashboard milestones M35-M39 without introducing runtime changes.
+
+Dashboard contract and behavior baseline:
+
+- backend/operator summary contract: `src/aresforge/operator/local_dashboard_summary.py`
+- Hub route: `GET /api/dashboard/summary`
+- Home cards/status panels: local read-only/advisory rendering from dashboard summary
+- refresh model: manual refresh only
+- UI states: explicit loading, empty, and error handling
+- deep links: Home links into existing Workspace/Projects/Queue/Repos/Reports sections
+- drilldowns: queue status drilldowns and advisory agent lane drilldowns
+
+Frontend module baseline used by dashboard flows:
+
+- `src/aresforge/hub/static/app.js`
+- `src/aresforge/hub/static/js/sections/home.js`
+- `src/aresforge/hub/static/js/sections/queue.js`
+- `src/aresforge/hub/static/js/sections/projects.js`
+- `src/aresforge/hub/static/js/sections/repos.js`
+- `src/aresforge/hub/static/js/sections/reports.js`
+
+Mandatory operating boundaries (reconfirmed):
+
+- local-only, file-backed, operator-gated
+- read-only/advisory dashboard posture
+- no GitHub API, no `gh`, no GitHub issues/PRs/workflows mutation
+- no real agent execution
+- no Codex execution from the Hub app
+- no local/cloud model routing or invocation
+
+Validation baseline for this closeout:
+
+- `python -m pytest tests/test_hub_ui_foundation.py tests/test_hub_dashboard_summary_api.py tests/test_local_dashboard_summary.py tests/test_hub_project_factory_api.py tests/test_hub_local_queue_lifecycle_api.py tests/test_hub_active_project_api.py tests/test_local_project_factory.py tests/test_local_active_project.py`
+- `python -m aresforge inspect-local-queue-agent-summary`
+- `python -m aresforge inspect-local-project-report`
+- `git diff --check`
+
 ## M37 Dashboard Refresh, Empty States, and Error States
 
 Status: Completed locally on main.

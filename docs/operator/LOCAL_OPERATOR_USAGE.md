@@ -1,5 +1,49 @@
 # Local Operator Usage
 
+## M40 Dashboard Milestone Closeout And Docs Reconciliation
+
+Status: Completed locally on `main`.
+
+Operator-facing reconciliation outcome:
+
+- dashboard docs now match completed M35-M39 behavior
+- validation/smoke baseline for dashboard closeout is explicitly recorded
+- no runtime behavior was changed during this milestone
+
+What operators should treat as current dashboard contract:
+
+- summary endpoint: `GET /api/dashboard/summary`
+- Home dashboard cards/panels are read-only/advisory
+- refresh is manual only (no auto-refresh/background polling)
+- loading, empty, and error states are explicit and expected
+- deep links route to existing sections only (Workspace/Projects/Queue/Repos/Reports)
+- queue/agent lane drilldowns are advisory and non-executing
+
+Current module ownership relevant to dashboard behavior:
+
+- `src/aresforge/hub/static/app.js`
+- `src/aresforge/hub/static/js/sections/home.js`
+- `src/aresforge/hub/static/js/sections/queue.js`
+- `src/aresforge/hub/static/js/sections/projects.js`
+- `src/aresforge/hub/static/js/sections/repos.js`
+- `src/aresforge/hub/static/js/sections/reports.js`
+
+Boundary guarantees (unchanged):
+
+- local-only, file-backed, operator-gated
+- read-only/advisory dashboard posture
+- no GitHub API, no `gh`, no GitHub issues/PRs/workflows mutation
+- no real agent execution
+- no Codex execution from Hub app
+- no LLM/model routing or invocation
+
+Dashboard closeout validation baseline:
+
+- `python -m pytest tests/test_hub_ui_foundation.py tests/test_hub_dashboard_summary_api.py tests/test_local_dashboard_summary.py tests/test_hub_project_factory_api.py tests/test_hub_local_queue_lifecycle_api.py tests/test_hub_active_project_api.py tests/test_local_project_factory.py tests/test_local_active_project.py`
+- `python -m aresforge inspect-local-queue-agent-summary`
+- `python -m aresforge inspect-local-project-report`
+- `git diff --check`
+
 ## M37 Dashboard Refresh, Empty States, and Error States
 
 Status: Completed locally on main.
