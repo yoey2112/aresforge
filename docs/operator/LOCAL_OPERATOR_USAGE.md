@@ -1,5 +1,20 @@
 # Local Operator Usage
 
+## M38 Active Project Dashboard Deep Links
+
+Status: Completed locally on main.
+
+Delivered:
+
+- Home Local Dashboard now includes deep-link controls into existing sections
+- project context deep link routes to Projects when no active project is selected, otherwise routes to Workspace
+- queue, advisory lane, repo status, and reports deep links route to existing Queue, Repos, and Reports sections
+
+Boundary posture:
+
+- navigation-only UI enhancement
+- local-only/read-only/advisory behavior unchanged
+- no mutation, GitHub calls, agent/Codex/model execution, or LLM routing
 ## M36 Home Dashboard Operator Note
 
 Home dashboard now uses:

@@ -14,6 +14,22 @@ export function bindHomeQuickNavActions({ activateSection }) {
   on("home-nav-reports", "click", () => {
     activateSection("reports");
   });
+  on("home-local-open-project-context", "click", () => {
+    const label = String((byId("home-local-open-project-context") && byId("home-local-open-project-context").textContent) || "").toLowerCase();
+    activateSection(label.includes("workspace") ? "workspace" : "projects");
+  });
+  on("home-local-open-queue", "click", () => {
+    activateSection("queue");
+  });
+  on("home-local-open-repos", "click", () => {
+    activateSection("repos");
+  });
+  on("home-local-open-lanes", "click", () => {
+    activateSection("queue");
+  });
+  on("home-local-open-reports", "click", () => {
+    activateSection("reports");
+  });
 }
 
 export function bindHomeActions({
@@ -66,6 +82,10 @@ export function renderLocalHomeDashboard(dashboard) {
   const activeProjectId = String(projectSummary.active_project_id || "").trim();
   const activeProjectName = String(projectSummary.active_project_name || "").trim();
   const activeProjectLabel = activeProjectId ? (activeProjectName || activeProjectId) : "No active project selected";
+  const projectContextButton = byId("home-local-open-project-context");
+  if (projectContextButton) {
+    projectContextButton.textContent = activeProjectId ? "Open workspace" : "View projects";
+  }
 
   setText("home-local-total-projects", String(projectSummary.total_projects || 0));
   setText("home-local-active-project", activeProjectLabel);
@@ -98,6 +118,10 @@ export function renderLocalHomeDashboardUnavailable() {
   setText("home-local-agent-lane-count", "0");
   setText("home-local-repo-availability", "unavailable");
   setText("home-local-repo-status", "unknown");
+  const projectContextButton = byId("home-local-open-project-context");
+  if (projectContextButton) {
+    projectContextButton.textContent = "View projects";
+  }
   setList("home-local-queue-status-summary", "home-local-queue-status-summary-empty", []);
   setList("home-local-agent-lane-details", "home-local-agent-lane-details-empty", []);
   setList("home-local-repo-warnings", "home-local-repo-warnings-empty", []);

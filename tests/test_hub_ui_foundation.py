@@ -402,6 +402,11 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "Blockers" in index_text
     assert "Warnings" in index_text
     assert "Read-only local-only dashboard: no GitHub calls, no agent execution, no model routing." in index_text
+    assert "View projects" in index_text
+    assert "Open queue" in index_text
+    assert "View repo status" in index_text
+    assert "Open advisory lanes" in index_text
+    assert "Open reports" in index_text
     assert "Local Project Report Foundation" in index_text
     assert "Project Health" in index_text
     assert "Roadmap Summary" in index_text
@@ -495,6 +500,11 @@ def test_frontend_scripts_reference_m39_api_endpoints_and_forms() -> None:
         "reports-generate-orchestration",
         "reports-generate-escalation",
         "home-refresh-summary",
+        "home-local-open-project-context",
+        "home-local-open-queue",
+        "home-local-open-repos",
+        "home-local-open-lanes",
+        "home-local-open-reports",
         "workspace-refresh",
         "workspace-continue-intake",
         "workspace-open-queue",
