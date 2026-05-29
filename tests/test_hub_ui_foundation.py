@@ -387,7 +387,9 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "Total Advisory Agent Lanes" in index_text
     assert "Repo Availability" in index_text
     assert "Queue Status Summary" in index_text
+    assert "Queue Status Drilldown (Advisory)" in index_text
     assert "Agent Lane Details" in index_text
+    assert "Agent Lane Drilldown (Advisory)" in index_text
     assert "Repo Warnings" in index_text
     assert "Local Queue Read-Only Summary" in index_text
     assert "Total Queue Item Count" in index_text
@@ -407,6 +409,8 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "View repo status" in index_text
     assert "Open advisory lanes" in index_text
     assert "Open reports" in index_text
+    assert "home-local-queue-status-drilldown" in index_text
+    assert "home-local-agent-lane-drilldown" in index_text
     assert "Local Project Report Foundation" in index_text
     assert "Project Health" in index_text
     assert "Roadmap Summary" in index_text

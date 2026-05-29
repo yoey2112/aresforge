@@ -1,5 +1,19 @@
 # AresForge Build State
 
+## M39 Queue And Agent Dashboard Drilldowns
+
+Status: Completed locally on main.
+
+Delivered:
+
+- Home Local Dashboard now includes richer read-only queue-by-status advisory drilldowns
+- Home Local Dashboard now includes richer read-only advisory agent lane drilldowns
+- drilldowns use existing local dashboard summary payload and keep next safe action visible
+
+Boundary posture:
+
+- local-only/read-only/advisory dashboard visibility
+- no mutation, no execution, no GitHub/gh calls, no agent/Codex/model execution, no LLM routing
 ## M38 Active Project Dashboard Deep Links
 
 Status: Completed locally on main.

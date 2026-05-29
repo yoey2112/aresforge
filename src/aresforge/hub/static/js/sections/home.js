@@ -1,6 +1,41 @@
 import { byId, on, setList, setMessage, setText } from "/js/core/dom.js";
 import { fetchJson } from "/js/core/http.js";
 
+function queueStatusAdvisory(statusName, count) {
+  if (count <= 0) {
+    return "none currently";
+  }
+  if (statusName === "blocked") {
+    return "attention needed before new work";
+  }
+  if (statusName === "ready") {
+    return "ready for manual operator review";
+  }
+  if (statusName === "in_progress") {
+    return "manually tracked active work";
+  }
+  if (statusName === "proposed") {
+    return "waiting for local triage";
+  }
+  if (statusName === "done") {
+    return "completed historical items";
+  }
+  if (statusName === "cancelled") {
+    return "closed without execution";
+  }
+  return "advisory status only";
+}
+
+function laneAdvisory(laneId, itemCount) {
+  if (itemCount <= 0) {
+    return "no queued items";
+  }
+  if (laneId === "unassigned") {
+    return "manual assignment recommended";
+  }
+  return "advisory lane load";
+}
+
 export function bindHomeQuickNavActions({ activateSection }) {
   on("home-nav-workspace", "click", () => {
     activateSection("workspace");
@@ -77,7 +112,15 @@ export function renderLocalHomeDashboard(dashboard) {
   const queueLines = Object.keys(queueStatuses)
     .sort()
     .map((key) => `${key}: ${queueStatuses[key]}`);
+  const queueDrilldownLines = Object.keys(queueStatuses)
+    .sort()
+    .map((key) => `${key} | count=${queueStatuses[key]} | advisory=${queueStatusAdvisory(key, Number(queueStatuses[key] || 0))}`);
   const laneLines = laneDetails.map((lane) => `${lane.lane_id || "unknown"}: ${lane.item_count || 0}`);
+  const laneDrilldownLines = laneDetails.map((lane) => {
+    const laneId = lane.lane_id || "unknown";
+    const itemCount = Number(lane.item_count || 0);
+    return `${laneId} | items=${itemCount} | advisory=${laneAdvisory(laneId, itemCount)}`;
+  });
 
   const activeProjectId = String(projectSummary.active_project_id || "").trim();
   const activeProjectName = String(projectSummary.active_project_name || "").trim();
@@ -93,8 +136,10 @@ export function renderLocalHomeDashboard(dashboard) {
   setText("home-local-active-project-status", projectSummary.active_project_status || "unknown");
   setText("home-local-queue-count", String(queueSummary.total_items || 0));
   setList("home-local-queue-status-summary", "home-local-queue-status-summary-empty", queueLines);
+  setList("home-local-queue-status-drilldown", "home-local-queue-status-drilldown-empty", queueDrilldownLines);
   setText("home-local-agent-lane-count", String(laneSummary.total_lanes || 0));
   setList("home-local-agent-lane-details", "home-local-agent-lane-details-empty", laneLines);
+  setList("home-local-agent-lane-drilldown", "home-local-agent-lane-drilldown-empty", laneDrilldownLines);
   setText("home-local-repo-availability", repoSummary.available ? "available" : "unavailable");
   setText("home-local-repo-status", repoSummary.status || "unknown");
   setList("home-local-repo-warnings", "home-local-repo-warnings-empty", repoWarnings);
@@ -123,7 +168,9 @@ export function renderLocalHomeDashboardUnavailable() {
     projectContextButton.textContent = "View projects";
   }
   setList("home-local-queue-status-summary", "home-local-queue-status-summary-empty", []);
+  setList("home-local-queue-status-drilldown", "home-local-queue-status-drilldown-empty", []);
   setList("home-local-agent-lane-details", "home-local-agent-lane-details-empty", []);
+  setList("home-local-agent-lane-drilldown", "home-local-agent-lane-drilldown-empty", []);
   setList("home-local-repo-warnings", "home-local-repo-warnings-empty", []);
   setList("home-local-blockers", "home-local-blockers-empty", []);
   setList("home-local-warnings", "home-local-warnings-empty", []);
