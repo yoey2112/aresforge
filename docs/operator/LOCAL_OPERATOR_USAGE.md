@@ -1,5 +1,31 @@
 # Local Operator Usage
 
+## M59 Local LLM Health Check
+
+Status: Completed locally on `main`.
+
+Operator workflow:
+
+1. Configure local LLM environment with `GET /api/local-llm/environment` and `POST /api/local-llm/environment`.
+2. Explicitly run `POST /api/local-llm/health-check`.
+3. Review provider reachability and available model names.
+4. Confirm whether configured reasoning and coding models appear in the local model list.
+
+Operator safety notes:
+
+- health check is explicitly invoked only
+- provider URL must be local
+- provider `ollama` checks only `/api/tags`
+- no prompt is sent
+- no inference is run
+- no local LLM generation occurs
+- no Codex, agent, GitHub, `gh`, workflow, queue mutation, prompt execution, or external service is used
+
+Recommended next milestones:
+
+- M61 - Local LLM Prompt Preview.
+- M62 - Operator-Gated Local LLM Execution Prototype.
+
 ## M58 Local LLM Environment Contract
 
 Status: Completed locally on `main`.

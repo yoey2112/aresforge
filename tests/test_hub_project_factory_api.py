@@ -45,6 +45,7 @@ from aresforge.hub.api import (
     post_project_factory_scope_package,
     post_project_ai_settings,
     post_local_llm_environment,
+    post_local_llm_health_check,
     post_local_queue_item_apply_routing_recommendation,
     post_local_queue_item_routing_recommendation,
     post_queue_item,
@@ -127,6 +128,30 @@ def test_local_llm_environment_api_rejects_invalid_inputs(tmp_path: Path) -> Non
     )
     assert invalid_timeout["ok"] is False
     assert invalid_timeout["error"] == "invalid_request_timeout_seconds"
+
+
+def test_local_llm_health_check_api_requires_safe_payload_and_returns_provider_none_result(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    post_local_llm_environment(
+        config,
+        {
+            "local_llm_provider": "none",
+            "execution_enabled": False,
+            "operator_gate_required": True,
+        },
+    )
+
+    payload = post_local_llm_health_check(config, {"explicit_operator_invocation": True})
+    assert payload["ok"] is True
+    assert payload["provider"] == "none"
+    assert payload["provider_reachable"] is False
+    assert payload["inference_tested"] is False
+    assert payload["execution_allowed"] is False
+    assert payload["blockers"]
+
+    rejected = post_local_llm_health_check(config, {"prompt": "do not send this"})
+    assert rejected["ok"] is False
+    assert rejected["error"] == "unsupported_local_llm_health_check_fields"
 
 
 def test_post_project_factory_new_project_returns_expected_payload(tmp_path: Path) -> None:

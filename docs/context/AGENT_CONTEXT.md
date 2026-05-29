@@ -1,5 +1,31 @@
 # AresForge Agent Context
 
+## M59 Local LLM Health Check Context
+
+Status: Completed locally on `main`.
+
+Current health-check contract:
+
+- operator helper: `check_local_llm_health(...)`
+- Hub route: `POST /api/local-llm/health-check`
+- reads `.aresforge/local_llm_environment.json`
+- provider `none` or `unknown` returns an unavailable/blocked health result without provider calls
+- provider `ollama` may call only the local `/api/tags` endpoint
+- output includes provider reachability, available models, configured model availability, `inference_tested: false`, and `execution_allowed: false`
+
+Boundary reminders:
+
+- health check must be explicitly invoked by the operator
+- provider URL must be local: `localhost`, `127.0.0.1`, or `::1`
+- do not call `/api/generate`, `/api/chat`, completion endpoints, or prompt endpoints
+- do not send prompts or task content
+- no prompt execution, model inference, local LLM generation, Codex execution, real agent execution, GitHub integration, queue mutation, or external workflow is added
+
+Recommended next milestones:
+
+- M61 - Local LLM Prompt Preview.
+- M62 - Operator-Gated Local LLM Execution Prototype.
+
 ## M58 Local LLM Environment Contract Context
 
 Status: Completed locally on `main`.

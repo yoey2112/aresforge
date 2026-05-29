@@ -6,6 +6,8 @@ M58 adds a local-only Local LLM Environment Contract.
 
 This contract represents future local LLM provider and model configuration. It does not call Ollama, perform health checks, call model APIs, send prompts, execute routing, execute Codex, run agents, or call GitHub.
 
+M59 adds an explicitly invoked Local LLM Health Check. The health check reads this contract and may check local provider availability only. It does not send prompts, run inference, generate text, execute routing, execute Codex, run agents, or call GitHub.
+
 ## Storage
 
 The contract is stored locally at:
@@ -24,6 +26,7 @@ Reading defaults does not write this file. Updating the contract writes the file
 
 - `GET /api/local-llm/environment`
 - `POST /api/local-llm/environment`
+- `POST /api/local-llm/health-check`
 
 ## Fields
 
@@ -58,23 +61,44 @@ Model fields are placeholders/configuration only. A non-empty model name does no
 - Model names may be blank; non-blank values are strings.
 - `max_context_tokens` and `request_timeout_seconds` must be positive integers when supplied.
 
+## M59 Health Check
+
+The health check is explicitly invoked only.
+
+Required output includes:
+
+- provider
+- provider base URL
+- configured reasoning model
+- configured coding model
+- provider reachability
+- available models
+- configured model availability
+- `inference_tested: false`
+- `execution_allowed: false`
+- warnings and blockers
+
+For provider `ollama`, the health check may call only the local `/api/tags` endpoint. It must not call generate, chat, completion, or prompt endpoints.
+
+Provider URLs must be local: `localhost`, `127.0.0.1`, or `::1`.
+
 ## Boundaries
 
 - local-only
 - file-backed
 - operator-gated
-- configuration only
-- no Ollama call
-- no health check yet
-- no model API call
+- configuration and health metadata only
 - no prompt execution
+- no model inference
+- no local LLM generation
 - no routing execution
 - no Codex execution
 - no agent execution
 - no GitHub API or `gh`
+- no external/network execution beyond explicitly operator-invoked local provider health check behavior
 
 ## Next Milestones
 
-M59 should add a Local LLM Health Check that reads this contract and remains operator-gated.
+M61 should add Local LLM Prompt Preview without execution.
 
 M62 should be the future point for any operator-gated local execution prototype, after health checks and additional gates exist.

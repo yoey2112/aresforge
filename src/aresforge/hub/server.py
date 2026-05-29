@@ -66,6 +66,7 @@ from aresforge.hub.api import (
     post_handoff_target,
     post_local_project_handoff,
     post_local_llm_environment,
+    post_local_llm_health_check,
     post_local_queue_item,
     post_local_queue_item_codex_prompt,
     post_local_queue_item_complete,
@@ -477,6 +478,22 @@ def _build_handler(config: AppConfig, static_root: Path) -> type[BaseHTTPRequest
                     )
                     return True
                 payload = post_local_llm_environment(config, body)
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+            if method == "POST" and path == "/api/local-llm/health-check":
+                if body is None:
+                    _render_json(
+                        self,
+                        HTTPStatus.BAD_REQUEST,
+                        {
+                            "ok": False,
+                            "local_only": True,
+                            "error": "invalid_json_body",
+                            "message": "Request body must be a JSON object.",
+                        },
+                    )
+                    return True
+                payload = post_local_llm_health_check(config, body)
                 _render_json(self, _status_from_payload(payload), payload)
                 return True
             if method == "POST" and path == "/api/agents":

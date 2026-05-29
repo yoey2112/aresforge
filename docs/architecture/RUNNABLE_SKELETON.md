@@ -1,5 +1,40 @@
 # Runnable Skeleton
 
+## M59 Local LLM Health Check
+
+Status: Completed locally on `main`.
+
+Implemented runnable path:
+
+- operator helper: `check_local_llm_health(...)`
+- Hub route: `POST /api/local-llm/health-check`
+- source contract: `.aresforge/local_llm_environment.json`
+
+Behavior contract:
+
+- health check runs only when explicitly invoked
+- provider `none` and `unknown` return unavailable/blocked status without HTTP calls
+- provider `ollama` may call only local `/api/tags`
+- non-local provider URLs are blocked
+- returns provider reachability, available models, configured model availability, `inference_tested: false`, and `execution_allowed: false`
+- rejects prompt/execution/routing payload fields on the API
+
+Still absent by design:
+
+- prompt execution
+- model inference
+- local LLM generation
+- generate/chat/completion endpoint calls
+- Codex execution
+- real agent execution
+- GitHub integration or mutation
+- queue/project mutation
+
+Next skeleton focus:
+
+- M61 should add Local LLM Prompt Preview.
+- M62 should add an Operator-Gated Local LLM Execution Prototype after additional gates exist.
+
 ## M58 Local LLM Environment Contract
 
 Status: Completed locally on `main`.

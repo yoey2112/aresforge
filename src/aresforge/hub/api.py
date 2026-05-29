@@ -74,6 +74,7 @@ from aresforge.operator.local_project_factory import (
     approve_project_architecture_contract,
     approve_project_milestone_issue_plan,
     approve_project_scope_package,
+    check_local_llm_health,
     inspect_project_factory_dossier,
     prepare_project_architecture_contract,
     prepare_project_documentation_closeout_plan,
@@ -2335,6 +2336,35 @@ def post_local_llm_environment(config: AppConfig, body: dict[str, Any]) -> dict[
         result,
         "Local LLM environment update stores configuration only and does not call Ollama or execute models.",
     )
+    return result
+
+
+def post_local_llm_health_check(config: AppConfig, body: dict[str, Any]) -> dict[str, Any]:
+    if body:
+        unsupported = sorted(set(body.keys()) - {"explicit_operator_invocation"})
+        if unsupported:
+            return _api_error(
+                "unsupported_local_llm_health_check_fields",
+                "Local LLM health check does not accept prompt, execution, or routing payload fields.",
+                details={"unsupported_fields": unsupported},
+            )
+        valid_bool, bool_error = _require_boolean_field(body, "explicit_operator_invocation")
+        if not valid_bool:
+            return bool_error or _api_error("invalid_explicit_operator_invocation", "explicit_operator_invocation must be boolean.")
+        if body.get("explicit_operator_invocation") is False:
+            return _api_error(
+                "local_llm_health_check_requires_explicit_operator_invocation",
+                "Local LLM health check must be explicitly invoked by the operator.",
+                status=409,
+            )
+    result = check_local_llm_health(config)
+    result["service"] = SERVICE_NAME
+    result["boundary_confirmations"] = _merge_boundary_confirmations(
+        result,
+        "Local LLM health check does not send prompts or execute inference.",
+    )
+    if not result.get("ok", False):
+        result["_status"] = 400
     return result
 
 

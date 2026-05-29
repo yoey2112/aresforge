@@ -5,6 +5,9 @@ import re
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+from urllib.error import HTTPError, URLError
+from urllib.parse import urlparse
+from urllib.request import Request, urlopen
 
 from aresforge.config import AppConfig
 from aresforge.operator.local_active_project import inspect_active_project, set_active_project
@@ -3257,6 +3260,144 @@ def update_local_llm_environment_contract(config: AppConfig, payload: dict[str, 
     }
 
 
+def check_local_llm_health(config: AppConfig, *, urlopen_fn: Any | None = None) -> dict[str, Any]:
+    contract = read_local_llm_environment_contract(config)
+    checked_at = _now_iso()
+    environment = contract.get("local_llm_environment", {}) if isinstance(contract.get("local_llm_environment"), dict) else {}
+    validation = contract.get("validation", {}) if isinstance(contract.get("validation"), dict) else {}
+    provider = str(environment.get("local_llm_provider", "unknown")).strip() or "unknown"
+    provider_base_url = str(environment.get("provider_base_url", "")).strip()
+    reasoning_model = str(environment.get("reasoning_model", "")).strip()
+    coding_model = str(environment.get("coding_model", "")).strip()
+    warnings = list(contract.get("warnings", []))
+    blockers = list(validation.get("blockers", []))
+    available_models: list[str] = []
+    provider_reachable = False
+
+    if blockers:
+        return _local_llm_health_payload(
+            ok=False,
+            provider=provider,
+            provider_base_url=provider_base_url,
+            configured_reasoning_model=reasoning_model,
+            configured_coding_model=coding_model,
+            provider_reachable=False,
+            available_models=[],
+            checked_at=checked_at,
+            warnings=warnings,
+            blockers=blockers,
+            next_safe_action="fix_local_llm_environment_contract_before_health_check",
+        )
+
+    if provider in {"none", "unknown"}:
+        blockers.append(f"Local LLM provider is {provider}; no provider health check is available.")
+        return _local_llm_health_payload(
+            ok=True,
+            provider=provider,
+            provider_base_url=provider_base_url,
+            configured_reasoning_model=reasoning_model,
+            configured_coding_model=coding_model,
+            provider_reachable=False,
+            available_models=[],
+            checked_at=checked_at,
+            warnings=warnings,
+            blockers=blockers,
+            next_safe_action="configure_ollama_provider_before_running_local_llm_health_check",
+        )
+
+    if provider != "ollama":
+        blockers.append("Only ollama provider health checks are supported in M59.")
+        return _local_llm_health_payload(
+            ok=False,
+            provider=provider,
+            provider_base_url=provider_base_url,
+            configured_reasoning_model=reasoning_model,
+            configured_coding_model=coding_model,
+            provider_reachable=False,
+            available_models=[],
+            checked_at=checked_at,
+            warnings=warnings,
+            blockers=blockers,
+            next_safe_action="use_supported_local_llm_provider_before_health_check",
+        )
+
+    if not provider_base_url:
+        blockers.append("provider_base_url is required for ollama health checks.")
+        return _local_llm_health_payload(
+            ok=False,
+            provider=provider,
+            provider_base_url=provider_base_url,
+            configured_reasoning_model=reasoning_model,
+            configured_coding_model=coding_model,
+            provider_reachable=False,
+            available_models=[],
+            checked_at=checked_at,
+            warnings=warnings,
+            blockers=blockers,
+            next_safe_action="set_local_ollama_provider_base_url_before_health_check",
+        )
+
+    if not _is_local_provider_url(provider_base_url):
+        blockers.append("provider_base_url must point to localhost, 127.0.0.1, or ::1 for M59 health checks.")
+        return _local_llm_health_payload(
+            ok=False,
+            provider=provider,
+            provider_base_url=provider_base_url,
+            configured_reasoning_model=reasoning_model,
+            configured_coding_model=coding_model,
+            provider_reachable=False,
+            available_models=[],
+            checked_at=checked_at,
+            warnings=warnings,
+            blockers=blockers,
+            next_safe_action="use_local_provider_base_url_before_health_check",
+        )
+
+    timeout = environment.get("request_timeout_seconds") if isinstance(environment.get("request_timeout_seconds"), int) else 5
+    tags_url = provider_base_url.rstrip("/") + "/api/tags"
+    opener = urlopen_fn or urlopen
+    try:
+        request = Request(tags_url, method="GET")
+        with opener(request, timeout=timeout) as response:
+            raw = response.read()
+    except (HTTPError, URLError, OSError, TimeoutError) as exc:
+        warnings.append(f"Local provider health check could not reach Ollama tags endpoint: {exc}")
+        return _local_llm_health_payload(
+            ok=True,
+            provider=provider,
+            provider_base_url=provider_base_url,
+            configured_reasoning_model=reasoning_model,
+            configured_coding_model=coding_model,
+            provider_reachable=False,
+            available_models=[],
+            checked_at=checked_at,
+            warnings=warnings,
+            blockers=[],
+            next_safe_action="start_or_configure_local_provider_before_retrying_health_check",
+        )
+
+    provider_reachable = True
+    try:
+        parsed = json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        warnings.append(f"Local provider returned an unreadable model list: {exc}")
+        parsed = {}
+    available_models = _parse_ollama_model_names(parsed)
+    return _local_llm_health_payload(
+        ok=True,
+        provider=provider,
+        provider_base_url=provider_base_url,
+        configured_reasoning_model=reasoning_model,
+        configured_coding_model=coding_model,
+        provider_reachable=provider_reachable,
+        available_models=available_models,
+        checked_at=checked_at,
+        warnings=warnings,
+        blockers=[],
+        next_safe_action="review_local_model_availability_before_future_prompt_preview_or_execution_milestones",
+    )
+
+
 def read_agent_engine_registry(config: AppConfig) -> dict[str, Any]:
     del config
     return {
@@ -4071,6 +4212,68 @@ def _normalize_local_llm_environment_payload(payload: dict[str, Any]) -> dict[st
         "operator_gate_required": payload.get("operator_gate_required", default_environment["operator_gate_required"]),
         "notes": str(payload.get("notes", default_environment["notes"]) or "").strip(),
         "updated_at": str(payload.get("updated_at", default_environment["updated_at"]) or "").strip(),
+    }
+
+
+def _is_local_provider_url(provider_base_url: str) -> bool:
+    parsed = urlparse(provider_base_url)
+    host = (parsed.hostname or "").lower()
+    return parsed.scheme in {"http", "https"} and host in {"localhost", "127.0.0.1", "::1"}
+
+
+def _parse_ollama_model_names(payload: Any) -> list[str]:
+    if not isinstance(payload, dict):
+        return []
+    models = payload.get("models", [])
+    if not isinstance(models, list):
+        return []
+    names: list[str] = []
+    for model in models:
+        if not isinstance(model, dict):
+            continue
+        name = str(model.get("name") or model.get("model") or "").strip()
+        if name:
+            names.append(name)
+    return sorted(set(names))
+
+
+def _local_llm_health_payload(
+    *,
+    ok: bool,
+    provider: str,
+    provider_base_url: str,
+    configured_reasoning_model: str,
+    configured_coding_model: str,
+    provider_reachable: bool,
+    available_models: list[str],
+    checked_at: str,
+    warnings: list[str],
+    blockers: list[str],
+    next_safe_action: str,
+) -> dict[str, Any]:
+    return {
+        "ok": ok,
+        "local_only": True,
+        "provider": provider,
+        "provider_base_url": provider_base_url,
+        "configured_reasoning_model": configured_reasoning_model,
+        "configured_coding_model": configured_coding_model,
+        "provider_reachable": provider_reachable,
+        "available_models": available_models,
+        "reasoning_model_available": bool(configured_reasoning_model and configured_reasoning_model in available_models),
+        "coding_model_available": bool(configured_coding_model and configured_coding_model in available_models),
+        "inference_tested": False,
+        "execution_allowed": False,
+        "checked_at": checked_at,
+        "next_safe_action": next_safe_action,
+        "warnings": sorted(set(warnings)),
+        "blockers": sorted(set(blockers)),
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS)
+        + [
+            "Local LLM health check is explicitly invoked and local-only.",
+            "Only provider availability and model listing are checked.",
+            "No prompts, inference, generation, routing execution, Codex execution, agent execution, GitHub, or gh operation is performed.",
+        ],
     }
 
 

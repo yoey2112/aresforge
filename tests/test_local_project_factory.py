@@ -16,6 +16,7 @@ from aresforge.operator.local_project_factory import (
     approve_project_github_apply_plan,
     approve_project_milestone_issue_plan,
     approve_project_scope_package,
+    check_local_llm_health,
     read_agent_engine_registry,
     read_local_llm_environment_contract,
     recommend_queue_item_routing,
@@ -63,6 +64,20 @@ from aresforge.operator.local_project_factory import (
     update_project_scope_package,
 )
 from aresforge.operator.local_project_queue import add_queue_item, inspect_queue_item
+
+
+class _FakeHttpResponse:
+    def __init__(self, body: bytes) -> None:
+        self._body = body
+
+    def __enter__(self) -> "_FakeHttpResponse":
+        return self
+
+    def __exit__(self, exc_type: object, exc: object, traceback: object) -> None:
+        return None
+
+    def read(self) -> bytes:
+        return self._body
 
 
 def _config(tmp_path: Path) -> AppConfig:
@@ -192,6 +207,124 @@ def test_local_llm_environment_contract_rejects_invalid_provider_execution_and_n
     )
     assert invalid_model["ok"] is False
     assert invalid_model["error"] == "local_llm_environment_validation_failed"
+
+
+def test_check_local_llm_health_provider_none_returns_blocked_unavailable_without_error(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    update_local_llm_environment_contract(
+        config,
+        {
+            "local_llm_provider": "none",
+            "execution_enabled": False,
+            "operator_gate_required": True,
+        },
+    )
+    calls: list[str] = []
+
+    def fail_if_called(request: object, timeout: int = 0) -> _FakeHttpResponse:
+        calls.append(str(request))
+        raise AssertionError("provider none must not call HTTP")
+
+    payload = check_local_llm_health(config, urlopen_fn=fail_if_called)
+
+    assert payload["ok"] is True
+    assert payload["provider"] == "none"
+    assert payload["provider_reachable"] is False
+    assert payload["available_models"] == []
+    assert payload["inference_tested"] is False
+    assert payload["execution_allowed"] is False
+    assert payload["blockers"]
+    assert calls == []
+
+
+def test_check_local_llm_health_invalid_config_returns_blockers(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    path = resolve_local_llm_environment_path(tmp_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(
+            {
+                "local_llm_provider": "ollama",
+                "provider_base_url": "https://example.com",
+                "execution_enabled": False,
+                "operator_gate_required": True,
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    payload = check_local_llm_health(config)
+
+    assert payload["ok"] is False
+    assert payload["provider_reachable"] is False
+    assert any("localhost" in blocker for blocker in payload["blockers"])
+
+
+def test_check_local_llm_health_ollama_reachable_lists_models_without_inference(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    update_local_llm_environment_contract(
+        config,
+        {
+            "local_llm_provider": "ollama",
+            "provider_base_url": "http://127.0.0.1:11434",
+            "reasoning_model": "qwen-reason:latest",
+            "coding_model": "qwen-code:latest",
+            "execution_enabled": False,
+            "operator_gate_required": True,
+        },
+    )
+    calls: list[str] = []
+
+    def fake_urlopen(request: object, timeout: int = 0) -> _FakeHttpResponse:
+        url = getattr(request, "full_url", str(request))
+        calls.append(url)
+        return _FakeHttpResponse(
+            b'{"models":[{"name":"qwen-reason:latest"},{"model":"qwen-code:latest"}]}'
+        )
+
+    payload = check_local_llm_health(config, urlopen_fn=fake_urlopen)
+
+    assert payload["ok"] is True
+    assert payload["provider"] == "ollama"
+    assert payload["provider_reachable"] is True
+    assert payload["available_models"] == ["qwen-code:latest", "qwen-reason:latest"]
+    assert payload["reasoning_model_available"] is True
+    assert payload["coding_model_available"] is True
+    assert payload["inference_tested"] is False
+    assert payload["execution_allowed"] is False
+    assert calls == ["http://127.0.0.1:11434/api/tags"]
+    assert not any("/api/generate" in call or "/api/chat" in call for call in calls)
+
+
+def test_check_local_llm_health_ollama_unavailable_is_non_inference_health_result(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    update_local_llm_environment_contract(
+        config,
+        {
+            "local_llm_provider": "ollama",
+            "provider_base_url": "http://localhost:11434",
+            "reasoning_model": "missing-reason",
+            "coding_model": "missing-code",
+            "execution_enabled": False,
+            "operator_gate_required": True,
+        },
+    )
+    calls: list[str] = []
+
+    def unavailable(request: object, timeout: int = 0) -> _FakeHttpResponse:
+        calls.append(getattr(request, "full_url", str(request)))
+        raise OSError("connection refused")
+
+    payload = check_local_llm_health(config, urlopen_fn=unavailable)
+
+    assert payload["ok"] is True
+    assert payload["provider_reachable"] is False
+    assert payload["available_models"] == []
+    assert payload["reasoning_model_available"] is False
+    assert payload["coding_model_available"] is False
+    assert payload["inference_tested"] is False
+    assert calls == ["http://localhost:11434/api/tags"]
 
 
 def test_start_new_project_factory_creates_expected_local_state(tmp_path: Path) -> None:

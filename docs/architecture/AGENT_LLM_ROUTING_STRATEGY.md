@@ -329,7 +329,37 @@ Fields:
 
 The contract is configuration only. Model names are placeholders/config values and do not claim that a model is installed. `health_check_enabled` may be stored, but no health check runs in M58. `execution_enabled` must remain false and `operator_gate_required` must remain true.
 
-M58 does not call Ollama, call model APIs, perform health checks, send prompts, execute routing, invoke local LLMs, invoke Codex, run agents, call GitHub, or run external workflows. M59 should add Local LLM Health Check. M62 remains the future point for an operator-gated local execution prototype.
+M58 does not call Ollama, call model APIs, perform health checks, send prompts, execute routing, invoke local LLMs, invoke Codex, run agents, call GitHub, or run external workflows.
+
+## M59 Local LLM Health Check
+
+M59 adds an explicitly invoked Local LLM Health Check.
+
+Current operator helper:
+
+- `check_local_llm_health(...)`
+
+Current Hub route:
+
+- `POST /api/local-llm/health-check`
+
+The health check reads the M58 contract. Provider `none` or `unknown` returns an unavailable/blocked result without provider calls. Provider `ollama` may call only a local `/api/tags` endpoint to check provider reachability and list local model names.
+
+The health check returns:
+
+- provider
+- provider base URL
+- configured reasoning model
+- configured coding model
+- provider reachability
+- available models
+- configured model availability
+- `inference_tested: false`
+- `execution_allowed: false`
+- checked timestamp
+- warnings and blockers
+
+M59 does not send prompts, call generate/chat/completion endpoints, run model inference, generate text, execute routing, invoke Codex, run agents, mutate queue/project state, call GitHub, or run external workflows. M61 should add Local LLM Prompt Preview. M62 remains the future point for an operator-gated local execution prototype.
 
 ## Operating Boundaries
 
