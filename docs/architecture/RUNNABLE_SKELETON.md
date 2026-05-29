@@ -1,5 +1,30 @@
 # Runnable Skeleton
 
+## M44A Agent LLM Routing Strategy Documentation Update
+
+Status: Completed locally on `main`.
+
+Source of truth:
+
+- `docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md`
+
+Current runnable behavior:
+
+- M43 prompt packs generate local-only grouped prompt text/artifacts for manual operator use.
+- The Hub does not execute Codex, agents, local LLMs, or routing decisions.
+- No runtime routing metadata is added to the queue schema in M44A.
+
+Future routing behavior:
+
+- project-specific AI routing settings should select an agent lane, allowed engines/models, routing decision, and prompt-pack output before prompt generation
+- future engines are `local_reasoning_llm`, `local_coding_llm`, and `codex_cli`
+- future routed views should filter one canonical local queue by agent, engine, model, project policy, risk/complexity, and status
+
+Skeleton boundary:
+
+- this milestone adds documentation only
+- no backend routes, frontend settings UI, queue schema changes, runtime routing, agent execution, Codex execution, or LLM/model invocation
+
 ## M43 Agent Prompt Pack Generator
 
 Status: Completed locally on `main`.

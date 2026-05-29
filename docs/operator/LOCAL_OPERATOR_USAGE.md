@@ -1,5 +1,35 @@
 # Local Operator Usage
 
+## M44A Agent LLM Routing Strategy Operator Note
+
+Status: Completed locally on `main`.
+
+Reference:
+
+- `docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md`
+
+Operator meaning:
+
+- operators can generate M43 prompt packs today
+- those prompt packs are local-only grouped prompts for manual copy/paste use
+- routed prompt packs are future work
+- AresForge does not yet assign generated prompts to an engine/model or execute Codex/local LLMs
+
+Future routing intent:
+
+- future flow: Project -> Agent Lane -> Allowed Engines/Models -> Routing Decision Matrix -> Prompt Pack Output
+- future project AI modes include `balanced`, `local_only`, `codex_only`, `cost_saver`, `high_confidence`, and `manual_only`
+- future engines include `local_reasoning_llm`, `local_coding_llm`, and `codex_cli`
+- the local queue should remain one canonical queue with routed views derived from metadata
+
+Current boundaries:
+
+- no real agent execution
+- no automatic Codex execution
+- no local LLM execution
+- no LLM/model routing execution
+- no GitHub API, no `gh`, no GitHub mutation from the app
+
 ## M43 Agent Prompt Pack Generator
 
 Status: Completed locally on `main`.

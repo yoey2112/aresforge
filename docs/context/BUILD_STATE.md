@@ -1,5 +1,26 @@
 # AresForge Build State
 
+## M44A Agent LLM Routing Strategy Documentation Update
+
+Status: Completed locally on `main`.
+
+Delivered:
+
+- added future-state routing source of truth: `docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md`
+- documented project-specific AI routing modes, agent lanes, future engines, routing hierarchy, routing metadata, Codex CLI model strategy, and M43 prompt-pack relationship
+- clarified that routing decisions should happen before prompt generation
+- confirmed the queue should remain one canonical local queue with future routing metadata and filtered routed views/lanes
+
+Boundaries:
+
+- documentation-only milestone
+- no backend routes, frontend settings UI, queue schema changes, runtime routing, Codex CLI execution, agent execution, local LLM execution, or model invocation
+- no GitHub API, no `gh`, no GitHub issues/PRs/workflow activity, and no GitHub mutation from the app
+
+Recommended next milestone:
+
+- M45 - implement the next small local-first routing/prompt-pack preparation step only after preserving the M44A boundaries.
+
 ## M43 Agent Prompt Pack Generator
 
 Status: Completed locally on `main`.

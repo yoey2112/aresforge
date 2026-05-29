@@ -1,5 +1,34 @@
 # AresForge Agent Context
 
+## M44A Agent LLM Routing Strategy Context
+
+Status: Completed locally on `main`.
+
+Canonical strategy document:
+
+- `docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md`
+
+Future-state routing contract:
+
+- AresForge must support project-specific AI routing settings.
+- Future flow: Project -> Agent Lane -> Allowed Engines/Models -> Routing Decision Matrix -> Prompt Pack Output.
+- Routing decisions should happen before prompt generation.
+- The queue should remain one canonical local queue with future routing metadata and filtered routed views/lanes.
+- M43 prompt packs currently generate local-only grouped prompts without LLM/model routing.
+
+Future routing vocabulary:
+
+- project AI modes: `balanced`, `local_only`, `codex_only`, `cost_saver`, `high_confidence`, `manual_only`
+- engines: `local_reasoning_llm`, `local_coding_llm`, `codex_cli`
+- agent lanes: Architect / Planner Agent, Coding Agent, Reviewer / Validator Agent, Documentation Agent, Test Agent, Local Operator Assistant, High-Value Codex Lane
+
+Implementation boundaries:
+
+- documentation-only milestone
+- no runtime routing or route/UI/schema implementation yet
+- no Codex execution, no agent execution, no local LLM execution, no model invocation
+- no GitHub API, no `gh`, no GitHub issues/PRs/workflows, no GitHub mutation from the app
+
 ## M43 Agent Prompt Pack Generator
 
 Status: Completed locally on `main`.
