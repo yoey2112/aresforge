@@ -411,6 +411,20 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "projects-progress-rollup-summary" in index_text
     assert "projects-progress-rollup-blockers" in index_text
     assert "projects-progress-rollup-warnings" in index_text
+    assert "Project AI Settings" in index_text
+    assert "project-ai-settings-form" in index_text
+    assert "project-ai-mode" in index_text
+    for mode in ("balanced", "local_only", "codex_only", "cost_saver", "high_confidence", "manual_only"):
+        assert f'value="{mode}"' in index_text
+    for engine in ("local_reasoning_llm", "local_coding_llm", "codex_cli"):
+        assert engine in index_text
+    assert "project-ai-default-engine" in index_text
+    assert "project-ai-default-model" in index_text
+    assert "project-ai-operator-override-allowed" in index_text
+    assert "project-ai-settings-load" in index_text
+    assert "project-ai-settings-save" in index_text
+    assert "project-ai-settings-validation" in index_text
+    assert "/ai-settings" in (_static_dir() / "js" / "sections" / "projects.js").read_text(encoding="utf-8")
     assert "Local Home Dashboard" in index_text
     assert "home-local-dashboard-last-loaded" in index_text
     assert "home-local-dashboard-error" in index_text

@@ -1,5 +1,38 @@
 # Runnable Skeleton
 
+## M55 Project AI Settings UI
+
+Status: Completed locally on `main`.
+
+Implemented runnable path:
+
+- Projects UI panel: Project AI Settings
+- API reads: `GET /api/projects/{project_id}/ai-settings`
+- API writes: `POST /api/projects/{project_id}/ai-settings`
+
+Behavior contract:
+
+- loads settings for the active project
+- updates settings only through explicit operator save
+- exposes all supported modes: `balanced`, `local_only`, `codex_only`, `cost_saver`, `high_confidence`, `manual_only`
+- exposes supported engines: `local_reasoning_llm`, `local_coding_llm`, `codex_cli`
+- displays validation status, warnings, blockers, and next safe action
+- invalid settings are rejected by the backend and shown in the UI
+
+Still absent by design:
+
+- routing execution
+- local LLM execution
+- Codex execution
+- real agent execution
+- GitHub integration or mutation
+- prompt execution
+- complex model management
+
+Next skeleton focus:
+
+- M56 should add Routed Queue Views.
+
 ## M54 Routing Decision Matrix v1
 
 Status: Completed locally on `main`.

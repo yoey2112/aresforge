@@ -168,6 +168,33 @@ Recommendation preview does not write metadata. Explicit apply writes M53 queue 
 
 M54 does not execute local LLMs, Codex, agents, GitHub, prompts, workflows, or external services. M55 should add Project AI Settings UI.
 
+## M55 Project AI Settings UI
+
+M55 exposes the M51 Project AI Settings Contract in the local Hub Projects section.
+
+Current UI path:
+
+- Projects -> Project AI Settings
+
+Current API routes used by the UI:
+
+- `GET /api/projects/{project_id}/ai-settings`
+- `POST /api/projects/{project_id}/ai-settings`
+
+The UI allows operators to view and update:
+
+- project AI mode
+- available engines
+- disabled engines
+- default engine
+- optional default model
+- operator override allowed
+- notes
+
+The UI displays validation status, warnings, blockers, and next safe action. Invalid settings are rejected by the API and shown in the panel.
+
+M55 does not execute routing, invoke local LLMs, invoke Codex, run agents, generate or execute prompts, call GitHub, or run external workflows. M56 should add Routed Queue Views.
+
 ## Operating Boundaries
 
 Routing must remain:

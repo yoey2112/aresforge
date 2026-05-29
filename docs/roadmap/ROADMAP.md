@@ -1,5 +1,32 @@
 # AresForge Roadmap
 
+## M55 Project AI Settings UI
+
+Status: Completed locally on `main`.
+
+Delivered scope:
+
+- added Hub Projects UI for M51 Project AI Settings
+- included controls for all supported project AI modes and engines
+- included controls for default engine, optional default model, operator override, and notes
+- wired load/save behavior to existing local-only M51 API routes
+- displayed validation, warnings, blockers, and next safe action
+- added targeted UI tests while preserving existing API/factory coverage
+
+Constraints preserved:
+
+- local-only, file-backed, operator-gated settings updates
+- no routing execution
+- no local LLM execution
+- no Codex execution
+- no real agent execution
+- no GitHub API, no `gh`, no GitHub issues/PRs/workflow activity, no GitHub mutation from the app
+- no complex model management UI
+
+Recommended next milestone:
+
+- M56 - Routed Queue Views.
+
 ## M54 Routing Decision Matrix v1
 
 Status: Completed locally on `main`.

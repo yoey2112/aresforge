@@ -1,5 +1,30 @@
 # Local Operator Usage
 
+## M55 Project AI Settings UI
+
+Status: Completed locally on `main`.
+
+Operator workflow:
+
+1. Open Projects.
+2. Select or confirm the active project.
+3. Use Load Project AI Settings to view the current local settings contract.
+4. Choose project AI mode, available engines, disabled engines, default engine, optional default model, operator override setting, and notes.
+5. Use Save Project AI Settings to update the local file-backed contract.
+6. Review validation, warnings, blockers, and `next_safe_action`.
+
+Operator safety notes:
+
+- settings are routing preferences only
+- invalid settings are rejected and displayed in the validation panel
+- saving settings does not execute routing
+- saving settings does not call Codex, local LLMs, agents, GitHub, `gh`, workflows, push, prompt generation, or external services
+- model management and executable engine configuration remain future work
+
+Recommended next milestone:
+
+- M56 - Routed Queue Views.
+
 ## M54 Routing Decision Matrix v1
 
 Status: Completed locally on `main`.

@@ -1,5 +1,28 @@
 # AresForge Build State
 
+## M55 Project AI Settings UI
+
+Status: Completed locally on `main`.
+
+Delivered:
+
+- added a Project AI Settings panel to the Projects Hub section
+- wired the panel to existing M51 routes `GET /api/projects/{project_id}/ai-settings` and `POST /api/projects/{project_id}/ai-settings`
+- operators can view and update `project_ai_mode`, `available_engines`, `disabled_engines`, `default_engine`, optional `default_model`, `operator_override_allowed`, and notes
+- UI displays validation status, warnings, blockers, and `next_safe_action`
+- invalid settings are surfaced through validation output and are not saved by the API
+
+Boundaries:
+
+- local-only, file-backed, and operator-gated
+- settings are routing preferences and future execution configuration only
+- no routing execution, local LLM execution, Codex execution, agent execution, GitHub/`gh`, prompt execution, workflow activity, network call, or external execution
+- no complex model management UI was added
+
+Recommended next milestone:
+
+- M56 - Routed Queue Views.
+
 ## M54 Routing Decision Matrix v1
 
 Status: Completed locally on `main`.

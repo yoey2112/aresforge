@@ -656,6 +656,60 @@
             <p id="projects-progress-rollup-warnings-empty" class="empty">No progress warnings reported.</p>
           </section>
           <section class="subpanel">
+            <h3>Project AI Settings</h3>
+            <p class="boundary-banner">Local-only routing preferences for future recommendations. These settings do not execute engines, agents, Codex, local LLMs, GitHub, prompts, or workflows.</p>
+            <form id="project-ai-settings-form" class="form-grid">
+              <label>Project AI Mode
+                <select id="project-ai-mode" name="project_ai_mode">
+                  <option value="balanced">balanced</option>
+                  <option value="local_only">local_only</option>
+                  <option value="codex_only">codex_only</option>
+                  <option value="cost_saver">cost_saver</option>
+                  <option value="high_confidence">high_confidence</option>
+                  <option value="manual_only">manual_only</option>
+                </select>
+              </label>
+              <label>Default Engine
+                <select id="project-ai-default-engine" name="default_engine">
+                  <option value="">blank/manual</option>
+                  <option value="local_reasoning_llm">local_reasoning_llm</option>
+                  <option value="local_coding_llm">local_coding_llm</option>
+                  <option value="codex_cli">codex_cli</option>
+                </select>
+              </label>
+              <label>Default Model<input id="project-ai-default-model" name="default_model" placeholder="optional" /></label>
+              <label class="inline-checkbox"><input id="project-ai-operator-override-allowed" type="checkbox" /> Operator override allowed</label>
+              <fieldset class="full">
+                <legend>Available Engines</legend>
+                <label class="inline-checkbox"><input class="project-ai-available-engine" type="checkbox" value="local_reasoning_llm" /> local_reasoning_llm</label>
+                <label class="inline-checkbox"><input class="project-ai-available-engine" type="checkbox" value="local_coding_llm" /> local_coding_llm</label>
+                <label class="inline-checkbox"><input class="project-ai-available-engine" type="checkbox" value="codex_cli" /> codex_cli</label>
+              </fieldset>
+              <fieldset class="full">
+                <legend>Disabled Engines</legend>
+                <label class="inline-checkbox"><input class="project-ai-disabled-engine" type="checkbox" value="local_reasoning_llm" /> local_reasoning_llm</label>
+                <label class="inline-checkbox"><input class="project-ai-disabled-engine" type="checkbox" value="local_coding_llm" /> local_coding_llm</label>
+                <label class="inline-checkbox"><input class="project-ai-disabled-engine" type="checkbox" value="codex_cli" /> codex_cli</label>
+              </fieldset>
+              <label class="full">Notes<textarea id="project-ai-notes" name="notes"></textarea></label>
+              <div class="quick-actions full">
+                <button id="project-ai-settings-load" type="button">Load Project AI Settings</button>
+                <button id="project-ai-settings-save" type="submit">Save Project AI Settings</button>
+              </div>
+            </form>
+            <ul id="project-ai-settings-summary" class="list"></ul>
+            <p id="project-ai-settings-summary-empty" class="empty">No project AI settings loaded.</p>
+            <h4>Validation</h4>
+            <ul id="project-ai-settings-validation" class="list"></ul>
+            <p id="project-ai-settings-validation-empty" class="empty">No validation result yet.</p>
+            <h4>Warnings</h4>
+            <ul id="project-ai-settings-warnings" class="list"></ul>
+            <p id="project-ai-settings-warnings-empty" class="empty">No AI settings warnings.</p>
+            <h4>Blockers</h4>
+            <ul id="project-ai-settings-blockers" class="list"></ul>
+            <p id="project-ai-settings-blockers-empty" class="empty">No AI settings blockers.</p>
+          </section>
+          <section class="subpanel">
             <h3>New Project Wizard</h3>
             <p class="message-note">Local-only initialization. This does not create a live GitHub repository and does not execute agents/models.</p>
             <form id="new-project-wizard-form" class="form-grid">

@@ -1,6 +1,8 @@
 import { byId, on, setList, setMessage, setText } from "/js/core/dom.js";
 import { fetchJson, prunePayload } from "/js/core/http.js";
 
+const PROJECT_AI_ENGINES = ["local_reasoning_llm", "local_coding_llm", "codex_cli"];
+
 export function buildProjectPayload(parseCommaList) {
   return prunePayload({
     project_id: byId("project-project-id").value.trim(),
@@ -17,6 +19,78 @@ export function buildProjectPayload(parseCommaList) {
     tags: parseCommaList(byId("project-tags").value),
     notes: byId("project-notes").value.trim(),
   });
+}
+
+function checkedValues(selector) {
+  return Array.from(document.querySelectorAll(selector))
+    .filter((input) => input.checked)
+    .map((input) => input.value);
+}
+
+function setCheckedValues(selector, values) {
+  const selected = new Set(values || []);
+  document.querySelectorAll(selector).forEach((input) => {
+    input.checked = selected.has(input.value);
+  });
+}
+
+function buildProjectAiSettingsPayload() {
+  return {
+    project_ai_mode: byId("project-ai-mode").value.trim(),
+    available_engines: checkedValues(".project-ai-available-engine"),
+    disabled_engines: checkedValues(".project-ai-disabled-engine"),
+    default_engine: byId("project-ai-default-engine").value.trim(),
+    default_model: byId("project-ai-default-model").value.trim(),
+    operator_override_allowed: Boolean(byId("project-ai-operator-override-allowed").checked),
+    notes: byId("project-ai-notes").value.trim(),
+  };
+}
+
+export function renderProjectAiSettings(payload) {
+  const details = (payload && payload.details) || {};
+  const settings = (payload && payload.project_ai_settings) || details.project_ai_settings || {};
+  if (byId("project-ai-mode")) {
+    byId("project-ai-mode").value = settings.project_ai_mode || "balanced";
+  }
+  setCheckedValues(".project-ai-available-engine", settings.available_engines || PROJECT_AI_ENGINES);
+  setCheckedValues(".project-ai-disabled-engine", settings.disabled_engines || []);
+  if (byId("project-ai-default-engine")) {
+    byId("project-ai-default-engine").value = settings.default_engine || "";
+  }
+  if (byId("project-ai-default-model")) {
+    byId("project-ai-default-model").value = settings.default_model || "";
+  }
+  if (byId("project-ai-operator-override-allowed")) {
+    byId("project-ai-operator-override-allowed").checked = Boolean(settings.operator_override_allowed);
+  }
+  if (byId("project-ai-notes")) {
+    byId("project-ai-notes").value = settings.notes || "";
+  }
+
+  const validation = (payload && payload.validation) || details.validation || {};
+  setList("project-ai-settings-summary", "project-ai-settings-summary-empty", [
+    `project_id: ${payload && payload.project_id ? payload.project_id : "-"}`,
+    `project_ai_mode: ${settings.project_ai_mode || "-"}`,
+    `available_engines: ${(settings.available_engines || []).join(", ") || "none"}`,
+    `disabled_engines: ${(settings.disabled_engines || []).join(", ") || "none"}`,
+    `default_engine: ${settings.default_engine || "blank/manual"}`,
+    `default_model: ${settings.default_model || "-"}`,
+    `operator_override_allowed: ${Boolean(settings.operator_override_allowed)}`,
+    `next_safe_action: ${payload && payload.next_safe_action ? payload.next_safe_action : "-"}`,
+  ]);
+  setList("project-ai-settings-validation", "project-ai-settings-validation-empty", [
+    `valid: ${Boolean(validation.valid)}`,
+    `routing_execution_status: ${validation.routing_execution_status || "not_implemented"}`,
+  ]);
+  setList("project-ai-settings-warnings", "project-ai-settings-warnings-empty", (payload && payload.warnings) || validation.warnings || []);
+  setList("project-ai-settings-blockers", "project-ai-settings-blockers-empty", (payload && payload.blockers) || validation.blockers || (payload && payload.message ? [payload.message] : []));
+}
+
+export function renderProjectAiSettingsUnavailable(messageText) {
+  setList("project-ai-settings-summary", "project-ai-settings-summary-empty", messageText ? [messageText] : []);
+  setList("project-ai-settings-validation", "project-ai-settings-validation-empty", []);
+  setList("project-ai-settings-warnings", "project-ai-settings-warnings-empty", []);
+  setList("project-ai-settings-blockers", "project-ai-settings-blockers-empty", []);
 }
 
 export function renderProjects(projects) {
@@ -91,6 +165,22 @@ export async function loadProjectProgressRollup(projectId) {
   }
 }
 
+export async function loadProjectAiSettings(projectId) {
+  const normalizedProjectId = String(projectId || "").trim();
+  if (!normalizedProjectId) {
+    renderProjectAiSettingsUnavailable("Select an active project to load Project AI Settings.");
+    return null;
+  }
+  try {
+    const payload = await fetchJson(`/api/projects/${encodeURIComponent(normalizedProjectId)}/ai-settings`);
+    renderProjectAiSettings(payload);
+    return payload;
+  } catch (error) {
+    renderProjectAiSettings((error && error.payload) || {});
+    return null;
+  }
+}
+
 export function refreshProjectSelectors(state, projects, { activeProjectId }) {
   const selectors = [byId("repo-project-select"), byId("active-project-select")].filter(Boolean);
   const previousRepoProject = byId("repo-project-select") ? byId("repo-project-select").value : "";
@@ -146,6 +236,7 @@ export async function loadProjectsData(state, { loadActiveProject, renderActiveP
   renderProjects(state.projects);
   refreshProjectSelectors(state, state.projects, { activeProjectId });
   await loadProjectProgressRollup(activeProjectId());
+  await loadProjectAiSettings(activeProjectId());
   setMessage(
     "projects-message",
     payload.warnings && payload.warnings.length ? payload.warnings.join(" | ") : "Projects loaded.",
@@ -221,9 +312,48 @@ export function bindProjectsActions({
       await loadProjectFactoryDossier(activeProjectId());
       await loadScopePackage(activeProjectId());
       await loadArchitectureContract(activeProjectId());
+      await loadProjectAiSettings(activeProjectId());
       applyActiveProjectDefaultsToQueueForm();
       setMessage("projects-message", `Active project set to ${projectId}.`, "success");
     } catch (error) {
+      setMessage("projects-message", String(error.message || error), "error");
+    }
+  });
+
+  on("project-ai-settings-load", "click", async () => {
+    const projectId = activeProjectId();
+    if (!projectId) {
+      setMessage("projects-message", "Select an active project before loading AI settings.", "warn");
+      return;
+    }
+    try {
+      setMessage("projects-message", "Loading Project AI Settings...", "loading");
+      await loadProjectAiSettings(projectId);
+      setMessage("projects-message", "Project AI Settings loaded.", "success");
+    } catch (error) {
+      renderProjectAiSettings((error && error.payload) || {});
+      setMessage("projects-message", String(error.message || error), "error");
+    }
+  });
+
+  on("project-ai-settings-form", "submit", async (event) => {
+    event.preventDefault();
+    const projectId = activeProjectId();
+    if (!projectId) {
+      setMessage("projects-message", "Select an active project before saving AI settings.", "warn");
+      return;
+    }
+    try {
+      setMessage("projects-message", "Saving Project AI Settings...", "loading");
+      const payload = await fetchJson(`/api/projects/${encodeURIComponent(projectId)}/ai-settings`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildProjectAiSettingsPayload()),
+      });
+      renderProjectAiSettings(payload);
+      setMessage("projects-message", "Project AI Settings saved. No execution performed.", "success");
+    } catch (error) {
+      renderProjectAiSettings((error && error.payload) || {});
       setMessage("projects-message", String(error.message || error), "error");
     }
   });

@@ -1,5 +1,28 @@
 # AresForge Agent Context
 
+## M55 Project AI Settings UI Context
+
+Status: Completed locally on `main`.
+
+Current UI contract:
+
+- Projects section includes a Project AI Settings panel
+- panel reads `GET /api/projects/{project_id}/ai-settings`
+- panel saves through `POST /api/projects/{project_id}/ai-settings`
+- supported modes and engines are exposed as form controls
+- validation, warnings, blockers, and `next_safe_action` are shown in the panel
+
+Boundary reminders:
+
+- UI edits project AI settings only
+- validation failures are displayed and the backend rejects invalid settings
+- no routing execution, local LLM execution, Codex execution, real agent execution, prompt generation/execution, GitHub integration, or external workflow is added
+- this is not model management; it is only the M51 settings contract exposed to operators
+
+Recommended next milestone:
+
+- M56 - Routed Queue Views.
+
 ## M54 Routing Decision Matrix v1 Context
 
 Status: Completed locally on `main`.
