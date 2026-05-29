@@ -1,5 +1,28 @@
 # AresForge Build State
 
+## M35 Hub Dashboard Data Contract And Read-Only Metrics
+
+Status: Completed locally on `main`.
+
+Delivered:
+
+- local-only read-only Hub dashboard summary operator contract
+- new Hub API route: `GET /api/dashboard/summary`
+- stable JSON payload for Home dashboard data consumption in a future UI pass
+
+Boundary posture:
+
+- local-only and file-backed inspection
+- read-only/advisory response
+- no GitHub API calls
+- no `gh` calls
+- no network calls beyond existing local Hub API behavior
+- no agent/Codex/model execution
+
+Scope note:
+
+- Home dashboard UI cards/panels are intentionally deferred to M36.
+
 ## Local LLM Planning Package (Documentation-Only)
 
 Local LLM integration planning is now documented but not implemented.

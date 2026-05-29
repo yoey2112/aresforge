@@ -1,5 +1,26 @@
 # AresForge Roadmap
 
+## M35 Hub Dashboard Data Contract And Read-Only Metrics
+
+Status: Completed locally on `main`.
+
+Delivered M35 scope:
+
+- local-only read-only Home dashboard data contract
+- operator-level summary aggregation for existing local project/queue/active-project state
+- Hub route `GET /api/dashboard/summary` for stable JSON contract delivery
+
+Constraints preserved:
+
+- no GitHub calls
+- no `gh`
+- no mutation
+- no agent/Codex/model execution
+
+Deferred:
+
+- dashboard UI cards and status panels move to M36.
+
 ## Future Milestone: Local LLM Readiness
 
 Status: Planned.

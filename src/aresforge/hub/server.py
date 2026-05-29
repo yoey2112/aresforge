@@ -12,6 +12,7 @@ from aresforge.config import AppConfig
 from aresforge.hub.api import (
     get_bootstrap_plan,
     get_bootstrap_status,
+    get_dashboard_summary,
     get_active_project,
     get_active_project_workspace,
     get_agent,
@@ -166,6 +167,9 @@ def _build_handler(config: AppConfig, static_root: Path) -> type[BaseHTTPRequest
                 return True
             if method == "GET" and path == "/api/summary":
                 _render_json(self, HTTPStatus.OK, get_summary(config))
+                return True
+            if method == "GET" and path == "/api/dashboard/summary":
+                _render_json(self, HTTPStatus.OK, get_dashboard_summary(config))
                 return True
             if method == "GET" and path == "/api/local-project-dashboard":
                 _render_json(self, HTTPStatus.OK, get_local_project_dashboard(config))

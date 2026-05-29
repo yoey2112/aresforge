@@ -1,5 +1,27 @@
 # Local Operator Usage
 
+## M35 Hub Dashboard Data Contract Operator Note
+
+New local-only read-only Hub endpoint:
+
+- `GET /api/dashboard/summary`
+
+Purpose:
+
+- provide a stable dashboard summary payload for Hub Home data consumption
+- surface advisory local project/queue/agent-lane/repo state without mutation
+
+Boundaries:
+
+- no GitHub API calls
+- no `gh`
+- no local/cloud/Codex model execution
+- no mutation side effects
+
+Scope guard:
+
+- dashboard UI cards/panels are deferred to M36.
+
 ## Local Ollama Planning References (Documentation-Only)
 
 AresForge has local Ollama planning documentation for future LLM integration.

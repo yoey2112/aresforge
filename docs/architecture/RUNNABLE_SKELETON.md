@@ -1,5 +1,23 @@
 # Runnable Skeleton
 
+## M35 Hub Dashboard Summary Contract
+
+Implemented contract:
+
+- operator summary function: `src/aresforge/operator/local_dashboard_summary.py`
+- Hub API route: `GET /api/dashboard/summary`
+- payload: read-only local advisory metrics for Home dashboard consumption
+
+Contract intent:
+
+- provide backend/API data only
+- avoid Home UI card/panel implementation in this milestone
+- keep M35 local-only, file-backed, and non-mutating
+
+Deferred scope:
+
+- M36 consumes this contract for dashboard UI cards and status panels.
+
 ## M34 Frontend Modularization Closeout Skeleton
 
 Frontend entrypoint contract:

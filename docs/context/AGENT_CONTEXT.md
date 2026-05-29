@@ -1,5 +1,24 @@
 # AresForge Agent Context
 
+## M35 Hub Dashboard Contract Context
+
+Current Hub dashboard contract now includes:
+
+- `GET /api/dashboard/summary`
+- local-only read-only dashboard summary payload (`dashboard_type=hub_home`)
+- project summary, queue summary, agent lane summary, repo summary, blockers/warnings, next safe action, and source summary fields
+
+Boundary reminders:
+
+- no mutation
+- no GitHub or `gh` calls
+- no agent/Codex/model execution
+- local/file-backed inspection only
+
+UI note:
+
+- Home dashboard cards/panels are deferred to M36.
+
 ## Local LLM Planning Context (Documentation-Only)
 
 AresForge now has documented future local Ollama model planning.

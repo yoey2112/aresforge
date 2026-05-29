@@ -6,6 +6,7 @@ from typing import Any
 
 from aresforge.config import AppConfig
 from aresforge.operator.local_project_dashboard import summarize_docs_status, summarize_local_project_dashboard
+from aresforge.operator.local_dashboard_summary import summarize_hub_home_dashboard
 from aresforge.operator.local_project_report import inspect_local_project_report
 from aresforge.operator.local_project_readiness import list_local_projects
 from aresforge.operator.local_queue_agent_summary import inspect_local_queue_agent_summary
@@ -497,6 +498,17 @@ def get_local_project_dashboard(config: AppConfig) -> dict[str, Any]:
 
 def get_local_project_report(config: AppConfig) -> dict[str, Any]:
     payload = inspect_local_project_report(config)
+    payload.update(
+        {
+            "ok": True,
+            "service": SERVICE_NAME,
+        }
+    )
+    return payload
+
+
+def get_dashboard_summary(config: AppConfig) -> dict[str, Any]:
+    payload = summarize_hub_home_dashboard(config)
     payload.update(
         {
             "ok": True,
