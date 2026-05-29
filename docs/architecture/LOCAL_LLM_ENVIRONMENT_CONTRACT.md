@@ -18,6 +18,10 @@ M65 adds a centralized AI Action Safety Gate. Local LLM prompt preview and execu
 
 M66 adds a local AI Artifact Registry. Local LLM prompt preview artifacts and advisory local LLM result artifacts are registered when explicitly written, but registry writes do not execute providers or expand M62 behavior.
 
+M67 adds an Operator Run History panel that can display local LLM audit and artifact records in a read-only timeline. It does not execute providers or expand M62 behavior.
+
+M68 reconciles local AI operations documentation and confirms that local LLM execution remains prototype-only, local-only, advisory-only, and operator-gated.
+
 ## Storage
 
 The contract is stored locally at:
@@ -42,6 +46,7 @@ Reading defaults does not write this file. Updating the contract writes the file
 - `GET /api/execution-audit-log`
 - `POST /api/ai-action-safety-gate`
 - `GET /api/ai-artifacts`
+- `GET /api/operator-run-history`
 
 ## Fields
 
@@ -175,4 +180,8 @@ M65 added the AI Action Safety Gate for consistent decision reporting without ex
 
 M66 added the AI Artifact Registry for generated advisory artifacts without expanding execution.
 
-M67 should add an Operator Run History Panel.
+M67 added the Operator Run History Panel as a read-only timeline.
+
+M68 reconciled local AI operations docs and validation without expanding execution.
+
+M69 should harden local AI operations around edge cases and readiness checks.

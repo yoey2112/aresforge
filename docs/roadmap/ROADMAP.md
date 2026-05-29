@@ -1,5 +1,31 @@
 # AresForge Roadmap
 
+## M68 Local AI Operations Closeout Reconciliation
+
+Status: Completed locally on `main`.
+
+Delivered scope:
+
+- reconciled source-of-truth docs for the local AI operations sequence through M67
+- clarified implemented workflows from project AI settings through Operator Run History
+- clarified that routed queue views are filtered views over the one canonical local queue
+- clarified that Codex high-value lane is prompt generation/operator handoff only
+- clarified that local LLM execution remains prototype-only, local-only, advisory-only, and operator-gated
+- confirmed validation coverage for queue, project factory, Hub API, and Hub UI contracts
+
+Constraints preserved:
+
+- no new execution behavior
+- no Codex CLI execution
+- no GitHub API, no `gh`, no GitHub issues/PRs/workflow activity, no GitHub mutation from the app
+- no external workflow execution
+- no expansion of M62 local LLM execution
+- no automatic application of local LLM or Codex output to repo files
+
+Recommended next milestone:
+
+- M69 - Local AI Operations Hardening.
+
 ## M67 Operator Run History Panel
 
 Status: Completed locally on `main`.
@@ -200,7 +226,7 @@ Delivered scope:
 - represented Codex CLI as engine `codex_cli`
 - represented default, high-value, and fast model preferences
 - represented allowed models plus optional per-project and per-agent allowed model mappings
-- originally enforced `execution_enabled: false`; M62 allows `execution_enabled: true` only for the operator-gated local prototype while `operator_gate_required` stays true
+- enforces `execution_enabled: false` for Codex CLI model profiles while `operator_gate_required` stays true
 - added `docs/architecture/CODEX_CLI_MODEL_PROFILE_CONTRACT.md`
 - added targeted tests for default state, valid updates, invalid engine key, invalid role models, execution rejection, model mapping validation, and API behavior
 

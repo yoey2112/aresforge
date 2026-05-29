@@ -1,5 +1,43 @@
 # AresForge Build State
 
+## M68 Local AI Operations Closeout Reconciliation
+
+Status: Completed locally on `main`.
+
+Reconciled implemented local AI operations baseline:
+
+- Project AI settings contract and UI
+- Agent/engine registry
+- Queue routing metadata
+- Routing decision matrix v1
+- Routed queue views as filtered views over the canonical local queue
+- Routing-aware prompt packs
+- Local LLM environment contract
+- Local LLM health check
+- Codex CLI model profile contract
+- Local LLM prompt preview
+- Operator-gated local LLM execution prototype
+- Codex CLI high-value prompt lane
+- Execution audit log
+- AI action safety gate
+- AI artifact registry
+- Operator run history panel
+
+Current hard boundaries:
+
+- no GitHub API, `gh`, GitHub issues, GitHub PRs, GitHub workflows, or GitHub mutation from the app
+- no automatic Codex execution and no Codex CLI execution
+- no automatic agent execution
+- Codex high-value lane is prompt generation and operator handoff only
+- local LLM execution is prototype-only, local-only, advisory-only, and operator-gated
+- local LLM output is not applied to repository files automatically
+- one canonical local queue remains the source of truth
+- routed views are filtered views, not separate queues
+
+Recommended next milestone:
+
+- M69 - Local AI Operations Hardening.
+
 ## M67 Operator Run History Panel
 
 Status: Completed locally on `main`.
@@ -196,7 +234,7 @@ Delivered:
 - represented `codex_cli` as the fixed Codex engine key
 - represented default, high-value, and fast Codex model preferences
 - added allowed model lists plus optional per-project and per-agent model restrictions
-- originally enforced `execution_enabled: false`; M62 allows `execution_enabled: true` only for the operator-gated local prototype while `operator_gate_required` stays true
+- enforces `execution_enabled: false` for Codex CLI model profiles while `operator_gate_required` stays true
 - added detailed source doc `docs/architecture/CODEX_CLI_MODEL_PROFILE_CONTRACT.md`
 
 Boundaries:

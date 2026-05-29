@@ -1,5 +1,33 @@
 # Local Operator Usage
 
+## M68 Local AI Operations Closeout Reconciliation
+
+Status: Completed locally on `main`.
+
+Current supported local AI workflows:
+
+1. Configure project AI settings and inspect the agent/engine registry.
+2. Add or inspect queue routing metadata from the one canonical local queue.
+3. Review routing decision matrix output and routed queue views as advisory filtered views.
+4. Generate routing-aware prompt packs.
+5. Configure local LLM environment and run the explicit local health check.
+6. Generate local LLM prompt previews for locally routed items.
+7. Use the M62 local LLM execution prototype only with explicit operator gate confirmation and local provider checks.
+8. Generate Codex high-value prompts as copy/paste operator handoffs only.
+9. Review execution audit log, AI artifact registry, and Operator Run History for local evidence.
+
+Operator safety notes:
+
+- no GitHub API, `gh`, issues, PRs, workflow activity, or GitHub mutation is performed by these local AI workflows
+- no automatic Codex execution, Codex CLI invocation, or automatic agent execution is implemented
+- local LLM execution is prototype-only, local-only, advisory-only, and operator-gated
+- local LLM and Codex outputs are never applied to repo files automatically
+- routed queue views are filtered views, not separate queues
+
+Recommended next milestone:
+
+- M69 - Local AI Operations Hardening.
+
 ## M67 Operator Run History Panel
 
 Status: Completed locally on `main`.
@@ -232,7 +260,7 @@ Operator workflow:
 1. Read Codex CLI model profiles with `GET /api/codex-cli/model-profiles`.
 2. Optionally update allowed model names and role preferences with `POST /api/codex-cli/model-profiles`.
 3. Keep `execution_enabled` false and `operator_gate_required` true.
-4. Treat profiles as future routing configuration only.
+4. Treat profiles as routing and prompt-lane configuration only.
 
 Operator safety notes:
 
@@ -241,7 +269,7 @@ Operator safety notes:
 - no Codex CLI command is run
 - no prompt is executed
 - no agent, GitHub, `gh`, workflow, push, or external service is used
-- High-Value Codex Lane execution remains future work
+- High-Value Codex Lane prompt generation exists, but Codex execution remains unimplemented
 
 Recommended next milestone:
 

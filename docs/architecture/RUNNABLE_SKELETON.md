@@ -1,5 +1,33 @@
 # Runnable Skeleton
 
+## M68 Local AI Operations Closeout Reconciliation
+
+Status: Completed locally on `main`.
+
+Reconciled runnable surface:
+
+- project AI settings and UI
+- agent/engine registry
+- queue routing metadata and routing decision matrix v1
+- routed queue views as filtered views over the canonical local queue
+- routing-aware prompt packs
+- local LLM environment contract, health check, prompt preview, and operator-gated execution prototype
+- Codex CLI model profile contract and high-value prompt lane
+- execution audit log, AI action safety gate, AI artifact registry, and Operator Run History panel
+
+Still absent by design:
+
+- automatic Codex execution or Codex CLI invocation
+- automatic agent execution
+- GitHub API, `gh`, issues, PRs, workflows, or GitHub mutation
+- repository file mutation from generated local LLM or Codex output
+- split queues or routed queue storage separate from the canonical local queue
+- local LLM execution beyond the M62 explicit operator-gated prototype
+
+Next skeleton focus:
+
+- M69 should harden local AI operations around edge cases, consistency checks, and operator-facing readiness.
+
 ## M67 Operator Run History Panel
 
 Status: Completed locally on `main`.
@@ -27,9 +55,9 @@ Still absent by design:
 - local LLM execution beyond M62
 - automatic agent execution
 
-Next skeleton focus:
+Follow-up:
 
-- M68 should add Local AI Operations Closeout Reconciliation.
+- M68 added Local AI Operations Closeout Reconciliation.
 
 ## M66 AI Artifact Registry
 
@@ -60,9 +88,9 @@ Still absent by design:
 - automatic agent execution
 - automatic file edits, queue completion, commits, pushes, or external workflow execution
 
-Next skeleton focus:
+Follow-up:
 
-- M67 should add an Operator Run History Panel over local action history.
+- M67 added an Operator Run History Panel over local action history.
 
 ## M65 AI Action Safety Gate
 

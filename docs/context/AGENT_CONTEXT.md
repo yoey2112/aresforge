@@ -1,5 +1,29 @@
 # AresForge Agent Context
 
+## M68 Local AI Operations Closeout Context
+
+Status: Completed locally on `main`.
+
+Current implemented local AI operations surface:
+
+- project AI settings, agent/engine registry, queue routing metadata, routing decision matrix v1, routed queue views, and routing-aware prompt packs
+- local LLM environment contract, local health check, prompt preview, and M62 operator-gated local execution prototype
+- Codex CLI model profile contract and Codex high-value prompt lane
+- execution audit log, AI action safety gate, AI artifact registry, and Operator Run History panel
+
+Source-of-truth boundary:
+
+- one canonical local queue remains the source of truth
+- routed views are filters over that queue, not separate queues
+- local LLM execution remains prototype-only, local-only, advisory-only, and operator-gated
+- Codex high-value lane remains prompt generation/operator handoff only
+- no output from a local LLM or Codex prompt is applied to repo files automatically
+- no GitHub API, `gh`, issues, PRs, workflows, GitHub mutation, automatic Codex execution, automatic agent execution, or external workflow execution
+
+Recommended next milestone:
+
+- M69 - Local AI Operations Hardening.
+
 ## M67 Operator Run History Panel Context
 
 Status: Completed locally on `main`.
@@ -254,10 +278,10 @@ Boundary reminders:
 
 - Codex CLI is represented as engine `codex_cli`
 - model profiles are configuration only
-- `execution_enabled` may be true only for the M62 operator-gated local prototype
+- `execution_enabled` remains false for Codex CLI model profiles
 - `operator_gate_required` must remain true
 - no Codex CLI execution, prompt execution, real agent execution, GitHub integration, `gh`, or external workflow is added
-- High-Value Codex Lane execution remains future work
+- Codex high-value prompt generation exists, but Codex execution remains unimplemented
 
 Recommended next milestone:
 

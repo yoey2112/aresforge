@@ -2,9 +2,37 @@
 
 ## Status
 
-M44A documented the future Agent/LLM routing strategy. M51 through M66 now add non-executing contracts and local Hub surfaces for project AI settings, agent/engine registry, queue routing metadata, recommendation-only routing decisions, Project AI Settings UI, routed queue views, routing-aware prompt packs, local LLM environment/health checks, Codex CLI model profile configuration, local LLM prompt preview/execution gates, Codex high-value prompt generation, a local execution audit log, centralized AI action safety gate decisions, and a local AI artifact registry.
+M44A documented the future Agent/LLM routing strategy. M51 through M68 now add non-executing contracts and local Hub surfaces for project AI settings, agent/engine registry, queue routing metadata, recommendation-only routing decisions, Project AI Settings UI, routed queue views, routing-aware prompt packs, local LLM environment/health checks, Codex CLI model profile configuration, local LLM prompt preview/execution gates, Codex high-value prompt generation, a local execution audit log, centralized AI action safety gate decisions, a local AI artifact registry, an Operator Run History panel, and closeout reconciliation documentation.
 
 Current prompt-pack and Codex high-value lane behavior are advisory prompt generation only. Runtime routing, Codex execution, real agent execution, and GitHub integration remain unimplemented. Local LLM execution exists only as the M62 operator-gated local prototype.
+
+## M68 Local AI Operations Closeout Reconciliation
+
+M68 reconciles the local AI operations documentation sequence through M67.
+
+Implemented local AI operations now include project AI settings, the agent/engine registry, queue routing metadata, routing decision matrix v1, routed queue views, routing-aware prompt packs, local LLM environment and health contracts, Codex CLI model profile configuration, local LLM prompt preview, the M62 operator-gated local LLM execution prototype, Codex high-value prompt generation, execution audit logging, the AI action safety gate, the AI artifact registry, and the Operator Run History panel.
+
+The canonical queue boundary remains unchanged: there is one local queue, and routed queue views are filters over that queue rather than separate queue stores. Routing recommendations and metadata are advisory context unless the operator explicitly applies metadata through local queue controls.
+
+The execution boundary remains unchanged: Codex high-value lane output is prompt generation/operator handoff only, Codex CLI execution is not implemented, local LLM execution is prototype-only/local-only/advisory-only/operator-gated, and generated model output is never applied to repository files automatically.
+
+M68 does not add routing execution, Codex execution, agent execution, GitHub API calls, `gh` calls, issues, PRs, workflow activity, external workflow execution, or local LLM behavior beyond M62.
+
+## M67 Operator Run History Panel
+
+M67 adds a read-only operator-facing timeline over M64 audit entries and M66 artifact records.
+
+Current operator helper:
+
+- `read_operator_run_history(...)`
+
+Current Hub route:
+
+- `GET /api/operator-run-history`
+
+The timeline includes audit and artifact entries sorted newest first, with project/item identifiers when available, action type, artifact type, outcome, summary, artifact path, executed state, and execution-allowed state.
+
+M67 does not expose execution, apply, delete, GitHub, `gh`, Codex run, local LLM, agent, workflow, issue, or PR controls.
 
 ## M66 AI Artifact Registry
 
