@@ -703,6 +703,35 @@ async function loadHandoffPreview() {
   setMessage("handoff-message", payload.warnings && payload.warnings.length ? payload.warnings.join(" | ") : "Handoff preview loaded. Local-only and not posted anywhere.", payload.warnings && payload.warnings.length ? "warn" : "success");
 }
 
+function buildLocalProjectHandoffPayload() {
+  return prunePayload({
+    project_id: byId("local-project-handoff-project-id").value.trim(),
+    include_queue: byId("local-project-handoff-include-queue").checked,
+    include_reports: byId("local-project-handoff-include-reports").checked,
+    include_evidence: byId("local-project-handoff-include-evidence").checked,
+    next_milestone: byId("local-project-handoff-next-milestone").value.trim(),
+    next_instruction: byId("local-project-handoff-next-instruction").value.trim(),
+    output: byId("local-project-handoff-output").value.trim(),
+    force: byId("local-project-handoff-force").checked,
+  });
+}
+
+function renderLocalProjectHandoffResult(payload) {
+  const summary = (payload && payload.summary) || {};
+  setList("local-project-handoff-summary", "local-project-handoff-summary-empty", payload ? [
+    `project_id: ${payload.project_id || "-"}`,
+    `project_name: ${payload.project_name || "-"}`,
+    `queue_total: ${summary.queue_total || 0}`,
+    `ready_count: ${summary.ready_count || 0}`,
+    `blocked_count: ${summary.blocked_count || 0}`,
+    `evidence_captured_count: ${summary.evidence_captured_count || 0}`,
+    `closeout_eligible_count: ${summary.closeout_eligible_count || 0}`,
+    `output_path: ${payload.output_path || "-"}`,
+    `next_safe_action: ${payload.next_safe_action || "-"}`,
+  ] : []);
+  setCodeBlock("local-project-handoff-preview", "local-project-handoff-preview-empty", payload ? payload.handoff_markdown || "" : "");
+}
+
 async function loadDashboardReport() {
   return loadDashboardReportSection(state, {
     countLines,
@@ -1047,6 +1076,23 @@ function bindForms() {
     try {
       await loadHandoffPreview();
     } catch (error) {
+      setMessage("handoff-message", String(error.message || error), "error");
+    }
+  });
+
+  on("local-project-handoff-form", "submit", async (event) => {
+    event.preventDefault();
+    try {
+      setMessage("handoff-message", "Generating local project handoff...", "loading");
+      const payload = await fetchJson("/api/local-project/handoff", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildLocalProjectHandoffPayload()),
+      });
+      renderLocalProjectHandoffResult(payload);
+      setMessage("handoff-message", payload.warnings && payload.warnings.length ? payload.warnings.join(" | ") : "Local project handoff generated.", payload.warnings && payload.warnings.length ? "warn" : "success");
+    } catch (error) {
+      renderLocalProjectHandoffResult((error && error.payload) || null);
       setMessage("handoff-message", String(error.message || error), "error");
     }
   });

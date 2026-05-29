@@ -43,6 +43,7 @@ from aresforge.operator.local_agent_profiles import (
     resolve_agent_profiles_path,
 )
 from aresforge.operator.local_handoff_package import generate_handoff_package
+from aresforge.operator.local_project_handoff import generate_local_project_handoff
 from aresforge.operator.local_agent_orchestration import generate_agent_orchestration_plan
 from aresforge.operator.local_llm_escalation import generate_llm_escalation_plan
 from aresforge.operator.local_bootstrap_wizard import (
@@ -3062,6 +3063,36 @@ def get_handoff_preview(config: AppConfig) -> dict[str, Any]:
             "Handoff preview is local-only and does not post anywhere.",
         ],
     }
+
+
+def post_local_project_handoff(config: AppConfig, body: dict[str, Any]) -> dict[str, Any]:
+    for field in ("include_queue", "include_reports", "include_evidence", "force"):
+        valid_bool, bool_error = _require_boolean_field(body, field)
+        if not valid_bool:
+            return bool_error or _api_error(f"invalid_{field}", f"{field} must be a boolean value.")
+
+    payload = dict(
+        generate_local_project_handoff(
+            config,
+            project_id=_normalize_optional_str(body.get("project_id")),
+            include_queue=bool(body.get("include_queue", True)),
+            include_reports=bool(body.get("include_reports", True)),
+            include_evidence=bool(body.get("include_evidence", True)),
+            next_milestone=_normalize_optional_str(body.get("next_milestone")),
+            next_instruction=_normalize_optional_str(body.get("next_instruction")),
+            output=_normalize_optional_str(body.get("output")),
+            force=bool(body.get("force", False)),
+            latest_commit=_normalize_optional_str(body.get("latest_commit")),
+        )
+    )
+    payload["service"] = SERVICE_NAME
+    payload["boundary_confirmations"] = _merge_boundary_confirmations(
+        payload,
+        "Local project handoff generation does not execute agents, Codex, local LLMs, routing, GitHub, or gh.",
+    )
+    if not payload.get("ok", False):
+        payload["_status"] = 409 if "already exists" in " ".join(payload.get("warnings", [])) else 400
+    return payload
 
 
 def _validate_plan_request_filters(body: dict[str, Any], *, allow_item_id: bool) -> dict[str, Any] | None:

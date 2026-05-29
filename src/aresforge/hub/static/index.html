@@ -1280,6 +1280,25 @@
             <pre id="handoff-preview" class="code-block"></pre>
             <p id="handoff-preview-empty" class="empty">No preview loaded yet.</p>
           </section>
+          <section class="subpanel">
+            <h3>Local Project Handoff Generator</h3>
+            <p class="message-note">Copy/paste-ready local project handoff. Optional output writes a local artifact only; no GitHub, gh, agent, Codex, local LLM, or routing execution.</p>
+            <form id="local-project-handoff-form" class="form-grid">
+              <label>Project ID Optional<input id="local-project-handoff-project-id" name="project_id" /></label>
+              <label>Next Milestone<input id="local-project-handoff-next-milestone" name="next_milestone" value="M51 - Project AI Settings Contract" /></label>
+              <label class="full">Next Operator Instruction<textarea id="local-project-handoff-next-instruction" name="next_instruction"></textarea></label>
+              <label>Output Path Optional<input id="local-project-handoff-output" name="output" placeholder="artifacts/handoff/m50-handoff.md" /></label>
+              <label class="inline-checkbox"><input id="local-project-handoff-include-queue" type="checkbox" checked /> Include Queue</label>
+              <label class="inline-checkbox"><input id="local-project-handoff-include-reports" type="checkbox" checked /> Include Reports</label>
+              <label class="inline-checkbox"><input id="local-project-handoff-include-evidence" type="checkbox" checked /> Include Evidence</label>
+              <label class="inline-checkbox"><input id="local-project-handoff-force" type="checkbox" /> Force overwrite local artifact</label>
+              <button id="local-project-handoff-submit" type="submit">Generate Local Project Handoff</button>
+            </form>
+            <ul id="local-project-handoff-summary" class="list"></ul>
+            <p id="local-project-handoff-summary-empty" class="empty">No local project handoff generated yet.</p>
+            <pre id="local-project-handoff-preview" class="code-block"></pre>
+            <p id="local-project-handoff-preview-empty" class="empty">No generated handoff preview yet.</p>
+          </section>
         </section>
 
         <section id="panel-orchestration" class="panel" data-panel="orchestration">

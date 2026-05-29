@@ -10,6 +10,7 @@ from aresforge.config import AppConfig
 from aresforge.hub.api import post_active_project, post_project, post_project_repo, post_queue_item
 from aresforge.hub.server import _build_handler
 from aresforge.operator.local_project_queue import capture_local_queue_completion_evidence
+from aresforge.operator.local_project_handoff import generate_local_project_handoff
 from aresforge.operator.local_project_report import read_local_project_reports
 
 
@@ -46,6 +47,21 @@ def _request_json(port: int, path: str) -> tuple[int, dict[str, object]]:
     connection = http.client.HTTPConnection("127.0.0.1", port, timeout=5)
     try:
         connection.request("GET", path)
+        response = connection.getresponse()
+        return response.status, json.loads(response.read().decode("utf-8"))
+    finally:
+        connection.close()
+
+
+def _post_json(port: int, path: str, body: dict[str, object]) -> tuple[int, dict[str, object]]:
+    connection = http.client.HTTPConnection("127.0.0.1", port, timeout=5)
+    try:
+        connection.request(
+            "POST",
+            path,
+            body=json.dumps(body),
+            headers={"Content-Type": "application/json"},
+        )
         response = connection.getresponse()
         return response.status, json.loads(response.read().decode("utf-8"))
     finally:
@@ -339,6 +355,131 @@ def test_get_reports_local_projects_route_returns_reports_v1(tmp_path: Path) -> 
         assert payload["overall_project_count"] == 1
         assert payload["active_project_summary"]["active_project_id"] == "aresforge"
         assert "local_only_operating_boundary_summary" in payload
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
+
+
+def test_generate_local_project_handoff_returns_copy_paste_markdown(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert post_project(
+        config,
+        {
+            "project_id": "aresforge",
+            "name": "AresForge",
+            "root_path": str(tmp_path),
+            "status": "active",
+        },
+    )["ok"]
+    assert post_project_repo(
+        config,
+        "aresforge",
+        {
+            "repo_id": "aresforge-primary",
+            "name": "AresForge Repo",
+            "path": str(tmp_path),
+            "role": "primary",
+            "status": "active",
+        },
+    )["ok"]
+    assert post_active_project(config, {"project_id": "aresforge"})["ok"]
+    assert post_queue_item(
+        config,
+        {
+            "item_id": "handoff-ready",
+            "project_id": "aresforge",
+            "repo_id": "aresforge-primary",
+            "title": "Ready handoff task",
+            "status": "ready",
+            "priority": "high",
+            "item_type": "handoff",
+        },
+    )["ok"]
+
+    payload = generate_local_project_handoff(
+        config,
+        next_milestone="M51 - Project AI Settings Contract",
+        next_instruction="Begin with a local-only settings contract.",
+        latest_commit="abc123",
+    )
+
+    assert payload["ok"] is True
+    assert payload["project_id"] == "aresforge"
+    assert payload["project_name"] == "AresForge"
+    assert payload["summary"]["queue_total"] == 1
+    assert payload["summary"]["ready_count"] == 1
+    assert payload["read_only"] is True
+    markdown = payload["handoff_markdown"]
+    assert "Local Project Handoff" in markdown
+    assert "No GitHub API." in markdown
+    assert "No gh." in markdown
+    assert "No automatic Codex execution." in markdown
+    assert "No local LLM execution." in markdown
+    assert "M51 - Project AI Settings Contract" in markdown
+    assert "Begin with a local-only settings contract." in markdown
+    assert "python -m aresforge inspect-local-project-report" in markdown
+
+
+def test_generate_local_project_handoff_writes_optional_artifact_safely(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert post_project(
+        config,
+        {
+            "project_id": "aresforge",
+            "name": "AresForge",
+            "root_path": str(tmp_path),
+            "status": "active",
+        },
+    )["ok"]
+    assert post_active_project(config, {"project_id": "aresforge"})["ok"]
+    output = tmp_path / "artifacts" / "handoff" / "handoff.md"
+
+    first = generate_local_project_handoff(config, output=output)
+    second = generate_local_project_handoff(config, output=output)
+    third = generate_local_project_handoff(config, output=output, force=True)
+
+    assert first["ok"] is True
+    assert first["wrote_output_file"] is True
+    assert output.exists()
+    assert "Local Project Handoff" in output.read_text(encoding="utf-8")
+    assert second["ok"] is False
+    assert second["read_only"] is True
+    assert "already exists" in " ".join(second["warnings"])
+    assert third["ok"] is True
+    assert third["wrote_output_file"] is True
+
+
+def test_post_local_project_handoff_route_generates_handoff(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert post_project(
+        config,
+        {
+            "project_id": "aresforge",
+            "name": "AresForge",
+            "root_path": str(tmp_path),
+            "status": "active",
+        },
+    )["ok"]
+    assert post_active_project(config, {"project_id": "aresforge"})["ok"]
+
+    server, thread = _start_server(config)
+    try:
+        status, payload = _post_json(
+            int(server.server_address[1]),
+            "/api/local-project/handoff",
+            {
+                "next_milestone": "M51 - Project AI Settings Contract",
+                "next_instruction": "Start with settings contract docs.",
+            },
+        )
+        assert status == 200
+        assert payload["ok"] is True
+        assert payload["local_only"] is True
+        assert payload["project_id"] == "aresforge"
+        assert "handoff_markdown" in payload
+        assert "No GitHub API." in payload["handoff_markdown"]
+        assert "Start with settings contract docs." in payload["handoff_markdown"]
     finally:
         server.shutdown()
         server.server_close()

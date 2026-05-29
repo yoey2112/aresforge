@@ -1,5 +1,27 @@
 # AresForge Build State
 
+## M50 Handoff Generator
+
+Status: Completed locally on `main`.
+
+Delivered:
+
+- added `generate_local_project_handoff(...)` for copy/paste-ready local project handoff generation
+- added Hub route `POST /api/local-project/handoff`
+- added a Local Project Handoff Generator panel to the Handoff section
+- handoff output includes project/repo/branch context, operating rules, latest milestone/commit, architecture boundaries, Hub capabilities, queue/report/progress summary, open queue items, blockers/warnings, evidence/closeout summary, recommended next milestone/instruction, and start-of-next-chat validation commands
+- optional local artifact output is supported with safe non-overwrite behavior unless `force=true`
+
+Boundaries:
+
+- local-only, file-backed, read-only unless optional local artifact output is explicitly requested, and operator-gated
+- no GitHub API, `gh`, issues, PRs, workflow activity, GitHub mutation, agent execution, Codex execution, local LLM execution, model routing, or external execution
+- handoff generation reuses Reports v1 and M48 progress rollup state
+
+Recommended next milestone:
+
+- M51 - Project AI Settings Contract.
+
 ## M49 Reports v1
 
 Status: Completed locally on `main`.

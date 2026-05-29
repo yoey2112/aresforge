@@ -1,5 +1,29 @@
 # Local Operator Usage
 
+## M50 Handoff Generator
+
+Status: Completed locally on `main`.
+
+Operator workflow:
+
+1. Open Handoff.
+2. Enter an optional project id, next milestone, next instruction, and optional local output path.
+3. Choose whether to include queue, reports, and evidence summaries.
+4. Generate the local project handoff.
+5. Copy the generated markdown into the next operator chat, or review the optional local artifact if one was explicitly requested.
+
+Operator safety notes:
+
+- handoff generation is local-only and operator-gated
+- default behavior is read-only
+- optional artifact output writes only to a local file and refuses to overwrite unless `force=true`
+- it does not call GitHub, `gh`, agents, Codex, local LLMs, routing, workflows, push, or external services
+- it builds on Reports v1 and M48 progress rollup state
+
+Recommended next milestone:
+
+- M51 - Project AI Settings Contract.
+
 ## M49 Reports v1
 
 Status: Completed locally on `main`.

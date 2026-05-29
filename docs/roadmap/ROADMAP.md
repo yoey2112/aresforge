@@ -1,5 +1,29 @@
 # AresForge Roadmap
 
+## M50 Handoff Generator
+
+Status: Completed locally on `main`.
+
+Delivered scope:
+
+- added local-only handoff generator operator support
+- added Hub API support for `POST /api/local-project/handoff`
+- added a small Handoff UI panel for next milestone/instruction, include toggles, optional artifact output, force overwrite, summary, and copy/paste preview
+- added targeted tests for handoff generation, operating rules content, queue/report/progress content, recommended next milestone/instruction, optional artifact writes, non-overwrite behavior, API route behavior, and UI contract references
+
+Constraints preserved:
+
+- local-only, file-backed, read-only unless optional local artifact output is requested
+- no routing implementation or execution
+- no local LLM execution
+- no Codex execution
+- no real agent execution
+- no GitHub API, no `gh`, no GitHub issues/PRs/workflow activity, no GitHub mutation from the app
+
+Recommended next milestone:
+
+- M51 - Project AI Settings Contract.
+
 ## M49 Reports v1
 
 Status: Completed locally on `main`.

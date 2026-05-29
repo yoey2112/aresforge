@@ -518,6 +518,7 @@ def test_frontend_scripts_reference_m39_api_endpoints_and_forms() -> None:
         "/api/local-projects",
         "/api/local-queue-agent-summary",
         "/progress-rollup",
+        "/api/local-project/handoff",
     ):
         assert endpoint in combined_text
     assert "ACTIVE" in combined_text
@@ -538,6 +539,7 @@ def test_frontend_scripts_reference_m39_api_endpoints_and_forms() -> None:
         "intake-form",
         "agent-form",
         "handoff-target-form",
+        "local-project-handoff-form",
         "orchestration-form",
         "escalation-form",
     ):
@@ -735,6 +737,14 @@ def test_reports_and_settings_sections_contain_m40_concepts() -> None:
     assert "reports-v1-closeout-eligible-count" in index_text
     assert "reports-v1-progress-rollup" in index_text
     assert "reports-v1-boundaries" in index_text
+    assert "Local Project Handoff Generator" in index_text
+    assert "Copy/paste-ready local project handoff. Optional output writes a local artifact only; no GitHub, gh, agent, Codex, local LLM, or routing execution." in index_text
+    assert "local-project-handoff-form" in index_text
+    assert "local-project-handoff-next-milestone" in index_text
+    assert "local-project-handoff-next-instruction" in index_text
+    assert "local-project-handoff-output" in index_text
+    assert "local-project-handoff-submit" in index_text
+    assert "local-project-handoff-preview" in index_text
     assert "Project/Repo Summary" in index_text
     assert "Queue Summary" in index_text
     assert "Agent Summary" in index_text

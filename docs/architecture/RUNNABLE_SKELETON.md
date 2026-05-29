@@ -1,5 +1,35 @@
 # Runnable Skeleton
 
+## M50 Handoff Generator
+
+Status: Completed locally on `main`.
+
+Implemented runnable path:
+
+- operator function: `generate_local_project_handoff(...)`
+- Hub route: `POST /api/local-project/handoff`
+- Handoff UI panel: Local Project Handoff Generator
+
+Behavior contract:
+
+- reads existing local active project, queue, Reports v1, evidence, closeout, and M48 progress rollup state
+- generates copy/paste-ready markdown for next-chat/project handoff
+- includes project name, repo path, branch expectation, current operating rules, latest known milestone/commit, architecture boundaries, Hub capabilities, queue/report/progress state, open queue work, blockers/warnings, evidence/closeout state, recommended next milestone/instruction, and startup validation commands
+- optional local artifact output uses safe non-overwrite behavior unless `force=true`
+
+Still absent by design:
+
+- runtime Agent/LLM routing
+- Codex CLI execution
+- local LLM execution
+- real agent execution
+- GitHub integration or mutation
+- automatic posting or external workflow execution
+
+Next skeleton focus:
+
+- M51 should begin Project AI Settings Contract.
+
 ## M49 Reports v1
 
 Status: Completed locally on `main`.

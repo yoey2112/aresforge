@@ -1,5 +1,38 @@
 # AresForge Agent Context
 
+## M50 Handoff Generator Context
+
+Status: Completed locally on `main`.
+
+Current handoff contract:
+
+- operator function: `generate_local_project_handoff(...)` in `src/aresforge/operator/local_project_handoff.py`
+- Hub route: `POST /api/local-project/handoff`
+- Handoff UI includes a Local Project Handoff Generator form and copy/paste preview
+
+Inputs:
+
+- optional `project_id`
+- `include_queue`, `include_reports`, and `include_evidence` booleans
+- optional `next_milestone` and `next_instruction`
+- optional local `output` path and `force`
+
+Output:
+
+- stable JSON with `ok`, `project_id`, `project_name`, `generated_at`, `handoff_markdown`, `summary`, optional `output_path`, `next_safe_action`, `warnings`, and `blockers`
+- markdown includes operating rules, architecture boundaries, Hub capabilities, queue/report/progress state, open work, blockers/warnings, evidence/closeout state, next milestone/instruction, and startup validation commands
+
+Boundary reminders:
+
+- local-only, file-backed, and operator-gated
+- read-only unless explicitly writing an optional local artifact
+- no GitHub API/`gh`, issue/PR/workflow activity, GitHub mutation, agent execution, Codex execution, local LLM execution, model routing, or external execution
+- handoff generation builds on Reports v1 and M48 progress rollup state
+
+Recommended next milestone:
+
+- M51 - Project AI Settings Contract.
+
 ## M49 Reports v1 Context
 
 Status: Completed locally on `main`.
