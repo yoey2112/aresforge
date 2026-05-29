@@ -1,5 +1,36 @@
 # Local Operator Usage
 
+## M53 Queue Routing Metadata Contract
+
+Status: Completed locally on `main`.
+
+Operator workflow:
+
+1. Inspect a queue item from Queue detail.
+2. Review routing metadata fields as advisory context only.
+3. Optionally update metadata through `POST /api/local-queue/items/{item_id}/routing-metadata`.
+4. Treat metadata as future routing input; do not execute it.
+
+Supported metadata values:
+
+- agent lanes: `architect_planner`, `coding`, `reviewer_validator`, `documentation`, `test`, `local_operator_assistant`, `high_value_codex`
+- engines: `local_reasoning_llm`, `local_coding_llm`, `codex_cli`
+- risk levels: `low`, `medium`, `high`, `critical`, `unknown`
+- complexity levels: `low`, `medium`, `high`, `unknown`
+
+Operator safety notes:
+
+- one canonical local queue remains the source of truth
+- routing metadata is local-only, file-backed, and non-executing
+- metadata does not compute routing decisions
+- metadata does not generate or execute prompts
+- metadata does not call Codex, agents, local LLMs, GitHub, `gh`, workflows, push, or external services
+- routed queue views and decision matrix behavior remain future work
+
+Recommended next milestone:
+
+- M54 - Routing Decision Matrix v1.
+
 ## M52 Agent and Engine Registry Contract
 
 Status: Completed locally on `main`.

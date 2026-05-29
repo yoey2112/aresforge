@@ -14,12 +14,17 @@ from aresforge.operator.local_active_project import inspect_active_project, set_
 from aresforge.operator.local_project_queue import (
     QUEUE_ITEM_TYPES,
     QUEUE_PRIORITIES,
+    QUEUE_ROUTING_AGENT_LANES,
+    QUEUE_ROUTING_COMPLEXITY_LEVELS,
+    QUEUE_ROUTING_ENGINES,
+    QUEUE_ROUTING_RISK_LEVELS,
     QUEUE_STATUSES,
     add_local_queue_item,
     add_queue_item,
     capture_local_queue_completion_evidence,
     close_local_queue_item,
     complete_local_queue_item,
+    default_queue_routing_metadata,
     generate_local_queue_prompt_pack,
     generate_local_queue_item_codex_prompt,
     init_project_queue,
@@ -27,6 +32,7 @@ from aresforge.operator.local_project_queue import (
     read_local_project_progress_rollup,
     resolve_project_queue_path,
     start_local_queue_item,
+    update_local_queue_item_routing_metadata,
     update_queue_item,
 )
 from aresforge.operator.local_agent_profiles import (
@@ -255,6 +261,9 @@ def _item_view(item: dict[str, Any]) -> dict[str, Any]:
         "source": str(item.get("source", "")).strip(),
         "notes": str(item.get("notes", "")).strip(),
         "completion_evidence": item.get("completion_evidence", {}) if isinstance(item.get("completion_evidence"), dict) else {},
+        "routing_metadata": default_queue_routing_metadata(
+            item.get("routing_metadata", {}) if isinstance(item.get("routing_metadata"), dict) else {}
+        ),
         "closed_at": str(item.get("closed_at", "")).strip(),
         "closed_by": str(item.get("closed_by", "")).strip(),
         "closeout_summary": str(item.get("closeout_summary", "")).strip(),
@@ -2640,6 +2649,87 @@ def patch_queue_item(config: AppConfig, item_id: str, body: dict[str, Any]) -> d
         "warnings": sorted(set(result.get("warnings", []))),
         "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
     }
+
+
+def post_local_queue_item_routing_metadata(config: AppConfig, item_id: str, body: dict[str, Any]) -> dict[str, Any]:
+    routing_metadata = body.get("routing_metadata", body)
+    if not isinstance(routing_metadata, dict):
+        return _api_error(
+            "invalid_queue_routing_metadata",
+            "routing_metadata must be a JSON object.",
+            details={"supported_fields": [
+                "recommended_agent_lane",
+                "recommended_engine",
+                "recommended_model",
+                "fallback_engine",
+                "fallback_model",
+                "routing_policy_source",
+                "routing_reason",
+                "risk_level",
+                "complexity_level",
+                "escalation_reason",
+                "project_ai_mode",
+                "operator_override",
+            ]},
+        )
+
+    agent_lane = _normalize_optional_str(routing_metadata.get("recommended_agent_lane"))
+    if agent_lane is not None and agent_lane not in QUEUE_ROUTING_AGENT_LANES:
+        return _invalid_choice_error(
+            field="recommended_agent_lane",
+            value=agent_lane,
+            supported=QUEUE_ROUTING_AGENT_LANES,
+            label="recommended agent lane",
+        )
+    for field in ("recommended_engine", "fallback_engine"):
+        engine = _normalize_optional_str(routing_metadata.get(field))
+        if engine is not None and engine not in QUEUE_ROUTING_ENGINES:
+            return _invalid_choice_error(
+                field=field,
+                value=engine,
+                supported=QUEUE_ROUTING_ENGINES,
+                label=field,
+            )
+    risk_level = _normalize_optional_str(routing_metadata.get("risk_level"))
+    if risk_level is not None and risk_level not in QUEUE_ROUTING_RISK_LEVELS:
+        return _invalid_choice_error(
+            field="risk_level",
+            value=risk_level,
+            supported=QUEUE_ROUTING_RISK_LEVELS,
+            label="risk level",
+        )
+    complexity_level = _normalize_optional_str(routing_metadata.get("complexity_level"))
+    if complexity_level is not None and complexity_level not in QUEUE_ROUTING_COMPLEXITY_LEVELS:
+        return _invalid_choice_error(
+            field="complexity_level",
+            value=complexity_level,
+            supported=QUEUE_ROUTING_COMPLEXITY_LEVELS,
+            label="complexity level",
+        )
+
+    operator_override = routing_metadata.get("operator_override")
+    if "operator_override" in routing_metadata and not isinstance(operator_override, bool) and not isinstance(operator_override, dict):
+        return _api_error(
+            "invalid_operator_override",
+            "operator_override must be a boolean or structured JSON object.",
+            details={"operator_override": operator_override},
+        )
+
+    result = update_local_queue_item_routing_metadata(
+        config,
+        item_id=item_id,
+        routing_metadata=routing_metadata,
+        queue_path=_normalize_optional_str(body.get("queue_path")),
+    )
+    payload = dict(result)
+    payload["service"] = SERVICE_NAME
+    payload["boundary_confirmations"] = _merge_boundary_confirmations(
+        payload,
+        "Queue routing metadata is non-executing and does not compute routing decisions.",
+    )
+    if not payload.get("ok", False):
+        payload["_status"] = _status_for_local_queue_result(payload)
+    return payload
 
 
 def post_local_queue_item(config: AppConfig, body: dict[str, Any]) -> dict[str, Any]:

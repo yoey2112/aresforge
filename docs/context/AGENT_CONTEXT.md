@@ -1,5 +1,43 @@
 # AresForge Agent Context
 
+## M53 Queue Routing Metadata Contract Context
+
+Status: Completed locally on `main`.
+
+Current metadata contract:
+
+- operator helpers: `default_queue_routing_metadata(...)`, `validate_queue_routing_metadata(...)`, and `update_local_queue_item_routing_metadata(...)` in `src/aresforge/operator/local_project_queue.py`
+- Hub route: `POST /api/local-queue/items/{item_id}/routing-metadata`
+- Queue item detail displays routing metadata as read-only context
+- existing queue items without metadata are safely viewed with default empty/unassigned metadata
+
+Metadata fields:
+
+- `recommended_agent_lane`
+- `recommended_engine`
+- `recommended_model`
+- `fallback_engine`
+- `fallback_model`
+- `routing_policy_source`
+- `routing_reason`
+- `risk_level`
+- `complexity_level`
+- `escalation_reason`
+- `project_ai_mode`
+- `operator_override`
+
+Boundary reminders:
+
+- one canonical local queue remains the source of truth
+- metadata is stored context only and does not compute routing
+- empty/unassigned metadata is allowed
+- invalid non-empty lane, engine, risk, or complexity values are rejected by metadata update paths
+- no queue storage split, local LLM execution, Codex execution, real agent execution, GitHub integration, prompt execution, or external workflow is added
+
+Recommended next milestone:
+
+- M54 - Routing Decision Matrix v1.
+
 ## M52 Agent and Engine Registry Contract Context
 
 Status: Completed locally on `main`.

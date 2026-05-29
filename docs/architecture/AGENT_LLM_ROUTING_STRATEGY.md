@@ -89,6 +89,46 @@ Codex CLI remains engine `codex_cli`. Its model profiles are placeholder-only an
 
 M52 does not execute routing, update queue routing metadata, invoke Codex, invoke local LLMs, run agents, call GitHub, or run external workflows. M53 should add the Queue Routing Metadata Contract.
 
+## M53 Queue Routing Metadata Contract
+
+M53 adds a non-executing routing metadata contract to local queue item state while preserving one canonical local queue.
+
+Current operator helpers:
+
+- `default_queue_routing_metadata(...)`
+- `validate_queue_routing_metadata(...)`
+- `update_local_queue_item_routing_metadata(...)`
+
+Current Hub route:
+
+- `POST /api/local-queue/items/{item_id}/routing-metadata`
+
+Metadata fields:
+
+- `recommended_agent_lane`
+- `recommended_engine`
+- `recommended_model`
+- `fallback_engine`
+- `fallback_model`
+- `routing_policy_source`
+- `routing_reason`
+- `risk_level`
+- `complexity_level`
+- `escalation_reason`
+- `project_ai_mode`
+- `operator_override`
+
+Supported values:
+
+- agent lanes: `architect_planner`, `coding`, `reviewer_validator`, `documentation`, `test`, `local_operator_assistant`, `high_value_codex`
+- engines: `local_reasoning_llm`, `local_coding_llm`, `codex_cli`
+- risk levels: `low`, `medium`, `high`, `critical`, `unknown`
+- complexity levels: `low`, `medium`, `high`, `unknown`
+
+Empty or unassigned routing metadata is allowed. Non-empty lane and engine values must align with M52. Invalid metadata is rejected by metadata update paths.
+
+M53 does not compute routing decisions, split queue storage, execute prompts, invoke Codex, invoke local LLMs, run agents, call GitHub, or run external workflows. M54 should implement Routing Decision Matrix v1.
+
 ## Operating Boundaries
 
 Routing must remain:

@@ -42,6 +42,47 @@ QUEUE_ITEM_TYPES: tuple[str, ...] = (
     'dashboard',
     'other',
 )
+QUEUE_ROUTING_AGENT_LANES: tuple[str, ...] = (
+    'architect_planner',
+    'coding',
+    'reviewer_validator',
+    'documentation',
+    'test',
+    'local_operator_assistant',
+    'high_value_codex',
+)
+QUEUE_ROUTING_ENGINES: tuple[str, ...] = (
+    'local_reasoning_llm',
+    'local_coding_llm',
+    'codex_cli',
+)
+QUEUE_ROUTING_RISK_LEVELS: tuple[str, ...] = (
+    'low',
+    'medium',
+    'high',
+    'critical',
+    'unknown',
+)
+QUEUE_ROUTING_COMPLEXITY_LEVELS: tuple[str, ...] = (
+    'low',
+    'medium',
+    'high',
+    'unknown',
+)
+QUEUE_ROUTING_METADATA_FIELDS: tuple[str, ...] = (
+    'recommended_agent_lane',
+    'recommended_engine',
+    'recommended_model',
+    'fallback_engine',
+    'fallback_model',
+    'routing_policy_source',
+    'routing_reason',
+    'risk_level',
+    'complexity_level',
+    'escalation_reason',
+    'project_ai_mode',
+    'operator_override',
+)
 
 _QUEUE_ITEM_READINESS_BOUNDARY_CONFIRMATIONS: tuple[str, ...] = (
     'Local-only queue item readiness inspection.',
@@ -102,6 +143,17 @@ _PROJECT_PROGRESS_ROLLUP_BOUNDARY_CONFIRMATIONS: tuple[str, ...] = (
     'No model invocation.',
     'No prompt generation or execution.',
     'No queue mutation performed.',
+)
+_QUEUE_ROUTING_METADATA_BOUNDARY_CONFIRMATIONS: tuple[str, ...] = (
+    'Local-only queue routing metadata contract.',
+    'File-backed local queue metadata mutation only.',
+    'No routing decision is computed.',
+    'No prompt generation or execution.',
+    'No GitHub API calls.',
+    'No gh calls.',
+    'No network service calls.',
+    'No agent execution.',
+    'No model invocation.',
 )
 _STARTABLE_QUEUE_STATUSES: frozenset[str] = frozenset({'proposed', 'ready'})
 _COMPLETABLE_QUEUE_STATUSES: frozenset[str] = frozenset({'in_progress'})
@@ -356,6 +408,7 @@ def add_queue_item(
             'changed_files': [],
             'artifact_paths': [],
             'completion_evidence': {},
+            'routing_metadata': default_queue_routing_metadata(),
             'closed_at': '',
             'closed_by': '',
             'closeout_summary': '',
@@ -414,6 +467,8 @@ def add_queue_item(
 
     if not existing.get('created_at'):
         existing['created_at'] = now
+    if 'routing_metadata' not in existing or not isinstance(existing.get('routing_metadata'), dict):
+        existing['routing_metadata'] = default_queue_routing_metadata()
     existing['updated_at'] = now
 
     queue['work_items'] = items
@@ -573,6 +628,88 @@ def update_queue_item(
         'updated_fields': sorted(updated_fields),
         'warnings': sorted(set(warnings)),
         'item': _item_view(existing),
+    }
+
+
+def update_local_queue_item_routing_metadata(
+    config: AppConfig,
+    *,
+    item_id: str,
+    routing_metadata: dict[str, Any],
+    queue_path: str | Path | None = None,
+) -> dict[str, Any]:
+    if not isinstance(routing_metadata, dict):
+        return _error(
+            'invalid_queue_routing_metadata',
+            {
+                'message': 'routing_metadata must be a JSON object.',
+                'supported_fields': list(QUEUE_ROUTING_METADATA_FIELDS),
+            },
+        )
+
+    normalized_metadata = default_queue_routing_metadata(routing_metadata)
+    validation = validate_queue_routing_metadata(normalized_metadata)
+    if not validation.get('valid', False):
+        return _error(
+            'queue_routing_metadata_validation_failed',
+            {
+                'message': 'Queue routing metadata failed validation.',
+                'item_id': str(item_id or '').strip(),
+                'routing_metadata': normalized_metadata,
+                'validation': validation,
+            },
+        )
+
+    resolved_queue_path = resolve_project_queue_path(config.repo_root, queue_path)
+    loaded = _load_queue_required(resolved_queue_path)
+    if not loaded.get('ok', False):
+        return loaded
+    queue = loaded['queue']
+    items = queue.get('work_items', [])
+    if not isinstance(items, list):
+        items = []
+
+    normalized_item_id = str(item_id or '').strip()
+    item = next(
+        (
+            candidate
+            for candidate in items
+            if isinstance(candidate, dict) and str(candidate.get('item_id', '')).strip() == normalized_item_id
+        ),
+        None,
+    )
+    if item is None:
+        return _error(
+            'queue_item_not_found',
+            {
+                'item_id': normalized_item_id,
+                'queue_path': str(resolved_queue_path),
+                'message': 'Queue item id was not found in local project queue.',
+            },
+        )
+
+    now = _now_iso()
+    item['routing_metadata'] = normalized_metadata
+    item['updated_at'] = now
+    if not item.get('created_at'):
+        item['created_at'] = now
+    queue['work_items'] = items
+    queue['updated_at'] = now
+    _write_queue(resolved_queue_path, queue)
+
+    return {
+        'command': 'update-local-queue-item-routing-metadata',
+        'ok': True,
+        'local_only': True,
+        'queue_path': str(resolved_queue_path),
+        'item_id': normalized_item_id,
+        'routing_metadata': normalized_metadata,
+        'validation': validation,
+        'next_safe_action': 'review_routing_metadata_as_non_executing_queue_context',
+        'warnings': list(validation.get('warnings', [])),
+        'blockers': [],
+        'item': _item_view(item),
+        'boundary_confirmations': list(_QUEUE_ROUTING_METADATA_BOUNDARY_CONFIRMATIONS),
     }
 
 
@@ -2646,12 +2783,81 @@ def _item_view(item: dict[str, Any]) -> dict[str, Any]:
             item.get('artifact_paths', []) if isinstance(item.get('artifact_paths'), list) else []
         ),
         'completion_evidence': item.get('completion_evidence', {}) if isinstance(item.get('completion_evidence'), dict) else {},
+        'routing_metadata': default_queue_routing_metadata(
+            item.get('routing_metadata', {}) if isinstance(item.get('routing_metadata'), dict) else {}
+        ),
         'closed_at': str(item.get('closed_at', '')).strip(),
         'closed_by': str(item.get('closed_by', '')).strip(),
         'closeout_summary': str(item.get('closeout_summary', '')).strip(),
         'closeout_history': item.get('closeout_history', []) if isinstance(item.get('closeout_history'), list) else [],
         'created_at': str(item.get('created_at', '')).strip(),
         'updated_at': str(item.get('updated_at', '')).strip(),
+    }
+
+
+def default_queue_routing_metadata(values: dict[str, Any] | None = None) -> dict[str, Any]:
+    raw = values if isinstance(values, dict) else {}
+    metadata = {
+        'recommended_agent_lane': str(raw.get('recommended_agent_lane', '') or '').strip(),
+        'recommended_engine': str(raw.get('recommended_engine', '') or '').strip(),
+        'recommended_model': str(raw.get('recommended_model', '') or '').strip(),
+        'fallback_engine': str(raw.get('fallback_engine', '') or '').strip(),
+        'fallback_model': str(raw.get('fallback_model', '') or '').strip(),
+        'routing_policy_source': str(raw.get('routing_policy_source', '') or '').strip(),
+        'routing_reason': str(raw.get('routing_reason', '') or '').strip(),
+        'risk_level': str(raw.get('risk_level', 'unknown') or 'unknown').strip(),
+        'complexity_level': str(raw.get('complexity_level', 'unknown') or 'unknown').strip(),
+        'escalation_reason': str(raw.get('escalation_reason', '') or '').strip(),
+        'project_ai_mode': str(raw.get('project_ai_mode', '') or '').strip(),
+        'operator_override': raw.get('operator_override', False),
+    }
+    if not isinstance(metadata['operator_override'], bool) and not isinstance(metadata['operator_override'], dict):
+        metadata['operator_override'] = bool(metadata['operator_override'])
+    return metadata
+
+
+def validate_queue_routing_metadata(metadata: dict[str, Any] | None) -> dict[str, Any]:
+    normalized = default_queue_routing_metadata(metadata)
+    blockers: list[str] = []
+    warnings: list[str] = []
+
+    agent_lane = normalized.get('recommended_agent_lane', '')
+    if agent_lane and agent_lane not in QUEUE_ROUTING_AGENT_LANES:
+        blockers.append('recommended_agent_lane must be one of the supported M52 agent lanes.')
+
+    for field in ('recommended_engine', 'fallback_engine'):
+        engine = str(normalized.get(field, '')).strip()
+        if engine and engine not in QUEUE_ROUTING_ENGINES:
+            blockers.append(f'{field} must be one of the supported M52 engine keys.')
+
+    risk_level = str(normalized.get('risk_level', '')).strip() or 'unknown'
+    if risk_level not in QUEUE_ROUTING_RISK_LEVELS:
+        blockers.append('risk_level must be low, medium, high, critical, or unknown.')
+
+    complexity_level = str(normalized.get('complexity_level', '')).strip() or 'unknown'
+    if complexity_level not in QUEUE_ROUTING_COMPLEXITY_LEVELS:
+        blockers.append('complexity_level must be low, medium, high, or unknown.')
+
+    operator_override = normalized.get('operator_override')
+    if not isinstance(operator_override, bool) and not isinstance(operator_override, dict):
+        blockers.append('operator_override must be a boolean or structured JSON object.')
+
+    if not any(
+        value
+        for key, value in normalized.items()
+        if key != 'operator_override' and str(value or '').strip() and str(value or '').strip() != 'unknown'
+    ) and normalized.get('operator_override') is False:
+        warnings.append('Routing metadata is empty/unassigned and will not affect queue behavior.')
+
+    return {
+        'valid': not blockers,
+        'routing_execution_status': 'not_implemented',
+        'blockers': sorted(set(blockers)),
+        'warnings': sorted(set(warnings)),
+        'supported_agent_lanes': list(QUEUE_ROUTING_AGENT_LANES),
+        'supported_engines': list(QUEUE_ROUTING_ENGINES),
+        'supported_risk_levels': list(QUEUE_ROUTING_RISK_LEVELS),
+        'supported_complexity_levels': list(QUEUE_ROUTING_COMPLEXITY_LEVELS),
     }
 
 

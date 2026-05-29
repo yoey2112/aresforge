@@ -253,6 +253,7 @@ def test_project_factory_index_exports_remaining_project_factory_modules() -> No
 
 def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     index_text = (_static_dir() / "index.html").read_text(encoding="utf-8")
+    queue_js = (_static_dir() / "js" / "sections" / "queue.js").read_text(encoding="utf-8")
     for label in NAV_LABELS:
         assert label in index_text
     assert "Add Or Update Project" in index_text
@@ -439,6 +440,8 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "queue-detail-description" in index_text
     assert "queue-detail-requested-outcome" in index_text
     assert "queue-detail-readiness-summary" in index_text
+    assert "routing_agent_lane" in queue_js
+    assert "routing_execution: not implemented" in queue_js
     assert "No queue item selected. Select a queue item to inspect details." in index_text
     assert "Local-only and read-only queue view: no queue mutation, no agent execution, no GitHub sync/mutation." in index_text
     assert "Recommended Next Action" in index_text

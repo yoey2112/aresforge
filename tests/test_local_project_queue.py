@@ -18,7 +18,9 @@ from aresforge.operator.local_project_queue import (
     read_local_project_progress_rollup,
     resolve_project_queue_path,
     start_local_queue_item,
+    update_local_queue_item_routing_metadata,
     update_queue_item,
+    validate_queue_routing_metadata,
 )
 from aresforge.operator.managed_project_registry_local import (
     init_managed_project_registry,
@@ -79,6 +81,115 @@ def test_add_queue_item(tmp_path: Path) -> None:
     assert payload['ok'] is True
     assert payload['created'] is True
     assert payload['item']['status'] == 'proposed'
+    assert payload['item']['routing_metadata']['risk_level'] == 'unknown'
+    assert payload['item']['routing_metadata']['recommended_engine'] == ''
+
+
+def test_queue_routing_metadata_handles_existing_items_without_metadata(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    queue_path = resolve_project_queue_path(config.repo_root, None)
+    queue = json.loads(queue_path.read_text(encoding='utf-8'))
+    queue['work_items'].append(
+        {
+            'item_id': 'legacy-item',
+            'project_id': 'aresforge-main',
+            'repo_id': 'core',
+            'title': 'Legacy item',
+            'status': 'ready',
+        }
+    )
+    queue_path.write_text(json.dumps(queue, indent=2) + '\n', encoding='utf-8')
+
+    payload = inspect_queue_item(config, item_id='legacy-item')
+    item = payload['payload']['item']
+    assert item['routing_metadata']['risk_level'] == 'unknown'
+    assert item['routing_metadata']['complexity_level'] == 'unknown'
+    assert item['routing_metadata']['operator_override'] is False
+
+
+def test_validate_queue_routing_metadata_accepts_empty_and_rejects_invalid_values() -> None:
+    empty = validate_queue_routing_metadata({})
+    assert empty['valid'] is True
+    assert empty['warnings']
+
+    invalid_lane = validate_queue_routing_metadata({'recommended_agent_lane': 'wizard'})
+    assert invalid_lane['valid'] is False
+
+    invalid_engine = validate_queue_routing_metadata({'recommended_engine': 'cloud_magic'})
+    assert invalid_engine['valid'] is False
+
+    invalid_levels = validate_queue_routing_metadata({'risk_level': 'extreme', 'complexity_level': 'tiny'})
+    assert invalid_levels['valid'] is False
+
+
+def test_update_local_queue_item_routing_metadata_succeeds_for_valid_metadata(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='m53-routing',
+        project_id='aresforge-main',
+        repo_id='core',
+        title='Add routing metadata',
+    )['ok'] is True
+
+    payload = update_local_queue_item_routing_metadata(
+        config,
+        item_id='m53-routing',
+        routing_metadata={
+            'recommended_agent_lane': 'coding',
+            'recommended_engine': 'local_coding_llm',
+            'recommended_model': 'future-local-code',
+            'fallback_engine': 'codex_cli',
+            'routing_policy_source': 'project_ai_settings',
+            'routing_reason': 'Low-risk coding task placeholder.',
+            'risk_level': 'low',
+            'complexity_level': 'medium',
+            'project_ai_mode': 'balanced',
+            'operator_override': False,
+        },
+    )
+
+    assert payload['ok'] is True
+    assert payload['routing_metadata']['recommended_agent_lane'] == 'coding'
+    assert payload['routing_metadata']['recommended_engine'] == 'local_coding_llm'
+    assert payload['validation']['valid'] is True
+    assert payload['item']['status'] == 'proposed'
+
+
+def test_update_local_queue_item_routing_metadata_rejects_invalid_metadata(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='m53-invalid-routing',
+        project_id='aresforge-main',
+        repo_id='core',
+        title='Invalid routing metadata',
+    )['ok'] is True
+
+    invalid_lane = update_local_queue_item_routing_metadata(
+        config,
+        item_id='m53-invalid-routing',
+        routing_metadata={'recommended_agent_lane': 'invalid_lane'},
+    )
+    assert invalid_lane['ok'] is False
+    assert invalid_lane['error'] == 'queue_routing_metadata_validation_failed'
+
+    invalid_engine = update_local_queue_item_routing_metadata(
+        config,
+        item_id='m53-invalid-routing',
+        routing_metadata={'recommended_engine': 'invalid_engine'},
+    )
+    assert invalid_engine['ok'] is False
+
+    invalid_level = update_local_queue_item_routing_metadata(
+        config,
+        item_id='m53-invalid-routing',
+        routing_metadata={'risk_level': 'extreme'},
+    )
+    assert invalid_level['ok'] is False
 
 
 def test_add_queue_item_is_idempotent_and_updates_existing_item(tmp_path: Path) -> None:

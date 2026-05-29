@@ -161,6 +161,102 @@ def test_post_local_queue_item_route_adds_item_with_active_project_defaults(tmp_
         assert queue_item["item"]["source"] == "active_project_workspace"
         assert "Requested outcome:" in queue_item["item"]["notes"]
         assert "Validation notes:" in queue_item["item"]["notes"]
+        assert queue_item["item"]["routing_metadata"]["risk_level"] == "unknown"
+        assert queue_item["item"]["routing_metadata"]["recommended_agent_lane"] == ""
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
+
+
+def test_post_local_queue_item_routing_metadata_route_updates_metadata(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_active_project(config, tmp_path)
+    _seed_queue_item(
+        config,
+        item_id="m53-routing-api",
+        status="ready",
+        title="Routing API",
+        description="Update routing metadata.",
+    )
+    server, thread = _start_server(config)
+
+    try:
+        port = int(server.server_address[1])
+        status, payload = _request_json(
+            port,
+            "POST",
+            "/api/local-queue/items/m53-routing-api/routing-metadata",
+            {
+                "routing_metadata": {
+                    "recommended_agent_lane": "reviewer_validator",
+                    "recommended_engine": "local_reasoning_llm",
+                    "fallback_engine": "codex_cli",
+                    "routing_policy_source": "manual_contract_test",
+                    "routing_reason": "Review validation evidence later.",
+                    "risk_level": "medium",
+                    "complexity_level": "low",
+                    "operator_override": False,
+                }
+            },
+        )
+        assert status == 200
+        assert payload["ok"] is True
+        assert payload["routing_metadata"]["recommended_agent_lane"] == "reviewer_validator"
+        assert payload["routing_metadata"]["recommended_engine"] == "local_reasoning_llm"
+        assert payload["validation"]["routing_execution_status"] == "not_implemented"
+
+        detail_status, detail_payload = _request_json(port, "GET", "/api/queue/m53-routing-api")
+        assert detail_status == 200
+        assert detail_payload["item"]["routing_metadata"]["fallback_engine"] == "codex_cli"
+        assert detail_payload["item"]["status"] == "ready"
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
+
+
+def test_post_local_queue_item_routing_metadata_route_rejects_invalid_metadata(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_active_project(config, tmp_path)
+    _seed_queue_item(
+        config,
+        item_id="m53-routing-invalid-api",
+        status="ready",
+        title="Routing API Invalid",
+        description="Reject invalid routing metadata.",
+    )
+    server, thread = _start_server(config)
+
+    try:
+        port = int(server.server_address[1])
+        bad_lane_status, bad_lane = _request_json(
+            port,
+            "POST",
+            "/api/local-queue/items/m53-routing-invalid-api/routing-metadata",
+            {"recommended_agent_lane": "bad_lane"},
+        )
+        assert bad_lane_status == 400
+        assert bad_lane["ok"] is False
+        assert bad_lane["error"] == "invalid_recommended_agent_lane"
+
+        bad_engine_status, bad_engine = _request_json(
+            port,
+            "POST",
+            "/api/local-queue/items/m53-routing-invalid-api/routing-metadata",
+            {"recommended_engine": "bad_engine"},
+        )
+        assert bad_engine_status == 400
+        assert bad_engine["error"] == "invalid_recommended_engine"
+
+        bad_level_status, bad_level = _request_json(
+            port,
+            "POST",
+            "/api/local-queue/items/m53-routing-invalid-api/routing-metadata",
+            {"risk_level": "extreme"},
+        )
+        assert bad_level_status == 400
+        assert bad_level["error"] == "invalid_risk_level"
     finally:
         server.shutdown()
         server.server_close()

@@ -1,5 +1,40 @@
 # Runnable Skeleton
 
+## M53 Queue Routing Metadata Contract
+
+Status: Completed locally on `main`.
+
+Implemented runnable path:
+
+- operator helpers: `default_queue_routing_metadata(...)`, `validate_queue_routing_metadata(...)`, `update_local_queue_item_routing_metadata(...)`
+- Hub route: `POST /api/local-queue/items/{item_id}/routing-metadata`
+- Queue detail read-only display for routing metadata
+
+Behavior contract:
+
+- new queue items include default empty/unassigned routing metadata
+- legacy queue items without metadata are safely normalized in item views
+- metadata updates validate M52 agent lane keys and engine keys
+- `risk_level` must be `low`, `medium`, `high`, `critical`, or `unknown`
+- `complexity_level` must be `low`, `medium`, `high`, or `unknown`
+- invalid metadata is rejected before writing
+- prompt-pack generation, evidence capture, and closeout continue to operate without executing routing
+
+Still absent by design:
+
+- Routing Decision Matrix v1
+- runtime Agent/LLM routing
+- prompt-pack routing assignment
+- Codex CLI execution
+- local LLM execution
+- real agent execution
+- GitHub integration or mutation
+- queue storage split
+
+Next skeleton focus:
+
+- M54 should implement Routing Decision Matrix v1.
+
 ## M52 Agent and Engine Registry Contract
 
 Status: Completed locally on `main`.

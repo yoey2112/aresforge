@@ -62,6 +62,7 @@ function renderQueueDetailUnavailable(messageText) {
 
 function renderQueueItemDetail(item, readinessPayload) {
   const parsedNotes = parseQueueNotesSections(item && item.notes);
+  const routingMetadata = (item && item.routing_metadata) || {};
   setText("queue-detail-item-id", (item && item.item_id) || "-");
   setText("queue-detail-status", (item && item.status) || "-");
   setText("queue-detail-type", (item && item.item_type) || "-");
@@ -73,6 +74,11 @@ function renderQueueItemDetail(item, readinessPayload) {
     `repo_id: ${item && item.repo_id ? item.repo_id : "-"}`,
     `source: ${item && item.source ? item.source : "-"}`,
     `assigned_agent: ${item && item.assigned_agent ? item.assigned_agent : "unassigned"}`,
+    `routing_agent_lane: ${routingMetadata.recommended_agent_lane || "unassigned"}`,
+    `routing_engine: ${routingMetadata.recommended_engine || "unassigned"}`,
+    `routing_risk: ${routingMetadata.risk_level || "unknown"}`,
+    `routing_complexity: ${routingMetadata.complexity_level || "unknown"}`,
+    "routing_execution: not implemented",
     `tags: ${(item && item.tags && item.tags.length ? item.tags.join(", ") : "none")}`,
     `created_at: ${item && item.created_at ? item.created_at : "-"}`,
     `updated_at: ${item && item.updated_at ? item.updated_at : "-"}`,

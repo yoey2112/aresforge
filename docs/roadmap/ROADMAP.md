@@ -1,5 +1,33 @@
 # AresForge Roadmap
 
+## M53 Queue Routing Metadata Contract
+
+Status: Completed locally on `main`.
+
+Delivered scope:
+
+- added local queue routing metadata contract support
+- added default empty/unassigned routing metadata for new and legacy queue item views
+- added a validation helper for supported lanes, engines, risk levels, complexity levels, and operator override shape
+- added local metadata update helper and Hub API support for `POST /api/local-queue/items/{item_id}/routing-metadata`
+- added minimal Queue detail display for routing metadata
+- added targeted tests for defaults, legacy item handling, valid updates, invalid lanes/engines/risk/complexity, API success/failure, prompt-pack compatibility, evidence/closeout compatibility, and UI contract references
+
+Constraints preserved:
+
+- one canonical local queue remains the source of truth
+- routing metadata is local-only, file-backed, and non-executing
+- no routing decision matrix implementation yet
+- no queue storage split
+- no local LLM execution
+- no Codex execution
+- no real agent execution
+- no GitHub API, no `gh`, no GitHub issues/PRs/workflow activity, no GitHub mutation from the app
+
+Recommended next milestone:
+
+- M54 - Routing Decision Matrix v1.
+
 ## M52 Agent and Engine Registry Contract
 
 Status: Completed locally on `main`.

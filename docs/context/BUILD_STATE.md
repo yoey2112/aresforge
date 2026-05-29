@@ -1,5 +1,32 @@
 # AresForge Build State
 
+## M53 Queue Routing Metadata Contract
+
+Status: Completed locally on `main`.
+
+Delivered:
+
+- added default queue routing metadata to queue item views and new queue item creation
+- added `default_queue_routing_metadata(...)`, `validate_queue_routing_metadata(...)`, and `update_local_queue_item_routing_metadata(...)`
+- added Hub route `POST /api/local-queue/items/{item_id}/routing-metadata`
+- Queue item detail now displays routing metadata as read-only context
+- supported agent lanes align with M52: `architect_planner`, `coding`, `reviewer_validator`, `documentation`, `test`, `local_operator_assistant`, and `high_value_codex`
+- supported engines align with M52: `local_reasoning_llm`, `local_coding_llm`, and `codex_cli`
+- supported risk levels are `low`, `medium`, `high`, `critical`, and `unknown`
+- supported complexity levels are `low`, `medium`, `high`, and `unknown`
+
+Boundaries:
+
+- one canonical local queue remains the source of truth
+- routing metadata is local-only, file-backed, operator-gated, and non-executing
+- no routing decisions are computed
+- no queue storage split
+- no local LLM, Codex, agent, GitHub, `gh`, workflow, network, prompt, or external execution is performed
+
+Recommended next milestone:
+
+- M54 - Routing Decision Matrix v1.
+
 ## M52 Agent and Engine Registry Contract
 
 Status: Completed locally on `main`.
