@@ -1042,6 +1042,22 @@
                 <ul id="queue-lifecycle-routing-warnings" class="list"></ul>
                 <p id="queue-lifecycle-routing-warnings-empty" class="empty">No routing warnings.</p>
               </section>
+              <section>
+                <h4>Local LLM Prompt Preview</h4>
+                <p class="message-note">Preview-only local LLM prompt for locally routed items. Does not call Ollama, execute inference, run agents, Codex, GitHub, or workflows.</p>
+                <form id="queue-local-llm-preview-form" class="form-grid">
+                  <label>Prompt Style<input id="queue-local-llm-preview-style" name="prompt_style" placeholder="implementation_planning" /></label>
+                  <label>Output Path (optional)<input id="queue-local-llm-preview-output" name="output" placeholder="optional local artifact path" /></label>
+                  <label class="inline-checkbox"><input id="queue-local-llm-preview-include-context" name="include_context" type="checkbox" checked /> Include context</label>
+                  <label class="inline-checkbox"><input id="queue-local-llm-preview-include-validation" name="include_validation_expectations" type="checkbox" checked /> Include validation expectations</label>
+                  <label class="inline-checkbox"><input id="queue-local-llm-preview-force" name="force" type="checkbox" /> Force overwrite existing artifact</label>
+                  <button id="queue-local-llm-preview-submit" type="submit">Generate Local LLM Prompt Preview</button>
+                </form>
+                <ul id="queue-local-llm-preview-summary" class="list"></ul>
+                <p id="queue-local-llm-preview-summary-empty" class="empty">No local LLM prompt preview yet.</p>
+                <pre id="queue-local-llm-preview" class="code-block"></pre>
+                <p id="queue-local-llm-preview-empty" class="empty">No preview generated yet.</p>
+              </section>
             </div>
             <div class="split two-col">
               <section>

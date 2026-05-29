@@ -27,6 +27,7 @@ from aresforge.operator.local_project_queue import (
     default_queue_routing_metadata,
     generate_local_queue_prompt_pack,
     generate_local_queue_item_codex_prompt,
+    generate_local_llm_prompt_preview,
     init_project_queue,
     inspect_local_queue_item_readiness,
     read_local_routed_queue_views,
@@ -3075,6 +3076,32 @@ def get_local_queue_item_readiness(config: AppConfig, item_id: str, params: dict
         )
     )
     payload["boundary_confirmations"] = _merge_boundary_confirmations(payload)
+    if not payload.get("ok", False):
+        payload["_status"] = _status_for_local_queue_result(payload)
+    return payload
+
+
+def post_local_queue_item_local_llm_prompt_preview(config: AppConfig, item_id: str, body: dict[str, Any]) -> dict[str, Any]:
+    for field in ("include_context", "include_validation_expectations", "force"):
+        valid_bool, bool_error = _require_boolean_field(body, field)
+        if not valid_bool:
+            return bool_error or _api_error(f"invalid_{field}", f"{field} must be a boolean value.")
+    payload = dict(
+        generate_local_llm_prompt_preview(
+            config,
+            item_id=item_id.strip(),
+            prompt_style=_normalize_optional_str(body.get("prompt_style")),
+            include_context=bool(body.get("include_context", True)),
+            include_validation_expectations=bool(body.get("include_validation_expectations", True)),
+            output=_normalize_optional_str(body.get("output")),
+            force=bool(body.get("force", False)),
+        )
+    )
+    payload["service"] = SERVICE_NAME
+    payload["boundary_confirmations"] = _merge_boundary_confirmations(
+        payload,
+        "Local LLM prompt preview is preview-only and does not call Ollama or execute inference.",
+    )
     if not payload.get("ok", False):
         payload["_status"] = _status_for_local_queue_result(payload)
     return payload

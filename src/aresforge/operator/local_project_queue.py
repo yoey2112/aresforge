@@ -725,6 +725,180 @@ def update_local_queue_item_routing_metadata(
     }
 
 
+def generate_local_llm_prompt_preview(
+    config: AppConfig,
+    *,
+    item_id: str,
+    prompt_style: str | None = None,
+    include_context: bool = True,
+    include_validation_expectations: bool = True,
+    queue_path: str | Path | None = None,
+    registry_path: str | Path | None = None,
+    output: str | Path | None = None,
+    force: bool = False,
+) -> dict[str, Any]:
+    normalized_item_id = str(item_id or '').strip()
+    resolved_queue_path = resolve_project_queue_path(config.repo_root, queue_path)
+    loaded = _load_queue_required(resolved_queue_path)
+    if not loaded.get('ok', False):
+        return loaded
+
+    queue = loaded['queue']
+    items = [_item_view(item) for item in queue.get('work_items', []) if isinstance(item, dict)]
+    item = next((candidate for candidate in items if candidate.get('item_id') == normalized_item_id), None)
+    if item is None:
+        return _error(
+            'queue_item_not_found',
+            {
+                'item_id': normalized_item_id,
+                'message': 'Queue item was not found for local LLM prompt preview.',
+            },
+        )
+
+    routing_metadata = default_queue_routing_metadata(item.get('routing_metadata', {}))
+    recommended_engine = str(routing_metadata.get('recommended_engine', '')).strip()
+    recommended_model = str(routing_metadata.get('recommended_model', '')).strip()
+    project_id = str(item.get('project_id', '')).strip()
+    warnings: list[str] = []
+    blockers: list[str] = []
+
+    environment = _read_local_llm_environment_for_preview(config.repo_root)
+    if not environment.get('exists', False):
+        blockers.append('Local LLM environment contract is required before generating a local LLM prompt preview.')
+    local_environment = environment.get('environment', {}) if isinstance(environment.get('environment'), dict) else {}
+    if environment.get('warnings'):
+        warnings.extend([str(warning) for warning in environment.get('warnings', [])])
+        blockers.append('Local LLM environment contract must be readable before generating a local LLM prompt preview.')
+    if environment.get('exists', False) and local_environment:
+        local_provider = str(local_environment.get('local_llm_provider', '')).strip()
+        if local_provider in {'', 'none', 'unknown'}:
+            blockers.append('Local LLM provider must be configured before generating a local LLM prompt preview.')
+        if local_environment.get('execution_enabled') is not False:
+            blockers.append('Local LLM environment execution_enabled must remain false for prompt preview.')
+        if local_environment.get('operator_gate_required') is not True:
+            blockers.append('Local LLM environment operator_gate_required must remain true for prompt preview.')
+
+    project_ai_settings = _read_project_ai_settings_for_preview(config.repo_root, project_id)
+    project_ai_mode = str(routing_metadata.get('project_ai_mode') or project_ai_settings.get('project_ai_mode', '')).strip()
+    operator_override = routing_metadata.get('operator_override')
+    risk_level = str(routing_metadata.get('risk_level', 'unknown')).strip() or 'unknown'
+    complexity_level = str(routing_metadata.get('complexity_level', 'unknown')).strip() or 'unknown'
+
+    if not _is_routed_metadata(routing_metadata):
+        blockers.append('Queue item is unrouted; manual routing metadata is required for local LLM prompt preview.')
+    if recommended_engine == 'codex_cli':
+        blockers.append('Queue item is routed to codex_cli; use Codex prompt workflows instead of local LLM preview.')
+    if recommended_engine and recommended_engine not in {'local_reasoning_llm', 'local_coding_llm'}:
+        blockers.append('Queue item is not routed to a supported local LLM engine.')
+    if not recommended_engine:
+        blockers.append('Queue item routing metadata does not include a recommended local LLM engine.')
+    if not recommended_model:
+        if recommended_engine == 'local_reasoning_llm':
+            recommended_model = str(local_environment.get('reasoning_model', '')).strip()
+        elif recommended_engine == 'local_coding_llm':
+            recommended_model = str(local_environment.get('coding_model', '')).strip()
+    if recommended_engine in {'local_reasoning_llm', 'local_coding_llm'} and not recommended_model:
+        blockers.append('Recommended local LLM model is missing from routing metadata and environment configuration.')
+    if project_ai_mode == 'manual_only' and not operator_override:
+        blockers.append('Project AI mode is manual_only; operator override is required before local LLM prompt preview.')
+    if project_ai_mode == 'high_confidence' and risk_level in {'high', 'critical'}:
+        warnings.append('High-confidence project policy with high-risk work may require Codex review before local LLM use.')
+    if risk_level in {'high', 'critical'} and recommended_engine != 'local_reasoning_llm':
+        warnings.append('High-risk local LLM preview should prefer local_reasoning_llm or Codex review.')
+
+    preview_allowed = not blockers
+    readiness = _evaluate_local_queue_item_readiness(
+        repo_root=config.repo_root,
+        item=item,
+        items=items,
+        registry_path=registry_path,
+    )
+    local_only_rules = [
+        'Local-first only.',
+        'Prompt preview only; do not execute this prompt from AresForge.',
+        'No GitHub API, no gh, and no GitHub mutation.',
+        'No Codex CLI execution.',
+        'No local LLM inference or generation in this milestone.',
+        'No agent execution.',
+        'The local LLM must not claim execution if only reviewing or planning.',
+    ]
+    validation_expectations = [
+        'Run targeted local pytest for touched areas.',
+        'Run: python -m aresforge inspect-local-queue-agent-summary',
+        'Run: python -m aresforge inspect-local-project-report',
+        'Run: git diff --check',
+    ] if include_validation_expectations else []
+    final_response_format = [
+        'Files changed',
+        'What was changed',
+        'Tests updated and why',
+        'Validation results',
+        'Smoke check results',
+        'Diff check result',
+        'Commit hash',
+        'Push result',
+    ]
+    prompt_preview = _build_local_llm_prompt_preview_text(
+        item=item,
+        routing_metadata=routing_metadata,
+        readiness=readiness,
+        prompt_style=str(prompt_style or 'implementation_planning').strip() or 'implementation_planning',
+        include_context=include_context,
+        local_only_rules=local_only_rules,
+        validation_expectations=validation_expectations,
+        final_response_format=final_response_format,
+        recommended_engine=recommended_engine,
+        recommended_model=recommended_model,
+        project_ai_mode=project_ai_mode,
+    ) if preview_allowed else ''
+
+    payload: dict[str, Any] = {
+        'command': 'generate-local-llm-prompt-preview',
+        'ok': preview_allowed,
+        'local_only': True,
+        'item_id': normalized_item_id,
+        'recommended_engine': recommended_engine,
+        'recommended_model': recommended_model,
+        'preview_allowed': preview_allowed,
+        'execution_allowed': False,
+        'prompt_preview': prompt_preview,
+        'local_only_rules': local_only_rules,
+        'validation_expectations': validation_expectations,
+        'final_response_format': final_response_format,
+        'next_safe_action': 'Copy the preview manually only after operator review; no execution occurs.' if preview_allowed else 'Resolve blockers before generating a local LLM prompt preview.',
+        'warnings': sorted(set(warnings)),
+        'blockers': sorted(set(blockers)),
+        'routing_metadata': routing_metadata,
+        'environment_path': str(environment.get('path', '')),
+        'boundary_confirmations': [
+            'Local LLM prompt preview is local-only and non-executing.',
+            'No Ollama call, local LLM call, Codex call, agent execution, prompt execution, GitHub API, gh, or external workflow is performed.',
+        ],
+    }
+
+    if output is None:
+        return payload
+    output_path = Path(output)
+    if output_path.exists() and not force:
+        payload['ok'] = False
+        payload['output_path'] = str(output_path)
+        payload['warnings'] = sorted({*payload['warnings'], 'Output file already exists. Re-run with force=true to overwrite.'})
+        return payload
+    if not preview_allowed:
+        payload['output_path'] = str(output_path)
+        return payload
+    try:
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(prompt_preview + '\n', encoding='utf-8')
+    except OSError as exc:
+        payload['ok'] = False
+        payload['output_path'] = str(output_path)
+        payload['warnings'] = sorted({*payload['warnings'], f'Failed to write output file: {exc}'})
+        return payload
+    payload['output_path'] = str(output_path)
+    return payload
+
+
 def read_local_routed_queue_views(
     config: AppConfig,
     *,
@@ -3185,6 +3359,109 @@ def _prompt_pack_routing_guidance(metadata: dict[str, Any], routed: bool) -> str
     if engine in {'local_reasoning_llm', 'local_coding_llm'}:
         return f'{engine} is recommended for operator review, but AresForge does not execute local LLMs.'
     return 'Routing metadata is advisory only; no engine, model, agent, prompt, or workflow is executed by AresForge.'
+
+
+def _read_local_llm_environment_for_preview(repo_root: Path) -> dict[str, Any]:
+    path = (repo_root / '.aresforge' / 'local_llm_environment.json').resolve()
+    if not path.exists():
+        return {'exists': False, 'path': str(path), 'environment': {}, 'warnings': []}
+    try:
+        loaded = json.loads(path.read_text(encoding='utf-8'))
+    except (OSError, json.JSONDecodeError) as exc:
+        return {'exists': True, 'path': str(path), 'environment': {}, 'warnings': [f'Local LLM environment could not be parsed: {exc}']}
+    if not isinstance(loaded, dict):
+        return {'exists': True, 'path': str(path), 'environment': {}, 'warnings': ['Local LLM environment has invalid schema; expected JSON object.']}
+    return {'exists': True, 'path': str(path), 'environment': loaded, 'warnings': []}
+
+
+def _read_project_ai_settings_for_preview(repo_root: Path, project_id: str) -> dict[str, Any]:
+    if not project_id:
+        return {}
+    path = (repo_root / '.aresforge' / 'projects' / project_id / 'ai_settings.json').resolve()
+    if not path.exists():
+        return {}
+    try:
+        loaded = json.loads(path.read_text(encoding='utf-8'))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    return loaded if isinstance(loaded, dict) else {}
+
+
+def _build_local_llm_prompt_preview_text(
+    *,
+    item: dict[str, Any],
+    routing_metadata: dict[str, Any],
+    readiness: dict[str, Any],
+    prompt_style: str,
+    include_context: bool,
+    local_only_rules: list[str],
+    validation_expectations: list[str],
+    final_response_format: list[str],
+    recommended_engine: str,
+    recommended_model: str,
+    project_ai_mode: str,
+) -> str:
+    parsed_notes = _parse_queue_item_notes(str(item.get('notes', '')).strip())
+    acceptance = parsed_notes.get('acceptance_criteria', []) if isinstance(parsed_notes, dict) else []
+    extra_notes = str(parsed_notes.get('notes', '')).strip() if isinstance(parsed_notes, dict) else ''
+    lines: list[str] = [
+        'Local LLM Prompt Preview (No Execution)',
+        '',
+        'Use this as a copy/paste prompt only after operator review.',
+        'Do not claim execution, file changes, validation, commits, pushes, or external actions unless they were actually performed outside this preview.',
+        '',
+        '## Routing',
+        f'- recommended_engine: {recommended_engine}',
+        f'- recommended_model: {recommended_model}',
+        f'- recommended_agent_lane: {routing_metadata.get("recommended_agent_lane") or "unrouted"}',
+        f'- routing_policy_source: {routing_metadata.get("routing_policy_source") or "-"}',
+        f'- routing_reason: {routing_metadata.get("routing_reason") or "-"}',
+        f'- risk_level: {routing_metadata.get("risk_level") or "unknown"}',
+        f'- complexity_level: {routing_metadata.get("complexity_level") or "unknown"}',
+        f'- project_ai_mode: {project_ai_mode or "-"}',
+        '- execution_allowed: false',
+        '',
+        '## Task',
+        f'- item_id: {item.get("item_id", "")}',
+        f'- title: {item.get("title", "")}',
+        f'- project_id: {item.get("project_id", "") or "-"}',
+        f'- repo_id: {item.get("repo_id", "") or "-"}',
+        f'- status: {item.get("status", "") or "-"}',
+        f'- priority: {item.get("priority", "") or "-"}',
+        f'- type: {item.get("item_type", "") or "-"}',
+        f'- readiness: {readiness.get("readiness_status", "unknown")}',
+        f'- next_safe_action: {readiness.get("recommended_next_action", "Inspect readiness locally.")}',
+        '',
+        '## Summary',
+        str(item.get('description', '')).strip() or 'No description supplied.',
+        '',
+    ]
+    if include_context:
+        lines.extend(
+            [
+                '## Context',
+                f'- source: {item.get("source", "") or "-"}',
+                f'- assigned_agent: {item.get("assigned_agent", "") or "unassigned"}',
+                f'- blocked_by: {", ".join(_normalize_list(item.get("blocked_by", []))) or "-"}',
+                '',
+            ]
+        )
+    lines.extend(['## Acceptance Criteria'])
+    if isinstance(acceptance, list) and acceptance:
+        lines.extend([f'- {entry}' for entry in acceptance if str(entry).strip()])
+    else:
+        lines.append('- No explicit acceptance criteria recorded.')
+    if extra_notes:
+        lines.extend(['', '## Additional Notes', extra_notes])
+    lines.extend(['', '## Local-Only Rules'])
+    lines.extend([f'- {rule}' for rule in local_only_rules])
+    if validation_expectations:
+        lines.extend(['', '## Validation Expectations'])
+        lines.extend([f'- {entry}' for entry in validation_expectations])
+    lines.extend(['', '## Requested Work', f'- prompt_style: {prompt_style}', '- Provide a plan or implementation guidance for the task above.', '- Do not execute commands, mutate files, call services, or claim validation unless explicitly performed outside this prompt preview.'])
+    lines.extend(['', '## Final Response Format'])
+    lines.extend([f'- {entry}' for entry in final_response_format])
+    return '\n'.join(lines).rstrip()
 
 
 def _dependency_warnings(item: dict[str, Any], queue_items: list[dict[str, Any]]) -> list[str]:

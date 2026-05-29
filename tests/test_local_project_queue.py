@@ -9,6 +9,7 @@ from aresforge.operator.local_project_queue import (
     capture_local_queue_completion_evidence,
     close_local_queue_item,
     complete_local_queue_item,
+    generate_local_llm_prompt_preview,
     generate_local_queue_item_codex_prompt,
     generate_local_queue_prompt_pack,
     init_project_queue,
@@ -48,6 +49,62 @@ def _config(tmp_path: Path) -> AppConfig:
         github_owner='local',
         github_repo='aresforge',
     )
+
+
+def _write_local_llm_environment(repo_root: Path, *, reasoning_model: str = 'local-reason', coding_model: str = 'local-code') -> Path:
+    path = repo_root / '.aresforge' / 'local_llm_environment.json'
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(
+            {
+                'schema_version': '1.0',
+                'local_llm_provider': 'ollama',
+                'provider_base_url': 'http://127.0.0.1:11434',
+                'reasoning_model': reasoning_model,
+                'coding_model': coding_model,
+                'fallback_model': '',
+                'health_check_enabled': False,
+                'execution_enabled': False,
+                'operator_gate_required': True,
+                'notes': '',
+                'updated_at': '',
+            },
+            indent=2,
+        )
+        + '\n',
+        encoding='utf-8',
+    )
+    return path
+
+
+def _seed_preview_item(config: AppConfig, *, item_id: str, engine: str, model: str = '') -> None:
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id=item_id,
+        project_id='p1',
+        repo_id='r1',
+        title='Preview task',
+        description='Generate a local LLM prompt preview.',
+        status='ready',
+        priority='normal',
+        item_type='task',
+        notes='Acceptance criteria:\n- Preserve local-only boundaries',
+    )['ok'] is True
+    assert update_local_queue_item_routing_metadata(
+        config,
+        item_id=item_id,
+        routing_metadata={
+            'recommended_agent_lane': 'coding',
+            'recommended_engine': engine,
+            'recommended_model': model,
+            'routing_policy_source': 'test',
+            'routing_reason': 'Preview route.',
+            'risk_level': 'low',
+            'complexity_level': 'low',
+            'project_ai_mode': 'balanced',
+        },
+    )['ok'] is True
 
 
 def test_queue_initialization_creates_default_file_and_schema(tmp_path: Path) -> None:
@@ -725,6 +782,88 @@ def test_generate_local_queue_prompt_pack_groups_by_engine_and_marks_local_llm_r
     assert payload['ok'] is True
     assert payload['groups'] == ['by_engine: local_coding_llm']
     assert 'local_coding_llm is recommended for operator review, but AresForge does not execute local LLMs.' in payload['prompt_pack']
+
+
+def test_generate_local_llm_prompt_preview_succeeds_for_local_coding_llm_and_writes_artifact(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _write_local_llm_environment(tmp_path, coding_model='local-code')
+    _seed_preview_item(config, item_id='q-local-code', engine='local_coding_llm', model='local-code')
+    output = tmp_path / 'artifacts' / 'local_llm_previews' / 'preview.txt'
+
+    payload = generate_local_llm_prompt_preview(config, item_id='q-local-code', output=output)
+
+    assert payload['ok'] is True
+    assert payload['preview_allowed'] is True
+    assert payload['execution_allowed'] is False
+    assert payload['recommended_engine'] == 'local_coding_llm'
+    assert payload['recommended_model'] == 'local-code'
+    assert 'Local LLM Prompt Preview (No Execution)' in payload['prompt_preview']
+    assert 'recommended_engine: local_coding_llm' in payload['prompt_preview']
+    assert 'No GitHub API, no gh, and no GitHub mutation.' in payload['prompt_preview']
+    assert 'The local LLM must not claim execution' in payload['prompt_preview']
+    assert output.exists()
+
+    duplicate = generate_local_llm_prompt_preview(config, item_id='q-local-code', output=output)
+    assert duplicate['ok'] is False
+    assert any('already exists' in warning for warning in duplicate['warnings'])
+
+
+def test_generate_local_llm_prompt_preview_succeeds_for_local_reasoning_llm_with_environment_model(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _write_local_llm_environment(tmp_path, reasoning_model='local-reason')
+    _seed_preview_item(config, item_id='q-local-reason', engine='local_reasoning_llm', model='')
+
+    payload = generate_local_llm_prompt_preview(config, item_id='q-local-reason')
+
+    assert payload['ok'] is True
+    assert payload['recommended_engine'] == 'local_reasoning_llm'
+    assert payload['recommended_model'] == 'local-reason'
+    assert payload['execution_allowed'] is False
+    assert 'recommended_model: local-reason' in payload['prompt_preview']
+
+
+def test_generate_local_llm_prompt_preview_blocks_codex_and_unrouted_items(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _write_local_llm_environment(tmp_path)
+    _seed_preview_item(config, item_id='q-codex', engine='codex_cli', model='codex-model')
+
+    codex = generate_local_llm_prompt_preview(config, item_id='q-codex')
+    assert codex['ok'] is False
+    assert codex['preview_allowed'] is False
+    assert codex['execution_allowed'] is False
+    assert any('codex_cli' in blocker for blocker in codex['blockers'])
+
+    assert add_queue_item(
+        config,
+        item_id='q-unrouted',
+        project_id='p1',
+        repo_id='r1',
+        title='Unrouted task',
+        description='Missing routing metadata.',
+        status='ready',
+    )['ok'] is True
+    unrouted = generate_local_llm_prompt_preview(config, item_id='q-unrouted')
+    assert unrouted['ok'] is False
+    assert any('unrouted' in blocker.lower() for blocker in unrouted['blockers'])
+
+
+def test_generate_local_llm_prompt_preview_blocks_missing_environment_and_manual_only(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_preview_item(config, item_id='q-manual', engine='local_coding_llm', model='local-code')
+    settings_path = tmp_path / '.aresforge' / 'projects' / 'p1' / 'ai_settings.json'
+    settings_path.parent.mkdir(parents=True, exist_ok=True)
+    settings_path.write_text(json.dumps({'project_ai_mode': 'manual_only'}, indent=2) + '\n', encoding='utf-8')
+    assert update_local_queue_item_routing_metadata(
+        config,
+        item_id='q-manual',
+        routing_metadata={'project_ai_mode': 'manual_only'},
+    )['ok'] is True
+
+    payload = generate_local_llm_prompt_preview(config, item_id='q-manual')
+
+    assert payload['ok'] is False
+    assert any('environment contract' in blocker for blocker in payload['blockers'])
+    assert any('manual_only' in blocker for blocker in payload['blockers'])
 
 
 def test_add_local_queue_item_with_explicit_project_and_repo(tmp_path: Path) -> None:

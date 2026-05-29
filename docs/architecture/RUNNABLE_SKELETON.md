@@ -1,5 +1,39 @@
 # Runnable Skeleton
 
+## M61 Local LLM Prompt Preview
+
+Status: Completed locally on `main`.
+
+Implemented runnable path:
+
+- operator helper: `generate_local_llm_prompt_preview(...)`
+- Hub route: `POST /api/local-queue/items/{item_id}/local-llm-prompt-preview`
+- Queue UI panel: Local LLM Prompt Preview
+- optional local artifact output path with `force` overwrite gate
+
+Behavior contract:
+
+- reads queue item routing metadata from the canonical local queue
+- reads the local LLM environment contract without calling the provider
+- produces copy/paste prompt preview text only
+- includes task details, project context, routing metadata, local-only rules, validation expectations, and final response format
+- blocks unrouted items, `codex_cli` routes, missing environment/model configuration, and manual-only policy without override
+- returns `execution_allowed: false`
+
+Still absent by design:
+
+- Ollama calls
+- local LLM inference or generation
+- prompt execution
+- Codex CLI execution
+- real agent execution
+- GitHub integration or mutation
+- external workflow execution
+
+Next skeleton focus:
+
+- M62 should add the first operator-gated local LLM execution prototype.
+
 ## M60 Codex CLI Model Profile Contract
 
 Status: Completed locally on `main`.
@@ -63,9 +97,9 @@ Still absent by design:
 - GitHub integration or mutation
 - queue/project mutation
 
-Next skeleton focus:
+Follow-up skeleton focus:
 
-- M61 should add Local LLM Prompt Preview.
+- M61 added Local LLM Prompt Preview.
 - M62 should add an Operator-Gated Local LLM Execution Prototype after additional gates exist.
 
 ## M58 Local LLM Environment Contract

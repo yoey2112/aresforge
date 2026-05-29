@@ -117,6 +117,31 @@ def _seed_queue_item(
     assert payload["ok"] is True
 
 
+def _write_local_llm_environment(repo_root: Path) -> None:
+    path = repo_root / ".aresforge" / "local_llm_environment.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(
+            {
+                "schema_version": "1.0",
+                "local_llm_provider": "ollama",
+                "provider_base_url": "http://127.0.0.1:11434",
+                "reasoning_model": "local-reason",
+                "coding_model": "local-code",
+                "fallback_model": "",
+                "health_check_enabled": False,
+                "execution_enabled": False,
+                "operator_gate_required": True,
+                "notes": "",
+                "updated_at": "",
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+
 def test_post_local_queue_item_route_adds_item_with_active_project_defaults(tmp_path: Path) -> None:
     config = _config(tmp_path)
     _seed_active_project(config, tmp_path)
@@ -854,6 +879,116 @@ def test_post_local_queue_prompt_pack_route_returns_local_copy_paste_payload(tmp
         assert "AresForge does not execute local LLMs" in payload["prompt_pack"]
         assert any("does not execute Codex, local LLMs, agents" in entry for entry in payload["boundary_confirmations"])
         assert output_path.exists()
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
+
+
+def test_post_local_llm_prompt_preview_route_returns_preview_without_execution(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_active_project(config, tmp_path)
+    _write_local_llm_environment(tmp_path)
+    _seed_queue_item(
+        config,
+        item_id="local-preview-api",
+        status="ready",
+        title="Preview local LLM prompt",
+        description="Generate the exact local LLM prompt preview without executing it.",
+        notes="Acceptance criteria:\n- Preview only\nValidation notes:\n- Run targeted tests",
+    )
+    server, thread = _start_server(config)
+
+    try:
+        port = int(server.server_address[1])
+        metadata_status, metadata_payload = _request_json(
+            port,
+            "POST",
+            "/api/local-queue/items/local-preview-api/routing-metadata",
+            {
+                "recommended_agent_lane": "coding",
+                "recommended_engine": "local_coding_llm",
+                "routing_policy_source": "m54_decision_matrix_v1",
+                "routing_reason": "Low-risk local coding preview.",
+                "risk_level": "low",
+                "complexity_level": "low",
+                "project_ai_mode": "balanced",
+            },
+        )
+        assert metadata_status == 200
+        assert metadata_payload["ok"] is True
+
+        status, payload = _request_json(
+            port,
+            "POST",
+            "/api/local-queue/items/local-preview-api/local-llm-prompt-preview",
+            {
+                "prompt_style": "implementation_planning",
+                "include_context": True,
+                "include_validation_expectations": True,
+            },
+        )
+        assert status == 200
+        assert payload["ok"] is True
+        assert payload["preview_allowed"] is True
+        assert payload["execution_allowed"] is False
+        assert payload["recommended_engine"] == "local_coding_llm"
+        assert payload["recommended_model"] == "local-code"
+        assert "Local LLM Prompt Preview (No Execution)" in payload["prompt_preview"]
+        assert "No GitHub API" in payload["prompt_preview"]
+        assert "No local LLM inference or generation" in payload["prompt_preview"]
+        assert "Local LLM prompt preview is local-only and non-executing." in payload["boundary_confirmations"][0]
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
+
+
+def test_post_local_llm_prompt_preview_route_blocks_codex_routed_items(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_active_project(config, tmp_path)
+    _write_local_llm_environment(tmp_path)
+    _seed_queue_item(
+        config,
+        item_id="codex-preview-api",
+        status="ready",
+        title="Preview Codex-routed prompt",
+        description="Codex-routed work should not produce a local LLM prompt preview.",
+    )
+    server, thread = _start_server(config)
+
+    try:
+        port = int(server.server_address[1])
+        metadata_status, metadata_payload = _request_json(
+            port,
+            "POST",
+            "/api/local-queue/items/codex-preview-api/routing-metadata",
+            {
+                "recommended_agent_lane": "high_value_codex",
+                "recommended_engine": "codex_cli",
+                "recommended_model": "default-codex",
+                "routing_policy_source": "operator_override",
+                "routing_reason": "High-value work.",
+                "risk_level": "high",
+                "complexity_level": "high",
+                "project_ai_mode": "high_confidence",
+            },
+        )
+        assert metadata_status == 200
+        assert metadata_payload["ok"] is True
+
+        status, payload = _request_json(
+            port,
+            "POST",
+            "/api/local-queue/items/codex-preview-api/local-llm-prompt-preview",
+            {},
+        )
+        assert status == 400
+        assert payload["ok"] is False
+        assert payload["preview_allowed"] is False
+        assert payload["execution_allowed"] is False
+        assert payload["prompt_preview"] == ""
+        assert any("codex_cli" in blocker for blocker in payload["blockers"])
     finally:
         server.shutdown()
         server.server_close()

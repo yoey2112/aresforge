@@ -2,7 +2,7 @@
 
 ## Status
 
-M44A documented the future Agent/LLM routing strategy. M51 through M60 now add non-executing contracts and local Hub surfaces for project AI settings, agent/engine registry, queue routing metadata, recommendation-only routing decisions, Project AI Settings UI, routed queue views, routing-aware prompt packs, local LLM environment/health checks, and Codex CLI model profile configuration.
+M44A documented the future Agent/LLM routing strategy. M51 through M61 now add non-executing contracts and local Hub surfaces for project AI settings, agent/engine registry, queue routing metadata, recommendation-only routing decisions, Project AI Settings UI, routed queue views, routing-aware prompt packs, local LLM environment/health checks, Codex CLI model profile configuration, and local LLM prompt preview.
 
 Current prompt-pack behavior extends M43 local-only grouped prompt packs with advisory routing metadata. Runtime routing, model invocation, Codex execution, local LLM execution, real agent execution, and GitHub integration remain unimplemented.
 
@@ -359,7 +359,7 @@ The health check returns:
 - checked timestamp
 - warnings and blockers
 
-M59 does not send prompts, call generate/chat/completion endpoints, run model inference, generate text, execute routing, invoke Codex, run agents, mutate queue/project state, call GitHub, or run external workflows. M61 should add Local LLM Prompt Preview. M62 remains the future point for an operator-gated local execution prototype.
+M59 does not send prompts, call generate/chat/completion endpoints, run model inference, generate text, execute routing, invoke Codex, run agents, mutate queue/project state, call GitHub, or run external workflows. M61 adds Local LLM Prompt Preview. M62 remains the future point for an operator-gated local execution prototype.
 
 ## M60 Codex CLI Model Profile Contract
 
@@ -385,6 +385,39 @@ Codex CLI remains engine `codex_cli`. The contract stores default, high-value, a
 The contract is configuration only. `execution_enabled` must remain false and `operator_gate_required` must remain true.
 
 M60 does not execute Codex CLI, execute prompts, run agents, call GitHub, call `gh`, or run external workflows. M63 should add Codex CLI High-Value Lane planning and still must remain operator-gated unless a later execution milestone explicitly changes that boundary.
+
+## M61 Local LLM Prompt Preview
+
+M61 adds preview-only local LLM prompt generation for routed queue items.
+
+Current operator helper:
+
+- `generate_local_llm_prompt_preview(...)`
+
+Current Hub route:
+
+- `POST /api/local-queue/items/{item_id}/local-llm-prompt-preview`
+
+Current UI path:
+
+- Queue -> Local LLM Prompt Preview
+
+The preview reads canonical queue routing metadata and the M58 local LLM environment contract. It produces copy/paste prompt text only and returns `execution_allowed: false`.
+
+Preview output includes:
+
+- task title and details
+- project context when available
+- routing metadata
+- local-only operating rules
+- no GitHub API/`gh`/GitHub mutation reminder
+- validation expectations
+- final response format
+- instruction that a local LLM must not claim execution when only reviewing or planning
+
+Preview is allowed for queue items routed to `local_reasoning_llm` or `local_coding_llm` when the local environment/model configuration is present. It blocks or warns for `codex_cli` routes, unrouted items, missing local model configuration, malformed environment contract, high-risk policy concerns, and `manual_only` mode without operator override.
+
+M61 does not call Ollama, send prompts, run model inference, generate text, execute routing, invoke Codex, run agents, mutate GitHub, call `gh`, or run external workflows. M62 should add the first operator-gated local LLM execution prototype.
 
 ## Operating Boundaries
 

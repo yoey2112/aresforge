@@ -8,6 +8,8 @@ This contract represents future local LLM provider and model configuration. It d
 
 M59 adds an explicitly invoked Local LLM Health Check. The health check reads this contract and may check local provider availability only. It does not send prompts, run inference, generate text, execute routing, execute Codex, run agents, or call GitHub.
 
+M61 adds Local LLM Prompt Preview. The preview reads this contract to resolve configured local provider/model fields for routed queue items, but it does not call Ollama, send prompts, run inference, generate text, execute routing, execute Codex, run agents, or call GitHub.
+
 ## Storage
 
 The contract is stored locally at:
@@ -27,6 +29,7 @@ Reading defaults does not write this file. Updating the contract writes the file
 - `GET /api/local-llm/environment`
 - `POST /api/local-llm/environment`
 - `POST /api/local-llm/health-check`
+- `POST /api/local-queue/items/{item_id}/local-llm-prompt-preview`
 
 ## Fields
 
@@ -82,12 +85,36 @@ For provider `ollama`, the health check may call only the local `/api/tags` endp
 
 Provider URLs must be local: `localhost`, `127.0.0.1`, or `::1`.
 
+## M61 Prompt Preview
+
+Local LLM Prompt Preview is copy/paste preview generation only.
+
+Preview may proceed when:
+
+- a queue item exists
+- routing metadata recommends `local_reasoning_llm` or `local_coding_llm`
+- this environment contract is readable
+- the recommended model is available from routing metadata or this environment contract
+- project policy does not require `manual_only` handling without operator override
+
+Preview blocks or warns for:
+
+- `codex_cli` routes
+- unrouted queue items
+- provider `none` or `unknown`
+- missing local model configuration
+- malformed local LLM environment contract
+- high-risk local preview that may need Codex review
+
+Preview output includes local-only operating rules, validation expectations, routing metadata, and `execution_allowed: false`. Optional artifact output is local-only and refuses to overwrite existing files unless `force=true`.
+
 ## Boundaries
 
 - local-only
 - file-backed
 - operator-gated
 - configuration and health metadata only
+- prompt preview metadata only
 - no prompt execution
 - no model inference
 - no local LLM generation
@@ -99,6 +126,6 @@ Provider URLs must be local: `localhost`, `127.0.0.1`, or `::1`.
 
 ## Next Milestones
 
-M61 should add Local LLM Prompt Preview without execution.
+M61 added Local LLM Prompt Preview without execution.
 
 M62 should be the future point for any operator-gated local execution prototype, after health checks and additional gates exist.

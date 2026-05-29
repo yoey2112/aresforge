@@ -398,6 +398,20 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "queue-prompt-pack-recommend-missing-routing" in index_text
     assert "include_routing" in queue_js
     assert "routing_group_by" in queue_js
+    assert "Local LLM Prompt Preview" in index_text
+    assert "Preview-only local LLM prompt for locally routed items. Does not call Ollama, execute inference, run agents, Codex, GitHub, or workflows." in index_text
+    assert "queue-local-llm-preview-form" in index_text
+    assert "queue-local-llm-preview-style" in index_text
+    assert "queue-local-llm-preview-output" in index_text
+    assert "queue-local-llm-preview-include-context" in index_text
+    assert "queue-local-llm-preview-include-validation" in index_text
+    assert "queue-local-llm-preview-force" in index_text
+    assert "queue-local-llm-preview-submit" in index_text
+    assert "queue-local-llm-preview-summary" in index_text
+    assert "queue-local-llm-preview" in index_text
+    assert "buildLocalLlmPromptPreviewPayload" in queue_js
+    assert "renderLocalLlmPromptPreviewResult" in queue_js
+    assert "/local-llm-prompt-preview" in queue_js
     assert "Active Project Report Focus" in index_text
     assert "settings-active-project-path" in index_text
     assert "Active Project Task Intake" in index_text

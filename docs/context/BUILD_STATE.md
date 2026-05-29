@@ -1,5 +1,34 @@
 # AresForge Build State
 
+## M61 Local LLM Prompt Preview
+
+Status: Completed locally on `main`.
+
+Delivered:
+
+- added `generate_local_llm_prompt_preview(...)` for copy/paste local LLM prompt previews
+- added Hub route `POST /api/local-queue/items/{item_id}/local-llm-prompt-preview`
+- added Queue UI controls for generating and viewing a local LLM prompt preview
+- supports optional safe artifact output with non-overwrite behavior unless `force=true`
+- preview is allowed only for routed queue items recommending `local_reasoning_llm` or `local_coding_llm`
+- blocks or warns for unrouted items, `codex_cli` routes, missing local LLM environment/model configuration, and `manual_only` policy without operator override
+- preview output includes task details, project context, routing metadata, local-only rules, validation expectations, final response format, and `execution_allowed: false`
+
+Boundaries:
+
+- preview only
+- no Ollama call
+- no local LLM inference or generation
+- no prompt execution
+- no Codex CLI execution
+- no agent execution
+- no GitHub API, `gh`, issues, PRs, workflow activity, or GitHub mutation
+- no queue mutation unless the operator explicitly writes a local preview artifact
+
+Recommended next milestone:
+
+- M62 - Operator-Gated Local LLM Execution Prototype.
+
 ## M60 Codex CLI Model Profile Contract
 
 Status: Completed locally on `main`.
@@ -54,10 +83,10 @@ Boundaries:
 - no generate/chat/completion endpoint calls
 - no queue/project mutation
 
-Recommended next milestones:
+Follow-up:
 
-- M61 - Local LLM Prompt Preview.
-- M62 - Operator-Gated Local LLM Execution Prototype.
+- M61 added Local LLM Prompt Preview.
+- M62 remains the future Operator-Gated Local LLM Execution Prototype.
 
 ## M58 Local LLM Environment Contract
 
