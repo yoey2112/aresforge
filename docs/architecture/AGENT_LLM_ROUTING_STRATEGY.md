@@ -47,6 +47,48 @@ Validation rules:
 
 M52 should add the Agent and Engine Registry Contract so these project settings can be evaluated against known agent lanes and engine profiles without executing routing.
 
+## M52 Agent And Engine Registry Contract
+
+M52 adds a read-only Agent and Engine Registry Contract for future routing validation.
+
+Current operator function:
+
+- `read_agent_engine_registry(...)`
+
+Current Hub route:
+
+- `GET /api/agent-engine-registry`
+
+Agent lane keys:
+
+- `architect_planner`: architecture, sequencing, constraints, and implementation strategy
+- `coding`: implementation-focused prompts and code-change plans
+- `reviewer_validator`: review, validation evidence, readiness, and closeout risk
+- `documentation`: docs updates, handoff notes, and source-of-truth summaries
+- `test`: validation command planning, test scope, and evidence expectations
+- `local_operator_assistant`: local operator workflow, queue triage, and safe next actions
+- `high_value_codex`: future Codex-worthy escalation lane for high-risk or high-value work
+
+Engine keys:
+
+- `local_reasoning_llm`: future local reasoning, review, and operator-assistance engine
+- `local_coding_llm`: future local coding-oriented engine
+- `codex_cli`: future operator-gated Codex CLI engine
+
+Every lane has:
+
+- `execution_allowed: false`
+- `routing_only: true`
+
+Every engine has:
+
+- `execution_allowed: false`
+- `operator_gate_required: true`
+
+Codex CLI remains engine `codex_cli`. Its model profiles are placeholder-only and describe future fields for default Codex model, high-value Codex model, fast Codex model, allowed Codex models per project, and allowed Codex models per agent.
+
+M52 does not execute routing, update queue routing metadata, invoke Codex, invoke local LLMs, run agents, call GitHub, or run external workflows. M53 should add the Queue Routing Metadata Contract.
+
 ## Operating Boundaries
 
 Routing must remain:

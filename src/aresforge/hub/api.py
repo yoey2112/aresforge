@@ -52,6 +52,7 @@ from aresforge.operator.local_bootstrap_wizard import (
     plan_bootstrap,
 )
 from aresforge.operator.local_project_factory import (
+    AGENT_LANE_KEYS,
     AI_ENGINE_KEYS,
     approve_project_documentation_closeout_plan,
     approve_project_execution_phase_approval,
@@ -73,6 +74,7 @@ from aresforge.operator.local_project_factory import (
     prepare_project_github_apply_plan,
     prepare_project_milestone_issue_plan,
     prepare_project_scope_package,
+    read_agent_engine_registry,
     read_project_architecture_contract,
     read_project_documentation_closeout_plan,
     read_project_execution_readiness,
@@ -2237,6 +2239,18 @@ def get_project_ai_settings(config: AppConfig, project_id: str) -> dict[str, Any
     result["boundary_confirmations"] = _merge_boundary_confirmations(
         result,
         "Project AI settings are local-only preferences and do not execute routing.",
+    )
+    return result
+
+
+def get_agent_engine_registry(config: AppConfig) -> dict[str, Any]:
+    result = read_agent_engine_registry(config)
+    result["service"] = SERVICE_NAME
+    result["supported_agent_lane_keys"] = list(AGENT_LANE_KEYS)
+    result["supported_engine_keys"] = list(AI_ENGINE_KEYS)
+    result["boundary_confirmations"] = _merge_boundary_confirmations(
+        result,
+        "Agent and engine registry is read-only and does not execute routing.",
     )
     return result
 

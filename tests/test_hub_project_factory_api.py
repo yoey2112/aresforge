@@ -4,6 +4,7 @@ from pathlib import Path
 
 from aresforge.config import AppConfig
 from aresforge.hub.api import (
+    get_agent_engine_registry,
     get_project_factory_architecture_contract,
     get_project_factory_agent_dispatch_plan,
     get_project_factory_documentation_closeout_plan,
@@ -144,6 +145,22 @@ def test_get_project_factory_dossier_missing_state_is_friendly(tmp_path: Path) -
     assert payload["ok"] is True
     assert payload["dossier_exists"] is False
     assert payload["warnings"]
+
+
+def test_agent_engine_registry_api_returns_read_only_contract(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    payload = get_agent_engine_registry(config)
+
+    assert payload["ok"] is True
+    assert payload["local_only"] is True
+    assert payload["execution_allowed"] is False
+    assert "architect_planner" in payload["supported_agent_lane_keys"]
+    assert "codex_cli" in payload["supported_engine_keys"]
+    assert all(lane["routing_only"] is True for lane in payload["agent_lanes"])
+    assert all(engine["execution_allowed"] is False for engine in payload["engines"])
+    codex = next(engine for engine in payload["engines"] if engine["key"] == "codex_cli")
+    assert codex["display_name"] == "Codex CLI"
+    assert codex["model_profiles"]["placeholder_only"] is True
 
 
 def test_project_ai_settings_api_reads_default_and_updates_contract(tmp_path: Path) -> None:

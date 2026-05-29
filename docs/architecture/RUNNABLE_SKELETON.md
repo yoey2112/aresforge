@@ -1,5 +1,38 @@
 # Runnable Skeleton
 
+## M52 Agent and Engine Registry Contract
+
+Status: Completed locally on `main`.
+
+Implemented runnable path:
+
+- operator function: `read_agent_engine_registry(...)`
+- Hub route: `GET /api/agent-engine-registry`
+
+Behavior contract:
+
+- returns a stable read-only registry of future agent lanes and engines
+- includes required lane keys, display names, purposes, default allowed engines, recommended default engines, and risk notes
+- includes required engine keys, display names, purposes, local-only boundary notes, model profile placeholders, availability status, and operator gate requirements
+- marks all lanes `routing_only: true` and `execution_allowed: false`
+- marks all engines `execution_allowed: false`
+- reports `next_safe_action` for future routing contract validation only
+
+Still absent by design:
+
+- runtime Agent/LLM routing
+- routed queue metadata
+- prompt-pack routing assignment
+- Codex CLI execution
+- local LLM execution
+- real agent execution
+- GitHub integration or mutation
+- complex registry UI
+
+Next skeleton focus:
+
+- M53 should add the Queue Routing Metadata Contract.
+
 ## M51 Project AI Settings Contract
 
 Status: Completed locally on `main`.

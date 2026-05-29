@@ -5,6 +5,8 @@ from pathlib import Path
 
 from aresforge.config import AppConfig
 from aresforge.operator.local_project_factory import (
+    AGENT_LANE_KEYS,
+    AI_ENGINE_KEYS,
     approve_project_documentation_closeout_plan,
     approve_project_execution_phase_approval,
     approve_project_validation_execution_plan,
@@ -13,6 +15,7 @@ from aresforge.operator.local_project_factory import (
     approve_project_github_apply_plan,
     approve_project_milestone_issue_plan,
     approve_project_scope_package,
+    read_agent_engine_registry,
     read_project_ai_settings,
     inspect_project_factory_dossier,
     prepare_project_architecture_contract,
@@ -172,6 +175,27 @@ def test_read_project_factory_dossier_existing_returns_dossier(tmp_path: Path) -
     assert payload["ok"] is True
     assert payload["dossier_exists"] is True
     assert payload["dossier"]["project_id"] == created["project"]["project_id"]
+
+
+def test_read_agent_engine_registry_returns_required_non_executing_contract(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    payload = read_agent_engine_registry(config)
+
+    assert payload["ok"] is True
+    assert payload["execution_allowed"] is False
+    lane_keys = {lane["key"] for lane in payload["agent_lanes"]}
+    engine_keys = {engine["key"] for engine in payload["engines"]}
+    assert lane_keys == set(AGENT_LANE_KEYS)
+    assert engine_keys == set(AI_ENGINE_KEYS)
+    assert all(lane["routing_only"] is True for lane in payload["agent_lanes"])
+    assert all(lane["execution_allowed"] is False for lane in payload["agent_lanes"])
+    assert all(engine["execution_allowed"] is False for engine in payload["engines"])
+    assert all(engine["operator_gate_required"] is True for engine in payload["engines"])
+
+    codex = next(engine for engine in payload["engines"] if engine["key"] == "codex_cli")
+    assert codex["model_profiles"]["placeholder_only"] is True
+    assert "default Codex model" in codex["model_profiles"]["future_fields"]
+    assert payload["next_safe_action"] == "use_registry_for_future_routing_contract_validation_only"
 
 
 def test_read_project_ai_settings_returns_default_contract_without_writing(tmp_path: Path) -> None:

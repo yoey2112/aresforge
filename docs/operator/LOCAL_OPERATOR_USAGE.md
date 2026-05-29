@@ -1,5 +1,45 @@
 # Local Operator Usage
 
+## M52 Agent and Engine Registry Contract
+
+Status: Completed locally on `main`.
+
+Operator workflow:
+
+1. Inspect the registry with `GET /api/agent-engine-registry` or the operator helper.
+2. Review the available future agent lanes and engines.
+3. Use the registry only as future routing reference data.
+4. Do not treat registry entries as permission to execute agents or models.
+
+Agent lane keys:
+
+- `architect_planner`
+- `coding`
+- `reviewer_validator`
+- `documentation`
+- `test`
+- `local_operator_assistant`
+- `high_value_codex`
+
+Engine keys:
+
+- `local_reasoning_llm`
+- `local_coding_llm`
+- `codex_cli`
+
+Operator safety notes:
+
+- registry inspection is local-only and read-only
+- all lanes are routing-only and non-executing
+- all engines are non-executing and require future operator gates
+- Codex CLI is represented as a future engine placeholder only
+- the registry does not call Codex, agents, local LLMs, routing, GitHub, `gh`, workflows, push, or external services
+- the registry does not update queue routing metadata
+
+Recommended next milestone:
+
+- M53 - Queue Routing Metadata Contract.
+
 ## M51 Project AI Settings Contract
 
 Status: Completed locally on `main`.

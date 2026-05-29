@@ -1,5 +1,41 @@
 # AresForge Agent Context
 
+## M52 Agent and Engine Registry Contract Context
+
+Status: Completed locally on `main`.
+
+Current registry contract:
+
+- operator function: `read_agent_engine_registry(...)` in `src/aresforge/operator/local_project_factory.py`
+- Hub route: `GET /api/agent-engine-registry`
+- registry is static/read-only for now and does not write queue metadata or execute routes
+
+Agent lanes:
+
+- `architect_planner`: architecture, sequencing, constraints, and implementation strategy
+- `coding`: implementation-focused prompts and code-change plans
+- `reviewer_validator`: change review, validation evidence, readiness, and closeout risk
+- `documentation`: docs updates, handoff notes, and source-of-truth summaries
+- `test`: validation command planning, test scope, and evidence expectations
+- `local_operator_assistant`: local operator workflow, queue triage, and safe next actions
+- `high_value_codex`: future Codex-worthy escalation lane for high-risk or high-value work
+
+Engines:
+
+- `local_reasoning_llm`: future local reasoning, review, and operator-assistance engine
+- `local_coding_llm`: future local coding-oriented engine
+- `codex_cli`: future operator-gated Codex CLI engine with placeholder-only model profiles
+
+Boundary reminders:
+
+- every lane has `routing_only: true` and `execution_allowed: false`
+- every engine has `execution_allowed: false` and `operator_gate_required: true`
+- M52 does not implement routing decisions, routed queue metadata, local LLM execution, Codex execution, real agent execution, GitHub integration, or external workflows
+
+Recommended next milestone:
+
+- M53 - Queue Routing Metadata Contract.
+
 ## M51 Project AI Settings Contract Context
 
 Status: Completed locally on `main`.

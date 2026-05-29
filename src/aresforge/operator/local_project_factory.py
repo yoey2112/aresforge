@@ -43,6 +43,15 @@ AI_ENGINE_KEYS: tuple[str, ...] = (
     "local_coding_llm",
     "codex_cli",
 )
+AGENT_LANE_KEYS: tuple[str, ...] = (
+    "architect_planner",
+    "coding",
+    "reviewer_validator",
+    "documentation",
+    "test",
+    "local_operator_assistant",
+    "high_value_codex",
+)
 
 _BOUNDARY_CONFIRMATIONS: tuple[str, ...] = (
     "Local-only project factory operation.",
@@ -3097,6 +3106,26 @@ def update_project_ai_settings(config: AppConfig, project_id: str, payload: dict
     }
 
 
+def read_agent_engine_registry(config: AppConfig) -> dict[str, Any]:
+    del config
+    return {
+        "ok": True,
+        "local_only": True,
+        "generated_at": _now_iso(),
+        "agent_lanes": _build_agent_lane_registry(),
+        "engines": _build_engine_registry(),
+        "execution_allowed": False,
+        "next_safe_action": "use_registry_for_future_routing_contract_validation_only",
+        "warnings": [],
+        "blockers": [],
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS)
+        + [
+            "Agent and engine registry is read-only and non-executing.",
+            "No routing decision, model invocation, agent execution, Codex execution, local LLM execution, or GitHub operation is performed.",
+        ],
+    }
+
+
 def start_new_project_factory(config: AppConfig, payload: dict[str, Any]) -> dict[str, Any]:
     name = str(payload.get("name", "")).strip()
     if not name:
@@ -3612,6 +3641,125 @@ def _normalize_project_ai_settings_payload(payload: dict[str, Any]) -> dict[str,
     if not isinstance(normalized["operator_override_allowed"], bool):
         normalized["operator_override_allowed"] = bool(normalized["operator_override_allowed"])
     return normalized
+
+
+def _build_agent_lane_registry() -> list[dict[str, Any]]:
+    return [
+        {
+            "key": "architect_planner",
+            "display_name": "Architect / Planner Agent",
+            "purpose": "Plans architecture, sequencing, constraints, and implementation strategy.",
+            "default_allowed_engines": ["local_reasoning_llm", "codex_cli"],
+            "recommended_default_engine": "local_reasoning_llm",
+            "risk_notes": "Escalate high-impact architecture or operator lifecycle changes to Codex review in future routing.",
+            "execution_allowed": False,
+            "routing_only": True,
+        },
+        {
+            "key": "coding",
+            "display_name": "Coding Agent",
+            "purpose": "Prepares implementation-focused prompts and code-change plans.",
+            "default_allowed_engines": ["local_coding_llm", "codex_cli"],
+            "recommended_default_engine": "local_coding_llm",
+            "risk_notes": "Use Codex only as future operator-approved escalation for high-risk or high-value implementation work.",
+            "execution_allowed": False,
+            "routing_only": True,
+        },
+        {
+            "key": "reviewer_validator",
+            "display_name": "Reviewer / Validator Agent",
+            "purpose": "Reviews changes, validation evidence, and readiness or closeout risks.",
+            "default_allowed_engines": ["local_reasoning_llm", "codex_cli"],
+            "recommended_default_engine": "local_reasoning_llm",
+            "risk_notes": "Prefer conservative review and require operator gates before any future execution.",
+            "execution_allowed": False,
+            "routing_only": True,
+        },
+        {
+            "key": "documentation",
+            "display_name": "Documentation Agent",
+            "purpose": "Prepares documentation updates, handoff notes, and source-of-truth summaries.",
+            "default_allowed_engines": ["local_coding_llm", "local_reasoning_llm", "codex_cli"],
+            "recommended_default_engine": "local_coding_llm",
+            "risk_notes": "Documentation routing remains advisory and must not mutate files without explicit operator work.",
+            "execution_allowed": False,
+            "routing_only": True,
+        },
+        {
+            "key": "test",
+            "display_name": "Test Agent",
+            "purpose": "Plans validation commands, test scope, and evidence expectations.",
+            "default_allowed_engines": ["local_reasoning_llm", "codex_cli"],
+            "recommended_default_engine": "local_reasoning_llm",
+            "risk_notes": "Validation plans may recommend commands but must not execute them through routing.",
+            "execution_allowed": False,
+            "routing_only": True,
+        },
+        {
+            "key": "local_operator_assistant",
+            "display_name": "Local Operator Assistant",
+            "purpose": "Assists with local-only operator workflow, queue triage, and safe next actions.",
+            "default_allowed_engines": ["local_reasoning_llm"],
+            "recommended_default_engine": "local_reasoning_llm",
+            "risk_notes": "Keep local operator assistance advisory and file-backed.",
+            "execution_allowed": False,
+            "routing_only": True,
+        },
+        {
+            "key": "high_value_codex",
+            "display_name": "High-Value Codex Lane",
+            "purpose": "Marks future Codex-worthy work where risk, cost, value, or confidence justifies escalation.",
+            "default_allowed_engines": ["codex_cli"],
+            "recommended_default_engine": "codex_cli",
+            "risk_notes": "Codex remains a placeholder engine with no execution in M52.",
+            "execution_allowed": False,
+            "routing_only": True,
+        },
+    ]
+
+
+def _build_engine_registry() -> list[dict[str, Any]]:
+    return [
+        {
+            "key": "local_reasoning_llm",
+            "display_name": "Local Reasoning LLM",
+            "purpose": "Future local reasoning, planning, review, and operator-assistance model lane.",
+            "execution_allowed": False,
+            "local_only_boundary_notes": "Local LLM execution is not implemented or invoked by this registry.",
+            "model_profiles": [],
+            "availability_status": "planned",
+            "operator_gate_required": True,
+        },
+        {
+            "key": "local_coding_llm",
+            "display_name": "Local Coding LLM",
+            "purpose": "Future local coding-oriented prompt and implementation-assistance model lane.",
+            "execution_allowed": False,
+            "local_only_boundary_notes": "Local coding model execution is not implemented or invoked by this registry.",
+            "model_profiles": [],
+            "availability_status": "planned",
+            "operator_gate_required": True,
+        },
+        {
+            "key": "codex_cli",
+            "display_name": "Codex CLI",
+            "purpose": "Future operator-gated Codex CLI lane for high-value or high-confidence work.",
+            "execution_allowed": False,
+            "local_only_boundary_notes": "Codex CLI execution is not implemented or invoked by this registry.",
+            "model_profiles": {
+                "placeholder_only": True,
+                "future_fields": [
+                    "default Codex model",
+                    "high-value Codex model",
+                    "fast Codex model",
+                    "allowed Codex models per project",
+                    "allowed Codex models per agent",
+                ],
+            },
+            "availability_status": "planned",
+            "operator_gate_required": True,
+        },
+    ]
 
 
 def _build_workflow_steps(*, lifecycle_state: str, github_mode: str) -> list[dict[str, Any]]:

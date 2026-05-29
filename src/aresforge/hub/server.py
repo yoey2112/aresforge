@@ -16,6 +16,7 @@ from aresforge.hub.api import (
     get_active_project,
     get_active_project_workspace,
     get_agent,
+    get_agent_engine_registry,
     get_agents,
     get_docs_status,
     get_escalation_plan,
@@ -380,6 +381,9 @@ def _build_handler(config: AppConfig, static_root: Path) -> type[BaseHTTPRequest
 
             if method == "GET" and path == "/api/agents":
                 _render_json(self, HTTPStatus.OK, get_agents(config))
+                return True
+            if method == "GET" and path == "/api/agent-engine-registry":
+                _render_json(self, HTTPStatus.OK, get_agent_engine_registry(config))
                 return True
             if method == "POST" and path == "/api/agents":
                 if body is None:

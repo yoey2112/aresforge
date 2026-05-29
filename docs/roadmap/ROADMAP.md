@@ -1,5 +1,31 @@
 # AresForge Roadmap
 
+## M52 Agent and Engine Registry Contract
+
+Status: Completed locally on `main`.
+
+Delivered scope:
+
+- added local-only read-only Agent and Engine Registry Contract support
+- added Hub API support for `GET /api/agent-engine-registry`
+- represented required future agent lanes and engines with stable keys
+- represented Codex CLI as engine `codex_cli` with placeholder-only model profile strategy
+- added targeted tests for registry loading, required lanes, required engines, non-execution flags, Codex CLI representation, and API success
+
+Constraints preserved:
+
+- registry is local-only, read-only, and non-executing
+- no routing implementation or execution
+- no queue routing metadata changes
+- no local LLM execution
+- no Codex execution
+- no real agent execution
+- no GitHub API, no `gh`, no GitHub issues/PRs/workflow activity, no GitHub mutation from the app
+
+Recommended next milestone:
+
+- M53 - Queue Routing Metadata Contract.
+
 ## M51 Project AI Settings Contract
 
 Status: Completed locally on `main`.

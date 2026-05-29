@@ -1,5 +1,31 @@
 # AresForge Build State
 
+## M52 Agent and Engine Registry Contract
+
+Status: Completed locally on `main`.
+
+Delivered:
+
+- added a read-only Agent and Engine Registry Contract through `read_agent_engine_registry(...)`
+- added Hub route `GET /api/agent-engine-registry`
+- documented required agent lanes: `architect_planner`, `coding`, `reviewer_validator`, `documentation`, `test`, `local_operator_assistant`, and `high_value_codex`
+- documented required engines: `local_reasoning_llm`, `local_coding_llm`, and `codex_cli`
+- each lane includes key, display name, purpose, default allowed engines, recommended default engine, risk notes, `execution_allowed: false`, and `routing_only: true`
+- each engine includes key, display name, purpose, `execution_allowed: false`, local-only boundary notes, model profile placeholders, availability status, and `operator_gate_required: true`
+- Codex CLI is represented as engine `codex_cli` with placeholder-only future model profile fields
+
+Boundaries:
+
+- local-only, read-only, non-executing, and operator-gated
+- no routing decisions are executed
+- no queue routing metadata is written
+- no local LLM, Codex, agent, GitHub, `gh`, workflow, network, or external execution is performed
+- no complex UI was added in M52
+
+Recommended next milestone:
+
+- M53 - Queue Routing Metadata Contract.
+
 ## M51 Project AI Settings Contract
 
 Status: Completed locally on `main`.
