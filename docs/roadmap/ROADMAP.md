@@ -1,5 +1,54 @@
 # AresForge Roadmap
 
+## Future Milestone: Local LLM Readiness
+
+Status: Planned.
+
+Goal:
+
+- document and validate local Ollama model readiness before wiring any model into AresForge workflows
+
+Scope:
+
+- confirm Ollama installation
+- confirm selected model availability
+- confirm `aresforge-coder-local` alias
+- confirm `aresforge-reasoner-local` alias
+- add read-only local model readiness inspection
+- add local configuration records for model aliases and intended task routing
+- add tests proving readiness inspection does not execute model prompts
+- preserve operator-gated behavior
+
+Non-goals:
+
+- no live agent execution
+- no autonomous command execution
+- no GitHub API usage
+- no cloud LLM fallback
+
+## Future Milestone: Advisory LLM Task Routing
+
+Status: Planned.
+
+Goal:
+
+- introduce advisory task routing that recommends either the coding model or reasoning model without automatically executing model calls
+
+Scope:
+
+- add routing metadata
+- add model recommendation output
+- add routing rationale
+- add prompt artifact generation
+- add operator approval gate before inference
+- add tests proving routing is advisory only
+
+Non-goals:
+
+- no automated model execution
+- no automated code application
+- no autonomous commits or pushes
+
 ## M34 Frontend Modularization Closeout And Docs Reconciliation
 
 Status: Completed locally on `main`.

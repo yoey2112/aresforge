@@ -1,5 +1,26 @@
 # AresForge Build State
 
+## Local LLM Planning Package (Documentation-Only)
+
+Local LLM integration planning is now documented but not implemented.
+
+Planning documents added:
+
+- `docs/architecture/LOCAL_LLM_STRATEGY.md`
+- `docs/operator/OLLAMA_LOCAL_SETUP.md`
+- `docs/architecture/LLM_TASK_ROUTING_PLAN.md`
+- `docs/context/LOCAL_LLM_DECISION_RECORD.md`
+
+Current status:
+
+- no live Ollama execution is wired into AresForge
+- no agent workflow calls a local model
+- no cloud LLM dependency has been introduced
+- no network execution has been introduced
+- no GitHub API usage has been introduced
+- the documented baseline uses one local coding model and one local reasoning model, loaded separately
+- future implementation must remain local-first and operator-gated
+
 ## M34 Frontend Modularization Closeout And Docs Reconciliation
 
 Status: Completed locally on `main`.

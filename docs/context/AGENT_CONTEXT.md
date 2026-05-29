@@ -1,5 +1,36 @@
 # AresForge Agent Context
 
+## Local LLM Planning Context (Documentation-Only)
+
+AresForge now has documented future local Ollama model planning.
+
+Planned local aliases:
+
+- `aresforge-coder-local`
+- `aresforge-reasoner-local`
+
+Planned coding-model purpose:
+
+- code generation
+- bug fixing
+- tests
+- code review
+- patch planning
+
+Planned reasoning-model purpose:
+
+- architecture planning
+- task decomposition
+- documentation synthesis
+- risk analysis
+- validation planning
+- prompt optimization
+
+Safety boundary:
+
+- model output must not be treated as trusted execution authority
+- generated commands and file changes must remain operator-approved
+
 ## M34 Frontend Modularization Closeout Context
 
 Use this as the current frontend contract baseline:

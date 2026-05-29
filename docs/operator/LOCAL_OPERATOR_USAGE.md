@@ -1,5 +1,24 @@
 # Local Operator Usage
 
+## Local Ollama Planning References (Documentation-Only)
+
+AresForge has local Ollama planning documentation for future LLM integration.
+
+Reference documents:
+
+- `docs/operator/OLLAMA_LOCAL_SETUP.md`
+- `docs/architecture/LOCAL_LLM_STRATEGY.md`
+- `docs/architecture/LLM_TASK_ROUTING_PLAN.md`
+- `docs/context/LOCAL_LLM_DECISION_RECORD.md`
+
+Operator reminders:
+
+- do not run both large local models at the same time on the baseline machine
+- use `ollama ps` to check loaded models
+- use `ollama list` to check installed models and aliases
+- use `nvidia-smi` to inspect GPU visibility
+- treat local model output as advisory until an explicit operator-approved application workflow exists
+
 ## M34 Frontend Modularization Closeout Operator Notes
 
 Status: frontend modularization sequence is closed out and reconciled in docs.
