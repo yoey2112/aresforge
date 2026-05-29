@@ -1,5 +1,31 @@
 # AresForge Build State
 
+## M58 Local LLM Environment Contract
+
+Status: Completed locally on `main`.
+
+Delivered:
+
+- added local-only Local LLM Environment Contract at `.aresforge/local_llm_environment.json`
+- added read/update/validation helpers for local LLM environment configuration
+- added Hub routes `GET /api/local-llm/environment` and `POST /api/local-llm/environment`
+- supported providers: `ollama`, `none`, and `unknown`
+- represented provider URL, reasoning/coding/fallback model placeholders, optional context/timeout settings, health-check preference, notes, and timestamps
+- enforced `execution_enabled: false` and `operator_gate_required: true`
+- added detailed source doc `docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md`
+
+Boundaries:
+
+- configuration only
+- no Ollama call
+- no health check yet
+- no model API call
+- no prompt execution, routing execution, local LLM execution, Codex execution, agent execution, GitHub/`gh`, workflow activity, network call, or external execution
+
+Recommended next milestone:
+
+- M59 - Local LLM Health Check.
+
 ## M57 Prompt Pack Routing Integration
 
 Status: Completed locally on `main`.

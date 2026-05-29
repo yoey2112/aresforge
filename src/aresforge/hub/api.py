@@ -70,6 +70,7 @@ from aresforge.operator.local_project_factory import (
     GITHUB_MODES,
     PROJECT_AI_MODES,
     PROJECT_TYPES,
+    LOCAL_LLM_PROVIDERS,
     approve_project_architecture_contract,
     approve_project_milestone_issue_plan,
     approve_project_scope_package,
@@ -90,11 +91,13 @@ from aresforge.operator.local_project_factory import (
     read_project_execution_phase_approval,
     read_project_agent_dispatch_plan,
     read_project_ai_settings,
+    read_local_llm_environment_contract,
     read_project_validation_execution_plan,
     read_project_github_apply_plan,
     read_project_milestone_issue_plan,
     read_project_scope_package,
     update_project_ai_settings,
+    update_local_llm_environment_contract,
     update_project_architecture_contract,
     update_project_documentation_closeout_plan,
     update_project_execution_phase_approval,
@@ -2263,6 +2266,74 @@ def get_agent_engine_registry(config: AppConfig) -> dict[str, Any]:
     result["boundary_confirmations"] = _merge_boundary_confirmations(
         result,
         "Agent and engine registry is read-only and does not execute routing.",
+    )
+    return result
+
+
+def get_local_llm_environment(config: AppConfig) -> dict[str, Any]:
+    result = read_local_llm_environment_contract(config)
+    result["service"] = SERVICE_NAME
+    result["supported_local_llm_providers"] = list(LOCAL_LLM_PROVIDERS)
+    result["boundary_confirmations"] = _merge_boundary_confirmations(
+        result,
+        "Local LLM environment is configuration only and does not call Ollama or execute models.",
+    )
+    return result
+
+
+def post_local_llm_environment(config: AppConfig, body: dict[str, Any]) -> dict[str, Any]:
+    provider = _normalize_optional_str(body.get("local_llm_provider"))
+    if provider is not None and provider not in LOCAL_LLM_PROVIDERS:
+        return _invalid_choice_error(
+            field="local_llm_provider",
+            value=provider,
+            supported=LOCAL_LLM_PROVIDERS,
+            label="local LLM provider",
+        )
+
+    for field in ("health_check_enabled", "execution_enabled", "operator_gate_required"):
+        valid_bool, bool_error = _require_boolean_field(body, field)
+        if not valid_bool:
+            return bool_error or _api_error(f"invalid_{field}", f"{field} must be a boolean value.")
+
+    for field in ("max_context_tokens", "request_timeout_seconds"):
+        if field not in body or body.get(field) in (None, ""):
+            continue
+        value = body.get(field)
+        if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+            return _api_error(
+                f"invalid_{field}",
+                f"{field} must be a positive integer when supplied.",
+                details={field: value},
+            )
+
+    allowed_fields = {
+        "local_llm_provider",
+        "provider_base_url",
+        "reasoning_model",
+        "coding_model",
+        "fallback_model",
+        "max_context_tokens",
+        "request_timeout_seconds",
+        "health_check_enabled",
+        "execution_enabled",
+        "operator_gate_required",
+        "notes",
+    }
+    result = update_local_llm_environment_contract(config, payload={key: body[key] for key in allowed_fields if key in body})
+    if not result.get("ok", False):
+        details = dict(result.get("details", {}))
+        return _api_error(
+            str(result.get("error", "local_llm_environment_update_failed")),
+            str(details.get("message", "Failed to update local LLM environment contract.")),
+            details=details,
+            status=400,
+        )
+    result["service"] = SERVICE_NAME
+    result["supported_local_llm_providers"] = list(LOCAL_LLM_PROVIDERS)
+    result["boundary_confirmations"] = _merge_boundary_confirmations(
+        result,
+        "Local LLM environment update stores configuration only and does not call Ollama or execute models.",
     )
     return result
 

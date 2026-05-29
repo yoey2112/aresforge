@@ -17,6 +17,7 @@ from aresforge.operator.local_project_factory import (
     approve_project_milestone_issue_plan,
     approve_project_scope_package,
     read_agent_engine_registry,
+    read_local_llm_environment_contract,
     recommend_queue_item_routing,
     read_project_ai_settings,
     inspect_project_factory_dossier,
@@ -44,11 +45,13 @@ from aresforge.operator.local_project_factory import (
     resolve_project_documentation_closeout_plan_path,
     resolve_project_execution_phase_approval_path,
     resolve_project_ai_settings_path,
+    resolve_local_llm_environment_path,
     resolve_project_github_apply_plan_path,
     resolve_project_milestone_issue_plan_path,
     resolve_project_validation_execution_plan_path,
     resolve_project_scope_package_path,
     start_new_project_factory,
+    update_local_llm_environment_contract,
     update_project_ai_settings,
     update_project_architecture_contract,
     update_project_documentation_closeout_plan,
@@ -96,6 +99,99 @@ def _payload(tmp_path: Path) -> dict[str, object]:
         "initial_requirements": "Define scope and architecture before coding.",
         "tags": ["alpha", "wizard"],
     }
+
+
+def test_read_local_llm_environment_contract_returns_default_without_writing(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+
+    payload = read_local_llm_environment_contract(config)
+
+    assert payload["ok"] is True
+    assert payload["local_only"] is True
+    assert payload["execution_allowed"] is False
+    assert payload["local_llm_environment"]["local_llm_provider"] == "unknown"
+    assert payload["local_llm_environment"]["execution_enabled"] is False
+    assert payload["local_llm_environment"]["operator_gate_required"] is True
+    assert payload["validation"]["valid"] is True
+    assert not resolve_local_llm_environment_path(tmp_path).exists()
+
+
+def test_update_local_llm_environment_contract_accepts_ollama_config_without_calling_ollama(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+
+    payload = update_local_llm_environment_contract(
+        config,
+        {
+            "local_llm_provider": "ollama",
+            "provider_base_url": "http://127.0.0.1:11434",
+            "reasoning_model": "qwen-reasoning-local",
+            "coding_model": "qwen-coding-local",
+            "fallback_model": "qwen-fallback-local",
+            "max_context_tokens": 32768,
+            "request_timeout_seconds": 120,
+            "health_check_enabled": True,
+            "execution_enabled": False,
+            "operator_gate_required": True,
+            "notes": "Configuration only; do not call Ollama.",
+        },
+    )
+
+    assert payload["ok"] is True
+    assert payload["execution_allowed"] is False
+    assert payload["local_llm_environment"]["local_llm_provider"] == "ollama"
+    assert payload["local_llm_environment"]["health_check_enabled"] is True
+    assert any("no health check is executed" in warning.lower() for warning in payload["warnings"])
+    assert any("No Ollama call" in entry for entry in payload["boundary_confirmations"])
+    assert resolve_local_llm_environment_path(tmp_path).exists()
+
+
+def test_local_llm_environment_contract_accepts_provider_none(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+
+    payload = update_local_llm_environment_contract(
+        config,
+        {
+            "local_llm_provider": "none",
+            "provider_base_url": "",
+            "reasoning_model": "",
+            "coding_model": "",
+            "execution_enabled": False,
+            "operator_gate_required": True,
+        },
+    )
+
+    assert payload["ok"] is True
+    assert payload["local_llm_environment"]["local_llm_provider"] == "none"
+    assert payload["validation"]["valid"] is True
+
+
+def test_local_llm_environment_contract_rejects_invalid_provider_execution_and_numbers(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+
+    invalid_provider = update_local_llm_environment_contract(config, {"local_llm_provider": "remote-api"})
+    assert invalid_provider["ok"] is False
+    assert invalid_provider["error"] == "local_llm_environment_validation_failed"
+
+    execution_enabled = update_local_llm_environment_contract(
+        config,
+        {"local_llm_provider": "ollama", "execution_enabled": True},
+    )
+    assert execution_enabled["ok"] is False
+    assert execution_enabled["error"] == "local_llm_environment_validation_failed"
+
+    invalid_timeout = update_local_llm_environment_contract(
+        config,
+        {"local_llm_provider": "ollama", "request_timeout_seconds": 0},
+    )
+    assert invalid_timeout["ok"] is False
+    assert invalid_timeout["error"] == "local_llm_environment_validation_failed"
+
+    invalid_model = update_local_llm_environment_contract(
+        config,
+        {"local_llm_provider": "ollama", "reasoning_model": 123},
+    )
+    assert invalid_model["ok"] is False
+    assert invalid_model["error"] == "local_llm_environment_validation_failed"
 
 
 def test_start_new_project_factory_creates_expected_local_state(tmp_path: Path) -> None:

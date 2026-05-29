@@ -1,5 +1,29 @@
 # Local Operator Usage
 
+## M58 Local LLM Environment Contract
+
+Status: Completed locally on `main`.
+
+Operator workflow:
+
+1. Read local LLM configuration with `GET /api/local-llm/environment`.
+2. Optionally update provider/model placeholders with `POST /api/local-llm/environment`.
+3. Keep `execution_enabled` false and `operator_gate_required` true.
+4. Treat `health_check_enabled` as future configuration only until M59.
+
+Operator safety notes:
+
+- local LLM settings are configuration only
+- model names do not prove installation
+- no Ollama call is made
+- no health check is performed yet
+- no prompt is executed
+- no routing, local LLM, Codex, agent, GitHub, `gh`, workflow, push, or external service is used
+
+Recommended next milestone:
+
+- M59 - Local LLM Health Check.
+
 ## M57 Prompt Pack Routing Integration
 
 Status: Completed locally on `main`.

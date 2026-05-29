@@ -60,6 +60,7 @@ AGENT_LANE_KEYS: tuple[str, ...] = (
     "local_operator_assistant",
     "high_value_codex",
 )
+LOCAL_LLM_PROVIDERS: tuple[str, ...] = ("ollama", "none", "unknown")
 
 _BOUNDARY_CONFIRMATIONS: tuple[str, ...] = (
     "Local-only project factory operation.",
@@ -167,6 +168,10 @@ def resolve_project_execution_phase_approval_path(repo_root: Path, project_id: s
 
 def resolve_project_ai_settings_path(repo_root: Path, project_id: str) -> Path:
     return (repo_root / ".aresforge" / "projects" / project_id.strip() / "ai_settings.json").resolve()
+
+
+def resolve_local_llm_environment_path(repo_root: Path) -> Path:
+    return (repo_root / ".aresforge" / "local_llm_environment.json").resolve()
 
 
 def create_project_factory_dossier(config: AppConfig, payload: dict[str, Any]) -> dict[str, Any]:
@@ -3114,6 +3119,144 @@ def update_project_ai_settings(config: AppConfig, project_id: str, payload: dict
     }
 
 
+def validate_local_llm_environment_contract(environment: dict[str, Any]) -> dict[str, Any]:
+    blockers: list[str] = []
+    warnings: list[str] = []
+
+    provider = str(environment.get("local_llm_provider", "")).strip()
+    if provider not in LOCAL_LLM_PROVIDERS:
+        blockers.append("local_llm_provider must be ollama, none, or unknown.")
+
+    provider_base_url = environment.get("provider_base_url", "")
+    if provider_base_url is not None and not isinstance(provider_base_url, str):
+        blockers.append("provider_base_url must be a string when supplied.")
+    if provider in {"none", "unknown"} and str(provider_base_url or "").strip():
+        warnings.append("provider_base_url is stored for future use only when provider is none or unknown.")
+
+    for field in ("reasoning_model", "coding_model", "fallback_model", "notes"):
+        value = environment.get(field, "")
+        if value is not None and not isinstance(value, str):
+            blockers.append(f"{field} must be a string when supplied.")
+
+    for field in ("max_context_tokens", "request_timeout_seconds"):
+        value = environment.get(field)
+        if value in (None, ""):
+            continue
+        if not isinstance(value, int) or isinstance(value, bool) or value <= 0:
+            blockers.append(f"{field} must be a positive integer when supplied.")
+
+    if not isinstance(environment.get("health_check_enabled", False), bool):
+        blockers.append("health_check_enabled must be a boolean.")
+    elif environment.get("health_check_enabled") is True:
+        warnings.append("health_check_enabled is configuration only in M58; no health check is executed.")
+
+    if environment.get("execution_enabled") is not False:
+        blockers.append("execution_enabled must remain false.")
+    if environment.get("operator_gate_required") is not True:
+        blockers.append("operator_gate_required must remain true.")
+
+    return {
+        "valid": not blockers,
+        "blockers": sorted(set(blockers)),
+        "warnings": sorted(set(warnings)),
+        "supported_local_llm_providers": list(LOCAL_LLM_PROVIDERS),
+        "health_check_status": "not_implemented",
+        "execution_status": "not_implemented",
+    }
+
+
+def read_local_llm_environment_contract(config: AppConfig) -> dict[str, Any]:
+    environment_path = resolve_local_llm_environment_path(config.repo_root)
+    warnings: list[str] = []
+    environment_exists = environment_path.exists()
+    environment = _default_local_llm_environment_contract()
+    if environment_exists:
+        try:
+            loaded = json.loads(environment_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            warnings.append(f"Local LLM environment contract could not be parsed: {exc}")
+        else:
+            if isinstance(loaded, dict):
+                environment.update(_normalize_local_llm_environment_payload(loaded))
+            else:
+                warnings.append("Local LLM environment contract has invalid schema; expected JSON object.")
+
+    validation = validate_local_llm_environment_contract(environment)
+    warnings.extend(list(validation.get("warnings", [])))
+    return {
+        "ok": True,
+        "local_only": True,
+        "environment_path": str(environment_path),
+        "environment_exists": environment_exists,
+        "local_llm_environment": environment,
+        "validation": validation,
+        "execution_allowed": False,
+        "next_safe_action": "review_local_llm_environment_contract_before_future_health_checks",
+        "warnings": sorted(set(warnings)),
+        "blockers": list(validation.get("blockers", [])),
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS)
+        + [
+            "Local LLM environment is configuration only.",
+            "No Ollama call, health check, model API call, prompt execution, routing execution, Codex execution, or agent execution is performed.",
+        ],
+    }
+
+
+def update_local_llm_environment_contract(config: AppConfig, payload: dict[str, Any]) -> dict[str, Any]:
+    current = read_local_llm_environment_contract(config)
+    environment = dict(current.get("local_llm_environment", {}))
+    allowed_fields = {
+        "local_llm_provider",
+        "provider_base_url",
+        "reasoning_model",
+        "coding_model",
+        "fallback_model",
+        "max_context_tokens",
+        "request_timeout_seconds",
+        "health_check_enabled",
+        "execution_enabled",
+        "operator_gate_required",
+        "notes",
+    }
+    for key in allowed_fields:
+        if key not in payload:
+            continue
+        environment[key] = payload.get(key)
+    environment["updated_at"] = _now_iso()
+    environment = _normalize_local_llm_environment_payload(environment)
+    validation = validate_local_llm_environment_contract(environment)
+    if not validation.get("valid", False):
+        return _error(
+            "local_llm_environment_validation_failed",
+            {
+                "message": "Local LLM environment contract failed validation.",
+                "local_llm_environment": environment,
+                "validation": validation,
+            },
+        )
+
+    environment_path = resolve_local_llm_environment_path(config.repo_root)
+    environment_path.parent.mkdir(parents=True, exist_ok=True)
+    environment_path.write_text(json.dumps(environment, indent=2) + "\n", encoding="utf-8")
+    return {
+        "ok": True,
+        "local_only": True,
+        "environment_path": str(environment_path),
+        "environment_exists": True,
+        "local_llm_environment": environment,
+        "validation": validation,
+        "execution_allowed": False,
+        "next_safe_action": "use_local_llm_environment_for_future_health_check_contract_only",
+        "warnings": list(validation.get("warnings", [])),
+        "blockers": [],
+        "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS)
+        + [
+            "Local LLM environment update is local-only and non-executing.",
+            "No Ollama call, health check, model API call, prompt execution, routing execution, Codex execution, or agent execution is performed.",
+        ],
+    }
+
+
 def read_agent_engine_registry(config: AppConfig) -> dict[str, Any]:
     del config
     return {
@@ -3862,6 +4005,73 @@ def _normalize_project_ai_settings_payload(payload: dict[str, Any]) -> dict[str,
     if not isinstance(normalized["operator_override_allowed"], bool):
         normalized["operator_override_allowed"] = bool(normalized["operator_override_allowed"])
     return normalized
+
+
+def _default_local_llm_environment_contract() -> dict[str, Any]:
+    return {
+        "schema_version": "1.0",
+        "local_llm_provider": "unknown",
+        "provider_base_url": "",
+        "reasoning_model": "qwen-reasoning-placeholder",
+        "coding_model": "qwen-coding-placeholder",
+        "fallback_model": "",
+        "max_context_tokens": None,
+        "request_timeout_seconds": None,
+        "health_check_enabled": False,
+        "execution_enabled": False,
+        "operator_gate_required": True,
+        "notes": "",
+        "updated_at": "",
+    }
+
+
+def _normalize_optional_positive_int(value: Any) -> Any:
+    if value in (None, ""):
+        return None
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, int):
+        return value
+    if isinstance(value, str) and value.strip().isdigit():
+        return int(value.strip())
+    return value
+
+
+def _normalize_contract_string(value: Any, default: str = "") -> Any:
+    if value is None:
+        return default
+    if isinstance(value, str):
+        return value.strip()
+    return value
+
+
+def _normalize_local_llm_environment_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    default_environment = _default_local_llm_environment_contract()
+    return {
+        "schema_version": str(payload.get("schema_version", default_environment["schema_version"])).strip() or "1.0",
+        "local_llm_provider": str(payload.get("local_llm_provider", default_environment["local_llm_provider"]) or "").strip(),
+        "provider_base_url": _normalize_contract_string(
+            payload.get("provider_base_url", default_environment["provider_base_url"])
+        ),
+        "reasoning_model": _normalize_contract_string(
+            payload.get("reasoning_model", default_environment["reasoning_model"])
+        ),
+        "coding_model": _normalize_contract_string(payload.get("coding_model", default_environment["coding_model"])),
+        "fallback_model": _normalize_contract_string(
+            payload.get("fallback_model", default_environment["fallback_model"])
+        ),
+        "max_context_tokens": _normalize_optional_positive_int(
+            payload.get("max_context_tokens", default_environment["max_context_tokens"])
+        ),
+        "request_timeout_seconds": _normalize_optional_positive_int(
+            payload.get("request_timeout_seconds", default_environment["request_timeout_seconds"])
+        ),
+        "health_check_enabled": payload.get("health_check_enabled", default_environment["health_check_enabled"]),
+        "execution_enabled": payload.get("execution_enabled", default_environment["execution_enabled"]),
+        "operator_gate_required": payload.get("operator_gate_required", default_environment["operator_gate_required"]),
+        "notes": str(payload.get("notes", default_environment["notes"]) or "").strip(),
+        "updated_at": str(payload.get("updated_at", default_environment["updated_at"]) or "").strip(),
+    }
 
 
 def _build_agent_lane_registry() -> list[dict[str, Any]]:

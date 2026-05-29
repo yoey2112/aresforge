@@ -1,5 +1,42 @@
 # Runnable Skeleton
 
+## M58 Local LLM Environment Contract
+
+Status: Completed locally on `main`.
+
+Implemented runnable path:
+
+- operator helpers: `read_local_llm_environment_contract(...)`, `update_local_llm_environment_contract(...)`, `validate_local_llm_environment_contract(...)`
+- Hub routes: `GET /api/local-llm/environment`, `POST /api/local-llm/environment`
+- storage path: `.aresforge/local_llm_environment.json`
+
+Behavior contract:
+
+- reads default contract without writing a file
+- writes settings only after validation passes
+- supports providers `ollama`, `none`, and `unknown`
+- stores provider URL and model placeholder/config names
+- stores optional positive integer context and timeout values
+- allows `health_check_enabled` as configuration only
+- forces `execution_enabled` to remain false and `operator_gate_required` to remain true
+- returns `execution_allowed: false`
+
+Still absent by design:
+
+- Ollama calls
+- health checks
+- model API calls
+- prompt execution
+- routing execution
+- local LLM execution
+- Codex execution
+- real agent execution
+- GitHub integration or mutation
+
+Next skeleton focus:
+
+- M59 should add Local LLM Health Check.
+
 ## M57 Prompt Pack Routing Integration
 
 Status: Completed locally on `main`.

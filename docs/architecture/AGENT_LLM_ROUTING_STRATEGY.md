@@ -2,7 +2,7 @@
 
 ## Status
 
-M44A documented the future Agent/LLM routing strategy. M51 through M57 now add non-executing contracts and local Hub surfaces for project AI settings, agent/engine registry, queue routing metadata, recommendation-only routing decisions, Project AI Settings UI, routed queue views, and routing-aware prompt packs.
+M44A documented the future Agent/LLM routing strategy. M51 through M58 now add non-executing contracts and local Hub surfaces for project AI settings, agent/engine registry, queue routing metadata, recommendation-only routing decisions, Project AI Settings UI, routed queue views, routing-aware prompt packs, and local LLM environment configuration.
 
 Current prompt-pack behavior extends M43 local-only grouped prompt packs with advisory routing metadata. Runtime routing, model invocation, Codex execution, local LLM execution, real agent execution, and GitHub integration remain unimplemented.
 
@@ -286,6 +286,50 @@ Unrouted items are labeled as manual routing required. Items recommended for `co
 Routing-aware prompt packs can group by agent lane, engine, model, risk level, complexity level, or status. The existing M43 local grouping remains available when routing grouping is disabled.
 
 M57 does not execute prompts, invoke local LLMs, invoke Codex, run agents, apply routing automatically, start or complete queue items, call GitHub, or run external workflows. M58 should add Local LLM Environment Contract.
+
+## M58 Local LLM Environment Contract
+
+M58 adds a local-only Local LLM Environment Contract for future health checks and operator-gated local execution work.
+
+Current operator helpers:
+
+- `read_local_llm_environment_contract(...)`
+- `update_local_llm_environment_contract(...)`
+- `validate_local_llm_environment_contract(...)`
+
+Current Hub routes:
+
+- `GET /api/local-llm/environment`
+- `POST /api/local-llm/environment`
+
+Storage path:
+
+- `.aresforge/local_llm_environment.json`
+
+Supported providers:
+
+- `ollama`
+- `none`
+- `unknown`
+
+Fields:
+
+- `local_llm_provider`
+- `provider_base_url`
+- `reasoning_model`
+- `coding_model`
+- `fallback_model`
+- `max_context_tokens`
+- `request_timeout_seconds`
+- `health_check_enabled`
+- `execution_enabled`
+- `operator_gate_required`
+- `notes`
+- `updated_at`
+
+The contract is configuration only. Model names are placeholders/config values and do not claim that a model is installed. `health_check_enabled` may be stored, but no health check runs in M58. `execution_enabled` must remain false and `operator_gate_required` must remain true.
+
+M58 does not call Ollama, call model APIs, perform health checks, send prompts, execute routing, invoke local LLMs, invoke Codex, run agents, call GitHub, or run external workflows. M59 should add Local LLM Health Check. M62 remains the future point for an operator-gated local execution prototype.
 
 ## Operating Boundaries
 

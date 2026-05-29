@@ -27,6 +27,7 @@ from aresforge.hub.api import (
     get_local_project_dashboard,
     get_local_projects_readiness,
     get_local_project_report,
+    get_local_llm_environment,
     get_local_queue_item_readiness,
     get_local_queue_agent_summary,
     get_local_queue_routed_views,
@@ -64,6 +65,7 @@ from aresforge.hub.api import (
     post_escalation_plan,
     post_handoff_target,
     post_local_project_handoff,
+    post_local_llm_environment,
     post_local_queue_item,
     post_local_queue_item_codex_prompt,
     post_local_queue_item_complete,
@@ -457,6 +459,25 @@ def _build_handler(config: AppConfig, static_root: Path) -> type[BaseHTTPRequest
                 return True
             if method == "GET" and path == "/api/agent-engine-registry":
                 _render_json(self, HTTPStatus.OK, get_agent_engine_registry(config))
+                return True
+            if method == "GET" and path == "/api/local-llm/environment":
+                _render_json(self, HTTPStatus.OK, get_local_llm_environment(config))
+                return True
+            if method == "POST" and path == "/api/local-llm/environment":
+                if body is None:
+                    _render_json(
+                        self,
+                        HTTPStatus.BAD_REQUEST,
+                        {
+                            "ok": False,
+                            "local_only": True,
+                            "error": "invalid_json_body",
+                            "message": "Request body must be a JSON object.",
+                        },
+                    )
+                    return True
+                payload = post_local_llm_environment(config, body)
+                _render_json(self, _status_from_payload(payload), payload)
                 return True
             if method == "POST" and path == "/api/agents":
                 if body is None:

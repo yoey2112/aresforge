@@ -5,6 +5,7 @@ from pathlib import Path
 from aresforge.config import AppConfig
 from aresforge.hub.api import (
     get_agent_engine_registry,
+    get_local_llm_environment,
     get_project_factory_architecture_contract,
     get_project_factory_agent_dispatch_plan,
     get_project_factory_documentation_closeout_plan,
@@ -43,6 +44,7 @@ from aresforge.hub.api import (
     post_project_factory_scope_package_approve,
     post_project_factory_scope_package,
     post_project_ai_settings,
+    post_local_llm_environment,
     post_local_queue_item_apply_routing_recommendation,
     post_local_queue_item_routing_recommendation,
     post_queue_item,
@@ -67,6 +69,64 @@ def _config(tmp_path: Path) -> AppConfig:
         github_owner="local",
         github_repo="aresforge",
     )
+
+
+def test_local_llm_environment_api_reads_default_and_updates_contract(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+
+    default_payload = get_local_llm_environment(config)
+    assert default_payload["ok"] is True
+    assert default_payload["execution_allowed"] is False
+    assert default_payload["local_llm_environment"]["local_llm_provider"] == "unknown"
+
+    updated = post_local_llm_environment(
+        config,
+        {
+            "local_llm_provider": "ollama",
+            "provider_base_url": "http://127.0.0.1:11434",
+            "reasoning_model": "qwen-reasoning-local",
+            "coding_model": "qwen-coding-local",
+            "request_timeout_seconds": 90,
+            "max_context_tokens": 16384,
+            "health_check_enabled": True,
+            "execution_enabled": False,
+            "operator_gate_required": True,
+        },
+    )
+
+    assert updated["ok"] is True
+    assert updated["local_llm_environment"]["local_llm_provider"] == "ollama"
+    assert updated["local_llm_environment"]["execution_enabled"] is False
+    assert updated["local_llm_environment"]["operator_gate_required"] is True
+    assert any("does not call Ollama" in entry for entry in updated["boundary_confirmations"])
+
+
+def test_local_llm_environment_api_rejects_invalid_inputs(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+
+    invalid_provider = post_local_llm_environment(config, {"local_llm_provider": "remote"})
+    assert invalid_provider["ok"] is False
+    assert invalid_provider["error"] == "invalid_local_llm_provider"
+
+    invalid_execution = post_local_llm_environment(
+        config,
+        {
+            "local_llm_provider": "ollama",
+            "execution_enabled": True,
+        },
+    )
+    assert invalid_execution["ok"] is False
+    assert invalid_execution["error"] == "local_llm_environment_validation_failed"
+
+    invalid_timeout = post_local_llm_environment(
+        config,
+        {
+            "local_llm_provider": "ollama",
+            "request_timeout_seconds": 0,
+        },
+    )
+    assert invalid_timeout["ok"] is False
+    assert invalid_timeout["error"] == "invalid_request_timeout_seconds"
 
 
 def test_post_project_factory_new_project_returns_expected_payload(tmp_path: Path) -> None:
