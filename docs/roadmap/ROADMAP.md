@@ -2,7 +2,7 @@
 
 ## M90 Hub Routing Dashboard Data Contract
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main`.
 
 Purpose:
 
