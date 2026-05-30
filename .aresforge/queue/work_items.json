@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T16:37:54.716369+00:00",
+  "updated_at": "2026-05-30T16:42:43.356411+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -2340,7 +2340,7 @@
       "repo_id": "aresforge-main",
       "title": "M103 AresForge Self-Managed Project Seed Review",
       "description": "Review and harden the AresForge self-managed project seed so AresForge can serve as its own first managed project in local operator workflows.",
-      "status": "in_progress",
+      "status": "done",
       "priority": "high",
       "item_type": "validation",
       "tags": [
@@ -2367,14 +2367,21 @@
       "notes": "Acceptance criteria: inspect active project representation; report identity, repo path, branch, active milestone, queue counts, next recommended item, warnings, and gaps; local-only/read-only report command; docs updated; no external records or execution.",
       "started_at": "2026-05-30T16:37:54.716369+00:00",
       "started_via": "local_operator",
-      "previous_status": "ready",
-      "completed_at": "",
-      "completed_by": "",
-      "completion_commit": "",
-      "validation_summary": "",
-      "evidence_note": "",
-      "tests_run": [],
-      "changed_files": [],
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-30T16:42:43.356411+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "f1b32ca",
+      "validation_summary": "M103 AresForge Self-Managed Project Seed Review implemented and validated locally. Added inspect-self-managed-project readable/json report, self-managed identity/gap checks, active milestone parsing hardening, CLI coverage, docs, and queue lifecycle evidence. No external execution was performed.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py; python -m pytest tests/test_local_project_queue.py tests/test_local_queue_agent_summary.py tests/test_local_project_report.py; git diff --check passed with CRLF warnings only; smoke checks passed for inspect-local-project-report, inspect-local-queue-agent-summary, inspect-project-queue --project-id aresforge, and inspect-self-managed-project readable/json.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 175 passed",
+        "python -m pytest tests/test_local_project_queue.py tests/test_local_queue_agent_summary.py tests/test_local_project_report.py -> 123 passed",
+        "git diff --check -> passed with CRLF warnings only"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/self_managed_project_report.py; src/aresforge/operator/local_project_report.py; src/aresforge/cli.py; tests/test_local_project_report.py; tests/test_cli.py",
+        "docs/context/BUILD_STATE.md; docs/context/AGENT_CONTEXT.md; docs/roadmap/ROADMAP.md; docs/operator/LOCAL_OPERATOR_USAGE.md; docs/architecture/RUNNABLE_SKELETON.md; .aresforge/queue/work_items.json"
+      ],
       "artifact_paths": [],
       "completion_evidence": {},
       "routing_metadata": {
@@ -2396,7 +2403,7 @@
       "closeout_summary": "",
       "closeout_history": [],
       "created_at": "2026-05-30T16:37:54.102561+00:00",
-      "updated_at": "2026-05-30T16:37:54.716369+00:00"
+      "updated_at": "2026-05-30T16:42:43.356411+00:00"
     }
   ]
 }

@@ -10,11 +10,11 @@ M103 adds a read-only self-managed project review report that checks active-proj
 
 ## M103 AresForge Self-Managed Project Seed Review
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m103-aresforge-self-managed-project-seed-review`.
 
-Implementation commit: pending.
+Implementation commit: `f1b32ca`.
 
 M103 adds:
 
