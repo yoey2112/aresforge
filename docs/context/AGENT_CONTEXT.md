@@ -1,5 +1,52 @@
 # AresForge Agent Context
 
+## M99 Local LLM Advisory Execution Dry-Run Validator Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m99-local-llm-advisory-dry-run-validator`.
+
+Implementation commit: pending final commit.
+
+M99 builds on M97 by validating local LLM advisory dry-run readiness only when the M97 selected lane is `local_llm_advisory` and the plan remains safe:
+
+- `local_only: true`
+- `execution_allowed: false`
+- no dispatch-plan blocked reasons
+- selected lane exactly `local_llm_advisory`
+
+Primary command:
+
+- `python -m aresforge validate-local-llm-advisory-dry-run --item-id <item_id> [--format json|markdown] [--output <path>] [--force]`
+
+M99 dry-run boundaries:
+
+- dry-run output only
+- no Ollama API calls
+- no local model execution
+- no Codex execution
+- no documentation-agent execution
+- no GitHub API, `gh`, issues, PRs, workflows, or network calls
+- no external agents
+- no patch application
+- no automatic queue start, completion, dispatch, or next-item execution
+
+Blocked lanes:
+
+- `codex_prompt_artifact`
+- `local_llm_coding_draft`
+- `documentation_agent_dry_run`
+- `human_only_manual`
+
+Operator workflow:
+
+- inspect the M97 dispatch plan
+- validate the M99 local LLM advisory dry-run
+- review the dry-run output locally
+- approve any future advisory artifact or local LLM advisory run only in a later milestone
+
+M100 remains the documentation-agent dry-run milestone and is not authorized by M99.
+
 ## M98 Codex Prompt Dispatch Artifact Generator Context
 
 Status: Completed locally on `main`.

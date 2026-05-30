@@ -1,5 +1,67 @@
 # Local Operator Usage
 
+## M99 Local LLM Advisory Execution Dry-Run Validator
+
+M99 validates local LLM advisory dry-run readiness from M97 plans. It is dry-run only and never calls Ollama or executes a local model.
+
+Inspect the dispatch plan first:
+
+    python -m aresforge inspect-queue-dispatch-plan --item-id <item_id>
+    python -m aresforge inspect-queue-dispatch-plan --item-id <item_id> --format json
+
+Validate a readable dry-run to console:
+
+    python -m aresforge validate-local-llm-advisory-dry-run --item-id <item_id>
+
+Generate JSON:
+
+    python -m aresforge validate-local-llm-advisory-dry-run --item-id <item_id> --format json
+
+Write a local dry-run artifact file:
+
+    python -m aresforge validate-local-llm-advisory-dry-run --item-id <item_id> --output artifacts/local_llm_advisory/dry_runs/<item_id>.md
+
+Overwrite only with explicit force:
+
+    python -m aresforge validate-local-llm-advisory-dry-run --item-id <item_id> --output artifacts/local_llm_advisory/dry_runs/<item_id>.md --force
+
+M99 only reports ready when the M97 plan has:
+
+- `selected_lane: local_llm_advisory`
+- `local_only: true`
+- `execution_allowed: false`
+- no blocked reasons
+
+M99 blocks for:
+
+- `codex_prompt_artifact`
+- `local_llm_coding_draft`
+- `documentation_agent_dry_run`
+- `human_only_manual`
+- any plan with blocked reasons
+- any plan where `local_only` is not true
+- any plan where `execution_allowed` is not false
+
+Operator workflow:
+
+- inspect dispatch plan
+- validate local LLM advisory dry-run
+- review dry-run output
+- approve future advisory artifact/run only in a later milestone
+- keep later advisory output in the existing queue completion evidence process
+
+M99 boundaries:
+
+- no Ollama API calls
+- no local model execution
+- no Codex execution
+- no documentation-agent execution
+- no GitHub API, `gh`, issues, PRs, workflows, or network calls
+- no external agents
+- no patch application
+- no automatic queue start, completion, dispatch, or next-item execution
+- dry-run output must preserve `execution_allowed=false`
+
 ## M98 Codex Prompt Dispatch Artifact Generator v1
 
 M98 generates local Codex prompt dispatch artifacts from M97 plans. It is manual/operator-gated and never executes Codex.

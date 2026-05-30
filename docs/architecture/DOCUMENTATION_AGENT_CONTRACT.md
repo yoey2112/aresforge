@@ -80,6 +80,8 @@ M97 may select `documentation_agent_dry_run` for documentation or reconciliation
 
 M98 generates Codex prompt dispatch artifacts only for `codex_prompt_artifact`. If M97 selects `documentation_agent_dry_run`, M98 blocks generation and emits no Codex prompt text. This preserves M100 as the future documentation-agent dry-run review workflow and does not add documentation-agent execution, patch generation, apply mode, or automatic documentation mutation.
 
+M99 validates Local LLM advisory dry-run readiness only for `local_llm_advisory`. If M97 selects `documentation_agent_dry_run`, M99 blocks readiness and emits no local LLM advisory approval. This preserves M100 as the future documentation-agent dry-run review workflow and does not add documentation-agent execution, patch generation, apply mode, or automatic documentation mutation.
+
 ## Safety Boundaries
 
 - local-only

@@ -230,6 +230,7 @@ from aresforge.operator.local_llm_provider import (
 from aresforge.operator.queue_dispatch_preparation import prepare_queue_item_dispatch
 from aresforge.operator.queue_agent_dispatch_plan import inspect_queue_agent_dispatch_plan
 from aresforge.operator.codex_prompt_dispatch_artifact import generate_codex_prompt_dispatch_artifact
+from aresforge.operator.local_llm_advisory_dry_run import validate_local_llm_advisory_dry_run
 from aresforge.operator.single_ready_codex_queue_item import run_single_ready_codex_queue_item
 from aresforge.operator.local_agent_profiles import (
     AGENT_PROFILE_STATUSES,
@@ -1598,6 +1599,20 @@ def build_parser() -> argparse.ArgumentParser:
     generate_codex_dispatch_artifact_parser.add_argument("--output")
     generate_codex_dispatch_artifact_parser.add_argument("--force", action="store_true")
     generate_codex_dispatch_artifact_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="markdown",
+    )
+    validate_local_llm_advisory_dry_run_parser = subparsers.add_parser(
+        "validate-local-llm-advisory-dry-run",
+        help="Validate local-only dry-run readiness for the M97 local_llm_advisory lane.",
+    )
+    validate_local_llm_advisory_dry_run_parser.add_argument("--item-id", required=True)
+    validate_local_llm_advisory_dry_run_parser.add_argument("--queue-path")
+    validate_local_llm_advisory_dry_run_parser.add_argument("--registry-path")
+    validate_local_llm_advisory_dry_run_parser.add_argument("--output")
+    validate_local_llm_advisory_dry_run_parser.add_argument("--force", action="store_true")
+    validate_local_llm_advisory_dry_run_parser.add_argument(
         "--format",
         choices=["json", "markdown"],
         default="markdown",
@@ -3983,6 +3998,22 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "generate-codex-dispatch-artifact":
         payload = generate_codex_prompt_dispatch_artifact(
+            config,
+            item_id=args.item_id,
+            queue_path=args.queue_path,
+            registry_path=args.registry_path,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "validate-local-llm-advisory-dry-run":
+        payload = validate_local_llm_advisory_dry_run(
             config,
             item_id=args.item_id,
             queue_path=args.queue_path,

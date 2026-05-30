@@ -50,6 +50,8 @@ M97 adds a queue-to-agent dispatch plan contract that may select `local_llm_advi
 
 M98 adds Codex prompt artifact generation only for the M97 `codex_prompt_artifact` lane. It explicitly blocks `local_llm_advisory` and `local_llm_coding_draft`, does not call Ollama, does not invoke provider health or inference endpoints, and does not authorize local LLM advisory or coding draft execution. M99 remains the planned local LLM dry-run validation milestone.
 
+M99 adds a Local LLM Advisory Execution Dry-Run Validator for the M97 `local_llm_advisory` lane only. It validates readiness metadata and operator gates while preserving `execution_allowed=false`. It does not call Ollama, does not invoke provider health or inference endpoints, does not send prompts, does not generate model responses, does not authorize advisory execution, and blocks non-advisory lanes safely. Any actual advisory artifact or provider run remains a later explicit operator-approved milestone.
+
 ## Storage
 
 The contract is stored locally at:
@@ -83,6 +85,7 @@ Reading defaults does not write this file. Updating the contract writes the file
 - CLI: `python -m aresforge prepare-local-llm-advisory-run --item-id <item_id> --format json`
 - CLI: `python -m aresforge prepare-local-coding-draft --item-id <item_id> --format json`
 - CLI: `python -m aresforge inspect-human-gated-patch-application-contract --format json`
+- CLI: `python -m aresforge validate-local-llm-advisory-dry-run --item-id <item_id> --format json`
 
 ## Fields
 

@@ -2,11 +2,55 @@
 
 ## Current Phase
 
-M98 completed the local-only Codex Prompt Dispatch Artifact Generator v1 on top of the completed M97 queue-to-agent dispatch plan contract.
+M99 adds the local-only Local LLM Advisory Execution Dry-Run Validator on top of the completed M97 queue-to-agent dispatch plan contract and M98 Codex prompt artifact generator.
 
 ## Current Goal
 
-M98 generates copy/paste-ready Codex prompt artifacts from approved-safe M97 dispatch plans when, and only when, the selected lane is `codex_prompt_artifact`. It preserves operator control: it never executes Codex, invokes Ollama or local LLMs, calls GitHub or `gh`, runs external agents, applies patches, creates issues, makes network calls, or automatically starts/completes/dispatches queue items.
+M99 validates whether a queue item selected by M97 for `local_llm_advisory` is safe and ready to be prepared for a future local LLM advisory run. It produces dry-run output only and preserves `execution_allowed=false`: it never calls Ollama APIs, executes local models, executes Codex, calls GitHub or `gh`, runs external agents, applies patches, creates issues, makes network calls, or automatically starts/completes/dispatches queue items.
+
+## M99 Local LLM Advisory Execution Dry-Run Validator
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m99-local-llm-advisory-dry-run-validator`.
+
+Implementation commit: pending final commit.
+
+M99 consumes or derives the M97 dispatch plan and adds:
+
+- `validate-local-llm-advisory-dry-run --item-id <item_id>`
+- `validate-local-llm-advisory-dry-run --item-id <item_id> --format json`
+- optional `--output <path>` with overwrite refusal unless `--force` is explicit
+- a structured dry-run payload with item identity, queue status, selected lane, confidence, selection reason, advisory intent, recommended model role, source context to review, dry-run prompt sections, validation expectations, operator gates, and next safe action
+
+M99 ready behavior:
+
+- succeeds only when the M97 selected lane is exactly `local_llm_advisory`
+- requires no M97 blocked reasons
+- requires `local_only: true`
+- requires `execution_allowed: false`
+- reports `dry_run: true`, `ready_for_future_advisory_run: true`, and `execution_allowed: false`
+
+M99 blocked behavior:
+
+- blocks `codex_prompt_artifact`, `local_llm_coding_draft`, `documentation_agent_dry_run`, and `human_only_manual`
+- blocks when the M97 plan has blocked reasons
+- blocks when `local_only` is not true
+- blocks when `execution_allowed` is not false
+- emits clear blocked reasons and does not generate or execute a model prompt
+
+Operator workflow:
+
+- inspect dispatch plan
+- validate local LLM advisory dry-run
+- review dry-run output
+- approve any future advisory artifact or actual advisory run only in a later milestone
+
+M99 to M100 relationship:
+
+- M99 only covers local LLM advisory dry-run readiness for `local_llm_advisory`.
+- M100 remains the planned Documentation Agent dry-run review workflow for `documentation_agent_dry_run`.
+- M99 does not authorize local LLM execution, documentation-agent execution, or patch application.
 
 ## M98 Codex Prompt Dispatch Artifact Generator v1
 

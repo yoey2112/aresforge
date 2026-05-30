@@ -1,5 +1,34 @@
 # Runnable Skeleton
 
+## M99 Local LLM Advisory Execution Dry-Run Validator
+
+M99 adds a local-only dry-run validation command:
+
+- `python -m aresforge validate-local-llm-advisory-dry-run --item-id <item_id>`
+- `python -m aresforge validate-local-llm-advisory-dry-run --item-id <item_id> --format json`
+- `python -m aresforge validate-local-llm-advisory-dry-run --item-id <item_id> --output artifacts/local_llm_advisory/dry_runs/<item_id>.md`
+
+Runnable behavior:
+
+- derives the M97 queue-to-agent dispatch plan for the selected item
+- validates `selected_lane == local_llm_advisory`
+- validates no dispatch-plan blocked reasons
+- validates `local_only is true`
+- validates `execution_allowed is false`
+- reports dry-run status, readiness, blocked reasons, item identity, queue status, selected lane, confidence, advisory intent, recommended model role, context sources, prompt sections, validation expectations, operator gates, and next safe action
+- writes a local dry-run artifact only when `--output` is provided
+- refuses to overwrite an existing output file unless `--force` is explicit
+
+Still absent by design:
+
+- Ollama API calls or local model execution
+- Codex execution or automatic prompt dispatch
+- documentation-agent execution or apply mode
+- external agent execution
+- GitHub API, `gh`, issues, PRs, workflows, network calls, or external services
+- patch application
+- queue mutation, queue completion, or automatic next-item execution from dry-run validation
+
 ## M98 Codex Prompt Dispatch Artifact Generator v1
 
 M98 adds a local-only artifact generation command:

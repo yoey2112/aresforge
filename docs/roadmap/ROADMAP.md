@@ -1,5 +1,36 @@
 # AresForge Roadmap
 
+## M99 Local LLM Advisory Execution Dry-Run Validator
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m99-local-llm-advisory-dry-run-validator`.
+
+Implementation commit: pending final commit.
+
+Purpose:
+
+- consume or derive the M97 queue-to-agent dispatch plan
+- validate future local LLM advisory readiness only for `local_llm_advisory`
+- produce structured dry-run output for M100+ style future artifact/run preparation
+- support readable console output, JSON output, and optional local file output
+- preserve manual/operator-gated approval before any future local LLM advisory artifact or run
+
+Constraints preserved:
+
+- `local_only` remains true and `execution_allowed` remains false
+- non-advisory lanes are blocked with clear reasons
+- blocked M97 plans, non-local plans, or execution-allowed plans cannot be marked ready
+- no Ollama API call, local model execution, Codex execution, documentation-agent execution, external-agent execution, GitHub API, `gh`, network, workflow, issue creation, patch application, queue completion, or next-item execution occurs
+
+Operator workflow:
+
+- inspect M97 dispatch plan
+- validate local LLM advisory dry-run
+- review the dry-run output locally
+- approve future advisory artifact/run only in a later milestone
+- return any later advisory results to the existing queue evidence process
+
 ## M98 Codex Prompt Dispatch Artifact Generator v1
 
 Status: Completed locally on `main`.
@@ -109,9 +140,9 @@ Generate local Codex prompt dispatch artifacts from queue items and M97 plans wi
 
 ### M99 Local LLM Advisory Execution Dry-Run Validator
 
-Status: Planned.
+Status: Completed locally.
 
-Validate local LLM advisory run requests without invoking a provider by checking provider contract state, item risk, artifact paths, approval state, and expected non-mutation boundaries.
+Validate local LLM advisory run readiness without invoking a provider by consuming the M97 dispatch plan, requiring `local_llm_advisory`, preserving `execution_allowed=false`, blocking every other lane, and reporting operator gates for a future milestone.
 
 ### M100 Documentation Agent Dry-Run Review Workflow
 

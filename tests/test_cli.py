@@ -5882,6 +5882,107 @@ def test_generate_codex_dispatch_artifact_dispatch_markdown(
     assert "selected_lane: codex_prompt_artifact" in output
 
 
+def test_validate_local_llm_advisory_dry_run_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "dry_run": True,
+                "ready_for_future_advisory_run": True,
+                "blocked": False,
+                "item_id": "m99",
+                "selected_lane": "local_llm_advisory",
+                "advisory_intent": "Prepare a future local advisory dry-run validation plan.",
+                "recommended_model_role": "reasoning/advisory",
+                "local_only": True,
+                "execution_allowed": False,
+                "next_safe_action": "Review the dry-run output.",
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_validate(
+        _config,
+        item_id,
+        queue_path=None,
+        registry_path=None,
+        output=None,
+        force=False,
+        output_format="markdown",
+    ):
+        seen["item_id"] = item_id
+        seen["queue_path"] = queue_path
+        seen["registry_path"] = registry_path
+        seen["output"] = output
+        seen["force"] = force
+        seen["output_format"] = output_format
+        return payload
+
+    monkeypatch.setattr(cli, "validate_local_llm_advisory_dry_run", fake_validate)
+    exit_code = cli.main(
+        [
+            "validate-local-llm-advisory-dry-run",
+            "--item-id",
+            "m99",
+            "--queue-path",
+            "queue.json",
+            "--registry-path",
+            "projects.json",
+            "--output",
+            "artifacts/local_llm_advisory/dry_runs/m99.json",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["dry_run"] is True
+    assert parsed["selected_lane"] == "local_llm_advisory"
+    assert parsed["execution_allowed"] is False
+    assert seen == {
+        "item_id": "m99",
+        "queue_path": "queue.json",
+        "registry_path": "projects.json",
+        "output": "artifacts/local_llm_advisory/dry_runs/m99.json",
+        "force": True,
+        "output_format": "json",
+    }
+
+
+def test_validate_local_llm_advisory_dry_run_dispatch_markdown(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "markdown",
+        "wrote_output_file": False,
+        "stdout": "# Local LLM Advisory Dry-Run Validator\n\n- ready_for_future_advisory_run: True\n- selected_lane: local_llm_advisory\n",
+        "payload": {},
+    }
+    monkeypatch.setattr(
+        cli,
+        "validate_local_llm_advisory_dry_run",
+        lambda _config, item_id, queue_path=None, registry_path=None, output=None, force=False, output_format="markdown": payload,
+    )
+
+    exit_code = cli.main(["validate-local-llm-advisory-dry-run", "--item-id", "m99"])
+    output = capsys.readouterr().out
+
+    assert exit_code == 0
+    assert "ready_for_future_advisory_run: True" in output
+    assert "selected_lane: local_llm_advisory" in output
+
+
 def test_approve_codex_dispatch_dispatch_json(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
