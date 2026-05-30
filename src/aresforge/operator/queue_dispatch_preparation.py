@@ -10,9 +10,10 @@ from aresforge.operator.local_project_queue import (
     inspect_local_queue_item_readiness,
     start_local_queue_item,
 )
+from aresforge.operator.llm_decision_matrix import build_llm_decision_matrix
 from aresforge.operator.prompt_builder_agent import build_prompt_builder_agent_contract
 
-PREPARATION_VERSION = "m78.5.1"
+PREPARATION_VERSION = "m80.1"
 
 _BOUNDARY_CONFIRMATIONS = (
     "Workflow preparation is local-only.",
@@ -92,6 +93,14 @@ def prepare_queue_item_dispatch(
     )
     warnings.extend(str(warning) for warning in prompt_contract.get("warnings", []) if str(warning).strip())
     blockers.extend(str(blocker) for blocker in prompt_contract.get("blockers", []) if str(blocker).strip())
+    decision_matrix = build_llm_decision_matrix(
+        config,
+        item_id=normalized_item_id,
+        queue_path=queue_path,
+        registry_path=registry_path,
+    )
+    warnings.extend(str(warning) for warning in decision_matrix.get("warnings", []) if str(warning).strip())
+    blockers.extend(str(blocker) for blocker in decision_matrix.get("blockers", []) if str(blocker).strip())
 
     dispatch_contract_summary: dict[str, Any] = {}
     operator_approval_required = normalized_target == "codex"
@@ -146,6 +155,7 @@ def prepare_queue_item_dispatch(
         "post_start_readiness_status": post_start_readiness_status,
         "start_result": start_result or {},
         "prompt_artifact_path": str(prompt_contract.get("prompt_artifact_path", "")).strip(),
+        "llm_decision_matrix": decision_matrix,
         "dispatch_contract_summary": dispatch_contract_summary,
         "operator_approval_required": operator_approval_required,
         "dispatch_ready": dispatch_ready,

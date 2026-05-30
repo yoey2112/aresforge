@@ -1,5 +1,32 @@
 # AresForge Roadmap
 
+## M80 LLM Decision Matrix v2
+
+Status: In progress locally on `main`.
+
+Purpose:
+
+- define advisory routing logic for Local LLM vs Codex, coding vs reasoning, model/profile selection, task size, risk, validation burden, and safety gating
+- make the routing decision visible in Prompt Builder and workflow preparation payloads without adding execution behavior
+
+Delivered scope:
+
+- `inspect-llm-decision-matrix`
+- decision payload fields for work mode, task sizing, risk classification, engine/lane recommendation, model/profile selection, validation burden, and safety gates
+- Prompt Builder and `prepare-queue-item-dispatch` decision matrix embedding
+
+Constraints preserved:
+
+- no automatic prompt dispatch
+- no Codex call or local LLM invocation
+- no queue/source mutation from the decision matrix
+- no automatic queue completion or next-item execution
+- no GitHub API, `gh`, issues, PRs, workflows, external workflow execution, or GitHub mutation
+
+Next recommended milestone:
+
+- M81 Local LLM Advisory/Coding Lane Prototype after M80 validation and evidence review.
+
 ## M79.3 Codex Run Token Usage Capture
 
 Status: In progress locally on `main`.

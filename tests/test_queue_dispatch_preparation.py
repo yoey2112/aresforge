@@ -82,6 +82,9 @@ def test_workflow_preparation_inspects_readiness_generates_prompt_and_does_not_d
     assert payload["can_start"] is True
     assert payload["started"] is False
     assert Path(payload["prompt_artifact_path"]).exists()
+    assert payload["llm_decision_matrix"]["advisory_only"] is True
+    assert payload["llm_decision_matrix"]["execution_allowed"] is False
+    assert payload["llm_decision_matrix"]["queue_mutation_allowed"] is False
     assert payload["operator_approval_required"] is True
     assert payload["dispatch_ready"] is True
     assert payload["dispatch_allowed"] is False

@@ -1,5 +1,27 @@
 # AresForge Build State
 
+## M80 LLM Decision Matrix v2
+
+Status: In progress locally on `main`.
+
+Delivered in this pass:
+
+- added advisory LLM decision matrix v2 inspection for one local queue item
+- classifies local LLM vs Codex, coding vs reasoning, task size, risk, validation burden, model/profile source, and safety gates
+- exposes `inspect-llm-decision-matrix` as a local-only, non-executing command
+- embeds the M80 decision payload into Prompt Builder and `prepare-queue-item-dispatch` outputs for operator review
+
+M80 safety posture:
+
+- decision matrix output is advisory only
+- no prompt execution, Codex call, local LLM invocation, source mutation, queue mutation, GitHub API, `gh`, workflow execution, queue completion, or next-item execution is performed
+- Codex recommendations still require separate M78 approval and runner dispatch
+- local LLM recommendations remain advisory, prototype-scoped, operator-gated, and non-mutating
+
+Recommended next milestone:
+
+- M81 Local LLM Advisory/Coding Lane Prototype, only after M80 review and validation evidence.
+
 ## M79.3 Codex Run Token Usage Capture
 
 Status: In progress locally on `main`.

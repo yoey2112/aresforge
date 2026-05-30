@@ -1,5 +1,35 @@
 # Local Operator Usage
 
+## M80 LLM Decision Matrix v2
+
+Inspect the advisory routing decision for one queue item:
+
+    python -m aresforge inspect-llm-decision-matrix --item-id m80-llm-decision-matrix-v2 --format json
+
+Use workflow preparation to generate a Prompt Builder artifact that includes the M80 decision payload:
+
+    python -m aresforge prepare-queue-item-dispatch --item-id m80-llm-decision-matrix-v2 --target codex --format json
+
+Payload highlights:
+
+- `work_mode`
+- `task_sizing`
+- `risk_classification`
+- `engine_recommendation`
+- `lane_recommendation`
+- `model_profile_selection`
+- `validation_burden`
+- `safety_gating`
+- `routing_decision`
+
+Operator rules:
+
+- treat the decision matrix as advisory metadata only
+- do not treat a Codex recommendation as dispatch approval
+- use the M78 `approve-codex-dispatch` and `run-codex-dispatch` commands separately when Codex dispatch is intentionally approved
+- do not invoke a local LLM from decision matrix inspection
+- do not complete a queue item until review and validation evidence are captured
+
 ## M79.3 Codex Run Token Usage Capture
 
 After a Codex dispatch run, inspect token usage metadata:

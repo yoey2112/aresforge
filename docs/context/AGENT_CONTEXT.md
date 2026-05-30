@@ -1,5 +1,27 @@
 # AresForge Agent Context
 
+## M80 LLM Decision Matrix v2 Context
+
+Status: In progress locally on `main`.
+
+Current decision matrix scope:
+
+- `inspect-llm-decision-matrix` inspects one local queue item and returns advisory routing decisions.
+- The payload covers work mode, local LLM vs Codex engine recommendation, agent lane, model/profile selection source, task size, risk classification, validation burden, safety gates, and blocked execution flags.
+- Prompt Builder artifacts and `prepare-queue-item-dispatch` payloads include the decision matrix as review metadata.
+
+Boundaries preserved:
+
+- Prompt Builder output remains artifact-only and non-executing
+- decision matrix inspection does not call Codex, invoke local LLMs, dispatch prompts, mutate source files, mutate queue state, complete queue items, or start next items
+- Codex recommendations still require the separate M78 approval and runner path
+- local LLM recommendations remain advisory-only and non-mutating
+- no GitHub API, `gh`, issues, PRs, workflows, external workflow execution, or GitHub mutation
+
+Recommended next milestone:
+
+- M81 Local LLM Advisory/Coding Lane Prototype after M80 review, validation, and queue evidence.
+
 ## M79.3 Codex Run Token Usage Capture Context
 
 Status: In progress locally on `main`.

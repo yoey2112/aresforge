@@ -12,8 +12,9 @@ from aresforge.operator.local_project_queue import (
     inspect_local_queue_item_readiness,
     resolve_project_queue_path,
 )
+from aresforge.operator.llm_decision_matrix import build_llm_decision_matrix
 
-PROMPT_BUILDER_VERSION = "m78.5.1"
+PROMPT_BUILDER_VERSION = "m80.1"
 PROMPT_ARTIFACT_DIR_RELATIVE = DISPATCH_ROOT_RELATIVE / "prompts"
 
 SOURCE_OF_TRUTH_READING = (
@@ -23,6 +24,7 @@ SOURCE_OF_TRUTH_READING = (
     "docs/architecture/RUNNABLE_SKELETON.md",
     "docs/operator/LOCAL_OPERATOR_USAGE.md",
     "docs/architecture/CODEX_CLI_MODEL_PROFILE_CONTRACT.md",
+    "src/aresforge/operator/llm_decision_matrix.py",
     "src/aresforge/operator/local_project_queue.py",
     "src/aresforge/operator/codex_dispatch_contract.py",
     "src/aresforge/operator/codex_dispatch_runner.py",
@@ -39,6 +41,7 @@ VALIDATION_COMMANDS = (
 )
 
 SMOKE_CHECKS = (
+    "python -m aresforge inspect-llm-decision-matrix --item-id m80-llm-decision-matrix-v2 --format json",
     "python -m aresforge prepare-queue-item-dispatch --item-id m79-queue-blocking-and-sequencing-enforcement --target codex --format json",
     "python -m aresforge inspect-project-queue --project-id aresforge --format json",
     "python -m aresforge inspect-local-queue-agent-summary",
@@ -105,6 +108,13 @@ def build_prompt_builder_agent_contract(
         warnings.extend(str(warning) for warning in readiness.get("warnings", []) if str(warning).strip())
 
     source_context = _source_context(config.repo_root, item=item, readiness=readiness)
+    decision_matrix = build_llm_decision_matrix(
+        config,
+        item_id=normalized_item_id,
+        queue_path=resolved_queue_path,
+        registry_path=registry_path,
+    )
+    warnings.extend(str(warning) for warning in decision_matrix.get("warnings", []) if str(warning).strip())
     guidance = _target_guidance(normalized_target, item)
     prompt_text = _render_prompt_artifact(
         repo_root=config.repo_root,
@@ -112,6 +122,7 @@ def build_prompt_builder_agent_contract(
         readiness=readiness,
         target=normalized_target,
         source_context=source_context,
+        decision_matrix=decision_matrix,
         guidance=guidance,
     )
 
@@ -135,6 +146,7 @@ def build_prompt_builder_agent_contract(
         "prompt_artifact_path": str(prompt_path),
         "prompt_preview": prompt_text[:2400],
         "source_context": source_context,
+        "llm_decision_matrix": decision_matrix,
         "safety_boundaries": list(SAFETY_BOUNDARIES),
         "validation_plan": list(VALIDATION_COMMANDS),
         "smoke_checks": list(SMOKE_CHECKS),
@@ -147,6 +159,7 @@ def build_prompt_builder_agent_contract(
             "Prompt Builder Agent is artifact-only.",
             "No prompt execution was performed.",
             "No Codex, local LLM, GitHub, gh, issue, PR, workflow, or external service was invoked.",
+            "M80 decision matrix output was embedded as advisory metadata only.",
             "No queue item was started, completed, or advanced by Prompt Builder.",
         ],
     }
@@ -266,10 +279,16 @@ def _render_prompt_artifact(
     readiness: dict[str, Any],
     target: str,
     source_context: dict[str, Any],
+    decision_matrix: dict[str, Any],
     guidance: dict[str, str],
 ) -> str:
     queue_item = source_context["queue_item"]
     routing = source_context["routing_metadata"]
+    decision = decision_matrix.get("routing_decision", {}) if isinstance(decision_matrix.get("routing_decision"), dict) else {}
+    sizing = decision_matrix.get("task_sizing", {}) if isinstance(decision_matrix.get("task_sizing"), dict) else {}
+    risk = decision_matrix.get("risk_classification", {}) if isinstance(decision_matrix.get("risk_classification"), dict) else {}
+    validation = decision_matrix.get("validation_burden", {}) if isinstance(decision_matrix.get("validation_burden"), dict) else {}
+    safety_gating = decision_matrix.get("safety_gating", {}) if isinstance(decision_matrix.get("safety_gating"), dict) else {}
     lines = [
         "AresForge Prompt Builder Agent Artifact",
         "",
@@ -324,6 +343,19 @@ def _render_prompt_artifact(
             "- Add or update only the files needed for this queue item.",
             "- Preserve M77/M78 dispatch gates and M62 local LLM safety posture.",
             "- Keep generated prompt bodies copy/paste-safe and avoid nested markdown fences.",
+            "",
+            "M80 advisory decision matrix",
+            f"- recommended_engine: {decision.get('recommended_engine') or guidance['target_engine']}",
+            f"- recommended_lane: {decision.get('recommended_lane') or guidance['target_lane']}",
+            f"- recommended_model: {decision.get('recommended_model') or '-'}",
+            f"- fallback_engine: {decision.get('fallback_engine') or '-'}",
+            f"- task_size: {sizing.get('task_size') or 'unknown'}",
+            f"- risk_level: {risk.get('risk_level') or routing['risk_level'] or 'unknown'}",
+            f"- validation_burden: {validation.get('validation_burden') or 'unknown'}",
+            f"- codex_operator_approval_required: {str(bool(safety_gating.get('codex_operator_approval_required'))).lower()}",
+            f"- local_llm_repo_mutation_allowed: {str(bool(safety_gating.get('local_llm_repo_mutation_allowed'))).lower()}",
+            "- decision_matrix_execution_allowed: false",
+            "- decision_matrix_note: Advisory only; no model or dispatch invocation is authorized by this section.",
             "",
             "Implementation guidance",
             f"- risk_level: {routing['risk_level'] or 'unknown'}",

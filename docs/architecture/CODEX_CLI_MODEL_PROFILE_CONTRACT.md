@@ -2,6 +2,8 @@
 
 ## Status
 
+M80 adds LLM Decision Matrix v2 as advisory routing logic. `inspect-llm-decision-matrix` classifies one local queue item for local LLM vs Codex, coding vs reasoning, model/profile selection, task size, risk, validation burden, and safety gating. Prompt Builder and workflow preparation payloads include this decision matrix for operator review. The matrix does not execute prompts, call Codex, invoke local LLMs, mutate queue or source files, complete work, or start the next item. Codex recommendations still require the separate M78 approval and runner gates.
+
 M79.3 adds token usage capture for operator-gated Codex dispatch runs. The runner parses the captured CLI transcript footer `tokens used` followed by a numeric line, including comma-separated totals such as `221,534`, and stores the result in `run_state.json` as `token_usage`. `inspect-codex-dispatch-run` returns this metadata and remains compatible with older run states that predate the field by reporting unavailable token usage with a clear extraction error. This is accounting metadata only and does not complete queue items, dispatch the next item, call GitHub, call `gh`, or expand local LLM execution.
 
 M79.1 hardens the M78 Codex dispatch runner for Windows operator workflows. Run-state JSON reads tolerate UTF-8 BOMs, subprocess stdout/stderr are captured as bytes and decoded with UTF-8-sig plus replacement handling, and the full reviewed prompt artifact is sent to the subprocess over UTF-8 stdin so multi-line prompt bodies are preserved. The run state records prompt handoff and output decoding metadata. Dispatch remains local-only, operator-gated, one item at a time, and unable to complete queue items or run the next item automatically. Windows Codex sandbox limitations may still require an operator to commit and push manually when `.git` writes are blocked.
@@ -64,6 +66,7 @@ Reading defaults does not write this file. Updating the contract writes the file
 Command:
 
 - `python -m aresforge prepare-queue-item-dispatch --item-id <item_id> --target codex --format json`
+- `python -m aresforge inspect-llm-decision-matrix --item-id <item_id> --format json`
 
 Stable preparation fields include:
 
@@ -98,6 +101,7 @@ Prompt Builder fields include:
 - `validation_plan`
 - `smoke_checks`
 - `final_response_requirements`
+- `llm_decision_matrix`
 
 M78.5 invariants:
 

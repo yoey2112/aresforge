@@ -3,6 +3,7 @@ from pathlib import Path
 
 from aresforge.config import AppConfig
 from aresforge.operator.local_project_queue import add_queue_item, init_project_queue
+from aresforge.operator.llm_decision_matrix import build_llm_decision_matrix
 from aresforge.operator.managed_project_registry_local import (
     init_managed_project_registry,
     register_managed_project,
@@ -85,7 +86,9 @@ def test_prompt_builder_produces_stable_artifact_only_payload(tmp_path: Path) ->
     assert payload["target"] == "codex"
     assert payload["target_engine"] == "codex_cli"
     assert payload["target_lane"] == "high_value_codex"
-    assert payload["prompt_builder_version"].startswith("m78.5")
+    assert payload["prompt_builder_version"].startswith("m80")
+    assert payload["llm_decision_matrix"]["decision_matrix_version"].startswith("m80")
+    assert payload["llm_decision_matrix"]["execution_allowed"] is False
     assert Path(payload["prompt_artifact_path"]).exists()
     assert "Task" in payload["prompt_preview"]
     assert "Hard boundaries" in payload["prompt_preview"]
@@ -107,6 +110,7 @@ def test_prompt_builder_includes_safety_validation_smoke_and_final_requirements(
     assert "Prompt Builder must not invoke local LLMs." in payload["safety_boundaries"]
     assert "Prompt Builder must not mutate source files." in payload["safety_boundaries"]
     assert any("pytest" in command for command in payload["validation_plan"])
+    assert any("inspect-llm-decision-matrix" in command for command in payload["smoke_checks"])
     assert any("prepare-queue-item-dispatch" in command for command in payload["smoke_checks"])
     assert "Files changed." in payload["final_response_requirements"]
     assert "docs/context/AGENT_CONTEXT.md" in rendered
@@ -128,6 +132,7 @@ def test_prompt_builder_does_not_mutate_queue_status_or_create_run_state(tmp_pat
     assert before == after
     assert not (tmp_path / ".aresforge" / "codex_dispatch" / "runs").exists()
     assert any("No prompt execution was performed." == entry for entry in payload["boundary_confirmations"])
+    assert any("M80 decision matrix output was embedded" in entry for entry in payload["boundary_confirmations"])
 
 
 def test_prompt_builder_blocks_missing_item_safely(tmp_path: Path) -> None:
@@ -141,6 +146,27 @@ def test_prompt_builder_blocks_missing_item_safely(tmp_path: Path) -> None:
     assert payload["artifact_only"] is True
     assert any("Queue item not found" in blocker for blocker in payload["blockers"])
     assert "Resolve blockers" in payload["next_safe_action"]
+
+
+def test_llm_decision_matrix_preserves_advisory_routing_and_safety_gates(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_item(config, tmp_path)
+
+    payload = build_llm_decision_matrix(
+        config,
+        item_id="m78-5-operator-workflow-compression-prompt-builder-contract",
+    )
+
+    assert payload["ok"] is True
+    assert payload["local_only"] is True
+    assert payload["advisory_only"] is True
+    assert payload["execution_allowed"] is False
+    assert payload["prompt_dispatch_allowed"] is False
+    assert payload["local_llm_invocation_allowed"] is False
+    assert payload["automatic_next_item_execution_allowed"] is False
+    assert payload["routing_decision"]["routing_policy_source"] == "m80_llm_decision_matrix_v2"
+    assert payload["validation_burden"]["review_evidence_required"] is True
+    assert payload["safety_gating"]["queue_completion_requires_review_and_validation"] is True
 
 
 def test_docs_mention_m78_5_prompt_builder_no_execute_boundaries() -> None:

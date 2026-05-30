@@ -57,6 +57,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-codex-dispatch-contract",
         "prepare-codex-dispatch-dry-run",
         "prepare-queue-item-dispatch",
+        "inspect-llm-decision-matrix",
         "run-single-ready-codex-queue-item",
         "approve-codex-dispatch",
         "run-codex-dispatch",
@@ -4933,6 +4934,44 @@ def test_prepare_queue_item_dispatch_dispatch_json(
     assert seen["target"] == "codex"
     assert seen["start_if_ready"] is True
     assert seen["force"] is True
+
+
+def test_inspect_llm_decision_matrix_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "ok": True,
+                "advisory_only": True,
+                "item_id": "m80",
+                "execution_allowed": False,
+                "automatic_next_item_execution_allowed": False,
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_inspect(_config, item_id, queue_path=None, registry_path=None, output_format="json"):
+        seen["item_id"] = item_id
+        seen["output_format"] = output_format
+        return payload
+
+    monkeypatch.setattr(cli, "inspect_llm_decision_matrix", fake_inspect)
+    exit_code = cli.main(["inspect-llm-decision-matrix", "--item-id", "m80", "--format", "json"])
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["advisory_only"] is True
+    assert parsed["execution_allowed"] is False
+    assert parsed["automatic_next_item_execution_allowed"] is False
+    assert seen["item_id"] == "m80"
+    assert seen["output_format"] == "json"
 
 
 def test_run_single_ready_codex_queue_item_dispatch_json(

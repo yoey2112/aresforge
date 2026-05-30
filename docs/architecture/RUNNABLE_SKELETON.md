@@ -1,5 +1,29 @@
 # Runnable Skeleton
 
+## M80 LLM Decision Matrix v2
+
+M80 adds an advisory decision matrix inspection path:
+
+- `python -m aresforge inspect-llm-decision-matrix --item-id <item_id> --format json`
+- `python -m aresforge prepare-queue-item-dispatch --item-id <item_id> --target codex --format json`
+
+Runnable behavior:
+
+- inspects one local queue item
+- classifies work mode, task size, risk, validation burden, engine/lane recommendation, and model/profile source
+- returns safety gating fields that keep prompt dispatch, Codex dispatch, local LLM invocation, queue mutation, and next-item execution disabled
+- Prompt Builder artifacts include an M80 advisory decision section
+- workflow preparation payloads include `llm_decision_matrix`
+
+Still absent by design:
+
+- automatic prompt dispatch
+- Codex execution from the decision matrix
+- local LLM invocation from the decision matrix
+- automatic queue completion
+- automatic next-item execution
+- GitHub API, `gh`, issues, PRs, workflows, or external workflow execution
+
 ## M79.3 Codex Run Token Usage Capture
 
 M79.3 adds token usage accounting to local Codex dispatch run state:
