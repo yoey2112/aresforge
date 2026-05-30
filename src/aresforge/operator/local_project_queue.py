@@ -190,6 +190,17 @@ _STARTABLE_QUEUE_STATUSES: frozenset[str] = frozenset({'proposed', 'ready'})
 _COMPLETABLE_QUEUE_STATUSES: frozenset[str] = frozenset({'in_progress'})
 _RESOLVED_DEPENDENCY_STATUSES: frozenset[str] = frozenset({'done'})
 _BLOCKED_QUEUE_STATUSES: frozenset[str] = frozenset({'blocked'})
+_CODEX_DISPATCH_RUNS_RELATIVE = Path('.aresforge') / 'codex_dispatch' / 'runs'
+_CODEX_DISPATCH_RUN_STATE_FILE_NAME = 'run_state.json'
+_BLOCKING_DISPATCH_STATES: frozenset[str] = frozenset(
+    {
+        'awaiting_operator_approval',
+        'approved_pending_dispatch',
+        'running',
+        'review_required',
+    }
+)
+_DISPATCH_STATES_REQUIRING_REVIEW_EVIDENCE: frozenset[str] = frozenset({'completed', 'failed'})
 
 _SLUG_NON_ALNUM_RE = re.compile(r'[^a-z0-9]+')
 
@@ -1812,6 +1823,8 @@ def complete_local_queue_item(
         warnings.append('commit_hash is required to complete a local queue item.')
     if not normalized_validation_summary:
         warnings.append('validation_summary is required to complete a local queue item.')
+    if not str(evidence_note or '').strip():
+        warnings.append('review evidence is required to complete a local queue item.')
     if previous_status == 'done':
         warnings.append('Queue item is already done.')
     elif previous_status == 'cancelled':
@@ -1879,6 +1892,7 @@ def capture_local_queue_completion_evidence(
     files_changed: list[str] | None = None,
     commit_hash: str | None = None,
     push_result: str | None = None,
+    review_evidence: list[str] | None = None,
     operator_notes: str | None = None,
     queue_path: str | Path | None = None,
 ) -> dict[str, Any]:
@@ -1924,6 +1938,7 @@ def capture_local_queue_completion_evidence(
         'files_changed': _normalize_list(files_changed or []),
         'commit_hash': str(commit_hash or '').strip(),
         'push_result': str(push_result or '').strip(),
+        'review_evidence': _normalize_list(review_evidence or []),
         'operator_notes': str(operator_notes or '').strip(),
     }
     if not _completion_evidence_has_meaningful_content(normalized_evidence):
@@ -1935,7 +1950,7 @@ def capture_local_queue_completion_evidence(
             'status': str(raw_item.get('status', '')).strip(),
             'completion_evidence': {},
             'closeout_eligible': False,
-            'next_safe_action': 'Add evidence summary, validation results, smoke checks, diff check, files changed, commit hash, push result, or operator notes before retrying.',
+            'next_safe_action': 'Add evidence summary, validation results, smoke checks, diff check, files changed, commit hash, push result, review evidence, or operator notes before retrying.',
             'warnings': ['At least one meaningful evidence field is required.'],
             'boundary_confirmations': list(_QUEUE_ITEM_EVIDENCE_BOUNDARY_CONFIRMATIONS),
         }
@@ -2027,7 +2042,7 @@ def close_local_queue_item(
     if not isinstance(evidence, dict) or not evidence:
         warnings.append('Completion evidence is required before local closeout.')
     elif not _completion_evidence_has_required_closeout_fields(evidence):
-        warnings.append('Completion evidence must include evidence_summary, validation_results, and diff_check_result before closeout.')
+        warnings.append('Completion evidence must include evidence_summary, validation_results, diff_check_result, and review_evidence before closeout.')
     if not normalized_summary:
         warnings.append('closeout_summary is required for local closeout.')
 
@@ -3180,7 +3195,7 @@ def _evaluate_local_queue_item_readiness(
     blockers: list[str] = []
     warnings: list[str] = []
     missing_fields = _missing_queue_item_fields(item)
-    dependency_summary = _dependency_readiness_summary(item, items)
+    dependency_summary = _dependency_readiness_summary(item, items, repo_root=repo_root)
 
     status = str(item.get('status', '')).strip()
     project_id = str(item.get('project_id', '')).strip()
@@ -3278,6 +3293,7 @@ def _completion_evidence_has_meaningful_content(evidence: dict[str, Any]) -> boo
         'validation_results',
         'smoke_checks',
         'files_changed',
+        'review_evidence',
     ):
         values = evidence.get(field_name, [])
         if isinstance(values, list) and any(str(value).strip() for value in values):
@@ -3297,11 +3313,14 @@ def _completion_evidence_has_required_closeout_fields(evidence: dict[str, Any]) 
     evidence_summary = str(evidence.get('evidence_summary', '')).strip()
     validation_results = evidence.get('validation_results', [])
     diff_check_result = str(evidence.get('diff_check_result', '')).strip()
+    review_evidence = evidence.get('review_evidence', [])
     return bool(
         evidence_summary
         and isinstance(validation_results, list)
         and any(str(value).strip() for value in validation_results)
         and diff_check_result
+        and isinstance(review_evidence, list)
+        and any(str(value).strip() for value in review_evidence)
     )
 
 
@@ -3410,16 +3429,18 @@ def _empty_dependency_summary() -> dict[str, Any]:
         'unresolved_dependencies': [],
         'total_blocked_by': 0,
         'unresolved_blockers': [],
+        'dispatch_run_blockers': [],
     }
 
 
-def _dependency_readiness_summary(item: dict[str, Any], items: list[dict[str, Any]]) -> dict[str, Any]:
+def _dependency_readiness_summary(item: dict[str, Any], items: list[dict[str, Any]], *, repo_root: Path) -> dict[str, Any]:
     by_id = {str(candidate.get('item_id', '')).strip(): candidate for candidate in items if str(candidate.get('item_id', '')).strip()}
     dependencies = _normalize_list(item.get('dependencies', []) if isinstance(item.get('dependencies'), list) else [])
     blocked_by = _normalize_list(item.get('blocked_by', []) if isinstance(item.get('blocked_by'), list) else [])
     resolved_dependencies: list[str] = []
     unresolved_dependencies: list[dict[str, str]] = []
     unresolved_blockers: list[dict[str, str]] = []
+    dispatch_run_blockers: list[dict[str, str]] = []
     blockers: list[str] = []
     warnings: list[str] = []
 
@@ -3432,18 +3453,30 @@ def _dependency_readiness_summary(item: dict[str, Any], items: list[dict[str, An
             blockers.append(f'Dependency item not found in local queue: {dependency_id}')
             continue
         dependency_status = str(dependency_item.get('status', '')).strip()
-        if dependency_status in _RESOLVED_DEPENDENCY_STATUSES:
+        dependency_resolution = _dependency_completion_resolution(
+            repo_root=repo_root,
+            item_id=dependency_id,
+            dependency_item=dependency_item,
+        )
+        dispatch_run_blockers.extend(dependency_resolution['dispatch_run_blockers'])
+        if dependency_status in _RESOLVED_DEPENDENCY_STATUSES and dependency_resolution['resolved']:
             resolved_dependencies.append(dependency_id)
             continue
         reason = 'dependency_incomplete'
         if dependency_status in _BLOCKED_QUEUE_STATUSES:
             reason = 'dependency_blocked'
+        elif dependency_status in _RESOLVED_DEPENDENCY_STATUSES:
+            reason = dependency_resolution['reason']
         unresolved_dependencies.append(
             {'item_id': dependency_id, 'status': dependency_status or 'unknown', 'reason': reason}
         )
-        blockers.append(
-            f'Dependency must be done before start: {dependency_id} (status={dependency_status or "unknown"})'
-        )
+        if dependency_status in _RESOLVED_DEPENDENCY_STATUSES:
+            blockers.append(f'Dependency completion evidence is incomplete: {dependency_id} ({reason})')
+        else:
+            blockers.append(
+                f'Dependency must be done before start: {dependency_id} (status={dependency_status or "unknown"})'
+            )
+        blockers.extend(dependency_resolution['blockers'])
 
     for blocker_id in blocked_by:
         blocker_item = by_id.get(blocker_id)
@@ -3454,14 +3487,27 @@ def _dependency_readiness_summary(item: dict[str, Any], items: list[dict[str, An
             blockers.append(f'Blocked-by item not found in local queue: {blocker_id}')
             continue
         blocker_status = str(blocker_item.get('status', '')).strip()
-        if blocker_status in _RESOLVED_DEPENDENCY_STATUSES:
+        blocker_resolution = _dependency_completion_resolution(
+            repo_root=repo_root,
+            item_id=blocker_id,
+            dependency_item=blocker_item,
+        )
+        dispatch_run_blockers.extend(blocker_resolution['dispatch_run_blockers'])
+        if blocker_status in _RESOLVED_DEPENDENCY_STATUSES and blocker_resolution['resolved']:
             continue
+        reason = 'blocker_not_resolved'
+        if blocker_status in _RESOLVED_DEPENDENCY_STATUSES:
+            reason = blocker_resolution['reason']
         unresolved_blockers.append(
-            {'item_id': blocker_id, 'status': blocker_status or 'unknown', 'reason': 'blocker_not_resolved'}
+            {'item_id': blocker_id, 'status': blocker_status or 'unknown', 'reason': reason}
         )
-        blockers.append(
-            f'Blocked-by item must be resolved before start: {blocker_id} (status={blocker_status or "unknown"})'
-        )
+        if blocker_status in _RESOLVED_DEPENDENCY_STATUSES:
+            blockers.append(f'Blocked-by completion evidence is incomplete: {blocker_id} ({reason})')
+        else:
+            blockers.append(
+                f'Blocked-by item must be resolved before start: {blocker_id} (status={blocker_status or "unknown"})'
+            )
+        blockers.extend(blocker_resolution['blockers'])
 
     if dependencies and not unresolved_dependencies:
         warnings.append('Dependencies are present and currently resolved.')
@@ -3473,10 +3519,120 @@ def _dependency_readiness_summary(item: dict[str, Any], items: list[dict[str, An
             'unresolved_dependencies': unresolved_dependencies,
             'total_blocked_by': len(blocked_by),
             'unresolved_blockers': unresolved_blockers,
+            'dispatch_run_blockers': dispatch_run_blockers,
         },
         'blockers': blockers,
         'warnings': warnings,
     }
+
+
+def _dependency_completion_resolution(
+    *,
+    repo_root: Path,
+    item_id: str,
+    dependency_item: dict[str, Any],
+) -> dict[str, Any]:
+    status = str(dependency_item.get('status', '')).strip()
+    dispatch_summary = _dispatch_run_blocking_summary(repo_root=repo_root, item_id=item_id)
+    if status not in _RESOLVED_DEPENDENCY_STATUSES:
+        return {
+            'resolved': False,
+            'reason': 'dependency_not_done',
+            'blockers': dispatch_summary['blockers'],
+            'dispatch_run_blockers': dispatch_summary['blocking_runs'],
+        }
+    if dispatch_summary['blocking_runs']:
+        return {
+            'resolved': False,
+            'reason': 'dispatch_run_state_unreviewed_or_incomplete',
+            'blockers': dispatch_summary['blockers'],
+            'dispatch_run_blockers': dispatch_summary['blocking_runs'],
+        }
+    if not _queue_item_has_required_completion_evidence(dependency_item):
+        return {
+            'resolved': False,
+            'reason': 'required_completion_review_validation_or_queue_evidence_missing',
+            'blockers': [],
+            'dispatch_run_blockers': [],
+        }
+    return {
+        'resolved': True,
+        'reason': 'resolved',
+        'blockers': [],
+        'dispatch_run_blockers': [],
+    }
+
+
+def _dispatch_run_blocking_summary(*, repo_root: Path, item_id: str) -> dict[str, Any]:
+    blocking_runs: list[dict[str, str]] = []
+    blockers: list[str] = []
+    runs_root = (repo_root / _CODEX_DISPATCH_RUNS_RELATIVE).resolve()
+    if not runs_root.exists():
+        return {'blocking_runs': blocking_runs, 'blockers': blockers}
+    for path in sorted(runs_root.glob(f'*/{_CODEX_DISPATCH_RUN_STATE_FILE_NAME}')):
+        try:
+            raw = json.loads(path.read_text(encoding='utf-8'))
+        except (OSError, json.JSONDecodeError) as exc:
+            blocking_runs.append(
+                {
+                    'run_id': path.parent.name,
+                    'item_id': item_id,
+                    'dispatch_state': 'unknown',
+                    'reason': 'run_state_unreadable',
+                }
+            )
+            blockers.append(f'Dependency dispatch run state could not be inspected for {item_id}: {exc}')
+            continue
+        if not isinstance(raw, dict) or str(raw.get('item_id', '')).strip() != item_id:
+            continue
+        dispatch_state = str(raw.get('dispatch_state', '')).strip()
+        run_id = str(raw.get('run_id', path.parent.name)).strip() or path.parent.name
+        reason = ''
+        if dispatch_state in _BLOCKING_DISPATCH_STATES:
+            reason = f'dispatch_state_{dispatch_state}'
+        elif dispatch_state in _DISPATCH_STATES_REQUIRING_REVIEW_EVIDENCE and not _dispatch_run_has_review_and_validation_evidence(raw):
+            reason = f'dispatch_state_{dispatch_state}_missing_review_or_validation_evidence'
+        if reason:
+            blocking_runs.append(
+                {
+                    'run_id': run_id,
+                    'item_id': item_id,
+                    'dispatch_state': dispatch_state or 'unknown',
+                    'reason': reason,
+                }
+            )
+            blockers.append(f'Dependency dispatch run blocks sequencing: {item_id}/{run_id} ({reason})')
+    return {'blocking_runs': blocking_runs, 'blockers': blockers}
+
+
+def _dispatch_run_has_review_and_validation_evidence(run_state: dict[str, Any]) -> bool:
+    review_evidence = run_state.get('review_evidence', [])
+    validation_evidence = run_state.get('validation_evidence', [])
+    return (
+        isinstance(review_evidence, list)
+        and any(str(value).strip() for value in review_evidence)
+        and isinstance(validation_evidence, list)
+        and any(str(value).strip() for value in validation_evidence)
+    )
+
+
+def _queue_item_has_required_completion_evidence(item: dict[str, Any]) -> bool:
+    closeout_history = item.get('closeout_history', [])
+    if isinstance(closeout_history, list) and closeout_history:
+        latest = closeout_history[-1]
+        if isinstance(latest, dict):
+            evidence = latest.get('completion_evidence', {})
+            if isinstance(evidence, dict) and _completion_evidence_has_required_closeout_fields(evidence):
+                return bool(str(latest.get('closed_at', '')).strip() and str(latest.get('closeout_summary', '')).strip())
+    evidence = item.get('completion_evidence', {})
+    if isinstance(evidence, dict) and _completion_evidence_has_required_closeout_fields(evidence):
+        return bool(str(item.get('closed_at', '')).strip() or str(evidence.get('captured_at', '')).strip())
+    return bool(
+        str(item.get('completed_at', '')).strip()
+        and str(item.get('completion_commit', '')).strip()
+        and str(item.get('validation_summary', '')).strip()
+        and str(item.get('evidence_note', '')).strip()
+    )
 
 
 def _inspect_registry_binding_readiness(

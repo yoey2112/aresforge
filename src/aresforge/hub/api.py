@@ -3460,7 +3460,7 @@ def post_local_queue_item_complete(config: AppConfig, item_id: str, body: dict[s
 
 
 def post_local_queue_item_evidence(config: AppConfig, item_id: str, body: dict[str, Any]) -> dict[str, Any]:
-    for field in ("validation_commands", "validation_results", "smoke_checks", "files_changed"):
+    for field in ("validation_commands", "validation_results", "smoke_checks", "files_changed", "review_evidence"):
         valid, error_payload = _require_list_field(body, field)
         if not valid:
             return error_payload or _api_error(f"invalid_{field}", f"{field} must be a list of strings.")
@@ -3477,6 +3477,7 @@ def post_local_queue_item_evidence(config: AppConfig, item_id: str, body: dict[s
             files_changed=_normalize_optional_list(body.get("files_changed")),
             commit_hash=_normalize_optional_str(body.get("commit_hash")),
             push_result=_normalize_optional_str(body.get("push_result")),
+            review_evidence=_normalize_optional_list(body.get("review_evidence")),
             operator_notes=_normalize_optional_str(body.get("operator_notes")),
             queue_path=_normalize_optional_str(body.get("queue_path")),
         )

@@ -296,6 +296,7 @@ def test_read_local_project_reports_returns_reports_v1_with_progress_and_evidenc
         evidence_summary="Validation passed for Reports v1.",
         validation_results=["pytest -> passed"],
         diff_check_result="git diff --check -> pass",
+        review_evidence=["Operator reviewed report validation evidence."],
     )["ok"]
 
     payload = read_local_project_reports(config)

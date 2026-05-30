@@ -276,11 +276,14 @@ def _report_item_closeout_eligible(item: dict[str, Any]) -> bool:
     if not isinstance(evidence, dict):
         return False
     validation_results = evidence.get("validation_results", [])
+    review_evidence = evidence.get("review_evidence", [])
     return bool(
         str(evidence.get("evidence_summary", "")).strip()
         and isinstance(validation_results, list)
         and any(str(value).strip() for value in validation_results)
         and str(evidence.get("diff_check_result", "")).strip()
+        and isinstance(review_evidence, list)
+        and any(str(value).strip() for value in review_evidence)
     )
 
 

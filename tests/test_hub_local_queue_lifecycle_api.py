@@ -11,6 +11,7 @@ from aresforge.hub.server import _build_handler
 from aresforge.hub.api import post_active_project, post_project, post_project_repo, post_queue_item
 from aresforge.operator.local_ai_artifacts import register_ai_artifact
 from aresforge.operator.local_execution_audit import append_execution_audit_entry
+from aresforge.operator.local_project_queue import complete_local_queue_item
 
 
 def _config(tmp_path: Path) -> AppConfig:
@@ -381,10 +382,17 @@ def test_get_local_queue_item_readiness_route_returns_ready_payload(tmp_path: Pa
     _seed_queue_item(
         config,
         item_id="dep-done",
-        status="done",
+        status="in_progress",
         title="Done dependency",
         description="Already complete.",
     )
+    assert complete_local_queue_item(
+        config,
+        item_id="dep-done",
+        commit_hash="abc123def",
+        validation_summary="Dependency validation passed.",
+        evidence_note="Operator reviewed dependency evidence.",
+    )["ok"] is True
     _seed_queue_item(
         config,
         item_id="ready-item",
@@ -901,6 +909,7 @@ def test_post_local_queue_item_evidence_route_records_without_completing(tmp_pat
                 "files_changed": ["src/aresforge/hub/api.py"],
                 "commit_hash": "abc123def",
                 "push_result": "not pushed yet",
+                "review_evidence": ["Operator reviewed Hub evidence route output."],
                 "operator_notes": "Ready for closeout review.",
             },
         )
@@ -992,6 +1001,7 @@ def test_post_local_queue_item_closeout_route_closes_with_evidence(tmp_path: Pat
                 "evidence_summary": "Hub route evidence captured.",
                 "validation_results": ["targeted tests passed"],
                 "diff_check_result": "git diff --check -> pass",
+                "review_evidence": ["Operator reviewed closeout route evidence."],
             },
         )
         assert evidence_status == 200

@@ -91,6 +91,35 @@ def _write_local_llm_environment(repo_root: Path, *, reasoning_model: str = 'loc
     return path
 
 
+def _write_codex_run_state(
+    repo_root: Path,
+    *,
+    item_id: str,
+    run_id: str,
+    dispatch_state: str,
+    review_evidence: list[str] | None = None,
+    validation_evidence: list[str] | None = None,
+) -> Path:
+    run_dir = repo_root / '.aresforge' / 'codex_dispatch' / 'runs' / run_id
+    run_dir.mkdir(parents=True, exist_ok=True)
+    path = run_dir / 'run_state.json'
+    path.write_text(
+        json.dumps(
+            {
+                'run_id': run_id,
+                'item_id': item_id,
+                'dispatch_state': dispatch_state,
+                'review_evidence': review_evidence or [],
+                'validation_evidence': validation_evidence or [],
+            },
+            indent=2,
+        )
+        + '\n',
+        encoding='utf-8',
+    )
+    return path
+
+
 def _seed_preview_item(config: AppConfig, *, item_id: str, engine: str, model: str = '') -> None:
     assert init_project_queue(config)['ok'] is True
     assert add_queue_item(
@@ -1718,7 +1747,14 @@ def test_inspect_local_queue_item_readiness_ready_item(tmp_path: Path) -> None:
         repo_id='repo-main',
         title='Done dependency',
         description='Already complete.',
-        status='done',
+        status='in_progress',
+    )['ok'] is True
+    assert complete_local_queue_item(
+        config,
+        item_id='dep-done',
+        commit_hash='abc123def',
+        validation_summary='Dependency validation passed.',
+        evidence_note='Operator reviewed dependency evidence.',
     )['ok'] is True
     assert add_queue_item(
         config,
@@ -1832,6 +1868,200 @@ def test_inspect_local_queue_item_readiness_blocked_by_dependency(tmp_path: Path
     assert payload['readiness_status'] == 'blocked'
     assert payload['can_start'] is False
     assert payload['dependency_summary']['unresolved_dependencies'][0]['item_id'] == 'blocked-dependency'
+
+
+def test_downstream_readiness_blocks_on_active_upstream_dispatch_state(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='upstream-item',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Upstream item',
+        description='Upstream implementation.',
+        status='done',
+    )['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='downstream-item',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Downstream item',
+        description='Must wait for upstream dispatch.',
+        status='ready',
+        dependencies=['upstream-item'],
+    )['ok'] is True
+    _write_codex_run_state(
+        tmp_path,
+        item_id='upstream-item',
+        run_id='run-active',
+        dispatch_state='running',
+    )
+
+    payload = inspect_local_queue_item_readiness(config, item_id='downstream-item')
+    start_payload = start_local_queue_item(config, item_id='downstream-item')
+
+    assert payload['readiness_status'] == 'blocked'
+    assert payload['can_start'] is False
+    assert payload['dependency_summary']['unresolved_dependencies'][0]['reason'] == 'dispatch_run_state_unreviewed_or_incomplete'
+    assert payload['dependency_summary']['dispatch_run_blockers'][0]['dispatch_state'] == 'running'
+    assert start_payload['ok'] is False
+
+
+def test_downstream_readiness_blocks_on_review_required_upstream_dispatch_state(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='upstream-review',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Upstream review',
+        description='Upstream awaits review.',
+        status='done',
+    )['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='downstream-review',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Downstream review',
+        description='Must wait for review-required run.',
+        status='ready',
+        dependencies=['upstream-review'],
+    )['ok'] is True
+    _write_codex_run_state(
+        tmp_path,
+        item_id='upstream-review',
+        run_id='run-review-required',
+        dispatch_state='review_required',
+    )
+
+    payload = inspect_local_queue_item_readiness(config, item_id='downstream-review')
+
+    assert payload['readiness_status'] == 'blocked'
+    assert payload['can_start'] is False
+    assert payload['dependency_summary']['dispatch_run_blockers'][0]['reason'] == 'dispatch_state_review_required'
+
+
+def test_downstream_readiness_blocks_on_failed_upstream_dispatch_without_review_evidence(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='upstream-failed',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Upstream failed',
+        description='Failed run needs review.',
+        status='done',
+    )['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='downstream-failed',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Downstream failed',
+        description='Must wait for failed run review.',
+        status='ready',
+        dependencies=['upstream-failed'],
+    )['ok'] is True
+    _write_codex_run_state(
+        tmp_path,
+        item_id='upstream-failed',
+        run_id='run-failed',
+        dispatch_state='failed',
+        validation_evidence=['pytest -> failed as expected'],
+    )
+
+    payload = inspect_local_queue_item_readiness(config, item_id='downstream-failed')
+
+    assert payload['readiness_status'] == 'blocked'
+    assert payload['can_start'] is False
+    assert payload['dependency_summary']['dispatch_run_blockers'][0]['reason'] == 'dispatch_state_failed_missing_review_or_validation_evidence'
+
+
+def test_downstream_readiness_blocks_when_upstream_queue_completion_evidence_is_missing(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='upstream-no-evidence',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Upstream no evidence',
+        description='Done without evidence should not unblock downstream.',
+        status='done',
+    )['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='downstream-no-evidence',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Downstream no evidence',
+        description='Must wait for recorded queue evidence.',
+        status='ready',
+        dependencies=['upstream-no-evidence'],
+    )['ok'] is True
+
+    payload = inspect_local_queue_item_readiness(config, item_id='downstream-no-evidence')
+
+    assert payload['readiness_status'] == 'blocked'
+    assert payload['can_start'] is False
+    assert payload['dependency_summary']['unresolved_dependencies'][0]['reason'] == 'required_completion_review_validation_or_queue_evidence_missing'
+
+
+def test_downstream_becomes_startable_after_upstream_done_review_validation_and_evidence(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='upstream-ready',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Upstream ready',
+        description='Completed and reviewed.',
+        status='in_progress',
+    )['ok'] is True
+    assert capture_local_queue_completion_evidence(
+        config,
+        item_id='upstream-ready',
+        evidence_summary='Upstream implementation validated.',
+        validation_results=['pytest -> passed'],
+        diff_check_result='git diff --check -> pass',
+        review_evidence=['Operator reviewed upstream implementation and dispatch evidence.'],
+    )['ok'] is True
+    assert close_local_queue_item(
+        config,
+        item_id='upstream-ready',
+        closeout_summary='Upstream evidence reviewed and recorded.',
+    )['ok'] is True
+    _write_codex_run_state(
+        tmp_path,
+        item_id='upstream-ready',
+        run_id='run-completed-reviewed',
+        dispatch_state='completed',
+        review_evidence=['Operator reviewed dispatch output.'],
+        validation_evidence=['pytest -> passed'],
+    )
+    assert add_queue_item(
+        config,
+        item_id='downstream-ready',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Downstream ready',
+        description='Can start after upstream evidence is complete.',
+        status='ready',
+        dependencies=['upstream-ready'],
+    )['ok'] is True
+
+    payload = inspect_local_queue_item_readiness(config, item_id='downstream-ready')
+
+    assert payload['readiness_status'] == 'ready'
+    assert payload['can_start'] is True
+    assert payload['dependency_summary']['resolved_dependencies'] == ['upstream-ready']
+    assert payload['dependency_summary']['dispatch_run_blockers'] == []
 
 
 def test_inspect_local_queue_item_readiness_is_read_only(tmp_path: Path) -> None:
@@ -2258,6 +2488,7 @@ def test_complete_local_queue_item_cannot_complete_proposed_item(tmp_path: Path)
         item_id='proposed-item',
         commit_hash='abc123def',
         validation_summary='Targeted tests passed locally.',
+        evidence_note='Operator review completed.',
     )
 
     assert payload['ok'] is False
@@ -2283,6 +2514,7 @@ def test_complete_local_queue_item_requires_commit_hash(tmp_path: Path) -> None:
         item_id='complete-item',
         commit_hash='   ',
         validation_summary='Targeted tests passed locally.',
+        evidence_note='Operator review completed.',
     )
 
     assert payload['ok'] is False
@@ -2307,10 +2539,36 @@ def test_complete_local_queue_item_requires_validation_summary(tmp_path: Path) -
         item_id='complete-item',
         commit_hash='abc123def',
         validation_summary='   ',
+        evidence_note='Operator review completed.',
     )
 
     assert payload['ok'] is False
     assert any('validation_summary is required' in warning for warning in payload['warnings'])
+
+
+def test_complete_local_queue_item_requires_review_evidence(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='complete-review-item',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Complete review item',
+        description='Complete local implementation only after review.',
+        status='in_progress',
+    )['ok'] is True
+
+    payload = complete_local_queue_item(
+        config,
+        item_id='complete-review-item',
+        commit_hash='abc123def',
+        validation_summary='Targeted tests passed locally.',
+        evidence_note='   ',
+    )
+
+    assert payload['ok'] is False
+    assert any('review evidence is required' in warning for warning in payload['warnings'])
 
 
 def test_complete_local_queue_item_persists_completion_metadata(tmp_path: Path) -> None:
@@ -2379,6 +2637,7 @@ def test_capture_local_queue_completion_evidence_records_evidence_without_comple
         files_changed=['src/aresforge/operator/local_project_queue.py'],
         commit_hash='abc123def',
         push_result='not pushed yet',
+        review_evidence=['Operator reviewed Codex/local output and validation evidence.'],
         operator_notes='Ready for future closeout review.',
     )
 
@@ -2389,6 +2648,7 @@ def test_capture_local_queue_completion_evidence_records_evidence_without_comple
     assert payload['completion_evidence']['evidence_summary'] == 'Targeted validation passed locally.'
     assert payload['completion_evidence']['validation_commands'] == ['python -m pytest tests/test_local_project_queue.py']
     assert payload['completion_evidence']['files_changed'] == ['src/aresforge/operator/local_project_queue.py']
+    assert payload['completion_evidence']['review_evidence'] == ['Operator reviewed Codex/local output and validation evidence.']
     assert payload['completion_evidence']['captured_at']
     assert any('No queue item completion is performed' in entry for entry in payload['boundary_confirmations'])
 
@@ -2444,6 +2704,7 @@ def test_capture_local_queue_completion_evidence_requires_meaningful_content(tmp
         files_changed=[],
         commit_hash='   ',
         push_result='   ',
+        review_evidence=[],
         operator_notes='   ',
     )
 
@@ -2503,6 +2764,7 @@ def test_close_local_queue_item_with_evidence_transitions_to_done(tmp_path: Path
         validation_results=['python -m pytest tests/test_local_project_queue.py -> passed'],
         diff_check_result='git diff --check -> pass',
         files_changed=['src/aresforge/operator/local_project_queue.py'],
+        review_evidence=['Operator reviewed implementation and validation evidence.'],
     )['ok'] is True
 
     payload = close_local_queue_item(
@@ -2586,6 +2848,7 @@ def test_close_local_queue_item_requires_eligible_status(tmp_path: Path) -> None
         evidence_summary='Validation notes exist.',
         validation_results=['manual validation noted'],
         diff_check_result='git diff --check -> pass',
+        review_evidence=['Operator reviewed notes.'],
     )['ok'] is True
 
     payload = close_local_queue_item(
@@ -2625,7 +2888,7 @@ def test_close_local_queue_item_requires_required_evidence_fields(tmp_path: Path
 
     assert payload['ok'] is False
     assert payload['status'] == 'in_progress'
-    assert any('evidence_summary, validation_results, and diff_check_result' in warning for warning in payload['warnings'])
+    assert any('evidence_summary, validation_results, diff_check_result, and review_evidence' in warning for warning in payload['warnings'])
 
 
 def test_read_local_project_progress_rollup_counts_status_evidence_and_closeout(tmp_path: Path) -> None:
@@ -2674,6 +2937,7 @@ def test_read_local_project_progress_rollup_counts_status_evidence_and_closeout(
         evidence_summary='Eligible evidence.',
         validation_results=['pytest -> passed'],
         diff_check_result='git diff --check -> pass',
+        review_evidence=['Operator review passed.'],
     )['ok'] is True
     assert capture_local_queue_completion_evidence(
         config,
@@ -2681,6 +2945,7 @@ def test_read_local_project_progress_rollup_counts_status_evidence_and_closeout(
         evidence_summary='Closeout evidence.',
         validation_results=['pytest -> passed'],
         diff_check_result='git diff --check -> pass',
+        review_evidence=['Operator review passed.'],
     )['ok'] is True
     assert close_local_queue_item(
         config,
