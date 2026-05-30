@@ -54,6 +54,8 @@ def test_cli_has_expected_commands() -> None:
         "recommend-next-work-item-action",
         "complete-local-queue-item",
         "generate-local-queue-item-codex-prompt",
+        "inspect-codex-dispatch-contract",
+        "prepare-codex-dispatch-dry-run",
         "inspect-queue-work-state",
         "inspect-work-item-readiness",
         "inspect-queue-readiness",
@@ -4796,6 +4798,68 @@ def test_generate_local_queue_item_codex_prompt_dispatch_json(
     parsed = json.loads(capsys.readouterr().out)
     assert exit_code == 0
     assert parsed == payload
+
+
+def test_inspect_codex_dispatch_contract_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "ok": True,
+                "dry_run_only": True,
+                "dispatch_allowed": False,
+                "codex_cli_invocation_allowed": False,
+            }
+        ),
+        "payload": {},
+    }
+    monkeypatch.setattr(
+        cli,
+        "inspect_codex_dispatch_contract",
+        lambda _config, item_id, queue_path=None, registry_path=None, output_format="json": payload,
+    )
+    exit_code = cli.main(["inspect-codex-dispatch-contract", "--item-id", "m77", "--format", "json"])
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["dry_run_only"] is True
+    assert parsed["dispatch_allowed"] is False
+
+
+def test_prepare_codex_dispatch_dry_run_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "ok": True,
+                "dry_run_only": True,
+                "execution_mode": "dry_run_no_execute",
+                "codex_cli_invocation_allowed": False,
+            }
+        ),
+        "payload": {},
+    }
+    monkeypatch.setattr(
+        cli,
+        "prepare_codex_dispatch_dry_run",
+        lambda _config, item_id, queue_path=None, registry_path=None, output=None, force=False, output_format="json": payload,
+    )
+    exit_code = cli.main(["prepare-codex-dispatch-dry-run", "--item-id", "m77", "--format", "json"])
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["execution_mode"] == "dry_run_no_execute"
+    assert parsed["codex_cli_invocation_allowed"] is False
 
 
 def test_complete_local_queue_item_dispatch_json(

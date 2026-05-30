@@ -1,5 +1,56 @@
 # Runnable Skeleton
 
+## M77 Codex CLI Dispatch Contract
+
+Status: Completed locally on `main`.
+
+Current runnable local skeleton additions:
+
+- `python -m aresforge inspect-codex-dispatch-contract --item-id m77-codex-cli-dispatch-contract --format json` inspects the M77 contract for one queue item
+- `python -m aresforge prepare-codex-dispatch-dry-run --item-id m77-codex-cli-dispatch-contract --format json` prepares a dry-run/no-execute contract payload
+- optional dry-run contract output may be written only under `.aresforge/codex_dispatch`
+- expected future run-state paths are reserved under `.aresforge/codex_dispatch/runs`
+
+Behavior contract:
+
+- the command inspects the canonical local queue and managed project/repo binding
+- the contract describes exactly one queue item at a time
+- `dry_run_only` is true
+- `dispatch_allowed` is false
+- `codex_cli_invocation_allowed` is false
+- `automatic_next_item_execution_allowed` is false
+- `operator_approval_required` is true
+- command previews are labeled preview-only and not executable in M77
+
+Still absent by design:
+
+- Codex CLI dispatch
+- Codex CLI process invocation
+- operator-approved Codex run execution
+- automatic Codex execution
+- automatic agent execution
+- automatic queue execution
+- unattended multi-item execution
+- automatic next-item execution
+- GitHub API, `gh`, issues, PRs, workflows, or GitHub mutation
+- local LLM execution expansion
+
+Future M78 gates before any invocation:
+
+- explicit operator approval
+- one item at a time
+- active run-state check
+- stdout/stderr/artifact capture
+- review evidence before completion
+- validation evidence before commit/push
+- dependency blocking respected
+- no automatic next-item execution
+- GitHub/`gh`/API/workflow mutation remains blocked
+
+Recommended next milestone:
+
+- M78 Operator-Gated Codex CLI Dispatch Prototype.
+
 ## M76 Self-Seed AresForge as the First Managed Project
 
 Status: Completed locally on `main`.
@@ -47,7 +98,7 @@ Next phase safety gates before any Codex dispatch implementation:
 - queue/dependency blocking enforced
 - local validation required before commit/push
 
-Recommended next milestone:
+Recommended next milestone after M76:
 
 - M77 Codex CLI Dispatch Contract.
 

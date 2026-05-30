@@ -2,6 +2,8 @@
 
 ## Status
 
+M77 adds the Codex CLI Dispatch Contract. It is local-only, contract-first, and dry-run/no-execute. It inspects one queue item at a time, validates the managed project/repo binding, reserves future `.aresforge/codex_dispatch` contract/run paths, and defines the expected M78 run-state shape. It does not invoke Codex CLI, dispatch Codex, start runs, mutate queue item status, call GitHub, call `gh`, or implement M78 execution.
+
 M60 adds a local-only Codex CLI Model Profile Contract. M63 adds Codex CLI High-Value Lane prompt generation that may reference queue routing metadata and model profile intent, but still does not execute Codex.
 
 M64 adds a local Execution Audit Log. Codex high-value prompt generation is summarized in `.aresforge/execution_audit_log.json`, but the audit log does not execute Codex, invoke Codex CLI, or store full generated prompt text.
@@ -126,3 +128,81 @@ M69 hardened local AI operations around edge cases, blocked/error metadata, and 
 M70 completed a verification sweep of the M58-M69 local AI operations chain without adding Codex execution or GitHub behavior.
 
 M75 keeps this contract as future planning only. M77 should define a dry-run/no-execute Codex dispatch contract, and M78 may only prototype one explicitly operator-approved item dispatch if that later milestone is approved.
+
+M77 is now complete as a no-execute dispatch contract. M78 remains the first possible milestone for an operator-gated dispatch prototype.
+
+## M77 Dispatch Contract
+
+Commands:
+
+- `python -m aresforge inspect-codex-dispatch-contract --item-id <item_id> --format json`
+- `python -m aresforge prepare-codex-dispatch-dry-run --item-id <item_id> --format json`
+
+Stable contract fields include:
+
+- `ok`
+- `local_only`
+- `dry_run_only`
+- `dispatch_contract_version`
+- `project_id`
+- `repo_id`
+- `item_id`
+- `queue_item_status`
+- `item_ready_for_dispatch_contract`
+- `dispatch_allowed`
+- `dispatch_blocked_reason`
+- `dispatch_mode`
+- `execution_mode`
+- `operator_approval_required`
+- `operator_approval_status`
+- `one_item_at_a_time_required`
+- `automatic_next_item_execution_allowed`
+- `codex_cli_invocation_allowed`
+- `codex_cli_command_preview`
+- `working_directory`
+- `prompt_source`
+- `prompt_artifact_path`
+- `expected_run_state_path`
+- `expected_stdout_path`
+- `expected_stderr_path`
+- `expected_artifact_dir`
+- `expected_audit_fields`
+- `expected_completion_evidence_fields`
+- `expected_run_state_shape`
+- `allowed_dispatch_states`
+- `safety_gates`
+- `blockers`
+- `warnings`
+- `next_safe_action`
+- `boundary_confirmations`
+
+M77 invariants:
+
+- `dry_run_only` is true.
+- `dispatch_allowed` is false.
+- `codex_cli_invocation_allowed` is false.
+- `automatic_next_item_execution_allowed` is false.
+- `operator_approval_required` is true.
+- `operator_approval_status` is `not_requested`.
+- `execution_mode` is `contract_only` or `dry_run_no_execute`.
+- `codex_cli_command_preview` is preview-only and not executable in M77.
+
+Future run-state fields:
+
+- `run_id`
+- `item_id`
+- `project_id`
+- `repo_id`
+- `dispatch_state`
+- `started_at`
+- `completed_at`
+- `exit_code`
+- `stdout_path`
+- `stderr_path`
+- `artifact_dir`
+- `prompt_artifact_path`
+- `operator_approval`
+- `review_evidence`
+- `validation_evidence`
+- `error_summary`
+- `next_safe_action`

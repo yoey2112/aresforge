@@ -1,5 +1,55 @@
 # Local Operator Usage
 
+## M77 Codex CLI Dispatch Contract
+
+Status: Completed locally on `main`.
+
+Operator workflow:
+
+1. Confirm the target local queue item exists.
+2. Inspect the contract with `python -m aresforge inspect-codex-dispatch-contract --item-id m77-codex-cli-dispatch-contract --format json`.
+3. Optionally prepare a dry-run/no-execute contract payload with `python -m aresforge prepare-codex-dispatch-dry-run --item-id m77-codex-cli-dispatch-contract --format json`.
+4. If writing an artifact, keep `--output` under `.aresforge/codex_dispatch/contracts` and use `--force` only when intentionally overwriting.
+5. Review `safety_gates`, `blockers`, `expected_run_state_shape`, and `boundary_confirmations`.
+
+Contract interpretation:
+
+- `dry_run_only: true` means M77 cannot dispatch Codex.
+- `dispatch_allowed: false` means no run may start from this milestone.
+- `codex_cli_invocation_allowed: false` means AresForge must not invoke Codex CLI.
+- `automatic_next_item_execution_allowed: false` means no follow-on queue item can run automatically.
+- `operator_approval_required: true` records the future M78 gate; approval is not requested or consumed in M77.
+- command previews are review-only strings and are not executable by this milestone.
+
+Operator safety notes:
+
+- M77 does not invoke Codex CLI.
+- M77 does not implement M78 dispatch.
+- M77 does not start a run.
+- M77 does not mutate queue item status.
+- M77 does not call local LLMs, Codex, agents, GitHub, `gh`, issues, PRs, workflows, external services, or external workflow execution.
+- local LLM remains local-only, advisory-only, operator-gated, prototype-scoped, and non-mutating.
+
+Future M78 gates:
+
+- queue item exists
+- queue item belongs to a registered managed project/repo
+- queue item is not done or cancelled
+- queue item is not already in an active dispatch state
+- explicit operator approval is present
+- one item at a time lock/check exists
+- no automatic next-item execution
+- run state path is reserved
+- stdout/stderr/artifact capture paths are reserved
+- review evidence is required before completion
+- validation evidence is required before commit/push
+- dependency blocking is respected
+- GitHub/`gh`/API/workflow mutation remains blocked
+
+Recommended next milestone:
+
+- M78 - Operator-Gated Codex CLI Dispatch Prototype.
+
 ## M76 Self-Seed AresForge as the First Managed Project
 
 Status: Completed locally on `main`.
@@ -37,7 +87,7 @@ Next phase safety gates before any Codex dispatch implementation:
 - queue/dependency blocking enforced
 - local validation required before commit/push
 
-Recommended next milestone:
+Recommended next milestone after M76:
 
 - M77 - Codex CLI Dispatch Contract.
 

@@ -1,5 +1,41 @@
 # AresForge Roadmap
 
+## M77 Codex CLI Dispatch Contract
+
+Status: Completed locally on `main`.
+
+Purpose:
+
+- define a local-only Codex CLI Dispatch Contract before any Codex CLI process invocation exists
+- describe future single-item dispatch payloads, path reservations, run-state fields, audit fields, completion evidence fields, and safety gates
+- keep M77 contract-first, dry-run/no-execute friendly, and operator-reviewable
+
+Delivered scope:
+
+- new local operator module for M77 dispatch contracts
+- `inspect-codex-dispatch-contract`
+- `prepare-codex-dispatch-dry-run`
+- stable JSON contract payload with no-execute invariants
+- future M78 run-state shape and allowed dispatch states
+- targeted regression coverage for contract payload shape, safe missing/done/cancelled item behavior, managed project/repo binding inspection, path boundaries, command preview labels, and CLI output
+
+Constraints preserved:
+
+- no Codex CLI invocation
+- no operator-approved Codex dispatch yet
+- no automatic Codex execution
+- no automatic agent execution
+- no automatic queue execution
+- no unattended multi-item execution
+- no automatic next-item execution
+- no local LLM execution expansion
+- no GitHub API, `gh`, issues, PRs, workflows, or GitHub mutation
+- local LLM remains local-only, advisory-only, operator-gated, prototype-scoped, and non-mutating
+
+Next recommended milestone:
+
+- M78 Operator-Gated Codex CLI Dispatch Prototype.
+
 ## M76 Self-Seed AresForge as the First Managed Project
 
 Status: Completed locally on `main`.
@@ -23,7 +59,7 @@ Scope boundary:
 - no unattended multi-item autonomous execution
 - no local LLM execution expansion or local LLM repo mutation
 
-Next recommended milestone:
+Next recommended milestone after M76:
 
 - M77 Codex CLI Dispatch Contract.
 
@@ -49,14 +85,21 @@ Scope boundary:
 
 ## M77 Codex CLI Dispatch Contract
 
-Purpose: define the contract, data model, run-state shape, evidence fields, and dry-run/no-execute behavior required before any Codex CLI dispatch prototype.
-
-Boundaries:
+Completed boundaries:
 
 - contract-first and dry-run/no-execute friendly
 - no Codex CLI process invocation
 - no automatic queue execution
 - no GitHub API, `gh`, issues, PRs, workflows, or GitHub mutation
+
+Contract invariants:
+
+- `dry_run_only: true`
+- `dispatch_allowed: false`
+- `codex_cli_invocation_allowed: false`
+- `automatic_next_item_execution_allowed: false`
+- `operator_approval_required: true`
+- command preview is review-only and not executable in M77
 
 ## M78 Operator-Gated Codex CLI Dispatch Prototype
 

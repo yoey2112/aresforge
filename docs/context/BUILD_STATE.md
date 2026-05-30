@@ -1,5 +1,95 @@
 # AresForge Build State
 
+## M77 Codex CLI Dispatch Contract
+
+Status: Completed locally on `main`.
+
+Delivered:
+
+- added the local-only Codex CLI Dispatch Contract helper module
+- exposed `python -m aresforge inspect-codex-dispatch-contract --item-id <item_id> --format json`
+- exposed `python -m aresforge prepare-codex-dispatch-dry-run --item-id <item_id> --format json`
+- defined a stable one-queue-item-at-a-time dispatch contract payload for future Codex CLI work
+- defined expected future run-state fields without implementing execution
+- reserved local artifact path conventions under `.aresforge/codex_dispatch/contracts` and `.aresforge/codex_dispatch/runs`
+- added targeted contract and CLI tests for M77 safety boundaries
+
+M77 contract payload highlights:
+
+- `dry_run_only` is always `true`
+- `dispatch_allowed` is always `false`
+- `codex_cli_invocation_allowed` is always `false`
+- `automatic_next_item_execution_allowed` is always `false`
+- `operator_approval_required` is `true`
+- `operator_approval_status` defaults to `not_requested`
+- `execution_mode` is `contract_only` or `dry_run_no_execute`
+- command previews are labeled preview-only and not executable in M77
+
+Expected future run-state shape for M78:
+
+- `run_id`
+- `item_id`
+- `project_id`
+- `repo_id`
+- `dispatch_state`
+- `started_at`
+- `completed_at`
+- `exit_code`
+- `stdout_path`
+- `stderr_path`
+- `artifact_dir`
+- `prompt_artifact_path`
+- `operator_approval`
+- `review_evidence`
+- `validation_evidence`
+- `error_summary`
+- `next_safe_action`
+
+Allowed future dispatch states:
+
+- `not_requested`
+- `dry_run_prepared`
+- `awaiting_operator_approval`
+- `approved_pending_dispatch`
+- `running`
+- `completed`
+- `failed`
+- `cancelled`
+- `review_required`
+
+M77 safety posture:
+
+- contract-only and dry-run/no-execute
+- no Codex CLI process invocation
+- no automatic Codex execution
+- no automatic agent execution
+- no automatic queue execution
+- no unattended multi-item execution
+- no automatic next-item execution
+- no local LLM execution expansion
+- local LLM remains local-only, advisory-only, operator-gated, prototype-scoped, and non-mutating
+- no GitHub API, `gh`, GitHub issue, GitHub PR, GitHub workflow, external workflow, or GitHub mutation behavior was added
+
+Future M78 gates before dispatch may invoke Codex:
+
+- queue item exists
+- queue item belongs to a registered managed project/repo
+- queue item is not done or cancelled
+- queue item is not already in an active dispatch state
+- explicit operator approval is present
+- one item at a time lock/check exists
+- no automatic next-item execution
+- run state path is reserved
+- stdout/stderr/artifact capture paths are reserved
+- review evidence is required before completion
+- validation evidence is required before commit/push
+- dependency blocking is respected
+- GitHub/`gh`/API/workflow mutation remains blocked
+
+Recommended next milestone:
+
+- M78 - Operator-Gated Codex CLI Dispatch Prototype.
+
 ## M76 Self-Seed AresForge as the First Managed Project
 
 Status: Completed locally on `main`.
@@ -41,7 +131,7 @@ M76 safety posture:
 - local LLM remains local-only, advisory-only, operator-gated, prototype-scoped, and non-mutating
 - no GitHub API, `gh`, GitHub issue, GitHub PR, GitHub workflow, external workflow, or GitHub mutation behavior was added
 
-Recommended next milestone:
+Recommended next milestone after M76:
 
 - M77 - Codex CLI Dispatch Contract.
 

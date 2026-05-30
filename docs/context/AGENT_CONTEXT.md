@@ -1,5 +1,67 @@
 # AresForge Agent Context
 
+## M77 Codex CLI Dispatch Contract Context
+
+Status: Completed locally on `main`.
+
+Purpose:
+
+- define the stable local contract required before any Codex CLI process invocation can exist
+- inspect one local queue item at a time
+- make future dispatch shape, run-state fields, artifact paths, and safety gates testable
+- preserve dry-run/no-execute behavior through M77
+
+Implemented in M77:
+
+- `build_codex_dispatch_contract(...)`
+- `inspect_codex_dispatch_contract(...)`
+- `prepare_codex_dispatch_dry_run(...)`
+- `validate_codex_dispatch_contract_payload(...)`
+- CLI command: `python -m aresforge inspect-codex-dispatch-contract --item-id <item_id> --format json`
+- CLI command: `python -m aresforge prepare-codex-dispatch-dry-run --item-id <item_id> --format json`
+- local artifact path reservations under `.aresforge/codex_dispatch/contracts` and `.aresforge/codex_dispatch/runs`
+
+M77 contract invariants:
+
+- `dry_run_only: true`
+- `dispatch_allowed: false`
+- `codex_cli_invocation_allowed: false`
+- `automatic_next_item_execution_allowed: false`
+- `operator_approval_required: true`
+- `operator_approval_status: not_requested`
+- command previews are preview-only and not executable in M77
+
+Not implemented in M77:
+
+- Codex CLI process invocation
+- operator-approved dispatch
+- automatic Codex execution
+- automatic agent execution
+- automatic queue execution
+- unattended multi-item execution
+- automatic next-item execution
+- local LLM execution expansion
+- GitHub API, `gh`, issues, PRs, workflows, or GitHub mutation
+
+Future M78 run-state fields:
+
+- `run_id`, `item_id`, `project_id`, `repo_id`, `dispatch_state`, `started_at`, `completed_at`, `exit_code`, `stdout_path`, `stderr_path`, `artifact_dir`, `prompt_artifact_path`, `operator_approval`, `review_evidence`, `validation_evidence`, `error_summary`, and `next_safe_action`
+
+Future M78 gate reminders:
+
+- explicit operator approval must exist before dispatch
+- one item at a time must be enforced
+- no automatic next-item execution
+- run state, stdout, stderr, and artifacts must be captured where applicable
+- review evidence is required before completion
+- validation evidence is required before commit/push
+- dependency blocking must be respected
+- GitHub/`gh`/API/workflow mutation remains blocked
+
+Recommended next milestone:
+
+- M78 - Operator-Gated Codex CLI Dispatch Prototype.
+
 ## M76 Self-Seed AresForge as the First Managed Project Context
 
 Status: Completed locally on `main`.
@@ -61,7 +123,7 @@ Next phase safety gates before any Codex dispatch implementation:
 - queue/dependency blocking enforced
 - local validation required before commit/push
 
-Recommended next milestone:
+Recommended next milestone after M76:
 
 - M77 - Codex CLI Dispatch Contract.
 

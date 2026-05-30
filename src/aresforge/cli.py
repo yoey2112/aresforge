@@ -205,6 +205,10 @@ from aresforge.operator.local_project_queue import (
     start_local_queue_item,
     update_queue_item,
 )
+from aresforge.operator.codex_dispatch_contract import (
+    inspect_codex_dispatch_contract,
+    prepare_codex_dispatch_dry_run,
+)
 from aresforge.operator.local_agent_profiles import (
     AGENT_PROFILE_STATUSES,
     AGENT_ROLES,
@@ -1502,6 +1506,32 @@ def build_parser() -> argparse.ArgumentParser:
     generate_local_queue_item_codex_prompt_parser.add_argument("--output")
     generate_local_queue_item_codex_prompt_parser.add_argument("--commit-message")
     generate_local_queue_item_codex_prompt_parser.add_argument("--force", action="store_true")
+    inspect_codex_dispatch_contract_parser = subparsers.add_parser(
+        "inspect-codex-dispatch-contract",
+        help="Inspect the M77 local-only Codex CLI dispatch contract for one queue item.",
+    )
+    inspect_codex_dispatch_contract_parser.add_argument("--item-id", required=True)
+    inspect_codex_dispatch_contract_parser.add_argument("--queue-path")
+    inspect_codex_dispatch_contract_parser.add_argument("--registry-path")
+    inspect_codex_dispatch_contract_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="json",
+    )
+    prepare_codex_dispatch_dry_run_parser = subparsers.add_parser(
+        "prepare-codex-dispatch-dry-run",
+        help="Prepare a M77 dry-run/no-execute Codex dispatch contract for one queue item.",
+    )
+    prepare_codex_dispatch_dry_run_parser.add_argument("--item-id", required=True)
+    prepare_codex_dispatch_dry_run_parser.add_argument("--queue-path")
+    prepare_codex_dispatch_dry_run_parser.add_argument("--registry-path")
+    prepare_codex_dispatch_dry_run_parser.add_argument("--output")
+    prepare_codex_dispatch_dry_run_parser.add_argument("--force", action="store_true")
+    prepare_codex_dispatch_dry_run_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="json",
+    )
     inspect_local_project_dashboard_parser = subparsers.add_parser(
         "inspect-local-project-dashboard",
         help="Inspect read-only local project dashboard contract payload.",
@@ -3597,6 +3627,36 @@ def main(argv: list[str] | None = None) -> int:
             force=bool(args.force),
             commit_message=args.commit_message,
         )
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-codex-dispatch-contract":
+        payload = inspect_codex_dispatch_contract(
+            config,
+            item_id=args.item_id,
+            queue_path=args.queue_path,
+            registry_path=args.registry_path,
+            output_format=args.format,
+        )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "prepare-codex-dispatch-dry-run":
+        payload = prepare_codex_dispatch_dry_run(
+            config,
+            item_id=args.item_id,
+            queue_path=args.queue_path,
+            registry_path=args.registry_path,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 
