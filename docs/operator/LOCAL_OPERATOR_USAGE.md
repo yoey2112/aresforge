@@ -1,5 +1,32 @@
 # Local Operator Usage
 
+## M82 Self-Managed AresForge Test Run
+
+Inspect AresForge as its own local managed project:
+
+    python -m aresforge inspect-managed-project --project-id aresforge --format json
+    python -m aresforge inspect-local-project-readiness --project-id aresforge --format json
+    python -m aresforge inspect-local-project-report --format json
+    python -m aresforge inspect-local-queue-agent-summary --format json
+    python -m aresforge inspect-project-queue --project-id aresforge --format json
+
+Report highlights:
+
+- `self_managed_readiness_summary`
+- `m81_status`
+- `m82_status`
+- `recovered_dispatch_run_summary`
+- `readiness_flows_checked`
+- `safety_boundary_confirmations`
+
+Operator rules:
+
+- treat the self-managed report as read-only validation evidence
+- do not start another queue item automatically
+- do not run unattended multi-item execution
+- do not use GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, or external workflow behavior
+- capture queue completion evidence only after explicit operator review
+
 ## M81 Local LLM Advisory/Coding Lane Prototype
 
 Inspect the local LLM advisory/coding lane readiness for one queue item:

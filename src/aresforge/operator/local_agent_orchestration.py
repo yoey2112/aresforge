@@ -84,7 +84,10 @@ def generate_agent_orchestration_plan(
 
     assignments, unassigned_items = _recommend_assignments(filtered_items, agents_by_id, warnings)
 
-    dependency_order, cycle_warnings, dependency_warnings = _build_dependency_order(filtered_items)
+    dependency_order, cycle_warnings, dependency_warnings = _build_dependency_order(
+        filtered_items,
+        known_item_ids={item["item_id"] for item in items},
+    )
     warnings.extend(cycle_warnings)
     warnings.extend(dependency_warnings)
 
@@ -462,8 +465,11 @@ def _build_assignment(
 
 def _build_dependency_order(
     items: list[dict[str, Any]],
+    *,
+    known_item_ids: set[str] | None = None,
 ) -> tuple[list[str], list[str], list[str]]:
     item_ids = {item["item_id"] for item in items}
+    known_ids = known_item_ids or item_ids
     graph: dict[str, set[str]] = {item["item_id"]: set() for item in items}
     indegree: dict[str, int] = {item["item_id"]: 0 for item in items}
     dependency_warnings: list[str] = []
@@ -474,10 +480,12 @@ def _build_dependency_order(
             dep_id = str(dep).strip()
             if not dep_id:
                 continue
-            if dep_id not in item_ids:
+            if dep_id not in known_ids:
                 dependency_warnings.append(
                     f"Item '{item_id}' depends on missing item '{dep_id}'."
                 )
+                continue
+            if dep_id not in graph:
                 continue
             if item_id in graph[dep_id]:
                 continue

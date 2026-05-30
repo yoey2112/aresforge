@@ -192,6 +192,21 @@ def test_dependency_ordering(tmp_path: Path) -> None:
     assert payload["payload"]["dependency_order"] == ["a", "b", "c"]
 
 
+def test_active_item_dependency_on_done_item_is_not_missing_warning(tmp_path: Path) -> None:
+    _write_queue(
+        tmp_path,
+        [
+            _base_item("done-upstream", status="done"),
+            _base_item("active-downstream", dependencies=["done-upstream"]),
+        ],
+    )
+    _write_profiles(tmp_path, [_agent("impl-a", "implementer")])
+    payload = generate_agent_orchestration_plan(_config(tmp_path), output_format="json")
+
+    assert payload["payload"]["dependency_order"] == ["active-downstream"]
+    assert not any("depends on missing item 'done-upstream'" in warning for warning in payload["payload"]["risk_warnings"])
+
+
 def test_blocked_items_detection(tmp_path: Path) -> None:
     _write_queue(
         tmp_path,

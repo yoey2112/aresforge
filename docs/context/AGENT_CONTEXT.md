@@ -1,8 +1,25 @@
 # AresForge Agent Context
 
-## M81 Local LLM Advisory/Coding Lane Prototype Context
+## M82 Self-Managed AresForge Test Run Context
 
 Status: In progress locally on `main`.
+
+Current dogfood scope:
+
+- `inspect-local-project-report` now includes `self_managed_readiness_summary` for AresForge as its own managed project.
+- The summary reports managed project selection, local queue status, M81/M82 posture, recovered dispatch run evidence, and read-only readiness flows.
+- Recovered failed dispatch runs remain non-blocking only when dependency completion evidence is present and audited.
+
+Boundaries preserved:
+
+- no automatic next-item execution or unattended multi-item execution
+- no repo file mutation or queue mutation from report output
+- no GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, external workflow execution, or GitHub mutation
+- operator review remains required before evidence closeout
+
+## M81 Local LLM Advisory/Coding Lane Prototype Context
+
+Status: Completed locally on `main`.
 
 Current advisory lane scope:
 

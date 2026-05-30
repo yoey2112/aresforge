@@ -1,8 +1,25 @@
 # AresForge Build State
 
-## M81 Local LLM Advisory/Coding Lane Prototype
+## M82 Self-Managed AresForge Test Run
 
 Status: In progress locally on `main`.
+
+Delivered in this pass:
+
+- added a read-only `self_managed_readiness_summary` to `inspect-local-project-report`
+- summarizes AresForge-as-managed-project status, local queue posture, M81/M82 status, and dogfood readiness flows
+- surfaces recovered dispatch runs as audited non-blocking evidence when dependency completion evidence is present
+- confirms no repo mutation, queue mutation, automatic next-item execution, unattended multi-item execution, GitHub API, `gh`, workflows, or external workflow behavior is allowed
+
+M82 safety posture:
+
+- validation-focused and local-only
+- operator review remains required before queue completion evidence is recorded
+- recovered dispatch run state is reported for review but does not start or complete work
+
+## M81 Local LLM Advisory/Coding Lane Prototype
+
+Status: Completed locally on `main`.
 
 Delivered in this pass:
 

@@ -1,5 +1,25 @@
 # Runnable Skeleton
 
+## M82 Self-Managed AresForge Test Run
+
+M82 adds a self-managed, read-only dogfood summary to the local project report:
+
+- `python -m aresforge inspect-local-project-report --format json`
+
+Runnable behavior:
+
+- reports AresForge as its own managed project when local registry and active-project state are present
+- summarizes local queue counts, M81/M82 status, and the smoke/readiness flows used for operator review
+- lists recovered dispatch runs and confirms audited recovered runs do not block project readiness when dependency completion evidence is present
+- returns explicit safety boundary confirmations for no mutation, no automatic next-item execution, no unattended multi-item execution, no GitHub API, no `gh`, and no external workflow behavior
+
+Still absent by design:
+
+- automatic next-item execution
+- unattended multi-item execution
+- repo or queue mutation from report output
+- GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, or external workflow execution
+
 ## M81 Local LLM Advisory/Coding Lane Prototype
 
 M81 adds a local-only advisory lane readiness inspection path:

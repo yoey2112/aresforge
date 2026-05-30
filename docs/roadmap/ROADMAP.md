@@ -1,8 +1,30 @@
 # AresForge Roadmap
 
-## M81 Local LLM Advisory/Coding Lane Prototype
+## M82 Self-Managed AresForge Test Run
 
 Status: In progress locally on `main`.
+
+Purpose:
+
+- dogfood AresForge against its own managed project registry, local queue, readiness checks, advisory routing, dispatch readiness, recovery semantics, and operator review evidence
+- keep the milestone validation-focused, local-only, read-only except for explicit queue evidence closeout
+
+Delivered scope:
+
+- `inspect-local-project-report` includes a deterministic `self_managed_readiness_summary`
+- the summary exposes AresForge project registration, active-project state, local queue counts, M81/M82 statuses, recovered dispatch run accounting, and required smoke commands
+- tests cover recovered failed dispatch runs as non-blocking for self-managed readiness when upstream completion evidence is present
+
+Constraints preserved:
+
+- no automatic next-item execution
+- no unattended multi-item execution
+- no repo/source mutation or queue mutation from report output
+- no GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, external workflow execution, or GitHub mutation
+
+## M81 Local LLM Advisory/Coding Lane Prototype
+
+Status: Completed locally on `main`.
 
 Purpose:
 

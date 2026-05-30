@@ -10,6 +10,7 @@ from aresforge.config import AppConfig
 from aresforge.operator.local_project_dashboard import summarize_local_project_dashboard
 from aresforge.operator.local_project_queue import (
     QUEUE_STATUSES,
+    inspect_local_queue_item_readiness,
     read_local_project_progress_rollup,
     resolve_project_queue_path,
 )
@@ -64,6 +65,13 @@ def inspect_local_project_report(config: AppConfig) -> dict[str, Any]:
     active_project_readiness = None
     if active_project_id:
         active_project_readiness = inspect_local_project_readiness(config, project_id=active_project_id)
+    queue_items, queue_warnings = _load_report_queue_items(config)
+    self_managed_readiness_summary = _self_managed_readiness_summary(
+        config=config,
+        active_project_id=active_project_id,
+        active_project_readiness=active_project_readiness,
+        queue_items=queue_items,
+    )
 
     blockers: list[str] = []
     if not active_project_id:
@@ -75,7 +83,14 @@ def inspect_local_project_report(config: AppConfig) -> dict[str, Any]:
     if active_project_readiness and not bool(active_project_readiness.get("ok", True)):
         blockers.append("Active project readiness inspection failed.")
 
-    warnings = sorted(set(str(item) for item in dashboard.get("warnings", []) if str(item).strip()))
+    warnings = sorted(
+        set(
+            [
+                *[str(item) for item in dashboard.get("warnings", []) if str(item).strip()],
+                *[str(item) for item in queue_warnings if str(item).strip()],
+            ]
+        )
+    )
     recommended_next_action = str(
         dashboard.get("recommended_next_action")
         or "Inspect local dashboard summaries and resolve blockers."
@@ -94,6 +109,7 @@ def inspect_local_project_report(config: AppConfig) -> dict[str, Any]:
         "project_health": project_health,
         "roadmap_summary": roadmap_summary,
         "queue_summary": queue_summary,
+        "self_managed_readiness_summary": self_managed_readiness_summary,
         "validation_summary": validation_summary,
         "documentation_summary": documentation_summary,
         "blockers": blockers,
@@ -259,6 +275,194 @@ def _load_report_queue_items(config: AppConfig) -> tuple[list[dict[str, Any]], l
     if not isinstance(items, list):
         return [], ["Project queue contains non-list work_items field."]
     return [item for item in items if isinstance(item, dict)], []
+
+
+def _self_managed_readiness_summary(
+    *,
+    config: AppConfig,
+    active_project_id: str,
+    active_project_readiness: dict[str, Any] | None,
+    queue_items: list[dict[str, Any]],
+) -> dict[str, Any]:
+    project_id = "aresforge"
+    project_items = [
+        item for item in queue_items if str(item.get("project_id", "")).strip() == project_id
+    ]
+    m81 = _find_item(project_items, "m81-local-llm-advisory-coding-lane-prototype")
+    m82 = _find_item(project_items, "m82-self-managed-aresforge-test-run")
+
+    readiness_checks: list[dict[str, Any]] = []
+    recovered_runs: list[dict[str, str]] = []
+    blocking_runs: list[dict[str, str]] = []
+    active_blocking_runs: list[dict[str, str]] = []
+    historical_blocking_runs: list[dict[str, str]] = []
+    readiness_warnings: list[str] = []
+    readiness_blockers: list[str] = []
+
+    for item in sorted(project_items, key=lambda candidate: str(candidate.get("item_id", "")).strip()):
+        item_id = str(item.get("item_id", "")).strip()
+        if not item_id:
+            continue
+        readiness = inspect_local_queue_item_readiness(config, item_id=item_id)
+        dependency_summary = readiness.get("dependency_summary", {}) if isinstance(readiness, dict) else {}
+        item_recovered = _dispatch_entries(dependency_summary, "recovered_dispatch_runs")
+        item_blocking = _dispatch_entries(dependency_summary, "dispatch_run_blockers")
+        recovered_runs.extend(item_recovered)
+        blocking_runs.extend(item_blocking)
+        if str(item.get("status", "")).strip() in {"done", "cancelled"}:
+            historical_blocking_runs.extend(item_blocking)
+        else:
+            active_blocking_runs.extend(item_blocking)
+        readiness_checks.append(
+            {
+                "item_id": item_id,
+                "status": str(item.get("status", "")).strip(),
+                "readiness_status": str(readiness.get("readiness_status", "")).strip(),
+                "can_start": bool(readiness.get("can_start", False)),
+                "dependency_count": int(dependency_summary.get("total_dependencies", 0) or 0),
+                "recovered_dispatch_run_count": len(item_recovered),
+                "dispatch_run_blocker_count": len(item_blocking),
+            }
+        )
+        readiness_warnings.extend(
+            str(warning).strip()
+            for warning in readiness.get("warnings", [])
+            if str(warning).strip()
+        )
+        readiness_blockers.extend(
+            str(blocker).strip()
+            for blocker in readiness.get("blockers", [])
+            if str(blocker).strip() and str(item.get("status", "")).strip() != "done"
+        )
+
+    status_counts = _count_by(project_items, "status") if project_items else {}
+    active_readiness_status = ""
+    if isinstance(active_project_readiness, dict):
+        active_readiness_status = str(active_project_readiness.get("readiness_status", "")).strip()
+
+    managed_project_registered = bool(project_items) or (
+        isinstance(active_project_readiness, dict)
+        and str(active_project_readiness.get("project_id", "")).strip() == project_id
+        and bool(active_project_readiness.get("ok", False))
+    )
+    blocking_runs = _unique_dispatch_entries(blocking_runs)
+    active_blocking_runs = _unique_dispatch_entries(active_blocking_runs)
+    historical_blocking_runs = _unique_dispatch_entries(historical_blocking_runs)
+    recovered_runs = _unique_dispatch_entries(recovered_runs)
+    readiness_status = "ready"
+    if not managed_project_registered or active_blocking_runs:
+        readiness_status = "needs_attention"
+
+    return {
+        "project_id": project_id,
+        "self_managed": True,
+        "read_only": True,
+        "local_only": True,
+        "managed_project_registered": managed_project_registered,
+        "active_project_selected": active_project_id == project_id,
+        "active_project_readiness_status": active_readiness_status or "not_inspected",
+        "queue_item_count": len(project_items),
+        "queue_counts_by_status": status_counts,
+        "m81_status": str((m81 or {}).get("status", "")).strip() or "missing",
+        "m81_completed": str((m81 or {}).get("status", "")).strip() == "done",
+        "m82_status": str((m82 or {}).get("status", "")).strip() or "missing",
+        "recovered_dispatch_run_summary": {
+            "non_blocking_count": len(recovered_runs),
+            "blocking_count": len(active_blocking_runs),
+            "historical_blocking_count": len(historical_blocking_runs),
+            "non_blocking_runs": recovered_runs,
+            "blocking_runs": active_blocking_runs,
+            "historical_blocking_runs": historical_blocking_runs,
+            "recovered_runs_block_project_readiness": bool(active_blocking_runs),
+        },
+        "readiness_checks": readiness_checks,
+        "readiness_flows_checked": [
+            "inspect-managed-project --project-id aresforge",
+            "inspect-local-project-readiness --project-id aresforge",
+            "inspect-local-project-report",
+            "inspect-local-queue-agent-summary",
+            "inspect-project-queue --project-id aresforge",
+        ],
+        "safety_boundary_confirmations": {
+            "operator_review_required": True,
+            "automatic_next_item_execution_allowed": False,
+            "unattended_multi_item_execution_allowed": False,
+            "github_api_allowed": False,
+            "gh_allowed": False,
+            "external_workflow_allowed": False,
+            "repo_mutation_allowed": False,
+        },
+        "readiness_status": readiness_status,
+        "summary": _self_managed_summary_text(
+            managed_project_registered=managed_project_registered,
+            active_project_selected=active_project_id == project_id,
+            blocking_run_count=len(active_blocking_runs),
+            recovered_run_count=len(recovered_runs),
+        ),
+        "blockers": _unique_list(readiness_blockers),
+        "warnings": _unique_list(readiness_warnings),
+    }
+
+
+def _find_item(items: list[dict[str, Any]], item_id: str) -> dict[str, Any] | None:
+    for item in items:
+        if str(item.get("item_id", "")).strip() == item_id:
+            return item
+    return None
+
+
+def _dispatch_entries(summary: dict[str, Any], field: str) -> list[dict[str, str]]:
+    values = summary.get(field, []) if isinstance(summary, dict) else []
+    if not isinstance(values, list):
+        return []
+    entries: list[dict[str, str]] = []
+    for value in values:
+        if not isinstance(value, dict):
+            continue
+        entries.append(
+            {
+                "run_id": str(value.get("run_id", "")).strip(),
+                "item_id": str(value.get("item_id", "")).strip(),
+                "dispatch_state": str(value.get("dispatch_state", "")).strip(),
+                "reason": str(value.get("reason", "")).strip(),
+            }
+        )
+    return entries
+
+
+def _unique_dispatch_entries(entries: list[dict[str, str]]) -> list[dict[str, str]]:
+    unique: list[dict[str, str]] = []
+    seen: set[tuple[str, str, str, str]] = set()
+    for entry in entries:
+        key = (
+            str(entry.get("item_id", "")).strip(),
+            str(entry.get("run_id", "")).strip(),
+            str(entry.get("dispatch_state", "")).strip(),
+            str(entry.get("reason", "")).strip(),
+        )
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append(entry)
+    return sorted(unique, key=lambda item: (item.get("item_id", ""), item.get("run_id", "")))
+
+
+def _self_managed_summary_text(
+    *,
+    managed_project_registered: bool,
+    active_project_selected: bool,
+    blocking_run_count: int,
+    recovered_run_count: int,
+) -> str:
+    if not managed_project_registered:
+        return "AresForge self-managed project metadata is not registered in local state."
+    if blocking_run_count:
+        return "AresForge self-managed readiness needs operator attention for blocking dispatch run evidence."
+    if recovered_run_count:
+        return "AresForge self-managed readiness is inspectable; recovered dispatch runs are audited as non-blocking."
+    if active_project_selected:
+        return "AresForge self-managed readiness is inspectable through local read-only report flows."
+    return "AresForge self-managed readiness is inspectable; select it as active when dogfooding this repo."
 
 
 def _count_by(items: list[dict[str, Any]], field: str, *, empty_label: str = "unknown") -> dict[str, int]:
