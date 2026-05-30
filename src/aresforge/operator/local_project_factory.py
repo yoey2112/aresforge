@@ -65,6 +65,14 @@ AGENT_LANE_KEYS: tuple[str, ...] = (
     "high_value_codex",
 )
 LOCAL_LLM_PROVIDERS: tuple[str, ...] = ("ollama", "none", "unknown")
+LOCAL_LLM_PROVIDER_AVAILABILITY_STATES: tuple[str, ...] = (
+    "configured",
+    "missing_configuration",
+    "unavailable",
+    "unsupported",
+    "disabled",
+    "prototype_only",
+)
 
 _BOUNDARY_CONFIRMATIONS: tuple[str, ...] = (
     "Local-only project factory operation.",
@@ -3130,6 +3138,7 @@ def update_project_ai_settings(config: AppConfig, project_id: str, payload: dict
 def validate_local_llm_environment_contract(environment: dict[str, Any]) -> dict[str, Any]:
     blockers: list[str] = []
     warnings: list[str] = []
+    provider_state = _local_llm_provider_configuration_state(environment)
 
     provider = str(environment.get("local_llm_provider", "")).strip()
     if provider not in LOCAL_LLM_PROVIDERS:
@@ -3170,8 +3179,14 @@ def validate_local_llm_environment_contract(environment: dict[str, Any]) -> dict
         "blockers": sorted(set(blockers)),
         "warnings": sorted(set(warnings)),
         "supported_local_llm_providers": list(LOCAL_LLM_PROVIDERS),
-        "health_check_status": "not_implemented",
+        "provider_availability_status": provider_state["provider_availability_status"],
+        "provider_configuration_status": provider_state["provider_configuration_status"],
+        "provider_execution_mode": provider_state["provider_execution_mode"],
+        "fallback_behavior": provider_state["fallback_behavior"],
+        "supported_provider_availability_states": list(LOCAL_LLM_PROVIDER_AVAILABILITY_STATES),
+        "health_check_status": "explicit_operator_invocation_only",
         "execution_status": "operator_gated_prototype" if environment.get("execution_enabled") is True else "not_enabled",
+        "next_safe_action": provider_state["next_safe_action"],
     }
 
 
@@ -3192,6 +3207,8 @@ def read_local_llm_environment_contract(config: AppConfig) -> dict[str, Any]:
                 warnings.append("Local LLM environment contract has invalid schema; expected JSON object.")
 
     validation = validate_local_llm_environment_contract(environment)
+    provider_state = _local_llm_provider_configuration_state(environment)
+    model_profiles = _local_llm_model_profiles(environment, provider_state=provider_state)
     warnings.extend(list(validation.get("warnings", [])))
     return {
         "ok": True,
@@ -3199,14 +3216,21 @@ def read_local_llm_environment_contract(config: AppConfig) -> dict[str, Any]:
         "environment_path": str(environment_path),
         "environment_exists": environment_exists,
         "local_llm_environment": environment,
+        "provider_availability_status": provider_state["provider_availability_status"],
+        "provider_configuration_status": provider_state["provider_configuration_status"],
+        "provider_execution_mode": provider_state["provider_execution_mode"],
+        "provider_state": provider_state,
+        "local_model_profiles": model_profiles,
+        "fallback_behavior": provider_state["fallback_behavior"],
         "validation": validation,
         "execution_allowed": False,
-        "next_safe_action": "review_local_llm_environment_contract_before_future_health_checks",
+        "next_safe_action": provider_state["next_safe_action"],
         "warnings": sorted(set(warnings)),
         "blockers": list(validation.get("blockers", [])),
         "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS)
         + [
             "Local LLM environment is configuration only.",
+            "Provider and model metadata is advisory and does not prove provider or model availability.",
             "No Ollama call, health check, model API call, prompt execution, routing execution, Codex execution, or agent execution is performed.",
         ],
     }
@@ -3235,6 +3259,8 @@ def update_local_llm_environment_contract(config: AppConfig, payload: dict[str, 
     environment["updated_at"] = _now_iso()
     environment = _normalize_local_llm_environment_payload(environment)
     validation = validate_local_llm_environment_contract(environment)
+    provider_state = _local_llm_provider_configuration_state(environment)
+    model_profiles = _local_llm_model_profiles(environment, provider_state=provider_state)
     if not validation.get("valid", False):
         return _error(
             "local_llm_environment_validation_failed",
@@ -3254,14 +3280,21 @@ def update_local_llm_environment_contract(config: AppConfig, payload: dict[str, 
         "environment_path": str(environment_path),
         "environment_exists": True,
         "local_llm_environment": environment,
+        "provider_availability_status": provider_state["provider_availability_status"],
+        "provider_configuration_status": provider_state["provider_configuration_status"],
+        "provider_execution_mode": provider_state["provider_execution_mode"],
+        "provider_state": provider_state,
+        "local_model_profiles": model_profiles,
+        "fallback_behavior": provider_state["fallback_behavior"],
         "validation": validation,
         "execution_allowed": False,
-        "next_safe_action": "use_local_llm_environment_for_future_health_check_contract_only",
+        "next_safe_action": provider_state["next_safe_action"],
         "warnings": list(validation.get("warnings", [])),
         "blockers": [],
         "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS)
         + [
             "Local LLM environment update is local-only and non-executing.",
+            "Provider/model profile metadata is advisory and prototype-scoped.",
             "No Ollama call, health check, model API call, prompt execution, routing execution, Codex execution, or agent execution is performed.",
         ],
     }
@@ -3272,6 +3305,7 @@ def check_local_llm_health(config: AppConfig, *, urlopen_fn: Any | None = None) 
     checked_at = _now_iso()
     environment = contract.get("local_llm_environment", {}) if isinstance(contract.get("local_llm_environment"), dict) else {}
     validation = contract.get("validation", {}) if isinstance(contract.get("validation"), dict) else {}
+    base_provider_state = contract.get("provider_state", {}) if isinstance(contract.get("provider_state"), dict) else {}
     provider = str(environment.get("local_llm_provider", "unknown")).strip() or "unknown"
     provider_base_url = str(environment.get("provider_base_url", "")).strip()
     reasoning_model = str(environment.get("reasoning_model", "")).strip()
@@ -3314,6 +3348,8 @@ def check_local_llm_health(config: AppConfig, *, urlopen_fn: Any | None = None) 
             provider_base_url=provider_base_url,
             configured_reasoning_model=reasoning_model,
             configured_coding_model=coding_model,
+            environment=environment,
+            provider_state=base_provider_state,
             provider_reachable=False,
             available_models=[],
             checked_at=checked_at,
@@ -3330,6 +3366,8 @@ def check_local_llm_health(config: AppConfig, *, urlopen_fn: Any | None = None) 
             provider_base_url=provider_base_url,
             configured_reasoning_model=reasoning_model,
             configured_coding_model=coding_model,
+            environment=environment,
+            provider_state=base_provider_state,
             provider_reachable=False,
             available_models=[],
             checked_at=checked_at,
@@ -3346,6 +3384,8 @@ def check_local_llm_health(config: AppConfig, *, urlopen_fn: Any | None = None) 
             provider_base_url=provider_base_url,
             configured_reasoning_model=reasoning_model,
             configured_coding_model=coding_model,
+            environment=environment,
+            provider_state=base_provider_state,
             provider_reachable=False,
             available_models=[],
             checked_at=checked_at,
@@ -3362,6 +3402,8 @@ def check_local_llm_health(config: AppConfig, *, urlopen_fn: Any | None = None) 
             provider_base_url=provider_base_url,
             configured_reasoning_model=reasoning_model,
             configured_coding_model=coding_model,
+            environment=environment,
+            provider_state=base_provider_state,
             provider_reachable=False,
             available_models=[],
             checked_at=checked_at,
@@ -3378,6 +3420,8 @@ def check_local_llm_health(config: AppConfig, *, urlopen_fn: Any | None = None) 
             provider_base_url=provider_base_url,
             configured_reasoning_model=reasoning_model,
             configured_coding_model=coding_model,
+            environment=environment,
+            provider_state=base_provider_state,
             provider_reachable=False,
             available_models=[],
             checked_at=checked_at,
@@ -3401,6 +3445,8 @@ def check_local_llm_health(config: AppConfig, *, urlopen_fn: Any | None = None) 
             provider_base_url=provider_base_url,
             configured_reasoning_model=reasoning_model,
             configured_coding_model=coding_model,
+            environment=environment,
+            provider_state=base_provider_state,
             provider_reachable=False,
             available_models=[],
             checked_at=checked_at,
@@ -3422,6 +3468,8 @@ def check_local_llm_health(config: AppConfig, *, urlopen_fn: Any | None = None) 
         provider_base_url=provider_base_url,
         configured_reasoning_model=reasoning_model,
         configured_coding_model=coding_model,
+        environment=environment,
+        provider_state=base_provider_state,
         provider_reachable=provider_reachable,
         available_models=available_models,
         checked_at=checked_at,
@@ -4407,6 +4455,111 @@ def _is_local_provider_url(provider_base_url: str) -> bool:
     return parsed.scheme in {"http", "https"} and host in {"localhost", "127.0.0.1", "::1"}
 
 
+def _local_llm_provider_configuration_state(environment: dict[str, Any]) -> dict[str, Any]:
+    provider = str(environment.get("local_llm_provider", "unknown")).strip() or "unknown"
+    provider_base_url = str(environment.get("provider_base_url", "") or "").strip()
+    execution_enabled = environment.get("execution_enabled") is True
+    fallback_model = str(environment.get("fallback_model", "") or "").strip()
+
+    if provider == "none":
+        availability = "disabled"
+        configuration = "disabled"
+        next_safe_action = "Select and configure a supported local provider before using local LLM preview or prototype execution."
+    elif provider == "unknown":
+        availability = "missing_configuration"
+        configuration = "missing_provider"
+        next_safe_action = "Configure local_llm_provider and local model names before using local LLM preview or health checks."
+    elif provider not in LOCAL_LLM_PROVIDERS:
+        availability = "unsupported"
+        configuration = "unsupported_provider"
+        next_safe_action = "Use a supported local provider value before any local LLM health check or prototype workflow."
+    elif provider == "ollama" and not provider_base_url:
+        availability = "missing_configuration"
+        configuration = "missing_provider_base_url"
+        next_safe_action = "Set provider_base_url to a local Ollama URL before running the explicit health check."
+    elif provider == "ollama" and not _is_local_provider_url(provider_base_url):
+        availability = "unsupported"
+        configuration = "non_local_provider_url"
+        next_safe_action = "Use a localhost, 127.0.0.1, or ::1 provider URL before any health check or prototype workflow."
+    else:
+        availability = "configured"
+        configuration = "configured"
+        next_safe_action = "Run the explicit local health check before any operator-gated prototype use."
+
+    execution_mode = "prototype_only" if execution_enabled else "disabled"
+    return {
+        "provider": provider,
+        "provider_base_url_configured": bool(provider_base_url),
+        "provider_availability_status": availability,
+        "provider_configuration_status": configuration,
+        "provider_execution_mode": execution_mode,
+        "operator_gate_required": environment.get("operator_gate_required") is True,
+        "advisory_only": True,
+        "execution_allowed": False,
+        "automatic_execution_allowed": False,
+        "repo_mutation_allowed": False,
+        "fallback_behavior": (
+            f"Fallback model is advisory-only: {fallback_model}."
+            if fallback_model
+            else "No fallback model configured; fallback is explicit operator review, not automatic execution."
+        ),
+        "next_safe_action": next_safe_action,
+    }
+
+
+def _local_llm_model_profiles(
+    environment: dict[str, Any],
+    *,
+    provider_state: dict[str, Any],
+    available_models: list[str] | None = None,
+) -> list[dict[str, Any]]:
+    available = set(available_models or [])
+    profile_specs = (
+        (
+            "reasoning_model",
+            "local_reasoning_llm",
+            "Reasoning, review, planning, and operator assistance.",
+            "Prefer larger local reasoning-capable models when local hardware can support them.",
+        ),
+        (
+            "coding_model",
+            "local_coding_llm",
+            "Coding-oriented prompt previews and operator-gated prototype responses.",
+            "Prefer coding-tuned models with enough memory for the target repo context.",
+        ),
+        (
+            "fallback_model",
+            "fallback",
+            "Manual fallback reference only; never selected automatically.",
+            "Use only after explicit operator review of local capacity and task risk.",
+        ),
+    )
+    profiles: list[dict[str, Any]] = []
+    provider = str(environment.get("local_llm_provider", "unknown")).strip() or "unknown"
+    provider_availability = str(provider_state.get("provider_availability_status", "missing_configuration")).strip()
+    for field, lane, recommended_use, hardware_notes in profile_specs:
+        model_name = str(environment.get(field, "") or "").strip()
+        if not model_name:
+            status = "missing_configuration"
+        elif available_models is not None:
+            status = "configured" if model_name in available else "unavailable"
+        else:
+            status = "configured" if provider_availability == "configured" else provider_availability
+        profiles.append(
+            {
+                "provider": provider,
+                "model_name": model_name,
+                "intended_lane": lane,
+                "recommended_use": recommended_use,
+                "hardware_notes": hardware_notes,
+                "status": status,
+                "advisory_warning": "Model metadata is advisory; health checks list local models but do not execute inference.",
+                "prototype_warning": "Local LLM execution remains operator-gated, advisory-only, and prototype-scoped.",
+            }
+        )
+    return profiles
+
+
 def _parse_ollama_model_names(payload: Any) -> list[str]:
     if not isinstance(payload, dict):
         return []
@@ -4430,6 +4583,8 @@ def _local_llm_health_payload(
     provider_base_url: str,
     configured_reasoning_model: str,
     configured_coding_model: str,
+    environment: dict[str, Any],
+    provider_state: dict[str, Any],
     provider_reachable: bool,
     available_models: list[str],
     checked_at: str,
@@ -4437,13 +4592,31 @@ def _local_llm_health_payload(
     blockers: list[str],
     next_safe_action: str,
 ) -> dict[str, Any]:
+    health_provider_state = dict(provider_state)
+    if provider_reachable:
+        health_provider_state["provider_availability_status"] = "configured"
+        health_provider_state["provider_configuration_status"] = "configured"
+    elif provider == "ollama" and not blockers and provider_state.get("provider_availability_status") == "configured":
+        health_provider_state["provider_availability_status"] = "unavailable"
+        health_provider_state["provider_configuration_status"] = "configured_but_unreachable"
+    model_profiles = _local_llm_model_profiles(
+        environment,
+        provider_state=health_provider_state,
+        available_models=available_models if provider_reachable else None,
+    )
     return {
         "ok": ok,
         "local_only": True,
         "provider": provider,
         "provider_base_url": provider_base_url,
+        "provider_availability_status": health_provider_state.get("provider_availability_status", "missing_configuration"),
+        "provider_configuration_status": health_provider_state.get("provider_configuration_status", "missing_provider"),
+        "provider_execution_mode": health_provider_state.get("provider_execution_mode", "disabled"),
+        "provider_state": health_provider_state,
         "configured_reasoning_model": configured_reasoning_model,
         "configured_coding_model": configured_coding_model,
+        "local_model_profiles": model_profiles,
+        "fallback_behavior": health_provider_state.get("fallback_behavior", ""),
         "provider_reachable": provider_reachable,
         "available_models": available_models,
         "reasoning_model_available": bool(configured_reasoning_model and configured_reasoning_model in available_models),
@@ -4458,6 +4631,7 @@ def _local_llm_health_payload(
         + [
             "Local LLM health check is explicitly invoked and local-only.",
             "Only provider availability and model listing are checked.",
+            "Provider/model status does not authorize automatic execution.",
             "No prompts, inference, generation, routing execution, Codex execution, agent execution, GitHub, or gh operation is performed.",
         ],
     }

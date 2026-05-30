@@ -1,5 +1,28 @@
 # AresForge Roadmap
 
+## M72 Local LLM Provider Configuration Hardening
+
+Status: Completed locally on `main`.
+
+Delivered scope:
+
+- hardened local LLM provider/model configuration without expanding execution behavior
+- added clearer provider availability and configuration states for configured, missing configuration, unavailable, unsupported, disabled, and prototype-only mode
+- added advisory provider/model profile metadata for local reasoning, local coding, and fallback model fields
+- made fallback behavior explicit and non-automatic
+- improved health-check payload wording so provider availability and model listing cannot be mistaken for execution approval
+
+Constraints preserved:
+
+- local LLM execution remains local-only, advisory-only, operator-gated, and prototype-scoped
+- health checks remain explicit and do not send prompts or run inference
+- no automatic local LLM execution, Codex execution, Codex CLI invocation, agent execution, GitHub API, `gh`, issue/PR/workflow behavior, external workflow execution, or repository mutation was introduced
+- Codex high-value lane remains prompt-generation/operator-handoff only
+
+Recommended next milestone:
+
+- M73 - Prompt Pack Quality and Routing Improvements.
+
 ## M71 Operator-Facing AI Action Review Panel
 
 Status: Completed locally on `main`.

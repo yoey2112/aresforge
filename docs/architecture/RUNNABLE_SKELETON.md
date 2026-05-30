@@ -1,5 +1,35 @@
 # Runnable Skeleton
 
+## M72 Local LLM Provider Configuration Hardening
+
+Status: Completed locally on `main`.
+
+Implemented runnable path:
+
+- operator helpers: `read_local_llm_environment_contract(...)`, `update_local_llm_environment_contract(...)`, and `check_local_llm_health(...)`
+- Hub routes: `GET /api/local-llm/environment`, `POST /api/local-llm/environment`, and `POST /api/local-llm/health-check`
+
+Behavior contract:
+
+- local LLM environment payloads now expose provider availability status, provider configuration status, provider execution mode, provider state, advisory model profiles, and fallback behavior
+- provider states distinguish configured, missing configuration, unavailable, unsupported, disabled, and prototype-only execution mode
+- local model profiles describe provider, model name, intended lane, recommended use, hardware notes, status, advisory warnings, and prototype warnings
+- health-check output keeps provider reachability/model listing separate from execution authorization
+
+Still absent by design:
+
+- automatic local LLM execution
+- local LLM execution outside the M62 explicit operator-gated prototype
+- prompt sending or inference during health checks
+- Codex execution or Codex CLI invocation
+- automatic agent execution
+- GitHub API, `gh`, issues, PRs, workflows, or GitHub mutation
+- repository mutation from local LLM output
+
+Next skeleton focus:
+
+- M73 should improve prompt-pack quality and routing guidance.
+
 ## M71 Operator-Facing AI Action Review Panel
 
 Status: Completed locally on `main`.

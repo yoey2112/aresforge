@@ -26,6 +26,8 @@ M69 hardens local AI operations around this contract. Local LLM execution payloa
 
 M70 verifies the full M58-M69 local AI operations chain. It reconciles documentation and payload wording, confirms the local-first/file-backed/operator-gated/advisory-only boundaries, and does not add local LLM execution behavior beyond the M62 prototype.
 
+M72 hardens provider and model configuration metadata. Environment reads, updates, and health-check responses now expose explicit provider availability status, provider configuration status, provider execution mode, advisory model profile metadata, fallback behavior, and next safe operator action. M72 does not add provider execution, automatic local LLM execution, or repository mutation behavior.
+
 ## Storage
 
 The contract is stored locally at:
@@ -51,6 +53,7 @@ Reading defaults does not write this file. Updating the contract writes the file
 - `POST /api/ai-action-safety-gate`
 - `GET /api/ai-artifacts`
 - `GET /api/operator-run-history`
+- `GET /api/ai-action-review`
 
 ## Fields
 
@@ -67,6 +70,15 @@ Reading defaults does not write this file. Updating the contract writes the file
 - `notes`
 - `updated_at`
 
+Derived read-only metadata:
+
+- `provider_availability_status`
+- `provider_configuration_status`
+- `provider_execution_mode`
+- `provider_state`
+- `local_model_profiles`
+- `fallback_behavior`
+
 ## Supported Providers
 
 - `ollama`
@@ -74,6 +86,31 @@ Reading defaults does not write this file. Updating the contract writes the file
 - `unknown`
 
 Model fields are placeholders/configuration only. A non-empty model name does not mean the model is installed.
+
+## Provider Availability States
+
+M72 exposes provider state in operator-readable form:
+
+- `configured`: supported local provider configuration is syntactically complete
+- `missing_configuration`: provider, local URL, or model configuration is incomplete
+- `unavailable`: explicit health check could not reach the configured local provider
+- `unsupported`: provider value or URL is not allowed for local LLM workflows
+- `disabled`: provider is intentionally set to `none`
+- `prototype_only`: execution mode is enabled only for the M62 explicit operator-gated prototype
+
+These states are review metadata. They do not authorize automatic execution.
+
+## Local Model Profiles
+
+M72 derives advisory profile metadata for:
+
+- reasoning model -> intended lane `local_reasoning_llm`
+- coding model -> intended lane `local_coding_llm`
+- fallback model -> intended lane `fallback`
+
+Each profile includes provider, model name, intended lane, recommended use, hardware notes, status, advisory warning, and prototype warning. Profile status may be `configured`, `missing_configuration`, `unavailable`, `unsupported`, or `disabled` depending on provider configuration and explicit health-check results.
+
+Fallback behavior is explicit: fallback model names are advisory operator review metadata only and are never selected or executed automatically.
 
 ## Validation
 
@@ -84,6 +121,7 @@ Model fields are placeholders/configuration only. A non-empty model name does no
 - `health_check_enabled` may be true or false, but does not trigger a health check in M58.
 - Model names may be blank; non-blank values are strings.
 - `max_context_tokens` and `request_timeout_seconds` must be positive integers when supplied.
+- provider/model metadata must remain advisory and non-executing.
 
 ## M59 Health Check
 
@@ -100,6 +138,9 @@ Required output includes:
 - configured model availability
 - `inference_tested: false`
 - `execution_allowed: false`
+- provider availability/configuration status
+- local model profile status
+- fallback behavior
 - warnings and blockers
 
 For provider `ollama`, the health check may call only the local `/api/tags` endpoint. It must not call generate, chat, completion, or prompt endpoints.
@@ -191,3 +232,7 @@ M68 reconciled local AI operations docs and validation without expanding executi
 M69 hardened local AI operations around edge cases, blocked/error metadata, and non-mutation state.
 
 M70 completed a verification sweep of the M58-M69 local AI operations chain without expanding execution.
+
+M71 added an operator-facing AI Action Review Panel without adding execution.
+
+M72 hardened local LLM provider/model configuration and recommends M73 - Prompt Pack Quality and Routing Improvements next.

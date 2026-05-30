@@ -130,7 +130,16 @@ def test_read_local_llm_environment_contract_returns_default_without_writing(tmp
     assert payload["local_llm_environment"]["local_llm_provider"] == "unknown"
     assert payload["local_llm_environment"]["execution_enabled"] is False
     assert payload["local_llm_environment"]["operator_gate_required"] is True
+    assert payload["provider_availability_status"] == "missing_configuration"
+    assert payload["provider_configuration_status"] == "missing_provider"
+    assert payload["provider_execution_mode"] == "disabled"
+    assert payload["fallback_behavior"].startswith("No fallback model configured")
+    assert payload["local_model_profiles"][0]["provider"] == "unknown"
+    assert payload["local_model_profiles"][0]["intended_lane"] == "local_reasoning_llm"
+    assert payload["local_model_profiles"][0]["status"] == "missing_configuration"
+    assert "advisory" in payload["local_model_profiles"][0]["advisory_warning"].lower()
     assert payload["validation"]["valid"] is True
+    assert payload["validation"]["provider_availability_status"] == "missing_configuration"
     assert not resolve_local_llm_environment_path(tmp_path).exists()
 
 
@@ -158,6 +167,11 @@ def test_update_local_llm_environment_contract_accepts_ollama_config_without_cal
     assert payload["execution_allowed"] is False
     assert payload["local_llm_environment"]["local_llm_provider"] == "ollama"
     assert payload["local_llm_environment"]["health_check_enabled"] is True
+    assert payload["provider_availability_status"] == "configured"
+    assert payload["provider_configuration_status"] == "configured"
+    assert payload["local_model_profiles"][1]["model_name"] == "qwen-coding-local"
+    assert payload["local_model_profiles"][1]["status"] == "configured"
+    assert "prototype" in payload["local_model_profiles"][1]["prototype_warning"].lower()
     assert any("no health check is executed" in warning.lower() for warning in payload["warnings"])
     assert any("No Ollama call" in entry for entry in payload["boundary_confirmations"])
     assert resolve_local_llm_environment_path(tmp_path).exists()
@@ -180,6 +194,8 @@ def test_local_llm_environment_contract_accepts_provider_none(tmp_path: Path) ->
 
     assert payload["ok"] is True
     assert payload["local_llm_environment"]["local_llm_provider"] == "none"
+    assert payload["provider_availability_status"] == "disabled"
+    assert payload["provider_configuration_status"] == "disabled"
     assert payload["validation"]["valid"] is True
 
 
@@ -196,6 +212,7 @@ def test_local_llm_environment_contract_rejects_invalid_provider_and_numbers_acc
     )
     assert execution_enabled["ok"] is True
     assert execution_enabled["local_llm_environment"]["execution_enabled"] is True
+    assert execution_enabled["provider_execution_mode"] == "prototype_only"
     assert execution_enabled["validation"]["execution_status"] == "operator_gated_prototype"
 
     invalid_timeout = update_local_llm_environment_contract(
@@ -233,11 +250,49 @@ def test_check_local_llm_health_provider_none_returns_blocked_unavailable_withou
 
     assert payload["ok"] is True
     assert payload["provider"] == "none"
+    assert payload["provider_availability_status"] == "disabled"
+    assert payload["provider_configuration_status"] == "disabled"
     assert payload["provider_reachable"] is False
     assert payload["available_models"] == []
     assert payload["inference_tested"] is False
     assert payload["execution_allowed"] is False
     assert payload["blockers"]
+    assert calls == []
+
+
+def test_local_llm_environment_unsupported_provider_state_does_not_call_provider(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    path = resolve_local_llm_environment_path(tmp_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(
+            {
+                "local_llm_provider": "remote-api",
+                "provider_base_url": "https://example.com",
+                "execution_enabled": False,
+                "operator_gate_required": True,
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    calls: list[str] = []
+
+    def fail_if_called(request: object, timeout: int = 0) -> _FakeHttpResponse:
+        calls.append(str(request))
+        raise AssertionError("unsupported providers must not be called")
+
+    contract = read_local_llm_environment_contract(config)
+    payload = check_local_llm_health(config, urlopen_fn=fail_if_called)
+
+    assert contract["provider_availability_status"] == "unsupported"
+    assert contract["provider_configuration_status"] == "unsupported_provider"
+    assert contract["execution_allowed"] is False
+    assert payload["ok"] is False
+    assert payload["provider_availability_status"] == "unsupported"
+    assert payload["provider_reachable"] is False
+    assert payload["execution_allowed"] is False
+    assert payload["inference_tested"] is False
     assert calls == []
 
 
@@ -262,6 +317,8 @@ def test_check_local_llm_health_invalid_config_returns_blockers(tmp_path: Path) 
 
     assert payload["ok"] is False
     assert payload["provider_reachable"] is False
+    assert payload["provider_availability_status"] == "unsupported"
+    assert payload["provider_configuration_status"] == "non_local_provider_url"
     assert any("localhost" in blocker for blocker in payload["blockers"])
 
 
@@ -291,10 +348,14 @@ def test_check_local_llm_health_ollama_reachable_lists_models_without_inference(
 
     assert payload["ok"] is True
     assert payload["provider"] == "ollama"
+    assert payload["provider_availability_status"] == "configured"
+    assert payload["provider_configuration_status"] == "configured"
     assert payload["provider_reachable"] is True
     assert payload["available_models"] == ["qwen-code:latest", "qwen-reason:latest"]
     assert payload["reasoning_model_available"] is True
     assert payload["coding_model_available"] is True
+    assert payload["local_model_profiles"][0]["status"] == "configured"
+    assert payload["local_model_profiles"][1]["status"] == "configured"
     assert payload["inference_tested"] is False
     assert payload["execution_allowed"] is False
     assert calls == ["http://127.0.0.1:11434/api/tags"]
@@ -324,6 +385,8 @@ def test_check_local_llm_health_ollama_unavailable_is_non_inference_health_resul
 
     assert payload["ok"] is True
     assert payload["provider_reachable"] is False
+    assert payload["provider_availability_status"] == "unavailable"
+    assert payload["provider_configuration_status"] == "configured_but_unreachable"
     assert payload["available_models"] == []
     assert payload["reasoning_model_available"] is False
     assert payload["coding_model_available"] is False

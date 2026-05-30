@@ -81,6 +81,9 @@ def test_local_llm_environment_api_reads_default_and_updates_contract(tmp_path: 
     assert default_payload["ok"] is True
     assert default_payload["execution_allowed"] is False
     assert default_payload["local_llm_environment"]["local_llm_provider"] == "unknown"
+    assert default_payload["provider_availability_status"] == "missing_configuration"
+    assert default_payload["provider_execution_mode"] == "disabled"
+    assert default_payload["local_model_profiles"][0]["intended_lane"] == "local_reasoning_llm"
 
     updated = post_local_llm_environment(
         config,
@@ -101,6 +104,10 @@ def test_local_llm_environment_api_reads_default_and_updates_contract(tmp_path: 
     assert updated["local_llm_environment"]["local_llm_provider"] == "ollama"
     assert updated["local_llm_environment"]["execution_enabled"] is False
     assert updated["local_llm_environment"]["operator_gate_required"] is True
+    assert updated["provider_availability_status"] == "configured"
+    assert updated["provider_configuration_status"] == "configured"
+    assert updated["local_model_profiles"][1]["model_name"] == "qwen-coding-local"
+    assert updated["local_model_profiles"][1]["status"] == "configured"
     assert any("does not call Ollama" in entry for entry in updated["boundary_confirmations"])
 
 
@@ -121,6 +128,7 @@ def test_local_llm_environment_api_rejects_invalid_inputs(tmp_path: Path) -> Non
     )
     assert invalid_execution["ok"] is True
     assert invalid_execution["local_llm_environment"]["execution_enabled"] is True
+    assert invalid_execution["provider_execution_mode"] == "prototype_only"
     assert invalid_execution["validation"]["execution_status"] == "operator_gated_prototype"
 
     invalid_timeout = post_local_llm_environment(
@@ -148,9 +156,13 @@ def test_local_llm_health_check_api_requires_safe_payload_and_returns_provider_n
     payload = post_local_llm_health_check(config, {"explicit_operator_invocation": True})
     assert payload["ok"] is True
     assert payload["provider"] == "none"
+    assert payload["provider_availability_status"] == "disabled"
+    assert payload["provider_configuration_status"] == "disabled"
     assert payload["provider_reachable"] is False
     assert payload["inference_tested"] is False
     assert payload["execution_allowed"] is False
+    assert payload["local_model_profiles"][0]["status"] == "disabled"
+    assert any("does not send prompts or execute inference" in entry for entry in payload["boundary_confirmations"])
     assert payload["blockers"]
 
     rejected = post_local_llm_health_check(config, {"prompt": "do not send this"})

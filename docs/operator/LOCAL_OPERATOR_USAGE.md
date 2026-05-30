@@ -1,5 +1,37 @@
 # Local Operator Usage
 
+## M72 Local LLM Provider Configuration Hardening
+
+Status: Completed locally on `main`.
+
+Operator workflow:
+
+1. Read local LLM configuration through `GET /api/local-llm/environment`.
+2. Review `provider_availability_status`, `provider_configuration_status`, `provider_execution_mode`, `local_model_profiles`, and `fallback_behavior`.
+3. Update provider/model settings only through the existing local environment contract.
+4. Run `POST /api/local-llm/health-check` only as an explicit operator action.
+5. Treat health results as provider/model availability evidence only, not execution approval.
+
+Provider state guidance:
+
+- `configured`: provider settings are syntactically usable; run the explicit health check before any prototype use
+- `missing_configuration`: provider or local URL/model configuration is incomplete
+- `unavailable`: configured local provider could not be reached by the explicit health check
+- `unsupported`: provider or URL is not allowed for local LLM workflows
+- `disabled`: provider is intentionally set to `none`
+- `prototype_only`: execution is enabled only for the M62 explicit operator-gated prototype
+
+Operator safety notes:
+
+- local LLM usage remains local-only, advisory-only, operator-gated, and prototype-scoped
+- model profile metadata is advisory and does not prove installation
+- fallback model names are review metadata only and are never selected automatically
+- health checks do not send prompts, run inference, execute agents, execute Codex, call GitHub, call `gh`, run workflows, or mutate repo files
+
+Recommended next milestone:
+
+- M73 - Prompt Pack Quality and Routing Improvements.
+
 ## M71 Operator-Facing AI Action Review Panel
 
 Status: Completed locally on `main`.

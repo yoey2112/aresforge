@@ -2,9 +2,21 @@
 
 ## Status
 
-M44A documented the future Agent/LLM routing strategy. M51 through M69 now add non-executing contracts and local Hub surfaces for project AI settings, agent/engine registry, queue routing metadata, recommendation-only routing decisions, Project AI Settings UI, routed queue views, routing-aware prompt packs, local LLM environment/health checks, Codex CLI model profile configuration, local LLM prompt preview/execution gates, Codex high-value prompt generation, a local execution audit log, centralized AI action safety gate decisions, a local AI artifact registry, an Operator Run History panel, closeout reconciliation documentation, and local AI operations hardening.
+M44A documented the future Agent/LLM routing strategy. M51 through M72 now add non-executing contracts and local Hub surfaces for project AI settings, agent/engine registry, queue routing metadata, recommendation-only routing decisions, Project AI Settings UI, routed queue views, routing-aware prompt packs, local LLM environment/health checks, Codex CLI model profile configuration, local LLM prompt preview/execution gates, Codex high-value prompt generation, a local execution audit log, centralized AI action safety gate decisions, a local AI artifact registry, an Operator Run History panel, an AI Action Review Panel, closeout reconciliation documentation, local AI operations hardening, verification, and local LLM provider configuration hardening.
 
 Current prompt-pack and Codex high-value lane behavior are advisory prompt generation only. Runtime routing, Codex execution, real agent execution, and GitHub integration remain unimplemented. Local LLM execution exists only as the M62 operator-gated local prototype.
+
+## M72 Local LLM Provider Configuration Hardening
+
+M72 clarifies local provider and model state without adding execution behavior.
+
+The local LLM environment contract now exposes provider availability status, provider configuration status, provider execution mode, provider state, local model profiles, fallback behavior, and next safe operator action. Provider states distinguish configured, missing configuration, unavailable, unsupported, disabled, and prototype-only mode.
+
+Local model profiles describe provider, model name, intended lane, recommended use, hardware notes, status, advisory warning, and prototype warning. These profiles are routing/review metadata only. They do not prove installation, select a fallback automatically, invoke a provider, execute prompts, or authorize local LLM execution.
+
+Health-check output remains explicitly invoked and local-only. It may inspect local provider availability/model listing through the existing safe health path, but it keeps `inference_tested: false` and `execution_allowed: false`.
+
+M72 does not add routing execution, Codex execution, agent execution, GitHub API calls, `gh` calls, issues, PRs, workflow activity, external workflow execution, automatic local LLM execution, or automatic repository mutation from local LLM output.
 
 ## M69 Local AI Operations Hardening
 

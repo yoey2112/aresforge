@@ -1,5 +1,28 @@
 # AresForge Build State
 
+## M72 Local LLM Provider Configuration Hardening
+
+Status: Completed locally on `main`.
+
+Delivered:
+
+- hardened the local LLM environment contract with explicit provider availability and configuration status fields
+- added operator-readable provider states for configured, missing configuration, unavailable, unsupported, disabled, and prototype-only execution mode
+- added advisory local model profile metadata for reasoning, coding, and fallback model fields, including provider, model name, intended lane, recommended use, hardware notes, status, and prototype warnings
+- clarified fallback behavior so fallback model names are advisory only and never selected automatically
+- improved local LLM health output with provider state, model profile status, fallback behavior, and explicit non-execution wording
+
+Safety posture:
+
+- local LLM usage remains local-only, advisory-only, operator-gated, and prototype-scoped
+- provider/model metadata does not prove model availability or authorize execution
+- health checks remain explicitly invoked and only inspect local provider availability/model listing
+- no automatic local LLM execution, Codex execution, agent execution, GitHub behavior, workflow behavior, external workflow execution, or repository mutation was introduced
+
+Recommended next milestone:
+
+- M73 - Prompt Pack Quality and Routing Improvements.
+
 ## M71 Operator-Facing AI Action Review Panel
 
 Status: Completed locally on `main`.
