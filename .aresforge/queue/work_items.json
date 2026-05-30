@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T03:42:07.455661+00:00",
+  "updated_at": "2026-05-30T03:58:24.840764+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -470,7 +470,7 @@
       "repo_id": "aresforge-main",
       "title": "M79.2 Single-Item Ready-to-Codex Automation",
       "description": "Add a local operator-controlled workflow that takes one manually-ready queue item, generates the prompt, sends it to Codex CLI, waits for completion, records evidence, validates, commits/pushes implementation changes, completes the queue item, and commits/pushes queue evidence without starting any next item.",
-      "status": "in_progress",
+      "status": "done",
       "priority": "high",
       "item_type": "feature",
       "tags": [
@@ -491,15 +491,31 @@
       "notes": "Acceptance criteria:\n- Operator can manually toggle exactly one queue item to ready.\n- A local command can process exactly one ready item end-to-end through prompt generation, Codex CLI dispatch, validation, evidence capture, implementation commit/push, queue completion, and queue evidence commit/push.\n- The workflow must not start the next item automatically.\n- The workflow must refuse to run if zero ready items or multiple ready items are found unless an explicit item_id is provided.\n- The workflow must preserve local-only operation and avoid GitHub API/gh mutation.\n- The workflow must use the M79.1 hardened stdin prompt handoff and tolerant output/run-state handling.\n- Failed Codex runs must leave the queue item reviewable and must not mark completion.\n- Validation failures must block completion and produce review evidence.\n- Commit/push should be attempted only after validation passes.\n- If commit/push fails, the workflow must record the failure and leave clear operator recovery steps.",
       "started_at": "2026-05-30T03:42:07.455661+00:00",
       "started_via": "prepare-queue-item-dispatch",
-      "previous_status": "proposed",
-      "completed_at": "",
-      "completed_by": "",
-      "completion_commit": "",
-      "validation_summary": "",
-      "evidence_note": "",
-      "tests_run": [],
-      "changed_files": [],
-      "artifact_paths": [],
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-30T03:58:24.840764+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "becd5bf",
+      "validation_summary": "Codex implemented M79.2 single-item ready-to-Codex automation. Focused validation passed: 263 passed. Full required bundle passed: 480 passed. Smoke checks passed. git diff --check passed with LF-to-CRLF warnings only.",
+      "evidence_note": "Operator reviewed Codex output, implementation diff, validation results, commit, and push result. Codex authored the implementation but sandbox Git permissions blocked commit creation, so operator committed and pushed validated implementation manually. Codex transcript showed token usage footer before final message: tokens used 221,534, which should be targeted by M79.3.",
+      "tests_run": [
+        "python -m pytest -p no:cacheprovider tests/test_codex_dispatch_runner.py tests/test_local_project_queue.py tests/test_cli.py -q -> 263 passed",
+        "Full required bundle -> 480 passed",
+        "Smoke checks: prepare-queue-item-dispatch, inspect-project-queue, inspect-local-queue-agent-summary, inspect-local-project-report, and new command safe-failure smoke -> passed"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/single_ready_codex_queue_item.py",
+        "src/aresforge/cli.py",
+        "tests/test_codex_dispatch_runner.py",
+        "tests/test_cli.py",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/architecture/RUNNABLE_SKELETON.md"
+      ],
+      "artifact_paths": [
+        ".aresforge/codex_dispatch/prompts/m79-2-single-item-ready-to-codex-automation.final.txt"
+      ],
       "completion_evidence": {},
       "routing_metadata": {
         "recommended_agent_lane": "coding",
@@ -520,7 +536,7 @@
       "closeout_summary": "",
       "closeout_history": [],
       "created_at": "2026-05-30T03:40:04.873501+00:00",
-      "updated_at": "2026-05-30T03:42:07.455661+00:00"
+      "updated_at": "2026-05-30T03:58:24.840764+00:00"
     },
     {
       "item_id": "m79-3-codex-run-token-usage-capture",
