@@ -1,5 +1,37 @@
 # AresForge Roadmap
 
+## M103 AresForge Self-Managed Project Seed Review
+
+Status: In progress locally on `main`.
+
+Queue item: `m103-aresforge-self-managed-project-seed-review`.
+
+Implementation commit: pending.
+
+Purpose:
+
+- review the AresForge self-managed project seed
+- confirm `aresforge` is selected as active project and registered as a managed project
+- report repo path, branch, active milestone, queue counts, next recommended item, docs, warnings, and gaps
+- keep the report local-only and read-only
+- prepare coherent self-management input for M104 batch planning
+
+Runnable operator surface:
+
+- `python -m aresforge inspect-self-managed-project --project-id aresforge`
+- `python -m aresforge inspect-self-managed-project --project-id aresforge --format json`
+
+Constraints preserved:
+
+- no GitHub API, `gh`, network, external-agent, Codex, Ollama, local LLM, documentation-agent, patch application, queue mutation, registry mutation, or automatic next-item execution
+- docs/data corrections may be made only when clearly local and safe
+- warnings and gaps are reported rather than auto-fixed
+
+M104 relationship:
+
+- M103 is the seed review and readiness lens.
+- M104 is expected to use this review before planning a self-managed batch.
+
 ## M102 Queue Dependency and Completion Locking Hardening
 
 Status: Completed locally on `main` after validation.

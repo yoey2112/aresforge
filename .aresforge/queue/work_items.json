@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T16:35:37.332043+00:00",
+  "updated_at": "2026-05-30T16:37:54.716369+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -2333,6 +2333,70 @@
       "closeout_history": [],
       "created_at": "2026-05-30T16:32:45.950249+00:00",
       "updated_at": "2026-05-30T16:35:37.332043+00:00"
+    },
+    {
+      "item_id": "m103-aresforge-self-managed-project-seed-review",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M103 AresForge Self-Managed Project Seed Review",
+      "description": "Review and harden the AresForge self-managed project seed so AresForge can serve as its own first managed project in local operator workflows.",
+      "status": "in_progress",
+      "priority": "high",
+      "item_type": "validation",
+      "tags": [
+        "milestone:m103",
+        "self-managed",
+        "local-only"
+      ],
+      "dependencies": [
+        "m102-queue-dependency-and-completion-locking-hardening"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [
+        "tests_run",
+        "changed_files"
+      ],
+      "evidence_required": [
+        "commit_hash",
+        "validation_summary",
+        "evidence_note"
+      ],
+      "assigned_agent": "",
+      "source": "local_operator",
+      "notes": "Acceptance criteria: inspect active project representation; report identity, repo path, branch, active milestone, queue counts, next recommended item, warnings, and gaps; local-only/read-only report command; docs updated; no external records or execution.",
+      "started_at": "2026-05-30T16:37:54.716369+00:00",
+      "started_via": "local_operator",
+      "previous_status": "ready",
+      "completed_at": "",
+      "completed_by": "",
+      "completion_commit": "",
+      "validation_summary": "",
+      "evidence_note": "",
+      "tests_run": [],
+      "changed_files": [],
+      "artifact_paths": [],
+      "completion_evidence": {},
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-30T16:37:54.102561+00:00",
+      "updated_at": "2026-05-30T16:37:54.716369+00:00"
     }
   ]
 }

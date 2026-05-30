@@ -2,11 +2,40 @@
 
 ## Current Phase
 
-M102 hardens local queue dependency and completion locking on top of the completed M97-M101 dispatch planning, dry-run, artifact, and human approval gate contracts.
+M103 reviews the AresForge self-managed project seed so AresForge can reliably serve as its own first managed project in local operator workflows.
 
 ## Current Goal
 
-M102 keeps local queue workflows sequential and auditable. Start and completion paths must honor dependencies, explicit evidence requirements, and local-only safety boundaries before any future dispatch workflow can move work forward.
+M103 adds a read-only self-managed project review report that checks active-project identity, registry metadata, repo path and branch, roadmap/doc posture, queue counts, next recommended item, warnings, and gaps before M104 batch planning.
+
+## M103 AresForge Self-Managed Project Seed Review
+
+Status: In progress locally on `main`.
+
+Queue item: `m103-aresforge-self-managed-project-seed-review`.
+
+Implementation commit: pending.
+
+M103 adds:
+
+- `inspect-self-managed-project --project-id aresforge`
+- `inspect-self-managed-project --project-id aresforge --format json`
+- local-only/read-only self-managed identity reporting
+- gap detection for missing metadata, missing docs, missing queue items, stale active milestone markers, repo path mismatch, branch mismatch, and unsafe execution assumptions
+
+AresForge remains the first managed project:
+
+- `project_id: aresforge`
+- primary repo path: `C:\Projects\aresforge`
+- active project: `aresforge`
+- queue source of truth: `.aresforge/queue/work_items.json`
+- managed project registry: `.aresforge/projects/projects.json`
+
+M103 to M104 relationship:
+
+- M103 does not plan or seed a batch.
+- M103 tells the operator whether the self-managed seed is coherent enough for M104 batch planning.
+- M104 can consume the M103 report rather than re-deriving project identity and queue/doc gaps.
 
 ## M102 Queue Dependency and Completion Locking Hardening
 

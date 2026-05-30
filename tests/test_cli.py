@@ -161,6 +161,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-local-project-readiness",
         "inspect-local-queue-agent-summary",
         "inspect-local-project-report",
+        "inspect-self-managed-project",
         "generate-preflight-baseline-snapshot",
         "diff-preflight-snapshots",
         "inspect-child-execution-gates",
@@ -4750,6 +4751,39 @@ def test_inspect_local_project_report_dispatch_json(
     parsed = json.loads(capsys.readouterr().out)
     assert exit_code == 0
     assert parsed == payload
+
+
+def test_inspect_self_managed_project_dispatch_markdown(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {"ok": True, "wrote_output_file": False, "stdout": "# Self-Managed Project Review\n"}
+    monkeypatch.setattr(
+        cli,
+        "inspect_self_managed_project",
+        lambda _config, project_id, output_format="markdown": payload,
+    )
+    exit_code = cli.main(["inspect-self-managed-project", "--project-id", "aresforge"])
+    assert exit_code == 0
+    assert "Self-Managed Project Review" in capsys.readouterr().out
+
+
+def test_inspect_self_managed_project_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "wrote_output_file": False,
+        "stdout": json.dumps({"project_id": "aresforge", "read_only": True}),
+    }
+    monkeypatch.setattr(
+        cli,
+        "inspect_self_managed_project",
+        lambda _config, project_id, output_format="markdown": payload,
+    )
+    exit_code = cli.main(["inspect-self-managed-project", "--project-id", "aresforge", "--format", "json"])
+    parsed = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert parsed == {"project_id": "aresforge", "read_only": True}
 
 
 def test_export_work_item_operator_prompt_dispatch_json(

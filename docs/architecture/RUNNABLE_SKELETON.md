@@ -1,5 +1,36 @@
 # Runnable Skeleton
 
+## M103 AresForge Self-Managed Project Seed Review
+
+M103 adds a read-only local review command:
+
+- `python -m aresforge inspect-self-managed-project --project-id aresforge`
+- `python -m aresforge inspect-self-managed-project --project-id aresforge --format json`
+
+Runnable behavior:
+
+- reads active-project state
+- reads managed project registry state
+- reads local queue state
+- reads existing local project report state
+- reads source-of-truth doc presence
+- reads current local branch from `.git/HEAD`
+- reports project id, repo path, branch, active milestone, queue counts, next recommended item, warnings, blockers, and gaps
+
+Still absent by design:
+
+- registry mutation
+- queue mutation
+- automatic metadata repair
+- GitHub API, `gh`, issues, PRs, workflows, network calls, or external services
+- Codex execution
+- Ollama or local LLM invocation
+- documentation-agent execution or apply mode
+- patch application
+- automatic batch planning or next-item execution
+
+M104 should consume the M103 review posture before proposing self-managed batches.
+
 ## M102 Queue Dependency and Completion Locking Hardening
 
 M102 adds a local-only queue consistency command:

@@ -1,5 +1,42 @@
 # Local Operator Usage
 
+## M103 Self-Managed Project Review
+
+M103 reviews whether AresForge is ready to act as its own first managed project. The report is local-only and read-only.
+
+Readable review:
+
+    python -m aresforge inspect-self-managed-project --project-id aresforge
+
+JSON review:
+
+    python -m aresforge inspect-self-managed-project --project-id aresforge --format json
+
+The report includes:
+
+- project id, name, and active-project match
+- primary repo id, repo path, registered default branch, and current local branch
+- active milestone marker from the roadmap
+- queue counts and next recommended queue item
+- required source-of-truth doc presence
+- readiness gaps, warnings, and blockers
+- explicit false values for unsafe execution assumptions
+
+Common gaps:
+
+- missing active milestone marker in the roadmap
+- missing required source-of-truth docs
+- missing queue items for the project
+- project registry or primary repo metadata mismatch
+- local branch differing from the registered default branch
+
+Operator workflow:
+
+- run the readable report first
+- inspect JSON when wiring future automation or tests
+- make only safe local docs/data corrections
+- use the review as input to M104 batch planning
+
 ## M102 Queue Dependency and Completion Locking
 
 M102 hardens local queue sequencing and evidence checks. It does not execute Codex, local LLMs, Ollama, documentation agents, GitHub, `gh`, external agents, patches, workflows, or automatic dispatch.

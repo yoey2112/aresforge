@@ -5,6 +5,7 @@ from aresforge.config import AppConfig
 from aresforge.operator.local_agent_profiles import init_agent_profiles
 from aresforge.operator.local_active_project import set_active_project
 from aresforge.operator.local_project_report import inspect_local_project_report
+from aresforge.operator.self_managed_project_report import inspect_self_managed_project
 from aresforge.operator.local_project_queue import add_queue_item, complete_local_queue_item, init_project_queue
 from aresforge.operator.managed_project_registry_local import (
     init_managed_project_registry,
@@ -243,6 +244,74 @@ def test_self_managed_report_treats_recovered_dispatch_runs_as_non_blocking(tmp_
     assert summary["safety_boundary_confirmations"]["github_api_allowed"] is False
     assert summary["safety_boundary_confirmations"]["gh_allowed"] is False
     assert summary["safety_boundary_confirmations"]["repo_mutation_allowed"] is False
+
+
+def test_self_managed_project_report_identity_fields(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_self_managed_project_context(config, tmp_path)
+    assert add_queue_item(
+        config,
+        item_id="m103-self-managed-review",
+        project_id="aresforge",
+        repo_id="aresforge-main",
+        title="M103 self-managed review",
+        description="Review seed state.",
+        status="ready",
+    )["ok"] is True
+
+    result = inspect_self_managed_project(config, project_id="aresforge", output_format="json")
+    payload = json.loads(result["stdout"])
+
+    assert result["ok"] is True
+    assert payload["project_id"] == "aresforge"
+    assert payload["project_name"] == "AresForge"
+    assert payload["self_managed"] is True
+    assert payload["active_project"]["matches_requested_project"] is True
+    assert payload["repo_identity"]["repo_path"] == str(tmp_path)
+    assert payload["queue"]["item_count"] == 1
+    assert payload["queue"]["next_recommended_item"]["item_id"] == "m103-self-managed-review"
+
+
+def test_self_managed_project_report_detects_doc_and_queue_consistency(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_self_managed_project_context(config, tmp_path)
+    docs_dir = tmp_path / "docs" / "context"
+    docs_dir.mkdir(parents=True)
+    (docs_dir / "BUILD_STATE.md").write_text("# State\n", encoding="utf-8")
+
+    result = inspect_self_managed_project(config, project_id="aresforge", output_format="json")
+    payload = json.loads(result["stdout"])
+
+    assert payload["docs"]["docs_ready"] is False
+    assert "docs/roadmap/ROADMAP.md" in payload["docs"]["missing_docs"]
+    assert payload["queue"]["item_count"] == 0
+    assert "No queue items are registered for the project." in payload["readiness"]["gaps"]
+    assert "Required source-of-truth docs are missing." in payload["readiness"]["gaps"]
+
+
+def test_self_managed_project_report_is_local_only_and_read_only(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_self_managed_project_context(config, tmp_path)
+
+    result = inspect_self_managed_project(config, project_id="aresforge", output_format="json")
+    payload = json.loads(result["stdout"])
+
+    assert payload["local_only"] is True
+    assert payload["read_only"] is True
+    assert payload["unsafe_execution_assumptions"]["agent_execution_allowed"] is False
+    assert payload["unsafe_execution_assumptions"]["github_api_allowed"] is False
+    assert any("No queue mutation performed" in entry for entry in payload["boundary_confirmations"])
+
+
+def test_self_managed_project_report_markdown_output(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_self_managed_project_context(config, tmp_path)
+
+    result = inspect_self_managed_project(config, project_id="aresforge")
+
+    assert result["format"] == "markdown"
+    assert "# Self-Managed Project Review" in result["stdout"]
+    assert "project_id: aresforge" in result["stdout"]
 
 
 def test_local_project_report_graceful_when_state_missing(tmp_path: Path) -> None:

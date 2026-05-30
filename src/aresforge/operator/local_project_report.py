@@ -255,10 +255,20 @@ def _roadmap_summary_from_docs(dashboard: dict[str, Any]) -> dict[str, Any]:
 
 
 def _extract_active_milestone(markdown: str) -> str:
+    match = re.search(r"^##\s+((?:M\d+(?:\.\d+)?)\s+.+?)\s*$", markdown, flags=re.MULTILINE)
+    if match:
+        return match.group(1).strip()
     match = re.search(r"^###\s+(.+?)\s*$\n+Status:\s+Active\.", markdown, flags=re.MULTILINE)
-    if not match:
-        return ""
-    return match.group(1).strip()
+    if match:
+        return match.group(1).strip()
+    match = re.search(
+        r"^##\s+((?:M\d+(?:\.\d+)?)\s+.+?)\s*$\n+Status:\s+(?:In progress|Active)",
+        markdown,
+        flags=re.MULTILINE,
+    )
+    if match:
+        return match.group(1).strip()
+    return ""
 
 
 def _load_report_queue_items(config: AppConfig) -> tuple[list[dict[str, Any]], list[str]]:

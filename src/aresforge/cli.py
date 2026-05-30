@@ -266,6 +266,7 @@ from aresforge.operator.local_project_readiness import (
 )
 from aresforge.operator.local_queue_agent_summary import inspect_local_queue_agent_summary
 from aresforge.operator.local_project_report import inspect_local_project_report
+from aresforge.operator.self_managed_project_report import inspect_self_managed_project
 from aresforge.operator.model_usage_report import inspect_model_usage_report
 from aresforge.operator.sprint_batch_report import inspect_sprint_batch_report
 from aresforge.operator.self_seed import seed_aresforge_self_project
@@ -1947,6 +1948,16 @@ def build_parser() -> argparse.ArgumentParser:
         "--format",
         choices=["json"],
         default="json",
+    )
+    inspect_self_managed_project_parser = subparsers.add_parser(
+        "inspect-self-managed-project",
+        help="Inspect read-only self-managed project seed readiness and consistency.",
+    )
+    inspect_self_managed_project_parser.add_argument("--project-id", required=True)
+    inspect_self_managed_project_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="markdown",
     )
     init_agent_profiles_parser = subparsers.add_parser(
         "init-agent-profiles",
@@ -4424,6 +4435,18 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "inspect-local-project-report":
         emit_json(inspect_local_project_report(config))
         return 0
+
+    if args.command == "inspect-self-managed-project":
+        payload = inspect_self_managed_project(
+            config,
+            project_id=args.project_id,
+            output_format=args.format,
+        )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
 
     if args.command == "init-agent-profiles":
         payload = init_agent_profiles(

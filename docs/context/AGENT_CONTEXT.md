@@ -1,5 +1,38 @@
 # AresForge Agent Context
 
+## M103 AresForge Self-Managed Project Seed Review Context
+
+Status: In progress locally on `main`.
+
+Queue item: `m103-aresforge-self-managed-project-seed-review`.
+
+Implementation commit: pending.
+
+M103 adds a read-only self-managed project review command:
+
+- `python -m aresforge inspect-self-managed-project --project-id aresforge`
+- `python -m aresforge inspect-self-managed-project --project-id aresforge --format json`
+
+The report confirms AresForge as its own first managed project:
+
+- active project identity
+- managed registry project and primary repo metadata
+- repo path and current local branch
+- roadmap active milestone marker
+- queue counts and next recommended item
+- source-of-truth doc presence
+- warnings, blockers, and gaps
+- explicit unsafe execution assumptions set to false
+
+M103 boundaries:
+
+- local-only/read-only inspection
+- no queue mutation
+- no registry mutation
+- no Codex, local LLM, Ollama, documentation-agent, GitHub API, `gh`, network service, external-agent, patch, or automatic dispatch execution
+
+M104 remains the future batch planner milestone. It should use the M103 self-managed review as readiness input before proposing batches.
+
 ## M102 Queue Dependency and Completion Locking Context
 
 Status: Completed locally on `main` after validation.
