@@ -232,6 +232,12 @@ from aresforge.operator.queue_agent_dispatch_plan import inspect_queue_agent_dis
 from aresforge.operator.codex_prompt_dispatch_artifact import generate_codex_prompt_dispatch_artifact
 from aresforge.operator.local_llm_advisory_dry_run import validate_local_llm_advisory_dry_run
 from aresforge.operator.documentation_agent_dry_run import validate_documentation_agent_dry_run
+from aresforge.operator.dispatch_approval_gate import (
+    APPROVAL_GATE_STATUSES,
+    create_dispatch_approval_gate,
+    inspect_dispatch_approval_gate,
+    update_dispatch_approval_gate,
+)
 from aresforge.operator.single_ready_codex_queue_item import run_single_ready_codex_queue_item
 from aresforge.operator.local_agent_profiles import (
     AGENT_PROFILE_STATUSES,
@@ -1628,6 +1634,53 @@ def build_parser() -> argparse.ArgumentParser:
     validate_documentation_agent_dry_run_parser.add_argument("--output")
     validate_documentation_agent_dry_run_parser.add_argument("--force", action="store_true")
     validate_documentation_agent_dry_run_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="markdown",
+    )
+    create_dispatch_approval_gate_parser = subparsers.add_parser(
+        "create-dispatch-approval-gate",
+        help="Create a local-only human approval gate record for a dispatch artifact or dry-run output.",
+    )
+    create_dispatch_approval_gate_parser.add_argument("--item-id", required=True)
+    create_dispatch_approval_gate_parser.add_argument("--artifact-type", required=True)
+    create_dispatch_approval_gate_parser.add_argument("--artifact-path")
+    create_dispatch_approval_gate_parser.add_argument("--dispatch-lane")
+    create_dispatch_approval_gate_parser.add_argument("--reviewer")
+    create_dispatch_approval_gate_parser.add_argument("--review-notes")
+    create_dispatch_approval_gate_parser.add_argument("--checklist", action="append", default=[])
+    create_dispatch_approval_gate_parser.add_argument("--approval-path")
+    create_dispatch_approval_gate_parser.add_argument("--queue-path")
+    create_dispatch_approval_gate_parser.add_argument("--registry-path")
+    create_dispatch_approval_gate_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="markdown",
+    )
+    inspect_dispatch_approval_gate_parser = subparsers.add_parser(
+        "inspect-dispatch-approval-gate",
+        help="Inspect local-only dispatch approval gate records.",
+    )
+    inspect_dispatch_approval_gate_parser.add_argument("--approval-id")
+    inspect_dispatch_approval_gate_parser.add_argument("--item-id")
+    inspect_dispatch_approval_gate_parser.add_argument("--approval-path")
+    inspect_dispatch_approval_gate_parser.add_argument("--limit", type=int)
+    inspect_dispatch_approval_gate_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="markdown",
+    )
+    update_dispatch_approval_gate_parser = subparsers.add_parser(
+        "update-dispatch-approval-gate",
+        help="Update a local-only dispatch approval gate status without authorizing execution.",
+    )
+    update_dispatch_approval_gate_parser.add_argument("--approval-id", required=True)
+    update_dispatch_approval_gate_parser.add_argument("--status", choices=APPROVAL_GATE_STATUSES, required=True)
+    update_dispatch_approval_gate_parser.add_argument("--reviewer")
+    update_dispatch_approval_gate_parser.add_argument("--review-notes")
+    update_dispatch_approval_gate_parser.add_argument("--checklist", action="append", default=[])
+    update_dispatch_approval_gate_parser.add_argument("--approval-path")
+    update_dispatch_approval_gate_parser.add_argument(
         "--format",
         choices=["json", "markdown"],
         default="markdown",
@@ -4051,6 +4104,59 @@ def main(argv: list[str] | None = None) -> int:
             registry_path=args.registry_path,
             output=args.output,
             force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "create-dispatch-approval-gate":
+        payload = create_dispatch_approval_gate(
+            config,
+            item_id=args.item_id,
+            artifact_type=args.artifact_type,
+            artifact_path=args.artifact_path,
+            dispatch_lane=args.dispatch_lane,
+            reviewer=args.reviewer,
+            review_notes=args.review_notes,
+            checklist=list(args.checklist or []),
+            approval_path=args.approval_path,
+            queue_path=args.queue_path,
+            registry_path=args.registry_path,
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-dispatch-approval-gate":
+        payload = inspect_dispatch_approval_gate(
+            config,
+            approval_id=args.approval_id,
+            item_id=args.item_id,
+            approval_path=args.approval_path,
+            limit=args.limit,
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "update-dispatch-approval-gate":
+        payload = update_dispatch_approval_gate(
+            config,
+            approval_id=args.approval_id,
+            status=args.status,
+            reviewer=args.reviewer,
+            review_notes=args.review_notes,
+            checklist=list(args.checklist or []) if args.checklist else None,
+            approval_path=args.approval_path,
             output_format=args.format,
         )
         if "stdout" in payload:

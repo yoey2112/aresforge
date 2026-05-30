@@ -14,6 +14,7 @@ from aresforge.hub.api import (
     get_bootstrap_status,
     get_codex_cli_model_profiles,
     get_dashboard_summary,
+    get_dispatch_approval_gates,
     get_active_project,
     get_active_project_workspace,
     get_agent,
@@ -238,6 +239,17 @@ def _build_handler(config: AppConfig, static_root: Path) -> type[BaseHTTPRequest
                         "source_action": query_values.get("source_action", [None])[0],
                         "engine": query_values.get("engine", [None])[0],
                         "exists": query_values.get("exists", [None])[0],
+                        "limit": query_values.get("limit", [None])[0],
+                    },
+                )
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+            if method == "GET" and path == "/api/dispatch-approval-gates":
+                payload = get_dispatch_approval_gates(
+                    config,
+                    {
+                        "approval_id": query_values.get("approval_id", [None])[0],
+                        "item_id": query_values.get("item_id", [None])[0],
                         "limit": query_values.get("limit", [None])[0],
                     },
                 )

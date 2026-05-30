@@ -1,5 +1,48 @@
 # AresForge Roadmap
 
+## M101 Human Approval Gate UI/Data Contract
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m101-human-approval-gate-ui-data-contract`.
+
+Implementation commit: pending final commit.
+
+Purpose:
+
+- define local approval records for Codex dispatch artifacts, local LLM advisory/draft artifacts, documentation dry-runs, and future patch gates
+- record operator review notes, checklist, reviewer, artifact metadata, dispatch lane, and approval status
+- expose CLI create/read/update commands plus a read-only Hub review panel
+- preserve `execution_allowed=false` for every approval status
+- ensure approval is a prerequisite data record for future workflows, not an execution trigger
+
+Supported statuses:
+
+- `pending_review`
+- `approved_for_manual_handoff`
+- `rejected`
+- `needs_revision`
+
+Constraints preserved:
+
+- approval records are local-only file-backed data under `.aresforge/dispatch_approval_gates.json`
+- invalid statuses are blocked
+- `approved_for_manual_handoff` permits manual operator handoff review only
+- no Codex, Ollama, local LLM, documentation-agent, external-agent, GitHub API, `gh`, network, workflow, issue creation, patch application, queue completion, or next-item execution occurs
+
+Operator workflow:
+
+- generate or inspect a dispatch artifact or dry-run output
+- create a dispatch approval gate for the item and artifact type
+- review checklist and notes locally
+- update status to `approved_for_manual_handoff`, `rejected`, or `needs_revision`
+- keep future execution blocked until later milestones add separate locking and execution checks
+
+M102 relationship:
+
+- M101 records human approval state.
+- M102 is planned to harden queue dependency and completion locks so approval state cannot bypass readiness, active-item, evidence, or completion constraints.
+
 ## M100 Documentation Agent Dry-Run Review Workflow
 
 Status: Completed locally on `main` after validation.
@@ -183,7 +226,7 @@ Add a dry-run review workflow for documentation reconciliation plans that verifi
 
 ### M101 Human Approval Gate UI/Data Contract
 
-Status: Planned.
+Status: Completed locally.
 
 Define the data contract and Hub read surface for human approvals across Codex dispatch artifacts, local LLM advisory/draft artifacts, documentation plans, and future patch gates. This remains a UI/data contract, not an apply path.
 

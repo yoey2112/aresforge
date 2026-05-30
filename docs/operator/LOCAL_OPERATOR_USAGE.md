@@ -1,5 +1,56 @@
 # Local Operator Usage
 
+## M101 Human Approval Gate UI/Data Contract
+
+M101 records local operator approval state for dispatch artifacts and dry-run outputs. It is a data contract only: approval never executes Codex, local LLMs, Ollama, documentation agents, GitHub, `gh`, external agents, patches, workflows, or queue advancement.
+
+Create a pending review gate:
+
+    python -m aresforge create-dispatch-approval-gate --item-id <item_id> --artifact-type <type>
+
+Create with artifact metadata and JSON output:
+
+    python -m aresforge create-dispatch-approval-gate --item-id <item_id> --artifact-type <type> --artifact-path <path> --dispatch-lane <lane> --reviewer <name> --format json
+
+Inspect one gate:
+
+    python -m aresforge inspect-dispatch-approval-gate --approval-id <approval_id>
+
+List gates for an item:
+
+    python -m aresforge inspect-dispatch-approval-gate --item-id <item_id> --format json
+
+Update approval status:
+
+    python -m aresforge update-dispatch-approval-gate --approval-id <approval_id> --status approved_for_manual_handoff --review-notes "Reviewed for manual handoff only."
+
+Supported statuses:
+
+- `pending_review`
+- `approved_for_manual_handoff`
+- `rejected`
+- `needs_revision`
+
+Required checklist defaults:
+
+- operator reviewed dispatch or dry-run output
+- artifact matches the selected dispatch lane
+- local-only boundary confirmed
+- `execution_allowed=false` confirmed
+- no automatic handoff or execution confirmed
+- review notes recorded before status change
+
+Operator workflow:
+
+- inspect or generate the M97-M100 dispatch artifact or dry-run output
+- create a local approval gate
+- review the checklist and artifact path
+- update status and notes
+- use `approved_for_manual_handoff` only for manual operator handoff review
+- wait for future milestones before any execution or apply path
+
+M102 will add dependency/completion locking hardening around future workflows. M101 only records human approval state.
+
 ## M100 Documentation Agent Dry-Run Review Workflow
 
 M100 validates documentation-agent dry-run readiness from M97 plans. It is dry-run only and never executes a documentation agent or mutates documentation.

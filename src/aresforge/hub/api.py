@@ -13,6 +13,7 @@ from aresforge.operator.local_queue_agent_summary import inspect_local_queue_age
 from aresforge.operator.local_active_project import inspect_active_project, set_active_project
 from aresforge.operator.local_ai_action_safety import evaluate_ai_action_safety_gate
 from aresforge.operator.local_ai_artifacts import filter_ai_artifacts
+from aresforge.operator.dispatch_approval_gate import inspect_dispatch_approval_gate
 from aresforge.operator.local_execution_audit import filter_execution_audit_log
 from aresforge.operator.local_operator_run_history import read_ai_action_review_panel, read_operator_run_history
 from aresforge.operator.local_project_queue import (
@@ -663,6 +664,34 @@ def get_ai_artifacts(config: AppConfig, params: dict[str, str | None]) -> dict[s
         "AI artifact registry is read-only through the Hub and does not execute actions.",
     )
     return payload
+
+
+def get_dispatch_approval_gates(config: AppConfig, params: dict[str, str | None]) -> dict[str, Any]:
+    limit_value = _normalize_optional_str(params.get("limit"))
+    limit: int | None = None
+    if limit_value is not None:
+        try:
+            limit = int(limit_value)
+        except ValueError:
+            return _api_error("invalid_limit", "limit must be an integer.", details={"limit": limit_value})
+        if limit <= 0:
+            return _api_error("invalid_limit", "limit must be greater than zero.", details={"limit": limit_value})
+
+    payload = inspect_dispatch_approval_gate(
+        config,
+        approval_id=_normalize_optional_str(params.get("approval_id")),
+        item_id=_normalize_optional_str(params.get("item_id")),
+        limit=limit,
+        output_format="json",
+    )
+    gate_payload = payload.get("payload", {}) if isinstance(payload.get("payload"), dict) else {}
+    gate_payload["service"] = SERVICE_NAME
+    gate_payload["hub_read_only"] = True
+    gate_payload["boundary_confirmations"] = _merge_boundary_confirmations(
+        gate_payload,
+        "Dispatch approval gate Hub panel is read-only and never executes approved artifacts.",
+    )
+    return gate_payload
 
 
 def get_operator_run_history(config: AppConfig, params: dict[str, str | None]) -> dict[str, Any]:

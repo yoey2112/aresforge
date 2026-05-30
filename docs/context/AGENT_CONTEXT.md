@@ -1,5 +1,55 @@
 # AresForge Agent Context
 
+## M101 Human Approval Gate UI/Data Contract Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m101-human-approval-gate-ui-data-contract`.
+
+Implementation commit: pending final commit.
+
+M101 creates local-only approval gate records for dispatch artifacts and dry-run outputs. It is a data/UI contract only:
+
+- `local_only: true`
+- `execution_allowed: false`
+- file-backed records under `.aresforge/dispatch_approval_gates.json`
+- read-only Hub surface for reviewing gate records
+- no automated execution or external handoff after approval
+
+Primary commands:
+
+- `python -m aresforge create-dispatch-approval-gate --item-id <item_id> --artifact-type <type> [--format json]`
+- `python -m aresforge inspect-dispatch-approval-gate --approval-id <approval_id> [--format json]`
+- `python -m aresforge update-dispatch-approval-gate --approval-id <approval_id> --status <status> --review-notes <text> [--format json]`
+
+Supported statuses:
+
+- `pending_review`
+- `approved_for_manual_handoff`
+- `rejected`
+- `needs_revision`
+
+Required checklist defaults:
+
+- operator reviewed the dispatch or dry-run output
+- operator confirmed the artifact matches the selected lane
+- operator confirmed the local-only boundary
+- operator confirmed `execution_allowed=false`
+- operator confirmed no automatic handoff or execution
+- operator recorded review notes before status change
+
+M101 boundaries:
+
+- no Codex execution
+- no Ollama or local model invocation
+- no documentation-agent execution or documentation mutation
+- no GitHub API, `gh`, issues, PRs, workflows, or network calls
+- no external agents
+- no patch application
+- no automatic queue start, completion, dispatch, or next-item execution
+
+M102 remains the dependency/completion locking hardening milestone; M101 supplies approval state, not lock bypass.
+
 ## M100 Documentation Agent Dry-Run Review Workflow Context
 
 Status: Completed locally on `main` after validation.

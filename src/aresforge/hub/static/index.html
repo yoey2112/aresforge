@@ -1165,6 +1165,18 @@
                 <p id="queue-ai-artifacts-summary-empty" class="empty">No artifact registry loaded yet.</p>
                 <ul id="queue-ai-artifacts-entries" class="list"></ul>
                 <p id="queue-ai-artifacts-entries-empty" class="empty">No artifact records to show. Prompt previews, prompt packs, and advisory outputs appear here only after local artifact writes.</p>
+                <h4>Dispatch Approval Gates</h4>
+                <p class="message-note">Read-only local approval gate records for dispatch artifacts and dry-run outputs. Approval status never starts agents, Codex, local LLMs, GitHub, or documentation mutation.</p>
+                <form id="queue-dispatch-approval-gates-form" class="form-grid">
+                  <label>Approval ID<input id="queue-dispatch-approval-gates-approval-id" name="approval_id" placeholder="optional approval filter" /></label>
+                  <label>Item ID<input id="queue-dispatch-approval-gates-item-id" name="item_id" placeholder="optional item filter" /></label>
+                  <label>Limit<input id="queue-dispatch-approval-gates-limit" name="limit" placeholder="25" /></label>
+                  <button id="queue-dispatch-approval-gates-submit" type="submit">Load Approval Gates</button>
+                </form>
+                <ul id="queue-dispatch-approval-gates-summary" class="list"></ul>
+                <p id="queue-dispatch-approval-gates-summary-empty" class="empty">No approval gate registry loaded yet.</p>
+                <ul id="queue-dispatch-approval-gates-entries" class="list"></ul>
+                <p id="queue-dispatch-approval-gates-entries-empty" class="empty">No approval gate records to show.</p>
                 <h4>Operator Run History</h4>
                 <p class="message-note">Read-only timeline combining execution audit entries and AI artifact registry records. No execution, apply, GitHub, Codex, or local LLM run controls.</p>
                 <form id="queue-operator-run-history-form" class="form-grid">

@@ -82,7 +82,9 @@ M98 generates Codex prompt dispatch artifacts only for `codex_prompt_artifact`. 
 
 M99 validates Local LLM advisory dry-run readiness only for `local_llm_advisory`. If M97 selects `documentation_agent_dry_run`, M99 blocks readiness and emits no local LLM advisory approval. This preserves M100 as the future documentation-agent dry-run review workflow and does not add documentation-agent execution, patch generation, apply mode, or automatic documentation mutation.
 
-M100 adds `validate-documentation-agent-dry-run` for `documentation_agent_dry_run`. The workflow consumes or derives the M97 dispatch plan, validates source docs to review, expected doc updates, stale-doc checks, reconciliation scope, validation expectations, and operator gates. It is dry-run only: it does not execute a documentation agent, does not mutate documentation, does not generate documentation patches, does not add apply mode, and does not complete queue items automatically. M101 remains the future human approval gate contract for any later documentation apply path.
+M100 adds `validate-documentation-agent-dry-run` for `documentation_agent_dry_run`. The workflow consumes or derives the M97 dispatch plan, validates source docs to review, expected doc updates, stale-doc checks, reconciliation scope, validation expectations, and operator gates. It is dry-run only: it does not execute a documentation agent, does not mutate documentation, does not generate documentation patches, does not add apply mode, and does not complete queue items automatically.
+
+M101 adds local human approval gate records for documentation-agent dry-run outputs and other dispatch artifacts. A documentation gate may move through `pending_review`, `approved_for_manual_handoff`, `rejected`, or `needs_revision`, but every status preserves `execution_allowed=false`. `approved_for_manual_handoff` means the operator may manually review or hand off the artifact; it does not authorize documentation-agent execution, documentation mutation, or apply mode. M102 remains the planned dependency/completion locking hardening milestone for future workflows that consume approval records.
 
 ## Safety Boundaries
 

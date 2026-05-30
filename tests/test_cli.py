@@ -60,6 +60,9 @@ def test_cli_has_expected_commands() -> None:
         "inspect-queue-dispatch-plan",
         "generate-codex-dispatch-artifact",
         "validate-documentation-agent-dry-run",
+        "create-dispatch-approval-gate",
+        "inspect-dispatch-approval-gate",
+        "update-dispatch-approval-gate",
         "inspect-llm-decision-matrix",
         "inspect-local-llm-provider-contract",
         "run-single-ready-codex-queue-item",
@@ -6083,6 +6086,190 @@ def test_validate_documentation_agent_dry_run_dispatch_markdown(
     assert exit_code == 0
     assert "ready_for_future_documentation_review: True" in output
     assert "selected_lane: documentation_agent_dry_run" in output
+
+
+def test_create_dispatch_approval_gate_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    seen: dict[str, object] = {}
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "ok": True,
+                "execution_allowed": False,
+                "approval_gate": {"approval_id": "approval-1", "status": "pending_review"},
+            }
+        ),
+        "payload": {},
+    }
+
+    def fake_create(
+        _config: AppConfig,
+        *,
+        item_id: str,
+        artifact_type: str,
+        artifact_path=None,
+        dispatch_lane=None,
+        reviewer=None,
+        review_notes=None,
+        checklist=None,
+        approval_path=None,
+        queue_path=None,
+        registry_path=None,
+        output_format="markdown",
+    ):
+        seen.update(
+            {
+                "item_id": item_id,
+                "artifact_type": artifact_type,
+                "artifact_path": artifact_path,
+                "dispatch_lane": dispatch_lane,
+                "reviewer": reviewer,
+                "review_notes": review_notes,
+                "checklist": checklist,
+                "approval_path": approval_path,
+                "queue_path": queue_path,
+                "registry_path": registry_path,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "create_dispatch_approval_gate", fake_create)
+    exit_code = cli.main(
+        [
+            "create-dispatch-approval-gate",
+            "--item-id",
+            "m101",
+            "--artifact-type",
+            "codex_prompt_artifact",
+            "--artifact-path",
+            "artifact.txt",
+            "--dispatch-lane",
+            "codex_prompt_artifact",
+            "--reviewer",
+            "operator",
+            "--review-notes",
+            "Looks safe.",
+            "--checklist",
+            "reviewed",
+            "--approval-path",
+            ".aresforge/gates.json",
+            "--queue-path",
+            "queue.json",
+            "--registry-path",
+            "projects.json",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["execution_allowed"] is False
+    assert parsed["approval_gate"]["status"] == "pending_review"
+    assert seen["item_id"] == "m101"
+    assert seen["artifact_type"] == "codex_prompt_artifact"
+    assert seen["checklist"] == ["reviewed"]
+    assert seen["output_format"] == "json"
+
+
+def test_inspect_dispatch_approval_gate_dispatch_markdown(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "markdown",
+        "wrote_output_file": False,
+        "stdout": "# Dispatch Approval Gate\n\n- approval_id: approval-1\n- status: pending_review\n- execution_allowed: False\n",
+        "payload": {},
+    }
+    monkeypatch.setattr(
+        cli,
+        "inspect_dispatch_approval_gate",
+        lambda _config, approval_id=None, item_id=None, approval_path=None, limit=None, output_format="markdown": payload,
+    )
+
+    exit_code = cli.main(["inspect-dispatch-approval-gate", "--approval-id", "approval-1"])
+    output = capsys.readouterr().out
+
+    assert exit_code == 0
+    assert "approval_id: approval-1" in output
+    assert "execution_allowed: False" in output
+
+
+def test_update_dispatch_approval_gate_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    seen: dict[str, object] = {}
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "ok": True,
+                "execution_allowed": False,
+                "approval_gate": {"approval_id": "approval-1", "status": "approved_for_manual_handoff"},
+            }
+        ),
+        "payload": {},
+    }
+
+    def fake_update(
+        _config: AppConfig,
+        *,
+        approval_id: str,
+        status: str,
+        reviewer=None,
+        review_notes=None,
+        checklist=None,
+        approval_path=None,
+        output_format="markdown",
+    ):
+        seen.update(
+            {
+                "approval_id": approval_id,
+                "status": status,
+                "reviewer": reviewer,
+                "review_notes": review_notes,
+                "checklist": checklist,
+                "approval_path": approval_path,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "update_dispatch_approval_gate", fake_update)
+    exit_code = cli.main(
+        [
+            "update-dispatch-approval-gate",
+            "--approval-id",
+            "approval-1",
+            "--status",
+            "approved_for_manual_handoff",
+            "--reviewer",
+            "operator",
+            "--review-notes",
+            "Approved for manual handoff only.",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["execution_allowed"] is False
+    assert parsed["approval_gate"]["status"] == "approved_for_manual_handoff"
+    assert seen["approval_id"] == "approval-1"
+    assert seen["status"] == "approved_for_manual_handoff"
+    assert seen["output_format"] == "json"
 
 
 def test_approve_codex_dispatch_dispatch_json(

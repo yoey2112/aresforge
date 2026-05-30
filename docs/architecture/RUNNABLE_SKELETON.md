@@ -1,5 +1,36 @@
 # Runnable Skeleton
 
+## M101 Human Approval Gate UI/Data Contract
+
+M101 adds local-only approval gate commands:
+
+- `python -m aresforge create-dispatch-approval-gate --item-id <item_id> --artifact-type <type>`
+- `python -m aresforge inspect-dispatch-approval-gate --approval-id <approval_id>`
+- `python -m aresforge update-dispatch-approval-gate --approval-id <approval_id> --status <status> --review-notes <text>`
+- each command supports `--format json|markdown`
+
+Runnable behavior:
+
+- stores records in `.aresforge/dispatch_approval_gates.json`
+- creates records with `pending_review` status
+- updates records only to `pending_review`, `approved_for_manual_handoff`, `rejected`, or `needs_revision`
+- preserves `local_only: true`
+- preserves `execution_allowed: false`
+- includes approval id, item id, artifact type/path, dispatch lane, reviewer, review notes, checklist, timestamps, status, and next safe action
+- exposes a read-only Hub panel at `/api/dispatch-approval-gates` in the Queue review area
+
+Still absent by design:
+
+- automated execution after approval
+- Codex dispatch
+- Ollama or local LLM invocation
+- documentation-agent execution or apply mode
+- GitHub API, `gh`, issues, PRs, workflows, network calls, or external services
+- patch application
+- queue completion, dependency bypass, or automatic next-item execution from approval status
+
+M102 should harden dependency and completion locking around future workflows that consume M101 approval records.
+
 ## M100 Documentation Agent Dry-Run Review Workflow
 
 M100 adds a local-only dry-run validation command:

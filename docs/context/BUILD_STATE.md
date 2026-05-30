@@ -2,11 +2,56 @@
 
 ## Current Phase
 
-M100 adds the local-only Documentation Agent Dry-Run Review Workflow on top of the completed M97 dispatch plan, M98 Codex prompt artifact generator, and M99 local LLM advisory dry-run validator.
+M101 adds the local-only Human Approval Gate UI/Data Contract on top of the completed M97 dispatch plan, M98 Codex prompt artifact generator, M99 local LLM advisory dry-run validator, and M100 documentation-agent dry-run review workflow.
 
 ## Current Goal
 
-M100 validates whether a queue item selected by M97 for `documentation_agent_dry_run` is safe and ready for a future documentation-agent review workflow. It produces dry-run output only and preserves `execution_allowed=false`: it never executes documentation agents, mutates documentation, calls local LLMs, executes Codex, calls GitHub or `gh`, runs external agents, applies patches, creates issues, makes network calls, or automatically starts/completes/dispatches queue items.
+M101 records operator review requirements and approval status for dispatch artifacts and dry-run outputs. Approval records are local-only data and preserve `execution_allowed=false`: they never execute documentation agents, local LLMs, Ollama, Codex, GitHub or `gh`, external agents, patch application, network calls, or automatic queue advancement.
+
+## M101 Human Approval Gate UI/Data Contract
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m101-human-approval-gate-ui-data-contract`.
+
+Implementation commit: pending final commit.
+
+M101 adds a file-backed dispatch approval gate registry and commands:
+
+- `create-dispatch-approval-gate --item-id <item_id> --artifact-type <type>`
+- `inspect-dispatch-approval-gate --approval-id <approval_id>`
+- `update-dispatch-approval-gate --approval-id <approval_id> --status <status> --review-notes <text>`
+- `--format json` support for machine-readable output
+- a read-only Hub approval gate panel under the Queue AI/action review area
+
+Stable approval gate fields:
+
+- `approval_id`, `item_id`, `artifact_type`, `artifact_path`, `dispatch_lane`
+- `reviewer`, `review_notes`, `checklist`
+- `created_at`, `updated_at`, `status`
+- `local_only: true`
+- `execution_allowed: false`
+- `next_safe_action`
+
+Supported statuses:
+
+- `pending_review`
+- `approved_for_manual_handoff`
+- `rejected`
+- `needs_revision`
+
+M101 approval behavior:
+
+- records approval state for dispatch artifacts and dry-run outputs only
+- keeps `execution_allowed=false` even when status is `approved_for_manual_handoff`
+- treats approval as permission for manual operator handoff review, not automatic execution
+- blocks invalid statuses
+- requires future dispatch or apply workflows to check approval records before execution can be introduced
+
+M101 to M102 relationship:
+
+- M101 defines the human approval data record that future dispatch workflows must satisfy.
+- M102 remains planned to harden dependency, active-item, completion, and evidence locks so approved artifacts cannot bypass queue locking or completion rules.
 
 ## M100 Documentation Agent Dry-Run Review Workflow
 

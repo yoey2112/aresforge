@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T16:12:37.083520+00:00",
+  "updated_at": "2026-05-30T16:22:39.221348+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -2194,6 +2194,60 @@
       "closeout_history": [],
       "created_at": "2026-05-30T16:09:29.614795+00:00",
       "updated_at": "2026-05-30T16:12:37.083520+00:00"
+    },
+    {
+      "item_id": "m101-human-approval-gate-ui-data-contract",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M101 Human Approval Gate UI/Data Contract",
+      "description": "Create a local-only human approval gate data and UI contract that records operator review requirements and approval status for dispatch artifacts and dry-run outputs without executing agents, models, Codex, GitHub, or patches.",
+      "status": "in_progress",
+      "priority": "high",
+      "item_type": "feature",
+      "tags": [
+        "milestone:m101",
+        "approval-gate",
+        "local-only"
+      ],
+      "dependencies": [
+        "m100-documentation-agent-dry-run-review-workflow"
+      ],
+      "blocked_by": [],
+      "assigned_agent": "",
+      "source": "",
+      "notes": "Acceptance criteria: local file-backed approval records; statuses pending_review, approved_for_manual_handoff, rejected, needs_revision; stable approval JSON fields; CLI create/read/update; read-only Hub panel; execution_allowed remains false; no Codex, Ollama, local LLM, documentation agent, GitHub API, gh, network, external agent, patch application, documentation mutation, automatic queue mutation, or automatic next-item execution.",
+      "started_at": "2026-05-30T16:22:39.221348+00:00",
+      "started_via": "local_operator",
+      "previous_status": "ready",
+      "completed_at": "",
+      "completed_by": "",
+      "completion_commit": "",
+      "validation_summary": "",
+      "evidence_note": "",
+      "tests_run": [],
+      "changed_files": [],
+      "artifact_paths": [],
+      "completion_evidence": {},
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-30T16:22:34.887682+00:00",
+      "updated_at": "2026-05-30T16:22:39.221348+00:00"
     }
   ]
 }

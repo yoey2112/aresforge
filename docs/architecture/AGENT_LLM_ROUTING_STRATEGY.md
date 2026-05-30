@@ -28,6 +28,8 @@ M99 adds the Local LLM Advisory Execution Dry-Run Validator for the `local_llm_a
 
 M100 adds the Documentation Agent Dry-Run Review Workflow for the `documentation_agent_dry_run` lane only. It consumes or derives the M97 plan, blocks Codex, local LLM advisory, local coding draft, and manual-only lanes, blocks unsafe plan flags, and emits structured dry-run review data with source docs, expected updates, stale-doc checks, reconciliation scope, validation expectations, and operator gates. It does not execute documentation agents, mutate documentation, call local LLMs, execute Codex, apply patches, call GitHub/`gh`, make network calls, or mutate queue state.
 
+M101 adds the Human Approval Gate UI/Data Contract. It records local approval status for M98 Codex prompt artifacts, M99 local LLM advisory dry-runs, M100 documentation dry-runs, local coding draft artifacts, and future patch gates. Supported statuses are `pending_review`, `approved_for_manual_handoff`, `rejected`, and `needs_revision`. Approval records preserve `local_only: true` and `execution_allowed: false`; approval does not invoke Codex, Ollama/local models, documentation agents, GitHub/`gh`, external services, patch application, queue completion, or automatic next-item execution.
+
 Current prompt-pack and Codex high-value lane behavior are advisory prompt generation/manual handoff only. Runtime routing execution, Codex dispatch, Codex CLI invocation, real agent execution, external workflow execution, and GitHub integration remain unimplemented. Local LLM execution exists only as the M62 operator-gated local prototype and remains local-only, advisory-only, prototype-scoped, and non-mutating.
 
 ## M75 Source-of-Truth and Next Decision Matrix Direction

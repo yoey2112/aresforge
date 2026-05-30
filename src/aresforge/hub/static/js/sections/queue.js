@@ -541,6 +541,14 @@ function buildAiArtifactsQuery() {
   });
 }
 
+function buildDispatchApprovalGatesQuery() {
+  return toQuery({
+    approval_id: byId("queue-dispatch-approval-gates-approval-id") && byId("queue-dispatch-approval-gates-approval-id").value.trim(),
+    item_id: byId("queue-dispatch-approval-gates-item-id") && byId("queue-dispatch-approval-gates-item-id").value.trim(),
+    limit: byId("queue-dispatch-approval-gates-limit") && byId("queue-dispatch-approval-gates-limit").value.trim(),
+  });
+}
+
 function buildOperatorRunHistoryQuery() {
   return toQuery({
     project_id: byId("queue-operator-run-history-project-id") && byId("queue-operator-run-history-project-id").value.trim(),
@@ -752,6 +760,22 @@ function renderAiArtifactRegistry(payload) {
     "queue-ai-artifacts-entries",
     "queue-ai-artifacts-entries-empty",
     ((payload && payload.artifacts) || []).map((artifact) => `${artifact.created_at || "-"} | ${artifact.artifact_type || "-"} | item=${artifact.item_id || "-"} | exists=${Boolean(artifact.exists)} | ${artifact.artifact_path || "-"}`),
+  );
+}
+
+function renderDispatchApprovalGates(payload) {
+  const gate = (payload && payload.approval_gate) || {};
+  const gates = gate.approval_id ? [gate] : ((payload && payload.approval_gates) || []);
+  setList("queue-dispatch-approval-gates-summary", "queue-dispatch-approval-gates-summary-empty", [
+    `approval_gate_count: ${gates.length}`,
+    `local_only: ${Boolean(payload && payload.local_only)}`,
+    `execution_allowed: ${Boolean(payload && payload.execution_allowed)}`,
+    `next_safe_action: ${payload && payload.next_safe_action ? payload.next_safe_action : "-"}`,
+  ].concat((payload && payload.warnings ? payload.warnings : []).map((warning) => `warning: ${warning}`)));
+  setList(
+    "queue-dispatch-approval-gates-entries",
+    "queue-dispatch-approval-gates-entries-empty",
+    gates.map((entry) => `${entry.updated_at || entry.created_at || "-"} | ${entry.approval_id || "-"} | status=${entry.status || "-"} | item=${entry.item_id || "-"} | lane=${entry.dispatch_lane || "-"} | artifact=${entry.artifact_type || "-"} | execution_allowed=${Boolean(entry.execution_allowed)}`),
   );
 }
 
@@ -1184,6 +1208,30 @@ export function bindQueueLifecycleActions({
       setMessage("queue-lifecycle-message", "AI artifact registry loaded. No execution performed.", "success");
     } catch (error) {
       renderAiArtifactRegistry((error && error.payload) || null);
+      setMessage("queue-lifecycle-message", String(error.message || error), "error");
+    } finally {
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = originalLabel;
+      }
+    }
+  });
+
+  on("queue-dispatch-approval-gates-form", "submit", async (event) => {
+    event.preventDefault();
+    const submitButton = byId("queue-dispatch-approval-gates-submit");
+    const originalLabel = submitButton ? submitButton.textContent : "";
+    try {
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = "Loading...";
+      }
+      setMessage("queue-lifecycle-message", "Loading dispatch approval gates...", "loading");
+      const payload = await fetchJson(`/api/dispatch-approval-gates${buildDispatchApprovalGatesQuery()}`, { method: "GET" });
+      renderDispatchApprovalGates(payload);
+      setMessage("queue-lifecycle-message", "Dispatch approval gates loaded. No execution performed.", "success");
+    } catch (error) {
+      renderDispatchApprovalGates((error && error.payload) || null);
       setMessage("queue-lifecycle-message", String(error.message || error), "error");
     } finally {
       if (submitButton) {
