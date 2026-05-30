@@ -16,6 +16,7 @@ from aresforge.operator.codex_dispatch_runner import (
     run_operator_gated_codex_dispatch,
 )
 from aresforge.operator.local_project_queue import add_queue_item, init_project_queue, inspect_queue_item
+from aresforge.operator.model_usage_report import build_model_usage_report
 from aresforge.operator.single_ready_codex_queue_item import run_single_ready_codex_queue_item
 from aresforge.operator.managed_project_registry_local import (
     init_managed_project_registry,
@@ -583,6 +584,99 @@ def test_inspect_old_run_state_without_token_usage_remains_valid(tmp_path: Path)
     assert inspected["payload"]["run_state_validation"]["valid"] is True
     assert inspected["payload"]["token_usage"]["available"] is False
     assert "predate M79.3" in inspected["payload"]["token_usage"]["extraction_error"]
+
+
+def test_model_usage_report_summarizes_codex_tokens_and_missing_usage(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    runs_root = tmp_path / ".aresforge" / "codex_dispatch" / "runs"
+    run_one = runs_root / "run-one"
+    run_two = runs_root / "run-two"
+    run_one.mkdir(parents=True)
+    run_two.mkdir(parents=True)
+    (run_one / "run_state.json").write_text(
+        json.dumps(
+            {
+                "run_id": "run-one",
+                "item_id": "item-one",
+                "dispatch_state": "review_required",
+                "token_usage": {
+                    "available": True,
+                    "source": "codex_cli_transcript_footer",
+                    "total_tokens": 221534,
+                    "model": "gpt-5-codex",
+                    "provider": "openai",
+                    "reasoning_effort": "medium",
+                    "raw": "tokens used\n221,534",
+                    "extraction_error": "",
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    (run_two / "run_state.json").write_text(
+        json.dumps({"run_id": "run-two", "item_id": "item-two", "dispatch_state": "failed"}),
+        encoding="utf-8",
+    )
+
+    report = build_model_usage_report(config)
+
+    codex = report["codex_dispatch"]
+    assert report["ok"] is True
+    assert codex["run_count"] == 2
+    assert codex["token_usage"]["available_count"] == 1
+    assert codex["token_usage"]["unavailable_count"] == 1
+    assert codex["token_usage"]["total_tokens"] == 221534
+    assert codex["token_usage"]["extraction_error_count"] == 1
+    assert codex["runs"][0]["model"] == "gpt-5-codex"
+    assert codex["runs"][0]["provider"] == "openai"
+    assert codex["runs"][0]["reasoning_effort"] == "medium"
+    assert "predate M79.3" in codex["runs"][1]["extraction_error"]
+    assert report["safety_boundary"]["network_calls_allowed"] is False
+    assert report["safety_boundary"]["queue_completion_allowed"] is False
+    assert report["safety_boundary"]["automatic_next_item_execution_allowed"] is False
+
+
+def test_model_usage_report_includes_local_llm_artifact_metadata(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    advisory_dir = config.artifact_root / "local_llm_advisory" / "generated"
+    draft_dir = config.artifact_root / "local_coding_drafts" / "generated"
+    advisory_dir.mkdir(parents=True)
+    draft_dir.mkdir(parents=True)
+    (advisory_dir / "adv-metadata.json").write_text(
+        json.dumps(
+            {
+                "item_id": "m85",
+                "run_id": "adv",
+                "run_requested": True,
+                "run_status": "completed_advisory",
+                "provider_model_metadata": {"provider": "ollama", "model": "qwen2.5:32b"},
+            }
+        ),
+        encoding="utf-8",
+    )
+    (draft_dir / "draft-metadata.json").write_text(
+        json.dumps(
+            {
+                "item_id": "m87",
+                "run_id": "draft",
+                "run_requested": False,
+                "run_status": "prepared_not_run",
+                "provider_model_metadata": {"provider": "ollama", "model": "qwen2.5-coder:32b"},
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    report = build_model_usage_report(config)
+
+    assert report["local_llm_advisory"]["artifact_count"] == 1
+    assert report["local_llm_advisory"]["missing_token_usage_count"] == 1
+    assert report["local_llm_advisory"]["artifacts"][0]["provider"] == "ollama"
+    assert report["local_llm_advisory"]["artifacts"][0]["model"] == "qwen2.5:32b"
+    assert report["local_coding_drafts"]["artifact_count"] == 1
+    assert report["local_coding_drafts"]["missing_token_usage_count"] == 1
+    assert report["missing_usage_metadata"]["local_llm_advisory_missing_token_usage_count"] == 1
+    assert report["missing_usage_metadata"]["local_coding_draft_missing_token_usage_count"] == 1
 
 
 def test_run_state_json_reading_accepts_utf8_bom(tmp_path: Path) -> None:

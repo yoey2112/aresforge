@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T06:23:46.174262+00:00",
+  "updated_at": "2026-05-30T06:25:07.773825+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -1413,6 +1413,61 @@
       "closeout_history": [],
       "created_at": "2026-05-30T06:17:32.399782+00:00",
       "updated_at": "2026-05-30T06:23:46.174262+00:00"
+    },
+    {
+      "item_id": "m89-model-usage-token-accounting-report",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M89 Model Usage and Token Accounting Report",
+      "description": "Create a local report summarizing model usage, Codex token usage, local LLM advisory/coding draft runs, and missing usage metadata.",
+      "status": "proposed",
+      "priority": "normal",
+      "item_type": "feature",
+      "tags": [
+        "milestone:m89",
+        "usage-report",
+        "token-accounting",
+        "local-only"
+      ],
+      "dependencies": [
+        "m86-routing-confidence-scoring"
+      ],
+      "blocked_by": [],
+      "assigned_agent": "",
+      "source": "local_operator",
+      "notes": "Acceptance criteria: read local Codex dispatch run states; summarize token_usage when available; summarize unavailable token usage and extraction errors; include model/provider/reasoning_effort when available; include local LLM advisory/draft artifacts if implemented; no network calls; no mutation unless writing local report artifact explicitly; no automatic next-item execution; no GitHub API, gh, issues, PRs, workflows, daemon, watcher, scheduler, or external workflow behavior.",
+      "started_at": "",
+      "started_via": "",
+      "previous_status": "",
+      "completed_at": "",
+      "completed_by": "",
+      "completion_commit": "",
+      "validation_summary": "",
+      "evidence_note": "",
+      "tests_run": [],
+      "changed_files": [],
+      "artifact_paths": [],
+      "completion_evidence": {},
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-30T06:25:07.773825+00:00",
+      "updated_at": "2026-05-30T06:25:07.773825+00:00"
     }
   ]
 }

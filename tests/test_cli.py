@@ -190,6 +190,7 @@ def test_cli_has_expected_commands() -> None:
         "prepare-local-llm-advisory-run",
         "prepare-local-coding-draft",
         "inspect-human-gated-patch-application-contract",
+        "inspect-model-usage-report",
         "prepare-codex-handoff",
     ):
         assert command in help_text
@@ -5270,6 +5271,67 @@ def test_inspect_human_gated_patch_application_contract_dispatch_json(
     assert parsed["operator_approval_requirements"]["explicit_approval_required"] is True
     assert parsed["safety_boundary"]["patch_application_allowed_from_this_command"] is False
     assert parsed["safety_boundary"]["automatic_patch_application_allowed"] is False
+    assert parsed["safety_boundary"]["repo_mutation_allowed"] is False
+    assert parsed["safety_boundary"]["queue_completion_allowed"] is False
+    assert parsed["safety_boundary"]["automatic_next_item_execution_allowed"] is False
+    assert parsed["safety_boundary"]["github_api_allowed"] is False
+    assert parsed["safety_boundary"]["gh_allowed"] is False
+
+
+def test_inspect_model_usage_report_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "ok": True,
+                "local_only": True,
+                "read_only": True,
+                "codex_dispatch": {
+                    "run_count": 1,
+                    "token_usage": {
+                        "available_count": 0,
+                        "unavailable_count": 1,
+                        "total_tokens": 0,
+                    },
+                },
+                "local_llm_advisory": {"artifact_count": 0},
+                "local_coding_drafts": {"artifact_count": 0},
+                "safety_boundary": {
+                    "network_calls_allowed": False,
+                    "provider_invocation_allowed": False,
+                    "repo_mutation_allowed": False,
+                    "queue_completion_allowed": False,
+                    "automatic_next_item_execution_allowed": False,
+                    "github_api_allowed": False,
+                    "gh_allowed": False,
+                },
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_inspect(_config, output=None, output_format="json"):
+        seen["output"] = output
+        seen["output_format"] = output_format
+        return payload
+
+    monkeypatch.setattr(cli, "inspect_model_usage_report", fake_inspect)
+    exit_code = cli.main(["inspect-model-usage-report", "--format", "json"])
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert seen["output"] is None
+    assert seen["output_format"] == "json"
+    assert parsed["codex_dispatch"]["run_count"] == 1
+    assert parsed["codex_dispatch"]["token_usage"]["unavailable_count"] == 1
+    assert parsed["safety_boundary"]["network_calls_allowed"] is False
+    assert parsed["safety_boundary"]["provider_invocation_allowed"] is False
     assert parsed["safety_boundary"]["repo_mutation_allowed"] is False
     assert parsed["safety_boundary"]["queue_completion_allowed"] is False
     assert parsed["safety_boundary"]["automatic_next_item_execution_allowed"] is False

@@ -1,5 +1,23 @@
 # AresForge Build State
 
+## M89 Model Usage and Token Accounting Report
+
+Status: In progress locally on `main`.
+
+Delivered in this pass:
+
+- adds `inspect-model-usage-report` for local model usage and token accounting
+- reads local Codex dispatch run states and summarizes `token_usage` when present
+- reports unavailable token usage and extraction errors for older or incomplete run states
+- includes model, provider, and reasoning effort metadata when available
+- scans local LLM advisory and coding draft metadata artifacts for run/model/provider posture
+
+M89 safety posture:
+
+- read-only by default and local-only
+- optional report artifact writing requires an explicit `--output`
+- no network calls, provider invocation, queue mutation, queue completion, automatic next-item execution, GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, or external workflow behavior
+
 ## M88 Human-Gated Patch Application Contract
 
 Status: Completed locally on `main`.

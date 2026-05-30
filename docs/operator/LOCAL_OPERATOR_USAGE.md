@@ -1,5 +1,32 @@
 # Local Operator Usage
 
+## M89 Model Usage and Token Accounting Report
+
+Inspect local model usage and token accounting:
+
+    python -m aresforge inspect-model-usage-report --format json
+
+Optionally write the report to a local artifact path:
+
+    python -m aresforge inspect-model-usage-report --format json --output artifacts/model_usage/m89-report.json
+
+Payload highlights:
+
+- `codex_dispatch.token_usage`
+- `codex_dispatch.model_provider_reasoning_effort_counts`
+- `missing_usage_metadata`
+- `local_llm_advisory`
+- `local_coding_drafts`
+- `safety_boundary`
+
+Operator rules:
+
+- use the report for local routing and cost review only
+- treat unavailable token usage and extraction errors as accounting metadata to improve later runs
+- do not invoke providers or models from this report
+- do not mutate queue state, complete items, or start another item from report output
+- do not use GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, or external workflow behavior
+
 ## M88 Human-Gated Patch Application Contract
 
 Inspect the patch application contract:

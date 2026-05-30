@@ -254,6 +254,7 @@ from aresforge.operator.local_project_readiness import (
 )
 from aresforge.operator.local_queue_agent_summary import inspect_local_queue_agent_summary
 from aresforge.operator.local_project_report import inspect_local_project_report
+from aresforge.operator.model_usage_report import inspect_model_usage_report
 from aresforge.operator.self_seed import seed_aresforge_self_project
 from aresforge.hub.server import serve_hub
 from aresforge.operator.milestone_reconciliation_planner import plan_milestone_final_reconciliation
@@ -1641,6 +1642,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="Inspect the M88 human-gated patch application contract without applying patches.",
     )
     inspect_human_gated_patch_contract_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="json",
+    )
+    inspect_model_usage_report_parser = subparsers.add_parser(
+        "inspect-model-usage-report",
+        help="Inspect local model usage, Codex token accounting, and local LLM run metadata.",
+    )
+    inspect_model_usage_report_parser.add_argument("--output")
+    inspect_model_usage_report_parser.add_argument(
         "--format",
         choices=["json", "markdown"],
         default="json",
@@ -3979,6 +3990,14 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "inspect-human-gated-patch-application-contract":
         payload = inspect_human_gated_patch_application_contract(config, output_format=args.format)
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-model-usage-report":
+        payload = inspect_model_usage_report(config, output=args.output, output_format=args.format)
         if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
             print(payload["stdout"])
             return 0

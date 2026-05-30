@@ -1,5 +1,23 @@
 # AresForge Agent Context
 
+## M89 Model Usage and Token Accounting Report Context
+
+Status: In progress locally on `main`.
+
+Current model usage report scope:
+
+- `inspect-model-usage-report` summarizes local Codex dispatch token usage and missing usage metadata.
+- The report includes Codex model/provider/reasoning effort fields when run states contain them.
+- The report scans local advisory and coding draft metadata artifacts for provider/model/run status.
+- Report output is stdout by default; `--output` is the only write path and writes a local report artifact.
+
+Boundaries preserved:
+
+- no network calls or provider invocation
+- no repo mutation unless an operator explicitly supplies `--output`
+- no queue mutation, queue completion, or automatic next-item execution
+- no GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, external workflow execution, or GitHub mutation
+
 ## M88 Human-Gated Patch Application Contract Context
 
 Status: Completed locally on `main`.

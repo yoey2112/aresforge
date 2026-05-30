@@ -1,5 +1,29 @@
 # AresForge Roadmap
 
+## M89 Model Usage and Token Accounting Report
+
+Status: In progress locally on `main`.
+
+Purpose:
+
+- summarize local model usage and token accounting for future routing and cost decisions
+- make missing usage metadata and extraction errors visible for operator review
+
+Delivered scope:
+
+- `inspect-model-usage-report`
+- Codex dispatch run state usage summary
+- available and unavailable token usage accounting
+- model/provider/reasoning effort metadata when present
+- local LLM advisory and coding draft metadata summaries
+
+Constraints preserved:
+
+- read-only by default with optional explicit local report artifact output
+- no network calls or provider invocation
+- no automatic queue completion or next-item execution
+- no GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, external workflow execution, or GitHub mutation
+
 ## M88 Human-Gated Patch Application Contract
 
 Status: Completed locally on `main`.
