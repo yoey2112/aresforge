@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T20:48:44.660238+00:00",
+  "updated_at": "2026-05-30T20:52:00.000000+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -3811,6 +3811,37 @@
         "python -m aresforge inspect-local-project-report -> passed",
         "python -m aresforge inspect-local-queue-agent-summary -> passed"
       ]
+    },
+    {
+      "item_id": "m121-human-approval-inventory-and-review-ledger",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M121 Human Approval Inventory and Review Ledger",
+      "description": "Create a local-only approval inventory and review ledger for generated artifacts and queue items.",
+      "status": "in_progress",
+      "priority": "high",
+      "item_type": "feature",
+      "tags": [
+        "milestone:m121",
+        "approval-ledger",
+        "artifact-review",
+        "local-only",
+        "operator-gated"
+      ],
+      "dependencies": [
+        "m120-operator-batch-queue-sequencer-v2"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [],
+      "evidence_required": [],
+      "assigned_agent": "",
+      "source": "local_cli",
+      "notes": "Acceptance criteria: add inspect-approval-ledger and record-artifact-review; inventory reviewed/unreviewed/approved/rejected/needs-changes artifacts; reuse dispatch approval gates; report approval gaps; no automatic approval, execution, patch application, external mutation, or queue completion.",
+      "started_at": "2026-05-30T20:52:00.000000+00:00",
+      "started_via": "local_operator",
+      "created_at": "2026-05-30T20:52:00.000000+00:00",
+      "updated_at": "2026-05-30T20:52:00.000000+00:00"
     }
   ]
 }

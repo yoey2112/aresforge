@@ -1,5 +1,34 @@
 # Local Operator Usage
 
+## M121 Human Approval Inventory and Review Ledger
+
+M121 inventories artifact review status and records explicit human decisions. It does not approve anything automatically, start queue items, complete queue items, execute agents, execute Codex, invoke Ollama or local LLMs, call remote LLMs, call GitHub, call `gh`, make network calls, run validation commands, apply patches, mutate source files from review, mutate external systems, or start follow-on work.
+
+Inspect the approval ledger:
+
+    python -m aresforge inspect-approval-ledger --project-id aresforge --format json
+
+Filter by queue item or artifact:
+
+    python -m aresforge inspect-approval-ledger --project-id aresforge --item-id <item_id> --format json
+    python -m aresforge inspect-approval-ledger --project-id aresforge --artifact-path artifacts/example.json --format json
+
+Record a human artifact review:
+
+    python -m aresforge record-artifact-review --item-id <item_id> --artifact-path artifacts/example.json --decision approved --format json
+    python -m aresforge record-artifact-review --item-id <item_id> --artifact-path artifacts/example.json --decision rejected --format json
+    python -m aresforge record-artifact-review --item-id <item_id> --artifact-path artifacts/example.json --decision needs_changes --format json
+
+Write a local ledger snapshot:
+
+    python -m aresforge inspect-approval-ledger --project-id aresforge --format json --output artifacts/approval_ledger/ledger.json
+
+Overwrite only with explicit force:
+
+    python -m aresforge inspect-approval-ledger --project-id aresforge --format json --output artifacts/approval_ledger/ledger.json --force
+
+The ledger reports `human_approval_review_ledger`, reviewed and unreviewed artifacts, approved/rejected/needs-changes artifacts, review records, approval gaps, `local_only=true`, `execution_allowed=false`, and next safe action.
+
 ## M120 Operator Batch Queue Sequencer v2
 
 M120 recommends a local operator batch sequence from queue state, artifact readiness, approval gates, priority, and dependencies. It does not start queue items, execute agents, execute Codex, invoke Ollama or local LLMs, call remote LLMs, call GitHub, call `gh`, make network calls, run validation commands, apply patches, mutate queue state, mutate external systems, or start follow-on work.

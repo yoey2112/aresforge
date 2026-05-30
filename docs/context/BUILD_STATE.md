@@ -2,11 +2,36 @@
 
 ## Current Phase
 
-M120 adds a local-only operator batch queue sequencer v2. It recommends ordered work and prerequisites without starting items, executing agents, calling models, calling GitHub, or mutating external systems.
+M121 adds a local-only human approval inventory and review ledger for generated artifacts and queue items. It records human review metadata without approving anything automatically or executing follow-on work.
 
 ## Current Goal
 
-M120 exposes `plan-operator-batch-v2` for stable `operator_batch_sequence_v2` output, including proposed and blocked counts, recommended sequence, dependency warnings, approval warnings, artifact warnings, lane grouping, operator checklist, and next safe action while preserving local-only/operator-gated boundaries.
+M121 exposes `inspect-approval-ledger` and `record-artifact-review` for stable `human_approval_review_ledger` output, explicit artifact review decisions, approval gaps, and next safe action while preserving local-only/operator-gated boundaries.
+
+## M121 Human Approval Inventory and Review Ledger
+
+Status: Implemented locally on `main` pending completion evidence commit.
+
+Queue item: `m121-human-approval-inventory-and-review-ledger`.
+
+M121 adds a local-only approval inventory and review ledger:
+
+- `python -m aresforge inspect-approval-ledger --project-id aresforge --format json`
+- `python -m aresforge record-artifact-review --item-id <item_id> --artifact-path <path> --decision approved|rejected|needs_changes`
+- optional ledger inspection filters `--item-id`, `--artifact-path`, `--output`, and `--force`
+
+Ledger behavior:
+
+- inventories generated artifacts from the dispatch artifact registry
+- reuses existing dispatch approval gate records as review evidence
+- records explicit human artifact review decisions in a local ledger file
+- reports reviewed, unreviewed, approved, rejected, needs-changes artifacts, review records, approval gaps, and next safe action
+- preserves `local_only=true` and `execution_allowed=false`
+
+Safety boundaries:
+
+- review metadata only
+- no automatic approval, queue item start, queue completion, Codex execution, agent execution, Ollama/local LLM prompting, remote LLM call, GitHub API, `gh`, network service, validation command execution, patch application, source mutation from review, external mutation, autonomous execution, or next-item execution
 
 ## M120 Operator Batch Queue Sequencer v2
 

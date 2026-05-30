@@ -1,5 +1,22 @@
 # AresForge Agent Context
 
+## M121 Human Approval Inventory and Review Ledger Context
+
+Status: Implemented locally on `main` pending completion evidence commit.
+
+Queue item: `m121-human-approval-inventory-and-review-ledger`.
+
+M121 adds `inspect-approval-ledger` and `record-artifact-review` for local artifact review inventory. The ledger combines dispatch artifact registry entries, existing dispatch approval gate decisions, and explicit operator-recorded review decisions.
+
+Ledger output includes `human_approval_review_ledger`, reviewed/unreviewed artifacts, approved/rejected/needs-changes artifacts, review records, approval gaps, `local_only=true`, `execution_allowed=false`, and next safe action.
+
+M121 boundaries:
+
+- local review metadata only
+- no automatic approval
+- no queue item start or completion
+- no Codex, agents, Ollama/local LLMs, remote LLMs, GitHub, `gh`, network services, validation command execution, patch application, source mutation from review, external mutation, autonomous execution, or next-item execution
+
 ## M120 Operator Batch Queue Sequencer v2 Context
 
 Status: Completed locally on `main` after validation.

@@ -248,6 +248,7 @@ from aresforge.operator.dispatch_approval_gate import (
 )
 from aresforge.operator.dispatch_artifact_report import inspect_dispatch_artifacts
 from aresforge.operator.dispatch_artifact_registry import inspect_artifact_registry
+from aresforge.operator.human_approval_review_ledger import inspect_approval_ledger, record_artifact_review
 from aresforge.operator.safe_dispatch_handoff import generate_safe_dispatch_handoff
 from aresforge.operator.manual_codex_dispatch_runner import prepare_manual_codex_dispatch
 from aresforge.operator.agent_runtime_boundary import inspect_agent_runtime_boundary
@@ -1805,6 +1806,36 @@ def build_parser() -> argparse.ArgumentParser:
         "--format",
         choices=["json", "markdown"],
         default="json",
+    )
+    inspect_approval_ledger_parser = subparsers.add_parser(
+        "inspect-approval-ledger",
+        help="Inspect the local human approval review ledger for artifacts and queue items.",
+    )
+    inspect_approval_ledger_parser.add_argument("--project-id", required=True)
+    inspect_approval_ledger_parser.add_argument("--item-id")
+    inspect_approval_ledger_parser.add_argument("--artifact-path")
+    inspect_approval_ledger_parser.add_argument("--output")
+    inspect_approval_ledger_parser.add_argument("--force", action="store_true")
+    inspect_approval_ledger_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="markdown",
+    )
+    record_artifact_review_parser = subparsers.add_parser(
+        "record-artifact-review",
+        help="Record a local human review decision for one artifact without applying or executing it.",
+    )
+    record_artifact_review_parser.add_argument("--item-id", required=True)
+    record_artifact_review_parser.add_argument("--artifact-path", required=True)
+    record_artifact_review_parser.add_argument("--decision", required=True, choices=["approved", "rejected", "needs_changes"])
+    record_artifact_review_parser.add_argument("--reviewer")
+    record_artifact_review_parser.add_argument("--review-notes")
+    record_artifact_review_parser.add_argument("--output")
+    record_artifact_review_parser.add_argument("--force", action="store_true")
+    record_artifact_review_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="markdown",
     )
     prepare_manual_codex_dispatch_parser = subparsers.add_parser(
         "prepare-manual-codex-dispatch",
@@ -4585,6 +4616,40 @@ def main(argv: list[str] | None = None) -> int:
         if "stdout" in payload:
             print(payload["stdout"])
             return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-approval-ledger":
+        payload = inspect_approval_ledger(
+            config,
+            project_id=args.project_id,
+            item_id=args.item_id,
+            artifact_path=args.artifact_path,
+            output=args.output,
+            force=args.force,
+            output_format=args.format,
+        )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "record-artifact-review":
+        payload = record_artifact_review(
+            config,
+            item_id=args.item_id,
+            artifact_path=args.artifact_path,
+            decision=args.decision,
+            reviewer=args.reviewer,
+            review_notes=args.review_notes,
+            output=args.output,
+            force=args.force,
+            output_format=args.format,
+        )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 

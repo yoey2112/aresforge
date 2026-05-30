@@ -1,5 +1,33 @@
 # Runnable Skeleton
 
+## M121 Human Approval Inventory and Review Ledger
+
+M121 adds local approval ledger commands:
+
+- `python -m aresforge inspect-approval-ledger --project-id aresforge --format json`
+- `python -m aresforge record-artifact-review --item-id <item_id> --artifact-path <path> --decision approved|rejected|needs_changes --format json`
+- optional `--item-id`, `--artifact-path`, `--output`, and `--force`
+
+Runnable behavior:
+
+- reads local dispatch artifact registry output
+- reads existing local dispatch approval gates
+- reads and writes a local `.aresforge/approval_review_ledger.json` review record file
+- records human decisions only when the operator explicitly invokes `record-artifact-review`
+- reports approval gaps without approving or executing anything
+
+Still absent by design:
+
+- automatic approval
+- queue item start or completion
+- agent execution
+- Codex execution or Codex CLI shell-out
+- Ollama/local LLM or remote LLM prompt execution
+- GitHub API, `gh`, issues, PRs, workflows, network calls, or external services
+- validation command execution
+- patch application
+- source mutation from review, queue mutation from ledger inspection, external mutation, automatic completion, autonomous execution, or next-item execution
+
 ## M120 Operator Batch Queue Sequencer v2
 
 M120 adds a local-only operator batch sequencing command:

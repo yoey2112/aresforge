@@ -68,6 +68,8 @@ def test_cli_has_expected_commands() -> None:
         "update-dispatch-approval-gate",
         "inspect-dispatch-artifacts",
         "inspect-artifact-registry",
+        "inspect-approval-ledger",
+        "record-artifact-review",
         "prepare-manual-codex-dispatch",
         "intake-patch-proposal",
         "parse-dispatch-result-evidence",
@@ -7827,6 +7829,161 @@ def test_inspect_artifact_registry_dispatch_json(
         "force": True,
         "output_format": "json",
     }
+
+def test_inspect_approval_ledger_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    seen: dict[str, object] = {}
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "ledger_type": "human_approval_review_ledger",
+                "generated": True,
+                "project_id": "aresforge",
+                "local_only": True,
+                "execution_allowed": False,
+            }
+        ),
+        "payload": {},
+    }
+
+    def fake_inspect(
+        _config: AppConfig,
+        *,
+        project_id: str,
+        item_id=None,
+        artifact_path=None,
+        output=None,
+        force: bool = False,
+        output_format: str = "markdown",
+    ):
+        seen.update(
+            {
+                "project_id": project_id,
+                "item_id": item_id,
+                "artifact_path": artifact_path,
+                "output": output,
+                "force": force,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "inspect_approval_ledger", fake_inspect)
+    exit_code = cli.main(
+        [
+            "inspect-approval-ledger",
+            "--project-id",
+            "aresforge",
+            "--item-id",
+            "m121",
+            "--artifact-path",
+            "artifacts/review.json",
+            "--output",
+            "artifacts/ledger.json",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["ledger_type"] == "human_approval_review_ledger"
+    assert parsed["execution_allowed"] is False
+    assert seen == {
+        "project_id": "aresforge",
+        "item_id": "m121",
+        "artifact_path": "artifacts/review.json",
+        "output": "artifacts/ledger.json",
+        "force": True,
+        "output_format": "json",
+    }
+
+
+def test_record_artifact_review_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    seen: dict[str, object] = {}
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "ledger_type": "human_approval_review_ledger",
+                "review_record": {"decision": "approved"},
+                "execution_allowed": False,
+            }
+        ),
+        "payload": {},
+    }
+
+    def fake_record(
+        _config: AppConfig,
+        *,
+        item_id: str,
+        artifact_path: str,
+        decision: str,
+        reviewer=None,
+        review_notes=None,
+        output=None,
+        force: bool = False,
+        output_format: str = "markdown",
+    ):
+        seen.update(
+            {
+                "item_id": item_id,
+                "artifact_path": artifact_path,
+                "decision": decision,
+                "reviewer": reviewer,
+                "review_notes": review_notes,
+                "output": output,
+                "force": force,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "record_artifact_review", fake_record)
+    exit_code = cli.main(
+        [
+            "record-artifact-review",
+            "--item-id",
+            "m121",
+            "--artifact-path",
+            "artifacts/review.json",
+            "--decision",
+            "approved",
+            "--reviewer",
+            "operator",
+            "--review-notes",
+            "looks good",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["review_record"]["decision"] == "approved"
+    assert parsed["execution_allowed"] is False
+    assert seen == {
+        "item_id": "m121",
+        "artifact_path": "artifacts/review.json",
+        "decision": "approved",
+        "reviewer": "operator",
+        "review_notes": "looks good",
+        "output": None,
+        "force": False,
+        "output_format": "json",
+    }
+
 
 def test_prepare_manual_codex_dispatch_dispatch_markdown(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]

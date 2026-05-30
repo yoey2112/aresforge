@@ -1,5 +1,31 @@
 # AresForge Roadmap
 
+## M121 Human Approval Inventory and Review Ledger
+
+Status: Implemented locally on `main` pending completion evidence commit.
+
+Queue item: `m121-human-approval-inventory-and-review-ledger`.
+
+Purpose:
+
+- inventory human review status for generated artifacts, patch proposals, dispatch records, and completion recommendations
+- reuse existing dispatch approval gates as review evidence
+- let operators record explicit artifact decisions as `approved`, `rejected`, or `needs_changes`
+- surface approval gaps before manual handoff, patch intake, or completion
+
+Runnable operator surface:
+
+- `python -m aresforge inspect-approval-ledger --project-id aresforge --format json`
+- `python -m aresforge record-artifact-review --item-id <item_id> --artifact-path <path> --decision approved --format json`
+- optional `--item-id`, `--artifact-path`, `--output`, and `--force`
+
+Constraints preserved:
+
+- review ledger only
+- no automatic approval
+- `local_only=true` and `execution_allowed=false`
+- no queue item start, queue completion, agent execution, Codex execution, Ollama/local LLM prompting, remote LLM call, GitHub API, `gh`, network service, validation command execution, patch application, external mutation, autonomous execution, or next-item execution
+
 ## M120 Operator Batch Queue Sequencer v2
 
 Status: Completed locally on `main` after validation.
