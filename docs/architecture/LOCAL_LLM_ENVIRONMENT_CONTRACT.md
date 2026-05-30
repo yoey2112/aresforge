@@ -38,6 +38,8 @@ M84 adds an explicitly invoked Ollama health/model inspection path. It may call 
 
 M85 adds a local LLM advisory run artifact flow. It generates advisory prompt artifacts by default without invoking a provider. If the operator supplies an explicit run flag, it may call local Ollama for advisory output and store response/metadata artifacts locally. Advisory output is never applied to repository files, never mutates queue state, never completes queue items, and never starts another item.
 
+M87 adds local coding draft artifact mode. It generates coding draft prompt artifacts by default without invoking a provider. If the operator supplies an explicit run flag, it may call local Ollama for draft patch/instruction output and store draft/metadata artifacts locally. Draft output is non-applied, non-authoritative, manual-review-only, and never mutates repository files, applies patches, mutates queue state, completes queue items, or starts another item automatically.
+
 ## Storage
 
 The contract is stored locally at:
@@ -69,6 +71,7 @@ Reading defaults does not write this file. Updating the contract writes the file
 - CLI: `python -m aresforge inspect-ollama-health --format json`
 - CLI: `python -m aresforge test-ollama`
 - CLI: `python -m aresforge prepare-local-llm-advisory-run --item-id <item_id> --format json`
+- CLI: `python -m aresforge prepare-local-coding-draft --item-id <item_id> --format json`
 
 ## Fields
 
@@ -158,6 +161,25 @@ Required output includes:
 Unavailable provider or model states return safe unavailable metadata. They do not fail normal project readiness and do not authorize fallback execution.
 
 Advisory artifacts and responses are never applied automatically to repository files, queue state, project state, GitHub, `gh`, Codex, agents, commits, pushes, workflows, daemons, watchers, or schedulers.
+
+## M87 Local Coding Draft Artifacts
+
+`prepare-local-coding-draft` creates a local coding draft prompt artifact for one queue item. The default behavior is artifact-only and does not call Ollama.
+
+The optional `--run` flag is an explicit operator gate for draft output. When used, the command first inspects local Ollama model availability and then may call the local `/api/generate` endpoint for draft patch or instruction text. The draft and run metadata are stored under `artifacts/local_coding_drafts/generated/`.
+
+Required output includes:
+
+- `prompt_path`
+- `draft_path`
+- `metadata_path`
+- `provider_model_metadata`
+- `draft_contract`
+- `safety_boundary`
+- `boundary_confirmations`
+- `next_safe_action`
+
+Draft output may include patch-like text, but it is not an applied patch. It is non-authoritative manual guidance only. A draft artifact must not mutate repository files, apply patches, mutate queue state, complete queue items, start next items, call GitHub, call `gh`, or trigger workflows, daemons, watchers, schedulers, or external workflow systems.
 
 ## Provider Availability States
 

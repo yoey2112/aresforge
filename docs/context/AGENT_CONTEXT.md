@@ -1,5 +1,22 @@
 # AresForge Agent Context
 
+## M87 Local Coding Draft Artifact Mode Context
+
+Status: In progress locally on `main`.
+
+Current coding draft artifact scope:
+
+- `prepare-local-coding-draft` generates a local coding draft prompt artifact for one queue item.
+- The default path is artifact-only and does not invoke Ollama.
+- An explicit `--run` flag may call local Ollama for draft output and writes local draft/metadata artifacts.
+- Draft artifacts are marked non-applied, non-authoritative, and manual-review-only.
+
+Boundaries preserved:
+
+- no automatic file mutation or patch application from draft output
+- no queue mutation, queue completion, or automatic next-item execution from draft output
+- no GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, external workflow execution, or GitHub mutation
+
 ## M86 Routing Confidence Scoring Context
 
 Status: Completed locally on `main`.

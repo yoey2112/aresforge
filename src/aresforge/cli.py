@@ -218,6 +218,7 @@ from aresforge.operator.codex_dispatch_runner import (
     run_operator_gated_codex_dispatch,
 )
 from aresforge.operator.llm_decision_matrix import inspect_llm_decision_matrix
+from aresforge.operator.local_coding_draft import prepare_local_coding_draft_artifact
 from aresforge.operator.local_llm_advisory import prepare_local_llm_advisory_run_artifact
 from aresforge.operator.local_llm_advisory_lane import inspect_local_llm_advisory_lane_readiness
 from aresforge.operator.local_llm_provider import (
@@ -1614,6 +1615,22 @@ def build_parser() -> argparse.ArgumentParser:
     prepare_local_llm_advisory_run_parser.add_argument("--run", action="store_true")
     prepare_local_llm_advisory_run_parser.add_argument("--force", action="store_true")
     prepare_local_llm_advisory_run_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="json",
+    )
+    prepare_local_coding_draft_parser = subparsers.add_parser(
+        "prepare-local-coding-draft",
+        help="Generate a local coding draft prompt artifact and optionally run explicit draft output.",
+    )
+    prepare_local_coding_draft_parser.add_argument("--item-id", required=True)
+    prepare_local_coding_draft_parser.add_argument("--queue-path")
+    prepare_local_coding_draft_parser.add_argument("--registry-path")
+    prepare_local_coding_draft_parser.add_argument("--model")
+    prepare_local_coding_draft_parser.add_argument("--run-id")
+    prepare_local_coding_draft_parser.add_argument("--run", action="store_true")
+    prepare_local_coding_draft_parser.add_argument("--force", action="store_true")
+    prepare_local_coding_draft_parser.add_argument(
         "--format",
         choices=["json", "markdown"],
         default="json",
@@ -3916,6 +3933,24 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "prepare-local-llm-advisory-run":
         payload = prepare_local_llm_advisory_run_artifact(
+            config,
+            item_id=args.item_id,
+            queue_path=args.queue_path,
+            registry_path=args.registry_path,
+            model=args.model,
+            run=bool(args.run),
+            run_id=args.run_id,
+            output_format=args.format,
+            force=bool(args.force),
+        )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "prepare-local-coding-draft":
+        payload = prepare_local_coding_draft_artifact(
             config,
             item_id=args.item_id,
             queue_path=args.queue_path,

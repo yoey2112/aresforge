@@ -1,5 +1,35 @@
 # Local Operator Usage
 
+## M87 Local Coding Draft Artifact Mode
+
+Generate a local coding draft prompt artifact without invoking a model:
+
+    python -m aresforge prepare-local-coding-draft --item-id <item_id> --format json
+
+Explicitly request local draft output only when the operator wants a local Ollama run:
+
+    python -m aresforge prepare-local-coding-draft --item-id <item_id> --run --format json
+
+Payload highlights:
+
+- `prompt_path`
+- `draft_path`
+- `metadata_path`
+- `draft_contract`
+- `safety_boundary`
+- `boundary_confirmations`
+- `next_safe_action`
+
+Operator rules:
+
+- treat generated draft output as non-applied and non-authoritative
+- use artifact-only mode by default
+- use `--run` only for explicit local operator-gated draft output
+- do not apply generated patches automatically
+- do not mutate repository files automatically
+- do not complete queue items or start another item from draft output
+- do not use GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, or external workflow behavior
+
 ## M86 Routing Confidence Scoring
 
 Inspect routing confidence for one queue item:

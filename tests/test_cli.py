@@ -188,6 +188,7 @@ def test_cli_has_expected_commands() -> None:
         "test-ollama",
         "inspect-ollama-health",
         "prepare-local-llm-advisory-run",
+        "prepare-local-coding-draft",
         "prepare-codex-handoff",
     ):
         assert command in help_text
@@ -5162,6 +5163,60 @@ def test_prepare_local_llm_advisory_run_dispatch_json(
     assert parsed["safety_boundary"]["repo_mutation_allowed"] is False
     assert parsed["safety_boundary"]["queue_completion_allowed"] is False
     assert parsed["safety_boundary"]["automatic_next_item_execution_allowed"] is False
+
+
+def test_prepare_local_coding_draft_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "ok": True,
+                "draft_only": True,
+                "non_applied": True,
+                "run_requested": False,
+                "run_status": "prepared_not_run",
+                "prompt_path": "artifacts/local_coding_drafts/generated/m87-prompt.md",
+                "draft_path": "",
+                "draft_contract": {
+                    "draft_is_authoritative": False,
+                    "automatic_patch_application_allowed": False,
+                },
+                "safety_boundary": {
+                    "repo_mutation_allowed": False,
+                    "automatic_file_mutation_allowed": False,
+                    "automatic_patch_application_allowed": False,
+                    "queue_completion_allowed": False,
+                    "automatic_next_item_execution_allowed": False,
+                },
+                "next_safe_action": "review prompt",
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_prepare(_config, **kwargs):
+        seen.update(kwargs)
+        return payload
+
+    monkeypatch.setattr(cli, "prepare_local_coding_draft_artifact", fake_prepare)
+    exit_code = cli.main(["prepare-local-coding-draft", "--item-id", "m87", "--run-id", "dry", "--format", "json"])
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert seen["item_id"] == "m87"
+    assert seen["run"] is False
+    assert parsed["draft_only"] is True
+    assert parsed["non_applied"] is True
+    assert parsed["draft_contract"]["automatic_patch_application_allowed"] is False
+    assert parsed["safety_boundary"]["automatic_file_mutation_allowed"] is False
+    assert parsed["safety_boundary"]["automatic_patch_application_allowed"] is False
+    assert parsed["safety_boundary"]["queue_completion_allowed"] is False
 
 
 def test_test_ollama_uses_health_inspection_without_generation(

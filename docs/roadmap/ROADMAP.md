@@ -1,5 +1,28 @@
 # AresForge Roadmap
 
+## M87 Local Coding Draft Artifact Mode
+
+Status: In progress locally on `main`.
+
+Purpose:
+
+- add local coding draft artifacts for local LLM-generated patch or implementation guidance
+- keep draft output non-applied, non-authoritative, and manual-review-only
+
+Delivered scope:
+
+- `prepare-local-coding-draft`
+- local coding draft prompt artifacts
+- optional explicit local Ollama draft output artifacts
+- safety metadata proving no automatic file mutation or patch application
+
+Constraints preserved:
+
+- no automatic file mutation
+- no automatic patch application
+- no automatic queue completion or next-item execution
+- no GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, external workflow execution, or GitHub mutation
+
 ## M86 Routing Confidence Scoring
 
 Status: Completed locally on `main`.

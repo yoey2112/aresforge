@@ -1,5 +1,23 @@
 # AresForge Build State
 
+## M87 Local Coding Draft Artifact Mode
+
+Status: In progress locally on `main`.
+
+Delivered in this pass:
+
+- adds `prepare-local-coding-draft` for local coding draft prompt artifact generation
+- stores draft prompt/output metadata under `artifacts/local_coding_drafts/generated/`
+- supports an explicit `--run` path that can capture local coding draft output as an artifact
+- marks drafts as non-applied, non-authoritative, and manually reviewed only
+
+M87 safety posture:
+
+- draft artifacts never mutate repository files
+- generated draft patch text is never applied automatically
+- draft output never completes queue items or starts another item
+- no GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, or external workflow behavior
+
 ## M86 Routing Confidence Scoring
 
 Status: Completed locally on `main`.

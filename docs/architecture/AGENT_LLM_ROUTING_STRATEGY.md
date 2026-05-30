@@ -12,6 +12,8 @@ M83 adds a read-only local LLM provider contract. It makes Ollama the initial lo
 
 M86 adds deterministic confidence scoring to the M80 decision matrix. `inspect-llm-decision-matrix` now reports `routing_confidence` for Codex, local LLM advisory, local coding draft, and manual-only lanes. Scoring considers risk, task size, work mode, item type, dependencies, validation burden, provider availability, model profile availability, and recovery history. Scores are advisory metadata only and do not authorize execution or mutation.
 
+M87 adds a local coding draft artifact mode. `prepare-local-coding-draft` can generate draft prompt artifacts and, only with an explicit operator `--run`, capture local draft patch/instruction output. Draft output is non-applied, non-authoritative, and cannot mutate files, apply patches, complete queue items, or start next items automatically.
+
 Current prompt-pack and Codex high-value lane behavior are advisory prompt generation/manual handoff only. Runtime routing execution, Codex dispatch, Codex CLI invocation, real agent execution, external workflow execution, and GitHub integration remain unimplemented. Local LLM execution exists only as the M62 operator-gated local prototype and remains local-only, advisory-only, prototype-scoped, and non-mutating.
 
 ## M75 Source-of-Truth and Next Decision Matrix Direction
@@ -29,6 +31,7 @@ The next decision-matrix direction is:
 - M82 tests self-management using AresForge itself
 - M83 formalizes the local LLM provider contract for advisory and future coding lanes
 - M86 adds advisory-only routing confidence scoring for Codex, local LLM advisory, local coding draft, and manual-only lanes
+- M87 adds local coding draft artifacts while preserving no automatic patch application or file mutation
 
 Next phase safety gates before any Codex dispatch implementation:
 
@@ -98,6 +101,20 @@ The confidence payload includes:
 Scoring factors include risk, task size, work mode, item type, dependency count, unresolved dependencies, validation burden, local provider availability/configuration, local model profile availability, Codex model profile availability, recovered dispatch runs, and dispatch run blockers.
 
 M86 confidence scoring is advisory-only. It does not execute prompts, call providers, call Codex, run agents, mutate queue state, complete queue items, start next items, call GitHub APIs, call `gh`, or interact with issues, PRs, workflows, daemons, watchers, schedulers, or external workflow systems.
+
+## M87 Local Coding Draft Artifact Mode
+
+M87 adds `prepare-local-coding-draft`.
+
+The command can generate local coding draft prompt artifacts and, with explicit `--run`, capture draft output artifacts. Draft artifacts may contain patch-like text or implementation instructions, but the draft contract states:
+
+- draft is non-authoritative
+- draft has not been applied
+- automatic patch application is not allowed
+- automatic file mutation is not allowed
+- manual review is required
+
+M87 does not add routing execution, automatic local LLM execution, patch application, repository mutation, queue mutation, queue completion, automatic next-item execution, GitHub API calls, `gh` calls, issues, PRs, workflows, daemons, watchers, schedulers, or external workflow behavior.
 
 ## M69 Local AI Operations Hardening
 

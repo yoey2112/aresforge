@@ -1,5 +1,27 @@
 # Runnable Skeleton
 
+## M87 Local Coding Draft Artifact Mode
+
+M87 adds local coding draft artifacts:
+
+- `python -m aresforge prepare-local-coding-draft --item-id <item_id> --format json`
+- `python -m aresforge prepare-local-coding-draft --item-id <item_id> --run --format json`
+
+Runnable behavior:
+
+- creates a coding draft prompt artifact under `artifacts/local_coding_drafts/generated/`
+- default mode does not invoke a provider
+- explicit `--run` mode may call local Ollama for draft output and stores draft/metadata artifacts
+- marks drafts as non-applied, non-authoritative, and manual-review-only
+
+Still absent by design:
+
+- automatic file mutation
+- automatic patch application
+- queue mutation or queue completion from draft output
+- automatic next-item execution
+- GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, or external workflow execution
+
 ## M85 Local LLM Advisory Run Artifact
 
 M85 adds local advisory prompt and response artifacts:
