@@ -2,6 +2,8 @@
 
 ## Status
 
+M79.3 adds token usage capture for operator-gated Codex dispatch runs. The runner parses the captured CLI transcript footer `tokens used` followed by a numeric line, including comma-separated totals such as `221,534`, and stores the result in `run_state.json` as `token_usage`. `inspect-codex-dispatch-run` returns this metadata and remains compatible with older run states that predate the field by reporting unavailable token usage with a clear extraction error. This is accounting metadata only and does not complete queue items, dispatch the next item, call GitHub, call `gh`, or expand local LLM execution.
+
 M79.1 hardens the M78 Codex dispatch runner for Windows operator workflows. Run-state JSON reads tolerate UTF-8 BOMs, subprocess stdout/stderr are captured as bytes and decoded with UTF-8-sig plus replacement handling, and the full reviewed prompt artifact is sent to the subprocess over UTF-8 stdin so multi-line prompt bodies are preserved. The run state records prompt handoff and output decoding metadata. Dispatch remains local-only, operator-gated, one item at a time, and unable to complete queue items or run the next item automatically. Windows Codex sandbox limitations may still require an operator to commit and push manually when `.git` writes are blocked.
 
 M78.5 adds a local Prompt Builder Agent / Prompt Architect Agent contract and a workflow preparation command before Codex approval or dispatch. `prepare-queue-item-dispatch` can inspect readiness, optionally start a ready item only with `--start-if-ready`, generate a local prompt artifact, and inspect the Codex dispatch contract. It does not approve Codex dispatch, execute Codex, invoke local LLMs, dispatch prompts, complete queue items, or run the next item automatically.
@@ -261,4 +263,19 @@ Future run-state fields:
 - `review_evidence`
 - `validation_evidence`
 - `error_summary`
+- `token_usage`
 - `next_safe_action`
+
+M79.3 token usage fields:
+
+- `available`
+- `source`
+- `total_tokens`
+- `raw`
+- `prompt_tokens`
+- `completion_tokens`
+- `reasoning_tokens`
+- `model`
+- `provider`
+- `reasoning_effort`
+- `extraction_error` when unavailable

@@ -1,5 +1,43 @@
 # AresForge Build State
 
+## M79.3 Codex Run Token Usage Capture
+
+Status: In progress locally on `main`.
+
+Delivered in this pass:
+
+- added Codex CLI transcript footer parsing for `tokens used` followed by a numeric line
+- supports comma-separated totals such as `221,534`
+- stores `token_usage` in Codex dispatch run state after each completed run attempt
+- exposes `token_usage` through `inspect-codex-dispatch-run`
+- preserves old run-state inspection when `token_usage` is absent by returning an unavailable token usage object
+
+M79.3 token usage shape:
+
+- `available`
+- `source`
+- `total_tokens`
+- `raw`
+- `prompt_tokens`
+- `completion_tokens`
+- `reasoning_tokens`
+- `model`
+- `provider`
+- `reasoning_effort`
+- `extraction_error` when unavailable
+
+M79.3 safety posture:
+
+- local-only and operator-gated
+- no automatic queue completion
+- no automatic next-item execution
+- no GitHub API, `gh`, issues, PRs, workflows, or external workflow execution
+- no local LLM execution expansion
+
+Recommended next milestone:
+
+- After M79.3 review/evidence capture, continue only by explicit operator action.
+
 ## M79.2 Single-Item Ready-to-Codex Automation
 
 Status: In progress locally on `main`.

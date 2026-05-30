@@ -1,5 +1,27 @@
 # Local Operator Usage
 
+## M79.3 Codex Run Token Usage Capture
+
+After a Codex dispatch run, inspect token usage metadata:
+
+    python -m aresforge inspect-codex-dispatch-run --run-id <run_id> --format json
+
+Token usage behavior:
+
+- the runner parses a Codex CLI transcript footer formatted as `tokens used` followed by a numeric total
+- comma-separated totals such as `221,534` are normalized to an integer
+- successful extraction stores `token_usage.available: true`, `source: codex_cli_transcript_footer`, `total_tokens`, `raw`, and optional model/provider/reasoning-effort metadata
+- missing or malformed footers store `token_usage.available: false` with a clear `extraction_error`
+- older run states without `token_usage` still inspect successfully and report unavailable token usage
+
+Operator rules:
+
+- token usage capture is accounting metadata only
+- dispatch remains explicitly operator-gated
+- inspect output does not complete queue items
+- do not mark a queue item complete until review and validation evidence are captured
+- do not start a next queue item automatically
+
 ## M79.2 Single-Item Ready-to-Codex Automation
 
 Run exactly one manually ready queue item through the local Codex workflow:

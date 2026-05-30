@@ -8,6 +8,7 @@ from aresforge.operator.codex_dispatch_runner import (
     approve_codex_dispatch,
     inspect_codex_dispatch_run,
     list_codex_dispatch_runs,
+    parse_codex_cli_token_usage,
     run_operator_gated_codex_dispatch,
 )
 from aresforge.operator.local_project_queue import add_queue_item, init_project_queue, inspect_queue_item
@@ -370,6 +371,167 @@ def test_dispatch_runner_decodes_non_utf8_output_with_replacement(tmp_path: Path
     rendered = Path(result["payload"]["stdout_path"]).read_text(encoding="utf-8")
     assert result["ok"] is True
     assert "unicode \u2713 invalid \ufffd" in rendered
+
+
+def test_codex_token_usage_parser_extracts_comma_separated_footer() -> None:
+    usage = parse_codex_cli_token_usage("work output\n\ntokens used\n221,534\nfinal message\n")
+
+    assert usage == {
+        "available": True,
+        "source": "codex_cli_transcript_footer",
+        "total_tokens": 221534,
+        "raw": "tokens used\n221,534",
+        "prompt_tokens": None,
+        "completion_tokens": None,
+        "reasoning_tokens": None,
+        "model": None,
+        "provider": None,
+        "reasoning_effort": None,
+    }
+
+
+def test_codex_token_usage_parser_tolerates_extra_whitespace() -> None:
+    usage = parse_codex_cli_token_usage(
+        "before\r\n  tokens used  \r\n   221,534   \r\n",
+        model="gpt-5-codex",
+        provider="openai",
+        reasoning_effort="medium",
+    )
+
+    assert usage["available"] is True
+    assert usage["total_tokens"] == 221534
+    assert usage["raw"] == "tokens used\n221,534"
+    assert usage["model"] == "gpt-5-codex"
+    assert usage["provider"] == "openai"
+    assert usage["reasoning_effort"] == "medium"
+
+
+def test_codex_token_usage_parser_reports_missing_footer() -> None:
+    usage = parse_codex_cli_token_usage("codex output without accounting footer\n")
+
+    assert usage["available"] is False
+    assert usage["source"] == ""
+    assert usage["total_tokens"] is None
+    assert usage["raw"] == ""
+    assert "tokens used" in usage["extraction_error"]
+
+
+def test_codex_token_usage_parser_reports_malformed_footer() -> None:
+    usage = parse_codex_cli_token_usage("codex output\ntokens used\n22x,534\n")
+
+    assert usage["available"] is False
+    assert usage["source"] == ""
+    assert usage["total_tokens"] is None
+    assert usage["raw"] == "tokens used\n22x,534"
+    assert "malformed" in usage["extraction_error"]
+
+
+def test_successful_dispatch_stores_token_usage_from_stdout_footer(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_project_and_item(config, tmp_path)
+    approve_codex_dispatch(
+        config,
+        item_id="m78-item",
+        approved_by="local_operator",
+        approval_phrase=APPROVAL_PHRASE,
+        run_id="run-one",
+    )
+
+    def fake_runner(*args, **kwargs):
+        return subprocess.CompletedProcess(args=args[0], returncode=0, stdout=b"codex ok\n\ntokens used\n221,534\n", stderr=b"")
+
+    result = run_operator_gated_codex_dispatch(
+        config,
+        item_id="m78-item",
+        run_id="run-one",
+        command=["codex", "--fake"],
+        command_runner=fake_runner,
+    )
+    state = json.loads((tmp_path / ".aresforge" / "codex_dispatch" / "runs" / "run-one" / "run_state.json").read_text())
+    inspected = inspect_codex_dispatch_run(config, run_id="run-one")
+
+    assert result["ok"] is True
+    assert result["payload"]["token_usage"]["available"] is True
+    assert result["payload"]["token_usage"]["total_tokens"] == 221534
+    assert state["token_usage"]["source"] == "codex_cli_transcript_footer"
+    assert inspected["payload"]["token_usage"]["total_tokens"] == 221534
+
+
+def test_dispatch_stores_unavailable_token_usage_when_footer_missing(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_project_and_item(config, tmp_path)
+    approve_codex_dispatch(
+        config,
+        item_id="m78-item",
+        approved_by="local_operator",
+        approval_phrase=APPROVAL_PHRASE,
+        run_id="run-one",
+    )
+
+    result = run_operator_gated_codex_dispatch(
+        config,
+        item_id="m78-item",
+        run_id="run-one",
+        command=["codex", "--fake"],
+        command_runner=_ok_runner,
+    )
+
+    assert result["ok"] is True
+    assert result["payload"]["token_usage"]["available"] is False
+    assert result["payload"]["token_usage"]["total_tokens"] is None
+    assert "tokens used" in result["payload"]["token_usage"]["extraction_error"]
+
+
+def test_dispatch_stores_unavailable_token_usage_when_footer_is_malformed(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_project_and_item(config, tmp_path)
+    approve_codex_dispatch(
+        config,
+        item_id="m78-item",
+        approved_by="local_operator",
+        approval_phrase=APPROVAL_PHRASE,
+        run_id="run-one",
+    )
+
+    def fake_runner(*args, **kwargs):
+        return subprocess.CompletedProcess(args=args[0], returncode=0, stdout=b"codex ok\ntokens used\n221,abc\n", stderr=b"")
+
+    result = run_operator_gated_codex_dispatch(
+        config,
+        item_id="m78-item",
+        run_id="run-one",
+        command=["codex", "--fake"],
+        command_runner=fake_runner,
+    )
+
+    assert result["ok"] is True
+    assert result["payload"]["token_usage"]["available"] is False
+    assert result["payload"]["token_usage"]["raw"] == "tokens used\n221,abc"
+    assert "malformed" in result["payload"]["token_usage"]["extraction_error"]
+
+
+def test_inspect_old_run_state_without_token_usage_remains_valid(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_project_and_item(config, tmp_path)
+    approve = approve_codex_dispatch(
+        config,
+        item_id="m78-item",
+        approved_by="local_operator",
+        approval_phrase=APPROVAL_PHRASE,
+        run_id="run-one",
+    )
+    state_path = tmp_path / ".aresforge" / "codex_dispatch" / "runs" / "run-one" / "run_state.json"
+    old_state = dict(approve["payload"])
+    old_state.pop("ok", None)
+    old_state.pop("token_usage", None)
+    state_path.write_text(json.dumps(old_state, indent=2) + "\n", encoding="utf-8")
+
+    inspected = inspect_codex_dispatch_run(config, run_id="run-one")
+
+    assert inspected["ok"] is True
+    assert inspected["payload"]["run_state_validation"]["valid"] is True
+    assert inspected["payload"]["token_usage"]["available"] is False
+    assert "predate M79.3" in inspected["payload"]["token_usage"]["extraction_error"]
 
 
 def test_run_state_json_reading_accepts_utf8_bom(tmp_path: Path) -> None:

@@ -1,5 +1,35 @@
 # AresForge Roadmap
 
+## M79.3 Codex Run Token Usage Capture
+
+Status: In progress locally on `main`.
+
+Purpose:
+
+- capture comparable Codex CLI token usage metadata for future routing, cost analysis, and LLM decision matrix work
+- keep accounting local to the operator-gated dispatch run state
+
+Delivered scope:
+
+- parser support for the Codex CLI transcript footer:
+  - `tokens used`
+  - numeric total on the following line, including comma-separated values
+- `token_usage` stored in Codex dispatch `run_state.json`
+- `inspect-codex-dispatch-run` returns `token_usage`
+- old run states without `token_usage` still inspect successfully
+
+Constraints preserved:
+
+- no automatic queue completion
+- no automatic next-item execution
+- no Prompt Builder execution
+- no local LLM execution expansion
+- no GitHub API, `gh`, issues, PRs, workflows, external workflow execution, or GitHub mutation
+
+Next recommended milestone:
+
+- M79.3 review and evidence capture only; do not start M80 automatically.
+
 ## M79.2 Single-Item Ready-to-Codex Automation
 
 Status: In progress locally on `main`.

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import shlex
 import subprocess
 from datetime import UTC, datetime
@@ -25,6 +26,7 @@ ALLOWED_DISPATCH_STATES = (
     "cancelled",
     "review_required",
 )
+TOKEN_USAGE_SOURCE = "codex_cli_transcript_footer"
 
 CommandRunner = Callable[..., subprocess.CompletedProcess[Any]]
 
@@ -251,6 +253,12 @@ def run_operator_gated_codex_dispatch(
 
     paths["stdout_path"].write_text(stdout, encoding="utf-8")
     paths["stderr_path"].write_text(stderr, encoding="utf-8")
+    token_usage = parse_codex_cli_token_usage(
+        _codex_cli_transcript_text(stdout=stdout, stderr=stderr),
+        model=state.get("model") or state.get("codex_model"),
+        provider=state.get("provider") or state.get("codex_provider"),
+        reasoning_effort=state.get("reasoning_effort") or state.get("codex_reasoning_effort"),
+    )
     state.update(
         {
             "dispatch_state": final_state,
@@ -259,6 +267,7 @@ def run_operator_gated_codex_dispatch(
             "stderr_path": str(paths["stderr_path"]),
             "exit_code": exit_code,
             "error_summary": error_summary,
+            "token_usage": token_usage,
             "review_required": True,
             "review_evidence_required": True,
             "validation_evidence_required": True,
@@ -285,10 +294,15 @@ def inspect_codex_dispatch_run(
     loaded = _load_run_state(paths["run_state_path"])
     if not loaded.get("ok", False):
         return _stdout_result("inspect-codex-dispatch-run", loaded, output_format)
-    validation = validate_codex_dispatch_run_state(loaded["run_state"], repo_root=config.repo_root)
+    run_state = dict(loaded["run_state"])
+    if "token_usage" not in run_state:
+        run_state["token_usage"] = unavailable_token_usage(
+            "token_usage field is not present in this run_state.json; it may predate M79.3."
+        )
+    validation = validate_codex_dispatch_run_state(run_state, repo_root=config.repo_root)
     return _stdout_result(
         "inspect-codex-dispatch-run",
-        {"ok": validation["valid"], **loaded["run_state"], "run_state_validation": validation},
+        {"ok": validation["valid"], **run_state, "run_state_validation": validation},
         output_format,
     )
 
@@ -403,6 +417,9 @@ def validate_codex_dispatch_run_state(run_state: dict[str, Any], *, repo_root: P
         blockers.append("automatic_next_item_execution_allowed must be false.")
     if run_state.get("queue_completion_allowed") is not False:
         blockers.append("queue_completion_allowed must be false for dispatch output.")
+    token_usage = run_state.get("token_usage")
+    if token_usage is not None and not isinstance(token_usage, dict):
+        blockers.append("token_usage must be an object when present.")
     root = repo_root.resolve()
     for key in ("prompt_artifact_path", "stdout_path", "stderr_path", "artifact_dir"):
         value = str(run_state.get(key, "")).strip()
@@ -413,6 +430,61 @@ def validate_codex_dispatch_run_state(run_state: dict[str, Any], *, repo_root: P
         except ValueError:
             blockers.append(f"{key} must stay inside the repository root.")
     return {"valid": not missing and not blockers, "missing_fields": missing, "blockers": blockers}
+
+
+def parse_codex_cli_token_usage(
+    transcript_text: str,
+    *,
+    model: Any | None = None,
+    provider: Any | None = None,
+    reasoning_effort: Any | None = None,
+) -> dict[str, Any]:
+    lines = str(transcript_text or "").splitlines()
+    marker_index: int | None = None
+    for index, line in enumerate(lines):
+        if line.strip().lower() == "tokens used":
+            marker_index = index
+    if marker_index is None:
+        return unavailable_token_usage('Codex CLI token usage footer "tokens used" was not found.')
+
+    value_line = ""
+    for line in lines[marker_index + 1 :]:
+        if line.strip():
+            value_line = line
+            break
+    raw = f"{lines[marker_index].strip()}\n{value_line.strip()}" if value_line else lines[marker_index].strip()
+    if not value_line:
+        return unavailable_token_usage("Codex CLI token usage footer did not include a numeric line.", raw=raw)
+
+    normalized_value = value_line.strip()
+    if not re.fullmatch(r"\d[\d,]*", normalized_value):
+        return unavailable_token_usage(
+            f"Codex CLI token usage value is malformed: {normalized_value}",
+            raw=raw,
+        )
+
+    return {
+        "available": True,
+        "source": TOKEN_USAGE_SOURCE,
+        "total_tokens": int(normalized_value.replace(",", "")),
+        "raw": raw,
+        "prompt_tokens": None,
+        "completion_tokens": None,
+        "reasoning_tokens": None,
+        "model": _optional_metadata_value(model),
+        "provider": _optional_metadata_value(provider),
+        "reasoning_effort": _optional_metadata_value(reasoning_effort),
+    }
+
+
+def unavailable_token_usage(extraction_error: str, *, raw: str = "") -> dict[str, Any]:
+    return {
+        "available": False,
+        "source": "",
+        "total_tokens": None,
+        "raw": raw,
+        "extraction_error": extraction_error,
+    }
 
 
 def _new_run_state(
@@ -456,6 +528,7 @@ def _new_run_state(
         "artifact_dir": str(paths["artifact_dir"]),
         "exit_code": None,
         "error_summary": "",
+        "token_usage": unavailable_token_usage("Codex dispatch has not completed; token usage has not been captured yet."),
         "review_required": True,
         "review_evidence_required": True,
         "validation_evidence_required": True,
@@ -561,6 +634,17 @@ def _decode_process_output(value: bytes | str | None) -> str:
     if isinstance(value, bytes):
         return value.decode("utf-8-sig", errors="replace")
     return str(value)
+
+
+def _codex_cli_transcript_text(*, stdout: str, stderr: str) -> str:
+    if stdout and stderr:
+        return f"{stdout.rstrip()}\n{stderr.lstrip()}"
+    return stdout or stderr or ""
+
+
+def _optional_metadata_value(value: Any | None) -> str | None:
+    normalized = str(value or "").strip()
+    return normalized or None
 
 
 def _stdout_result(command: str, payload: dict[str, Any], output_format: str) -> dict[str, Any]:

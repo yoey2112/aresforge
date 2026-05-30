@@ -1,5 +1,28 @@
 # Runnable Skeleton
 
+## M79.3 Codex Run Token Usage Capture
+
+M79.3 adds token usage accounting to local Codex dispatch run state:
+
+- `python -m aresforge run-codex-dispatch --item-id <item_id> --run-id <run_id> --command-arg codex --format json`
+- `python -m aresforge inspect-codex-dispatch-run --run-id <run_id> --format json`
+
+Runnable behavior:
+
+- captured stdout/stderr transcript text is inspected for a `tokens used` footer
+- comma-separated totals such as `221,534` are stored as integer `total_tokens`
+- missing or malformed footers produce `token_usage.available: false` with `extraction_error`
+- inspect output includes `token_usage`
+- old `run_state.json` files without `token_usage` remain inspectable
+
+Still absent by design:
+
+- automatic queue completion
+- automatic next-item execution
+- unattended multi-item queue execution
+- GitHub API, `gh`, issues, PRs, workflows, or external workflow execution
+- local LLM execution expansion
+
 ## M79.2 Single-Item Ready-to-Codex Automation
 
 M79.2 adds an explicit one-item local automation command:

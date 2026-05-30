@@ -1,5 +1,28 @@
 # AresForge Agent Context
 
+## M79.3 Codex Run Token Usage Capture Context
+
+Status: In progress locally on `main`.
+
+Current token accounting scope:
+
+- Codex dispatch runs parse the captured CLI transcript footer `tokens used` followed by a numeric line.
+- Comma-separated totals such as `221,534` are normalized into `token_usage.total_tokens`.
+- Run state now stores `token_usage` with source `codex_cli_transcript_footer` when available, or an unavailable object with a clear `extraction_error`.
+- `inspect-codex-dispatch-run` exposes `token_usage` and remains backward-compatible with older `run_state.json` files that do not contain the field.
+
+Boundaries preserved:
+
+- dispatch remains local-only and explicitly operator-gated
+- no automatic queue completion
+- no automatic next-item execution
+- no GitHub API, `gh`, issues, PRs, workflows, external workflow execution, or GitHub mutation
+- no local LLM execution expansion
+
+Recommended next milestone:
+
+- Review and validate M79.3 evidence; do not mark the queue item complete or start M80 automatically.
+
 ## M79.2 Single-Item Ready-to-Codex Automation Context
 
 Status: In progress locally on `main`.

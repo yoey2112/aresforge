@@ -457,6 +457,13 @@ def _expected_run_state_shape(
         "review_evidence": [],
         "validation_evidence": [],
         "error_summary": "",
+        "token_usage": {
+            "available": False,
+            "source": "",
+            "total_tokens": None,
+            "raw": "",
+            "extraction_error": "Token usage is captured from completed M79.3+ Codex CLI run transcripts.",
+        },
         "next_safe_action": "Await explicit operator approval in a future milestone; do not dispatch in M77.",
     }
 
