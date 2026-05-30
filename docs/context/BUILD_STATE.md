@@ -1,5 +1,24 @@
 # AresForge Build State
 
+## M88 Human-Gated Patch Application Contract
+
+Status: In progress locally on `main`.
+
+Delivered in this pass:
+
+- adds `inspect-human-gated-patch-application-contract` for read-only contract inspection
+- defines the local patch artifact structure expected from generated local coding drafts
+- defines explicit operator approval requirements, including an approval phrase and approval record fields
+- defines pre-apply safety gates and post-apply validation requirements
+
+M88 safety posture:
+
+- contract-first and dry-run only
+- patch application is not implemented by the contract inspector
+- no automatic file mutation or patch application
+- no queue mutation, queue completion, or automatic next-item execution
+- no GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, or external workflow behavior
+
 ## M87 Local Coding Draft Artifact Mode
 
 Status: Completed locally on `main`.

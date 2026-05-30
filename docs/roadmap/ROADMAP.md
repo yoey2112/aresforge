@@ -1,5 +1,28 @@
 # AresForge Roadmap
 
+## M88 Human-Gated Patch Application Contract
+
+Status: In progress locally on `main`.
+
+Purpose:
+
+- define how generated local coding draft patch artifacts may be reviewed for future manual application
+- require explicit operator approval and validation gates before any patch application path can exist
+
+Delivered scope:
+
+- `inspect-human-gated-patch-application-contract`
+- patch artifact structure for local draft patches or operator instructions
+- operator approval record requirements
+- pre-apply safety gates and post-apply validation requirements
+
+Constraints preserved:
+
+- contract-first and dry-run only
+- no automatic file mutation or patch application
+- no automatic queue completion or next-item execution
+- no GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, external workflow execution, or GitHub mutation
+
 ## M87 Local Coding Draft Artifact Mode
 
 Status: Completed locally on `main`.

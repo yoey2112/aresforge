@@ -189,6 +189,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-ollama-health",
         "prepare-local-llm-advisory-run",
         "prepare-local-coding-draft",
+        "inspect-human-gated-patch-application-contract",
         "prepare-codex-handoff",
     ):
         assert command in help_text
@@ -5217,6 +5218,63 @@ def test_prepare_local_coding_draft_dispatch_json(
     assert parsed["safety_boundary"]["automatic_file_mutation_allowed"] is False
     assert parsed["safety_boundary"]["automatic_patch_application_allowed"] is False
     assert parsed["safety_boundary"]["queue_completion_allowed"] is False
+
+
+def test_inspect_human_gated_patch_application_contract_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "ok": True,
+                "local_only": True,
+                "read_only": True,
+                "dry_run_only": True,
+                "patch_application_implemented": False,
+                "operator_approval_requirements": {
+                    "explicit_approval_required": True,
+                    "approval_phrase": "APPROVE LOCAL PATCH APPLICATION",
+                },
+                "safety_boundary": {
+                    "patch_application_allowed_from_this_command": False,
+                    "automatic_patch_application_allowed": False,
+                    "repo_mutation_allowed": False,
+                    "automatic_file_mutation_allowed": False,
+                    "queue_completion_allowed": False,
+                    "automatic_next_item_execution_allowed": False,
+                    "github_api_allowed": False,
+                    "gh_allowed": False,
+                },
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_inspect(_config, output_format="json"):
+        seen["output_format"] = output_format
+        return payload
+
+    monkeypatch.setattr(cli, "inspect_human_gated_patch_application_contract", fake_inspect)
+    exit_code = cli.main(["inspect-human-gated-patch-application-contract", "--format", "json"])
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert seen["output_format"] == "json"
+    assert parsed["dry_run_only"] is True
+    assert parsed["patch_application_implemented"] is False
+    assert parsed["operator_approval_requirements"]["explicit_approval_required"] is True
+    assert parsed["safety_boundary"]["patch_application_allowed_from_this_command"] is False
+    assert parsed["safety_boundary"]["automatic_patch_application_allowed"] is False
+    assert parsed["safety_boundary"]["repo_mutation_allowed"] is False
+    assert parsed["safety_boundary"]["queue_completion_allowed"] is False
+    assert parsed["safety_boundary"]["automatic_next_item_execution_allowed"] is False
+    assert parsed["safety_boundary"]["github_api_allowed"] is False
+    assert parsed["safety_boundary"]["gh_allowed"] is False
 
 
 def test_test_ollama_uses_health_inspection_without_generation(

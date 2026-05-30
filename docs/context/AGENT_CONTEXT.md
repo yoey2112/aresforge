@@ -1,5 +1,23 @@
 # AresForge Agent Context
 
+## M88 Human-Gated Patch Application Contract Context
+
+Status: In progress locally on `main`.
+
+Current patch application contract scope:
+
+- `inspect-human-gated-patch-application-contract` reports the M88 patch application contract.
+- The contract defines patch artifact fields, explicit operator approval requirements, pre-apply safety gates, and post-apply validation requirements.
+- The command is read-only and does not apply patches.
+- Patch application remains future work behind a separate explicit operator-approved command and validation gates.
+
+Boundaries preserved:
+
+- no automatic file mutation or patch application
+- no queue mutation, queue completion, or automatic next-item execution
+- no provider invocation from contract inspection
+- no GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, external workflow execution, or GitHub mutation
+
 ## M87 Local Coding Draft Artifact Mode Context
 
 Status: Completed locally on `main`.

@@ -40,6 +40,8 @@ M85 adds a local LLM advisory run artifact flow. It generates advisory prompt ar
 
 M87 adds local coding draft artifact mode. It generates coding draft prompt artifacts by default without invoking a provider. If the operator supplies an explicit run flag, it may call local Ollama for draft patch/instruction output and store draft/metadata artifacts locally. Draft output is non-applied, non-authoritative, manual-review-only, and never mutates repository files, applies patches, mutates queue state, completes queue items, or starts another item automatically.
 
+M88 adds a human-gated patch application contract. It defines the patch artifact structure, explicit operator approval record requirements, pre-apply safety gates, and post-apply validation requirements for any future patch application path. The contract inspector is read-only, contract-first, and dry-run only; it does not apply patches, mutate files, mutate queue state, complete queue items, or start another item.
+
 ## Storage
 
 The contract is stored locally at:
@@ -72,6 +74,7 @@ Reading defaults does not write this file. Updating the contract writes the file
 - CLI: `python -m aresforge test-ollama`
 - CLI: `python -m aresforge prepare-local-llm-advisory-run --item-id <item_id> --format json`
 - CLI: `python -m aresforge prepare-local-coding-draft --item-id <item_id> --format json`
+- CLI: `python -m aresforge inspect-human-gated-patch-application-contract --format json`
 
 ## Fields
 
@@ -180,6 +183,19 @@ Required output includes:
 - `next_safe_action`
 
 Draft output may include patch-like text, but it is not an applied patch. It is non-authoritative manual guidance only. A draft artifact must not mutate repository files, apply patches, mutate queue state, complete queue items, start next items, call GitHub, call `gh`, or trigger workflows, daemons, watchers, schedulers, or external workflow systems.
+
+## M88 Human-Gated Patch Application Contract
+
+`inspect-human-gated-patch-application-contract` reports the contract for any future manual patch application path.
+
+The contract defines:
+
+- required patch artifact fields, including source draft artifact path, target item id, patch format, target files, patch text, rationale, risks, expected validation, provider/model metadata, and applied/manual review booleans
+- explicit operator approval requirements, including the approval phrase `APPROVE LOCAL PATCH APPLICATION`
+- pre-apply safety gates for local-only operation, approval record presence, patch schema validation, target file scoping, path traversal prevention, manual diff review, validation plan presence, and no external workflow behavior
+- post-apply validation requirements, including operator final diff review, `git diff --check`, targeted tests, relevant smoke checks, and separate queue evidence completion
+
+M88 remains dry-run only. The contract inspector does not apply patches, mutate repository files, mutate queue state, complete queue items, start another item, invoke a provider, call GitHub APIs, call `gh`, create issues or PRs, touch workflows, or run daemon, watcher, scheduler, or external workflow behavior.
 
 ## Provider Availability States
 

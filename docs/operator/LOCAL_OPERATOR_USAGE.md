@@ -1,5 +1,30 @@
 # Local Operator Usage
 
+## M88 Human-Gated Patch Application Contract
+
+Inspect the patch application contract:
+
+    python -m aresforge inspect-human-gated-patch-application-contract --format json
+
+Payload highlights:
+
+- `patch_artifact_structure`
+- `operator_approval_requirements`
+- `pre_apply_safety_gates`
+- `post_apply_validation_requirements`
+- `safety_boundary`
+- `next_safe_action`
+
+Operator rules:
+
+- treat generated local coding draft patches as non-applied and non-authoritative
+- require explicit approval before any future manual patch application path
+- require safety gates before any manual application and validation after any manual application
+- do not apply patches automatically
+- do not mutate repository files automatically
+- do not complete queue items or start another item from patch artifacts
+- do not use GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, or external workflow behavior
+
 ## M87 Local Coding Draft Artifact Mode
 
 Generate a local coding draft prompt artifact without invoking a model:

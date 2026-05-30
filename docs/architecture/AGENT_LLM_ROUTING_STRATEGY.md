@@ -14,6 +14,8 @@ M86 adds deterministic confidence scoring to the M80 decision matrix. `inspect-l
 
 M87 adds a local coding draft artifact mode. `prepare-local-coding-draft` can generate draft prompt artifacts and, only with an explicit operator `--run`, capture local draft patch/instruction output. Draft output is non-applied, non-authoritative, and cannot mutate files, apply patches, complete queue items, or start next items automatically.
 
+M88 adds a human-gated patch application contract. `inspect-human-gated-patch-application-contract` defines patch artifact structure, explicit operator approval requirements, pre-apply safety gates, and post-apply validation requirements for any future manual patch application path. It is read-only and dry-run only.
+
 Current prompt-pack and Codex high-value lane behavior are advisory prompt generation/manual handoff only. Runtime routing execution, Codex dispatch, Codex CLI invocation, real agent execution, external workflow execution, and GitHub integration remain unimplemented. Local LLM execution exists only as the M62 operator-gated local prototype and remains local-only, advisory-only, prototype-scoped, and non-mutating.
 
 ## M75 Source-of-Truth and Next Decision Matrix Direction
@@ -32,6 +34,7 @@ The next decision-matrix direction is:
 - M83 formalizes the local LLM provider contract for advisory and future coding lanes
 - M86 adds advisory-only routing confidence scoring for Codex, local LLM advisory, local coding draft, and manual-only lanes
 - M87 adds local coding draft artifacts while preserving no automatic patch application or file mutation
+- M88 defines the human-gated patch application contract while preserving dry-run-only behavior
 
 Next phase safety gates before any Codex dispatch implementation:
 
@@ -115,6 +118,20 @@ The command can generate local coding draft prompt artifacts and, with explicit 
 - manual review is required
 
 M87 does not add routing execution, automatic local LLM execution, patch application, repository mutation, queue mutation, queue completion, automatic next-item execution, GitHub API calls, `gh` calls, issues, PRs, workflows, daemons, watchers, schedulers, or external workflow behavior.
+
+## M88 Human-Gated Patch Application Contract
+
+M88 adds `inspect-human-gated-patch-application-contract`.
+
+The command reports:
+
+- required patch artifact fields for generated local coding draft patches or operator instructions
+- explicit operator approval requirements, including `APPROVE LOCAL PATCH APPLICATION`
+- pre-apply safety gates for local-only operation, approval record presence, schema validation, target file scoping, path traversal prevention, manual diff review, validation plan presence, and no external workflow behavior
+- post-apply validation requirements such as final diff review, `git diff --check`, targeted tests, relevant smoke checks, and separate queue evidence completion
+- safety boundaries confirming patch application is not implemented and is not allowed automatically
+
+M88 does not add routing execution, automatic local LLM execution, patch application, repository mutation, queue mutation, queue completion, automatic next-item execution, GitHub API calls, `gh` calls, issues, PRs, workflows, daemons, watchers, schedulers, or external workflow behavior.
 
 ## M69 Local AI Operations Hardening
 

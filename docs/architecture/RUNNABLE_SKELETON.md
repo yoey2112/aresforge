@@ -1,5 +1,26 @@
 # Runnable Skeleton
 
+## M88 Human-Gated Patch Application Contract
+
+M88 adds a read-only patch application contract inspector:
+
+- `python -m aresforge inspect-human-gated-patch-application-contract --format json`
+
+Runnable behavior:
+
+- reports the expected patch artifact structure for generated local coding draft patches or instructions
+- reports explicit operator approval requirements
+- reports pre-apply safety gates and post-apply validation requirements
+- confirms patch application is not implemented by this command
+
+Still absent by design:
+
+- automatic file mutation
+- automatic patch application
+- queue mutation or queue completion from patch artifacts
+- automatic next-item execution
+- GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, or external workflow execution
+
 ## M87 Local Coding Draft Artifact Mode
 
 M87 adds local coding draft artifacts:

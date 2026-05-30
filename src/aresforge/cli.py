@@ -219,6 +219,7 @@ from aresforge.operator.codex_dispatch_runner import (
 )
 from aresforge.operator.llm_decision_matrix import inspect_llm_decision_matrix
 from aresforge.operator.local_coding_draft import prepare_local_coding_draft_artifact
+from aresforge.operator.human_gated_patch_contract import inspect_human_gated_patch_application_contract
 from aresforge.operator.local_llm_advisory import prepare_local_llm_advisory_run_artifact
 from aresforge.operator.local_llm_advisory_lane import inspect_local_llm_advisory_lane_readiness
 from aresforge.operator.local_llm_provider import (
@@ -1631,6 +1632,15 @@ def build_parser() -> argparse.ArgumentParser:
     prepare_local_coding_draft_parser.add_argument("--run", action="store_true")
     prepare_local_coding_draft_parser.add_argument("--force", action="store_true")
     prepare_local_coding_draft_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="json",
+    )
+    inspect_human_gated_patch_contract_parser = subparsers.add_parser(
+        "inspect-human-gated-patch-application-contract",
+        help="Inspect the M88 human-gated patch application contract without applying patches.",
+    )
+    inspect_human_gated_patch_contract_parser.add_argument(
         "--format",
         choices=["json", "markdown"],
         default="json",
@@ -3961,6 +3971,14 @@ def main(argv: list[str] | None = None) -> int:
             output_format=args.format,
             force=bool(args.force),
         )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-human-gated-patch-application-contract":
+        payload = inspect_human_gated_patch_application_contract(config, output_format=args.format)
         if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
             print(payload["stdout"])
             return 0
