@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T04:39:52.829072+00:00",
+  "updated_at": "2026-05-30T04:56:26.830547+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -896,7 +896,7 @@
       "repo_id": "aresforge-main",
       "title": "M79.4 Codex Dispatch Recovery and Windows argv Hardening",
       "description": "Harden Codex dispatch recovery after partial failures and fix Windows command/argv handling discovered during M80 manual recovery.",
-      "status": "ready",
+      "status": "done",
       "priority": "high",
       "item_type": "task",
       "tags": [
@@ -916,15 +916,36 @@
       "notes": "Acceptance criteria:\n- run-single-ready-codex-queue-item can recover or resume safely after a partial failure where the item is already in_progress.\n- Recovery must not start a next queue item automatically.\n- Existing approved dispatch runs can be continued or safely superseded by a new approved run with clear evidence.\n- Windows command paths must be preserved correctly, including backslash paths and forward-slash paths.\n- --command must not be dropped when --command-arg is present.\n- Codex CLI dispatch should support codex.cmd exec non-interactive execution on Windows.\n- Dispatch must block if the prompt artifact is empty before execution.\n- Run state should clearly record command argv, resolved executable, prompt bytes, exit code, stderr, stdout, token usage availability, and recovery guidance.\n- Tests must cover command path preservation, command plus args, empty prompt blocking, in_progress recovery, and failed dispatch recovery.\n- Source-of-truth docs must document the recovered Windows Codex workflow.\n- Preserve local-only, operator-gated boundaries.\n- No automatic next-item execution.\n- No GitHub API, gh, issue, PR, workflow, or external mutation behavior.",
       "started_at": "",
       "started_via": "",
-      "previous_status": "",
-      "completed_at": "",
-      "completed_by": "",
-      "completion_commit": "",
-      "validation_summary": "",
-      "evidence_note": "",
-      "tests_run": [],
-      "changed_files": [],
-      "artifact_paths": [],
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-30T04:56:26.830547+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "64c6257",
+      "validation_summary": "M79.4 Codex dispatch recovery and Windows argv hardening was implemented and committed. Focused validation passed with 177 tests. Required validation bundle passed with 493 tests. git diff --check passed with line-ending warnings only. Smoke checks confirmed readiness blockers from M80 failed dispatch runs, successful dispatch prompt preparation while blocked, and zero active dispatch runs.",
+      "evidence_note": "Operator reviewed Codex output, implementation diff, validation results, smoke results, commit, and push result. M79.4 was created specifically because M80 exposed recovery gaps in run-single-ready-codex-queue-item, Windows command path handling, command argv handling, codex.cmd exec execution, and failed dispatch run sequencing behavior.",
+      "tests_run": [
+        "python -m pytest tests/test_codex_dispatch_runner.py tests/test_cli.py -> 177 passed in 8.18s",
+        "python -m pytest tests/test_prompt_builder_agent.py tests/test_queue_dispatch_preparation.py tests/test_codex_dispatch_contract.py tests/test_codex_dispatch_runner.py tests/test_cli.py tests/test_local_project_queue.py tests/test_local_project_factory.py tests/test_hub_local_queue_lifecycle_api.py tests/test_hub_project_factory_api.py tests/test_hub_ui_foundation.py -> 493 passed in 50.55s",
+        "git diff --check -> passed with line-ending warnings only",
+        "Smoke: inspect-local-queue-item-readiness showed expected M80 failed-dispatch blockers",
+        "Smoke: prepare-queue-item-dispatch generated the M79.4 prompt artifact safely while blocked",
+        "Smoke: list-codex-dispatch-runs showed active_run_count 0"
+      ],
+      "changed_files": [
+        "docs/architecture/CODEX_CLI_MODEL_PROFILE_CONTRACT.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/context/BUILD_STATE.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/roadmap/ROADMAP.md",
+        "src/aresforge/cli.py",
+        "src/aresforge/operator/codex_dispatch_runner.py",
+        "src/aresforge/operator/single_ready_codex_queue_item.py",
+        "tests/test_cli.py",
+        "tests/test_codex_dispatch_runner.py"
+      ],
+      "artifact_paths": [
+        ".aresforge/codex_dispatch/prompts/m79-4-codex-dispatch-recovery-windows-argv-hardening.prompt.txt"
+      ],
       "completion_evidence": {},
       "routing_metadata": {
         "recommended_agent_lane": "",
@@ -945,7 +966,7 @@
       "closeout_summary": "",
       "closeout_history": [],
       "created_at": "2026-05-30T04:39:52.829072+00:00",
-      "updated_at": "2026-05-30T04:39:52.829072+00:00"
+      "updated_at": "2026-05-30T04:56:26.830547+00:00"
     }
   ]
 }
