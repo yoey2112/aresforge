@@ -3430,6 +3430,7 @@ def _empty_dependency_summary() -> dict[str, Any]:
         'total_blocked_by': 0,
         'unresolved_blockers': [],
         'dispatch_run_blockers': [],
+        'recovered_dispatch_runs': [],
     }
 
 
@@ -3441,6 +3442,7 @@ def _dependency_readiness_summary(item: dict[str, Any], items: list[dict[str, An
     unresolved_dependencies: list[dict[str, str]] = []
     unresolved_blockers: list[dict[str, str]] = []
     dispatch_run_blockers: list[dict[str, str]] = []
+    recovered_dispatch_runs: list[dict[str, str]] = []
     blockers: list[str] = []
     warnings: list[str] = []
 
@@ -3459,6 +3461,8 @@ def _dependency_readiness_summary(item: dict[str, Any], items: list[dict[str, An
             dependency_item=dependency_item,
         )
         dispatch_run_blockers.extend(dependency_resolution['dispatch_run_blockers'])
+        recovered_dispatch_runs.extend(dependency_resolution['recovered_dispatch_runs'])
+        warnings.extend(dependency_resolution['warnings'])
         if dependency_status in _RESOLVED_DEPENDENCY_STATUSES and dependency_resolution['resolved']:
             resolved_dependencies.append(dependency_id)
             continue
@@ -3493,6 +3497,8 @@ def _dependency_readiness_summary(item: dict[str, Any], items: list[dict[str, An
             dependency_item=blocker_item,
         )
         dispatch_run_blockers.extend(blocker_resolution['dispatch_run_blockers'])
+        recovered_dispatch_runs.extend(blocker_resolution['recovered_dispatch_runs'])
+        warnings.extend(blocker_resolution['warnings'])
         if blocker_status in _RESOLVED_DEPENDENCY_STATUSES and blocker_resolution['resolved']:
             continue
         reason = 'blocker_not_resolved'
@@ -3520,6 +3526,7 @@ def _dependency_readiness_summary(item: dict[str, Any], items: list[dict[str, An
             'total_blocked_by': len(blocked_by),
             'unresolved_blockers': unresolved_blockers,
             'dispatch_run_blockers': dispatch_run_blockers,
+            'recovered_dispatch_runs': recovered_dispatch_runs,
         },
         'blockers': blockers,
         'warnings': warnings,
@@ -3533,13 +3540,19 @@ def _dependency_completion_resolution(
     dependency_item: dict[str, Any],
 ) -> dict[str, Any]:
     status = str(dependency_item.get('status', '')).strip()
-    dispatch_summary = _dispatch_run_blocking_summary(repo_root=repo_root, item_id=item_id)
+    dispatch_summary = _dispatch_run_blocking_summary(
+        repo_root=repo_root,
+        item_id=item_id,
+        dependency_item=dependency_item,
+    )
     if status not in _RESOLVED_DEPENDENCY_STATUSES:
         return {
             'resolved': False,
             'reason': 'dependency_not_done',
             'blockers': dispatch_summary['blockers'],
             'dispatch_run_blockers': dispatch_summary['blocking_runs'],
+            'recovered_dispatch_runs': dispatch_summary['recovered_runs'],
+            'warnings': dispatch_summary['warnings'],
         }
     if dispatch_summary['blocking_runs']:
         return {
@@ -3547,6 +3560,8 @@ def _dependency_completion_resolution(
             'reason': 'dispatch_run_state_unreviewed_or_incomplete',
             'blockers': dispatch_summary['blockers'],
             'dispatch_run_blockers': dispatch_summary['blocking_runs'],
+            'recovered_dispatch_runs': dispatch_summary['recovered_runs'],
+            'warnings': dispatch_summary['warnings'],
         }
     if not _queue_item_has_required_completion_evidence(dependency_item):
         return {
@@ -3554,21 +3569,27 @@ def _dependency_completion_resolution(
             'reason': 'required_completion_review_validation_or_queue_evidence_missing',
             'blockers': [],
             'dispatch_run_blockers': [],
+            'recovered_dispatch_runs': dispatch_summary['recovered_runs'],
+            'warnings': dispatch_summary['warnings'],
         }
     return {
         'resolved': True,
         'reason': 'resolved',
         'blockers': [],
         'dispatch_run_blockers': [],
+        'recovered_dispatch_runs': dispatch_summary['recovered_runs'],
+        'warnings': dispatch_summary['warnings'],
     }
 
 
-def _dispatch_run_blocking_summary(*, repo_root: Path, item_id: str) -> dict[str, Any]:
+def _dispatch_run_blocking_summary(*, repo_root: Path, item_id: str, dependency_item: dict[str, Any]) -> dict[str, Any]:
     blocking_runs: list[dict[str, str]] = []
+    recovered_runs: list[dict[str, str]] = []
     blockers: list[str] = []
+    warnings: list[str] = []
     runs_root = (repo_root / _CODEX_DISPATCH_RUNS_RELATIVE).resolve()
     if not runs_root.exists():
-        return {'blocking_runs': blocking_runs, 'blockers': blockers}
+        return {'blocking_runs': blocking_runs, 'recovered_runs': recovered_runs, 'blockers': blockers, 'warnings': warnings}
     for path in sorted(runs_root.glob(f'*/{_CODEX_DISPATCH_RUN_STATE_FILE_NAME}')):
         try:
             raw = json.loads(path.read_text(encoding='utf-8-sig'))
@@ -3590,6 +3611,21 @@ def _dispatch_run_blocking_summary(*, repo_root: Path, item_id: str) -> dict[str
         reason = ''
         if dispatch_state in _BLOCKING_DISPATCH_STATES:
             reason = f'dispatch_state_{dispatch_state}'
+        elif dispatch_state == 'failed' and _dispatch_run_has_recovery_metadata(raw):
+            if _recovered_failed_dispatch_run_is_non_blocking(raw, dependency_item):
+                recovered_runs.append(
+                    {
+                        'run_id': run_id,
+                        'item_id': item_id,
+                        'dispatch_state': dispatch_state,
+                        'reason': 'failed_dispatch_recovered_and_audited',
+                    }
+                )
+                warnings.append(
+                    f'Recovered failed dependency dispatch run audited as non-blocking: {item_id}/{run_id}'
+                )
+                continue
+            reason = 'dispatch_state_failed_recovered_without_dependency_completion_evidence'
         elif dispatch_state in _DISPATCH_STATES_REQUIRING_REVIEW_EVIDENCE and not _dispatch_run_has_review_and_validation_evidence(raw):
             reason = f'dispatch_state_{dispatch_state}_missing_review_or_validation_evidence'
         if reason:
@@ -3602,7 +3638,33 @@ def _dispatch_run_blocking_summary(*, repo_root: Path, item_id: str) -> dict[str
                 }
             )
             blockers.append(f'Dependency dispatch run blocks sequencing: {item_id}/{run_id} ({reason})')
-    return {'blocking_runs': blocking_runs, 'blockers': blockers}
+    return {
+        'blocking_runs': blocking_runs,
+        'recovered_runs': recovered_runs,
+        'blockers': blockers,
+        'warnings': warnings,
+    }
+
+
+def _dispatch_run_has_recovery_metadata(run_state: dict[str, Any]) -> bool:
+    recovery = run_state.get('recovery', {})
+    return bool(
+        isinstance(recovery, dict)
+        and str(recovery.get('recovered_at', '')).strip()
+        and str(recovery.get('recovery_note', '')).strip()
+    )
+
+
+def _recovered_failed_dispatch_run_is_non_blocking(run_state: dict[str, Any], dependency_item: dict[str, Any]) -> bool:
+    return bool(
+        str(run_state.get('dispatch_state', '')).strip() == 'failed'
+        and _dispatch_run_has_recovery_metadata(run_state)
+        and str(dependency_item.get('status', '')).strip() in _RESOLVED_DEPENDENCY_STATUSES
+        and str(dependency_item.get('completion_commit', '')).strip()
+        and str(dependency_item.get('validation_summary', '')).strip()
+        and isinstance(dependency_item.get('tests_run', []), list)
+        and any(str(value).strip() for value in dependency_item.get('tests_run', []))
+    )
 
 
 def _dispatch_run_has_review_and_validation_evidence(run_state: dict[str, Any]) -> bool:

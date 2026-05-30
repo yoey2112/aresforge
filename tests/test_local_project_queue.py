@@ -99,25 +99,38 @@ def _write_codex_run_state(
     dispatch_state: str,
     review_evidence: list[str] | None = None,
     validation_evidence: list[str] | None = None,
+    recovery: dict[str, str] | None = None,
 ) -> Path:
     run_dir = repo_root / '.aresforge' / 'codex_dispatch' / 'runs' / run_id
     run_dir.mkdir(parents=True, exist_ok=True)
     path = run_dir / 'run_state.json'
+    state = {
+        'run_id': run_id,
+        'item_id': item_id,
+        'dispatch_state': dispatch_state,
+        'review_evidence': review_evidence or [],
+        'validation_evidence': validation_evidence or [],
+    }
+    if recovery is not None:
+        state['recovery'] = recovery
     path.write_text(
         json.dumps(
-            {
-                'run_id': run_id,
-                'item_id': item_id,
-                'dispatch_state': dispatch_state,
-                'review_evidence': review_evidence or [],
-                'validation_evidence': validation_evidence or [],
-            },
+            state,
             indent=2,
         )
         + '\n',
         encoding='utf-8',
     )
     return path
+
+
+def _valid_recovery() -> dict[str, str]:
+    return {
+        'recovered_at': '2026-05-30T04:30:00Z',
+        'previous_dispatch_state': 'approved_pending_dispatch',
+        'recovery_note': 'Operator recovered stale failed dispatch run.',
+        'recovered_by_command': 'recover-codex-dispatch-run',
+    }
 
 
 def _seed_preview_item(config: AppConfig, *, item_id: str, engine: str, model: str = '') -> None:
@@ -2013,6 +2026,182 @@ def test_downstream_readiness_blocks_on_failed_upstream_dispatch_without_review_
     )
 
     payload = inspect_local_queue_item_readiness(config, item_id='downstream-failed')
+
+    assert payload['readiness_status'] == 'blocked'
+    assert payload['can_start'] is False
+    assert payload['dependency_summary']['dispatch_run_blockers'][0]['reason'] == 'dispatch_state_failed_missing_review_or_validation_evidence'
+
+
+def test_recovered_failed_dispatch_run_does_not_block_done_evidenced_dependency(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='upstream-recovered',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Upstream recovered',
+        description='Recovered dispatch run is audited by queue evidence.',
+        status='in_progress',
+    )['ok'] is True
+    assert complete_local_queue_item(
+        config,
+        item_id='upstream-recovered',
+        commit_hash='abc123def',
+        validation_summary='Targeted tests passed locally.',
+        evidence_note='Operator reviewed recovered dispatch evidence.',
+        tests_run=['python -m pytest tests/test_local_project_queue.py'],
+    )['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='downstream-recovered',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Downstream recovered',
+        description='Can start after recovered upstream is evidenced.',
+        status='ready',
+        dependencies=['upstream-recovered'],
+    )['ok'] is True
+    for run_id in (
+        'm80-llm-decision-matrix-v2-20260530041446986466',
+        'm80-llm-decision-matrix-v2-20260530042200000000',
+        'm80-llm-decision-matrix-v2-20260530042500000000',
+        'm80-llm-decision-matrix-v2-20260530042800000000',
+    ):
+        _write_codex_run_state(
+            tmp_path,
+            item_id='upstream-recovered',
+            run_id=run_id,
+            dispatch_state='failed',
+            recovery=_valid_recovery(),
+        )
+
+    payload = inspect_local_queue_item_readiness(config, item_id='downstream-recovered')
+
+    assert payload['readiness_status'] == 'ready'
+    assert payload['can_start'] is True
+    assert payload['dependency_summary']['dispatch_run_blockers'] == []
+    assert len(payload['dependency_summary']['recovered_dispatch_runs']) == 4
+    assert payload['dependency_summary']['recovered_dispatch_runs'][0]['run_id'] == 'm80-llm-decision-matrix-v2-20260530041446986466'
+    assert payload['dependency_summary']['recovered_dispatch_runs'][0]['reason'] == 'failed_dispatch_recovered_and_audited'
+    assert any('m80-llm-decision-matrix-v2-20260530041446986466' in warning for warning in payload['warnings'])
+
+
+def test_recovered_failed_dispatch_run_blocks_when_dependency_item_not_done(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='upstream-recovered-active',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Upstream recovered active',
+        description='Not done yet.',
+        status='in_progress',
+    )['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='downstream-recovered-active',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Downstream recovered active',
+        description='Must wait for upstream status.',
+        status='ready',
+        dependencies=['upstream-recovered-active'],
+    )['ok'] is True
+    _write_codex_run_state(
+        tmp_path,
+        item_id='upstream-recovered-active',
+        run_id='run-recovered-active',
+        dispatch_state='failed',
+        recovery=_valid_recovery(),
+    )
+
+    payload = inspect_local_queue_item_readiness(config, item_id='downstream-recovered-active')
+
+    assert payload['readiness_status'] == 'blocked'
+    assert payload['can_start'] is False
+    assert payload['dependency_summary']['unresolved_dependencies'][0]['reason'] == 'dependency_incomplete'
+    assert payload['dependency_summary']['dispatch_run_blockers'][0]['reason'] == 'dispatch_state_failed_recovered_without_dependency_completion_evidence'
+
+
+def test_recovered_failed_dispatch_run_blocks_when_dependency_lacks_completion_evidence(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='upstream-recovered-no-evidence',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Upstream recovered no evidence',
+        description='Done without completion evidence.',
+        status='done',
+    )['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='downstream-recovered-no-evidence',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Downstream recovered no evidence',
+        description='Must wait for completion evidence.',
+        status='ready',
+        dependencies=['upstream-recovered-no-evidence'],
+    )['ok'] is True
+    _write_codex_run_state(
+        tmp_path,
+        item_id='upstream-recovered-no-evidence',
+        run_id='run-recovered-no-evidence',
+        dispatch_state='failed',
+        recovery=_valid_recovery(),
+    )
+
+    payload = inspect_local_queue_item_readiness(config, item_id='downstream-recovered-no-evidence')
+
+    assert payload['readiness_status'] == 'blocked'
+    assert payload['can_start'] is False
+    assert payload['dependency_summary']['unresolved_dependencies'][0]['reason'] == 'dispatch_run_state_unreviewed_or_incomplete'
+    assert payload['dependency_summary']['dispatch_run_blockers'][0]['reason'] == 'dispatch_state_failed_recovered_without_dependency_completion_evidence'
+
+
+def test_recovered_failed_dispatch_run_blocks_when_recovery_metadata_is_incomplete(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='upstream-recovered-malformed',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Upstream recovered malformed',
+        description='Malformed recovery remains blocking.',
+        status='in_progress',
+    )['ok'] is True
+    assert complete_local_queue_item(
+        config,
+        item_id='upstream-recovered-malformed',
+        commit_hash='abc123def',
+        validation_summary='Targeted tests passed locally.',
+        evidence_note='Operator reviewed completion evidence.',
+        tests_run=['python -m pytest tests/test_local_project_queue.py'],
+    )['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='downstream-recovered-malformed',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Downstream recovered malformed',
+        description='Must wait for complete recovery metadata.',
+        status='ready',
+        dependencies=['upstream-recovered-malformed'],
+    )['ok'] is True
+    _write_codex_run_state(
+        tmp_path,
+        item_id='upstream-recovered-malformed',
+        run_id='run-recovered-malformed',
+        dispatch_state='failed',
+        recovery={'recovered_at': '2026-05-30T04:30:00Z', 'recovery_note': ''},
+    )
+
+    payload = inspect_local_queue_item_readiness(config, item_id='downstream-recovered-malformed')
 
     assert payload['readiness_status'] == 'blocked'
     assert payload['can_start'] is False
