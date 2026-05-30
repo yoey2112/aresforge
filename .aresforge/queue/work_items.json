@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T20:10:00.000000+00:00",
+  "updated_at": "2026-05-30T20:15:57.884086+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -3524,7 +3524,7 @@
       "repo_id": "aresforge-main",
       "title": "M117 Agent Routing Decision Dashboard",
       "description": "Create local-only advisory route recommendations and a Hub dashboard for queue item executor/advisor lane selection without dispatch or execution.",
-      "status": "in_progress",
+      "status": "done",
       "priority": "high",
       "item_type": "dashboard",
       "tags": [
@@ -3546,12 +3546,12 @@
       "notes": "Acceptance criteria: add recommend-agent-route CLI/API contract; display Hub dashboard/card with recommended lane, reasons, blockers, required artifacts, approval requirements, and next safe action; no execute buttons; no Codex, Ollama, local LLM, agent, GitHub, network, patch, source, or queue execution.",
       "started_at": "2026-05-30T20:10:00.000000+00:00",
       "started_via": "local_operator",
-      "previous_status": "ready",
-      "completed_at": "",
-      "completed_by": "",
-      "completion_commit": "",
-      "validation_summary": "",
-      "evidence_note": "",
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-30T20:15:57.884086+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "585c99a",
+      "validation_summary": "M117 Agent Routing Decision Dashboard implemented and validated locally. Added recommend-agent-route advisory CLI contract, read-only Hub API wrapper, Hub Queue Agent Routing Decision Dashboard panel, stable agent_route_recommendation output, lane suitability and required-artifact metadata, no-overwrite output safeguards, tests, smoke checks, documentation updates, and queue lifecycle evidence. No Codex, Ollama, local LLM, agent runtime, GitHub, gh, network service, patch application, source mutation from the recommendation, queue mutation from the recommendation, dispatch, automatic completion, or next-item execution was performed.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 198 passed; python -m pytest tests/test_agent_route_recommendation.py -> 4 passed; python -m pytest tests/test_hub_ui_foundation.py -> 58 passed; python -m pytest tests/test_hub_local_queue_lifecycle_api.py -> 32 passed; git diff --check -> passed with CRLF warnings only; python -m aresforge recommend-agent-route --item-id m117-agent-routing-decision-dashboard --format json -> passed; python -m aresforge inspect-local-project-report -> passed with advisory warnings only; python -m aresforge inspect-local-queue-agent-summary -> passed.",
       "tests_run": [],
       "changed_files": [],
       "artifact_paths": [],
@@ -3575,7 +3575,7 @@
       "closeout_summary": "",
       "closeout_history": [],
       "created_at": "2026-05-30T20:10:00.000000+00:00",
-      "updated_at": "2026-05-30T20:10:00.000000+00:00"
+      "updated_at": "2026-05-30T20:15:57.884086+00:00"
     }
   ]
 }

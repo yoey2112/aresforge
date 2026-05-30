@@ -27,9 +27,11 @@ Constraints preserved:
 
 ## M117 Agent Routing Decision Dashboard
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m117-agent-routing-decision-dashboard`.
+
+Implementation commit: `585c99a`.
 
 Purpose:
 
