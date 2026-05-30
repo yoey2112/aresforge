@@ -143,6 +143,7 @@ def test_cli_has_expected_commands() -> None:
         "plan-agent-orchestration",
         "init-project-state",
         "add-local-queue-item",
+        "inspect-queue-consistency",
         "inspect-local-queue-item-readiness",
         "start-local-queue-item",
         "update-project-state",
@@ -4708,6 +4709,25 @@ def test_inspect_local_queue_item_readiness_dispatch_json(
     parsed = json.loads(capsys.readouterr().out)
     assert exit_code == 0
     assert parsed == payload
+
+
+def test_inspect_queue_consistency_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "wrote_output_file": False,
+        "stdout": json.dumps({"item_count": 1, "blocked_items": []}),
+    }
+    monkeypatch.setattr(
+        cli,
+        "inspect_queue_consistency",
+        lambda _config, queue_path=None, project_id=None, repo_id=None, output_format="json": payload,
+    )
+    exit_code = cli.main(["inspect-queue-consistency", "--project-id", "p1", "--format", "json"])
+    parsed = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert parsed == {"item_count": 1, "blocked_items": []}
 
 
 def test_start_local_queue_item_dispatch_json(

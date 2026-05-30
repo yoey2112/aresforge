@@ -28,6 +28,7 @@ from aresforge.operator.local_project_queue import (
     generate_local_queue_item_codex_prompt,
     generate_local_queue_prompt_pack,
     init_project_queue,
+    inspect_queue_consistency,
     inspect_local_queue_item_readiness,
     inspect_project_queue,
     inspect_queue_item,
@@ -2328,8 +2329,110 @@ def test_downstream_becomes_startable_after_upstream_done_review_validation_and_
 
     assert payload['readiness_status'] == 'ready'
     assert payload['can_start'] is True
-    assert payload['dependency_summary']['resolved_dependencies'] == ['upstream-ready']
-    assert payload['dependency_summary']['dispatch_run_blockers'] == []
+
+
+def test_queue_item_with_depends_on_alias_unmet_dependency_cannot_start(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='alias-upstream',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Alias upstream',
+        description='Still pending.',
+        status='ready',
+    )['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='alias-downstream',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Alias downstream',
+        description='Must wait for depends_on.',
+        status='ready',
+        depends_on=['alias-upstream'],
+    )['ok'] is True
+
+    payload = start_local_queue_item(config, item_id='alias-downstream')
+
+    assert payload['ok'] is False
+    assert payload['status'] == 'ready'
+    assert any('Dependency must be done before start' in warning for warning in payload['warnings'])
+    assert payload['readiness']['dependency_summary']['unresolved_dependencies'][0]['item_id'] == 'alias-upstream'
+
+
+def test_queue_item_with_satisfied_depends_on_alias_can_start(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='alias-done-upstream',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Alias done upstream',
+        description='Completed with evidence.',
+        status='in_progress',
+    )['ok'] is True
+    assert complete_local_queue_item(
+        config,
+        item_id='alias-done-upstream',
+        commit_hash='abc123def',
+        validation_summary='Validated upstream.',
+        evidence_note='Operator reviewed upstream evidence.',
+    )['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='alias-ready-downstream',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Alias ready downstream',
+        description='Can start after alias dependency.',
+        status='ready',
+        depends_on=['alias-done-upstream'],
+    )['ok'] is True
+
+    payload = start_local_queue_item(config, item_id='alias-ready-downstream')
+
+    assert payload['ok'] is True
+    assert payload['status'] == 'in_progress'
+
+
+def test_queue_item_with_unmet_dependency_cannot_complete(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='complete-upstream-pending',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Complete upstream pending',
+        description='Not done.',
+        status='ready',
+    )['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='complete-downstream-locked',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Complete downstream locked',
+        description='In progress but dependency is not done.',
+        status='in_progress',
+        dependencies=['complete-upstream-pending'],
+    )['ok'] is True
+
+    payload = complete_local_queue_item(
+        config,
+        item_id='complete-downstream-locked',
+        commit_hash='abc123def',
+        validation_summary='Validation was attempted.',
+        evidence_note='Review evidence exists.',
+    )
+
+    assert payload['ok'] is False
+    assert payload['status'] == 'in_progress'
+    assert payload['dependency_summary']['unresolved_dependencies'][0]['item_id'] == 'complete-upstream-pending'
+    assert any('Dependency must be done before start' in warning for warning in payload['warnings'])
 
 
 def test_inspect_local_queue_item_readiness_is_read_only(tmp_path: Path) -> None:
@@ -2877,6 +2980,121 @@ def test_complete_local_queue_item_persists_completion_metadata(tmp_path: Path) 
     assert persisted['changed_files'] == ['src/aresforge/cli.py']
     assert persisted['artifact_paths'] == ['artifacts/evidence/complete.json']
     assert persisted['completed_at']
+
+
+def test_complete_local_queue_item_blocks_missing_explicit_evidence_requirement(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='requires-tests-item',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Requires tests item',
+        description='Completion requires tests_run evidence.',
+        status='in_progress',
+        evidence_required=['tests_run'],
+    )['ok'] is True
+
+    payload = complete_local_queue_item(
+        config,
+        item_id='requires-tests-item',
+        commit_hash='abc123def',
+        validation_summary='Validation summary exists.',
+        evidence_note='Operator reviewed.',
+    )
+
+    assert payload['ok'] is False
+    assert payload['status'] == 'in_progress'
+    assert payload['missing_required_evidence'] == ['tests_run']
+    assert any('Required completion evidence is missing: tests_run' in warning for warning in payload['warnings'])
+
+
+def test_complete_local_queue_item_allows_satisfied_explicit_evidence_requirement(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='requires-tests-satisfied',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Requires tests satisfied',
+        description='Completion includes required tests_run evidence.',
+        status='in_progress',
+        completion_requires=['tests_run'],
+    )['ok'] is True
+
+    payload = complete_local_queue_item(
+        config,
+        item_id='requires-tests-satisfied',
+        commit_hash='abc123def',
+        validation_summary='Validation summary exists.',
+        evidence_note='Operator reviewed.',
+        tests_run=['python -m pytest tests/test_local_project_queue.py'],
+    )
+
+    assert payload['ok'] is True
+    assert payload['status'] == 'done'
+    assert payload['missing_required_evidence'] == []
+
+
+def test_inspect_queue_consistency_exposes_dependency_and_completion_locks(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='consistency-upstream',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Consistency upstream',
+        description='Pending dependency.',
+        status='ready',
+    )['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='consistency-downstream',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Consistency downstream',
+        description='Blocked by dependency and evidence requirement.',
+        status='in_progress',
+        depends_on=['consistency-upstream'],
+        evidence_required=['tests_run'],
+    )['ok'] is True
+
+    result = inspect_queue_consistency(config, project_id='project-one')
+    payload = json.loads(result['stdout'])
+    downstream = next(item for item in payload['items'] if item['item_id'] == 'consistency-downstream')
+
+    assert result['ok'] is True
+    assert payload['dependency_lock_summary']['blocked_item_count'] == 1
+    assert payload['completion_lock_summary']['blocked_item_count'] == 1
+    assert downstream['dependency_lock']['blocked'] is True
+    assert downstream['completion_lock']['missing_required_evidence'] == ['tests_run']
+    assert downstream['lock_blocked_reasons']
+
+
+def test_inspect_queue_consistency_preserves_historical_done_items(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='historical-done-item',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Historical done item',
+        description='Older done item without explicit M102 evidence requirements.',
+        status='done',
+    )['ok'] is True
+
+    result = inspect_queue_consistency(config, project_id='project-one')
+    payload = json.loads(result['stdout'])
+    historical = next(item for item in payload['items'] if item['item_id'] == 'historical-done-item')
+
+    assert result['ok'] is True
+    assert historical['completion_lock']['blocked'] is False
+    assert historical['completion_lock']['status'] == 'historical_done_not_rechecked'
+    assert payload['blocked_items'] == []
 
 
 def test_capture_local_queue_completion_evidence_records_evidence_without_completing(tmp_path: Path) -> None:

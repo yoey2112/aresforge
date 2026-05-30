@@ -2,11 +2,40 @@
 
 ## Current Phase
 
-M101 adds the local-only Human Approval Gate UI/Data Contract on top of the completed M97 dispatch plan, M98 Codex prompt artifact generator, M99 local LLM advisory dry-run validator, and M100 documentation-agent dry-run review workflow.
+M102 hardens local queue dependency and completion locking on top of the completed M97-M101 dispatch planning, dry-run, artifact, and human approval gate contracts.
 
 ## Current Goal
 
-M101 records operator review requirements and approval status for dispatch artifacts and dry-run outputs. Approval records are local-only data and preserve `execution_allowed=false`: they never execute documentation agents, local LLMs, Ollama, Codex, GitHub or `gh`, external agents, patch application, network calls, or automatic queue advancement.
+M102 keeps local queue workflows sequential and auditable. Start and completion paths must honor dependencies, explicit evidence requirements, and local-only safety boundaries before any future dispatch workflow can move work forward.
+
+## M102 Queue Dependency and Completion Locking Hardening
+
+Status: In progress locally on `main`.
+
+Queue item: `m102-queue-dependency-and-completion-locking-hardening`.
+
+Implementation commit: pending.
+
+M102 adds or hardens:
+
+- queue dependency aliases through `dependencies` and `depends_on`
+- explicit completion lock fields through `completion_requires` and `evidence_required`
+- start blocking when dependencies or blocked-by items are unresolved
+- completion blocking when dependencies are unresolved
+- completion blocking when explicit evidence requirements are missing
+- read-only consistency inspection with `inspect-queue-consistency --project-id <project_id> [--format json|markdown]`
+
+Safety boundaries:
+
+- local queue file-backed inspection and lifecycle mutation only
+- no Codex, Ollama, local model, documentation-agent, GitHub API, `gh`, network, external agent, patch application, or automatic dispatch execution
+- historical completed queue items without explicit M102 evidence requirements remain valid and are not retroactively broken
+
+M102 relationship to future dispatch:
+
+- M101 approval records do not bypass queue locks.
+- Future dispatch or apply workflows must satisfy dependency, evidence, and approval gates before any separate execution milestone can be introduced.
+- M102 prepares the lock model that M103+ workflows can consume without weakening local operator control.
 
 ## M101 Human Approval Gate UI/Data Contract
 

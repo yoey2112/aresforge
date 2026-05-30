@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T16:24:39.129092+00:00",
+  "updated_at": "2026-05-30T16:32:51.275809+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -2261,6 +2261,70 @@
       "closeout_history": [],
       "created_at": "2026-05-30T16:22:34.887682+00:00",
       "updated_at": "2026-05-30T16:24:39.129092+00:00"
+    },
+    {
+      "item_id": "m102-queue-dependency-and-completion-locking-hardening",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M102 Queue Dependency and Completion Locking Hardening",
+      "description": "Harden local queue dependency and completion locking so operator workflows remain safe, sequential, and auditable without external execution.",
+      "status": "in_progress",
+      "priority": "high",
+      "item_type": "feature",
+      "tags": [
+        "milestone:m102",
+        "queue-locking",
+        "local-only"
+      ],
+      "dependencies": [
+        "m101-human-approval-gate-ui-data-contract"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [
+        "tests_run",
+        "changed_files"
+      ],
+      "evidence_required": [
+        "commit_hash",
+        "validation_summary",
+        "evidence_note"
+      ],
+      "assigned_agent": "",
+      "source": "local_operator",
+      "notes": "Acceptance criteria: dependency fields are supported; start and completion are blocked by unmet dependencies; completion is blocked by missing explicit evidence; historical done items remain valid; consistency inspection exposes lock status; no external execution occurs.",
+      "started_at": "2026-05-30T16:32:51.275809+00:00",
+      "started_via": "local_operator",
+      "previous_status": "ready",
+      "completed_at": "",
+      "completed_by": "",
+      "completion_commit": "",
+      "validation_summary": "",
+      "evidence_note": "",
+      "tests_run": [],
+      "changed_files": [],
+      "artifact_paths": [],
+      "completion_evidence": {},
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-30T16:32:45.950249+00:00",
+      "updated_at": "2026-05-30T16:32:51.275809+00:00"
     }
   ]
 }

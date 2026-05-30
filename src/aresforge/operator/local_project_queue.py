@@ -151,6 +151,16 @@ _PROJECT_PROGRESS_ROLLUP_BOUNDARY_CONFIRMATIONS: tuple[str, ...] = (
     'No prompt generation or execution.',
     'No queue mutation performed.',
 )
+_QUEUE_CONSISTENCY_BOUNDARY_CONFIRMATIONS: tuple[str, ...] = (
+    'Local-only queue consistency inspection.',
+    'Read-only dependency and completion lock inspection.',
+    'No queue mutation performed.',
+    'No GitHub API calls.',
+    'No gh calls.',
+    'No network service calls.',
+    'No agent execution.',
+    'No model invocation.',
+)
 _ROUTED_QUEUE_VIEWS_BOUNDARY_CONFIRMATIONS: tuple[str, ...] = (
     'Local-only routed queue views.',
     'Read-only filtered view over the canonical local queue.',
@@ -359,7 +369,10 @@ def add_queue_item(
     item_type: str | None = None,
     tags: list[str] | None = None,
     dependencies: list[str] | None = None,
+    depends_on: list[str] | None = None,
     blocked_by: list[str] | None = None,
+    completion_requires: list[str] | None = None,
+    evidence_required: list[str] | None = None,
     assigned_agent: str | None = None,
     source: str | None = None,
     notes: str | None = None,
@@ -434,7 +447,10 @@ def add_queue_item(
             'item_type': 'task',
             'tags': [],
             'dependencies': [],
+            'depends_on': [],
             'blocked_by': [],
+            'completion_requires': [],
+            'evidence_required': [],
             'assigned_agent': '',
             'source': '',
             'notes': '',
@@ -490,10 +506,22 @@ def add_queue_item(
         existing['dependencies'] = _normalize_list(dependencies)
     elif created:
         existing['dependencies'] = []
+    if depends_on is not None and len(depends_on) > 0:
+        existing['depends_on'] = _normalize_list(depends_on)
+    elif created:
+        existing['depends_on'] = []
     if blocked_by is not None and len(blocked_by) > 0:
         existing['blocked_by'] = _normalize_list(blocked_by)
     elif created:
         existing['blocked_by'] = []
+    if completion_requires is not None and len(completion_requires) > 0:
+        existing['completion_requires'] = _normalize_list(completion_requires)
+    elif created:
+        existing['completion_requires'] = []
+    if evidence_required is not None and len(evidence_required) > 0:
+        existing['evidence_required'] = _normalize_list(evidence_required)
+    elif created:
+        existing['evidence_required'] = []
     if assigned_agent is not None:
         existing['assigned_agent'] = assigned_agent.strip()
     elif created:
@@ -546,7 +574,10 @@ def update_queue_item(
     description: str | None = None,
     tags: list[str] | None = None,
     dependencies: list[str] | None = None,
+    depends_on: list[str] | None = None,
     blocked_by: list[str] | None = None,
+    completion_requires: list[str] | None = None,
+    evidence_required: list[str] | None = None,
     assigned_agent: str | None = None,
     source: str | None = None,
     notes: str | None = None,
@@ -637,9 +668,18 @@ def update_queue_item(
     if dependencies is not None:
         existing['dependencies'] = _normalize_list(dependencies)
         updated_fields.append('dependencies')
+    if depends_on is not None:
+        existing['depends_on'] = _normalize_list(depends_on)
+        updated_fields.append('depends_on')
     if blocked_by is not None:
         existing['blocked_by'] = _normalize_list(blocked_by)
         updated_fields.append('blocked_by')
+    if completion_requires is not None:
+        existing['completion_requires'] = _normalize_list(completion_requires)
+        updated_fields.append('completion_requires')
+    if evidence_required is not None:
+        existing['evidence_required'] = _normalize_list(evidence_required)
+        updated_fields.append('evidence_required')
     if assigned_agent is not None:
         existing['assigned_agent'] = assigned_agent.strip()
         updated_fields.append('assigned_agent')
@@ -1581,6 +1621,116 @@ def inspect_project_queue(
     )
 
 
+def inspect_queue_consistency(
+    config: AppConfig,
+    *,
+    queue_path: str | Path | None = None,
+    project_id: str | None = None,
+    repo_id: str | None = None,
+    output_format: str = 'json',
+) -> dict[str, Any]:
+    resolved_queue_path = resolve_project_queue_path(config.repo_root, queue_path)
+    loaded = _load_queue_required(resolved_queue_path)
+    if not loaded.get('ok', False):
+        return loaded
+    queue = loaded['queue']
+
+    raw_items = queue.get('work_items', [])
+    items = [_item_view(item) for item in raw_items if isinstance(item, dict)]
+    filtered: list[dict[str, Any]] = []
+    for item in items:
+        if project_id is not None and item.get('project_id') != project_id.strip():
+            continue
+        if repo_id is not None and item.get('repo_id') != repo_id.strip():
+            continue
+        filtered.append(item)
+
+    inspected_items: list[dict[str, Any]] = []
+    blocked_items: list[dict[str, Any]] = []
+    dependency_block_count = 0
+    completion_block_count = 0
+    for item in filtered:
+        status = str(item.get('status', '')).strip()
+        dependency_summary = _dependency_readiness_summary(item, items, repo_root=config.repo_root)
+        completion_lock = _completion_lock_summary(item)
+        dependency_blocked = bool(dependency_summary['blockers']) and status != 'done'
+        lock_blocked_reasons = sorted(
+            {
+                *[
+                    str(reason).strip()
+                    for reason in dependency_summary['blockers']
+                    if str(reason).strip() and status != 'done'
+                ],
+                *[str(reason).strip() for reason in completion_lock['blocked_reasons'] if str(reason).strip()],
+            }
+        )
+        completion_blocked = bool(completion_lock['blocked'])
+        if dependency_blocked:
+            dependency_block_count += 1
+        if completion_blocked:
+            completion_block_count += 1
+        inspected = {
+            'item_id': item.get('item_id', ''),
+            'title': item.get('title', ''),
+            'project_id': item.get('project_id', ''),
+            'repo_id': item.get('repo_id', ''),
+            'status': item.get('status', ''),
+            'dependencies': _queue_dependency_ids(item),
+            'blocked_by': item.get('blocked_by', []),
+            'completion_requires': item.get('completion_requires', []),
+            'evidence_required': item.get('evidence_required', []),
+            'dependency_lock': {
+                'blocked': dependency_blocked,
+                'blocked_reasons': sorted(set(dependency_summary['blockers'])) if status != 'done' else [],
+                'historical_findings': sorted(set(dependency_summary['blockers'])) if status == 'done' else [],
+                **dependency_summary['payload'],
+            },
+            'completion_lock': completion_lock,
+            'lock_blocked_reasons': lock_blocked_reasons,
+        }
+        inspected_items.append(inspected)
+        if lock_blocked_reasons:
+            blocked_items.append(
+                {
+                    'item_id': item.get('item_id', ''),
+                    'status': item.get('status', ''),
+                    'blocked_reasons': lock_blocked_reasons,
+                }
+            )
+
+    payload = {
+        'queue_path': str(resolved_queue_path),
+        'schema_version': queue.get('schema_version'),
+        'updated_at': queue.get('updated_at'),
+        'project_id': project_id,
+        'repo_id': repo_id,
+        'item_count': len(filtered),
+        'ok_to_start_or_complete_without_review': False,
+        'dependency_lock_summary': {
+            'blocked_item_count': dependency_block_count,
+            'locked': dependency_block_count > 0,
+        },
+        'completion_lock_summary': {
+            'blocked_item_count': completion_block_count,
+            'locked': completion_block_count > 0,
+        },
+        'blocked_items': blocked_items,
+        'items': inspected_items,
+        'next_safe_action': (
+            'Resolve dependency and evidence blockers before starting or completing locked queue items.'
+            if blocked_items
+            else 'Queue locks are consistent for the selected scope; continue explicit local lifecycle commands.'
+        ),
+        'boundary_confirmations': list(_QUEUE_CONSISTENCY_BOUNDARY_CONFIRMATIONS),
+    }
+    return _stdout_result(
+        command='inspect-queue-consistency',
+        payload=payload,
+        output_format=output_format,
+        markdown=_render_queue_consistency_markdown(payload),
+    )
+
+
 def inspect_queue_item(
     config: AppConfig,
     *,
@@ -1831,6 +1981,22 @@ def complete_local_queue_item(
         warnings.append('Queue item is cancelled.')
     elif previous_status not in _COMPLETABLE_QUEUE_STATUSES:
         warnings.append('Queue item must be in_progress before completion evidence can be recorded.')
+    item_view = _item_view(raw_item)
+    dependency_summary = _dependency_readiness_summary(item_view, [_item_view(item) for item in items if isinstance(item, dict)], repo_root=config.repo_root)
+    warnings.extend(dependency_summary['blockers'])
+    missing_required_evidence = _missing_required_completion_evidence(
+        item_view,
+        completion_commit=normalized_commit_hash,
+        validation_summary=normalized_validation_summary,
+        evidence_note=str(evidence_note or '').strip(),
+        tests_run=tests_run or [],
+        changed_files=changed_files or [],
+        artifact_paths=artifact_paths or [],
+    )
+    warnings.extend(
+        f'Required completion evidence is missing: {field_name}'
+        for field_name in missing_required_evidence
+    )
 
     if warnings:
         return {
@@ -1844,6 +2010,8 @@ def complete_local_queue_item(
             'validation_summary': normalized_validation_summary,
             'next_safe_action': 'Start the queue item, gather validation evidence, and retry completion.',
             'warnings': sorted(set(warnings)),
+            'dependency_summary': dependency_summary['payload'],
+            'missing_required_evidence': missing_required_evidence,
             'boundary_confirmations': list(_QUEUE_ITEM_COMPLETE_BOUNDARY_CONFIRMATIONS),
         }
 
@@ -1875,6 +2043,8 @@ def complete_local_queue_item(
         'validation_summary': str(completed_item.get('validation_summary', '')).strip(),
         'next_safe_action': 'Inspect queue summary and reconcile source-of-truth docs as needed.',
         'warnings': [],
+        'dependency_summary': dependency_summary['payload'],
+        'missing_required_evidence': [],
         'boundary_confirmations': list(_QUEUE_ITEM_COMPLETE_BOUNDARY_CONFIRMATIONS),
         'item': completed_item,
     }
@@ -3324,6 +3494,90 @@ def _completion_evidence_has_required_closeout_fields(evidence: dict[str, Any]) 
     )
 
 
+def _explicit_completion_requirements(item: dict[str, Any]) -> list[str]:
+    requirements: list[str] = []
+    for field_name in ('completion_requires', 'evidence_required'):
+        values = item.get(field_name, [])
+        if isinstance(values, list):
+            requirements.extend(str(value).strip() for value in values)
+    return _normalize_list(requirements)
+
+
+def _missing_required_completion_evidence(
+    item: dict[str, Any],
+    *,
+    completion_commit: str = '',
+    validation_summary: str = '',
+    evidence_note: str = '',
+    tests_run: list[str] | None = None,
+    changed_files: list[str] | None = None,
+    artifact_paths: list[str] | None = None,
+) -> list[str]:
+    requirements = _explicit_completion_requirements(item)
+    if not requirements:
+        return []
+
+    evidence = item.get('completion_evidence', {})
+    if not isinstance(evidence, dict):
+        evidence = {}
+    values = {
+        'commit_hash': completion_commit or str(evidence.get('commit_hash', '')).strip() or str(item.get('completion_commit', '')).strip(),
+        'completion_commit': completion_commit or str(item.get('completion_commit', '')).strip(),
+        'validation_summary': validation_summary or str(item.get('validation_summary', '')).strip(),
+        'evidence_note': evidence_note or str(item.get('evidence_note', '')).strip(),
+        'review_evidence': evidence_note or _list_has_content(evidence.get('review_evidence', [])),
+        'tests_run': _list_has_content(tests_run or []) or _list_has_content(item.get('tests_run', [])),
+        'changed_files': _list_has_content(changed_files or []) or _list_has_content(item.get('changed_files', [])),
+        'files_changed': _list_has_content(changed_files or []) or _list_has_content(evidence.get('files_changed', [])),
+        'artifact_paths': _list_has_content(artifact_paths or []) or _list_has_content(item.get('artifact_paths', [])),
+        'completion_evidence': _completion_evidence_has_meaningful_content(evidence),
+        'evidence_summary': str(evidence.get('evidence_summary', '')).strip(),
+        'validation_results': _list_has_content(evidence.get('validation_results', [])),
+        'diff_check_result': str(evidence.get('diff_check_result', '')).strip(),
+        'smoke_checks': _list_has_content(evidence.get('smoke_checks', [])),
+    }
+    missing: list[str] = []
+    for requirement in requirements:
+        normalized = requirement.strip()
+        if not normalized:
+            continue
+        if not bool(values.get(normalized)):
+            missing.append(normalized)
+    return sorted(set(missing))
+
+
+def _completion_lock_summary(item: dict[str, Any]) -> dict[str, Any]:
+    status = str(item.get('status', '')).strip()
+    requirements = _explicit_completion_requirements(item)
+    missing = _missing_required_completion_evidence(item)
+    blocked_reasons = [
+        f'Required completion evidence is missing: {field_name}'
+        for field_name in missing
+    ]
+    if status == 'done' and not requirements:
+        lock_status = 'historical_done_not_rechecked'
+        blocked_reasons = []
+    elif status == 'done':
+        lock_status = 'done_with_explicit_requirements' if not missing else 'done_missing_explicit_evidence'
+    elif requirements and missing:
+        lock_status = 'missing_required_evidence'
+    elif requirements:
+        lock_status = 'required_evidence_satisfied'
+    else:
+        lock_status = 'no_explicit_evidence_requirements'
+    return {
+        'blocked': bool(blocked_reasons and status != 'done'),
+        'status': lock_status,
+        'completion_requires': requirements,
+        'missing_required_evidence': missing,
+        'blocked_reasons': sorted(set(blocked_reasons if status != 'done' else [])),
+    }
+
+
+def _list_has_content(values: Any) -> bool:
+    return isinstance(values, list) and any(str(value).strip() for value in values)
+
+
 def _load_registry_projects_for_rollup(path: Path) -> tuple[list[dict[str, Any]], list[str]]:
     if not path.exists():
         return [], ['Managed project registry not found. Project name and active-project validation may be unavailable.']
@@ -3436,7 +3690,7 @@ def _empty_dependency_summary() -> dict[str, Any]:
 
 def _dependency_readiness_summary(item: dict[str, Any], items: list[dict[str, Any]], *, repo_root: Path) -> dict[str, Any]:
     by_id = {str(candidate.get('item_id', '')).strip(): candidate for candidate in items if str(candidate.get('item_id', '')).strip()}
-    dependencies = _normalize_list(item.get('dependencies', []) if isinstance(item.get('dependencies'), list) else [])
+    dependencies = _queue_dependency_ids(item)
     blocked_by = _normalize_list(item.get('blocked_by', []) if isinstance(item.get('blocked_by'), list) else [])
     resolved_dependencies: list[str] = []
     unresolved_dependencies: list[dict[str, str]] = []
@@ -3531,6 +3785,15 @@ def _dependency_readiness_summary(item: dict[str, Any], items: list[dict[str, An
         'blockers': blockers,
         'warnings': warnings,
     }
+
+
+def _queue_dependency_ids(item: dict[str, Any]) -> list[str]:
+    dependencies: list[str] = []
+    for field_name in ('dependencies', 'depends_on'):
+        values = item.get(field_name, [])
+        if isinstance(values, list):
+            dependencies.extend(str(value).strip() for value in values)
+    return _normalize_list(dependencies)
 
 
 def _dependency_completion_resolution(
@@ -4218,7 +4481,14 @@ def _item_view(item: dict[str, Any]) -> dict[str, Any]:
         'dependencies': _normalize_list(
             item.get('dependencies', []) if isinstance(item.get('dependencies'), list) else []
         ),
+        'depends_on': _normalize_list(item.get('depends_on', []) if isinstance(item.get('depends_on'), list) else []),
         'blocked_by': _normalize_list(item.get('blocked_by', []) if isinstance(item.get('blocked_by'), list) else []),
+        'completion_requires': _normalize_list(
+            item.get('completion_requires', []) if isinstance(item.get('completion_requires'), list) else []
+        ),
+        'evidence_required': _normalize_list(
+            item.get('evidence_required', []) if isinstance(item.get('evidence_required'), list) else []
+        ),
         'assigned_agent': str(item.get('assigned_agent', '')).strip(),
         'source': str(item.get('source', '')).strip(),
         'notes': str(item.get('notes', '')).strip(),
@@ -4840,7 +5110,7 @@ def _dependency_warnings(item: dict[str, Any], queue_items: list[dict[str, Any]]
         if isinstance(candidate, dict) and str(candidate.get('item_id', '')).strip()
     }
     warnings: list[str] = []
-    for field_name in ('dependencies', 'blocked_by'):
+    for field_name in ('dependencies', 'depends_on', 'blocked_by'):
         values = item.get(field_name, [])
         if not isinstance(values, list):
             continue
@@ -5006,6 +5276,34 @@ def _render_queue_markdown(payload: dict[str, Any]) -> str:
         lines.append(
             f"- {item.get('item_id')} | {item.get('title')} | status={item.get('status')} | priority={item.get('priority')} | type={item.get('item_type')}"
         )
+    return '\n'.join(lines)
+
+
+def _render_queue_consistency_markdown(payload: dict[str, Any]) -> str:
+    lines = [
+        '# Local Queue Consistency',
+        '',
+        f"- queue_path: {payload.get('queue_path')}",
+        f"- project_id: {payload.get('project_id') or ''}",
+        f"- repo_id: {payload.get('repo_id') or ''}",
+        f"- item_count: {payload.get('item_count')}",
+        f"- dependency_blocked_item_count: {payload.get('dependency_lock_summary', {}).get('blocked_item_count') if isinstance(payload.get('dependency_lock_summary'), dict) else 0}",
+        f"- completion_blocked_item_count: {payload.get('completion_lock_summary', {}).get('blocked_item_count') if isinstance(payload.get('completion_lock_summary'), dict) else 0}",
+        '',
+        '## Blocked Items',
+    ]
+    blocked_items = payload.get('blocked_items', [])
+    if not isinstance(blocked_items, list) or not blocked_items:
+        lines.append('- None')
+    else:
+        for item in blocked_items:
+            if not isinstance(item, dict):
+                continue
+            reasons = item.get('blocked_reasons', [])
+            lines.append(
+                f"- {item.get('item_id')} | status={item.get('status')} | reasons={'; '.join(reasons) if isinstance(reasons, list) else ''}"
+            )
+    lines.extend(['', f"- next_safe_action: {payload.get('next_safe_action')}"])
     return '\n'.join(lines)
 
 

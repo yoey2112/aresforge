@@ -1,5 +1,37 @@
 # Runnable Skeleton
 
+## M102 Queue Dependency and Completion Locking Hardening
+
+M102 adds a local-only queue consistency command:
+
+- `python -m aresforge inspect-queue-consistency --project-id <project_id>`
+- `python -m aresforge inspect-queue-consistency --project-id <project_id> --format json`
+- optional `--queue-path` and `--repo-id` filters
+
+Runnable behavior:
+
+- reads the canonical local queue
+- reports dependency locks from `dependencies`, `depends_on`, and `blocked_by`
+- reports completion locks from `completion_requires` and `evidence_required`
+- blocks start readiness when dependencies or blockers are unresolved
+- blocks completion when dependencies are unresolved
+- blocks completion when explicit required evidence is missing
+- returns JSON-serializable lock reasons and next safe action
+- preserves historical completed items without explicit M102 evidence requirements
+
+Still absent by design:
+
+- automated dispatch after lock inspection
+- lock bypass from approval status
+- Codex execution
+- Ollama or local LLM invocation
+- documentation-agent execution or apply mode
+- GitHub API, `gh`, issues, PRs, workflows, network calls, or external services
+- patch application
+- automatic next-item execution
+
+M102 gives future dispatch milestones a shared local lock contract to inspect before any separate execution or handoff path can be introduced.
+
 ## M101 Human Approval Gate UI/Data Contract
 
 M101 adds local-only approval gate commands:

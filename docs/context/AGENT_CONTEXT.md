@@ -1,5 +1,39 @@
 # AresForge Agent Context
 
+## M102 Queue Dependency and Completion Locking Context
+
+Status: In progress locally on `main`.
+
+Queue item: `m102-queue-dependency-and-completion-locking-hardening`.
+
+Implementation commit: pending.
+
+M102 hardens local queue sequencing and evidence locks:
+
+- queue items may use `dependencies` or `depends_on` for prerequisite items
+- queue items may use `blocked_by` for explicit local blockers
+- queue items may use `completion_requires` and `evidence_required` for extra completion evidence requirements
+- starts are blocked when dependencies or blockers are unresolved
+- completions are blocked when dependencies are unresolved or explicit evidence is missing
+- `inspect-queue-consistency` exposes dependency and completion lock status without mutating the queue
+
+Primary command:
+
+- `python -m aresforge inspect-queue-consistency --project-id aresforge [--format json|markdown]`
+
+M102 boundaries:
+
+- local-only queue inspection and lifecycle mutation
+- no Codex execution
+- no Ollama or local model invocation
+- no documentation-agent execution or documentation mutation
+- no GitHub API, `gh`, issues, PRs, workflows, or network calls
+- no external agents
+- no patch application
+- no automatic dispatch, completion bypass, or next-item execution
+
+M102 preserves historical completed queue items that predate explicit evidence requirements. M101 approval state remains advisory/manual handoff state only and cannot bypass dependency or completion locks.
+
 ## M101 Human Approval Gate UI/Data Contract Context
 
 Status: Completed locally on `main` after validation.

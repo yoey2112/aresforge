@@ -1,5 +1,45 @@
 # Local Operator Usage
 
+## M102 Queue Dependency and Completion Locking
+
+M102 hardens local queue sequencing and evidence checks. It does not execute Codex, local LLMs, Ollama, documentation agents, GitHub, `gh`, external agents, patches, workflows, or automatic dispatch.
+
+Inspect queue locks:
+
+    python -m aresforge inspect-queue-consistency --project-id aresforge
+
+Inspect as JSON:
+
+    python -m aresforge inspect-queue-consistency --project-id aresforge --format json
+
+Dependency fields:
+
+- `dependencies`
+- `depends_on`
+- `blocked_by`
+
+Completion evidence fields:
+
+- `completion_requires`
+- `evidence_required`
+
+Blocked behavior:
+
+- start is blocked when dependency or blocked-by items are missing, not done, or missing required completion review/evidence
+- completion is blocked when dependencies are unresolved
+- completion is blocked when explicit evidence requirements such as `tests_run`, `changed_files`, `commit_hash`, `validation_summary`, or `evidence_note` are missing
+- consistency inspection reports dependency locks, completion locks, missing evidence, and next safe action without mutating the queue
+
+Operator workflow:
+
+- inspect consistency before starting or completing sensitive queue items
+- resolve upstream items and capture review/validation evidence first
+- start only when readiness is `ready`
+- complete only with commit, validation summary, review evidence, and any explicit evidence requirements
+- treat M101 approval records as manual review state only; approval does not override M102 locks
+
+Historical completed queue items remain valid unless explicit future requirements are added to those items.
+
 ## M101 Human Approval Gate UI/Data Contract
 
 M101 records local operator approval state for dispatch artifacts and dry-run outputs. It is a data contract only: approval never executes Codex, local LLMs, Ollama, documentation agents, GitHub, `gh`, external agents, patches, workflows, or queue advancement.

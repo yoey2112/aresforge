@@ -1,5 +1,40 @@
 # AresForge Roadmap
 
+## M102 Queue Dependency and Completion Locking Hardening
+
+Status: In progress locally on `main`.
+
+Queue item: `m102-queue-dependency-and-completion-locking-hardening`.
+
+Implementation commit: pending.
+
+Purpose:
+
+- harden local queue dependency sequencing for starts and completions
+- add explicit completion evidence requirements with `completion_requires` and `evidence_required`
+- preserve existing completed historical queue items
+- expose queue consistency and lock status through a read-only local inspection command
+- ensure M101 approval gates cannot bypass queue locks
+
+Runnable operator surface:
+
+- `python -m aresforge inspect-queue-consistency --project-id aresforge`
+- `python -m aresforge inspect-queue-consistency --project-id aresforge --format json`
+
+Constraints preserved:
+
+- start is blocked by unresolved dependencies or blockers
+- completion is blocked by unresolved dependencies
+- completion is blocked by missing explicit evidence requirements
+- blocking reasons are JSON-serializable and visible in readiness/completion/consistency outputs
+- historical completed items remain valid unless future work explicitly adds new requirements to them
+- no Codex, Ollama, local LLM, documentation-agent, external-agent, GitHub API, `gh`, network, workflow, issue creation, patch application, queue bypass, or automatic next-item execution occurs
+
+Future relationship:
+
+- future dispatch workflows must satisfy M102 dependency and evidence locks before they can request or consume any separate execution approval
+- M103+ work can build on the consistency view rather than re-deriving lock state ad hoc
+
 ## M101 Human Approval Gate UI/Data Contract
 
 Status: Completed locally on `main` after validation.

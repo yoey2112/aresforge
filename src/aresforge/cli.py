@@ -199,6 +199,7 @@ from aresforge.operator.local_project_queue import (
     complete_local_queue_item,
     generate_local_queue_item_codex_prompt,
     init_project_queue,
+    inspect_queue_consistency,
     inspect_local_queue_item_readiness,
     inspect_project_queue,
     inspect_queue_item,
@@ -1486,6 +1487,18 @@ def build_parser() -> argparse.ArgumentParser:
     inspect_project_queue_parser.add_argument("--type", choices=list(QUEUE_ITEM_TYPES))
     inspect_project_queue_parser.add_argument("--assigned-agent")
     inspect_project_queue_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="json",
+    )
+    inspect_queue_consistency_parser = subparsers.add_parser(
+        "inspect-queue-consistency",
+        help="Inspect local queue dependency and completion locks without mutating the queue.",
+    )
+    inspect_queue_consistency_parser.add_argument("--queue-path")
+    inspect_queue_consistency_parser.add_argument("--project-id")
+    inspect_queue_consistency_parser.add_argument("--repo-id")
+    inspect_queue_consistency_parser.add_argument(
         "--format",
         choices=["json", "markdown"],
         default="json",
@@ -3932,6 +3945,20 @@ def main(argv: list[str] | None = None) -> int:
             status=args.status,
             item_type=args.type,
             assigned_agent=args.assigned_agent,
+            output_format=args.format,
+        )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-queue-consistency":
+        payload = inspect_queue_consistency(
+            config,
+            queue_path=args.queue_path,
+            project_id=args.project_id,
+            repo_id=args.repo_id,
             output_format=args.format,
         )
         if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
