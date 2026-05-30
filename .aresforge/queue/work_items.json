@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T20:31:00.000000+00:00",
+  "updated_at": "2026-05-30T20:40:00.000000+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -3635,6 +3635,48 @@
       "closeout_history": [],
       "created_at": "2026-05-30T20:20:00.000000+00:00",
       "updated_at": "2026-05-30T20:31:00.000000+00:00"
+    },
+    {
+      "item_id": "m119-dispatch-artifact-registry-index-v2",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M119 Dispatch Artifact Registry Index v2",
+      "description": "Create a local-only versioned dispatch artifact registry index across M109-M117 artifact types without execution.",
+      "status": "in_progress",
+      "priority": "high",
+      "item_type": "dashboard",
+      "tags": [
+        "milestone:m119",
+        "artifact-registry",
+        "dispatch-review",
+        "local-only",
+        "operator-gated"
+      ],
+      "dependencies": [
+        "m118-post-automation-planning-reconciliation"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "acceptance_criteria": [
+        "inspect-artifact-registry emits registry_type=dispatch_artifact_registry_v2 with local_only=true and execution_allowed=false.",
+        "Registry indexes manual dispatch, Codex prompt dispatch, local LLM advisory, patch intake, dispatch evidence, completion recommendation, documentation proposal, and route recommendation artifacts.",
+        "Registry reports missing expected folders, stale artifacts, duplicate artifacts, blocked artifacts, and review-required artifacts.",
+        "Registry supports project_id, item_id, artifact_type, output, force, and JSON output behavior without execution or queue mutation.",
+        "Tests and docs cover M119 behavior and safety boundaries."
+      ],
+      "validation": [
+        "python -m pytest tests/test_cli.py",
+        "python -m pytest tests/test_dispatch_artifact_registry.py",
+        "python -m pytest tests/test_codex_prompt_dispatch_artifact.py",
+        "git diff --check",
+        "python -m aresforge inspect-artifact-registry --format json",
+        "python -m aresforge inspect-local-project-report",
+        "python -m aresforge inspect-local-queue-agent-summary"
+      ],
+      "notes": "M119 is advisory/read-only except optional local report output. It must not execute Codex, Ollama/local LLMs, agents, GitHub, network services, patches, validation commands, source mutation, queue mutation, automatic completion, autonomous execution, or next-item work.",
+      "created_at": "2026-05-30T20:40:00.000000+00:00",
+      "started_at": "2026-05-30T20:40:00.000000+00:00",
+      "updated_at": "2026-05-30T20:40:00.000000+00:00"
     }
   ]
 }

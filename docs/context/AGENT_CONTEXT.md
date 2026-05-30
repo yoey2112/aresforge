@@ -1,5 +1,22 @@
 # AresForge Agent Context
 
+## M119 Dispatch Artifact Registry Index v2 Context
+
+Status: Implemented locally on `main` pending completion evidence commit.
+
+Queue item: `m119-dispatch-artifact-registry-index-v2`.
+
+M119 adds `python -m aresforge inspect-artifact-registry --format json` for a versioned local artifact registry. The registry indexes local dispatch/review artifacts, applies optional project/item/type filters, and reports missing expected artifact folders, stale artifacts, duplicates, blocked artifacts, review-required artifacts, and the next safe action.
+
+Supported artifact families are manual Codex dispatch preparation, Codex prompt dispatch, local LLM advisory requests, patch proposal intake, dispatch result evidence, queue completion recommendations, documentation agent patch proposals, and agent route recommendations.
+
+M119 boundaries:
+
+- local filesystem and queue metadata inspection only
+- optional local output write only with no-overwrite safeguards
+- `local_only=true` and `execution_allowed=false`
+- no Codex, Ollama, local LLM, remote LLM, agents, GitHub, `gh`, network services, patch application, source mutation, queue mutation, automatic completion, autonomous execution, or next-item execution
+
 ## M128 Agent Orchestration Plan Builder Context
 
 Status: Completed locally on `main` after validation.

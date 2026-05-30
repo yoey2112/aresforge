@@ -247,6 +247,7 @@ from aresforge.operator.dispatch_approval_gate import (
     update_dispatch_approval_gate,
 )
 from aresforge.operator.dispatch_artifact_report import inspect_dispatch_artifacts
+from aresforge.operator.dispatch_artifact_registry import inspect_artifact_registry
 from aresforge.operator.safe_dispatch_handoff import generate_safe_dispatch_handoff
 from aresforge.operator.manual_codex_dispatch_runner import prepare_manual_codex_dispatch
 from aresforge.operator.agent_runtime_boundary import inspect_agent_runtime_boundary
@@ -1788,6 +1789,20 @@ def build_parser() -> argparse.ArgumentParser:
         "--format",
         choices=["json", "markdown"],
         default="markdown",
+    )
+    inspect_artifact_registry_parser = subparsers.add_parser(
+        "inspect-artifact-registry",
+        help="Inspect the local dispatch artifact registry v2 without execution.",
+    )
+    inspect_artifact_registry_parser.add_argument("--project-id", default="aresforge")
+    inspect_artifact_registry_parser.add_argument("--item-id")
+    inspect_artifact_registry_parser.add_argument("--artifact-type")
+    inspect_artifact_registry_parser.add_argument("--output")
+    inspect_artifact_registry_parser.add_argument("--force", action="store_true")
+    inspect_artifact_registry_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="json",
     )
     prepare_manual_codex_dispatch_parser = subparsers.add_parser(
         "prepare-manual-codex-dispatch",
@@ -4515,6 +4530,22 @@ def main(argv: list[str] | None = None) -> int:
             project_id=args.project_id,
             artifact_root=args.artifact_root,
             approval_path=args.approval_path,
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-artifact-registry":
+        payload = inspect_artifact_registry(
+            config,
+            project_id=args.project_id,
+            item_id=args.item_id,
+            artifact_type=args.artifact_type,
+            output=args.output,
+            force=args.force,
             output_format=args.format,
         )
         if "stdout" in payload:

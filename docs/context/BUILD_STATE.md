@@ -2,11 +2,35 @@
 
 ## Current Phase
 
-M118 reconciles the controlled automation planning contracts delivered in M110-M117. This is a docs/data-only milestone that aligns the queue, roadmap, architecture notes, and operator workflow without adding runtime behavior.
+M119 adds a local-only versioned dispatch artifact registry index for artifacts created by M109-M117 planning workflows. The registry improves discovery and consistency without executing Codex, local LLMs, agents, GitHub, network calls, or patches.
 
 ## Current Goal
 
-M118 records the current post-automation planning posture: local advisory artifacts, approval-gated patch intake, pasted Codex result evidence parsing, completion recommendations, Hub dispatch review, safe Ollama provider probing, documentation patch proposals, and agent route recommendations are available as local-only operator-gated planning surfaces.
+M119 exposes `inspect-artifact-registry` for stable `dispatch_artifact_registry_v2` output, including artifact counts, supported types, missing expected artifact folders, stale artifacts, duplicates, blocked artifacts, review-required artifacts, and next safe action while preserving local-only/operator-gated boundaries.
+
+## M119 Dispatch Artifact Registry Index v2
+
+Status: Implemented locally on `main` pending completion evidence commit.
+
+Queue item: `m119-dispatch-artifact-registry-index-v2`.
+
+M119 adds a local-only dispatch artifact registry v2:
+
+- `python -m aresforge inspect-artifact-registry --format json`
+- optional `--project-id`, `--item-id`, `--artifact-type`, `--output`, and `--force`
+- machine-readable `dispatch_artifact_registry_v2` records
+
+Registry behavior:
+
+- inventories local dispatch and review artifacts across manual Codex dispatch, Codex prompt dispatch, local LLM advisory requests, approval-gated patch intake, dispatch result evidence, queue completion recommendations, documentation patch proposals, and agent route recommendations
+- reports artifact counts, counts by type, missing expected folders, stale artifacts, duplicate artifacts, blocked artifacts, and artifacts requiring review
+- treats output writes as local artifact writes and refuses overwrite unless `--force` is explicit
+- preserves `local_only=true` and `execution_allowed=false`
+
+Safety boundary:
+
+- read-only inspection and optional local report write only
+- no Codex, Ollama, local LLM, remote LLM, agent, GitHub, `gh`, network service, patch application, source mutation, queue mutation, automatic completion, autonomous execution, or next-item execution
 
 ## M128 Agent Orchestration Plan Builder
 

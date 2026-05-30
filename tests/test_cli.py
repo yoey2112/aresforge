@@ -67,6 +67,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-dispatch-approval-gate",
         "update-dispatch-approval-gate",
         "inspect-dispatch-artifacts",
+        "inspect-artifact-registry",
         "prepare-manual-codex-dispatch",
         "intake-patch-proposal",
         "parse-dispatch-result-evidence",
@@ -7590,6 +7591,81 @@ def test_inspect_dispatch_artifacts_dispatch_json(
         "output_format": "json",
     }
 
+
+
+def test_inspect_artifact_registry_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    seen: dict[str, object] = {}
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "registry_type": "dispatch_artifact_registry_v2",
+                "generated": True,
+                "artifact_count": 0,
+                "local_only": True,
+                "execution_allowed": False,
+            }
+        ),
+        "payload": {},
+    }
+
+    def fake_inspect(
+        _config: AppConfig,
+        *,
+        project_id: str = "aresforge",
+        item_id=None,
+        artifact_type=None,
+        output=None,
+        force: bool = False,
+        output_format: str = "json",
+    ):
+        seen.update(
+            {
+                "project_id": project_id,
+                "item_id": item_id,
+                "artifact_type": artifact_type,
+                "output": output,
+                "force": force,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "inspect_artifact_registry", fake_inspect)
+    exit_code = cli.main(
+        [
+            "inspect-artifact-registry",
+            "--project-id",
+            "aresforge",
+            "--item-id",
+            "m119-dispatch-artifact-registry-index-v2",
+            "--artifact-type",
+            "local_llm_advisory_request",
+            "--output",
+            "registry.json",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["registry_type"] == "dispatch_artifact_registry_v2"
+    assert parsed["execution_allowed"] is False
+    assert seen == {
+        "project_id": "aresforge",
+        "item_id": "m119-dispatch-artifact-registry-index-v2",
+        "artifact_type": "local_llm_advisory_request",
+        "output": "registry.json",
+        "force": True,
+        "output_format": "json",
+    }
 
 def test_prepare_manual_codex_dispatch_dispatch_markdown(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]

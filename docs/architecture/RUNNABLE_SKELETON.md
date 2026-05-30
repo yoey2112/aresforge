@@ -1,5 +1,32 @@
 # Runnable Skeleton
 
+## M119 Dispatch Artifact Registry Index v2
+
+M119 adds a local-only artifact registry inspection command:
+
+- `python -m aresforge inspect-artifact-registry --format json`
+- optional `--project-id`, `--item-id`, `--artifact-type`, `--output`, and `--force`
+
+Runnable behavior:
+
+- scans known local artifact folders for dispatch and review artifacts
+- supports manual Codex dispatch preparation, Codex prompt dispatch, local LLM advisory requests, patch proposal intake, dispatch result evidence, queue completion recommendations, documentation agent patch proposals, and agent route recommendations
+- reads local queue metadata to identify stale artifact item ids
+- reports missing expected artifact folders, duplicate artifact families, blocked artifacts, review-required artifacts, and next safe action
+- writes an optional local report only when the target does not exist or `--force` is explicit
+- preserves `local_only=true` and `execution_allowed=false`
+
+Still absent by design:
+
+- artifact execution
+- Codex execution or Codex CLI shell-out
+- Ollama/local LLM or remote LLM prompt execution
+- agent execution
+- GitHub API, `gh`, issues, PRs, workflows, network calls, or external services
+- validation command execution
+- patch application
+- source mutation, queue mutation, automatic completion, autonomous execution, or next-item execution
+
 ## M128 Agent Orchestration Plan Builder
 
 M128 adds a local-only orchestration plan builder command:

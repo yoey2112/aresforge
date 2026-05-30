@@ -1,5 +1,30 @@
 # AresForge Roadmap
 
+## M119 Dispatch Artifact Registry Index v2
+
+Status: Implemented locally on `main` pending completion evidence commit.
+
+Queue item: `m119-dispatch-artifact-registry-index-v2`.
+
+Purpose:
+
+- provide a versioned local registry for dispatch and review artifacts created by M109-M117 planning workflows
+- make manual dispatch records, Codex prompt dispatch artifacts, local LLM advisory requests, patch intake records, dispatch evidence, completion recommendations, documentation proposals, and route recommendations discoverable through one operator command
+- surface missing expected folders, stale artifacts, duplicates, blocked artifacts, review-required artifacts, and next safe action
+- keep artifact discovery advisory and non-executing
+
+Runnable operator surface:
+
+- `python -m aresforge inspect-artifact-registry --format json`
+- `python -m aresforge inspect-artifact-registry --project-id aresforge --item-id <item_id> --artifact-type <type> --format json`
+- optional `--output <path>` and `--force`
+
+Constraints preserved:
+
+- registry inspection only
+- `local_only=true` and `execution_allowed=false`
+- no Codex, Ollama/local LLM, remote LLM, agent, GitHub API, `gh`, network service, patch application, source mutation, queue mutation, automatic completion, autonomous execution, or next-item execution
+
 ## M128 Agent Orchestration Plan Builder
 
 Status: Completed locally on `main` after validation.

@@ -1,5 +1,27 @@
 # Local Operator Usage
 
+## M119 Dispatch Artifact Registry Index v2
+
+M119 provides a versioned local registry for dispatch and review artifacts. It reads local artifact files and queue metadata only. It does not execute Codex, Ollama, local LLMs, remote LLMs, agents, GitHub, `gh`, network services, validation commands, patches, source mutation, queue mutation, autonomous execution, or follow-on work.
+
+Inspect the full registry:
+
+    python -m aresforge inspect-artifact-registry --format json
+
+Filter by queue item and artifact type:
+
+    python -m aresforge inspect-artifact-registry --project-id aresforge --item-id <item_id> --artifact-type local_llm_advisory_request --format json
+
+Write a local registry report:
+
+    python -m aresforge inspect-artifact-registry --format json --output artifacts/manual/artifact-registry.json
+
+Overwrite only with explicit force:
+
+    python -m aresforge inspect-artifact-registry --format json --output artifacts/manual/artifact-registry.json --force
+
+The registry reports `dispatch_artifact_registry_v2`, artifact counts, counts by type, missing expected artifact folders, stale artifacts, duplicates, blocked artifacts, review-required artifacts, and `next_safe_action`. All output preserves `local_only=true` and `execution_allowed=false`.
+
 ## M128 Agent Orchestration Plan Builder
 
 M128 builds a machine-readable orchestration plan for one local queue item. It does not execute agents, Codex, Ollama, local LLMs, remote LLMs, GitHub, `gh`, network services, validation commands, patches, queue mutation, source mutation, autonomous execution, or follow-on work.
