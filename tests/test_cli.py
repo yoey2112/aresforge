@@ -75,6 +75,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-agent-runtime-boundary",
         "inspect-agent-registry",
         "recommend-llm-decision",
+        "run-agent-dry-run",
         "probe-local-ollama-provider",
         "inspect-llm-decision-matrix",
         "inspect-local-llm-provider-contract",
@@ -5448,6 +5449,80 @@ def test_build_agent_orchestration_plan_dispatch_json(
         "output_format": "json",
     }
 
+
+def test_run_agent_dry_run_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "execution_record_type": "single_agent_dry_run",
+                "agent_id": "artifact-registry-agent",
+                "item_id": "m129",
+                "dry_run": True,
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_run(
+        _config,
+        *,
+        agent_id,
+        item_id,
+        plan_path=None,
+        queue_path=None,
+        output=None,
+        force=False,
+        output_format="json",
+    ):
+        seen["agent_id"] = agent_id
+        seen["item_id"] = item_id
+        seen["plan_path"] = plan_path
+        seen["queue_path"] = queue_path
+        seen["output"] = output
+        seen["force"] = force
+        seen["output_format"] = output_format
+        return payload
+
+    monkeypatch.setattr(cli, "run_single_agent_dry_run", fake_run)
+    exit_code = cli.main(
+        [
+            "run-agent-dry-run",
+            "--agent-id",
+            "artifact-registry-agent",
+            "--item-id",
+            "m129",
+            "--plan-path",
+            "plan.json",
+            "--queue-path",
+            "queue.json",
+            "--output",
+            "record.json",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["execution_record_type"] == "single_agent_dry_run"
+    assert parsed["dry_run"] is True
+    assert seen == {
+        "agent_id": "artifact-registry-agent",
+        "item_id": "m129",
+        "plan_path": "plan.json",
+        "queue_path": "queue.json",
+        "output": "record.json",
+        "force": True,
+        "output_format": "json",
+    }
 
 def test_prepare_local_llm_advisory_run_dispatch_json(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]

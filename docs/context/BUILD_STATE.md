@@ -71,6 +71,51 @@ Safety boundaries:
 - no Codex, Codex CLI, Ollama, local LLM, remote LLM, documentation-agent runtime, GitHub API, `gh`, network service, workflow, patch application, source mutation, queue mutation from the plan, validation command execution, autonomous execution, or next-item execution
 - future runners must be separate explicit operator-approved milestones
 
+## M129 Single-Agent Dry-Run Executor
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m129-single-agent-dry-run-executor`.
+
+M129 adds:
+
+- `run-agent-dry-run --agent-id <agent_id> --item-id <item_id> --format json`
+- optional `--plan-path`, `--queue-path`, `--output`, and `--force`
+- machine-readable `single_agent_dry_run` records
+
+Supported dry-run agents:
+
+- `artifact-registry-agent`
+- `evidence-parser-agent`
+- `completion-recommendation-agent`
+- `validation-agent`
+- `sprint-summary-agent`
+- `queue-planner-agent`
+
+Dry-run behavior:
+
+- reads one local queue item
+- reads the M126 declarative agent registry
+- reads or derives local orchestration-plan metadata
+- emits deterministic local outputs for supported agents
+- blocks unsupported agents and records forbidden capabilities as blocked
+- refuses output overwrite unless `--force` is explicit
+
+Validation:
+
+- `python -m pytest tests/test_cli.py` passed (`200 passed`)
+- `python -m pytest tests/test_single_agent_dry_run_executor.py` passed (`5 passed`)
+- `python -m pytest tests/test_agent_orchestration_plan_builder.py` passed (`6 passed`)
+- `python -m pytest tests/test_agent_registry.py` passed (`9 passed`)
+- `git diff --check` passed with CRLF warnings only
+- smoke checks passed for `artifact-registry-agent`, `queue-planner-agent`, `inspect-local-project-report`, and `inspect-local-queue-agent-summary`
+
+Safety boundaries:
+
+- dry-run only
+- no real agent execution
+- no Codex, Codex CLI, Ollama, local LLM, remote LLM, GitHub API, `gh`, network service, workflow, patch application, source mutation, queue mutation from the dry-run, validation command execution, autonomous execution, or next-item execution
+- optional `--output` writes only the dry-run execution record artifact
 ## M118 Post-Automation Planning Reconciliation
 
 Status: Completed locally on `main` after validation.

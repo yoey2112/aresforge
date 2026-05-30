@@ -3693,6 +3693,78 @@
         "python -m aresforge inspect-local-project-report -> passed",
         "python -m aresforge inspect-local-queue-agent-summary -> passed"
       ]
+    },
+    {
+      "item_id": "m129-single-agent-dry-run-executor",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M129 Single-Agent Dry-Run Executor",
+      "description": "Create a deterministic local-only single-agent dry-run executor for selected low-risk AresForge agents.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "feature",
+      "tags": [
+        "milestone:m129",
+        "agent-dry-run",
+        "local-only"
+      ],
+      "dependencies": [
+        "m128-agent-orchestration-plan-builder"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [],
+      "evidence_required": [],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: run-agent-dry-run emits single_agent_dry_run records for supported deterministic local agents; blocks unsupported agents and forbidden capabilities; supports plan-path, output, and force; never executes Codex, Ollama/local LLMs, GitHub, network services, validation commands, patches, queue mutation from dry-run, or next-item execution.",
+      "started_at": "",
+      "started_via": "",
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-30T20:28:03.903357+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M129 Single-Agent Dry-Run Executor implemented and validated locally. Added run-agent-dry-run, stable single_agent_dry_run execution records, six deterministic supported dry-run agents, forbidden capability blocking, output no-overwrite safeguards, tests, CLI coverage, smoke checks, documentation updates, and queue lifecycle evidence. No Codex, Ollama, local LLM, remote LLM, GitHub, gh, network service, validation command execution from the dry-run, patch application, source mutation from the dry-run, queue mutation from the dry-run, autonomous execution, or next-item execution was performed.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 200 passed; python -m pytest tests/test_single_agent_dry_run_executor.py -> 5 passed; python -m pytest tests/test_agent_orchestration_plan_builder.py -> 6 passed; python -m pytest tests/test_agent_registry.py -> 9 passed; git diff --check -> passed with CRLF warnings only; run-agent-dry-run smoke for artifact-registry-agent and queue-planner-agent passed; inspect-local-project-report passed; inspect-local-queue-agent-summary passed.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 200 passed",
+        "python -m pytest tests/test_single_agent_dry_run_executor.py -> 5 passed",
+        "python -m pytest tests/test_agent_orchestration_plan_builder.py -> 6 passed",
+        "python -m pytest tests/test_agent_registry.py -> 9 passed",
+        "git diff --check -> passed with CRLF warnings only",
+        "python -m aresforge run-agent-dry-run --agent-id artifact-registry-agent --item-id m129-single-agent-dry-run-executor --format json -> passed",
+        "python -m aresforge run-agent-dry-run --agent-id queue-planner-agent --item-id m129-single-agent-dry-run-executor --format json -> passed",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/single_agent_dry_run_executor.py; src/aresforge/cli.py; tests/test_single_agent_dry_run_executor.py; tests/test_cli.py",
+        "docs/context/BUILD_STATE.md; docs/context/AGENT_CONTEXT.md; docs/roadmap/ROADMAP.md; docs/operator/LOCAL_OPERATOR_USAGE.md; docs/architecture/RUNNABLE_SKELETON.md; docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md; .aresforge/queue/work_items.json"
+      ],
+      "artifact_paths": [
+        ".aresforge/queue/work_items.json"
+      ],
+      "completion_evidence": {},
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-30T20:27:16.213884+00:00",
+      "updated_at": "2026-05-30T20:28:03.903357+00:00"
     }
   ]
 }

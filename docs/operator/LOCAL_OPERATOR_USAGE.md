@@ -46,6 +46,29 @@ The output includes `plan_type=agent_orchestration_plan`, queue identity, reques
 
 Real execution requests are blocked in M128. Use the output as planning metadata only until a later explicit operator-approved runner exists.
 
+## M129 Single-Agent Dry-Run Executor
+
+M129 can run one deterministic local agent in dry-run mode. It does not execute Codex, invoke Ollama or local LLMs, call GitHub, call `gh`, make network calls, run validation commands, apply patches, mutate source files, mutate queue state from the dry-run, or start follow-on work.
+
+JSON dry-run record:
+
+    python -m aresforge run-agent-dry-run --agent-id artifact-registry-agent --item-id <item_id> --format json
+
+Use a prebuilt orchestration plan:
+
+    python -m aresforge run-agent-dry-run --agent-id queue-planner-agent --item-id <item_id> --plan-path artifacts/orchestration-plans/<item_id>.json --format json
+
+Write a local dry-run execution record:
+
+    python -m aresforge run-agent-dry-run --agent-id validation-agent --item-id <item_id> --output artifacts/agent-dry-runs/<item_id>.json --format json
+
+Overwrite only with explicit force:
+
+    python -m aresforge run-agent-dry-run --agent-id validation-agent --item-id <item_id> --output artifacts/agent-dry-runs/<item_id>.json --format json --force
+
+Supported dry-run agents are `artifact-registry-agent`, `evidence-parser-agent`, `completion-recommendation-agent`, `validation-agent`, `sprint-summary-agent`, and `queue-planner-agent`. Other registered agents block in M129 because they require future approval, handoff, provider, GitHub, or mutation boundaries.
+
+The execution record includes `execution_record_type=single_agent_dry_run`, `dry_run=true`, `real_execution=false`, `mutation_performed=false` unless writing the dry-run artifact itself, all external/model/GitHub/patch execution flags as false, and `forbidden_capabilities_blocked`.
 ## M118 Post-Automation Planning Reconciliation
 
 M118 is a documentation and queue-state reconciliation checkpoint for M110-M117. It does not add runtime features, execute Codex, invoke Ollama or local LLMs, run agents, call GitHub, call `gh`, make network calls, apply patches, mutate source files beyond this operator-authored docs update, automatically complete queue items, or start follow-on work.

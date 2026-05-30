@@ -52,6 +52,38 @@ Constraints preserved:
 - real execution target requests block and recommend dry-run
 - no agent execution, Codex, local LLM, Ollama, remote LLM, GitHub API, `gh`, network service, validation command execution, patch application, source mutation, queue mutation from the plan, autonomous execution, or next-item execution
 
+## M129 Single-Agent Dry-Run Executor
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m129-single-agent-dry-run-executor`.
+
+Purpose:
+
+- introduce the first single-agent dry-run execution record path
+- allow only deterministic low-risk local agents to inspect, summarize, validate plans, or generate explicit dry-run records
+- preserve all external execution and mutation boundaries before any real runner exists
+
+Runnable operator surface:
+
+- `python -m aresforge run-agent-dry-run --agent-id <agent_id> --item-id <item_id> --format json`
+- optional `--plan-path`, `--output`, and `--force`
+
+Supported dry-run agents:
+
+- `artifact-registry-agent`
+- `evidence-parser-agent`
+- `completion-recommendation-agent`
+- `validation-agent`
+- `sprint-summary-agent`
+- `queue-planner-agent`
+
+Constraints preserved:
+
+- dry-run only
+- unsupported agents block
+- no Codex, local LLM, Ollama, remote LLM, GitHub API, `gh`, network service, validation command execution, patch application, source mutation, queue mutation from the dry-run, autonomous execution, or next-item execution
+- explicit `--output` may write only the dry-run execution record artifact
 ## M118 Post-Automation Planning Reconciliation
 
 Status: Completed locally on `main` after validation.

@@ -55,6 +55,42 @@ Still absent by design:
 - patch application
 - source mutation, queue mutation, automatic handoff, automatic completion, autonomous execution, or next-item execution
 
+## M129 Single-Agent Dry-Run Executor
+
+M129 adds a local-only single-agent dry-run executor command:
+
+- `python -m aresforge run-agent-dry-run --agent-id <agent_id> --item-id <item_id> --format json`
+- optional `--plan-path`, `--queue-path`, `--output`, and `--force`
+
+Runnable behavior:
+
+- validates the requested agent against the M126 registry
+- permits only deterministic low-risk dry-run agents
+- reads one local queue item
+- reads or builds local orchestration-plan metadata
+- emits a stable `single_agent_dry_run` execution record
+- records blocked forbidden capabilities
+- refuses to overwrite output files unless `--force` is explicit
+
+Supported dry-run agents:
+
+- `artifact-registry-agent`
+- `evidence-parser-agent`
+- `completion-recommendation-agent`
+- `validation-agent`
+- `sprint-summary-agent`
+- `queue-planner-agent`
+
+Still absent by design:
+
+- real agent execution
+- Codex execution or Codex CLI shell-out
+- Ollama/local LLM prompt execution
+- remote LLM execution
+- GitHub API, `gh`, issues, PRs, workflows, network calls, or external services
+- validation command execution
+- patch application
+- source mutation, queue mutation from the dry-run, automatic handoff, automatic completion, autonomous execution, or next-item execution
 ## M118 Post-Automation Planning Reconciliation
 
 M118 adds no runnable product feature. It reconciles the current local-only planning skeleton after M110-M117 and confirms that every automation-facing surface remains advisory, file-backed, and operator-gated.

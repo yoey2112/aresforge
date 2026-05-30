@@ -254,6 +254,7 @@ from aresforge.operator.agent_runtime_boundary import inspect_agent_runtime_boun
 from aresforge.operator.agent_registry import inspect_agent_registry
 from aresforge.operator.agent_orchestration_plan_builder import build_agent_orchestration_plan
 from aresforge.operator.llm_decision_policy import recommend_llm_decision
+from aresforge.operator.single_agent_dry_run_executor import run_single_agent_dry_run
 from aresforge.operator.single_ready_codex_queue_item import run_single_ready_codex_queue_item
 from aresforge.operator.local_agent_profiles import (
     AGENT_PROFILE_STATUSES,
@@ -1921,6 +1922,21 @@ def build_parser() -> argparse.ArgumentParser:
     build_agent_orchestration_plan_parser.add_argument("--output")
     build_agent_orchestration_plan_parser.add_argument("--force", action="store_true")
     build_agent_orchestration_plan_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+    )
+    run_agent_dry_run_parser = subparsers.add_parser(
+        "run-agent-dry-run",
+        help="Run one deterministic local AresForge agent in dry-run mode only.",
+    )
+    run_agent_dry_run_parser.add_argument("--agent-id", required=True)
+    run_agent_dry_run_parser.add_argument("--item-id", required=True)
+    run_agent_dry_run_parser.add_argument("--plan-path")
+    run_agent_dry_run_parser.add_argument("--queue-path")
+    run_agent_dry_run_parser.add_argument("--output")
+    run_agent_dry_run_parser.add_argument("--force", action="store_true")
+    run_agent_dry_run_parser.add_argument(
         "--format",
         choices=["json"],
         default="json",
@@ -4676,6 +4692,22 @@ def main(argv: list[str] | None = None) -> int:
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 
+    if args.command == "run-agent-dry-run":
+        payload = run_single_agent_dry_run(
+            config,
+            agent_id=args.agent_id,
+            item_id=args.item_id,
+            plan_path=args.plan_path,
+            queue_path=args.queue_path,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
     if args.command == "probe-local-ollama-provider":
         payload = probe_local_ollama_provider(
             config,
