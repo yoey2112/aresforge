@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T21:42:08+00:00",
+  "updated_at": "2026-05-30T21:45:13Z",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -4241,7 +4241,7 @@
       "repo_id": "aresforge-main",
       "title": "M132 Auto-Completion for Safe Queue Items",
       "description": "Allow AresForge to automatically complete safe queue items only when deterministic evidence and queue_status_mutation machine gates pass.",
-      "status": "in_progress",
+      "status": "done",
       "priority": "high",
       "item_type": "feature",
       "tags": [
@@ -4268,12 +4268,12 @@
       "notes": "Acceptance criteria: add auto-complete-safe-queue-item; allow low-risk queue completion only with parsed evidence, deterministic recommendation, passed tests/smoke checks, no blockers, queue_status_mutation machine gate pass, and transaction logging; no Codex, LLM, GitHub, network, validation execution, patch application, or next-item execution.",
       "started_at": "2026-05-30T21:42:08+00:00",
       "started_via": "local_operator",
-      "previous_status": "ready",
-      "completed_at": "",
-      "completed_by": "",
-      "completion_commit": "",
-      "validation_summary": "M132 implementation validated locally with CLI, auto-completion, machine gate, and local queue tests passing.",
-      "evidence_note": "",
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-30T21:45:13Z",
+      "completed_by": "auto_complete_safe_queue_item",
+      "completion_commit": "ec975e7",
+      "validation_summary": "Changes: Implemented machine-gated safe queue auto-completion with dry-run, deterministic evidence checks, completion recommendation reuse, queue_status_mutation gates, and transaction logging. Tests: python -m pytest tests/test_cli.py -> 206 passed; python -m pytest tests/test_auto_complete_safe_queue_item.py -> 6 passed; python -m pytest tests/test_machine_safety_gate_engine.py -> 8 passed; python -m pytest tests/test_local_project_queue.py -> 111 passed; git diff --check -> passed with CRLF warnings only Smoke: python -m aresforge inspect-local-project-report -> passed; python -m aresforge inspect-local-queue-agent-summary -> passed; python -m aresforge inspect-project-queue --project-id aresforge -> passed",
+      "evidence_note": "Auto-completed from deterministic parsed evidence, completion recommendation, and queue_status_mutation machine gates.",
       "tests_run": [
         "python -m pytest tests/test_cli.py -> 206 passed",
         "python -m pytest tests/test_auto_complete_safe_queue_item.py -> 6 passed",
@@ -4293,7 +4293,9 @@
         "docs/architecture/RUNNABLE_SKELETON.md",
         ".aresforge/queue/work_items.json"
       ],
-      "artifact_paths": [],
+      "artifact_paths": [
+        "C:\\Projects\\aresforge\\.aresforge\\queue\\evidence\\m132-auto-completion-for-safe-queue-items.json"
+      ],
       "completion_evidence": {},
       "routing_metadata": {
         "recommended_agent_lane": "",
@@ -4314,7 +4316,7 @@
       "closeout_summary": "",
       "closeout_history": [],
       "created_at": "2026-05-30T21:42:08+00:00",
-      "updated_at": "2026-05-30T21:42:08+00:00"
+      "updated_at": "2026-05-30T21:45:13Z"
     }
   ]
 }
