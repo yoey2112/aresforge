@@ -1,5 +1,11 @@
 # Documentation Agent Contract
 
+## M116 Patch Proposal Generator
+
+M116 adds a local-only documentation-agent patch proposal generator. It reads the local queue item and selected source-of-truth documentation, detects missing milestone/item/command coverage, and writes a structured `documentation_agent_patch_proposal` artifact plus a local proposed patch text file for operator review.
+
+M116 proposal generation does not execute a documentation-agent runtime, does not call models, does not apply generated patches, does not mutate source docs from the proposal, does not call GitHub/`gh`, does not make network calls, does not mutate queue status, and does not complete work automatically. Generated proposals require human review and a later approval gate before any M111 patch intake.
+
 ## M111 Patch Intake Boundary
 
 M111 defines the local-only approval-gated intake boundary for patch proposals that may come from Codex, local LLM, or documentation-agent proposal workflows. Documentation-agent output may be recorded as a patch proposal only after a local approval gate exists and is `approved_for_manual_handoff`. The intake command records review metadata and patch summary data only; it does not apply documentation changes, mutate repository files, execute a documentation agent, call local LLMs, execute Codex, call GitHub/`gh`, make network calls, mutate queue state, or complete work automatically.

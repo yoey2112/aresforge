@@ -235,6 +235,7 @@ from aresforge.operator.codex_prompt_dispatch_artifact import generate_codex_pro
 from aresforge.operator.local_llm_advisory_dry_run import validate_local_llm_advisory_dry_run
 from aresforge.operator.local_llm_advisory_artifact import generate_local_llm_advisory_artifact
 from aresforge.operator.documentation_agent_dry_run import validate_documentation_agent_dry_run
+from aresforge.operator.documentation_agent_patch_proposal import generate_documentation_agent_patch_proposal
 from aresforge.operator.approval_gated_patch_intake import intake_patch_proposal
 from aresforge.operator.dispatch_result_evidence_parser import parse_dispatch_result_evidence
 from aresforge.operator.queue_completion_recommendation import recommend_queue_completion
@@ -1693,6 +1694,22 @@ def build_parser() -> argparse.ArgumentParser:
     validate_documentation_agent_dry_run_parser.add_argument("--output")
     validate_documentation_agent_dry_run_parser.add_argument("--force", action="store_true")
     validate_documentation_agent_dry_run_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="markdown",
+    )
+    generate_doc_agent_patch_proposal_parser = subparsers.add_parser(
+        "generate-doc-agent-patch-proposal",
+        help="Generate a local-only documentation patch proposal artifact without applying patches.",
+    )
+    generate_doc_agent_patch_proposal_parser.add_argument("--item-id", required=True)
+    generate_doc_agent_patch_proposal_parser.add_argument("--queue-path")
+    generate_doc_agent_patch_proposal_parser.add_argument("--output")
+    generate_doc_agent_patch_proposal_parser.add_argument("--force", action="store_true")
+    generate_doc_agent_patch_proposal_parser.add_argument("--include-roadmap", action="store_true")
+    generate_doc_agent_patch_proposal_parser.add_argument("--include-context", action="store_true")
+    generate_doc_agent_patch_proposal_parser.add_argument("--include-operator-docs", action="store_true")
+    generate_doc_agent_patch_proposal_parser.add_argument(
         "--format",
         choices=["json", "markdown"],
         default="markdown",
@@ -4372,6 +4389,24 @@ def main(argv: list[str] | None = None) -> int:
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 
+
+    if args.command == "generate-doc-agent-patch-proposal":
+        payload = generate_documentation_agent_patch_proposal(
+            config,
+            item_id=args.item_id,
+            queue_path=args.queue_path,
+            output=args.output,
+            force=bool(args.force),
+            include_roadmap=bool(args.include_roadmap),
+            include_context=bool(args.include_context),
+            include_operator_docs=bool(args.include_operator_docs),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
 
     if args.command == "create-dispatch-approval-gate":
         payload = create_dispatch_approval_gate(

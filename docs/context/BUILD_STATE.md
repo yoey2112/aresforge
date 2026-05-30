@@ -48,6 +48,34 @@ Safety boundaries:
 - `autonomy_allowed` is a future-policy hint only and is not execution authorization
 - machine and human gates remain advisory metadata until a later explicit runner consumes them
 
+## M116 Documentation Agent Patch Proposal Generator
+
+Status: In progress locally on `main`.
+
+Queue item: `m116-documentation-agent-patch-proposal-generator`.
+
+M116 adds:
+
+- `generate-doc-agent-patch-proposal --item-id <item_id>`
+- optional `--format json`
+- optional `--output`, `--force`, `--include-roadmap`, `--include-context`, and `--include-operator-docs`
+- stable `documentation_agent_patch_proposal` records
+- local proposed patch files under `artifacts/documentation_agent/patch_proposals`
+
+Proposal behavior:
+
+- reads local queue state for the requested item
+- reviews selected source-of-truth documentation groups
+- detects missing item, milestone, title, or operator command coverage
+- writes a structured proposal artifact and a patch proposal text file
+- requires human review and later approval before any M111 patch intake
+
+Safety boundaries:
+
+- generated proposals are not applied
+- no documentation-agent runtime execution
+- no model, Codex, Ollama, local LLM, GitHub API, `gh`, network service, workflow, source mutation, queue mutation, automatic completion, or next-item execution
+- patch application remains unavailable until a separate explicit operator-approved apply workflow exists
 ## M115 Local Ollama Provider Probe Integration
 
 Status: Completed locally on `main` after validation.

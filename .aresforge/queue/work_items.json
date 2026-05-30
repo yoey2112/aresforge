@@ -3388,6 +3388,64 @@
       "closeout_history": [],
       "created_at": "2026-05-30T19:45:00.000000+00:00",
       "updated_at": "2026-05-30T20:05:00.000000+00:00"
+    },
+    {
+      "item_id": "m116-documentation-agent-patch-proposal-generator",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M116 Documentation Agent Patch Proposal Generator",
+      "description": "Generate local-only documentation patch proposal artifacts for operator review without applying patches.",
+      "status": "in_progress",
+      "priority": "high",
+      "item_type": "documentation",
+      "tags": [
+        "milestone:m116",
+        "documentation-agent",
+        "patch-proposal",
+        "local-only"
+      ],
+      "dependencies": [
+        "m115-local-ollama-provider-probe-integration"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [],
+      "evidence_required": [],
+      "assigned_agent": "",
+      "source": "local_cli",
+      "notes": "Acceptance criteria: compare queue/build state against source-of-truth docs; generate documentation_agent_patch_proposal artifacts and proposed patch files; support output, json, force, include-roadmap, include-context, and include-operator-docs; never apply generated patches or execute documentation agents.",
+      "started_at": "2026-05-30T19:39:59.859142+00:00",
+      "started_via": "local_operator",
+      "previous_status": "ready",
+      "completed_at": "",
+      "completed_by": "",
+      "completion_commit": "",
+      "validation_summary": "",
+      "evidence_note": "",
+      "tests_run": [],
+      "changed_files": [],
+      "artifact_paths": [],
+      "completion_evidence": {},
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-30T19:39:55.521526+00:00",
+      "updated_at": "2026-05-30T19:39:59.859142+00:00"
     }
   ]
 }

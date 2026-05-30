@@ -26,6 +26,39 @@ Supported lanes are `no_llm_required`, `local_llm_reasoning`, `local_llm_coding_
 
 Treat `autonomy_allowed` as future-policy metadata only. It is not permission to execute anything from this command.
 
+## M116 Documentation Agent Patch Proposal Generator
+
+M116 generates local documentation patch proposal artifacts for operator review. It does not apply generated patches, execute a documentation agent, invoke models, call Codex, call GitHub, call `gh`, mutate source docs from the proposal, mutate queue state, or start follow-on work.
+
+Readable proposal:
+
+    python -m aresforge generate-doc-agent-patch-proposal --item-id <item_id>
+
+JSON proposal:
+
+    python -m aresforge generate-doc-agent-patch-proposal --item-id <item_id> --format json
+
+Limit reviewed document groups:
+
+    python -m aresforge generate-doc-agent-patch-proposal --item-id <item_id> --include-roadmap --include-context --include-operator-docs
+
+Write a local proposal record:
+
+    python -m aresforge generate-doc-agent-patch-proposal --item-id <item_id> --output artifacts/documentation_agent/patch_proposals/<item_id>.json --format json
+
+Overwrite only with explicit force:
+
+    python -m aresforge generate-doc-agent-patch-proposal --item-id <item_id> --output artifacts/documentation_agent/patch_proposals/<item_id>.json --format json --force
+
+The proposal record includes `artifact_type=documentation_agent_patch_proposal`, queue identity, reviewed source docs, detected documentation gaps, proposed changes, `proposed_patch_path`, an operator checklist, `approval_required=true`, `patch_application_allowed=false`, `patch_application_performed=false`, `local_only=true`, and `execution_allowed=false`.
+
+Operator workflow:
+
+- generate the proposal for one queue item
+- review the JSON record and proposed patch text
+- create a local approval gate before M111 patch intake
+- use `intake-patch-proposal` only after approval
+- keep patch application blocked until a separate explicit apply workflow exists
 ## M115 Local Ollama Provider Probe Integration
 
 M115 probes local Ollama provider readiness for environment discovery only. It does not send prompts, ask a model to reason or code, generate advisory output, execute Codex, call GitHub, call `gh`, execute agents, apply patches, mutate files, mutate queue state, or start follow-on work.

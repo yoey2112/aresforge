@@ -44,6 +44,52 @@ Still absent by design:
 - patch application
 - source mutation, queue mutation, automatic handoff, automatic completion, autonomous execution, or next-item execution
 
+## M116 Documentation Agent Patch Proposal Generator
+
+M116 adds a local-only documentation patch proposal generator:
+
+- `python -m aresforge generate-doc-agent-patch-proposal --item-id <item_id>`
+- optional `--format json`
+- optional `--output`, `--force`, `--include-roadmap`, `--include-context`, and `--include-operator-docs`
+
+Runnable behavior:
+
+- loads the requested queue item from local queue state
+- reviews selected source-of-truth documentation files
+- detects missing milestone, item id, title, or operator command coverage
+- emits a structured `documentation_agent_patch_proposal` record
+- writes a proposed patch text artifact for human review
+- refuses to overwrite output files unless `--force` is explicit
+
+Stable proposal fields:
+
+- `artifact_type`
+- `generated`
+- `blocked`
+- `blocked_reasons`
+- `item_id`
+- `title`
+- `project_id`
+- `milestone`
+- `source_documents_reviewed`
+- `detected_doc_gaps`
+- `proposed_doc_changes`
+- `proposed_patch_path`
+- `operator_review_checklist`
+- `approval_required`
+- `patch_application_allowed`
+- `patch_application_performed`
+- `local_only`
+- `execution_allowed`
+- `next_safe_action`
+
+Still absent by design:
+
+- patch application
+- documentation-agent runtime execution
+- Codex, Ollama, local LLM, GitHub API, `gh`, network calls, workflows, or external agents
+- queue mutation, approval mutation, automatic completion, automatic handoff, or next-item execution
+
 ## M114 Hub Dispatch Review Panel
 
 M114 adds a local-only, read-only Hub review surface:

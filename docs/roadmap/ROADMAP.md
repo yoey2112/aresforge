@@ -39,6 +39,49 @@ Constraints preserved:
 - `execution_performed=false`
 - no Codex, local LLM, remote LLM, Ollama, GitHub API, `gh`, agent runtime, validation command, network service, patch application, queue mutation, source mutation, autonomous execution, or next-item execution
 
+## M116 Documentation Agent Patch Proposal Generator
+
+Status: In progress locally on `main`.
+
+Queue item: `m116-documentation-agent-patch-proposal-generator`.
+
+Purpose:
+
+- compare local queue/build state against selected source-of-truth docs
+- detect documentation gaps for one queue item
+- generate a structured documentation patch proposal artifact
+- generate a proposed patch text file for operator review
+- preserve the approval and patch-application boundary
+
+Runnable operator surface:
+
+- `python -m aresforge generate-doc-agent-patch-proposal --item-id <item_id>`
+- `python -m aresforge generate-doc-agent-patch-proposal --item-id <item_id> --format json`
+- optional `--output <path>` and `--force`
+- optional `--include-roadmap`, `--include-context`, and `--include-operator-docs`
+
+Proposal contract:
+
+- `artifact_type=documentation_agent_patch_proposal`
+- generated/blocked status and blocked reasons
+- queue identity and milestone
+- reviewed source documents
+- detected documentation gaps
+- proposed documentation changes
+- proposed patch path
+- operator checklist
+- `approval_required=true`
+- `patch_application_allowed=false`
+- `patch_application_performed=false`
+- `local_only=true`
+- `execution_allowed=false`
+
+Constraints preserved:
+
+- no generated patch application
+- no documentation-agent runtime execution
+- no Codex, Ollama, local LLM, GitHub API, `gh`, network, workflow, source mutation, queue mutation, approval mutation, automatic handoff, or next-item execution
+
 ## M115 Local Ollama Provider Probe Integration
 
 Status: Completed locally on `main` after validation.

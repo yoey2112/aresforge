@@ -61,6 +61,7 @@ def test_cli_has_expected_commands() -> None:
         "generate-codex-dispatch-artifact",
         "generate-local-llm-advisory-artifact",
         "validate-documentation-agent-dry-run",
+        "generate-doc-agent-patch-proposal",
         "create-dispatch-approval-gate",
         "inspect-dispatch-approval-gate",
         "update-dispatch-approval-gate",
@@ -6614,6 +6615,92 @@ def test_generate_local_llm_advisory_artifact_dispatch_markdown(
     assert "selected_lane: local_llm_advisory" in output
 
 
+
+def test_generate_doc_agent_patch_proposal_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "artifact_type": "documentation_agent_patch_proposal",
+                "generated": True,
+                "blocked": False,
+                "item_id": "m116",
+                "source_documents_reviewed": [],
+                "detected_doc_gaps": [],
+                "proposed_doc_changes": [],
+                "proposed_patch_path": "artifacts/documentation_agent/patch_proposals/m116.patch",
+                "approval_required": True,
+                "patch_application_allowed": False,
+                "patch_application_performed": False,
+                "local_only": True,
+                "execution_allowed": False,
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_generate(
+        _config,
+        item_id,
+        queue_path=None,
+        output=None,
+        force=False,
+        include_roadmap=False,
+        include_context=False,
+        include_operator_docs=False,
+        output_format="markdown",
+    ):
+        seen["item_id"] = item_id
+        seen["queue_path"] = queue_path
+        seen["output"] = output
+        seen["force"] = force
+        seen["include_roadmap"] = include_roadmap
+        seen["include_context"] = include_context
+        seen["include_operator_docs"] = include_operator_docs
+        seen["output_format"] = output_format
+        return payload
+
+    monkeypatch.setattr(cli, "generate_documentation_agent_patch_proposal", fake_generate)
+    exit_code = cli.main(
+        [
+            "generate-doc-agent-patch-proposal",
+            "--item-id",
+            "m116",
+            "--queue-path",
+            "queue.json",
+            "--output",
+            "artifacts/documentation_agent/patch_proposals/m116.json",
+            "--force",
+            "--include-roadmap",
+            "--include-context",
+            "--include-operator-docs",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["artifact_type"] == "documentation_agent_patch_proposal"
+    assert parsed["approval_required"] is True
+    assert parsed["patch_application_allowed"] is False
+    assert parsed["execution_allowed"] is False
+    assert seen == {
+        "item_id": "m116",
+        "queue_path": "queue.json",
+        "output": "artifacts/documentation_agent/patch_proposals/m116.json",
+        "force": True,
+        "include_roadmap": True,
+        "include_context": True,
+        "include_operator_docs": True,
+        "output_format": "json",
+    }
 
 def test_intake_patch_proposal_dispatch_json(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]

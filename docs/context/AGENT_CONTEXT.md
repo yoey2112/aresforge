@@ -22,6 +22,28 @@ M127 boundaries:
 - no Codex, local LLM, remote LLM, Ollama, agent runtime, GitHub API, `gh`, network service, patch application, validation execution, source mutation, queue mutation, autonomous execution, or next-item execution
 - future autonomous execution hints do not authorize execution
 
+## M116 Documentation Agent Patch Proposal Generator Context
+
+Status: In progress locally on `main`.
+
+Queue item: `m116-documentation-agent-patch-proposal-generator`.
+
+M116 adds a local-only documentation patch proposal command:
+
+- `python -m aresforge generate-doc-agent-patch-proposal --item-id <item_id>`
+- `python -m aresforge generate-doc-agent-patch-proposal --item-id <item_id> --format json`
+- optional `--output`, `--force`, `--include-roadmap`, `--include-context`, and `--include-operator-docs`
+
+The command reads local queue state and selected source-of-truth docs, detects documentation gaps, writes a structured `documentation_agent_patch_proposal` artifact, and writes a proposed patch text artifact for operator review.
+
+M116 boundaries:
+
+- generated patch proposals are not applied
+- `approval_required=true`
+- `patch_application_allowed=false`
+- `patch_application_performed=false`
+- no documentation-agent runtime, Codex, local LLM, Ollama, GitHub API, `gh`, network service, source mutation, queue mutation, approval mutation, patch application, or next-item execution
+
 ## M115 Local Ollama Provider Probe Integration Context
 
 Status: Completed locally on `main` after validation.
