@@ -22,9 +22,11 @@ M128 boundaries:
 
 ## M118 Post-Automation Planning Reconciliation Context
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m118-post-automation-planning-reconciliation`.
+
+Implementation commit: `46c007c`.
 
 M118 is a docs/data reconciliation milestone after M110-M117. It aligns source-of-truth docs, roadmap notes, operator instructions, architecture boundaries, and queue state for the controlled automation planning layer.
 

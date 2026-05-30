@@ -47,9 +47,11 @@ Safety boundaries:
 
 ## M118 Post-Automation Planning Reconciliation
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m118-post-automation-planning-reconciliation`.
+
+Implementation commit: `46c007c`.
 
 Reconciled milestones:
 

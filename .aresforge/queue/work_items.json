@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T20:30:00.000000+00:00",
+  "updated_at": "2026-05-30T20:31:00.000000+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -3583,7 +3583,7 @@
       "repo_id": "aresforge-main",
       "title": "M118 Post-Automation Planning Reconciliation",
       "description": "Reconcile source-of-truth documentation and queue state after M110-M117 controlled automation planning contracts without adding runtime features.",
-      "status": "in_progress",
+      "status": "done",
       "priority": "high",
       "item_type": "documentation",
       "tags": [
@@ -3603,14 +3603,14 @@
       "assigned_agent": "",
       "source": "local_cli",
       "notes": "Acceptance criteria: reconcile source-of-truth docs for M110-M117, current boundaries, operator workflow, remaining gaps, and next recommended milestones; docs/data-only; no runtime features, Codex, Ollama, local LLM, agent, GitHub, network, patch, automatic queue completion, or next-item execution.",
-      "started_at": "2026-05-30T20:30:00.000000+00:00",
+      "started_at": "2026-05-30T20:20:00.000000+00:00",
       "started_via": "local_operator",
-      "previous_status": "ready",
-      "completed_at": "",
-      "completed_by": "",
-      "completion_commit": "",
-      "validation_summary": "",
-      "evidence_note": "",
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-30T20:31:00.000000+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "46c007c",
+      "validation_summary": "M118 Post-Automation Planning Reconciliation completed locally as a docs/data-only milestone. Reconciled source-of-truth documentation for M110-M117, current boundaries, operator workflow, remaining gaps, and next recommended milestones. Added M118 queue metadata and preserved local-only/operator-gated language. No runtime features, Codex execution, Ollama/local LLM prompting, agent execution, GitHub or gh calls, network services, patch application, automatic queue completion from recommendations, or next-item execution were added.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 198 passed; python -m pytest tests/test_hub_ui_foundation.py -> 58 passed; git diff --check -> passed with CRLF warnings only; python -m aresforge inspect-local-project-report -> passed; python -m aresforge inspect-local-queue-agent-summary -> passed; python -m aresforge inspect-project-queue --project-id aresforge -> passed; python -m aresforge generate-safe-dispatch-handoff -> passed with expected local-only handoff warning about no dispatch artifacts.",
       "tests_run": [],
       "changed_files": [],
       "artifact_paths": [],
@@ -3633,8 +3633,8 @@
       "closed_by": "",
       "closeout_summary": "",
       "closeout_history": [],
-      "created_at": "2026-05-30T20:30:00.000000+00:00",
-      "updated_at": "2026-05-30T20:30:00.000000+00:00"
+      "created_at": "2026-05-30T20:20:00.000000+00:00",
+      "updated_at": "2026-05-30T20:31:00.000000+00:00"
     }
   ]
 }
