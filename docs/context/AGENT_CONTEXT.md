@@ -2,7 +2,7 @@
 
 ## M85 Local LLM Advisory Run Artifact Context
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main`.
 
 Current advisory artifact scope:
 

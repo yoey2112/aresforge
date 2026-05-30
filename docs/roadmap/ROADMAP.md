@@ -2,7 +2,7 @@
 
 ## M85 Local LLM Advisory Run Artifact
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main`.
 
 Purpose:
 
