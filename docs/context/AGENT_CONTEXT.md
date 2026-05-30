@@ -2,9 +2,11 @@
 
 ## M115 Local Ollama Provider Probe Integration Context
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m115-local-ollama-provider-probe-integration`.
+
+Implementation commit: `9913605`.
 
 M115 adds a local-only Ollama provider probe:
 

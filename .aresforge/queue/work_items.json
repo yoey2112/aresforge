@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T19:31:05.186379+00:00",
+  "updated_at": "2026-05-30T19:34:01.263381+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -3255,7 +3255,7 @@
       "repo_id": "aresforge-main",
       "title": "M115 Local Ollama Provider Probe Integration",
       "description": "Create a local-only Ollama provider probe for environment discovery without prompts, reasoning, coding, advisory generation, or repository mutation.",
-      "status": "in_progress",
+      "status": "done",
       "priority": "high",
       "item_type": "architecture",
       "tags": [
@@ -3276,14 +3276,26 @@
       "notes": "Acceptance criteria: probe local Ollama configuration and optional loopback /api/tags metadata only; support --no-network, --config, --output, --force, and JSON output; never send prompts or call generation/chat/completion endpoints; report execution flags false.",
       "started_at": "2026-05-30T19:31:05.186379+00:00",
       "started_via": "local_operator",
-      "previous_status": "ready",
-      "completed_at": "",
-      "completed_by": "",
-      "completion_commit": "",
-      "validation_summary": "",
-      "evidence_note": "",
-      "tests_run": [],
-      "changed_files": [],
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-30T19:34:01.263381+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "9913605",
+      "validation_summary": "M115 Local Ollama Provider Probe Integration implemented and validated locally. Added probe-local-ollama-provider, stable local_ollama_provider_probe output, no-network config-only mode, loopback-only /api/tags inspection, non-loopback blocking, configured model profile reporting, visible model metadata parsing, output no-overwrite safeguards, tests, CLI coverage, docs, and queue lifecycle evidence. No prompts, generation, chat, completion, coding, reasoning, advisory model execution, Codex, GitHub, gh, agent execution, patch application, repository mutation, queue mutation from probe output, workflow, or next-item execution was performed.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py; python -m pytest tests/test_local_ollama_provider_probe.py; python -m pytest tests/test_local_llm_advisory_artifact.py; combined rerun for all three suites; git diff --check passed with CRLF warnings only; smoke checks passed for probe-local-ollama-provider --format json, inspect-local-project-report, and inspect-local-queue-agent-summary. The live probe saw local provider=unknown, so it stayed config-only with network_execution_performed=false.",
+      "tests_run": [
+        "tests/test_cli.py -> 194 passed",
+        "tests/test_local_ollama_provider_probe.py -> 5 passed",
+        "tests/test_local_llm_advisory_artifact.py -> 5 passed",
+        "combined required pytest suites -> 204 passed",
+        "git diff --check -> passed with CRLF warnings only",
+        "probe-local-ollama-provider --format json -> passed, config-only provider_not_ollama, network_execution_performed=false",
+        "inspect-local-project-report -> passed",
+        "inspect-local-queue-agent-summary -> passed"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/local_ollama_provider_probe.py; src/aresforge/cli.py; tests/test_local_ollama_provider_probe.py; tests/test_cli.py",
+        "docs/context/BUILD_STATE.md; docs/context/AGENT_CONTEXT.md; docs/roadmap/ROADMAP.md; docs/operator/LOCAL_OPERATOR_USAGE.md; docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md; docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md; .aresforge/queue/work_items.json"
+      ],
       "artifact_paths": [],
       "completion_evidence": {},
       "routing_metadata": {
@@ -3305,7 +3317,7 @@
       "closeout_summary": "",
       "closeout_history": [],
       "created_at": "2026-05-30T19:31:00.489334+00:00",
-      "updated_at": "2026-05-30T19:31:05.186379+00:00"
+      "updated_at": "2026-05-30T19:34:01.263381+00:00"
     }
   ]
 }
