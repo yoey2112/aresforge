@@ -1,5 +1,23 @@
 # Local Operator Usage
 
+## M133 Documentation Agent Autonomous Apply for Docs-Only Patches
+
+M133 can apply one docs-only Markdown patch when deterministic machine gates pass. It does not execute Codex, invoke Ollama or local LLMs, call remote LLMs, call GitHub, call `gh`, make network calls, run validation commands, mutate source code, mutate tests, complete queue items, or start follow-on work.
+
+Dry-run first:
+
+    python -m aresforge apply-docs-only-patch --item-id <item_id> --patch-path artifacts/manual/sample-docs-only.patch --dry-run --format json
+
+Apply after dry-run passes:
+
+    python -m aresforge apply-docs-only-patch --item-id <item_id> --patch-path artifacts/manual/sample-docs-only.patch --format json
+
+Write a local report:
+
+    python -m aresforge apply-docs-only-patch --item-id <item_id> --patch-path artifacts/manual/sample-docs-only.patch --dry-run --format json --output artifacts/documentation_agent/docs-only-apply.json
+
+The command blocks source paths, test paths, package/config files, scripts, `.github` workflows, `.aresforge` queue-file patch targets, non-Markdown files, binary patches, executable/file-mode changes, dirty patch targets, failed clean-apply checks, failed `docs_only_patch_apply` machine gates, and failed transaction logging.
+
 ## M132 Auto-Completion for Safe Queue Items
 
 M132 can complete one safe local queue item without human review when parsed evidence, deterministic completion recommendation, and `queue_status_mutation` machine gates all pass. It does not execute Codex, invoke Ollama or local LLMs, call remote LLMs, call GitHub, call `gh`, make network calls, run validation commands, apply patches, mutate external systems, or start follow-on work.

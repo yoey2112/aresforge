@@ -1,5 +1,38 @@
 # AresForge Build State
 
+## M133 Documentation Agent Autonomous Apply for Docs-Only Patches
+
+Status: In progress locally on `main`.
+
+Queue item: `m133-documentation-agent-autonomous-apply-for-docs-only-patches`.
+
+M133 adds the first documentation-agent autonomous patch application path, limited to machine-gated docs-only Markdown patches:
+
+- `python -m aresforge apply-docs-only-patch --item-id <item_id> --patch-path <patch_path> --format json`
+- optional `--dry-run`, `--force`, `--queue-path`, and `--output`
+
+Required gates:
+
+- `docs_only_patch_apply` machine safety gate
+- docs Markdown path allowlist
+- clean `git apply --check`
+- no `src/` paths
+- no `tests/` paths
+- no package/config/script/workflow paths
+- no binary patch content
+- no hidden executable or file-mode changes
+- no dirty pre-existing patch targets
+- post-apply diff check
+- transaction-log entry after successful non-dry-run apply
+
+Safety boundaries:
+
+- allowed patch targets are Markdown docs under `docs/`, including source-of-truth docs and `docs/architecture/*.md`
+- blocked patch targets include source, tests, pyproject/package/config files, scripts, workflows, `.aresforge` queue files, binary files, and non-doc files
+- the command does not execute Codex, Codex CLI, Ollama/local LLMs, remote LLMs, agents, GitHub, `gh`, network services, validation commands, or follow-on work
+- dry-run performs no patch application and no transaction-log mutation
+- successful apply mutates only docs Markdown files plus the local transaction log
+
 ## M132 Auto-Completion for Safe Queue Items
 
 Status: In progress locally on `main`.

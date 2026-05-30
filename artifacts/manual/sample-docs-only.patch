@@ -1,0 +1,8 @@
+diff --git a/docs/manual-smoke-target.md b/docs/manual-smoke-target.md
+new file mode 100644
+--- /dev/null
++++ b/docs/manual-smoke-target.md
+@@ -0,0 +1,3 @@
++# Manual Smoke Target
++
++This file is created only by the M133 docs-only patch apply smoke check.

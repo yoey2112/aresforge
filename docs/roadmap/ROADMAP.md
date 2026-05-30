@@ -1,5 +1,30 @@
 # AresForge Roadmap
 
+## M133 Documentation Agent Autonomous Apply for Docs-Only Patches
+
+Status: In progress locally on `main`.
+
+Queue item: `m133-documentation-agent-autonomous-apply-for-docs-only-patches`.
+
+Purpose:
+
+- allow the documentation agent to apply docs-only patches without human review when deterministic machine gates pass
+- keep the first autonomous patch application path narrow, local-only, auditable, and Markdown-only
+- preserve all source-code, test, config, script, workflow, model, GitHub, network, validation-execution, and next-item boundaries
+
+Runnable operator surface:
+
+- `python -m aresforge apply-docs-only-patch --item-id <item_id> --patch-path <patch_path> --format json`
+- optional `--dry-run`, `--force`, `--queue-path`, and `--output`
+
+Constraints preserved:
+
+- dry-run performs no patch application
+- only docs Markdown targets may be applied
+- source, tests, package/config files, scripts, workflows, `.aresforge` queue files, binary patches, and executable/file-mode changes block
+- successful apply requires `docs_only_patch_apply` machine gates, clean apply check, post-apply docs-only diff check, and transaction logging
+- no Codex, local LLM/Ollama, remote LLM, GitHub API, `gh`, network service, validation command execution, external mutation, queue completion, autonomous next-item execution, or background automation
+
 ## M132 Auto-Completion for Safe Queue Items
 
 Status: In progress locally on `main`.

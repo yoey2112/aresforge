@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T21:45:13Z",
+  "updated_at": "2026-05-30T22:01:42Z",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -4317,6 +4317,90 @@
       "closeout_history": [],
       "created_at": "2026-05-30T21:42:08+00:00",
       "updated_at": "2026-05-30T21:45:13Z"
+    },
+    {
+      "item_id": "m133-documentation-agent-autonomous-apply-for-docs-only-patches",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M133 Documentation Agent Autonomous Apply for Docs-Only Patches",
+      "description": "Allow the documentation agent to apply docs-only patches autonomously when machine gates pass.",
+      "status": "in_progress",
+      "priority": "high",
+      "item_type": "documentation",
+      "tags": [
+        "milestone:m133",
+        "docs-only-patch-apply",
+        "machine-gated",
+        "local-only"
+      ],
+      "dependencies": [
+        "m132-auto-completion-for-safe-queue-items"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [
+        "tests_run",
+        "smoke_checks",
+        "commit_hash"
+      ],
+      "evidence_required": [
+        "docs_only_patch_apply",
+        "transaction_log_entry"
+      ],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: add apply-docs-only-patch; docs Markdown allowlist only; block source, tests, config, scripts, workflows, .aresforge queue file patch targets, binary and executable changes; require docs_only_patch_apply gates, clean apply check, post-apply diff check, and transaction logging; no Codex, LLM, GitHub, network, validation execution, queue completion, or next-item execution.",
+      "started_at": "2026-05-30T22:01:42+00:00",
+      "started_via": "local_operator",
+      "previous_status": "ready",
+      "completed_at": "",
+      "completed_by": "",
+      "completion_commit": "",
+      "validation_summary": "Validation commands are available for M133; final results will be recorded after validation.",
+      "evidence_note": "",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> pending",
+        "python -m pytest tests/test_docs_only_patch_apply.py -> pending",
+        "python -m pytest tests/test_machine_safety_gate_engine.py -> pending"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/docs_only_patch_apply.py",
+        "src/aresforge/cli.py",
+        "tests/test_docs_only_patch_apply.py",
+        "tests/test_cli.py",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "artifacts/manual/sample-docs-only.patch",
+        ".aresforge/queue/work_items.json"
+      ],
+      "artifact_paths": [
+        "artifacts/manual/sample-docs-only.patch"
+      ],
+      "completion_evidence": {},
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "low",
+        "complexity_level": "medium",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-30T22:01:42+00:00",
+      "updated_at": "2026-05-30T22:01:42+00:00"
     }
   ]
 }

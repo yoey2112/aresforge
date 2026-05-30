@@ -259,6 +259,7 @@ from aresforge.operator.single_agent_dry_run_executor import run_single_agent_dr
 from aresforge.operator.single_agent_real_executor import run_single_agent_real_execution
 from aresforge.operator.machine_safety_gate_engine import evaluate_machine_safety_gates
 from aresforge.operator.auto_complete_safe_queue_item import auto_complete_safe_queue_item
+from aresforge.operator.docs_only_patch_apply import apply_docs_only_patch
 from aresforge.operator.single_ready_codex_queue_item import run_single_ready_codex_queue_item
 from aresforge.operator.local_agent_profiles import (
     AGENT_PROFILE_STATUSES,
@@ -2033,6 +2034,21 @@ def build_parser() -> argparse.ArgumentParser:
     auto_complete_safe_queue_item_parser.add_argument("--force", action="store_true")
     auto_complete_safe_queue_item_parser.add_argument("--output")
     auto_complete_safe_queue_item_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+    )
+    apply_docs_only_patch_parser = subparsers.add_parser(
+        "apply-docs-only-patch",
+        help="Apply one machine-gated docs-only Markdown patch with local transaction logging.",
+    )
+    apply_docs_only_patch_parser.add_argument("--item-id", required=True)
+    apply_docs_only_patch_parser.add_argument("--patch-path", required=True)
+    apply_docs_only_patch_parser.add_argument("--queue-path")
+    apply_docs_only_patch_parser.add_argument("--dry-run", action="store_true")
+    apply_docs_only_patch_parser.add_argument("--force", action="store_true")
+    apply_docs_only_patch_parser.add_argument("--output")
+    apply_docs_only_patch_parser.add_argument(
         "--format",
         choices=["json"],
         default="json",
@@ -4913,6 +4929,23 @@ def main(argv: list[str] | None = None) -> int:
             item_id=args.item_id,
             evidence_path=args.evidence_path,
             gate_profile=args.gate_profile,
+            queue_path=args.queue_path,
+            dry_run=bool(args.dry_run),
+            force=bool(args.force),
+            output=args.output,
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "apply-docs-only-patch":
+        payload = apply_docs_only_patch(
+            config,
+            item_id=args.item_id,
+            patch_path=args.patch_path,
             queue_path=args.queue_path,
             dry_run=bool(args.dry_run),
             force=bool(args.force),

@@ -1,5 +1,15 @@
 # Documentation Agent Contract
 
+## M133 Docs-Only Autonomous Apply
+
+M133 creates the first documentation-agent apply path, but only for docs-only Markdown patches that pass deterministic machine gates. The supported command is:
+
+    python -m aresforge apply-docs-only-patch --item-id <item_id> --patch-path <patch_path> --format json
+
+Allowed targets are Markdown documentation files under `docs/`, including the source-of-truth context, roadmap, operator, and architecture documents. Blocked targets include `src/`, `tests/`, package/config files, scripts, `.github` workflows, `.aresforge` queue files, binary files, non-doc files, and executable or file-mode changes.
+
+The apply path requires `docs_only_patch_apply` machine gates, path allowlist checks, clean apply checks, dirty-target protection, post-apply diff checks, Markdown consistency checks, and transaction logging. It does not execute a model-backed documentation agent, Codex, local LLMs, remote LLMs, GitHub, `gh`, network workflows, validation commands, queue completion, or next-item execution.
+
 ## M124 Sprint Closeout Note
 
 M124 closes the M110-M124 controlled automation sprint without adding documentation-agent execution. M116 can generate documentation patch proposal artifacts and M111 can record approved patch proposal intake metadata, but generated documentation proposals remain human-review-only and are not applied automatically.

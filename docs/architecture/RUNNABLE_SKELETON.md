@@ -1,5 +1,32 @@
 # Runnable Skeleton
 
+## M133 Documentation Agent Autonomous Apply for Docs-Only Patches
+
+M133 adds a local-only docs patch apply command:
+
+- `python -m aresforge apply-docs-only-patch --item-id <item_id> --patch-path <patch_path> --format json`
+- optional `--dry-run`, `--force`, `--queue-path`, and `--output`
+
+Runnable behavior:
+
+- reads one local queue item
+- parses a UTF-8 unified patch and extracts target files
+- evaluates the M131 `docs_only_patch_apply` machine gate
+- blocks source, tests, package/config, script, workflow, `.aresforge`, binary, non-doc, and executable/file-mode changes
+- runs a clean local `git apply --check`
+- dry-run reports the planned outcome without applying the patch
+- successful non-dry-run applies only docs Markdown targets, performs a post-apply docs-only diff check, and appends a transaction-log entry
+
+Still absent by design:
+
+- Codex execution or Codex CLI shell-out
+- Ollama/local LLM or remote LLM prompt execution
+- validation command execution
+- source-code patch application
+- test patch application
+- GitHub API, `gh`, issues, PRs, workflows, network calls, or external services
+- queue completion, external mutation, automatic next-item execution, or background automation
+
 ## M132 Auto-Completion for Safe Queue Items
 
 M132 adds a local-only auto-completion command:

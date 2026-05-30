@@ -82,6 +82,7 @@ def test_cli_has_expected_commands() -> None:
         "run-agent",
         "evaluate-machine-safety-gates",
         "auto-complete-safe-queue-item",
+        "apply-docs-only-patch",
         "probe-local-ollama-provider",
         "inspect-llm-decision-matrix",
         "inspect-local-llm-provider-contract",
@@ -5776,6 +5777,88 @@ def test_auto_complete_safe_queue_item_dispatch_json(
         "dry_run": True,
         "force": True,
         "output": "auto-complete.json",
+        "output_format": "json",
+    }
+
+
+def test_apply_docs_only_patch_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "action_type": "docs_only_patch_apply",
+                "item_id": "m133",
+                "patch_path": "artifacts/manual/docs.patch",
+                "dry_run": True,
+                "applied": False,
+                "blocked": False,
+                "source_code_changed": False,
+                "tests_changed": False,
+                "external_execution_performed": False,
+                "model_execution_performed": False,
+                "github_execution_performed": False,
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_apply(
+        _config,
+        *,
+        item_id,
+        patch_path,
+        queue_path=None,
+        dry_run=False,
+        force=False,
+        output=None,
+        output_format="json",
+    ):
+        seen["item_id"] = item_id
+        seen["patch_path"] = patch_path
+        seen["queue_path"] = queue_path
+        seen["dry_run"] = dry_run
+        seen["force"] = force
+        seen["output"] = output
+        seen["output_format"] = output_format
+        return payload
+
+    monkeypatch.setattr(cli, "apply_docs_only_patch", fake_apply)
+    exit_code = cli.main(
+        [
+            "apply-docs-only-patch",
+            "--item-id",
+            "m133",
+            "--patch-path",
+            "artifacts/manual/docs.patch",
+            "--queue-path",
+            "queue.json",
+            "--dry-run",
+            "--output",
+            "docs-apply.json",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["action_type"] == "docs_only_patch_apply"
+    assert parsed["source_code_changed"] is False
+    assert parsed["tests_changed"] is False
+    assert seen == {
+        "item_id": "m133",
+        "patch_path": "artifacts/manual/docs.patch",
+        "queue_path": "queue.json",
+        "dry_run": True,
+        "force": True,
+        "output": "docs-apply.json",
         "output_format": "json",
     }
 
