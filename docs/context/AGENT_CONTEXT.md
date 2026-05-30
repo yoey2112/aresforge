@@ -2,9 +2,11 @@
 
 ## M121 Human Approval Inventory and Review Ledger Context
 
-Status: Implemented locally on `main` pending completion evidence commit.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m121-human-approval-inventory-and-review-ledger`.
+
+Implementation commit: `127c6b1`.
 
 M121 adds `inspect-approval-ledger` and `record-artifact-review` for local artifact review inventory. The ledger combines dispatch artifact registry entries, existing dispatch approval gate decisions, and explicit operator-recorded review decisions.
 

@@ -2,9 +2,11 @@
 
 ## M121 Human Approval Inventory and Review Ledger
 
-Status: Implemented locally on `main` pending completion evidence commit.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m121-human-approval-inventory-and-review-ledger`.
+
+Implementation commit: `127c6b1`.
 
 Purpose:
 
