@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T18:27:27.495660+00:00",
+  "updated_at": "2026-05-30T18:29:17.382768+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -2715,7 +2715,7 @@
       "repo_id": "aresforge-main",
       "title": "M109 Manual Codex Dispatch Runner Contract",
       "description": "Create a local-only manual Codex dispatch preparation contract that validates queue state, M97 plan, M98 prompt artifact, M101 approval status, and M106 artifact index data without executing Codex.",
-      "status": "in_progress",
+      "status": "done",
       "priority": "high",
       "item_type": "feature",
       "tags": [
@@ -2735,14 +2735,22 @@
       "notes": "Acceptance criteria: prepare manual dispatch record only; require codex_prompt_artifact lane; require local_only true and execution_allowed false; require prompt artifact and approved manual handoff gate; block unsafe queue states; emit operator checklist and expected post-run evidence; never execute Codex, Codex CLI, LLMs, GitHub, agents, or patches.",
       "started_at": "2026-05-30T18:27:27.495660+00:00",
       "started_via": "local_operator",
-      "previous_status": "ready",
-      "completed_at": "",
-      "completed_by": "",
-      "completion_commit": "",
-      "validation_summary": "",
-      "evidence_note": "",
-      "tests_run": [],
-      "changed_files": [],
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-30T18:29:17.382768+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "bfa4139",
+      "validation_summary": "M109 Manual Codex Dispatch Runner Contract implemented and validated locally. Added prepare-manual-codex-dispatch, stable preparation record fields, approval/artifact/lifecycle blocking, readable/json CLI, tests, docs, and queue lifecycle evidence. No Codex, Codex CLI, GitHub, gh, Ollama, local LLM, documentation-agent, external-agent, patch application, automatic handoff, queue completion automation, or next-item execution was performed.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_manual_codex_dispatch_runner.py; python -m pytest tests/test_cli.py; python -m pytest tests/test_queue_agent_dispatch_plan.py tests/test_codex_prompt_dispatch_artifact.py tests/test_dispatch_approval_gate.py tests/test_dispatch_artifact_report.py tests/test_safe_dispatch_handoff.py; python -m pytest tests/test_cli.py tests/test_queue_agent_dispatch_plan.py tests/test_codex_prompt_dispatch_artifact.py tests/test_manual_codex_dispatch_runner.py tests/test_dispatch_approval_gate.py tests/test_dispatch_artifact_report.py tests/test_safe_dispatch_handoff.py tests/test_local_project_queue.py tests/test_local_queue_agent_summary.py tests/test_local_project_report.py -> 347 passed; git diff --check passed with CRLF warnings only; smoke checks passed for inspect-local-project-report, inspect-local-queue-agent-summary, inspect-project-queue --project-id aresforge, inspect-dispatch-artifacts --format json, generate-safe-dispatch-handoff, and prepare-manual-codex-dispatch readable/json blocked safely for live M109 due missing M98 artifact/approval gate.",
+      "tests_run": [
+        "tests/test_manual_codex_dispatch_runner.py -> 8 passed",
+        "tests/test_cli.py -> 183 passed",
+        "M97/M98/M101/M106/M107 adjacent suite -> 33 passed",
+        "Full targeted M109 suite -> 347 passed"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/manual_codex_dispatch_runner.py; src/aresforge/cli.py; tests/test_manual_codex_dispatch_runner.py; tests/test_cli.py",
+        "docs/context/BUILD_STATE.md; docs/context/AGENT_CONTEXT.md; docs/roadmap/ROADMAP.md; docs/operator/LOCAL_OPERATOR_USAGE.md; docs/architecture/RUNNABLE_SKELETON.md; docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md; docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md; docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md; .aresforge/queue/work_items.json"
+      ],
       "artifact_paths": [],
       "completion_evidence": {},
       "routing_metadata": {
@@ -2764,7 +2772,7 @@
       "closeout_summary": "",
       "closeout_history": [],
       "created_at": "2026-05-30T18:27:22.186988+00:00",
-      "updated_at": "2026-05-30T18:27:27.495660+00:00"
+      "updated_at": "2026-05-30T18:29:17.382768+00:00"
     }
   ]
 }

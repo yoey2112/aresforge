@@ -6,7 +6,7 @@ Status: Completed locally on `main` after validation.
 
 Queue item: `m109-manual-codex-dispatch-runner-contract`.
 
-Implementation commit: pending final commit.
+Implementation commit: `bfa4139`.
 
 Purpose:
 
