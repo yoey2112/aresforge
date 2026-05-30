@@ -2,11 +2,11 @@
 
 ## M104 Operator Batch Planner v1 Context
 
-Status: Implemented locally on `main`; closeout evidence pending.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m104-operator-batch-planner-v1`.
 
-Implementation commit: pending.
+Implementation commit: `864af13`.
 
 M104 adds a read-only local batch planner:
 

@@ -10,11 +10,11 @@ M104 reads local queue state, excludes completed work, respects dependency and b
 
 ## M104 Operator Batch Planner v1
 
-Status: Implemented locally on `main`; closeout evidence pending.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m104-operator-batch-planner-v1`.
 
-Implementation commit: pending.
+Implementation commit: `864af13`.
 
 M104 adds:
 

@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T16:45:26.173328+00:00",
+  "updated_at": "2026-05-30T16:52:57.416737+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -2411,7 +2411,7 @@
       "repo_id": "aresforge-main",
       "title": "M104 Operator Batch Planner v1",
       "description": "Create a local-only operator batch planner that proposes a safe sequential sprint batch from local queue state without execution.",
-      "status": "in_progress",
+      "status": "done",
       "priority": "high",
       "item_type": "feature",
       "tags": [
@@ -2438,14 +2438,18 @@
       "notes": "Acceptance criteria: ordered sprint batch proposal; exclude done items; respect dependencies and blocked statuses; safety classification; CLI readable/json; optional limit; no auto-seeding or execution.",
       "started_at": "2026-05-30T16:45:26.173328+00:00",
       "started_via": "local_operator",
-      "previous_status": "ready",
-      "completed_at": "",
-      "completed_by": "",
-      "completion_commit": "",
-      "validation_summary": "",
-      "evidence_note": "",
-      "tests_run": [],
-      "changed_files": [],
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-30T16:52:57.416737+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "864af13",
+      "validation_summary": "M104 Operator Batch Planner v1 implemented and validated locally. Added read-only local operator batch planning, CLI readable/json output, dependency-aware ordering, safety classification, tests, docs, and queue lifecycle evidence. No external execution was performed.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_operator_batch_planner.py; python -m pytest tests/test_cli.py; python -m pytest tests/test_local_project_queue.py tests/test_local_queue_agent_summary.py tests/test_local_project_report.py; python -m pytest tests/test_sprint_batch_report.py; python -m pytest tests/test_queue_agent_dispatch_plan.py; git diff --check passed with CRLF warnings only; smoke checks passed for inspect-local-project-report, inspect-local-queue-agent-summary, inspect-project-queue --project-id aresforge, and plan-operator-batch readable/json.",
+      "tests_run": [
+        "tests/test_operator_batch_planner.py -> 4 passed; tests/test_cli.py -> 177 passed; tests/test_local_project_queue.py tests/test_local_queue_agent_summary.py tests/test_local_project_report.py -> 123 passed; tests/test_sprint_batch_report.py -> 1 passed; tests/test_queue_agent_dispatch_plan.py -> 6 passed; git diff --check -> passed with CRLF warnings only"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/operator_batch_planner.py; src/aresforge/cli.py; tests/test_operator_batch_planner.py; tests/test_cli.py; docs/context/BUILD_STATE.md; docs/context/AGENT_CONTEXT.md; docs/roadmap/ROADMAP.md; docs/operator/LOCAL_OPERATOR_USAGE.md; docs/architecture/RUNNABLE_SKELETON.md; .aresforge/queue/work_items.json"
+      ],
       "artifact_paths": [],
       "completion_evidence": {},
       "routing_metadata": {
@@ -2467,7 +2471,7 @@
       "closeout_summary": "",
       "closeout_history": [],
       "created_at": "2026-05-30T16:45:25.623999+00:00",
-      "updated_at": "2026-05-30T16:45:26.173328+00:00"
+      "updated_at": "2026-05-30T16:52:57.416737+00:00"
     }
   ]
 }
