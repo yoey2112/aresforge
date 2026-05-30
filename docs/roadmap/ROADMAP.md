@@ -1,5 +1,29 @@
 # AresForge Roadmap
 
+## M123 Hub Controlled Automation Workspace Polish
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m123-hub-controlled-automation-workspace-polish`.
+
+Purpose:
+
+- reduce operator confusion across the growing local-only Hub review surfaces
+- make controlled automation boundaries visible before queue, dispatch, evidence, approval, registry, and routing decisions
+- improve empty states and summaries without adding execution behavior
+
+Delivered polish:
+
+- Controlled Automation Workspace summary in the Hub Queue panel
+- visible boundary chips for local-only, advisory, operator-gated, no automatic execution, no patch application, and no network/GitHub calls
+- clearer Artifact Registry, Approval Ledger/Dispatch Gates, Dispatch Review, and Agent Routing text
+- static UI tests asserting the key labels and safety wording
+
+Constraints preserved:
+
+- no new runtime or API execution behavior
+- no Codex, local LLM/Ollama, remote LLM, agent runtime, GitHub API, `gh`, network service, validation command execution, patch application, automatic queue completion, autonomous execution, or next-item execution
+
 ## M122 Safe Queue Mutation Transaction Log
 
 Status: Completed locally on `main` after validation.

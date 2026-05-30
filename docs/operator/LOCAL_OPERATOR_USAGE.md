@@ -1,5 +1,23 @@
 # Local Operator Usage
 
+## M123 Hub Controlled Automation Workspace Polish
+
+M123 improves Hub wording and empty states for the controlled automation workspace. It does not execute Codex, invoke Ollama or local LLMs, run agents, call GitHub, call `gh`, make network calls, run validation commands, apply patches, mutate external systems, or start follow-on work.
+
+Open the Hub and use the Queue panel:
+
+    python -m aresforge serve-hub
+
+Operator workflow:
+
+1. Review the Controlled Automation Workspace boundary chips.
+2. Inspect local queue status and routed views.
+3. Load advisory route recommendations before manual handoff.
+4. Inspect artifact registry records, approval gates/ledger status, dispatch review records, evidence summaries, and completion recommendations.
+5. Make any queue completion, patch intake, or handoff decision manually with the separate explicit command for that action.
+
+The Hub labels these surfaces as local-only, advisory, operator-gated, no automatic execution, no patch application, and no network/GitHub calls.
+
 ## M122 Safe Queue Mutation Transaction Log
 
 M122 records local queue mutation metadata in `.aresforge/queue/transaction_log.json`. It does not execute Codex, invoke Ollama or local LLMs, run agents, call GitHub, call `gh`, make network calls, run validation commands, apply patches, mutate external systems, or start follow-on work.

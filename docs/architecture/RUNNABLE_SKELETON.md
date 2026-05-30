@@ -1,5 +1,28 @@
 # Runnable Skeleton
 
+## M123 Hub Controlled Automation Workspace Polish
+
+M123 adds no execution surface. It polishes the existing Hub Queue controlled automation workspace so operators can distinguish local advisory review from executable work.
+
+Runnable behavior:
+
+- existing Hub serving remains `python -m aresforge serve-hub`
+- Queue panel displays a Controlled Automation Workspace summary
+- visible labels state local-only, advisory, operator-gated, no automatic execution, no patch application, and no network/GitHub calls
+- Dispatch Review, Artifact Registry, Approval Ledger/Dispatch Gates, and Agent Routing sections have clearer human-review empty states
+
+Still absent by design:
+
+- new execution endpoints
+- Codex execution or Codex CLI shell-out
+- Ollama/local LLM or remote LLM prompt execution
+- agent execution
+- GitHub API, `gh`, issues, PRs, workflows, network calls, or external services
+- validation command execution
+- patch application
+- source mutation beyond this milestone's UI/docs update
+- queue automation, automatic completion, autonomous execution, or next-item execution
+
 ## M122 Safe Queue Mutation Transaction Log
 
 M122 adds a local-only transaction log for queue mutation traceability:

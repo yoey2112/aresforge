@@ -404,6 +404,18 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "Active Project Queue Focus" in index_text
     assert "Use Active Project Defaults" in index_text
     assert "Filter To Active Project" in index_text
+    assert "Controlled Automation Workspace" in index_text
+    assert "Use this workspace to inspect local records and prepare operator decisions" in index_text
+    assert "local-only" in index_text
+    assert "advisory" in index_text
+    assert "operator-gated" in index_text
+    assert "no automatic execution" in index_text
+    assert "no patch application" in index_text
+    assert "no network or GitHub calls" in index_text
+    assert "No automatic execution: no Codex, Ollama, local LLM, GitHub, agents, network services, patch application, or background queue worker." in index_text
+    assert "Dispatch Artifacts" in index_text
+    assert "Approvals" in index_text
+    assert "Route recommendations never dispatch agents, Codex, or models." in index_text
     assert "Local Queue Lifecycle" in index_text
     assert "Local-only and manual queue lifecycle controls: operator-gated status changes only" in index_text
     assert "Add Task" in index_text
@@ -451,9 +463,13 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "Execution Audit Log" in index_text
     assert "queue-execution-audit-form" in index_text
     assert "queue-execution-audit-entries" in index_text
-    assert "AI Artifact Registry" in index_text
+    assert "Artifact Registry" in index_text
     assert "queue-ai-artifacts-form" in index_text
     assert "queue-ai-artifacts-entries" in index_text
+    assert "dispatch, advisory, patch intake, evidence, completion recommendation, documentation proposal, and routing recommendation records" in index_text
+    assert "Manual dispatch preparation records, local LLM advisory artifacts, patch intake records, parsed dispatch evidence, completion recommendations, documentation proposals, and route recommendations" in index_text
+    assert "Approval Ledger And Dispatch Gates" in index_text
+    assert "Approval and review ledger gaps must be resolved by an operator before patch intake or manual handoff." in index_text
     assert "Operator Run History" in index_text
     assert "queue-operator-run-history-form" in index_text
     assert "queue-operator-run-history-timeline" in index_text
@@ -476,13 +492,15 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "queue-dispatch-review-form" in index_text
     assert "queue-dispatch-review-records" in index_text
     assert "queue-dispatch-review-checklist" in index_text
-    assert "manual dispatch preparation records, local LLM advisory artifacts, patch intake records, parsed dispatch evidence, and queue completion recommendations" in index_text
+    assert "manual dispatch preparation records, local LLM advisory artifacts, approval-gated patch intake records, parsed dispatch evidence, queue completion recommendations, artifact registry records, approval ledger status, and route recommendations" in index_text
     assert "Local-only and operator-gated: no Codex, Ollama, local LLM, GitHub, agent, network, patch application, or queue completion execution" in index_text
     assert "Agent Routing Decision Dashboard" in index_text
     assert "queue-agent-route-form" in index_text
     assert "queue-agent-route-recommended-lane" in index_text
     assert "queue-agent-route-reasons" in index_text
     assert "queue-agent-route-blockers" in index_text
+    assert "Review the recommended lane, alternatives, blockers, required artifacts, and next safe action before any manual handoff." in index_text
+    assert "No agent route recommendation loaded yet. Enter an item id to inspect advisory lane guidance only." in index_text
     assert "no execute buttons" in index_text
     assert "buildCodexHighValuePromptPayload" in queue_js
     assert "renderCodexHighValuePromptResult" in queue_js

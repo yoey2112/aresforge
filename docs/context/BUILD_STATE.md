@@ -1,5 +1,28 @@
 # AresForge Build State
 
+## M123 Hub Controlled Automation Workspace Polish
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m123-hub-controlled-automation-workspace-polish`.
+
+M123 polishes the Hub Queue workspace for controlled automation review without adding any execution behavior. The Hub now surfaces a clearer Controlled Automation Workspace summary, explicit boundary chips, improved advisory/review headings, and stronger empty states for:
+
+- local queue state
+- manual Codex dispatch preparation
+- local LLM advisory artifacts
+- approval-gated patch intake and approval ledger review
+- dispatch evidence parsing
+- completion recommendations
+- artifact registry discovery
+- route recommendation review
+
+Safety boundaries:
+
+- UI/readability polish only
+- no new API execution endpoint
+- no Codex, Ollama/local LLM prompting, remote LLM call, GitHub API, `gh`, network service, agent execution, validation command execution, patch application, source mutation beyond this milestone's UI/docs update, automatic completion, autonomous execution, or next-item execution
+
 ## M122 Safe Queue Mutation Transaction Log
 
 Status: Completed locally on `main` after validation.

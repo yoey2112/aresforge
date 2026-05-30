@@ -1,5 +1,21 @@
 # AresForge Agent Context
 
+## M123 Hub Controlled Automation Workspace Polish Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m123-hub-controlled-automation-workspace-polish`.
+
+M123 improves Hub clarity for the controlled automation workspace. It adds a visible Queue-panel summary that labels the workspace `local-only`, `advisory`, `operator-gated`, `no automatic execution`, `no patch application`, and `no network or GitHub calls`.
+
+The polish improves wording and empty states for queue review, dispatch artifacts, approval/ledger review, parsed evidence, completion recommendations, artifact registry discovery, and route recommendations.
+
+M123 boundaries:
+
+- Hub UI polish and static test coverage only
+- no new execution capability
+- no Codex, Codex CLI, Ollama/local LLMs, remote LLMs, agents, GitHub API, `gh`, network services, validation command execution, patch application, queue automation, autonomous execution, or next-item execution
+
 ## M122 Safe Queue Mutation Transaction Log Context
 
 Status: Completed locally on `main` after validation.

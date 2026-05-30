@@ -59,6 +59,23 @@ h1 {
   color: #7c2d12;
 }
 
+.boundary-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0.65rem 0 0.85rem;
+}
+
+.boundary-chip {
+  border: 1px solid #b8c7d8;
+  border-radius: 999px;
+  background: #f8fafc;
+  color: #31445c;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0.24rem 0.55rem;
+}
+
 .layout {
   display: grid;
   grid-template-columns: 250px 1fr;
@@ -110,6 +127,10 @@ h1 {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   gap: 0.7rem;
+}
+
+.compact-cards {
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
 }
 
 .card {

@@ -845,8 +845,53 @@
 
         <section id="panel-queue" class="panel" data-panel="queue">
           <h2>Queue</h2>
-          <p>Track local queue items with local-only filters, dependency warnings, operator-gated actions, and review-only AI metadata.</p>
+          <p>Controlled automation workspace for local queue state, advisory artifacts, approval records, evidence, recommendations, and route review.</p>
+          <p class="boundary-banner">Local-only, advisory, and operator-gated. No automatic execution: no Codex, Ollama, local LLM, GitHub, agents, network services, patch application, or background queue worker.</p>
           <p id="queue-message" class="message"></p>
+          <section class="subpanel controlled-automation-overview">
+            <h3>Controlled Automation Workspace</h3>
+            <p class="message-note">Use this workspace to inspect local records and prepare operator decisions. Generation controls create local artifacts or metadata only; review controls never dispatch work or apply patches.</p>
+            <div class="boundary-chip-row" aria-label="Controlled automation boundaries">
+              <span class="boundary-chip">local-only</span>
+              <span class="boundary-chip">advisory</span>
+              <span class="boundary-chip">operator-gated</span>
+              <span class="boundary-chip">no automatic execution</span>
+              <span class="boundary-chip">no patch application</span>
+              <span class="boundary-chip">no network or GitHub calls</span>
+            </div>
+            <div class="cards compact-cards">
+              <article class="card">
+                <h4>Queue</h4>
+                <p>Inspect and record local status</p>
+                <p class="subvalue">Starts/completions require explicit operator action.</p>
+              </article>
+              <article class="card">
+                <h4>Dispatch Artifacts</h4>
+                <p>Prepare handoff packages</p>
+                <p class="subvalue">Manual Codex and local LLM advisory records remain copy/paste or review-only.</p>
+              </article>
+              <article class="card">
+                <h4>Approvals</h4>
+                <p>Review before intake</p>
+                <p class="subvalue">Approval records do not apply patches or start execution.</p>
+              </article>
+              <article class="card">
+                <h4>Evidence</h4>
+                <p>Parse and summarize results</p>
+                <p class="subvalue">Completion recommendations still require a human decision.</p>
+              </article>
+              <article class="card">
+                <h4>Registry</h4>
+                <p>Find generated artifacts</p>
+                <p class="subvalue">Discovery only, with stale and blocked records surfaced for review.</p>
+              </article>
+              <article class="card">
+                <h4>Routing</h4>
+                <p>Choose an advisory lane</p>
+                <p class="subvalue">Route recommendations never dispatch agents, Codex, or models.</p>
+              </article>
+            </div>
+          </section>
           <section class="subpanel">
             <h3>Local Queue Read-Only Summary</h3>
             <p class="message-note">Local-only and read-only queue view: no queue mutation, no agent execution, no GitHub sync/mutation, and no external workflow activity.</p>
@@ -970,6 +1015,7 @@
           <section class="subpanel">
             <h3>Agent Routing Decision Dashboard</h3>
             <p class="boundary-banner">Local-only advisory recommendation: no execute buttons, no Codex, Ollama, local LLM, agent, GitHub, network, patch, or queue mutation action.</p>
+            <p class="message-note">Review the recommended lane, alternatives, blockers, required artifacts, and next safe action before any manual handoff.</p>
             <form id="queue-agent-route-form" class="form-grid">
               <label>Item ID<input id="queue-agent-route-item-id" name="item_id" placeholder="queue item id" /></label>
               <button id="queue-agent-route-submit" type="submit">Load Advisory Route</button>
@@ -981,16 +1027,16 @@
               <article class="card"><h4>Documentation Agent Suitable</h4><p id="queue-agent-route-docs">false</p></article>
             </div>
             <ul id="queue-agent-route-summary" class="list"></ul>
-            <p id="queue-agent-route-summary-empty" class="empty">No agent route recommendation loaded yet.</p>
+            <p id="queue-agent-route-summary-empty" class="empty">No agent route recommendation loaded yet. Enter an item id to inspect advisory lane guidance only.</p>
             <h4>Routing Reasons</h4>
             <ul id="queue-agent-route-reasons" class="list"></ul>
             <p id="queue-agent-route-reasons-empty" class="empty">No routing reasons loaded yet.</p>
             <h4>Required Artifacts Before Dispatch</h4>
             <ul id="queue-agent-route-artifacts" class="list"></ul>
-            <p id="queue-agent-route-artifacts-empty" class="empty">No artifact requirements loaded yet.</p>
+            <p id="queue-agent-route-artifacts-empty" class="empty">No artifact requirements loaded yet. Required dispatch, approval, evidence, or registry records will appear here after loading a route.</p>
             <h4>Blockers</h4>
             <ul id="queue-agent-route-blockers" class="list"></ul>
-            <p id="queue-agent-route-blockers-empty" class="empty">No route blockers.</p>
+            <p id="queue-agent-route-blockers-empty" class="empty">No route blockers loaded. Any missing approvals, artifacts, or human review requirements will appear here.</p>
             <h4>Next Safe Action</h4>
             <p id="queue-agent-route-next-safe-action" class="message-note">Load an advisory route to inspect the next safe action.</p>
           </section>
@@ -1172,8 +1218,8 @@
                 <p id="queue-execution-audit-summary-empty" class="empty">No audit log loaded yet. Load to review local safety and execution metadata only.</p>
                 <ul id="queue-execution-audit-entries" class="list"></ul>
                 <p id="queue-execution-audit-entries-empty" class="empty">No audit entries to show. Blocked attempts and advisory outputs will appear here after local actions.</p>
-                <h4>AI Artifact Registry</h4>
-                <p class="message-note">Read-only registry for local artifacts created by AresForge. Artifact visibility only; no execution, apply, or repo mutation controls.</p>
+                <h4>Artifact Registry</h4>
+                <p class="message-note">Read-only registry for local artifacts created by AresForge, including dispatch, advisory, patch intake, evidence, completion recommendation, documentation proposal, and routing recommendation records. Artifact visibility only; no execution, apply, or repo mutation controls.</p>
                 <form id="queue-ai-artifacts-form" class="form-grid">
                   <label>Item ID<input id="queue-ai-artifacts-item-id" name="item_id" placeholder="optional item filter" /></label>
                   <label>Artifact Type<input id="queue-ai-artifacts-type" name="artifact_type" placeholder="optional artifact_type" /></label>
@@ -1190,11 +1236,11 @@
                   <button id="queue-ai-artifacts-submit" type="submit">Load Artifact Registry</button>
                 </form>
                 <ul id="queue-ai-artifacts-summary" class="list"></ul>
-                <p id="queue-ai-artifacts-summary-empty" class="empty">No artifact registry loaded yet.</p>
+                <p id="queue-ai-artifacts-summary-empty" class="empty">No artifact registry loaded yet. Load the registry to discover local advisory and review artifacts.</p>
                 <ul id="queue-ai-artifacts-entries" class="list"></ul>
-                <p id="queue-ai-artifacts-entries-empty" class="empty">No artifact records to show. Prompt previews, prompt packs, and advisory outputs appear here only after local artifact writes.</p>
-                <h4>Dispatch Approval Gates</h4>
-                <p class="message-note">Read-only local approval gate records for dispatch artifacts and dry-run outputs. Approval status never starts agents, Codex, local LLMs, GitHub, or documentation mutation.</p>
+                <p id="queue-ai-artifacts-entries-empty" class="empty">No artifact records to show. Manual dispatch preparation records, local LLM advisory artifacts, patch intake records, parsed dispatch evidence, completion recommendations, documentation proposals, and route recommendations appear only after local artifact writes.</p>
+                <h4>Approval Ledger And Dispatch Gates</h4>
+                <p class="message-note">Read-only local approval gate records for dispatch artifacts and dry-run outputs. Approval status never starts agents, Codex, local LLMs, GitHub, patch intake, or documentation mutation.</p>
                 <form id="queue-dispatch-approval-gates-form" class="form-grid">
                   <label>Approval ID<input id="queue-dispatch-approval-gates-approval-id" name="approval_id" placeholder="optional approval filter" /></label>
                   <label>Item ID<input id="queue-dispatch-approval-gates-item-id" name="item_id" placeholder="optional item filter" /></label>
@@ -1202,22 +1248,22 @@
                   <button id="queue-dispatch-approval-gates-submit" type="submit">Load Approval Gates</button>
                 </form>
                 <ul id="queue-dispatch-approval-gates-summary" class="list"></ul>
-                <p id="queue-dispatch-approval-gates-summary-empty" class="empty">No approval gate registry loaded yet.</p>
+                <p id="queue-dispatch-approval-gates-summary-empty" class="empty">No approval gate registry loaded yet. Approval and review ledger gaps must be resolved by an operator before patch intake or manual handoff.</p>
                 <ul id="queue-dispatch-approval-gates-entries" class="list"></ul>
-                <p id="queue-dispatch-approval-gates-entries-empty" class="empty">No approval gate records to show.</p>
+                <p id="queue-dispatch-approval-gates-entries-empty" class="empty">No approval gate records to show. Missing approvals keep downstream patch intake and completion decisions operator-gated.</p>
                 <h4>Dispatch Review Panel</h4>
-                <p class="message-note">Read-only local dispatch review across manual dispatch preparation records, local LLM advisory artifacts, patch intake records, parsed dispatch evidence, and queue completion recommendations. Local-only and operator-gated: no Codex, Ollama, local LLM, GitHub, agent, network, patch application, or queue completion execution.</p>
+                <p class="message-note">Read-only local dispatch review across manual dispatch preparation records, local LLM advisory artifacts, approval-gated patch intake records, parsed dispatch evidence, queue completion recommendations, artifact registry records, approval ledger status, and route recommendations. Local-only and operator-gated: no Codex, Ollama, local LLM, GitHub, agent, network, patch application, or queue completion execution.</p>
                 <form id="queue-dispatch-review-form" class="form-grid">
                   <label>Item ID<input id="queue-dispatch-review-item-id" name="item_id" placeholder="optional item filter" /></label>
                   <label>Limit<input id="queue-dispatch-review-limit" name="limit" placeholder="25" /></label>
                   <button id="queue-dispatch-review-submit" type="submit">Load Dispatch Review</button>
                 </form>
                 <ul id="queue-dispatch-review-summary" class="list"></ul>
-                <p id="queue-dispatch-review-summary-empty" class="empty">No dispatch review snapshot loaded yet.</p>
+                <p id="queue-dispatch-review-summary-empty" class="empty">No dispatch review snapshot loaded yet. Load review data before deciding on manual handoff, evidence parsing, patch intake, or completion.</p>
                 <ul id="queue-dispatch-review-records" class="list"></ul>
-                <p id="queue-dispatch-review-records-empty" class="empty">No dispatch review records to show.</p>
+                <p id="queue-dispatch-review-records-empty" class="empty">No dispatch review records to show. Local advisory artifacts and parsed evidence will appear here after they are generated or recorded.</p>
                 <ul id="queue-dispatch-review-checklist" class="list"></ul>
-                <p id="queue-dispatch-review-checklist-empty" class="empty">No operator checklist loaded yet.</p>
+                <p id="queue-dispatch-review-checklist-empty" class="empty">No operator checklist loaded yet. Checklist items summarize human review steps only.</p>
                 <h4>Operator Run History</h4>
                 <p class="message-note">Read-only timeline combining execution audit entries and AI artifact registry records. No execution, apply, GitHub, Codex, or local LLM run controls.</p>
                 <form id="queue-operator-run-history-form" class="form-grid">

@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T21:07:52.634559+00:00",
+  "updated_at": "2026-05-30T22:05:00+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -3994,6 +3994,81 @@
       "closeout_history": [],
       "created_at": "2026-05-30T21:07:12.943722+00:00",
       "updated_at": "2026-05-30T21:07:52.634559+00:00"
+    },
+    {
+      "item_id": "m123-hub-controlled-automation-workspace-polish",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M123 Hub Controlled Automation Workspace Polish",
+      "description": "Polish the Hub controlled automation workspace so local-only advisory workflows and operator gates are obvious.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "dashboard",
+      "tags": [
+        "milestone:m123",
+        "hub",
+        "controlled-automation",
+        "local-only"
+      ],
+      "dependencies": [
+        "m122-safe-queue-mutation-transaction-log"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [],
+      "evidence_required": [],
+      "assigned_agent": "",
+      "source": "local_cli",
+      "notes": "Acceptance criteria: improve Hub clarity for local queue, dispatch preparation, local LLM advisory artifacts, approval-gated patch intake, evidence parsing, completion recommendations, artifact registry, approval ledger, and route recommendations; preserve all local-only and operator-gated boundaries.",
+      "started_at": "",
+      "started_via": "",
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-30T22:05:00+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M123 Hub Controlled Automation Workspace Polish implemented and validated locally. Added controlled automation workspace boundary summary, boundary chips, clearer advisory/review labels, improved empty states, static UI test assertions, source-of-truth docs, and queue evidence. No Codex, Ollama/local LLM, remote LLM, GitHub, gh, network service, agent execution, validation command execution from AresForge, patch application, external mutation, autonomous execution, or next-item execution was performed.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_hub_ui_foundation.py -> 58 passed; python -m pytest tests/test_hub_local_queue_lifecycle_api.py -> 32 passed; python -m pytest tests/test_cli.py -> 204 passed; git diff --check -> passed with CRLF warnings only; inspect-local-project-report and inspect-local-queue-agent-summary smoke checks passed.",
+      "tests_run": [
+        "python -m pytest tests/test_hub_ui_foundation.py -> 58 passed",
+        "python -m pytest tests/test_hub_local_queue_lifecycle_api.py -> 32 passed",
+        "python -m pytest tests/test_cli.py -> 204 passed",
+        "git diff --check -> passed with CRLF warnings only",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed"
+      ],
+      "changed_files": [
+        "src/aresforge/hub/static/index.html",
+        "src/aresforge/hub/static/styles.css",
+        "tests/test_hub_ui_foundation.py",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        ".aresforge/queue/work_items.json"
+      ],
+      "artifact_paths": [],
+      "completion_evidence": {},
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-30T22:05:00+00:00",
+      "updated_at": "2026-05-30T22:05:00+00:00"
     }
   ]
 }
