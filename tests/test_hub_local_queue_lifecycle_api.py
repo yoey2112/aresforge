@@ -1144,6 +1144,11 @@ def test_post_local_queue_prompt_pack_route_returns_local_copy_paste_payload(tmp
         assert "Agent Prompt Pack (Local-Only)" in payload["prompt_pack"]
         assert "recommended_engine: local_coding_llm" in payload["prompt_pack"]
         assert "AresForge does not execute local LLMs" in payload["prompt_pack"]
+        assert "No automatic execution." in payload["prompt_pack"]
+        assert "No repo mutation from local LLM output." in payload["prompt_pack"]
+        assert "recommendation_is_advisory_only: true" in payload["prompt_pack"]
+        assert "Final response format:" in payload["prompt_pack"]
+        assert "```" not in payload["prompt_pack"]
         assert any("does not execute Codex, local LLMs, agents" in entry for entry in payload["boundary_confirmations"])
         assert output_path.exists()
     finally:

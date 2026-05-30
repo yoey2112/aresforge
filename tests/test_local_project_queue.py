@@ -1190,7 +1190,12 @@ def test_generate_local_queue_prompt_pack_groups_and_writes_artifact(tmp_path: P
     assert '- recommended_agent_lane: unrouted' in payload['prompt_pack']
     assert 'Manual routing required; this queue item is unrouted' in payload['prompt_pack']
     assert '- execution_allowed: false' in payload['prompt_pack']
+    assert 'No automatic execution.' in payload['prompt_pack']
+    assert 'No GitHub API, no gh, no GitHub mutation.' in payload['prompt_pack']
+    assert 'No Codex execution, no Codex CLI execution unless a future approved milestone explicitly permits it' in payload['prompt_pack']
+    assert 'No repo mutation from local LLM output.' in payload['prompt_pack']
     assert 'Final response format:' in payload['prompt_pack']
+    assert '```' not in payload['prompt_pack']
 
     duplicate = generate_local_queue_prompt_pack(config, output=output)
     assert duplicate['ok'] is False
@@ -1243,9 +1248,15 @@ def test_generate_local_queue_prompt_pack_includes_routing_metadata_and_groups_b
     assert payload['items'][0]['dependencies'] == ['q-design']
     assert payload['items'][0]['execution_allowed'] is False
     assert payload['items'][0]['routing_metadata']['recommended_engine'] == 'codex_cli'
+    assert payload['items'][0]['lane_guidance'].startswith('High-value Codex lane')
+    assert payload['items'][0]['task_size_guidance'].startswith('high-value/complex')
+    assert payload['items'][0]['model_engine_recommendation'].startswith('Advisory only: codex_cli / codex-high')
     assert 'recommended_agent_lane: high_value_codex' in payload['prompt_pack']
     assert 'recommended_engine: codex_cli' in payload['prompt_pack']
-    assert 'Codex CLI is recommended for operator review, but AresForge does not execute Codex.' in payload['prompt_pack']
+    assert 'Codex CLI is recommended for operator review, but AresForge does not execute Codex; this is prompt-generation/operator-handoff only.' in payload['prompt_pack']
+    assert 'High-value Codex lane: prompt-generation/operator-handoff only' in payload['prompt_pack']
+    assert 'model_engine_recommendation: Advisory only: codex_cli / codex-high' in payload['prompt_pack']
+    assert 'recommendation_is_advisory_only: true' in payload['prompt_pack']
     assert 'Dependencies: q-design' in payload['prompt_pack']
 
 
@@ -1287,7 +1298,17 @@ def test_generate_local_queue_prompt_pack_groups_by_engine_and_marks_local_llm_r
 
     assert payload['ok'] is True
     assert payload['groups'] == ['by_engine: local_coding_llm']
-    assert 'local_coding_llm is recommended for operator review, but AresForge does not execute local LLMs.' in payload['prompt_pack']
+    assert 'local_coding_llm is recommended for operator review, but AresForge does not execute local LLMs and local LLM output must not mutate repo files.' in payload['prompt_pack']
+    assert 'Local LLM advisory lane: local-only advisory review only; no automatic execution and no repo mutation from local LLM output.' in payload['prompt_pack']
+    assert 'task_size: small - suitable for narrow manual handoff with focused validation.' in payload['prompt_pack']
+    assert 'Advisory only: local_coding_llm / local-code' in payload['prompt_pack']
+    assert 'Run: python -m aresforge inspect-local-queue-agent-summary' in payload['prompt_pack']
+    assert 'Run: python -m aresforge inspect-local-project-report' in payload['prompt_pack']
+    assert 'Run: git diff --check' in payload['prompt_pack']
+    assert 'Do not claim validation, smoke checks, commits, or pushes unless they actually happened.' in payload['prompt_pack']
+    assert 'Commit hash' in payload['prompt_pack']
+    assert 'Push result' in payload['prompt_pack']
+    assert '```' not in payload['prompt_pack']
 
 
 def test_generate_local_llm_prompt_preview_succeeds_for_local_coding_llm_and_writes_artifact(tmp_path: Path) -> None:

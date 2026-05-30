@@ -2,9 +2,19 @@
 
 ## Status
 
-M44A documented the future Agent/LLM routing strategy. M51 through M72 now add non-executing contracts and local Hub surfaces for project AI settings, agent/engine registry, queue routing metadata, recommendation-only routing decisions, Project AI Settings UI, routed queue views, routing-aware prompt packs, local LLM environment/health checks, Codex CLI model profile configuration, local LLM prompt preview/execution gates, Codex high-value prompt generation, a local execution audit log, centralized AI action safety gate decisions, a local AI artifact registry, an Operator Run History panel, an AI Action Review Panel, closeout reconciliation documentation, local AI operations hardening, verification, and local LLM provider configuration hardening.
+M44A documented the future Agent/LLM routing strategy. M51 through M73 now add non-executing contracts and local Hub surfaces for project AI settings, agent/engine registry, queue routing metadata, recommendation-only routing decisions, Project AI Settings UI, routed queue views, routing-aware prompt packs, local LLM environment/health checks, Codex CLI model profile configuration, local LLM prompt preview/execution gates, Codex high-value prompt generation, a local execution audit log, centralized AI action safety gate decisions, a local AI artifact registry, an Operator Run History panel, an AI Action Review Panel, closeout reconciliation documentation, local AI operations hardening, verification, local LLM provider configuration hardening, and prompt-pack quality/routing guidance.
 
 Current prompt-pack and Codex high-value lane behavior are advisory prompt generation only. Runtime routing, Codex execution, real agent execution, and GitHub integration remain unimplemented. Local LLM execution exists only as the M62 operator-gated local prototype.
+
+## M73 Prompt Pack Quality and Routing Improvements
+
+M73 improves generated prompt packs without adding execution behavior.
+
+Prompt packs now include lane-specific guidance for high-value Codex, local LLM advisory, documentation/review, and operator-only/manual work. They also include advisory model/engine recommendation text, task sizing guidance, validation/smoke expectations, and final response requirements.
+
+Codex high-value lane prompt-pack text remains prompt-generation/operator-handoff only. Local LLM advisory lane text explicitly states that local LLM output must not mutate repo files. Model/engine recommendations remain advisory metadata only and do not invoke a provider, select a fallback automatically, dispatch prompts, or authorize execution.
+
+M73 does not add routing execution, Codex execution, Codex CLI invocation, local LLM execution, agent execution, GitHub API calls, `gh` calls, issues, PRs, workflow activity, external workflow execution, or automatic repository mutation from local LLM output.
 
 ## M72 Local LLM Provider Configuration Hardening
 

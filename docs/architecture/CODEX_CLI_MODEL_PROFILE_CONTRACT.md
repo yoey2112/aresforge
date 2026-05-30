@@ -18,6 +18,8 @@ M69 hardens the Codex-adjacent safety posture. Codex high-value lane payloads, a
 
 M70 verifies the full M58-M69 local AI operations chain. It reconciles documentation and payload wording, confirms the Codex high-value lane remains prompt-generation/operator-handoff only, and does not add Codex CLI invocation or automatic execution behavior.
 
+M73 improves routing-aware prompt-pack guidance. Prompt packs that reference the Codex high-value lane now explicitly state prompt-generation/operator-handoff only, include advisory model/engine recommendation metadata, and continue to prohibit Codex CLI invocation unless a future approved milestone explicitly permits it.
+
 This contract represents future Codex CLI model preferences for routing and high-value lane planning. It does not execute Codex CLI, send prompts, run agents, call GitHub, call `gh`, or run external workflows.
 
 ## Storage

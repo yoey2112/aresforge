@@ -499,7 +499,7 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "method: \"GET\" });" in queue_js
     assert "/api/ai-action-review${buildAiActionReviewQuery()}`" in queue_js
     assert "/api/ai-action-review\", {\n        method: \"POST\"" not in queue_js
-    assert "Generates local copy/paste prompt pack only with advisory routing metadata" in index_text
+    assert "Generates local copy/paste prompt pack only with advisory routing, sizing, validation, and final-response guidance" in index_text
     assert "queue-prompt-pack-include-routing" in index_text
     assert "queue-prompt-pack-group-by-routing" in index_text
     assert "queue-prompt-pack-routing-group-by" in index_text

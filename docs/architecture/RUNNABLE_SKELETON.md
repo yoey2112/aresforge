@@ -1,5 +1,35 @@
 # Runnable Skeleton
 
+## M73 Prompt Pack Quality and Routing Improvements
+
+Status: Completed locally on `main`.
+
+Implemented runnable path:
+
+- operator helper: `generate_local_queue_prompt_pack(...)`
+- Hub route: `POST /api/local-queue/prompt-pack`
+- Queue UI panel: Agent Prompt Pack Generator
+
+Behavior contract:
+
+- generated prompt packs expose routing-aware lane guidance, advisory model/engine recommendation text, task sizing guidance, validation expectations, smoke checks, and final response requirements
+- high-value Codex prompts are labeled prompt-generation/operator-handoff only
+- local LLM advisory prompts explicitly prohibit repo mutation from local LLM output
+- prompt-pack text remains manual copy/paste output and avoids nested markdown fences
+
+Still absent by design:
+
+- automatic prompt dispatch or execution
+- Codex execution or Codex CLI invocation
+- local LLM execution from prompt packs
+- automatic agent execution
+- GitHub API, `gh`, issues, PRs, workflows, or GitHub mutation
+- repository mutation from local LLM output
+
+Next skeleton focus:
+
+- M74 should perform a Hub UX stabilization pass.
+
 ## M72 Local LLM Provider Configuration Hardening
 
 Status: Completed locally on `main`.

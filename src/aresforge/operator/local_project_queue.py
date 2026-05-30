@@ -2716,9 +2716,10 @@ def generate_local_queue_prompt_pack(
         'Agent Prompt Pack (Local-Only)',
         '',
         'This output is a local copy/paste prompt pack only.',
-        'It does not execute Codex, agents, models, GitHub actions, or network calls.',
+        'It does not execute Codex, Codex CLI, agents, local LLMs, models, prompts, GitHub actions, workflows, or network calls.',
         'Routing recommendations are metadata only and execution_allowed is always false.',
         'Operator must manually copy prompts into external tools if desired.',
+        'Local LLM output must never automatically mutate repository files.',
         '',
     ]
     item_summaries: list[dict[str, Any]] = []
@@ -2731,6 +2732,9 @@ def generate_local_queue_prompt_pack(
             routing_metadata = default_queue_routing_metadata(item.get('routing_metadata', {}))
             routed = _is_routed_metadata(routing_metadata)
             routing_guidance = _prompt_pack_routing_guidance(routing_metadata, routed)
+            lane_guidance = _prompt_pack_lane_guidance(routing_metadata, routed)
+            task_size_guidance = _prompt_pack_task_size_guidance(item, routing_metadata, routed)
+            model_recommendation = _prompt_pack_model_recommendation(routing_metadata, routed)
             dependencies = _normalize_list(item.get('blocked_by', []))
             prompt_header_lines = [
                 f'--- Prompt {sequence}: {item_id} ---',
@@ -2766,6 +2770,19 @@ def generate_local_queue_prompt_pack(
                         f'- operator_override: {routing_metadata.get("operator_override")}',
                         '- execution_allowed: false',
                         f'- guidance: {routing_guidance}',
+                        f'- lane_guidance: {lane_guidance}',
+                        f'- task_size: {task_size_guidance}',
+                        f'- model_engine_recommendation: {model_recommendation}',
+                        '- recommendation_is_advisory_only: true',
+                        '',
+                    ]
+                )
+            else:
+                prompt_header_lines.extend(
+                    [
+                        f'Lane-specific guidance: {lane_guidance}',
+                        f'Task sizing guidance: {task_size_guidance}',
+                        f'Model/engine recommendation: {model_recommendation}',
                         '',
                     ]
                 )
@@ -2792,16 +2809,21 @@ def generate_local_queue_prompt_pack(
                     '- Run: python -m aresforge inspect-local-queue-agent-summary',
                     '- Run: python -m aresforge inspect-local-project-report',
                     '- Run: git diff --check',
+                    '- Run: git status --short before any requested commit or push.',
+                    '- Do not claim validation, smoke checks, commits, or pushes unless they actually happened.',
                     '',
                     'Operating rules:',
                     '- Local-first only.',
                     '- Prompt pack is an artifact/preview only.',
+                    '- No automatic execution.',
                     '- No GitHub API, no gh, no GitHub mutation.',
-                    '- No Codex or agent execution from this prompt.',
+                    '- No Codex execution, no Codex CLI execution unless a future approved milestone explicitly permits it, and no agent execution from this prompt.',
                     '- No prompt execution.',
                     '- No local LLM execution and no routing execution.',
+                    '- No repo mutation from local LLM output.',
                     '- No external dependencies/services.',
                     '- Do not auto-start or auto-complete queue items.',
+                    '- Operator must review, apply, validate, commit, and push manually when explicitly requested.',
                     '',
                     'Final response format:',
                     '- Files changed',
@@ -2833,6 +2855,9 @@ def generate_local_queue_prompt_pack(
                     'dependencies': dependencies,
                     'routing_metadata': routing_metadata if include_routing else {},
                     'routing_guidance': routing_guidance if include_routing else '',
+                    'lane_guidance': lane_guidance,
+                    'task_size_guidance': task_size_guidance,
+                    'model_engine_recommendation': model_recommendation,
                     'execution_allowed': False,
                 }
             )
@@ -4161,10 +4186,57 @@ def _prompt_pack_routing_guidance(metadata: dict[str, Any], routed: bool) -> str
     if not routed:
         return 'Manual routing required; this queue item is unrouted and no engine is executed by AresForge.'
     if engine == 'codex_cli':
-        return 'Codex CLI is recommended for operator review, but AresForge does not execute Codex.'
+        return 'Codex CLI is recommended for operator review, but AresForge does not execute Codex; this is prompt-generation/operator-handoff only.'
     if engine in {'local_reasoning_llm', 'local_coding_llm'}:
-        return f'{engine} is recommended for operator review, but AresForge does not execute local LLMs.'
+        return f'{engine} is recommended for operator review, but AresForge does not execute local LLMs and local LLM output must not mutate repo files.'
     return 'Routing metadata is advisory only; no engine, model, agent, prompt, or workflow is executed by AresForge.'
+
+
+def _prompt_pack_lane_guidance(metadata: dict[str, Any], routed: bool) -> str:
+    lane = str(metadata.get('recommended_agent_lane', '')).strip()
+    engine = str(metadata.get('recommended_engine', '')).strip()
+    project_ai_mode = str(metadata.get('project_ai_mode', '')).strip()
+    if not routed or project_ai_mode == 'manual_only':
+        return 'Operator-only/manual lane: inspect routing locally, decompose if needed, and do not dispatch prompts automatically.'
+    if lane == 'high_value_codex' or engine == 'codex_cli':
+        return 'High-value Codex lane: prompt-generation/operator-handoff only; do not invoke Codex CLI or apply changes automatically.'
+    if engine in {'local_reasoning_llm', 'local_coding_llm'}:
+        return 'Local LLM advisory lane: local-only advisory review only; no automatic execution and no repo mutation from local LLM output.'
+    if lane in {'documentation', 'reviewer_validator', 'review', 'docs'}:
+        return 'Documentation/review lane: review or documentation guidance only; operator applies any accepted changes manually.'
+    return 'Routing lane is advisory metadata only; operator keeps execution, validation, mutation, commit, and push decisions manual.'
+
+
+def _prompt_pack_task_size_guidance(item: dict[str, Any], metadata: dict[str, Any], routed: bool) -> str:
+    complexity = str(metadata.get('complexity_level', '')).strip().lower()
+    risk = str(metadata.get('risk_level', '')).strip().lower()
+    description = str(item.get('description', '')).strip()
+    dependencies = _normalize_list(item.get('blocked_by', []))
+    if not routed and not description:
+        return 'too broad/requires decomposition - missing routing and description; operator should clarify scope before handoff.'
+    if complexity in {'critical', 'high'} or risk in {'critical', 'high'}:
+        return 'high-value/complex - use careful operator review, targeted validation, and explicit handoff boundaries.'
+    if complexity in {'medium', 'moderate'} or risk in {'medium', 'moderate'} or dependencies:
+        return 'medium - confirm dependencies and run targeted local validation before closeout.'
+    if complexity in {'low', 'small'} or risk in {'low'}:
+        return 'small - suitable for narrow manual handoff with focused validation.'
+    if len(description) > 800:
+        return 'too broad/requires decomposition - long or ambiguous task text should be split before execution.'
+    return 'medium - routing metadata is incomplete, so operator should size conservatively.'
+
+
+def _prompt_pack_model_recommendation(metadata: dict[str, Any], routed: bool) -> str:
+    if not routed:
+        return 'No model or engine recommendation; manual routing review required before copy/paste handoff.'
+    engine = str(metadata.get('recommended_engine', '')).strip() or 'unrouted'
+    model = str(metadata.get('recommended_model', '')).strip() or 'unspecified model'
+    fallback_engine = str(metadata.get('fallback_engine', '')).strip()
+    fallback_model = str(metadata.get('fallback_model', '')).strip()
+    policy_source = str(metadata.get('routing_policy_source', '')).strip() or 'manual_required'
+    fallback = 'No automatic fallback is selected.'
+    if fallback_engine or fallback_model:
+        fallback = f'Fallback metadata: {fallback_engine or "unspecified engine"} / {fallback_model or "unspecified model"}; operator must choose manually.'
+    return f'Advisory only: {engine} / {model} from {policy_source}. {fallback}'
 
 
 def _read_local_llm_environment_for_preview(repo_root: Path) -> dict[str, Any]:

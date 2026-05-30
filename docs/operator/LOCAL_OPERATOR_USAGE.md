@@ -1,5 +1,29 @@
 # Local Operator Usage
 
+## M73 Prompt Pack Quality and Routing Improvements
+
+Status: Completed locally on `main`.
+
+Operator workflow:
+
+1. Open Queue in the Hub.
+2. Use Agent Prompt Pack Generator for selected queue items or status filters.
+3. Leave routing metadata enabled when routing-aware handoff context is useful.
+4. Review lane guidance, advisory model/engine recommendation, task sizing, validation expectations, and final response requirements.
+5. Copy/paste prompt text manually into the operator-approved tool only after review.
+
+Operator safety notes:
+
+- generated prompt packs are manual handoff artifacts only
+- prompt-pack generation does not execute Codex, Codex CLI, local LLMs, agents, prompts, GitHub, `gh`, workflows, or external services
+- Codex high-value lane remains prompt-generation/operator-handoff only
+- local LLM advisory lane remains advisory-only and local LLM output cannot mutate repo files automatically
+- model/engine recommendations are advisory metadata only and do not select or invoke a provider
+
+Recommended next milestone:
+
+- M74 - Hub UX Stabilization Pass.
+
 ## M72 Local LLM Provider Configuration Hardening
 
 Status: Completed locally on `main`.

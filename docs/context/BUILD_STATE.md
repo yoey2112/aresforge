@@ -1,5 +1,27 @@
 # AresForge Build State
 
+## M73 Prompt Pack Quality and Routing Improvements
+
+Status: Completed locally on `main`.
+
+Delivered:
+
+- improved local queue prompt packs with routing-aware lane guidance for high-value Codex, local LLM advisory, documentation/review, and operator-only/manual paths
+- added advisory model/engine recommendation text, task sizing guidance, validation expectations, and final response requirements to generated prompt packs
+- made prompt-pack safety boundaries explicit: no automatic execution, no GitHub API, no `gh`, no GitHub mutation, no Codex CLI execution unless a future approved milestone explicitly permits it, and no repo mutation from local LLM output
+- kept prompt packs copy/paste-friendly and avoided nested markdown fences in generated prompt bodies
+
+Safety posture:
+
+- prompt packs remain manual operator handoff artifacts only
+- Codex high-value lane remains prompt-generation/operator-handoff only
+- local LLM advisory lane remains advisory-only and cannot mutate repo files automatically
+- no automatic execution, provider invocation, GitHub behavior, workflow behavior, or external mutation was introduced
+
+Recommended next milestone:
+
+- M74 - Hub UX Stabilization Pass.
+
 ## M72 Local LLM Provider Configuration Hardening
 
 Status: Completed locally on `main`.
