@@ -1,8 +1,26 @@
 # AresForge Agent Context
 
-## M82 Self-Managed AresForge Test Run Context
+## M83 Local LLM Provider Contract Context
 
 Status: In progress locally on `main`.
+
+Current provider contract scope:
+
+- `inspect-local-llm-provider-contract` inspects provider metadata without invoking Ollama.
+- Ollama is the initial provider target.
+- The payload reports local provider URL source, timeout expectations, allowed health-check endpoint, forbidden inference endpoints, reasoning/coding/fallback model identifiers, model roles, capabilities, and safety boundaries.
+- Reasoning and coding model selection remain metadata for future operator-gated lanes.
+
+Boundaries preserved:
+
+- no prompt execution from provider contract inspection
+- no local LLM provider invocation from provider contract inspection
+- no repo file mutation, queue mutation, queue completion, or automatic next-item execution
+- no GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, external workflow execution, or GitHub mutation
+
+## M82 Self-Managed AresForge Test Run Context
+
+Status: Completed locally on `main`.
 
 Current dogfood scope:
 

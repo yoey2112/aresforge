@@ -32,6 +32,8 @@ M75 reconciles source-of-truth documentation after M74. It does not add local LL
 
 M81 adds a read-only local LLM advisory/coding lane readiness inspection path. It reads this environment contract and M80 decision metadata to produce structured advisory planning output, but it does not invoke a provider, send prompts, run inference, mutate repository files, mutate queue state, complete queue items, or start another queue item.
 
+M83 adds a read-only local LLM provider contract inspection path. It formalizes Ollama as the initial provider target and reports provider URL, health-check endpoint limits, timeout expectations, model identifiers, role/capability metadata, and safety boundaries. It does not call Ollama, send prompts, run inference, execute routing, mutate repository files, mutate queue state, complete queue items, or start another queue item.
+
 ## Storage
 
 The contract is stored locally at:
@@ -59,6 +61,7 @@ Reading defaults does not write this file. Updating the contract writes the file
 - `GET /api/operator-run-history`
 - `GET /api/ai-action-review`
 - CLI: `python -m aresforge inspect-local-llm-advisory-lane-readiness --item-id <item_id> --format json`
+- CLI: `python -m aresforge inspect-local-llm-provider-contract --format json`
 
 ## Fields
 
@@ -91,6 +94,24 @@ Derived read-only metadata:
 - `unknown`
 
 Model fields are placeholders/configuration only. A non-empty model name does not mean the model is installed.
+
+## M83 Provider Contract
+
+`inspect-local-llm-provider-contract` is a read-only provider contract inspector. It uses the local environment contract as input and returns:
+
+- initial provider target: `ollama`
+- supported provider targets
+- provider base URL and source
+- request timeout and health-check timeout expectations
+- allowed health endpoint: `/api/tags`
+- forbidden inference endpoints such as `/api/generate`, `/api/chat`, `/api/completions`, and `/v1/chat/completions`
+- separate reasoning, coding, and fallback model identifiers
+- role/capability metadata for local reasoning and local coding lanes
+- safety boundary confirmations
+
+The provider contract supports future local reasoning and local coding model selection, but selection remains operator-reviewed metadata. Fallback model configuration is never selected or executed automatically.
+
+Provider contract inspection does not require Ollama to be running. Tests must mock or inspect local files only and must not require a real Ollama service.
 
 ## Provider Availability States
 

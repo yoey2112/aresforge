@@ -1,5 +1,27 @@
 # Runnable Skeleton
 
+## M83 Local LLM Provider Contract
+
+M83 adds a local-only provider contract inspection path:
+
+- `python -m aresforge inspect-local-llm-provider-contract --format json`
+
+Runnable behavior:
+
+- reads local LLM environment metadata
+- identifies Ollama as the initial local provider target
+- reports provider URL, timeout expectations, health-check endpoint boundaries, reasoning/coding/fallback model identifiers, role/capability metadata, and safety confirmations
+- confirms contract inspection does not invoke Ollama or any model endpoint
+
+Still absent by design:
+
+- automatic provider invocation
+- automatic prompt execution
+- repo or queue mutation from provider output
+- automatic queue completion
+- automatic next-item execution
+- GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, or external workflow execution
+
 ## M82 Self-Managed AresForge Test Run
 
 M82 adds a self-managed, read-only dogfood summary to the local project report:

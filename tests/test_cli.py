@@ -58,6 +58,7 @@ def test_cli_has_expected_commands() -> None:
         "prepare-codex-dispatch-dry-run",
         "prepare-queue-item-dispatch",
         "inspect-llm-decision-matrix",
+        "inspect-local-llm-provider-contract",
         "run-single-ready-codex-queue-item",
         "approve-codex-dispatch",
         "run-codex-dispatch",
@@ -5018,6 +5019,53 @@ def test_inspect_local_llm_advisory_lane_readiness_dispatch_json(
     assert parsed["queue_mutation_allowed"] is False
     assert parsed["automatic_next_item_execution_allowed"] is False
     assert seen["item_id"] == "m81"
+    assert seen["output_format"] == "json"
+
+
+def test_inspect_local_llm_provider_contract_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "ok": True,
+                "local_only": True,
+                "read_only": True,
+                "provider": "ollama",
+                "initial_provider_target": "ollama",
+                "safety_boundary": {
+                    "provider_invocation_allowed_from_this_command": False,
+                    "repo_mutation_allowed": False,
+                    "automatic_next_item_execution_allowed": False,
+                    "github_api_allowed": False,
+                    "gh_allowed": False,
+                },
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_inspect(_config, output_format="json"):
+        seen["output_format"] = output_format
+        return payload
+
+    monkeypatch.setattr(cli, "inspect_local_llm_provider_contract", fake_inspect)
+    exit_code = cli.main(["inspect-local-llm-provider-contract", "--format", "json"])
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["provider"] == "ollama"
+    assert parsed["initial_provider_target"] == "ollama"
+    assert parsed["safety_boundary"]["provider_invocation_allowed_from_this_command"] is False
+    assert parsed["safety_boundary"]["repo_mutation_allowed"] is False
+    assert parsed["safety_boundary"]["automatic_next_item_execution_allowed"] is False
+    assert parsed["safety_boundary"]["github_api_allowed"] is False
+    assert parsed["safety_boundary"]["gh_allowed"] is False
     assert seen["output_format"] == "json"
 
 

@@ -1,5 +1,30 @@
 # Local Operator Usage
 
+## M83 Local LLM Provider Contract
+
+Inspect the local LLM provider contract:
+
+    python -m aresforge inspect-local-llm-provider-contract --format json
+
+Payload highlights:
+
+- `initial_provider_target`
+- `provider_base_url`
+- `request_timeout_seconds`
+- `health_check_contract`
+- `model_selection_contract`
+- `safety_boundary`
+
+Operator rules:
+
+- treat the provider contract as read-only metadata
+- use Ollama as the initial local provider target
+- use only the explicit health check path for local provider availability checks
+- do not call generation/chat/completion endpoints from contract inspection
+- do not apply provider output to repo files automatically
+- do not execute prompts automatically unless a separate explicit operator-gated command allows it
+- do not use GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, or external workflow behavior
+
 ## M82 Self-Managed AresForge Test Run
 
 Inspect AresForge as its own local managed project:

@@ -1,8 +1,26 @@
 # AresForge Build State
 
-## M82 Self-Managed AresForge Test Run
+## M83 Local LLM Provider Contract
 
 Status: In progress locally on `main`.
+
+Delivered in this pass:
+
+- added `inspect-local-llm-provider-contract` for read-only provider contract inspection
+- defines Ollama as the initial local provider target
+- reports provider URL, timeout expectations, health-check endpoint boundaries, model identifiers, model roles/capabilities, and safety confirmations
+- supports separate future local reasoning and local coding model selection through contract metadata
+
+M83 safety posture:
+
+- local-only and non-executing
+- provider contract inspection does not call Ollama or any model endpoint
+- health checks remain explicit and limited to the local Ollama `/api/tags` endpoint
+- no provider output can mutate repo files, mutate queue state, execute prompts automatically, start the next item, or use GitHub/`gh`/workflows/external automation
+
+## M82 Self-Managed AresForge Test Run
+
+Status: Completed locally on `main`.
 
 Delivered in this pass:
 

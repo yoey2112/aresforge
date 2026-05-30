@@ -8,6 +8,8 @@ M74 stabilized the Hub wording around those surfaces. M75 reconciles the source-
 
 M81 adds a read-only local LLM advisory/coding lane readiness inspection path. It reuses M80 decision matrix output and local LLM environment/model metadata to produce structured advisory planning output without invoking a provider.
 
+M83 adds a read-only local LLM provider contract. It makes Ollama the initial local provider target and exposes provider URL, health-check endpoint limits, timeout expectations, model identifiers, roles/capabilities, and safety boundaries without invoking the provider.
+
 Current prompt-pack and Codex high-value lane behavior are advisory prompt generation/manual handoff only. Runtime routing execution, Codex dispatch, Codex CLI invocation, real agent execution, external workflow execution, and GitHub integration remain unimplemented. Local LLM execution exists only as the M62 operator-gated local prototype and remains local-only, advisory-only, prototype-scoped, and non-mutating.
 
 ## M75 Source-of-Truth and Next Decision Matrix Direction
@@ -23,6 +25,7 @@ The next decision-matrix direction is:
 - M80 defines LLM decision matrix v2 for local LLM vs Codex, coding vs reasoning, model/profile selection, task size, risk, validation burden, and safety gating
 - M81 extends local LLM lanes locally and advisory-first before any coding-output path
 - M82 tests self-management using AresForge itself
+- M83 formalizes the local LLM provider contract for advisory and future coding lanes
 
 Next phase safety gates before any Codex dispatch implementation:
 
@@ -57,6 +60,23 @@ Local model profiles describe provider, model name, intended lane, recommended u
 Health-check output remains explicitly invoked and local-only. It may inspect local provider availability/model listing through the existing safe health path, but it keeps `inference_tested: false` and `execution_allowed: false`.
 
 M72 does not add routing execution, Codex execution, agent execution, GitHub API calls, `gh` calls, issues, PRs, workflow activity, external workflow execution, automatic local LLM execution, or automatic repository mutation from local LLM output.
+
+## M83 Local LLM Provider Contract
+
+M83 adds `inspect-local-llm-provider-contract`.
+
+The provider contract is a read-only routing input for advisory and future coding lanes. It reports:
+
+- Ollama as the initial provider target
+- local provider URL metadata
+- request and health-check timeout expectations
+- `/api/tags` as the only allowed health-check endpoint
+- generation/chat/completion endpoints as forbidden from contract inspection and health checks
+- reasoning, coding, and fallback model identifiers
+- role/capability metadata for `local_reasoning_llm` and `local_coding_llm`
+- explicit safety boundaries for no provider invocation, no repo mutation, no queue mutation, no automatic prompt execution, and no automatic next-item execution
+
+M83 does not add routing execution, Codex execution, local LLM execution, agent execution, GitHub API calls, `gh` calls, issues, PRs, workflow activity, daemon/watch/scheduler behavior, external workflow execution, automatic local LLM execution, or automatic repository mutation from local LLM output.
 
 ## M69 Local AI Operations Hardening
 

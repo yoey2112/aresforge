@@ -219,6 +219,7 @@ from aresforge.operator.codex_dispatch_runner import (
 )
 from aresforge.operator.llm_decision_matrix import inspect_llm_decision_matrix
 from aresforge.operator.local_llm_advisory_lane import inspect_local_llm_advisory_lane_readiness
+from aresforge.operator.local_llm_provider import inspect_local_llm_provider_contract
 from aresforge.operator.queue_dispatch_preparation import prepare_queue_item_dispatch
 from aresforge.operator.single_ready_codex_queue_item import run_single_ready_codex_queue_item
 from aresforge.operator.local_agent_profiles import (
@@ -1584,6 +1585,15 @@ def build_parser() -> argparse.ArgumentParser:
     inspect_local_llm_advisory_lane_parser.add_argument("--queue-path")
     inspect_local_llm_advisory_lane_parser.add_argument("--registry-path")
     inspect_local_llm_advisory_lane_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="json",
+    )
+    inspect_local_llm_provider_contract_parser = subparsers.add_parser(
+        "inspect-local-llm-provider-contract",
+        help="Inspect the M83 local LLM provider contract without invoking a provider.",
+    )
+    inspect_local_llm_provider_contract_parser.add_argument(
         "--format",
         choices=["json", "markdown"],
         default="json",
@@ -3855,6 +3865,14 @@ def main(argv: list[str] | None = None) -> int:
             registry_path=args.registry_path,
             output_format=args.format,
         )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-local-llm-provider-contract":
+        payload = inspect_local_llm_provider_contract(config, output_format=args.format)
         if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
             print(payload["stdout"])
             return 0

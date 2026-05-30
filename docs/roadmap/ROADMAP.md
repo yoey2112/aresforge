@@ -1,8 +1,31 @@
 # AresForge Roadmap
 
-## M82 Self-Managed AresForge Test Run
+## M83 Local LLM Provider Contract
 
 Status: In progress locally on `main`.
+
+Purpose:
+
+- define the local-only provider contract used by advisory and future coding lanes
+- make Ollama the initial provider target without adding implicit provider calls or prompt execution
+
+Delivered scope:
+
+- `inspect-local-llm-provider-contract`
+- structured provider URL, timeout, health-check, model identifier, role/capability, and safety-boundary metadata
+- separate contract entries for local reasoning, local coding, and fallback model fields
+
+Constraints preserved:
+
+- no provider invocation from contract inspection
+- no real Ollama dependency in tests
+- no repo/source mutation or queue mutation from provider output
+- no automatic prompt execution or automatic next-item execution
+- no GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, external workflow execution, or GitHub mutation
+
+## M82 Self-Managed AresForge Test Run
+
+Status: Completed locally on `main`.
 
 Purpose:
 
