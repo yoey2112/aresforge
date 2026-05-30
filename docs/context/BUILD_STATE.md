@@ -2,11 +2,59 @@
 
 ## Current Phase
 
-M105 performs post-batch documentation reconciliation for the completed M99-M104 local-only operator workflow milestones.
+M106 implements the local-only Dispatch Artifact Index/Report for generated dispatch artifacts, dry-run outputs, and approval gate status.
 
 ## Current Goal
 
-M105 aligns source-of-truth docs, roadmap state, local project state, queue evidence, and handoff warnings after M99-M104. It is docs/data-only and does not add runtime features, model execution, agent execution, dispatch execution, or patch application.
+M106 gives operators one read-only report for known local dispatch artifact locations before M107 safe handoff packaging. It does not execute artifacts, validate artifact content beyond safe local reads, call agents/models/network services, mutate queue state, or apply patches.
+
+## M106 Dispatch Artifact Index/Report
+
+Status: In progress locally on `main`.
+
+Queue item: `m105-post-batch-documentation-reconciliation-m106-dispatch-artifact-index-report`.
+
+Implementation commit: pending.
+
+M106 adds:
+
+- `inspect-dispatch-artifacts`
+- `inspect-dispatch-artifacts --format json`
+- optional `--project-id`, `--artifact-root`, and `--approval-path`
+- local scanning of known artifact output folders:
+  - `artifacts/codex_prompt_dispatch/generated`
+  - `artifacts/local_llm_advisory/dry_runs`
+  - `artifacts/documentation_agent/dry_runs`
+- approval gate status joining from `.aresforge/dispatch_approval_gates.json`
+
+Report output includes:
+
+- stable `artifact_id`
+- `artifact_type`
+- `item_id`
+- `dispatch_lane`
+- `file_path`
+- `created_at` and `modified_at`
+- `approval_gate_status` and `approval_id` when available
+- `local_only: true`
+- `read_only: true`
+- `execution_allowed: false`
+- `next_safe_action`
+
+Safety boundaries:
+
+- local filesystem and approval gate inspection only
+- no artifact execution
+- no Codex execution
+- no Ollama or local model invocation
+- no documentation-agent execution or documentation mutation
+- no GitHub API, `gh`, network service, workflow, issue, PR, external-agent, or patch application
+- no queue mutation, approval mutation, or automatic handoff
+
+M106 to M107 relationship:
+
+- M106 indexes the artifacts and approval states an operator should review before handoff.
+- M107 is expected to package safe handoff materials, still with `execution_allowed=false`.
 
 ## M105 Post-Batch Documentation Reconciliation
 

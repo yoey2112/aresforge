@@ -63,6 +63,7 @@ def test_cli_has_expected_commands() -> None:
         "create-dispatch-approval-gate",
         "inspect-dispatch-approval-gate",
         "update-dispatch-approval-gate",
+        "inspect-dispatch-artifacts",
         "inspect-llm-decision-matrix",
         "inspect-local-llm-provider-contract",
         "run-single-ready-codex-queue-item",
@@ -6362,6 +6363,96 @@ def test_update_dispatch_approval_gate_dispatch_json(
     assert seen["approval_id"] == "approval-1"
     assert seen["status"] == "approved_for_manual_handoff"
     assert seen["output_format"] == "json"
+
+
+def test_inspect_dispatch_artifacts_dispatch_markdown(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "markdown",
+        "wrote_output_file": False,
+        "stdout": "# Dispatch Artifact Index\n\n- artifact_count: 1\n- execution_allowed: False\n",
+        "payload": {},
+    }
+    monkeypatch.setattr(
+        cli,
+        "inspect_dispatch_artifacts",
+        lambda _config, project_id="aresforge", artifact_root=None, approval_path=None, output_format="markdown": payload,
+    )
+
+    exit_code = cli.main(["inspect-dispatch-artifacts"])
+    output = capsys.readouterr().out
+
+    assert exit_code == 0
+    assert "Dispatch Artifact Index" in output
+    assert "execution_allowed: False" in output
+
+
+def test_inspect_dispatch_artifacts_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    seen: dict[str, object] = {}
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "report_type": "dispatch_artifact_index",
+                "project_id": "aresforge",
+                "artifact_count": 1,
+                "execution_allowed": False,
+            }
+        ),
+        "payload": {},
+    }
+
+    def fake_inspect(
+        _config: AppConfig,
+        *,
+        project_id: str = "aresforge",
+        artifact_root=None,
+        approval_path=None,
+        output_format: str = "markdown",
+    ):
+        seen.update(
+            {
+                "project_id": project_id,
+                "artifact_root": artifact_root,
+                "approval_path": approval_path,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "inspect_dispatch_artifacts", fake_inspect)
+    exit_code = cli.main(
+        [
+            "inspect-dispatch-artifacts",
+            "--project-id",
+            "aresforge",
+            "--artifact-root",
+            "artifacts",
+            "--approval-path",
+            ".aresforge/gates.json",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["report_type"] == "dispatch_artifact_index"
+    assert parsed["execution_allowed"] is False
+    assert seen == {
+        "project_id": "aresforge",
+        "artifact_root": "artifacts",
+        "approval_path": ".aresforge/gates.json",
+        "output_format": "json",
+    }
 
 
 def test_approve_codex_dispatch_dispatch_json(

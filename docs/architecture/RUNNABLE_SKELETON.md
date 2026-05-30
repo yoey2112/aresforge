@@ -1,5 +1,41 @@
 # Runnable Skeleton
 
+## M106 Dispatch Artifact Index/Report
+
+M106 adds a local-only read-only reporting command:
+
+- `python -m aresforge inspect-dispatch-artifacts`
+- `python -m aresforge inspect-dispatch-artifacts --format json`
+- optional `--project-id`, `--artifact-root`, and `--approval-path`
+
+Runnable behavior:
+
+- scans known artifact directories under the configured artifact root
+- recognizes Codex prompt dispatch artifacts, local LLM advisory dry-run outputs, and documentation-agent dry-run outputs
+- derives a stable artifact id from artifact type and local path
+- derives `item_id` from safe filename conventions
+- reports file path, created timestamp, modified timestamp, artifact type, dispatch lane, and next safe action
+- reads `.aresforge/dispatch_approval_gates.json` to join approval gate status when available
+- handles missing artifact directories as warnings instead of failures
+- returns readable markdown or stable JSON
+- preserves `local_only: true`, `read_only: true`, and `execution_allowed: false`
+
+Still absent by design:
+
+- artifact execution
+- deep content validation or semantic approval
+- automatic approval gate creation or mutation
+- queue mutation
+- Codex execution
+- Ollama or local LLM invocation
+- documentation-agent execution or apply mode
+- GitHub API, `gh`, issues, PRs, workflows, network calls, or external services
+- external agent execution
+- patch application
+- automatic handoff package generation or next-item execution
+
+M106 prepares artifact visibility for M107 safe dispatch handoff packaging. It does not authorize handoff or execution.
+
 ## M105 Post-Batch Documentation Reconciliation
 
 M105 does not add a new runtime command. It is a docs/data reconciliation workflow that uses existing local inspection commands:

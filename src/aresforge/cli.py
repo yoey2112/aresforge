@@ -239,6 +239,7 @@ from aresforge.operator.dispatch_approval_gate import (
     inspect_dispatch_approval_gate,
     update_dispatch_approval_gate,
 )
+from aresforge.operator.dispatch_artifact_report import inspect_dispatch_artifacts
 from aresforge.operator.single_ready_codex_queue_item import run_single_ready_codex_queue_item
 from aresforge.operator.local_agent_profiles import (
     AGENT_PROFILE_STATUSES,
@@ -1696,6 +1697,18 @@ def build_parser() -> argparse.ArgumentParser:
     update_dispatch_approval_gate_parser.add_argument("--checklist", action="append", default=[])
     update_dispatch_approval_gate_parser.add_argument("--approval-path")
     update_dispatch_approval_gate_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="markdown",
+    )
+    inspect_dispatch_artifacts_parser = subparsers.add_parser(
+        "inspect-dispatch-artifacts",
+        help="Inspect local-only dispatch artifacts and approval gate status without execution.",
+    )
+    inspect_dispatch_artifacts_parser.add_argument("--project-id", default="aresforge")
+    inspect_dispatch_artifacts_parser.add_argument("--artifact-root")
+    inspect_dispatch_artifacts_parser.add_argument("--approval-path")
+    inspect_dispatch_artifacts_parser.add_argument(
         "--format",
         choices=["json", "markdown"],
         default="markdown",
@@ -4208,6 +4221,20 @@ def main(argv: list[str] | None = None) -> int:
             reviewer=args.reviewer,
             review_notes=args.review_notes,
             checklist=list(args.checklist or []) if args.checklist else None,
+            approval_path=args.approval_path,
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-dispatch-artifacts":
+        payload = inspect_dispatch_artifacts(
+            config,
+            project_id=args.project_id,
+            artifact_root=args.artifact_root,
             approval_path=args.approval_path,
             output_format=args.format,
         )

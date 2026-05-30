@@ -1,5 +1,39 @@
 # AresForge Roadmap
 
+## M106 Dispatch Artifact Index/Report
+
+Status: In progress locally on `main`.
+
+Queue item: `m105-post-batch-documentation-reconciliation-m106-dispatch-artifact-index-report`.
+
+Implementation commit: pending.
+
+Purpose:
+
+- provide a single local index of dispatch artifacts and dry-run outputs
+- identify artifact type, queue item id, selected dispatch lane, file path, timestamps, and approval gate status
+- handle missing artifact folders safely
+- support readable and JSON output for operator review and future handoff packaging
+- preserve local-only, read-only behavior before M107
+
+Runnable operator surface:
+
+- `python -m aresforge inspect-dispatch-artifacts`
+- `python -m aresforge inspect-dispatch-artifacts --format json`
+- `python -m aresforge inspect-dispatch-artifacts --project-id aresforge`
+
+Constraints preserved:
+
+- report output is advisory only
+- `execution_allowed` remains false
+- no artifact execution or validation beyond safe local reads
+- no queue mutation, approval mutation, automatic handoff, Codex, Ollama, local LLM, documentation-agent, external-agent, GitHub API, `gh`, network, workflow, issue creation, PR creation, or patch application occurs
+
+M107 relationship:
+
+- M106 is the pre-handoff artifact visibility report.
+- M107 is expected to create safe handoff packages from operator-reviewed artifacts while preserving approval gates and execution blocks.
+
 ## M105 Post-Batch Documentation Reconciliation
 
 Status: Completed locally on `main` after validation.

@@ -1,5 +1,36 @@
 # AresForge Agent Context
 
+## M106 Dispatch Artifact Index/Report Context
+
+Status: In progress locally on `main`.
+
+Queue item: `m105-post-batch-documentation-reconciliation-m106-dispatch-artifact-index-report`.
+
+Implementation commit: pending.
+
+M106 adds a read-only local report for dispatch artifacts and dry-run outputs:
+
+- `python -m aresforge inspect-dispatch-artifacts`
+- `python -m aresforge inspect-dispatch-artifacts --format json`
+- optional `--project-id`, `--artifact-root`, and `--approval-path`
+
+The report scans known local artifact locations created by M98-M100 workflows:
+
+- Codex prompt dispatch artifacts
+- Local LLM advisory dry-run outputs
+- Documentation-agent dry-run outputs
+
+It joins local approval gate status from `.aresforge/dispatch_approval_gates.json` when a matching item/artifact record exists.
+
+M106 boundaries:
+
+- local-only/read-only inspection
+- no artifact execution or dispatch
+- no Codex, local LLM, Ollama, documentation-agent, GitHub API, `gh`, network service, external-agent, patch, or automatic handoff
+- `execution_allowed` remains false for the report and every artifact entry
+
+M107 should consume this index as a pre-handoff visibility report, not as execution authorization.
+
 ## M105 Post-Batch Documentation Reconciliation Context
 
 Status: Completed locally on `main` after validation.

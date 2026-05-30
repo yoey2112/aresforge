@@ -1,5 +1,59 @@
 # Local Operator Usage
 
+## M106 Dispatch Artifact Index/Report
+
+M106 indexes local dispatch artifacts and dry-run outputs so an operator can see what exists before handoff packaging. It is read-only and does not execute artifacts, agents, models, patches, or handoff workflows.
+
+Readable artifact index:
+
+    python -m aresforge inspect-dispatch-artifacts
+
+JSON artifact index:
+
+    python -m aresforge inspect-dispatch-artifacts --format json
+
+Project-specific view:
+
+    python -m aresforge inspect-dispatch-artifacts --project-id aresforge
+
+The report scans known local output folders:
+
+- `artifacts/codex_prompt_dispatch/generated`
+- `artifacts/local_llm_advisory/dry_runs`
+- `artifacts/documentation_agent/dry_runs`
+
+Each artifact entry includes:
+
+- stable `artifact_id`
+- `artifact_type`
+- `item_id`
+- `dispatch_lane`
+- `file_path`
+- created and modified timestamps when available
+- `approval_gate_status` and `approval_id` when available
+- `local_only: true`
+- `execution_allowed: false`
+- `next_safe_action`
+
+Operator workflow:
+
+- generate dispatch artifacts or dry-runs through the existing M98-M100 commands
+- create or update M101 approval gates for artifacts that need manual handoff review
+- run `inspect-dispatch-artifacts`
+- resolve missing, rejected, or needs-revision approval states before M107 handoff packaging
+- treat `approved_for_manual_handoff` as manual packaging permission only, not execution approval
+
+M106 boundaries:
+
+- no Codex execution
+- no Ollama or local model invocation
+- no documentation-agent execution
+- no artifact execution or automatic validation
+- no GitHub API, `gh`, issues, PRs, workflows, or network calls
+- no external agents
+- no patch application
+- no queue mutation, approval mutation, automatic handoff, dispatch, or next-item execution
+
 ## M105 Post-Batch Documentation Reconciliation
 
 M105 is a docs/data-only reconciliation pass after M99-M104. It updates source-of-truth documentation and local project state; it does not add new runtime features or execute any agent/model/dispatch workflow.
