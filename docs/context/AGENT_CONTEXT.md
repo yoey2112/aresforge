@@ -2,7 +2,7 @@
 
 ## M89 Model Usage and Token Accounting Report Context
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main`.
 
 Current model usage report scope:
 
