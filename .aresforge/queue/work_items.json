@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T04:11:38.752779+00:00",
+  "updated_at": "2026-05-30T04:14:24.643952+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -618,7 +618,7 @@
       "repo_id": "aresforge-main",
       "title": "M80 LLM Decision Matrix v2",
       "description": "Define routing logic for Local LLM vs Codex, coding vs reasoning, model/profile selection, task sizing, risk classification, validation burden, and safety gating.",
-      "status": "proposed",
+      "status": "ready",
       "priority": "normal",
       "item_type": "architecture",
       "tags": [
@@ -665,7 +665,7 @@
       "closeout_summary": "",
       "closeout_history": [],
       "created_at": "2026-05-30T01:07:03.001167+00:00",
-      "updated_at": "2026-05-30T01:08:03.982916+00:00"
+      "updated_at": "2026-05-30T04:14:24.643952+00:00"
     },
     {
       "item_id": "m81-local-llm-advisory-coding-lane-prototype",
