@@ -20,6 +20,27 @@ M128 boundaries:
 - real execution target requests are blocked and recommend `dry-run`
 - no agents, Codex, Ollama/local LLMs, remote LLMs, GitHub, `gh`, network services, validation commands, patch application, source mutation, queue mutation from the plan, autonomous execution, or next-item execution
 
+## M117 Agent Routing Decision Dashboard Context
+
+Status: In progress locally on `main`.
+
+Queue item: `m117-agent-routing-decision-dashboard`.
+
+M117 adds an advisory routing dashboard and contract:
+
+- `python -m aresforge recommend-agent-route --item-id <item_id>`
+- `python -m aresforge recommend-agent-route --item-id <item_id> --format json`
+- optional `--output` and `--force`
+- read-only Hub API: `GET /api/agent-route-recommendation?item_id=<item_id>`
+- Hub Queue Agent Routing Decision Dashboard panel
+
+The recommendation record uses `recommendation_type=agent_route_recommendation` and includes recommended lane, alternatives, routing reasons, required artifacts before dispatch, approval requirements, suitability flags, `human_operator_required=true`, `dispatch_performed=false`, `execution_allowed=false`, `local_only=true`, and next safe action.
+
+M117 boundaries:
+
+- advisory only
+- no execute buttons in the Hub panel
+- no Codex, Codex CLI, Ollama, local LLM, agent runtime, GitHub API, `gh`, network service, workflow, patch application, source mutation, queue mutation, automatic completion, or next-item execution
 ## M127 LLM Decision Policy v1 Context
 
 Status: Completed locally on `main` after validation.

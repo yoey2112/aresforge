@@ -478,6 +478,12 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "queue-dispatch-review-checklist" in index_text
     assert "manual dispatch preparation records, local LLM advisory artifacts, patch intake records, parsed dispatch evidence, and queue completion recommendations" in index_text
     assert "Local-only and operator-gated: no Codex, Ollama, local LLM, GitHub, agent, network, patch application, or queue completion execution" in index_text
+    assert "Agent Routing Decision Dashboard" in index_text
+    assert "queue-agent-route-form" in index_text
+    assert "queue-agent-route-recommended-lane" in index_text
+    assert "queue-agent-route-reasons" in index_text
+    assert "queue-agent-route-blockers" in index_text
+    assert "no execute buttons" in index_text
     assert "buildCodexHighValuePromptPayload" in queue_js
     assert "renderCodexHighValuePromptResult" in queue_js
     assert "buildExecutionAuditQuery" in queue_js
@@ -490,9 +496,14 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "renderAiActionReview" in queue_js
     assert "buildDispatchReviewQuery" in queue_js
     assert "renderDispatchReviewPanel" in queue_js
+    assert "buildAgentRouteQuery" in queue_js
+    assert "renderAgentRouteRecommendation" in queue_js
     assert "/api/dispatch-review" in queue_js
     assert "/api/dispatch-review${buildDispatchReviewQuery()}`" in queue_js
     assert "/api/dispatch-review\", {\n        method: \"POST\"" not in queue_js
+    assert "/api/agent-route-recommendation" in queue_js
+    assert "/api/agent-route-recommendation${buildAgentRouteQuery()}`" in queue_js
+    assert "/api/agent-route-recommendation\", {\n        method: \"POST\"" not in queue_js
     assert "safety status=${entry.safety_status" in queue_js
     assert "gate status=${entry.gate_status" in queue_js
     assert "no automatic execution=${Boolean(entry.no_automatic_execution_flag)}" in queue_js
@@ -695,6 +706,7 @@ def test_frontend_scripts_reference_m39_api_endpoints_and_forms() -> None:
         "/api/execution-audit-log",
         "/api/ai-artifacts",
         "/api/dispatch-review",
+        "/api/agent-route-recommendation",
         "/api/operator-run-history",
         "/evidence",
         "/closeout",
@@ -736,6 +748,7 @@ def test_frontend_scripts_reference_m39_api_endpoints_and_forms() -> None:
         "queue-filter-form",
         "queue-lifecycle-add-form",
         "queue-lifecycle-codex-form",
+        "queue-agent-route-form",
         "queue-prompt-pack-form",
         "queue-dispatch-review-form",
         "queue-lifecycle-evidence-form",

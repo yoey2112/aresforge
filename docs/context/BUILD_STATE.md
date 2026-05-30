@@ -2,11 +2,11 @@
 
 ## Current Phase
 
-M127 implements the LLM Decision Policy v1 as a local-only recommendation layer for queue items and agent tasks. It recommends a lane, provider, and model profile but does not execute Codex, local LLMs, remote LLMs, GitHub, agents, patches, tests, or network services.
+M117 implements the Agent Routing Decision Dashboard as a local-only advisory surface for queue item lane recommendations. It recommends the next review/dispatch artifact lane but does not execute Codex, local LLMs, Ollama, agents, GitHub, patches, tests, or network services.
 
 ## Current Goal
 
-M127 adds `recommend-llm-decision --item-id <id> --format json`. The command emits machine-readable `llm_decision_policy_v1` records with `execution_performed=false`, `local_only` decision metadata, human/machine gate flags, risk assessment, alternatives, and next safe action.
+M117 adds `recommend-agent-route --item-id <id> --format json` and a Hub Agent Routing Decision Dashboard. Both emit machine-readable `agent_route_recommendation` records with `dispatch_performed=false`, `execution_allowed=false`, `local_only=true`, recommended lane, alternatives, reasons, required artifacts, approval requirements, and next safe action.
 
 ## M128 Agent Orchestration Plan Builder
 
@@ -45,6 +45,32 @@ Safety boundaries:
 - no Codex, Codex CLI, Ollama, local LLM, remote LLM, documentation-agent runtime, GitHub API, `gh`, network service, workflow, patch application, source mutation, queue mutation from the plan, validation command execution, autonomous execution, or next-item execution
 - future runners must be separate explicit operator-approved milestones
 
+## M117 Agent Routing Decision Dashboard
+
+Status: In progress locally on `main`.
+
+Queue item: `m117-agent-routing-decision-dashboard`.
+
+M117 adds:
+
+- `recommend-agent-route --item-id <item_id>`
+- optional `--format json`, `--output`, and `--force`
+- `GET /api/agent-route-recommendation?item_id=<item_id>`
+- Hub Queue panel Agent Routing Decision Dashboard
+- stable `agent_route_recommendation` records
+
+Recommendation behavior:
+
+- reads local queue metadata for one item
+- classifies documentation, local LLM advisory, coding/dashboard, and validation signals
+- recommends an advisory lane such as `codex_prompt_artifact`, `local_llm_advisory_artifact`, `documentation_agent_patch_proposal`, `validation_agent_dry_run`, or `human_operator_manual_review`
+- records alternatives, routing reasons, required artifacts before dispatch, approval requirements, suitability flags, and next safe action
+
+Safety boundaries:
+
+- no execute buttons in the Hub panel
+- no Codex, Codex CLI, Ollama, local LLM, agent runtime, GitHub API, `gh`, network service, workflow, patch application, source mutation, queue mutation, automatic completion, or next-item execution
+- recommendations are advisory only and keep `human_operator_required=true`, `dispatch_performed=false`, and `execution_allowed=false`
 ## M127 LLM Decision Policy v1
 
 Status: Completed locally on `main` after validation.

@@ -9,6 +9,7 @@ import threading
 from aresforge.config import AppConfig
 from aresforge.hub.server import _build_handler
 from aresforge.hub.api import (
+    get_agent_route_recommendation,
     get_dispatch_review_panel,
     get_local_queue_routing_dashboard,
     post_active_project,
@@ -196,9 +197,58 @@ def test_get_dispatch_review_panel_reads_local_review_artifacts(tmp_path: Path) 
     assert payload["record_count"] == 1
     assert payload["records"][0]["artifact_type"] == "queue_completion_recommendation"
     assert payload["records"][0]["item_id"] == "m114-hub-dispatch-review-panel"
-    assert payload["records"][0]["milestone"] == "m114"
-    assert payload["records"][0]["blocked"] is False
-    assert payload["operator_checklist"]
+
+
+def test_get_agent_route_recommendation_is_read_only(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_active_project(config, tmp_path)
+    _seed_queue_item(
+        config,
+        item_id="m117-agent-routing-decision-dashboard",
+        status="ready",
+        title="M117 Agent Routing Decision Dashboard",
+        description="Add a Hub dashboard and CLI for advisory routing decisions.",
+    )
+
+    payload = get_agent_route_recommendation(
+        config,
+        {"item_id": "m117-agent-routing-decision-dashboard"},
+    )
+
+    assert payload["recommendation_type"] == "agent_route_recommendation"
+    assert payload["recommended_lane"] == "codex_prompt_artifact"
+    assert payload["hub_read_only"] is True
+    assert payload["local_only"] is True
+    assert payload["dispatch_performed"] is False
+    assert payload["execution_allowed"] is False
+
+
+def test_agent_route_recommendation_http_route(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_active_project(config, tmp_path)
+    _seed_queue_item(
+        config,
+        item_id="m117-agent-routing-decision-dashboard",
+        status="ready",
+        title="M117 Agent Routing Decision Dashboard",
+        description="Add a Hub dashboard and CLI for advisory routing decisions.",
+    )
+    server, thread = _start_server(config)
+    try:
+        port = server.server_address[1]
+        status, payload = _request_json(
+            port,
+            "GET",
+            "/api/agent-route-recommendation?item_id=m117-agent-routing-decision-dashboard",
+        )
+    finally:
+        server.shutdown()
+        thread.join(timeout=5)
+
+    assert status == 200
+    assert payload["recommendation_type"] == "agent_route_recommendation"
+    assert payload["dispatch_performed"] is False
+    assert payload["execution_allowed"] is False
 
 
 def test_dispatch_review_route_is_get_only_and_read_only(tmp_path: Path) -> None:

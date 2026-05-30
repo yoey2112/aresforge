@@ -556,6 +556,13 @@ function buildDispatchReviewQuery() {
   });
 }
 
+function buildAgentRouteQuery() {
+  const explicitItemId = byId("queue-agent-route-item-id") && byId("queue-agent-route-item-id").value.trim();
+  return toQuery({
+    item_id: explicitItemId || selectedLocalQueueLifecycleItemId(),
+  });
+}
+
 function buildOperatorRunHistoryQuery() {
   return toQuery({
     project_id: byId("queue-operator-run-history-project-id") && byId("queue-operator-run-history-project-id").value.trim(),
@@ -808,6 +815,29 @@ function renderDispatchReviewPanel(payload) {
     ((payload && payload.records) || []).map((record) => `${record.updated_at || "-"} | ${record.artifact_type || "-"} | item=${record.item_id || "-"} | milestone=${record.milestone || "-"} | blocked=${Boolean(record.blocked)} | status=${record.status || "-"} | next safe action=${record.next_safe_action || "-"} | path=${record.artifact_path || "-"}`),
   );
   setList("queue-dispatch-review-checklist", "queue-dispatch-review-checklist-empty", (payload && payload.operator_checklist) || []);
+}
+
+function renderAgentRouteRecommendation(payload) {
+  setText("queue-agent-route-recommended-lane", (payload && payload.recommended_lane) || "-");
+  setText("queue-agent-route-local-llm", String(Boolean(payload && payload.local_llm_suitable)));
+  setText("queue-agent-route-codex", String(Boolean(payload && payload.codex_suitable)));
+  setText("queue-agent-route-docs", String(Boolean(payload && payload.documentation_agent_suitable)));
+  setText("queue-agent-route-next-safe-action", (payload && payload.next_safe_action) || "No route recommendation loaded.");
+  setList("queue-agent-route-summary", "queue-agent-route-summary-empty", [
+    `recommendation_type: ${payload && payload.recommendation_type ? payload.recommendation_type : "-"}`,
+    `item_id: ${payload && payload.item_id ? payload.item_id : "-"}`,
+    `title: ${payload && payload.title ? payload.title : "-"}`,
+    `project_id: ${payload && payload.project_id ? payload.project_id : "-"}`,
+    `milestone: ${payload && payload.milestone ? payload.milestone : "-"}`,
+    `human_operator_required: ${Boolean(payload && payload.human_operator_required)}`,
+    `dispatch_performed: ${Boolean(payload && payload.dispatch_performed)}`,
+    `execution_allowed: ${Boolean(payload && payload.execution_allowed)}`,
+    `local_only: ${Boolean(payload && payload.local_only)}`,
+    `alternative_lanes: ${payload && payload.alternative_lanes && payload.alternative_lanes.length ? payload.alternative_lanes.join(", ") : "none"}`,
+  ]);
+  setList("queue-agent-route-reasons", "queue-agent-route-reasons-empty", (payload && payload.routing_reasons) || []);
+  setList("queue-agent-route-artifacts", "queue-agent-route-artifacts-empty", (payload && payload.required_artifacts_before_dispatch) || []);
+  setList("queue-agent-route-blockers", "queue-agent-route-blockers-empty", (payload && payload.blocked_reasons) || []);
 }
 
 function renderOperatorRunHistory(payload) {
@@ -1287,6 +1317,30 @@ export function bindQueueLifecycleActions({
       setMessage("queue-lifecycle-message", "Dispatch review loaded. Local-only and no execution performed.", "success");
     } catch (error) {
       renderDispatchReviewPanel((error && error.payload) || null);
+      setMessage("queue-lifecycle-message", String(error.message || error), "error");
+    } finally {
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = originalLabel;
+      }
+    }
+  });
+
+  on("queue-agent-route-form", "submit", async (event) => {
+    event.preventDefault();
+    const submitButton = byId("queue-agent-route-submit");
+    const originalLabel = submitButton ? submitButton.textContent : "";
+    try {
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = "Loading...";
+      }
+      setMessage("queue-lifecycle-message", "Loading advisory agent route recommendation...", "loading");
+      const payload = await fetchJson(`/api/agent-route-recommendation${buildAgentRouteQuery()}`, { method: "GET" });
+      renderAgentRouteRecommendation(payload);
+      setMessage("queue-lifecycle-message", "Agent route recommendation loaded. Local-only and no execution performed.", "success");
+    } catch (error) {
+      renderAgentRouteRecommendation((error && error.payload) || null);
       setMessage("queue-lifecycle-message", String(error.message || error), "error");
     } finally {
       if (submitButton) {

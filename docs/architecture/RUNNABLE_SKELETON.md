@@ -28,6 +28,57 @@ Still absent by design:
 - patch application
 - source mutation, queue mutation, automatic handoff, automatic completion, autonomous execution, or next-item execution
 
+## M117 Agent Routing Decision Dashboard
+
+M117 adds a local-only route recommendation command:
+
+- `python -m aresforge recommend-agent-route --item-id <item_id>`
+- optional `--format json`
+- optional `--output` and `--force`
+
+Runnable behavior:
+
+- reads local queue metadata for one item
+- classifies documentation, local LLM advisory, coding/dashboard, and validation signals
+- emits stable JSON or readable markdown
+- refuses to overwrite output files unless `--force` is explicit
+- preserves `dispatch_performed=false` and `execution_allowed=false`
+
+Stable recommendation fields:
+
+- `recommendation_type`
+- `item_id`
+- `title`
+- `project_id`
+- `milestone`
+- `recommended_lane`
+- `alternative_lanes`
+- `routing_reasons`
+- `required_artifacts_before_dispatch`
+- `approval_requirements`
+- `local_llm_suitable`
+- `codex_suitable`
+- `documentation_agent_suitable`
+- `human_operator_required`
+- `dispatch_performed`
+- `execution_allowed`
+- `local_only`
+- `next_safe_action`
+
+Hub behavior:
+
+- `GET /api/agent-route-recommendation?item_id=<item_id>` returns the same local-only contract plus Hub read-only metadata
+- the Queue page displays recommended lane, reasons, required artifacts, blockers, suitability flags, and next safe action
+- the panel has no execute buttons and no dispatch controls
+
+Still absent by design:
+
+- Codex execution or Codex CLI shell-out
+- Ollama/local LLM prompt execution
+- agent runtime execution
+- GitHub API, `gh`, issues, PRs, workflows, network calls, or external services
+- patch application
+- source mutation, queue mutation, automatic handoff, automatic completion, autonomous execution, or next-item execution
 ## M127 LLM Decision Policy v1
 
 M127 adds a local-only recommendation command:

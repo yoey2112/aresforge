@@ -18,6 +18,7 @@ from aresforge.hub.api import (
     get_dispatch_review_panel,
     get_active_project,
     get_active_project_workspace,
+    get_agent_route_recommendation,
     get_agent,
     get_agent_engine_registry,
     get_agents,
@@ -262,6 +263,16 @@ def _build_handler(config: AppConfig, static_root: Path) -> type[BaseHTTPRequest
                     {
                         "item_id": query_values.get("item_id", [None])[0],
                         "limit": query_values.get("limit", [None])[0],
+                    },
+                )
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+            if method == "GET" and path == "/api/agent-route-recommendation":
+                payload = get_agent_route_recommendation(
+                    config,
+                    {
+                        "item_id": query_values.get("item_id", [None])[0],
+                        "queue_path": query_values.get("queue_path", [None])[0],
                     },
                 )
                 _render_json(self, _status_from_payload(payload), payload)

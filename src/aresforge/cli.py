@@ -239,6 +239,7 @@ from aresforge.operator.documentation_agent_patch_proposal import generate_docum
 from aresforge.operator.approval_gated_patch_intake import intake_patch_proposal
 from aresforge.operator.dispatch_result_evidence_parser import parse_dispatch_result_evidence
 from aresforge.operator.queue_completion_recommendation import recommend_queue_completion
+from aresforge.operator.agent_route_recommendation import recommend_agent_route
 from aresforge.operator.dispatch_approval_gate import (
     APPROVAL_GATE_STATUSES,
     create_dispatch_approval_gate,
@@ -1716,6 +1717,19 @@ def build_parser() -> argparse.ArgumentParser:
         default="markdown",
     )
 
+    recommend_agent_route_parser = subparsers.add_parser(
+        "recommend-agent-route",
+        help="Recommend an advisory agent/executor lane for one queue item without dispatch or execution.",
+    )
+    recommend_agent_route_parser.add_argument("--item-id", required=True)
+    recommend_agent_route_parser.add_argument("--queue-path")
+    recommend_agent_route_parser.add_argument("--output")
+    recommend_agent_route_parser.add_argument("--force", action="store_true")
+    recommend_agent_route_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="markdown",
+    )
     create_dispatch_approval_gate_parser = subparsers.add_parser(
         "create-dispatch-approval-gate",
         help="Create a local-only human approval gate record for a dispatch artifact or dry-run output.",
@@ -4428,6 +4442,20 @@ def main(argv: list[str] | None = None) -> int:
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 
+    if args.command == "recommend-agent-route":
+        payload = recommend_agent_route(
+            config,
+            item_id=args.item_id,
+            queue_path=args.queue_path,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
     if args.command == "create-dispatch-approval-gate":
         payload = create_dispatch_approval_gate(
             config,

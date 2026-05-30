@@ -24,6 +24,35 @@ The output includes `plan_type=agent_orchestration_plan`, queue identity, reques
 
 Real execution requests are blocked in M128. Use the output as planning metadata only until a later explicit operator-approved runner exists.
 
+## M117 Agent Routing Decision Dashboard
+
+M117 recommends the advisory lane for one queue item and displays the result in the Hub. It does not dispatch Codex, call Ollama, invoke local LLMs, execute agents, call GitHub or `gh`, make network requests, apply patches, mutate source files, mutate the queue, complete items, or start follow-on work.
+
+Readable recommendation:
+
+    python -m aresforge recommend-agent-route --item-id <item_id>
+
+JSON recommendation:
+
+    python -m aresforge recommend-agent-route --item-id <item_id> --format json
+
+Write a local recommendation record:
+
+    python -m aresforge recommend-agent-route --item-id <item_id> --format json --output artifacts/agent_routes/<item_id>.json
+
+Overwrite only with explicit force:
+
+    python -m aresforge recommend-agent-route --item-id <item_id> --format json --output artifacts/agent_routes/<item_id>.json --force
+
+The output includes `recommendation_type=agent_route_recommendation`, queue identity, recommended lane, alternatives, routing reasons, required artifacts before dispatch, approval requirements, suitability flags, `human_operator_required=true`, `dispatch_performed=false`, `execution_allowed=false`, `local_only=true`, and next safe action.
+
+Operator workflow:
+
+- inspect the queue item
+- run `recommend-agent-route`
+- review the Hub Agent Routing Decision Dashboard or JSON output
+- prepare only the required local artifacts for the recommended lane
+- use a separate human-approved workflow before any dispatch, patch intake, or completion
 ## M127 LLM Decision Policy v1
 
 M127 recommends which LLM/provider/lane should be used for a queue item or agent task. It does not execute Codex, local LLMs, remote LLMs, Ollama, agents, GitHub, `gh`, network services, validation commands, patches, queue mutation, source mutation, autonomous execution, or follow-on work.

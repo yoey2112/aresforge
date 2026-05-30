@@ -968,6 +968,34 @@
           </section>
 
           <section class="subpanel">
+            <h3>Agent Routing Decision Dashboard</h3>
+            <p class="boundary-banner">Local-only advisory recommendation: no execute buttons, no Codex, Ollama, local LLM, agent, GitHub, network, patch, or queue mutation action.</p>
+            <form id="queue-agent-route-form" class="form-grid">
+              <label>Item ID<input id="queue-agent-route-item-id" name="item_id" placeholder="queue item id" /></label>
+              <button id="queue-agent-route-submit" type="submit">Load Advisory Route</button>
+            </form>
+            <div class="stats-grid">
+              <article class="card"><h4>Recommended Lane</h4><p id="queue-agent-route-recommended-lane">-</p></article>
+              <article class="card"><h4>Local LLM Suitable</h4><p id="queue-agent-route-local-llm">false</p></article>
+              <article class="card"><h4>Codex Suitable</h4><p id="queue-agent-route-codex">false</p></article>
+              <article class="card"><h4>Documentation Agent Suitable</h4><p id="queue-agent-route-docs">false</p></article>
+            </div>
+            <ul id="queue-agent-route-summary" class="list"></ul>
+            <p id="queue-agent-route-summary-empty" class="empty">No agent route recommendation loaded yet.</p>
+            <h4>Routing Reasons</h4>
+            <ul id="queue-agent-route-reasons" class="list"></ul>
+            <p id="queue-agent-route-reasons-empty" class="empty">No routing reasons loaded yet.</p>
+            <h4>Required Artifacts Before Dispatch</h4>
+            <ul id="queue-agent-route-artifacts" class="list"></ul>
+            <p id="queue-agent-route-artifacts-empty" class="empty">No artifact requirements loaded yet.</p>
+            <h4>Blockers</h4>
+            <ul id="queue-agent-route-blockers" class="list"></ul>
+            <p id="queue-agent-route-blockers-empty" class="empty">No route blockers.</p>
+            <h4>Next Safe Action</h4>
+            <p id="queue-agent-route-next-safe-action" class="message-note">Load an advisory route to inspect the next safe action.</p>
+          </section>
+
+          <section class="subpanel">
             <h3>Local Queue Lifecycle</h3>
             <p class="message-note">Local-only and manual queue lifecycle controls: operator-gated status changes only; no automatic Codex execution, no agent execution, no GitHub sync/mutation.</p>
             <p id="queue-lifecycle-message" class="message"></p>

@@ -25,6 +25,48 @@ Constraints preserved:
 - real execution target requests block and recommend dry-run
 - no agent execution, Codex, local LLM, Ollama, remote LLM, GitHub API, `gh`, network service, validation command execution, patch application, source mutation, queue mutation from the plan, autonomous execution, or next-item execution
 
+## M117 Agent Routing Decision Dashboard
+
+Status: In progress locally on `main`.
+
+Queue item: `m117-agent-routing-decision-dashboard`.
+
+Purpose:
+
+- explain which executor or advisor lane is recommended for one queue item
+- expose the recommendation through CLI, local Hub API, and Hub UI
+- keep routing advisory-only and operator-gated
+- preserve the no-dispatch, no-execution boundary
+
+Runnable operator surface:
+
+- `python -m aresforge recommend-agent-route --item-id <item_id>`
+- `python -m aresforge recommend-agent-route --item-id <item_id> --format json`
+- optional `--output <path>` and `--force`
+
+Recommendation contract:
+
+- `recommendation_type=agent_route_recommendation`
+- queue identity and milestone
+- recommended lane and alternative lanes
+- routing reasons, required artifacts before dispatch, and approval requirements
+- local LLM, Codex, and documentation-agent suitability flags
+- `human_operator_required=true`
+- `dispatch_performed=false`
+- `execution_allowed=false`
+- `local_only=true`
+- next safe action
+
+Hub surface:
+
+- Queue page Agent Routing Decision Dashboard
+- read-only local API wrapper
+- no execute buttons or dispatch controls
+- labels actions as local-only and advisory
+
+Constraints preserved:
+
+- no Codex, Codex CLI, Ollama, local LLM, agent runtime, GitHub API, `gh`, network service, workflow, patch application, source mutation, queue mutation, automatic completion, or next-item execution
 ## M127 LLM Decision Policy v1
 
 Status: Completed locally on `main` after validation.

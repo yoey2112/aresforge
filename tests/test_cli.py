@@ -62,6 +62,7 @@ def test_cli_has_expected_commands() -> None:
         "generate-local-llm-advisory-artifact",
         "validate-documentation-agent-dry-run",
         "generate-doc-agent-patch-proposal",
+        "recommend-agent-route",
         "create-dispatch-approval-gate",
         "inspect-dispatch-approval-gate",
         "update-dispatch-approval-gate",
@@ -6749,6 +6750,7 @@ def test_generate_doc_agent_patch_proposal_dispatch_json(
     exit_code = cli.main(
         [
             "generate-doc-agent-patch-proposal",
+        "recommend-agent-route",
             "--item-id",
             "m116",
             "--queue-path",
@@ -6781,6 +6783,82 @@ def test_generate_doc_agent_patch_proposal_dispatch_json(
         "output_format": "json",
     }
 
+
+def test_recommend_agent_route_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "recommendation_type": "agent_route_recommendation",
+                "item_id": "m117",
+                "recommended_lane": "codex_prompt_artifact",
+                "alternative_lanes": [],
+                "routing_reasons": ["dashboard"],
+                "required_artifacts_before_dispatch": [],
+                "approval_requirements": [],
+                "local_llm_suitable": False,
+                "codex_suitable": True,
+                "documentation_agent_suitable": False,
+                "human_operator_required": True,
+                "dispatch_performed": False,
+                "execution_allowed": False,
+                "local_only": True,
+                "next_safe_action": "Review only.",
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_recommend(
+        _config,
+        *,
+        item_id,
+        queue_path=None,
+        output=None,
+        force=False,
+        output_format="markdown",
+    ):
+        seen["item_id"] = item_id
+        seen["queue_path"] = queue_path
+        seen["output"] = output
+        seen["force"] = force
+        seen["output_format"] = output_format
+        return payload
+
+    monkeypatch.setattr(cli, "recommend_agent_route", fake_recommend)
+    exit_code = cli.main(
+        [
+            "recommend-agent-route",
+            "--item-id",
+            "m117",
+            "--queue-path",
+            "queue.json",
+            "--output",
+            "artifacts/agent_routes/m117.json",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["recommendation_type"] == "agent_route_recommendation"
+    assert parsed["dispatch_performed"] is False
+    assert parsed["execution_allowed"] is False
+    assert seen == {
+        "item_id": "m117",
+        "queue_path": "queue.json",
+        "output": "artifacts/agent_routes/m117.json",
+        "force": True,
+        "output_format": "json",
+    }
 def test_intake_patch_proposal_dispatch_json(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:

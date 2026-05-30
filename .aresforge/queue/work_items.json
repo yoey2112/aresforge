@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T20:03:27.586305+00:00",
+  "updated_at": "2026-05-30T20:10:00.000000+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -3517,6 +3517,65 @@
       "closeout_history": [],
       "created_at": "2026-05-30T20:02:34.855152+00:00",
       "updated_at": "2026-05-30T20:03:27.586305+00:00"
+    },
+    {
+      "item_id": "m117-agent-routing-decision-dashboard",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M117 Agent Routing Decision Dashboard",
+      "description": "Create local-only advisory route recommendations and a Hub dashboard for queue item executor/advisor lane selection without dispatch or execution.",
+      "status": "in_progress",
+      "priority": "high",
+      "item_type": "dashboard",
+      "tags": [
+        "milestone:m117",
+        "agent-routing",
+        "hub",
+        "local-only",
+        "advisory"
+      ],
+      "dependencies": [
+        "m116-documentation-agent-patch-proposal-generator"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [],
+      "evidence_required": [],
+      "assigned_agent": "",
+      "source": "local_cli",
+      "notes": "Acceptance criteria: add recommend-agent-route CLI/API contract; display Hub dashboard/card with recommended lane, reasons, blockers, required artifacts, approval requirements, and next safe action; no execute buttons; no Codex, Ollama, local LLM, agent, GitHub, network, patch, source, or queue execution.",
+      "started_at": "2026-05-30T20:10:00.000000+00:00",
+      "started_via": "local_operator",
+      "previous_status": "ready",
+      "completed_at": "",
+      "completed_by": "",
+      "completion_commit": "",
+      "validation_summary": "",
+      "evidence_note": "",
+      "tests_run": [],
+      "changed_files": [],
+      "artifact_paths": [],
+      "completion_evidence": {},
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-30T20:10:00.000000+00:00",
+      "updated_at": "2026-05-30T20:10:00.000000+00:00"
     }
   ]
 }

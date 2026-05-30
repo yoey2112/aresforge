@@ -15,6 +15,7 @@ from aresforge.operator.local_ai_action_safety import evaluate_ai_action_safety_
 from aresforge.operator.local_ai_artifacts import filter_ai_artifacts
 from aresforge.operator.dispatch_approval_gate import inspect_dispatch_approval_gate
 from aresforge.operator.hub_dispatch_review import build_hub_dispatch_review_panel
+from aresforge.operator.agent_route_recommendation import recommend_agent_route
 from aresforge.operator.local_execution_audit import filter_execution_audit_log
 from aresforge.operator.local_operator_run_history import read_ai_action_review_panel, read_operator_run_history
 from aresforge.operator.local_project_queue import (
@@ -719,6 +720,31 @@ def get_dispatch_review_panel(config: AppConfig, params: dict[str, str | None]) 
         payload,
         "Dispatch review API is read-only and advisory.",
         "No execution endpoints are exposed by this panel.",
+    )
+    return payload
+
+
+def get_agent_route_recommendation(config: AppConfig, params: dict[str, str | None]) -> dict[str, Any]:
+    item_id = _normalize_optional_str(params.get("item_id"))
+    if not item_id:
+        return _api_error("missing_item_id", "item_id is required for agent route recommendation.")
+
+    result = recommend_agent_route(
+        config,
+        item_id=item_id,
+        queue_path=_normalize_optional_str(params.get("queue_path")),
+        output_format="json",
+    )
+    payload = result.get("payload", {}) if isinstance(result.get("payload"), dict) else {}
+    payload["service"] = SERVICE_NAME
+    payload["hub_read_only"] = True
+    payload["local_only"] = True
+    payload["execution_allowed"] = False
+    payload["dispatch_performed"] = False
+    payload["boundary_confirmations"] = _merge_boundary_confirmations(
+        payload,
+        "Agent route recommendation API is read-only and advisory.",
+        "No execution endpoint, dispatch endpoint, or apply action is exposed by this panel.",
     )
     return payload
 
