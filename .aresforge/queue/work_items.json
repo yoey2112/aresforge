@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T16:32:51.275809+00:00",
+  "updated_at": "2026-05-30T16:35:37.332043+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -2268,7 +2268,7 @@
       "repo_id": "aresforge-main",
       "title": "M102 Queue Dependency and Completion Locking Hardening",
       "description": "Harden local queue dependency and completion locking so operator workflows remain safe, sequential, and auditable without external execution.",
-      "status": "in_progress",
+      "status": "done",
       "priority": "high",
       "item_type": "feature",
       "tags": [
@@ -2295,14 +2295,22 @@
       "notes": "Acceptance criteria: dependency fields are supported; start and completion are blocked by unmet dependencies; completion is blocked by missing explicit evidence; historical done items remain valid; consistency inspection exposes lock status; no external execution occurs.",
       "started_at": "2026-05-30T16:32:51.275809+00:00",
       "started_via": "local_operator",
-      "previous_status": "ready",
-      "completed_at": "",
-      "completed_by": "",
-      "completion_commit": "",
-      "validation_summary": "",
-      "evidence_note": "",
-      "tests_run": [],
-      "changed_files": [],
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-30T16:35:37.332043+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "ea1d719",
+      "validation_summary": "M102 queue dependency and completion locking hardening implemented and validated locally. Added dependency aliases, explicit completion evidence requirements, completion-time dependency checks, read-only queue consistency inspection, CLI command, tests, docs, and queue lifecycle evidence. No external execution was performed.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py; python -m pytest tests/test_local_project_queue.py tests/test_local_queue_agent_summary.py tests/test_local_project_report.py; python -m pytest tests/test_queue_agent_dispatch_plan.py; git diff --check passed with CRLF warnings only; smoke checks passed for inspect-local-project-report, inspect-local-queue-agent-summary, inspect-project-queue --project-id aresforge, and inspect-queue-consistency readable/json.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 173 passed",
+        "python -m pytest tests/test_local_project_queue.py tests/test_local_queue_agent_summary.py tests/test_local_project_report.py -> 119 passed",
+        "python -m pytest tests/test_queue_agent_dispatch_plan.py -> 6 passed",
+        "git diff --check -> passed with CRLF warnings only"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/local_project_queue.py; src/aresforge/cli.py; tests/test_local_project_queue.py; tests/test_cli.py",
+        "docs/context/BUILD_STATE.md; docs/context/AGENT_CONTEXT.md; docs/roadmap/ROADMAP.md; docs/operator/LOCAL_OPERATOR_USAGE.md; docs/architecture/RUNNABLE_SKELETON.md; .aresforge/queue/work_items.json"
+      ],
       "artifact_paths": [],
       "completion_evidence": {},
       "routing_metadata": {
@@ -2324,7 +2332,7 @@
       "closeout_summary": "",
       "closeout_history": [],
       "created_at": "2026-05-30T16:32:45.950249+00:00",
-      "updated_at": "2026-05-30T16:32:51.275809+00:00"
+      "updated_at": "2026-05-30T16:35:37.332043+00:00"
     }
   ]
 }
