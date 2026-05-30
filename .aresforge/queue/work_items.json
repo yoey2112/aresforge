@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T05:22:50.178929+00:00",
+  "updated_at": "2026-05-30T05:35:58.535391+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -782,7 +782,7 @@
       "repo_id": "aresforge-main",
       "title": "M82 Self-Managed AresForge Test Run",
       "description": "Use AresForge's own local queue and managed project metadata to test routing, handoff, dispatch readiness, local LLM decisioning, blocking, audit, artifacts, and operator review.",
-      "status": "proposed",
+      "status": "done",
       "priority": "normal",
       "item_type": "validation",
       "tags": [
@@ -798,16 +798,20 @@
       "assigned_agent": "",
       "source": "m76_self_seed",
       "notes": "Acceptance criteria:\n- AresForge is inspected as its own managed project.\n- Self-management flow remains operator-gated.\n- Review evidence is required before marking work complete.\n- Local validation is required before commit/push.\n- No GitHub API, gh, issue, PR, workflow, or unattended execution is introduced.\n\nM76 safety notes:\n- Seeded for review only.\n- Not started automatically.\n- No prompt, agent, Codex, local LLM, GitHub, gh, issue, PR, workflow, commit, or push action was invoked.",
-      "started_at": "",
-      "started_via": "",
-      "previous_status": "",
-      "completed_at": "",
-      "completed_by": "",
-      "completion_commit": "",
-      "validation_summary": "",
-      "evidence_note": "",
-      "tests_run": [],
-      "changed_files": [],
+      "started_at": "2026-05-30T05:35:47.788745+00:00",
+      "started_via": "local_operator",
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-30T05:35:58.535391+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "6d1e8bf",
+      "validation_summary": "M82 self-managed validation run completed locally. Targeted validation passed with 260 tests. Broader requested bundle passed with 500 tests. Additional orchestration/report regression passed with 20 tests. Smoke checks passed for managed project inspection, project readiness, project report, queue agent summary, and project queue. git diff --check passed with CRLF warnings only.",
+      "evidence_note": "Operator reviewed self-managed readiness/report output, recovered dispatch run summary, orchestration dependency warning fix, validation results, smoke checks, and implementation commit. No GitHub API, gh, issue, PR, workflow, daemon, watcher, scheduler, external workflow, local LLM invocation, automatic next-item execution, or unattended multi-item execution was introduced.",
+      "tests_run": [
+        "python -m pytest tests/test_local_project_queue.py tests/test_local_project_report.py tests/test_cli.py -> 260 passed; python -m pytest tests/test_prompt_builder_agent.py tests/test_queue_dispatch_preparation.py tests/test_codex_dispatch_contract.py tests/test_codex_dispatch_runner.py tests/test_cli.py tests/test_local_project_queue.py tests/test_local_project_factory.py tests/test_hub_local_queue_lifecycle_api.py tests/test_hub_project_factory_api.py tests/test_hub_ui_foundation.py -> 500 passed; python -m pytest tests/test_local_agent_orchestration.py tests/test_local_project_report.py -> 20 passed; git diff --check -> passed with CRLF warnings only; smoke checks -> passed"
+      ],
+      "changed_files": [
+        "docs/architecture/RUNNABLE_SKELETON.md; docs/context/AGENT_CONTEXT.md; docs/context/BUILD_STATE.md; docs/operator/LOCAL_OPERATOR_USAGE.md; docs/roadmap/ROADMAP.md; src/aresforge/operator/local_agent_orchestration.py; src/aresforge/operator/local_project_report.py; tests/test_local_agent_orchestration.py; tests/test_local_project_report.py"
+      ],
       "artifact_paths": [],
       "completion_evidence": {},
       "routing_metadata": {
@@ -829,7 +833,7 @@
       "closeout_summary": "",
       "closeout_history": [],
       "created_at": "2026-05-30T01:07:03.066427+00:00",
-      "updated_at": "2026-05-30T01:08:04.045882+00:00"
+      "updated_at": "2026-05-30T05:35:58.535391+00:00"
     },
     {
       "item_id": "m78-5-operator-workflow-compression-prompt-builder-contract",
