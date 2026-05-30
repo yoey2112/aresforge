@@ -218,6 +218,7 @@ from aresforge.operator.codex_dispatch_runner import (
     run_operator_gated_codex_dispatch,
 )
 from aresforge.operator.llm_decision_matrix import inspect_llm_decision_matrix
+from aresforge.operator.local_llm_advisory_lane import inspect_local_llm_advisory_lane_readiness
 from aresforge.operator.queue_dispatch_preparation import prepare_queue_item_dispatch
 from aresforge.operator.single_ready_codex_queue_item import run_single_ready_codex_queue_item
 from aresforge.operator.local_agent_profiles import (
@@ -1571,6 +1572,18 @@ def build_parser() -> argparse.ArgumentParser:
     inspect_llm_decision_matrix_parser.add_argument("--queue-path")
     inspect_llm_decision_matrix_parser.add_argument("--registry-path")
     inspect_llm_decision_matrix_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="json",
+    )
+    inspect_local_llm_advisory_lane_parser = subparsers.add_parser(
+        "inspect-local-llm-advisory-lane-readiness",
+        help="Inspect M81 local LLM advisory/coding lane readiness without invoking a provider.",
+    )
+    inspect_local_llm_advisory_lane_parser.add_argument("--item-id", required=True)
+    inspect_local_llm_advisory_lane_parser.add_argument("--queue-path")
+    inspect_local_llm_advisory_lane_parser.add_argument("--registry-path")
+    inspect_local_llm_advisory_lane_parser.add_argument(
         "--format",
         choices=["json", "markdown"],
         default="json",
@@ -3822,6 +3835,20 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "inspect-llm-decision-matrix":
         payload = inspect_llm_decision_matrix(
+            config,
+            item_id=args.item_id,
+            queue_path=args.queue_path,
+            registry_path=args.registry_path,
+            output_format=args.format,
+        )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-local-llm-advisory-lane-readiness":
+        payload = inspect_local_llm_advisory_lane_readiness(
             config,
             item_id=args.item_id,
             queue_path=args.queue_path,

@@ -1,5 +1,27 @@
 # AresForge Agent Context
 
+## M81 Local LLM Advisory/Coding Lane Prototype Context
+
+Status: In progress locally on `main`.
+
+Current advisory lane scope:
+
+- `inspect-local-llm-advisory-lane-readiness` inspects one local queue item without invoking a provider.
+- The payload composes queue readiness, M80 decision metadata, and local LLM environment/model profile metadata.
+- The advisory plan is structured JSON and names allowed advisory outputs, forbidden outputs, required response fields, validation expectations, and safety confirmations.
+
+Boundaries preserved:
+
+- no prompt dispatch
+- no local LLM provider invocation from the readiness command
+- no repo file mutation, queue mutation, queue completion, or automatic next-item execution
+- no GitHub API, `gh`, issues, PRs, workflows, external workflow execution, or GitHub mutation
+- any future local LLM invocation remains separate, explicit, local-only, operator-gated, and non-mutating
+
+Recommended next milestone:
+
+- M82 Self-Managed AresForge Test Run after M81 validation and evidence review.
+
 ## M79.4 Codex Dispatch Recovery and Windows argv Hardening Context
 
 Status: In progress locally on `main`.

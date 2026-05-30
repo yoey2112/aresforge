@@ -1,5 +1,27 @@
 # Runnable Skeleton
 
+## M81 Local LLM Advisory/Coding Lane Prototype
+
+M81 adds a local-only advisory lane readiness inspection path:
+
+- `python -m aresforge inspect-local-llm-advisory-lane-readiness --item-id <item_id> --format json`
+
+Runnable behavior:
+
+- inspects one local queue item
+- reuses M80 decision matrix metadata
+- reads local LLM provider/model metadata from the local environment contract
+- returns a structured advisory plan for reasoning/coding assistance
+- confirms provider invocation, prompt dispatch, repo mutation, queue mutation, queue completion, GitHub/`gh`, workflows, and automatic next-item execution are disabled
+
+Still absent by design:
+
+- automatic local LLM invocation
+- automatic file edits from local LLM output
+- automatic queue completion
+- automatic next-item execution
+- GitHub API, `gh`, issues, PRs, workflows, or external workflow execution
+
 ## M79.4 Codex Dispatch Recovery and Windows argv Hardening
 
 M79.4 adds an explicit recovery command for partial Codex dispatch failures:

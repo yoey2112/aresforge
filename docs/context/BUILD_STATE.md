@@ -1,5 +1,28 @@
 # AresForge Build State
 
+## M81 Local LLM Advisory/Coding Lane Prototype
+
+Status: In progress locally on `main`.
+
+Delivered in this pass:
+
+- added `inspect-local-llm-advisory-lane-readiness` for read-only inspection of one local queue item
+- composes local queue readiness, M80 decision matrix output, and local LLM provider/model metadata
+- returns a structured advisory plan for reasoning/coding advisory output, including required JSON fields and safety boundary confirmations
+- keeps provider invocation, prompt dispatch, repo mutation, queue mutation, queue completion, and automatic next-item execution disabled
+
+M81 safety posture:
+
+- local-only and advisory-first
+- no local LLM provider invocation from the readiness command
+- no automatic repo file mutation from local LLM output
+- no automatic queue completion or next-item execution
+- no GitHub API, `gh`, issues, PRs, workflows, or external workflow execution
+
+Recommended next milestone:
+
+- M82 Self-Managed AresForge Test Run only after M81 review, validation, and queue evidence.
+
 ## M79.4 Codex Dispatch Recovery and Windows argv Hardening
 
 Status: In progress locally on `main`.

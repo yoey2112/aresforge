@@ -1,5 +1,29 @@
 # Local Operator Usage
 
+## M81 Local LLM Advisory/Coding Lane Prototype
+
+Inspect the local LLM advisory/coding lane readiness for one queue item:
+
+    python -m aresforge inspect-local-llm-advisory-lane-readiness --item-id m81-local-llm-advisory-coding-lane-prototype --format json
+
+Payload highlights:
+
+- `recommended_engine`
+- `recommended_lane`
+- `selected_model`
+- `provider_metadata`
+- `decision_matrix_summary`
+- `advisory_plan`
+- `safety_boundary`
+
+Operator rules:
+
+- treat the output as advisory planning metadata only
+- do not treat readiness inspection as provider invocation or prompt dispatch
+- keep local LLM output manually reviewed and non-mutating
+- do not complete a queue item until review and validation evidence are captured
+- do not start the next queue item automatically
+
 ## M79.4 Codex Dispatch Recovery and Windows argv Hardening
 
 Recover a partially failed or stale local Codex dispatch run:

@@ -15,6 +15,7 @@ from aresforge.operator.local_execution_audit import (
 )
 from aresforge.operator.local_operator_run_history import read_operator_run_history
 from aresforge.operator.local_active_project import set_active_project
+from aresforge.operator.local_llm_advisory_lane import build_local_llm_advisory_lane_readiness
 from aresforge.operator.local_project_queue import (
     add_local_queue_item,
     add_queue_item,
@@ -1392,6 +1393,47 @@ def test_generate_local_llm_prompt_preview_succeeds_for_local_reasoning_llm_with
     assert payload['recommended_model'] == 'local-reason'
     assert payload['execution_allowed'] is False
     assert 'recommended_model: local-reason' in payload['prompt_preview']
+
+
+def test_local_llm_advisory_lane_readiness_is_read_only_and_structured(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _write_local_llm_environment(tmp_path, reasoning_model='local-reason')
+    _seed_preview_item(config, item_id='q-advisory-ready', engine='local_reasoning_llm', model='')
+
+    payload = build_local_llm_advisory_lane_readiness(config, item_id='q-advisory-ready')
+
+    assert payload['ok'] is True
+    assert payload['advisory_lane_ready'] is True
+    assert payload['advisory_only'] is True
+    assert payload['execution_allowed'] is False
+    assert payload['local_llm_invocation_allowed'] is False
+    assert payload['repo_mutation_allowed'] is False
+    assert payload['queue_mutation_allowed'] is False
+    assert payload['automatic_next_item_execution_allowed'] is False
+    assert payload['recommended_engine'] == 'local_reasoning_llm'
+    assert payload['selected_model']['model_name'] == 'local-reason'
+    assert payload['selected_model']['source'] == 'decision_matrix'
+    assert payload['provider_metadata']['provider'] == 'ollama'
+    assert payload['advisory_plan']['structured_json_output_required'] is True
+    assert payload['advisory_plan']['safety_boundary_confirmations']['repo_mutation_allowed'] is False
+    assert payload['safety_boundary']['provider_invocation_allowed_from_this_command'] is False
+    detail = inspect_queue_item(config, item_id='q-advisory-ready')
+    assert detail['payload']['item']['status'] == 'ready'
+
+
+def test_local_llm_advisory_lane_readiness_blocks_codex_and_missing_provider(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_preview_item(config, item_id='q-advisory-codex', engine='codex_cli', model='codex-model')
+
+    payload = build_local_llm_advisory_lane_readiness(config, item_id='q-advisory-codex')
+
+    assert payload['ok'] is True
+    assert payload['advisory_lane_ready'] is False
+    assert payload['execution_allowed'] is False
+    assert payload['local_llm_invocation_allowed'] is False
+    assert any('codex_cli' in blocker for blocker in payload['blockers'])
+    assert any('provider is not configured' in blocker for blocker in payload['blockers'])
+    assert payload['safety_boundary']['queue_completion_allowed'] is False
 
 
 def test_generate_local_llm_prompt_preview_blocks_codex_and_unrouted_items(tmp_path: Path) -> None:

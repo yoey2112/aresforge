@@ -1,5 +1,32 @@
 # AresForge Roadmap
 
+## M81 Local LLM Advisory/Coding Lane Prototype
+
+Status: In progress locally on `main`.
+
+Purpose:
+
+- prototype a local LLM advisory/coding lane as read-only readiness and structured advisory planning
+- keep local LLM usage advisory-first before any coding-output application path exists
+- reuse M80 decision matrix concepts and local provider/model registry metadata
+
+Delivered scope:
+
+- `inspect-local-llm-advisory-lane-readiness`
+- structured advisory plan output for local reasoning/coding advisory work
+- explicit safety boundary fields blocking provider invocation, prompt dispatch, repo mutation, queue mutation, queue completion, GitHub/`gh`, workflows, and automatic next-item execution
+
+Constraints preserved:
+
+- no automatic local LLM invocation
+- no automatic repo mutation from local LLM output
+- no automatic queue completion or next-item execution
+- no GitHub API, `gh`, issues, PRs, workflows, external workflow execution, or GitHub mutation
+
+Next recommended milestone:
+
+- M82 Self-Managed AresForge Test Run after M81 evidence review.
+
 ## M79.4 Codex Dispatch Recovery and Windows argv Hardening
 
 Status: In progress locally on `main`.

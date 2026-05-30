@@ -30,6 +30,8 @@ M72 hardens provider and model configuration metadata. Environment reads, update
 
 M75 reconciles source-of-truth documentation after M74. It does not add local LLM execution behavior. The local LLM contract remains local-only, advisory-only, operator-gated, prototype-scoped, and non-mutating. Local LLM output must never automatically mutate repository files, queue state, project state, GitHub, `gh`, Codex, agents, commits, pushes, or workflows.
 
+M81 adds a read-only local LLM advisory/coding lane readiness inspection path. It reads this environment contract and M80 decision metadata to produce structured advisory planning output, but it does not invoke a provider, send prompts, run inference, mutate repository files, mutate queue state, complete queue items, or start another queue item.
+
 ## Storage
 
 The contract is stored locally at:
@@ -56,6 +58,7 @@ Reading defaults does not write this file. Updating the contract writes the file
 - `GET /api/ai-artifacts`
 - `GET /api/operator-run-history`
 - `GET /api/ai-action-review`
+- CLI: `python -m aresforge inspect-local-llm-advisory-lane-readiness --item-id <item_id> --format json`
 
 ## Fields
 
@@ -262,3 +265,5 @@ M73 improved prompt-pack quality and routing guidance.
 M74 stabilized Hub UX wording.
 
 M75 reconciles source-of-truth docs and prepares M76-M82 without expanding local LLM execution.
+
+M81 adds local LLM advisory lane readiness inspection without expanding local LLM execution.

@@ -6,6 +6,8 @@ M44A documented the future Agent/LLM routing strategy. M51 through M73 now add n
 
 M74 stabilized the Hub wording around those surfaces. M75 reconciles the source-of-truth documentation and roadmap without adding execution behavior.
 
+M81 adds a read-only local LLM advisory/coding lane readiness inspection path. It reuses M80 decision matrix output and local LLM environment/model metadata to produce structured advisory planning output without invoking a provider.
+
 Current prompt-pack and Codex high-value lane behavior are advisory prompt generation/manual handoff only. Runtime routing execution, Codex dispatch, Codex CLI invocation, real agent execution, external workflow execution, and GitHub integration remain unimplemented. Local LLM execution exists only as the M62 operator-gated local prototype and remains local-only, advisory-only, prototype-scoped, and non-mutating.
 
 ## M75 Source-of-Truth and Next Decision Matrix Direction

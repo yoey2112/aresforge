@@ -4975,6 +4975,52 @@ def test_inspect_llm_decision_matrix_dispatch_json(
     assert seen["output_format"] == "json"
 
 
+def test_inspect_local_llm_advisory_lane_readiness_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "ok": True,
+                "advisory_only": True,
+                "item_id": "m81",
+                "execution_allowed": False,
+                "local_llm_invocation_allowed": False,
+                "repo_mutation_allowed": False,
+                "queue_mutation_allowed": False,
+                "automatic_next_item_execution_allowed": False,
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_inspect(_config, item_id, queue_path=None, registry_path=None, output_format="json"):
+        seen["item_id"] = item_id
+        seen["output_format"] = output_format
+        return payload
+
+    monkeypatch.setattr(cli, "inspect_local_llm_advisory_lane_readiness", fake_inspect)
+    exit_code = cli.main(
+        ["inspect-local-llm-advisory-lane-readiness", "--item-id", "m81", "--format", "json"]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["advisory_only"] is True
+    assert parsed["execution_allowed"] is False
+    assert parsed["local_llm_invocation_allowed"] is False
+    assert parsed["repo_mutation_allowed"] is False
+    assert parsed["queue_mutation_allowed"] is False
+    assert parsed["automatic_next_item_execution_allowed"] is False
+    assert seen["item_id"] == "m81"
+    assert seen["output_format"] == "json"
+
+
 def test_run_single_ready_codex_queue_item_dispatch_json(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
