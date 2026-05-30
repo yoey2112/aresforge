@@ -10,11 +10,11 @@ M112 adds `parse-dispatch-result-evidence` for local-only evidence parsing. It r
 
 ## M112 Dispatch Result Evidence Parser
 
-Status: Implemented locally on `main`; validation pending commit.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m112-dispatch-result-evidence-parser`.
 
-Implementation commit: pending.
+Implementation commit: `5088c95`.
 
 M112 adds:
 
