@@ -1,5 +1,31 @@
 # AresForge Roadmap
 
+## M120 Operator Batch Queue Sequencer v2
+
+Status: Implemented locally on `main` pending completion evidence commit.
+
+Queue item: `m120-operator-batch-queue-sequencer-v2`.
+
+Purpose:
+
+- recommend an ordered local operator batch from proposed and ready queue items
+- account for dependencies, priority, artifact readiness, approval gates, and lane grouping
+- surface dependency warnings, approval warnings, artifact warnings, blocked items, operator checklist, and next safe action
+- keep sequencing advisory and non-executing
+
+Runnable operator surface:
+
+- `python -m aresforge plan-operator-batch-v2 --project-id aresforge --format json`
+- optional `--limit`, `--include-blocked`, `--output`, and `--force`
+
+Constraints preserved:
+
+- sequencing only
+- `execution_performed=false`
+- `queue_mutation_performed=false`
+- `local_only=true` and `execution_allowed=false`
+- no queue item start, agent execution, Codex execution, Ollama/local LLM prompting, remote LLM call, GitHub API, `gh`, network service, validation command execution, patch application, external mutation, automatic completion, autonomous execution, or next-item execution
+
 ## M119 Dispatch Artifact Registry Index v2
 
 Status: Completed locally on `main` after validation.

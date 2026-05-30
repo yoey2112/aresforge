@@ -1,5 +1,34 @@
 # Runnable Skeleton
 
+## M120 Operator Batch Queue Sequencer v2
+
+M120 adds a local-only operator batch sequencing command:
+
+- `python -m aresforge plan-operator-batch-v2 --project-id aresforge --format json`
+- optional `--limit`, `--include-blocked`, `--output`, and `--force`
+
+Runnable behavior:
+
+- reads local queue state
+- reuses the existing M104 batch planner summary
+- reads the local dispatch artifact registry for artifact readiness signals
+- reads local dispatch approval gate metadata for approval warnings
+- recommends a sequence by priority, dependencies, and local readiness metadata
+- groups recommended items by advisory lane
+- reports dependency, approval, and artifact warnings without starting work
+- writes an optional local report only when the target does not exist or `--force` is explicit
+
+Still absent by design:
+
+- queue item start
+- agent execution
+- Codex execution or Codex CLI shell-out
+- Ollama/local LLM or remote LLM prompt execution
+- GitHub API, `gh`, issues, PRs, workflows, network calls, or external services
+- validation command execution
+- patch application
+- queue mutation, external mutation, automatic completion, autonomous execution, or next-item execution
+
 ## M119 Dispatch Artifact Registry Index v2
 
 M119 adds a local-only artifact registry inspection command:

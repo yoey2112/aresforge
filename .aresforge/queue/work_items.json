@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T20:38:04.690071+00:00",
+  "updated_at": "2026-05-30T20:44:00.000000+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -3765,6 +3765,36 @@
       "closeout_history": [],
       "created_at": "2026-05-30T20:27:16.213884+00:00",
       "updated_at": "2026-05-30T20:28:03.903357+00:00"
+    },
+    {
+      "item_id": "m120-operator-batch-queue-sequencer-v2",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M120 Operator Batch Queue Sequencer v2",
+      "description": "Create a local-only v2 operator batch sequencer that recommends ordered queue work and prerequisites without execution.",
+      "status": "in_progress",
+      "priority": "high",
+      "item_type": "orchestration",
+      "tags": [
+        "milestone:m120",
+        "batch-sequencer",
+        "local-only",
+        "operator-gated"
+      ],
+      "dependencies": [
+        "m119-dispatch-artifact-registry-index-v2"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [],
+      "evidence_required": [],
+      "assigned_agent": "",
+      "source": "local_cli",
+      "notes": "Acceptance criteria: add plan-operator-batch-v2; sequence proposed/ready items by dependencies, priority, artifact readiness, approval gates, and lane grouping; support limit/include-blocked/output/force/json; no queue starts, agent execution, model execution, GitHub, network, patch, external mutation, or queue mutation from the sequencer.",
+      "started_at": "2026-05-30T20:44:00.000000+00:00",
+      "started_via": "local_operator",
+      "created_at": "2026-05-30T20:44:00.000000+00:00",
+      "updated_at": "2026-05-30T20:44:00.000000+00:00"
     }
   ]
 }

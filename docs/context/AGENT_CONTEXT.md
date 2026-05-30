@@ -1,5 +1,21 @@
 # AresForge Agent Context
 
+## M120 Operator Batch Queue Sequencer v2 Context
+
+Status: Implemented locally on `main` pending completion evidence commit.
+
+Queue item: `m120-operator-batch-queue-sequencer-v2`.
+
+M120 adds `python -m aresforge plan-operator-batch-v2 --project-id aresforge --format json` for advisory batch sequencing. The command reads local queue state, the local dispatch artifact registry, and local approval gate metadata to recommend an ordered sequence with prerequisites.
+
+The sequencer reports `operator_batch_sequence_v2`, proposed and blocked counts, recommended sequence, dependency warnings, approval warnings, artifact warnings, lane grouping, operator checklist, `execution_performed=false`, `queue_mutation_performed=false`, `local_only=true`, `execution_allowed=false`, and next safe action.
+
+M120 boundaries:
+
+- local planning only
+- optional local output write only with no-overwrite safeguards
+- no queue item start, agents, Codex, Ollama/local LLMs, remote LLMs, GitHub, `gh`, network services, validation command execution, patch application, queue mutation, external mutation, automatic completion, autonomous execution, or next-item execution
+
 ## M119 Dispatch Artifact Registry Index v2 Context
 
 Status: Completed locally on `main` after validation.

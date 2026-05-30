@@ -2,11 +2,35 @@
 
 ## Current Phase
 
-M119 adds a local-only versioned dispatch artifact registry index for artifacts created by M109-M117 planning workflows. The registry improves discovery and consistency without executing Codex, local LLMs, agents, GitHub, network calls, or patches.
+M120 adds a local-only operator batch queue sequencer v2. It recommends ordered work and prerequisites without starting items, executing agents, calling models, calling GitHub, or mutating external systems.
 
 ## Current Goal
 
-M119 exposes `inspect-artifact-registry` for stable `dispatch_artifact_registry_v2` output, including artifact counts, supported types, missing expected artifact folders, stale artifacts, duplicates, blocked artifacts, review-required artifacts, and next safe action while preserving local-only/operator-gated boundaries.
+M120 exposes `plan-operator-batch-v2` for stable `operator_batch_sequence_v2` output, including proposed and blocked counts, recommended sequence, dependency warnings, approval warnings, artifact warnings, lane grouping, operator checklist, and next safe action while preserving local-only/operator-gated boundaries.
+
+## M120 Operator Batch Queue Sequencer v2
+
+Status: Implemented locally on `main` pending completion evidence commit.
+
+Queue item: `m120-operator-batch-queue-sequencer-v2`.
+
+M120 adds a local-only batch sequencing recommendation:
+
+- `python -m aresforge plan-operator-batch-v2 --project-id aresforge --format json`
+- optional `--limit`, `--include-blocked`, `--output`, and `--force`
+- stable `operator_batch_sequence_v2` records
+
+Sequencer behavior:
+
+- recommends an ordered batch from proposed and ready queue items
+- respects dependencies, priority, artifact readiness, approval gates, and lane grouping
+- reports dependency warnings, approval warnings, artifact warnings, blocked items, operator checklist, and next safe action
+- preserves `execution_performed=false`, `queue_mutation_performed=false`, `local_only=true`, and `execution_allowed=false`
+
+Safety boundaries:
+
+- advisory sequencing only
+- no queue item start, Codex execution, agent execution, Ollama/local LLM prompting, remote LLM call, GitHub API, `gh`, network service, validation command execution, patch application, queue mutation, external mutation, automatic completion, or next-item execution
 
 ## M119 Dispatch Artifact Registry Index v2
 

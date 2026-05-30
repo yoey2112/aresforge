@@ -286,6 +286,7 @@ from aresforge.operator.self_managed_project_report import inspect_self_managed_
 from aresforge.operator.model_usage_report import inspect_model_usage_report
 from aresforge.operator.sprint_batch_report import inspect_sprint_batch_report
 from aresforge.operator.operator_batch_planner import plan_operator_batch
+from aresforge.operator.operator_batch_queue_sequencer_v2 import plan_operator_batch_v2
 from aresforge.operator.self_seed import seed_aresforge_self_project
 from aresforge.hub.server import serve_hub
 from aresforge.operator.milestone_reconciliation_planner import plan_milestone_final_reconciliation
@@ -2059,6 +2060,23 @@ def build_parser() -> argparse.ArgumentParser:
     plan_operator_batch_parser.add_argument("--registry-path")
     plan_operator_batch_parser.add_argument("--limit", type=int, default=10)
     plan_operator_batch_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="markdown",
+    )
+    plan_operator_batch_v2_parser = subparsers.add_parser(
+        "plan-operator-batch-v2",
+        help="Recommend a local-only operator batch sequence with prerequisites and review warnings.",
+    )
+    plan_operator_batch_v2_parser.add_argument("--project-id", required=True)
+    plan_operator_batch_v2_parser.add_argument("--queue-path")
+    plan_operator_batch_v2_parser.add_argument("--registry-path")
+    plan_operator_batch_v2_parser.add_argument("--approval-path")
+    plan_operator_batch_v2_parser.add_argument("--limit", type=int, default=10)
+    plan_operator_batch_v2_parser.add_argument("--include-blocked", action="store_true")
+    plan_operator_batch_v2_parser.add_argument("--output")
+    plan_operator_batch_v2_parser.add_argument("--force", action="store_true")
+    plan_operator_batch_v2_parser.add_argument(
         "--format",
         choices=["json", "markdown"],
         default="markdown",
@@ -4832,6 +4850,25 @@ def main(argv: list[str] | None = None) -> int:
             queue_path=args.queue_path,
             registry_path=args.registry_path,
             limit=args.limit,
+            output_format=args.format,
+        )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "plan-operator-batch-v2":
+        payload = plan_operator_batch_v2(
+            config,
+            project_id=args.project_id,
+            queue_path=args.queue_path,
+            registry_path=args.registry_path,
+            approval_path=args.approval_path,
+            limit=args.limit,
+            include_blocked=args.include_blocked,
+            output=args.output,
+            force=args.force,
             output_format=args.format,
         )
         if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):

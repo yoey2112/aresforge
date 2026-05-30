@@ -216,6 +216,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-model-usage-report",
         "inspect-sprint-batch-report",
         "plan-operator-batch",
+        "plan-operator-batch-v2",
         "inspect-documentation-agent-contract",
         "plan-doc-reconciliation",
         "prepare-codex-handoff",
@@ -5835,6 +5836,91 @@ def test_plan_operator_batch_dispatch_json(
 
     assert exit_code == 0
     assert parsed == {"project_id": "aresforge", "execution_allowed": False}
+
+
+def test_plan_operator_batch_v2_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    seen: dict[str, object] = {}
+    payload = {
+        "ok": True,
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "plan_type": "operator_batch_sequence_v2",
+                "project_id": "aresforge",
+                "execution_allowed": False,
+            }
+        ),
+    }
+
+    def fake_plan(
+        _config,
+        *,
+        project_id,
+        queue_path=None,
+        registry_path=None,
+        approval_path=None,
+        limit=10,
+        include_blocked=False,
+        output=None,
+        force=False,
+        output_format="markdown",
+    ):
+        seen.update(
+            {
+                "project_id": project_id,
+                "queue_path": queue_path,
+                "registry_path": registry_path,
+                "approval_path": approval_path,
+                "limit": limit,
+                "include_blocked": include_blocked,
+                "output": output,
+                "force": force,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "plan_operator_batch_v2", fake_plan)
+
+    exit_code = cli.main(
+        [
+            "plan-operator-batch-v2",
+            "--project-id",
+            "aresforge",
+            "--queue-path",
+            "queue.json",
+            "--registry-path",
+            "registry.json",
+            "--approval-path",
+            "approvals.json",
+            "--limit",
+            "4",
+            "--include-blocked",
+            "--output",
+            "batch.json",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["plan_type"] == "operator_batch_sequence_v2"
+    assert parsed["execution_allowed"] is False
+    assert seen == {
+        "project_id": "aresforge",
+        "queue_path": "queue.json",
+        "registry_path": "registry.json",
+        "approval_path": "approvals.json",
+        "limit": 4,
+        "include_blocked": True,
+        "output": "batch.json",
+        "force": True,
+        "output_format": "json",
+    }
 
 
 def test_inspect_documentation_agent_contract_dispatch_json(

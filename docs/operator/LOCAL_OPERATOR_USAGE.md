@@ -1,5 +1,31 @@
 # Local Operator Usage
 
+## M120 Operator Batch Queue Sequencer v2
+
+M120 recommends a local operator batch sequence from queue state, artifact readiness, approval gates, priority, and dependencies. It does not start queue items, execute agents, execute Codex, invoke Ollama or local LLMs, call remote LLMs, call GitHub, call `gh`, make network calls, run validation commands, apply patches, mutate queue state, mutate external systems, or start follow-on work.
+
+JSON sequence:
+
+    python -m aresforge plan-operator-batch-v2 --project-id aresforge --format json
+
+Limit the sequence:
+
+    python -m aresforge plan-operator-batch-v2 --project-id aresforge --limit 5 --format json
+
+Include blocked items as advisory entries:
+
+    python -m aresforge plan-operator-batch-v2 --project-id aresforge --include-blocked --format json
+
+Write a local sequence report:
+
+    python -m aresforge plan-operator-batch-v2 --project-id aresforge --format json --output artifacts/operator_batch_sequences/v2.json
+
+Overwrite only with explicit force:
+
+    python -m aresforge plan-operator-batch-v2 --project-id aresforge --format json --output artifacts/operator_batch_sequences/v2.json --force
+
+The sequence reports `operator_batch_sequence_v2`, proposed and blocked counts, `recommended_sequence`, `dependency_warnings`, `approval_warnings`, `artifact_warnings`, `lane_grouping`, `operator_checklist`, `execution_performed=false`, `queue_mutation_performed=false`, `local_only=true`, `execution_allowed=false`, and next safe action.
+
 ## M119 Dispatch Artifact Registry Index v2
 
 M119 provides a versioned local registry for dispatch and review artifacts. It reads local artifact files and queue metadata only. It does not execute Codex, Ollama, local LLMs, remote LLMs, agents, GitHub, `gh`, network services, validation commands, patches, source mutation, queue mutation, autonomous execution, or follow-on work.
