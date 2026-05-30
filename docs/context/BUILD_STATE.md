@@ -2,7 +2,9 @@
 
 ## M94 Overnight Sprint Batch Report
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main`.
+
+Implementation commit: `ed8cc6df00fa7ffc5199b95aa9a72fd468a070b0`.
 
 Delivered in this pass:
 
