@@ -81,6 +81,7 @@ def test_cli_has_expected_commands() -> None:
         "run-agent-dry-run",
         "run-agent",
         "evaluate-machine-safety-gates",
+        "auto-complete-safe-queue-item",
         "probe-local-ollama-provider",
         "inspect-llm-decision-matrix",
         "inspect-local-llm-provider-contract",
@@ -5695,6 +5696,90 @@ def test_evaluate_machine_safety_gates_dispatch_json(
     }
 
 
+def test_auto_complete_safe_queue_item_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "action_type": "auto_complete_safe_queue_item",
+                "item_id": "m132",
+                "auto_completed": False,
+                "dry_run": True,
+                "queue_mutation_performed": False,
+                "external_execution_performed": False,
+                "model_execution_performed": False,
+                "github_execution_performed": False,
+                "patch_application_performed": False,
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_auto_complete(
+        _config,
+        *,
+        item_id,
+        evidence_path=None,
+        gate_profile="queue_status_mutation",
+        queue_path=None,
+        dry_run=False,
+        force=False,
+        output=None,
+        output_format="json",
+    ):
+        seen["item_id"] = item_id
+        seen["evidence_path"] = evidence_path
+        seen["gate_profile"] = gate_profile
+        seen["queue_path"] = queue_path
+        seen["dry_run"] = dry_run
+        seen["force"] = force
+        seen["output"] = output
+        seen["output_format"] = output_format
+        return payload
+
+    monkeypatch.setattr(cli, "auto_complete_safe_queue_item", fake_auto_complete)
+    exit_code = cli.main(
+        [
+            "auto-complete-safe-queue-item",
+            "--item-id",
+            "m132",
+            "--evidence-path",
+            "artifacts/dispatch_result_evidence/m132.json",
+            "--gate-profile",
+            "queue_status_mutation",
+            "--queue-path",
+            "queue.json",
+            "--dry-run",
+            "--output",
+            "auto-complete.json",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["action_type"] == "auto_complete_safe_queue_item"
+    assert parsed["external_execution_performed"] is False
+    assert seen == {
+        "item_id": "m132",
+        "evidence_path": "artifacts/dispatch_result_evidence/m132.json",
+        "gate_profile": "queue_status_mutation",
+        "queue_path": "queue.json",
+        "dry_run": True,
+        "force": True,
+        "output": "auto-complete.json",
+        "output_format": "json",
+    }
+
+
 def test_prepare_local_llm_advisory_run_dispatch_json(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -7027,7 +7112,6 @@ def test_generate_local_llm_advisory_artifact_dispatch_markdown(
     assert "selected_lane: local_llm_advisory" in output
 
 
-
 def test_generate_doc_agent_patch_proposal_dispatch_json(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -7082,7 +7166,6 @@ def test_generate_doc_agent_patch_proposal_dispatch_json(
     exit_code = cli.main(
         [
             "generate-doc-agent-patch-proposal",
-        "recommend-agent-route",
             "--item-id",
             "m116",
             "--queue-path",
@@ -7191,6 +7274,8 @@ def test_recommend_agent_route_dispatch_json(
         "force": True,
         "output_format": "json",
     }
+
+
 def test_intake_patch_proposal_dispatch_json(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -7923,7 +8008,6 @@ def test_inspect_dispatch_artifacts_dispatch_json(
     }
 
 
-
 def test_inspect_artifact_registry_dispatch_json(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -7974,11 +8058,11 @@ def test_inspect_artifact_registry_dispatch_json(
             "--project-id",
             "aresforge",
             "--item-id",
-            "m119-dispatch-artifact-registry-index-v2",
+            "m119",
             "--artifact-type",
-            "local_llm_advisory_request",
+            "dispatch_result_evidence",
             "--output",
-            "registry.json",
+            "artifacts/registry/m119.json",
             "--force",
             "--format",
             "json",
@@ -7991,12 +8075,13 @@ def test_inspect_artifact_registry_dispatch_json(
     assert parsed["execution_allowed"] is False
     assert seen == {
         "project_id": "aresforge",
-        "item_id": "m119-dispatch-artifact-registry-index-v2",
-        "artifact_type": "local_llm_advisory_request",
-        "output": "registry.json",
+        "item_id": "m119",
+        "artifact_type": "dispatch_result_evidence",
+        "output": "artifacts/registry/m119.json",
         "force": True,
         "output_format": "json",
     }
+
 
 def test_inspect_approval_ledger_dispatch_json(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]

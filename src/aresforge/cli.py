@@ -258,6 +258,7 @@ from aresforge.operator.llm_decision_policy import recommend_llm_decision
 from aresforge.operator.single_agent_dry_run_executor import run_single_agent_dry_run
 from aresforge.operator.single_agent_real_executor import run_single_agent_real_execution
 from aresforge.operator.machine_safety_gate_engine import evaluate_machine_safety_gates
+from aresforge.operator.auto_complete_safe_queue_item import auto_complete_safe_queue_item
 from aresforge.operator.single_ready_codex_queue_item import run_single_ready_codex_queue_item
 from aresforge.operator.local_agent_profiles import (
     AGENT_PROFILE_STATUSES,
@@ -1723,7 +1724,6 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["json", "markdown"],
         default="markdown",
     )
-
     recommend_agent_route_parser = subparsers.add_parser(
         "recommend-agent-route",
         help="Recommend an advisory agent/executor lane for one queue item without dispatch or execution.",
@@ -2017,6 +2017,22 @@ def build_parser() -> argparse.ArgumentParser:
     evaluate_machine_safety_gates_parser.add_argument("--output")
     evaluate_machine_safety_gates_parser.add_argument("--force", action="store_true")
     evaluate_machine_safety_gates_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+    )
+    auto_complete_safe_queue_item_parser = subparsers.add_parser(
+        "auto-complete-safe-queue-item",
+        help="Auto-complete one safe queue item only when deterministic evidence and machine gates pass.",
+    )
+    auto_complete_safe_queue_item_parser.add_argument("--item-id", required=True)
+    auto_complete_safe_queue_item_parser.add_argument("--evidence-path")
+    auto_complete_safe_queue_item_parser.add_argument("--gate-profile", default="queue_status_mutation")
+    auto_complete_safe_queue_item_parser.add_argument("--queue-path")
+    auto_complete_safe_queue_item_parser.add_argument("--dry-run", action="store_true")
+    auto_complete_safe_queue_item_parser.add_argument("--force", action="store_true")
+    auto_complete_safe_queue_item_parser.add_argument("--output")
+    auto_complete_safe_queue_item_parser.add_argument(
         "--format",
         choices=["json"],
         default="json",
@@ -4551,7 +4567,6 @@ def main(argv: list[str] | None = None) -> int:
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 
-
     if args.command == "generate-doc-agent-patch-proposal":
         payload = generate_documentation_agent_patch_proposal(
             config,
@@ -4584,6 +4599,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0 if bool(payload.get("ok")) else 1
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
+
     if args.command == "create-dispatch-approval-gate":
         payload = create_dispatch_approval_gate(
             config,
@@ -4658,7 +4674,7 @@ def main(argv: list[str] | None = None) -> int:
             item_id=args.item_id,
             artifact_type=args.artifact_type,
             output=args.output,
-            force=args.force,
+            force=bool(args.force),
             output_format=args.format,
         )
         if "stdout" in payload:
@@ -4883,6 +4899,24 @@ def main(argv: list[str] | None = None) -> int:
             queue_path=args.queue_path,
             output=args.output,
             force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "auto-complete-safe-queue-item":
+        payload = auto_complete_safe_queue_item(
+            config,
+            item_id=args.item_id,
+            evidence_path=args.evidence_path,
+            gate_profile=args.gate_profile,
+            queue_path=args.queue_path,
+            dry_run=bool(args.dry_run),
+            force=bool(args.force),
+            output=args.output,
             output_format=args.format,
         )
         if "stdout" in payload:

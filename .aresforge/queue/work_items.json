@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T23:24:00+00:00",
+  "updated_at": "2026-05-30T21:42:08+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -2939,7 +2939,7 @@
       "previous_status": "proposed",
       "completed_at": "2026-05-30T18:57:30.000000+00:00",
       "completed_by": "local_operator",
-      "completion_commit": "pending-final-commit",
+      "completion_commit": "93bfaab",
       "validation_summary": "M125 Agent Runtime Boundary Contract implemented and validated locally. Added inspect-agent-runtime-boundary, stable agent_runtime_boundary JSON output, schema-like field definitions, capability catalogs, mutation/network/model scope catalogs, default runtime limits, timeout/retry policy, tests, CLI coverage, and source-of-truth documentation updates. No real agent execution, Codex, Ollama, local LLM, documentation-agent, GitHub, gh, network service, patch application, queue auto-completion, or next-item execution was performed.",
       "evidence_note": "Validation passed: python -m pytest tests/test_cli.py; python -m pytest tests/test_agent_runtime_boundary.py; git diff --check passed with CRLF warnings only; smoke checks passed for inspect-agent-runtime-boundary --format json, inspect-local-project-report, inspect-local-queue-agent-summary, and inspect-project-queue --project-id aresforge. Pre-existing queue state still has m112-dispatch-result-evidence-parser marked in_progress; M125 did not modify that item.",
       "tests_run": [
@@ -4181,10 +4181,10 @@
       "assigned_agent": "",
       "source": "delegated-batch",
       "notes": "Acceptance criteria: add evaluate-machine-safety-gates; support read_only_agent, local_artifact_write, queue_status_mutation, docs_only_patch_apply, local_llm_execution, codex_dispatch, github_sync, and multi_agent_orchestration profiles; evaluate only; no execution, patch application, queue mutation, GitHub, gh, network, or next-item execution.",
-      "started_at": "2026-05-30T23:20:00+00:00",
+      "started_at": "2026-05-30T22:20:00+00:00",
       "started_via": "local_operator",
       "previous_status": "ready",
-      "completed_at": "2026-05-30T23:24:00+00:00",
+      "completed_at": "2026-05-30T21:24:00+00:00",
       "completed_by": "local_operator",
       "completion_commit": "pending-final-commit",
       "validation_summary": "M131 Machine Safety Gate Engine implemented and validated locally. Added evaluate-machine-safety-gates, stable machine_safety_gate_evaluation JSON output, eight gate profiles, queue/status/dependency checks, artifact and execution-record validation, forbidden capability detection, working-tree and path allowlist checks, docs-only patch enforcement, test/evidence checks, warning thresholds, transaction-log checks, explicit external allowance checks, CLI coverage, tests, docs, and queue evidence. No agents, Codex, Ollama/local LLM, remote LLM, GitHub, gh, network service, validation command execution from AresForge, patch application, queue mutation from the gate evaluator, external mutation, autonomous execution, or next-item execution was performed.",
@@ -4232,9 +4232,89 @@
       "closed_by": "",
       "closeout_summary": "",
       "closeout_history": [],
-      "created_at": "2026-05-30T23:20:00+00:00",
-      "updated_at": "2026-05-30T23:24:00+00:00"
+      "created_at": "2026-05-30T22:20:00+00:00",
+      "updated_at": "2026-05-30T21:24:00+00:00"
+    },
+    {
+      "item_id": "m132-auto-completion-for-safe-queue-items",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M132 Auto-Completion for Safe Queue Items",
+      "description": "Allow AresForge to automatically complete safe queue items only when deterministic evidence and queue_status_mutation machine gates pass.",
+      "status": "in_progress",
+      "priority": "high",
+      "item_type": "feature",
+      "tags": [
+        "milestone:m132",
+        "safe-auto-completion",
+        "machine-gated",
+        "local-only"
+      ],
+      "dependencies": [
+        "m131-machine-safety-gate-engine"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [
+        "tests_run",
+        "smoke_checks",
+        "commit_hash"
+      ],
+      "evidence_required": [
+        "dispatch_result_evidence"
+      ],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: add auto-complete-safe-queue-item; allow low-risk queue completion only with parsed evidence, deterministic recommendation, passed tests/smoke checks, no blockers, queue_status_mutation machine gate pass, and transaction logging; no Codex, LLM, GitHub, network, validation execution, patch application, or next-item execution.",
+      "started_at": "2026-05-30T21:42:08+00:00",
+      "started_via": "local_operator",
+      "previous_status": "ready",
+      "completed_at": "",
+      "completed_by": "",
+      "completion_commit": "",
+      "validation_summary": "M132 implementation validated locally with CLI, auto-completion, machine gate, and local queue tests passing.",
+      "evidence_note": "",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 206 passed",
+        "python -m pytest tests/test_auto_complete_safe_queue_item.py -> 6 passed",
+        "python -m pytest tests/test_machine_safety_gate_engine.py -> 8 passed",
+        "python -m pytest tests/test_local_project_queue.py -> 111 passed",
+        "git diff --check -> passed with CRLF warnings only"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/auto_complete_safe_queue_item.py",
+        "src/aresforge/cli.py",
+        "tests/test_auto_complete_safe_queue_item.py",
+        "tests/test_cli.py",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        ".aresforge/queue/work_items.json"
+      ],
+      "artifact_paths": [],
+      "completion_evidence": {},
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "low",
+        "complexity_level": "medium",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-30T21:42:08+00:00",
+      "updated_at": "2026-05-30T21:42:08+00:00"
     }
-  ],
-  "item_count": 65
+  ]
 }

@@ -1,5 +1,75 @@
 # AresForge Roadmap
 
+## M132 Auto-Completion for Safe Queue Items
+
+Status: In progress locally on `main`.
+
+Queue item: `m132-auto-completion-for-safe-queue-items`.
+
+Purpose:
+
+- remove human review for low-risk queue completion when deterministic local evidence is sufficient
+- require machine safety gates before any queue-status mutation
+- preserve all external execution, model, GitHub, network, and patch boundaries
+
+Runnable operator surface:
+
+- `python -m aresforge auto-complete-safe-queue-item --item-id <item_id> --format json`
+- optional `--evidence-path`, `--gate-profile queue_status_mutation`, `--dry-run`, `--force`, and `--output`
+
+Constraints preserved:
+
+- dry-run remains non-mutating
+- only safe in-progress items with passing evidence and passing `queue_status_mutation` gates can become `done`
+- high-risk, manual-only, missing-evidence, failed-test, blocker-present, failed-gate, and transaction-log-failed items block
+- no Codex, local LLM/Ollama, remote LLM, GitHub API, `gh`, network service, validation command execution, patch application, external mutation, autonomous execution, or next-item execution
+
+## M124 Sprint Summary and Documentation Sync Closeout
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m124-sprint-summary-and-documentation-sync-closeout`.
+
+Purpose:
+
+- close the M110-M124 controlled automation sprint
+- synchronize source-of-truth docs, queue status, roadmap status, operator workflow, and known gaps
+- confirm that the sprint remains advisory, local-only, and operator-gated
+
+Completed milestone status:
+
+- M110: implemented local LLM advisory artifact generator.
+- M111: implemented approval-gated patch proposal intake.
+- M112: implemented dispatch result evidence parser.
+- M113: implemented queue completion recommendation engine.
+- M114: implemented Hub Dispatch Review Panel.
+- M115: implemented local Ollama provider probe.
+- M116: implemented documentation-agent patch proposal generator.
+- M117: implemented agent routing decision dashboard.
+- M118: completed post-automation planning reconciliation.
+- M119: implemented dispatch artifact registry index v2.
+- M120: implemented operator batch queue sequencer v2.
+- M121: implemented human approval inventory and review ledger.
+- M122: implemented safe queue mutation transaction log.
+- M123: completed Hub controlled automation workspace polish.
+- M124: completed sprint summary and documentation sync closeout.
+
+Still not allowed:
+
+- autonomous dispatch, background workers, automatic next-item execution
+- Codex/Codex CLI execution from these contracts
+- Ollama/local LLM prompt execution or remote LLM calls
+- GitHub API, `gh`, issues, PRs, workflows, or network services
+- patch application or documentation-agent apply mode
+- automatic queue completion from recommendations
+
+Recommended next sprint:
+
+- harden machine gates and declarative agent boundaries before expanding real execution
+- keep low-risk local executor work limited to deterministic local artifacts
+- add stale artifact cleanup/reporting improvements
+- plan any Codex/model/GitHub/patch execution as separate explicit operator-approved milestones
+
 ## M131 Machine Safety Gate Engine
 
 Status: Completed locally on `main` after validation.
@@ -22,7 +92,6 @@ Constraints preserved:
 - evaluation only with `execution_performed=false` and `mutation_performed=false`
 - profiles fail closed when required artifacts, evidence, allowlisted paths, docs-only patch targets, transaction logs, or explicit external allowance are missing
 - no agent execution, Codex, Ollama/local LLM prompting, remote LLM call, GitHub API, `gh`, network service, validation command execution, patch application, queue mutation, external mutation, autonomous execution, or next-item execution
-
 
 ## M123 Hub Controlled Automation Workspace Polish
 
@@ -111,11 +180,9 @@ Constraints preserved:
 
 ## M121 Human Approval Inventory and Review Ledger
 
-Status: Completed locally on `main` after validation.
+Status: In progress locally on `main`.
 
 Queue item: `m121-human-approval-inventory-and-review-ledger`.
-
-Implementation commit: `127c6b1`.
 
 Purpose:
 
@@ -139,11 +206,9 @@ Constraints preserved:
 
 ## M120 Operator Batch Queue Sequencer v2
 
-Status: Completed locally on `main` after validation.
+Status: In progress locally on `main`.
 
 Queue item: `m120-operator-batch-queue-sequencer-v2`.
-
-Implementation commit: `b4f6a39`.
 
 Purpose:
 
@@ -167,59 +232,41 @@ Constraints preserved:
 
 ## M119 Dispatch Artifact Registry Index v2
 
-Status: Completed locally on `main` after validation.
+Status: In progress locally on `main`.
 
 Queue item: `m119-dispatch-artifact-registry-index-v2`.
 
-Implementation commit: `6c31268`.
-
 Purpose:
 
-- provide a versioned local registry for dispatch and review artifacts created by M109-M117 planning workflows
-- make manual dispatch records, Codex prompt dispatch artifacts, local LLM advisory requests, patch intake records, dispatch evidence, completion recommendations, documentation proposals, and route recommendations discoverable through one operator command
-- surface missing expected folders, stale artifacts, duplicates, blocked artifacts, review-required artifacts, and next safe action
-- keep artifact discovery advisory and non-executing
+- inventory local dispatch and advisory artifacts introduced through M109-M117
+- normalize artifact type, item id, path, status, blocked state, review-required state, and stale/duplicate signals
+- expose a machine-readable local registry for operators and future read-only Hub/report surfaces
 
 Runnable operator surface:
 
 - `python -m aresforge inspect-artifact-registry --format json`
-- `python -m aresforge inspect-artifact-registry --project-id aresforge --item-id <item_id> --artifact-type <type> --format json`
-- optional `--output <path>` and `--force`
+- optional `--project-id`, `--item-id`, `--artifact-type`, `--output`, and `--force`
+
+Supported artifact types:
+
+- `manual_codex_dispatch_preparation`
+- `codex_prompt_dispatch`
+- `local_llm_advisory_request`
+- `patch_proposal_intake`
+- `dispatch_result_evidence`
+- `queue_completion_recommendation`
+- `documentation_agent_patch_proposal`
+- `agent_route_recommendation`
 
 Constraints preserved:
 
-- registry inspection only
-- `local_only=true` and `execution_allowed=false`
-- no Codex, Ollama/local LLM, remote LLM, agent, GitHub API, `gh`, network service, patch application, source mutation, queue mutation, automatic completion, autonomous execution, or next-item execution
-
-## M128 Agent Orchestration Plan Builder
-
-Status: Completed locally on `main` after validation.
-
-Queue item: `m128-agent-orchestration-plan-builder`.
-
-Purpose:
-
-- convert one local queue item into an ordered machine-readable agent orchestration plan
-- combine queue metadata, the M126 agent registry, and the M127 LLM decision policy
-- surface required artifacts, dependency checks, machine gates, blocked reasons, autonomy level, and next safe action
-- keep orchestration plan generation separate from runtime execution
-
-Runnable operator surface:
-
-- `python -m aresforge build-agent-orchestration-plan --item-id <item_id> --format json`
-- optional `--agent-id`, `--execution-target dry-run|real`, `--output`, and `--force`
-
-Constraints preserved:
-
-- plan-only
-- `execution_performed=false`
-- real execution target requests block and recommend dry-run
-- no agent execution, Codex, local LLM, Ollama, remote LLM, GitHub API, `gh`, network service, validation command execution, patch application, source mutation, queue mutation from the plan, autonomous execution, or next-item execution
+- no execution or mutation
+- no Codex, Ollama, local LLM, agent runtime, GitHub API, `gh`, network service, workflow, patch application, automatic completion, or next-item execution
+- registry output is advisory inventory metadata only
 
 ## M129 Single-Agent Dry-Run Executor
 
-Status: Completed locally on `main` after validation.
+Status: In progress locally on `main`.
 
 Queue item: `m129-single-agent-dry-run-executor`.
 
@@ -249,13 +296,12 @@ Constraints preserved:
 - unsupported agents block
 - no Codex, local LLM, Ollama, remote LLM, GitHub API, `gh`, network service, validation command execution, patch application, source mutation, queue mutation from the dry-run, autonomous execution, or next-item execution
 - explicit `--output` may write only the dry-run execution record artifact
+
 ## M118 Post-Automation Planning Reconciliation
 
-Status: Completed locally on `main` after validation.
+Status: In progress locally on `main`.
 
 Queue item: `m118-post-automation-planning-reconciliation`.
-
-Implementation commit: `46c007c`.
 
 Purpose:
 
@@ -287,50 +333,73 @@ Next recommended milestones:
 - define the next operator evidence or documentation ledger checkpoint
 - keep any future execution runner as a separate explicitly approved milestone
 - preserve artifact-first, approval-gated, validation-evidence-driven sequencing
+
 ## M117 Agent Routing Decision Dashboard
 
-Status: Completed locally on `main` after validation.
+Status: In progress locally on `main`.
 
 Queue item: `m117-agent-routing-decision-dashboard`.
 
-Implementation commit: `585c99a`.
-
 Purpose:
 
-- explain which executor or advisor lane is recommended for one queue item
-- expose the recommendation through CLI, local Hub API, and Hub UI
-- keep routing advisory-only and operator-gated
-- preserve the no-dispatch, no-execution boundary
+- expose a local-only recommendation for which executor/advisor lane should be used for a queue item
+- show recommended lane, alternatives, reasons, blockers, required artifacts, approval requirements, and next safe action
+- give the Hub a read-only advisory dashboard without execution controls
 
 Runnable operator surface:
 
 - `python -m aresforge recommend-agent-route --item-id <item_id>`
 - `python -m aresforge recommend-agent-route --item-id <item_id> --format json`
 - optional `--output <path>` and `--force`
+- `GET /api/agent-route-recommendation?item_id=<item_id>`
+- Hub Queue panel Agent Routing Decision Dashboard
 
 Recommendation contract:
 
 - `recommendation_type=agent_route_recommendation`
 - queue identity and milestone
-- recommended lane and alternative lanes
-- routing reasons, required artifacts before dispatch, and approval requirements
-- local LLM, Codex, and documentation-agent suitability flags
+- `recommended_lane`
+- `alternative_lanes`
+- `routing_reasons`
+- `required_artifacts_before_dispatch`
+- `approval_requirements`
+- suitability flags for local LLM, Codex, and documentation-agent lanes
 - `human_operator_required=true`
 - `dispatch_performed=false`
 - `execution_allowed=false`
 - `local_only=true`
-- next safe action
-
-Hub surface:
-
-- Queue page Agent Routing Decision Dashboard
-- read-only local API wrapper
-- no execute buttons or dispatch controls
-- labels actions as local-only and advisory
 
 Constraints preserved:
 
-- no Codex, Codex CLI, Ollama, local LLM, agent runtime, GitHub API, `gh`, network service, workflow, patch application, source mutation, queue mutation, automatic completion, or next-item execution
+- no dispatch or execution
+- no execute buttons in the Hub panel
+- no Codex, Ollama, local LLM, agent runtime, GitHub API, `gh`, network, workflow, patch application, source mutation, queue mutation, approval mutation, automatic handoff, or next-item execution
+
+## M128 Agent Orchestration Plan Builder
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m128-agent-orchestration-plan-builder`.
+
+Purpose:
+
+- convert one local queue item into an ordered machine-readable agent orchestration plan
+- combine queue metadata, the M126 agent registry, and the M127 LLM decision policy
+- surface required artifacts, dependency checks, machine gates, blocked reasons, autonomy level, and next safe action
+- keep orchestration plan generation separate from runtime execution
+
+Runnable operator surface:
+
+- `python -m aresforge build-agent-orchestration-plan --item-id <item_id> --format json`
+- optional `--agent-id`, `--execution-target dry-run|real`, `--output`, and `--force`
+
+Constraints preserved:
+
+- plan-only
+- `execution_performed=false`
+- real execution target requests block and recommend dry-run
+- no agent execution, Codex, local LLM, Ollama, remote LLM, GitHub API, `gh`, network service, validation command execution, patch application, source mutation, queue mutation from the plan, autonomous execution, or next-item execution
+
 ## M127 LLM Decision Policy v1
 
 Status: Completed locally on `main` after validation.

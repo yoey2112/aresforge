@@ -1,5 +1,27 @@
 # Local Operator Usage
 
+## M132 Auto-Completion for Safe Queue Items
+
+M132 can complete one safe local queue item without human review when parsed evidence, deterministic completion recommendation, and `queue_status_mutation` machine gates all pass. It does not execute Codex, invoke Ollama or local LLMs, call remote LLMs, call GitHub, call `gh`, make network calls, run validation commands, apply patches, mutate external systems, or start follow-on work.
+
+Dry-run first:
+
+    python -m aresforge auto-complete-safe-queue-item --item-id <item_id> --dry-run --format json
+
+Use a specific evidence file:
+
+    python -m aresforge auto-complete-safe-queue-item --item-id <item_id> --evidence-path artifacts/dispatch_result_evidence/<item_id>.json --dry-run --format json
+
+Perform the safe local queue completion after dry-run passes:
+
+    python -m aresforge auto-complete-safe-queue-item --item-id <item_id> --format json
+
+Write a local report:
+
+    python -m aresforge auto-complete-safe-queue-item --item-id <item_id> --dry-run --format json --output artifacts/auto-completion/<item_id>.json
+
+Auto-completion blocks when evidence is missing, tests or smoke checks failed or are absent, blockers are present, dependencies are incomplete, the item is high-risk or manual-only tagged, machine gates fail, or the transaction log cannot record the mutation.
+
 ## M124 Sprint Summary and Documentation Sync Closeout
 
 M124 closes the M110-M124 controlled automation sprint. It does not add runtime behavior, execute Codex, invoke Ollama or local LLMs, run agents, call GitHub, call `gh`, make network calls, run validation commands, apply patches, mutate external systems, or start follow-on work.
@@ -195,49 +217,25 @@ The sequence reports `operator_batch_sequence_v2`, proposed and blocked counts, 
 
 ## M119 Dispatch Artifact Registry Index v2
 
-M119 provides a versioned local registry for dispatch and review artifacts. It reads local artifact files and queue metadata only. It does not execute Codex, Ollama, local LLMs, remote LLMs, agents, GitHub, `gh`, network services, validation commands, patches, source mutation, queue mutation, autonomous execution, or follow-on work.
+M119 inspects local artifact registry state across dispatch and advisory planning outputs. It does not execute Codex, invoke Ollama or local LLMs, run agents, call GitHub, call `gh`, make network calls, apply patches, mutate source files, mutate queue state, or start follow-on work.
 
-Inspect the full registry:
+JSON registry:
 
     python -m aresforge inspect-artifact-registry --format json
 
-Filter by queue item and artifact type:
+Filter by item or artifact type:
 
-    python -m aresforge inspect-artifact-registry --project-id aresforge --item-id <item_id> --artifact-type local_llm_advisory_request --format json
+    python -m aresforge inspect-artifact-registry --item-id <item_id> --artifact-type dispatch_result_evidence --format json
 
-Write a local registry report:
+Write a local registry snapshot:
 
-    python -m aresforge inspect-artifact-registry --format json --output artifacts/manual/artifact-registry.json
-
-Overwrite only with explicit force:
-
-    python -m aresforge inspect-artifact-registry --format json --output artifacts/manual/artifact-registry.json --force
-
-The registry reports `dispatch_artifact_registry_v2`, artifact counts, counts by type, missing expected artifact folders, stale artifacts, duplicates, blocked artifacts, review-required artifacts, and `next_safe_action`. All output preserves `local_only=true` and `execution_allowed=false`.
-
-## M128 Agent Orchestration Plan Builder
-
-M128 builds a machine-readable orchestration plan for one local queue item. It does not execute agents, Codex, Ollama, local LLMs, remote LLMs, GitHub, `gh`, network services, validation commands, patches, queue mutation, source mutation, autonomous execution, or follow-on work.
-
-JSON plan:
-
-    python -m aresforge build-agent-orchestration-plan --item-id <item_id> --format json
-
-Use an explicit primary agent and execution target:
-
-    python -m aresforge build-agent-orchestration-plan --item-id <item_id> --agent-id validation-agent --execution-target dry-run --format json
-
-Write a local plan:
-
-    python -m aresforge build-agent-orchestration-plan --item-id <item_id> --format json --output artifacts/orchestration-plans/<item_id>.json
+    python -m aresforge inspect-artifact-registry --format json --output artifacts/dispatch_artifact_registry/index.json
 
 Overwrite only with explicit force:
 
-    python -m aresforge build-agent-orchestration-plan --item-id <item_id> --format json --output artifacts/orchestration-plans/<item_id>.json --force
+    python -m aresforge inspect-artifact-registry --format json --output artifacts/dispatch_artifact_registry/index.json --force
 
-The output includes `plan_type=agent_orchestration_plan`, queue identity, requested and recommended execution targets, ordered agent steps, required artifacts, dependency checks, machine gates, blocked reasons, `autonomy_level`, `execution_performed=false`, `local_only=true`, and `next_safe_action`.
-
-Real execution requests are blocked in M128. Use the output as planning metadata only until a later explicit operator-approved runner exists.
+The registry reports artifact counts by type, missing expected artifact folders, stale item references, duplicate artifacts, blocked artifacts, review-required artifacts, `local_only=true`, `execution_allowed=false`, and next safe action.
 
 ## M129 Single-Agent Dry-Run Executor
 
@@ -262,6 +260,7 @@ Overwrite only with explicit force:
 Supported dry-run agents are `artifact-registry-agent`, `evidence-parser-agent`, `completion-recommendation-agent`, `validation-agent`, `sprint-summary-agent`, and `queue-planner-agent`. Other registered agents block in M129 because they require future approval, handoff, provider, GitHub, or mutation boundaries.
 
 The execution record includes `execution_record_type=single_agent_dry_run`, `dry_run=true`, `real_execution=false`, `mutation_performed=false` unless writing the dry-run artifact itself, all external/model/GitHub/patch execution flags as false, and `forbidden_capabilities_blocked`.
+
 ## M118 Post-Automation Planning Reconciliation
 
 M118 is a documentation and queue-state reconciliation checkpoint for M110-M117. It does not add runtime features, execute Codex, invoke Ollama or local LLMs, run agents, call GitHub, call `gh`, make network calls, apply patches, mutate source files beyond this operator-authored docs update, automatically complete queue items, or start follow-on work.
@@ -301,9 +300,10 @@ Remaining gaps:
 - no patch apply command
 - no GitHub or workflow integration
 - no automatic queue completion or next-item execution
+
 ## M117 Agent Routing Decision Dashboard
 
-M117 recommends the advisory lane for one queue item and displays the result in the Hub. It does not dispatch Codex, call Ollama, invoke local LLMs, execute agents, call GitHub or `gh`, make network requests, apply patches, mutate source files, mutate the queue, complete items, or start follow-on work.
+M117 recommends which advisory executor/reviewer lane should be used for a queue item. It does not dispatch work, execute Codex, invoke Ollama or local LLMs, run agents, call GitHub, call `gh`, make network calls, apply patches, mutate source files, mutate queue state, or start follow-on work.
 
 Readable recommendation:
 
@@ -315,21 +315,50 @@ JSON recommendation:
 
 Write a local recommendation record:
 
-    python -m aresforge recommend-agent-route --item-id <item_id> --format json --output artifacts/agent_routes/<item_id>.json
+    python -m aresforge recommend-agent-route --item-id <item_id> --output artifacts/agent_route_recommendations/<item_id>.json --format json
 
 Overwrite only with explicit force:
 
-    python -m aresforge recommend-agent-route --item-id <item_id> --format json --output artifacts/agent_routes/<item_id>.json --force
+    python -m aresforge recommend-agent-route --item-id <item_id> --output artifacts/agent_route_recommendations/<item_id>.json --format json --force
 
-The output includes `recommendation_type=agent_route_recommendation`, queue identity, recommended lane, alternatives, routing reasons, required artifacts before dispatch, approval requirements, suitability flags, `human_operator_required=true`, `dispatch_performed=false`, `execution_allowed=false`, `local_only=true`, and next safe action.
+Hub review:
+
+    Queue -> Agent Routing Decision Dashboard
+
+The recommendation record includes `recommendation_type=agent_route_recommendation`, queue identity, `recommended_lane`, alternatives, reasons, required artifacts before dispatch, approval requirements, suitability flags, `human_operator_required=true`, `dispatch_performed=false`, `execution_allowed=false`, `local_only=true`, and `next_safe_action`.
 
 Operator workflow:
 
-- inspect the queue item
-- run `recommend-agent-route`
-- review the Hub Agent Routing Decision Dashboard or JSON output
-- prepare only the required local artifacts for the recommended lane
-- use a separate human-approved workflow before any dispatch, patch intake, or completion
+- generate or load the advisory route for one queue item
+- review required artifacts and approval requirements
+- prepare only the recommended local artifact package
+- use a separate approval gate before any manual handoff or patch intake
+- keep all execution outside this recommendation contract
+
+## M128 Agent Orchestration Plan Builder
+
+M128 builds a machine-readable orchestration plan for one local queue item. It does not execute agents, Codex, Ollama, local LLMs, remote LLMs, GitHub, `gh`, network services, validation commands, patches, queue mutation, source mutation, autonomous execution, or follow-on work.
+
+JSON plan:
+
+    python -m aresforge build-agent-orchestration-plan --item-id <item_id> --format json
+
+Use an explicit primary agent and execution target:
+
+    python -m aresforge build-agent-orchestration-plan --item-id <item_id> --agent-id validation-agent --execution-target dry-run --format json
+
+Write a local plan:
+
+    python -m aresforge build-agent-orchestration-plan --item-id <item_id> --format json --output artifacts/orchestration-plans/<item_id>.json
+
+Overwrite only with explicit force:
+
+    python -m aresforge build-agent-orchestration-plan --item-id <item_id> --format json --output artifacts/orchestration-plans/<item_id>.json --force
+
+The output includes `plan_type=agent_orchestration_plan`, queue identity, requested and recommended execution targets, ordered agent steps, required artifacts, dependency checks, machine gates, blocked reasons, `autonomy_level`, `execution_performed=false`, `local_only=true`, and `next_safe_action`.
+
+Real execution requests are blocked in M128. Use the output as planning metadata only until a later explicit operator-approved runner exists.
+
 ## M127 LLM Decision Policy v1
 
 M127 recommends which LLM/provider/lane should be used for a queue item or agent task. It does not execute Codex, local LLMs, remote LLMs, Ollama, agents, GitHub, `gh`, network services, validation commands, patches, queue mutation, source mutation, autonomous execution, or follow-on work.
@@ -389,6 +418,7 @@ Operator workflow:
 - create a local approval gate before M111 patch intake
 - use `intake-patch-proposal` only after approval
 - keep patch application blocked until a separate explicit apply workflow exists
+
 ## M115 Local Ollama Provider Probe Integration
 
 M115 probes local Ollama provider readiness for environment discovery only. It does not send prompts, ask a model to reason or code, generate advisory output, execute Codex, call GitHub, call `gh`, execute agents, apply patches, mutate files, mutate queue state, or start follow-on work.

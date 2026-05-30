@@ -1,5 +1,32 @@
 # Runnable Skeleton
 
+## M132 Auto-Completion for Safe Queue Items
+
+M132 adds a local-only auto-completion command:
+
+- `python -m aresforge auto-complete-safe-queue-item --item-id <item_id> --format json`
+- optional `--evidence-path`, `--gate-profile queue_status_mutation`, `--dry-run`, `--force`, and `--output`
+
+Runnable behavior:
+
+- reads one local queue item
+- loads parsed dispatch evidence from an explicit path or discovers the latest local evidence for the item
+- generates a deterministic queue completion recommendation when needed
+- evaluates the M131 `queue_status_mutation` machine gate
+- blocks high-risk and manual-only tagged items
+- dry-run reports the planned outcome without queue mutation
+- successful non-dry-run changes only the queue item status to `done` and appends a queue transaction-log entry
+
+Still absent by design:
+
+- Codex execution or Codex CLI shell-out
+- Ollama/local LLM or remote LLM prompt execution
+- agent execution
+- GitHub API, `gh`, issues, PRs, workflows, network calls, or external services
+- validation command execution
+- patch application
+- external mutation, automatic next-item execution, or background automation
+
 ## M124 Sprint Summary and Documentation Sync Closeout
 
 M124 adds no runnable product feature. It synchronizes the M110-M124 controlled automation sprint docs and queue evidence.
@@ -203,56 +230,26 @@ Still absent by design:
 
 ## M119 Dispatch Artifact Registry Index v2
 
-M119 adds a local-only artifact registry inspection command:
+M119 adds a local-only registry inspection command:
 
 - `python -m aresforge inspect-artifact-registry --format json`
 - optional `--project-id`, `--item-id`, `--artifact-type`, `--output`, and `--force`
 
 Runnable behavior:
 
-- scans known local artifact folders for dispatch and review artifacts
-- supports manual Codex dispatch preparation, Codex prompt dispatch, local LLM advisory requests, patch proposal intake, dispatch result evidence, queue completion recommendations, documentation agent patch proposals, and agent route recommendations
-- reads local queue metadata to identify stale artifact item ids
-- reports missing expected artifact folders, duplicate artifact families, blocked artifacts, review-required artifacts, and next safe action
-- writes an optional local report only when the target does not exist or `--force` is explicit
+- scans known local artifact directories for M109-M117 planning outputs
+- reads JSON artifact metadata where available
+- classifies artifact type, item id, project id, milestone, status, blocked state, review requirement, stale queue reference, and duplicates
+- emits stable JSON by default
+- refuses to overwrite output files unless `--force` is explicit
 - preserves `local_only=true` and `execution_allowed=false`
 
 Still absent by design:
 
-- artifact execution
-- Codex execution or Codex CLI shell-out
-- Ollama/local LLM or remote LLM prompt execution
-- agent execution
-- GitHub API, `gh`, issues, PRs, workflows, network calls, or external services
-- validation command execution
-- patch application
-- source mutation, queue mutation, automatic completion, autonomous execution, or next-item execution
-
-## M128 Agent Orchestration Plan Builder
-
-M128 adds a local-only orchestration plan builder command:
-
-- `python -m aresforge build-agent-orchestration-plan --item-id <item_id> --format json`
-- optional `--agent-id`, `--execution-target dry-run|real`, `--queue-path`, `--output`, and `--force`
-
-Runnable behavior:
-
-- reads one local queue item
-- reads the M126 declarative agent registry
-- reads the M127 LLM decision policy recommendation for the item
-- emits an ordered `agent_orchestration_plan`
-- records required artifacts, dependency checks, machine gates, blocked reasons, and next safe action
-- refuses to overwrite output files unless `--force` is explicit
-- preserves `execution_performed=false`
-
-Still absent by design:
-
-- agent execution
 - Codex execution or Codex CLI shell-out
 - Ollama/local LLM prompt execution
-- remote LLM execution
+- agent runtime execution
 - GitHub API, `gh`, issues, PRs, workflows, network calls, or external services
-- validation command execution
 - patch application
 - source mutation, queue mutation, automatic handoff, automatic completion, autonomous execution, or next-item execution
 
@@ -292,6 +289,7 @@ Still absent by design:
 - validation command execution
 - patch application
 - source mutation, queue mutation from the dry-run, automatic handoff, automatic completion, autonomous execution, or next-item execution
+
 ## M118 Post-Automation Planning Reconciliation
 
 M118 adds no runnable product feature. It reconciles the current local-only planning skeleton after M110-M117 and confirms that every automation-facing surface remains advisory, file-backed, and operator-gated.
@@ -317,21 +315,26 @@ Still absent by design:
 - source mutation from generated proposals
 - queue mutation from recommendations
 - automatic handoff, automatic completion, autonomous execution, or next-item execution
+
 ## M117 Agent Routing Decision Dashboard
 
-M117 adds a local-only route recommendation command:
+M117 adds a local-only advisory route recommendation command and Hub panel:
 
 - `python -m aresforge recommend-agent-route --item-id <item_id>`
-- optional `--format json`
+- `python -m aresforge recommend-agent-route --item-id <item_id> --format json`
 - optional `--output` and `--force`
+- `GET /api/agent-route-recommendation?item_id=<item_id>`
+- Queue panel Agent Routing Decision Dashboard
 
 Runnable behavior:
 
 - reads local queue metadata for one item
 - classifies documentation, local LLM advisory, coding/dashboard, and validation signals
-- emits stable JSON or readable markdown
+- emits stable readable or JSON CLI output
+- returns a stable Hub JSON payload
+- displays recommendation, reasons, blockers, required artifacts, and next safe action in the Hub
 - refuses to overwrite output files unless `--force` is explicit
-- preserves `dispatch_performed=false` and `execution_allowed=false`
+- preserves `human_operator_required=true`, `dispatch_performed=false`, `execution_allowed=false`, and `local_only=true`
 
 Stable recommendation fields:
 
@@ -354,20 +357,45 @@ Stable recommendation fields:
 - `local_only`
 - `next_safe_action`
 
-Hub behavior:
-
-- `GET /api/agent-route-recommendation?item_id=<item_id>` returns the same local-only contract plus Hub read-only metadata
-- the Queue page displays recommended lane, reasons, required artifacts, blockers, suitability flags, and next safe action
-- the panel has no execute buttons and no dispatch controls
-
 Still absent by design:
 
+- dispatch execution
+- Hub execute buttons
 - Codex execution or Codex CLI shell-out
 - Ollama/local LLM prompt execution
-- agent runtime execution
+- documentation-agent, validation-agent, GitHub-sync-agent, or external-agent execution
 - GitHub API, `gh`, issues, PRs, workflows, network calls, or external services
 - patch application
 - source mutation, queue mutation, automatic handoff, automatic completion, autonomous execution, or next-item execution
+
+## M128 Agent Orchestration Plan Builder
+
+M128 adds a local-only orchestration plan builder command:
+
+- `python -m aresforge build-agent-orchestration-plan --item-id <item_id> --format json`
+- optional `--agent-id`, `--execution-target dry-run|real`, `--queue-path`, `--output`, and `--force`
+
+Runnable behavior:
+
+- reads one local queue item
+- reads the M126 declarative agent registry
+- reads the M127 LLM decision policy recommendation for the item
+- emits an ordered `agent_orchestration_plan`
+- records required artifacts, dependency checks, machine gates, blocked reasons, and next safe action
+- refuses to overwrite output files unless `--force` is explicit
+- preserves `execution_performed=false`
+
+Still absent by design:
+
+- agent execution
+- Codex execution or Codex CLI shell-out
+- Ollama/local LLM prompt execution
+- remote LLM execution
+- GitHub API, `gh`, issues, PRs, workflows, network calls, or external services
+- validation command execution
+- patch application
+- source mutation, queue mutation, automatic handoff, automatic completion, autonomous execution, or next-item execution
+
 ## M127 LLM Decision Policy v1
 
 M127 adds a local-only recommendation command:
@@ -414,20 +442,21 @@ Still absent by design:
 
 ## M116 Documentation Agent Patch Proposal Generator
 
-M116 adds a local-only documentation patch proposal generator:
+M116 adds a local-only documentation patch proposal command:
 
 - `python -m aresforge generate-doc-agent-patch-proposal --item-id <item_id>`
-- optional `--format json`
+- `python -m aresforge generate-doc-agent-patch-proposal --item-id <item_id> --format json`
 - optional `--output`, `--force`, `--include-roadmap`, `--include-context`, and `--include-operator-docs`
 
 Runnable behavior:
 
-- loads the requested queue item from local queue state
-- reviews selected source-of-truth documentation files
-- detects missing milestone, item id, title, or operator command coverage
-- emits a structured `documentation_agent_patch_proposal` record
-- writes a proposed patch text artifact for human review
-- refuses to overwrite output files unless `--force` is explicit
+- reads local queue state for one item
+- reads selected source-of-truth documentation files
+- detects missing item, milestone, title, and operator command coverage
+- emits stable readable or JSON CLI output
+- writes a local structured proposal artifact and proposed patch text file
+- refuses to overwrite proposal artifacts unless `--force` is explicit
+- preserves `approval_required=true`, `patch_application_allowed=false`, `patch_application_performed=false`, `local_only=true`, and `execution_allowed=false`
 
 Stable proposal fields:
 
@@ -453,10 +482,12 @@ Stable proposal fields:
 
 Still absent by design:
 
-- patch application
 - documentation-agent runtime execution
-- Codex, Ollama, local LLM, GitHub API, `gh`, network calls, workflows, or external agents
-- queue mutation, approval mutation, automatic completion, automatic handoff, or next-item execution
+- model execution
+- generated patch application
+- source documentation mutation from the proposal
+- Codex execution, local LLM/Ollama invocation, GitHub API, `gh`, network calls, workflows, or external services
+- queue mutation, approval mutation, automatic handoff, automatic completion, or next-item execution
 
 ## M114 Hub Dispatch Review Panel
 
