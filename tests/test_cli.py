@@ -64,6 +64,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-codex-dispatch-run",
         "list-codex-dispatch-runs",
         "cancel-codex-dispatch-run",
+        "recover-codex-dispatch-run",
         "inspect-queue-work-state",
         "inspect-work-item-readiness",
         "inspect-queue-readiness",
@@ -5165,6 +5166,46 @@ def test_inspect_and_list_codex_dispatch_run_dispatch_json(
     assert inspected["run_id"] == "run-one"
     assert list_exit == 0
     assert listed["run_count"] == 1
+
+
+def test_recover_codex_dispatch_run_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps({"ok": True, "run_id": "run-one", "recovery_required": True}),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_recover(_config, run_id, recovery_note="", output_format="json"):
+        seen["run_id"] = run_id
+        seen["recovery_note"] = recovery_note
+        seen["output_format"] = output_format
+        return payload
+
+    monkeypatch.setattr(cli, "recover_codex_dispatch_run", fake_recover)
+    exit_code = cli.main(
+        [
+            "recover-codex-dispatch-run",
+            "--run-id",
+            "run-one",
+            "--recovery-note",
+            "manual recovery after interruption",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["recovery_required"] is True
+    assert seen["run_id"] == "run-one"
+    assert seen["recovery_note"] == "manual recovery after interruption"
+    assert seen["output_format"] == "json"
 
 
 def test_complete_local_queue_item_dispatch_json(

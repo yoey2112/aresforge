@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import shlex
 import subprocess
@@ -196,7 +197,17 @@ def run_operator_gated_codex_dispatch(
             output_format,
         )
 
-    command_args = _normalize_command(command)
+    try:
+        command_args = normalize_operator_command(command)
+    except ValueError as exc:
+        return _stdout_result(
+            "run-codex-dispatch",
+            _error_payload(
+                "codex_dispatch_command_invalid",
+                {"run_id": normalized_run_id, "message": str(exc)},
+            ),
+            output_format,
+        )
     if not command_args:
         return _stdout_result(
             "run-codex-dispatch",
@@ -367,6 +378,51 @@ def cancel_codex_dispatch_run(
     )
     _write_run_state(paths["run_state_path"], state)
     return _stdout_result("cancel-codex-dispatch-run", {"ok": True, **state}, output_format)
+
+
+def recover_codex_dispatch_run(
+    config: AppConfig,
+    *,
+    run_id: str,
+    recovery_note: str = "",
+    output_format: str = "json",
+) -> dict[str, Any]:
+    normalized_run_id = _safe_path_token(run_id)
+    paths = _run_paths(config.repo_root, normalized_run_id)
+    loaded = _load_run_state(paths["run_state_path"])
+    if not loaded.get("ok", False):
+        return _stdout_result("recover-codex-dispatch-run", loaded, output_format)
+
+    state = loaded["run_state"]
+    previous_state = str(state.get("dispatch_state", "")).strip()
+    normalized_note = str(recovery_note or "").strip()
+    recovered_at = _now_iso()
+    if previous_state in ACTIVE_DISPATCH_STATES:
+        state["dispatch_state"] = "failed"
+    state.update(
+        {
+            "completed_at": str(state.get("completed_at") or recovered_at),
+            "error_summary": str(state.get("error_summary") or "Dispatch recovery marked this run for operator review.").strip(),
+            "recovery_required": True,
+            "recovery": {
+                "recovered_at": recovered_at,
+                "previous_dispatch_state": previous_state,
+                "recovery_note": normalized_note,
+                "recovered_by_command": "recover-codex-dispatch-run",
+            },
+            "review_required": True,
+            "review_evidence_required": True,
+            "validation_evidence_required": True,
+            "queue_completion_allowed": False,
+            "automatic_next_item_execution_allowed": False,
+            "next_safe_action": (
+                "Review recovered run output/state, capture validation evidence separately, "
+                "and do not advance the queue automatically."
+            ),
+        }
+    )
+    _write_run_state(paths["run_state_path"], state)
+    return _stdout_result("recover-codex-dispatch-run", {"ok": True, **state}, output_format)
 
 
 def validate_codex_dispatch_run_state(run_state: dict[str, Any], *, repo_root: Path) -> dict[str, Any]:
@@ -587,12 +643,70 @@ def _write_run_state(path: Path, state: dict[str, Any]) -> None:
     path.write_text(json.dumps(state, indent=2) + "\n", encoding="utf-8")
 
 
-def _normalize_command(command: str | Sequence[str] | None) -> list[str]:
+def normalize_operator_command(command: str | Sequence[str] | None) -> list[str]:
     if command is None:
         return []
     if isinstance(command, str):
-        return shlex.split(command)
+        return _split_operator_command_string(command)
     return [str(part) for part in command if str(part).strip()]
+
+
+def _split_operator_command_string(command: str) -> list[str]:
+    normalized = str(command or "").strip()
+    if not normalized:
+        return []
+    if os.name != "nt":
+        return shlex.split(normalized)
+    return _windows_command_line_to_argv(normalized)
+
+
+def _windows_command_line_to_argv(command: str) -> list[str]:
+    args: list[str] = []
+    current: list[str] = []
+    in_quotes = False
+    arg_started = False
+    index = 0
+    length = len(command)
+    while index < length:
+        char = command[index]
+        if char in {" ", "\t"} and not in_quotes:
+            if arg_started:
+                args.append("".join(current))
+                current = []
+                arg_started = False
+            index += 1
+            continue
+        if char == "\\":
+            slash_start = index
+            while index < length and command[index] == "\\":
+                index += 1
+            slash_count = index - slash_start
+            if index < length and command[index] == '"':
+                current.extend("\\" * (slash_count // 2))
+                if slash_count % 2 == 0:
+                    in_quotes = not in_quotes
+                    arg_started = True
+                else:
+                    current.append('"')
+                    arg_started = True
+                index += 1
+            else:
+                current.extend("\\" * slash_count)
+                arg_started = True
+            continue
+        if char == '"':
+            in_quotes = not in_quotes
+            arg_started = True
+            index += 1
+            continue
+        current.append(char)
+        arg_started = True
+        index += 1
+    if in_quotes:
+        raise ValueError("Windows command string has an unterminated quote.")
+    if arg_started:
+        args.append("".join(current))
+    return [arg for arg in args if arg]
 
 
 def _prompt_artifact_text(repo_root: Path, contract: dict[str, Any]) -> str:

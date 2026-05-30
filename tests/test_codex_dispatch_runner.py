@@ -2,13 +2,17 @@ import json
 import subprocess
 from pathlib import Path
 
+import pytest
+
 from aresforge.config import AppConfig
 from aresforge.operator.codex_dispatch_runner import (
     APPROVAL_PHRASE,
     approve_codex_dispatch,
     inspect_codex_dispatch_run,
     list_codex_dispatch_runs,
+    normalize_operator_command,
     parse_codex_cli_token_usage,
+    recover_codex_dispatch_run,
     run_operator_gated_codex_dispatch,
 )
 from aresforge.operator.local_project_queue import add_queue_item, init_project_queue, inspect_queue_item
@@ -209,6 +213,53 @@ def test_only_one_active_dispatch_run_is_allowed(tmp_path: Path) -> None:
     assert first["ok"] is True
     assert second["ok"] is False
     assert second["payload"]["error"] == "active_codex_dispatch_run_exists"
+
+
+def test_recover_codex_dispatch_run_marks_active_run_failed_without_queue_completion(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_project_and_item(config, tmp_path)
+    approve_codex_dispatch(
+        config,
+        item_id="m78-item",
+        approved_by="local_operator",
+        approval_phrase=APPROVAL_PHRASE,
+        run_id="run-one",
+    )
+
+    result = recover_codex_dispatch_run(
+        config,
+        run_id="run-one",
+        recovery_note="operator recovered stale approved run",
+    )
+    inspected = inspect_codex_dispatch_run(config, run_id="run-one")
+    queue_item = inspect_queue_item(config, item_id="m78-item")["payload"]["item"]
+
+    assert result["ok"] is True
+    assert result["payload"]["dispatch_state"] == "failed"
+    assert result["payload"]["recovery_required"] is True
+    assert result["payload"]["queue_completion_allowed"] is False
+    assert result["payload"]["automatic_next_item_execution_allowed"] is False
+    assert result["payload"]["recovery"]["previous_dispatch_state"] == "approved_pending_dispatch"
+    assert inspected["payload"]["run_state_validation"]["valid"] is True
+    assert queue_item["status"] == "in_progress"
+
+
+def test_operator_command_string_uses_windows_argv_rules(monkeypatch: pytest.MonkeyPatch) -> None:
+    from aresforge.operator import codex_dispatch_runner
+
+    monkeypatch.setattr(codex_dispatch_runner.os, "name", "nt")
+
+    args = normalize_operator_command(
+        '"C:\\Program Files\\Codex\\codex.exe" --cd "C:\\Projects\\aresforge" --flag "two words"'
+    )
+
+    assert args == [
+        "C:\\Program Files\\Codex\\codex.exe",
+        "--cd",
+        "C:\\Projects\\aresforge",
+        "--flag",
+        "two words",
+    ]
 
 
 def test_successful_dispatch_captures_stdout_stderr_exit_code_and_requires_review(tmp_path: Path) -> None:

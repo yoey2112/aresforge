@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import shlex
 import subprocess
 from datetime import UTC, datetime
 from pathlib import Path
@@ -11,6 +10,7 @@ from aresforge.config import AppConfig
 from aresforge.operator.codex_dispatch_runner import (
     APPROVAL_PHRASE,
     approve_codex_dispatch,
+    normalize_operator_command,
     run_operator_gated_codex_dispatch,
 )
 from aresforge.operator.local_project_queue import (
@@ -415,7 +415,13 @@ def _run_validation_commands(repo_root: Path, commands: list[str], *, runner: Wo
     details: list[dict[str, Any]] = []
     blockers: list[str] = []
     for command in commands:
-        args = shlex.split(command)
+        try:
+            args = normalize_operator_command(command)
+        except ValueError as exc:
+            results.append(f"{command} -> fail")
+            details.append({"command": command, "exit_code": None, "stdout": "", "stderr": str(exc)})
+            blockers.append(f"Validation command failed: {command}: {exc}")
+            continue
         if not args:
             blockers.append("Empty validation command supplied.")
             continue

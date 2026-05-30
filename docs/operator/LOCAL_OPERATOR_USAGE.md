@@ -1,5 +1,26 @@
 # Local Operator Usage
 
+## M79.4 Codex Dispatch Recovery and Windows argv Hardening
+
+Recover a partially failed or stale local Codex dispatch run:
+
+    python -m aresforge recover-codex-dispatch-run --run-id <run_id> --recovery-note "operator reviewed partial run state" --format json
+
+Payload highlights:
+
+- `dispatch_state`
+- `recovery_required`
+- `recovery.previous_dispatch_state`
+- `recovery.recovery_note`
+- `queue_completion_allowed: false`
+- `automatic_next_item_execution_allowed: false`
+
+Windows command guidance:
+
+- Prefer repeated `--command-arg` values for Codex dispatch commands on Windows.
+- If `--command` is used, quoted Windows paths and quoted arguments are parsed with Windows-aware argv handling.
+- Recovery does not approve dispatch, run Codex, complete queue items, or start another item.
+
 ## M80 LLM Decision Matrix v2
 
 Inspect the advisory routing decision for one queue item:

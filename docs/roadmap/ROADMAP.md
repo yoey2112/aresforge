@@ -1,5 +1,33 @@
 # AresForge Roadmap
 
+## M79.4 Codex Dispatch Recovery and Windows argv Hardening
+
+Status: In progress locally on `main`.
+
+Purpose:
+
+- harden operator recovery after partial Codex dispatch failures
+- provide an explicit local command to mark a named run recovery-required without queue completion
+- improve Windows command string argv parsing while preserving `--command-arg` as the safest operator path
+
+Delivered scope:
+
+- `recover-codex-dispatch-run`
+- recovery metadata in dispatch run state
+- Windows-aware command string normalization for dispatch and validation command execution
+
+Constraints preserved:
+
+- no automatic prompt dispatch
+- no automatic queue completion
+- no automatic next-item execution
+- no local LLM execution expansion
+- no GitHub API, `gh`, issues, PRs, workflows, external workflow execution, or GitHub mutation
+
+Next recommended milestone:
+
+- M79.4 evidence review and queue closeout only by explicit operator action.
+
 ## M80 LLM Decision Matrix v2
 
 Status: In progress locally on `main`.

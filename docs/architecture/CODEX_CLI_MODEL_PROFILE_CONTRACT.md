@@ -2,6 +2,8 @@
 
 ## Status
 
+M79.4 adds explicit local dispatch recovery and Windows argv hardening. `recover-codex-dispatch-run` marks one named run as `recovery_required`, converts stale active states to `failed`, and preserves review/validation requirements without completing queue work or starting another item. Operator command strings now use Windows-aware argv parsing, while repeated `--command-arg` remains the safest Windows command construction path.
+
 M80 adds LLM Decision Matrix v2 as advisory routing logic. `inspect-llm-decision-matrix` classifies one local queue item for local LLM vs Codex, coding vs reasoning, model/profile selection, task size, risk, validation burden, and safety gating. Prompt Builder and workflow preparation payloads include this decision matrix for operator review. The matrix does not execute prompts, call Codex, invoke local LLMs, mutate queue or source files, complete work, or start the next item. Codex recommendations still require the separate M78 approval and runner gates.
 
 M79.3 adds token usage capture for operator-gated Codex dispatch runs. The runner parses the captured CLI transcript footer `tokens used` followed by a numeric line, including comma-separated totals such as `221,534`, and stores the result in `run_state.json` as `token_usage`. `inspect-codex-dispatch-run` returns this metadata and remains compatible with older run states that predate the field by reporting unavailable token usage with a clear extraction error. This is accounting metadata only and does not complete queue items, dispatch the next item, call GitHub, call `gh`, or expand local LLM execution.
@@ -67,6 +69,7 @@ Command:
 
 - `python -m aresforge prepare-queue-item-dispatch --item-id <item_id> --target codex --format json`
 - `python -m aresforge inspect-llm-decision-matrix --item-id <item_id> --format json`
+- `python -m aresforge recover-codex-dispatch-run --run-id <run_id> --recovery-note "<operator note>" --format json`
 
 Stable preparation fields include:
 

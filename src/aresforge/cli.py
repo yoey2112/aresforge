@@ -214,6 +214,7 @@ from aresforge.operator.codex_dispatch_runner import (
     cancel_codex_dispatch_run,
     inspect_codex_dispatch_run,
     list_codex_dispatch_runs,
+    recover_codex_dispatch_run,
     run_operator_gated_codex_dispatch,
 )
 from aresforge.operator.llm_decision_matrix import inspect_llm_decision_matrix
@@ -1658,6 +1659,17 @@ def build_parser() -> argparse.ArgumentParser:
     )
     cancel_codex_dispatch_run_parser.add_argument("--run-id", required=True)
     cancel_codex_dispatch_run_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="json",
+    )
+    recover_codex_dispatch_run_parser = subparsers.add_parser(
+        "recover-codex-dispatch-run",
+        help="Mark one local Codex dispatch run as recovery-required without completing queue work.",
+    )
+    recover_codex_dispatch_run_parser.add_argument("--run-id", required=True)
+    recover_codex_dispatch_run_parser.add_argument("--recovery-note", default="")
+    recover_codex_dispatch_run_parser.add_argument(
         "--format",
         choices=["json", "markdown"],
         default="json",
@@ -3903,6 +3915,19 @@ def main(argv: list[str] | None = None) -> int:
         payload = cancel_codex_dispatch_run(
             config,
             run_id=args.run_id,
+            output_format=args.format,
+        )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "recover-codex-dispatch-run":
+        payload = recover_codex_dispatch_run(
+            config,
+            run_id=args.run_id,
+            recovery_note=args.recovery_note,
             output_format=args.format,
         )
         if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):

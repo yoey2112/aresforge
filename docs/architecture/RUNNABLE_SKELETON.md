@@ -1,5 +1,27 @@
 # Runnable Skeleton
 
+## M79.4 Codex Dispatch Recovery and Windows argv Hardening
+
+M79.4 adds an explicit recovery command for partial Codex dispatch failures:
+
+- `python -m aresforge recover-codex-dispatch-run --run-id <run_id> --recovery-note "<operator note>" --format json`
+
+Runnable behavior:
+
+- reads one local dispatch `run_state.json`
+- marks the run `recovery_required`
+- converts stale active states such as `approved_pending_dispatch` and `running` to `failed`
+- preserves queue completion as a separate review/validation-gated action
+- keeps `automatic_next_item_execution_allowed` false
+- parses operator command strings with Windows-aware argv handling; `--command-arg` remains preferred for Windows command construction
+
+Still absent by design:
+
+- automatic queue completion
+- automatic next-item execution
+- GitHub API, `gh`, issues, PRs, workflows, or external workflow execution
+- local LLM execution expansion
+
 ## M80 LLM Decision Matrix v2
 
 M80 adds an advisory decision matrix inspection path:

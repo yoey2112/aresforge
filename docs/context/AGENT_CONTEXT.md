@@ -1,5 +1,28 @@
 # AresForge Agent Context
 
+## M79.4 Codex Dispatch Recovery and Windows argv Hardening Context
+
+Status: In progress locally on `main`.
+
+Current hardening scope:
+
+- `recover-codex-dispatch-run` marks one explicitly named local dispatch run as recovery-required without completing queue work.
+- Active stale states such as `approved_pending_dispatch` and `running` are converted to `failed` so they no longer look like live dispatches.
+- Recovered run state records `recovery_required`, previous dispatch state, recovery note, and review/validation requirements.
+- Dispatch and validation command strings now use Windows-aware argv splitting, while `--command-arg` remains the preferred Windows-safe operator path.
+
+Boundaries preserved:
+
+- dispatch remains local-only and explicitly operator-gated
+- recovery does not complete queue items
+- no automatic next-item execution
+- no GitHub API, `gh`, issues, PRs, workflows, external workflow execution, or GitHub mutation
+- no local LLM execution expansion
+
+Recommended next milestone:
+
+- Review M79.4 validation and recovery evidence; do not mark the queue item complete or start the next item automatically.
+
 ## M80 LLM Decision Matrix v2 Context
 
 Status: In progress locally on `main`.
