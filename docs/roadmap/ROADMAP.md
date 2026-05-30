@@ -1,5 +1,37 @@
 # AresForge Roadmap
 
+## M130 Single-Agent Real Executor for Low-Risk Agents
+
+Status: In progress locally on `main`.
+
+Queue item: `m130-single-agent-real-executor-for-low-risk-agents`.
+
+Purpose:
+
+- introduce real single-agent execution for deterministic low-risk local agents only
+- replace human-gated review only where machine gates can restrict capabilities locally
+- write auditable local execution records without invoking external systems or mutating source code
+
+Runnable operator surface:
+
+- `python -m aresforge run-agent --agent-id <agent_id> --item-id <item_id> --format json`
+- optional `--output`, `--force`, and `--require-machine-gates`
+
+Allowed agents:
+
+- `artifact-registry-agent`
+- `evidence-parser-agent`
+- `completion-recommendation-agent`
+- `validation-agent`
+- `queue-planner-agent`
+- `sprint-summary-agent`
+
+Constraints preserved:
+
+- blocked agents include Codex dispatch, local LLM advisory, documentation patch application, GitHub sync, network, model, and code-patch agents
+- no Codex, local LLM, Ollama, remote LLM, GitHub API, `gh`, network service, validation command execution, patch application, source mutation, queue completion, autonomous execution, or next-item execution
+- mutation scope is limited to local execution records and local artifact files
+
 ## M121 Human Approval Inventory and Review Ledger
 
 Status: Completed locally on `main` after validation.

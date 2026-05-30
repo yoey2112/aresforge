@@ -1,5 +1,33 @@
 # AresForge Build State
 
+## M130 Single-Agent Real Executor for Low-Risk Agents
+
+Status: In progress locally on `main`.
+
+Queue item: `m130-single-agent-real-executor-for-low-risk-agents`.
+
+M130 introduces the first real single-agent execution path, restricted to deterministic low-risk local agents:
+
+- `python -m aresforge run-agent --agent-id <agent_id> --item-id <item_id> --format json`
+- optional `--output`, `--force`, and `--require-machine-gates`
+- stable `single_agent_real_execution` records
+
+Allowed real-execution agents:
+
+- `artifact-registry-agent`
+- `evidence-parser-agent`
+- `completion-recommendation-agent`
+- `validation-agent`
+- `queue-planner-agent`
+- `sprint-summary-agent`
+
+Safety boundaries:
+
+- machine gates must pass before a record is written
+- real execution writes only local execution records and local artifact files
+- no Codex, Codex CLI, Ollama/local LLM, remote LLM, GitHub API, `gh`, network service, validation command execution, patch application, source mutation, documentation patch application, queue completion, autonomous execution, or next-item execution
+- blocked agents include `codex-dispatch-agent`, `local-llm-advisory-agent`, `documentation-agent` when patch application is requested, `github-sync-agent`, and any agent requiring network, model execution, or code patch application
+
 ## Current Phase
 
 M121 adds a local-only human approval inventory and review ledger for generated artifacts and queue items. It records human review metadata without approving anything automatically or executing follow-on work.

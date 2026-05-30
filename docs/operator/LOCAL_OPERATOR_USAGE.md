@@ -1,5 +1,29 @@
 # Local Operator Usage
 
+## M130 Single-Agent Real Executor for Low-Risk Agents
+
+M130 can run one deterministic low-risk local agent with real execution gates. It writes a local execution record and does not execute Codex, invoke Ollama or local LLMs, call GitHub, call `gh`, make network calls, run validation commands, apply patches, mutate source files, complete queue items, or start follow-on work.
+
+JSON real execution record:
+
+    python -m aresforge run-agent --agent-id artifact-registry-agent --item-id <item_id> --format json
+
+Require machine gates explicitly:
+
+    python -m aresforge run-agent --agent-id validation-agent --item-id <item_id> --require-machine-gates --format json
+
+Write a local record to a chosen path:
+
+    python -m aresforge run-agent --agent-id queue-planner-agent --item-id <item_id> --output artifacts/agent-real-executions/<item_id>.json --format json
+
+Overwrite only with explicit force:
+
+    python -m aresforge run-agent --agent-id queue-planner-agent --item-id <item_id> --output artifacts/agent-real-executions/<item_id>.json --format json --force
+
+Allowed real agents are `artifact-registry-agent`, `evidence-parser-agent`, `completion-recommendation-agent`, `validation-agent`, `queue-planner-agent`, and `sprint-summary-agent`. Blocked agents include `codex-dispatch-agent`, `local-llm-advisory-agent`, `documentation-agent` for patch application, `github-sync-agent`, and any agent requiring network, model execution, GitHub execution, or code patch application.
+
+The execution record includes `execution_record_type=single_agent_real_execution`, `dry_run=false`, `real_execution=true`, `machine_gates_checked`, `machine_gates_passed`, `mutation_performed=true` only for local execution-record writes, all external/model/GitHub/patch execution flags as false, and `forbidden_capabilities_blocked`.
+
 ## M121 Human Approval Inventory and Review Ledger
 
 M121 inventories artifact review status and records explicit human decisions. It does not approve anything automatically, start queue items, complete queue items, execute agents, execute Codex, invoke Ollama or local LLMs, call remote LLMs, call GitHub, call `gh`, make network calls, run validation commands, apply patches, mutate source files from review, mutate external systems, or start follow-on work.

@@ -256,6 +256,7 @@ from aresforge.operator.agent_registry import inspect_agent_registry
 from aresforge.operator.agent_orchestration_plan_builder import build_agent_orchestration_plan
 from aresforge.operator.llm_decision_policy import recommend_llm_decision
 from aresforge.operator.single_agent_dry_run_executor import run_single_agent_dry_run
+from aresforge.operator.single_agent_real_executor import run_single_agent_real_execution
 from aresforge.operator.single_ready_codex_queue_item import run_single_ready_codex_queue_item
 from aresforge.operator.local_agent_profiles import (
     AGENT_PROFILE_STATUSES,
@@ -1969,6 +1970,21 @@ def build_parser() -> argparse.ArgumentParser:
     run_agent_dry_run_parser.add_argument("--output")
     run_agent_dry_run_parser.add_argument("--force", action="store_true")
     run_agent_dry_run_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+    )
+    run_agent_parser = subparsers.add_parser(
+        "run-agent",
+        help="Run one deterministic low-risk local AresForge agent with M130 real execution gates.",
+    )
+    run_agent_parser.add_argument("--agent-id", required=True)
+    run_agent_parser.add_argument("--item-id", required=True)
+    run_agent_parser.add_argument("--queue-path")
+    run_agent_parser.add_argument("--output")
+    run_agent_parser.add_argument("--force", action="store_true")
+    run_agent_parser.add_argument("--require-machine-gates", action="store_true")
+    run_agent_parser.add_argument(
         "--format",
         choices=["json"],
         default="json",
@@ -4791,6 +4807,24 @@ def main(argv: list[str] | None = None) -> int:
             return 0 if bool(payload.get("ok")) else 1
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "run-agent":
+        payload = run_single_agent_real_execution(
+            config,
+            agent_id=args.agent_id,
+            item_id=args.item_id,
+            queue_path=args.queue_path,
+            output=args.output,
+            force=bool(args.force),
+            require_machine_gates=bool(args.require_machine_gates),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
     if args.command == "probe-local-ollama-provider":
         payload = probe_local_ollama_provider(
             config,

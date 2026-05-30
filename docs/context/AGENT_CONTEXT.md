@@ -1,5 +1,27 @@
 # AresForge Agent Context
 
+## M130 Single-Agent Real Executor Context
+
+Status: In progress locally on `main`.
+
+Queue item: `m130-single-agent-real-executor-for-low-risk-agents`.
+
+M130 introduces `run-agent` as the first real execution path for machine-restricted local agents only.
+
+Command:
+
+- `python -m aresforge run-agent --agent-id <agent_id> --item-id <item_id> --format json`
+
+Allowed real agents are `artifact-registry-agent`, `evidence-parser-agent`, `completion-recommendation-agent`, `validation-agent`, `queue-planner-agent`, and `sprint-summary-agent`.
+
+Every record reports `execution_record_type=single_agent_real_execution`, `dry_run=false`, `real_execution=true`, checked machine gates, local execution artifacts, blocked forbidden capabilities, no external/model/GitHub/patch execution, and `local_only=true`.
+
+M130 boundaries:
+
+- local deterministic single-agent execution only
+- writes only local execution records and local artifact files
+- no Codex, Codex CLI, Ollama/local LLMs, remote LLMs, GitHub API, `gh`, network services, validation command execution, source-code mutation, documentation patch application, patch application, queue completion, autonomous execution, or next-item execution
+
 ## M121 Human Approval Inventory and Review Ledger Context
 
 Status: Completed locally on `main` after validation.

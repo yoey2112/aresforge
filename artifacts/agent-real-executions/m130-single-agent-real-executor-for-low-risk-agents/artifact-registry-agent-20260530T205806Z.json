@@ -1,0 +1,138 @@
+{
+  "execution_record_type": "single_agent_real_execution",
+  "execution_record_version": "m130.1",
+  "generated": true,
+  "agent_id": "artifact-registry-agent",
+  "item_id": "m130-single-agent-real-executor-for-low-risk-agents",
+  "project_id": "aresforge",
+  "dry_run": false,
+  "real_execution": true,
+  "started_at": "2026-05-30T20:58:06Z",
+  "completed_at": "2026-05-30T20:58:06Z",
+  "status": "completed",
+  "machine_gates_checked": [
+    {
+      "gate_id": "agent_registered",
+      "passed": true,
+      "description": "Agent must exist in the local M126 registry."
+    },
+    {
+      "gate_id": "agent_allowed_for_m130",
+      "passed": true,
+      "description": "Agent must be one of the deterministic M130 real-execution agents."
+    },
+    {
+      "gate_id": "agent_not_explicitly_blocked",
+      "passed": true,
+      "description": "High-risk, network, model, GitHub, patch, and audit-ledger agents are blocked."
+    },
+    {
+      "gate_id": "registry_real_execution_enabled",
+      "passed": true,
+      "description": "Agent registry must mark the agent as eligible for M130 real execution."
+    },
+    {
+      "gate_id": "queue_item_exists",
+      "passed": true,
+      "description": "Queue item must be present in the local queue."
+    },
+    {
+      "gate_id": "network_scope_none",
+      "passed": true,
+      "description": "Real execution requires network_scope=none."
+    },
+    {
+      "gate_id": "model_scope_none",
+      "passed": true,
+      "description": "Real execution requires model_scope=none."
+    },
+    {
+      "gate_id": "mutation_scope_artifact_only",
+      "passed": true,
+      "description": "Real execution may write only local execution/artifact records."
+    },
+    {
+      "gate_id": "forbidden_capabilities_blocked",
+      "passed": true,
+      "description": "Forbidden external/model/GitHub/patch capabilities must be declared and blocked."
+    }
+  ],
+  "machine_gates_passed": true,
+  "inputs": {
+    "queue_path": "C:\\Projects\\aresforge\\.aresforge\\queue\\work_items.json",
+    "agent_registered": true,
+    "supported_real_agents": [
+      "artifact-registry-agent",
+      "evidence-parser-agent",
+      "completion-recommendation-agent",
+      "validation-agent",
+      "sprint-summary-agent",
+      "queue-planner-agent"
+    ],
+    "require_machine_gates": false
+  },
+  "outputs": {
+    "summary": "Inspected local artifact root metadata only.",
+    "artifact_root": "C:\\Projects\\aresforge\\artifacts",
+    "artifact_root_exists": true,
+    "file_count": 186,
+    "file_counts_by_suffix": {
+      ".json": 88,
+      ".jsonl": 1,
+      ".md": 93,
+      ".patch": 2,
+      ".ps1": 1,
+      ".txt": 1
+    },
+    "sample_artifacts": [
+      "artifacts/codex_handoffs/generated/20260520T000257Z-issue-81-codex-handoff.json",
+      "artifacts/codex_handoffs/generated/20260520T000257Z-issue-81-codex-handoff.md",
+      "artifacts/codex_handoffs/generated/20260520T165259Z-issue-112-validation-handoff.json",
+      "artifacts/codex_handoffs/generated/20260520T165259Z-issue-112-validation-handoff.md",
+      "artifacts/codex_handoffs/generated/20260520T165416Z-issue-112-validation-handoff.json",
+      "artifacts/codex_handoffs/generated/20260520T165416Z-issue-112-validation-handoff.md",
+      "artifacts/codex_handoffs/generated/20260522T161907Z-m15-define-self-managed-milestone-planning-contract-handoff.json",
+      "artifacts/codex_handoffs/generated/20260522T161907Z-m15-define-self-managed-milestone-planning-contract-handoff.md",
+      "artifacts/codex_handoffs/generated/20260522T163054Z-m15-database-backed-self-managed-milestone-planner-and-run-queue-initializer-handoff.json",
+      "artifacts/codex_handoffs/generated/20260522T163054Z-m15-database-backed-self-managed-milestone-planner-and-run-queue-initializer-handoff.md"
+    ]
+  },
+  "artifacts_created": [
+    "C:\\Projects\\aresforge\\artifacts\\agent-real-executions\\m130-single-agent-real-executor-for-low-risk-agents\\artifact-registry-agent-20260530T205806Z.json"
+  ],
+  "mutation_performed": true,
+  "mutation_scope": "local_execution_record",
+  "warnings": [],
+  "errors": [],
+  "capabilities_used": [
+    "generate_review_artifact",
+    "read_local_artifacts"
+  ],
+  "forbidden_capabilities_blocked": [
+    "apply_patch",
+    "automatic_next_item_execution",
+    "background_daemon",
+    "call_external_network",
+    "call_gh",
+    "call_github_api",
+    "create_pr_or_issue",
+    "execute_agent",
+    "execute_codex",
+    "execute_local_llm",
+    "execute_ollama_prompt",
+    "mutate_queue_without_operator",
+    "run_validation_commands"
+  ],
+  "external_execution_performed": false,
+  "model_execution_performed": false,
+  "github_execution_performed": false,
+  "patch_application_performed": false,
+  "local_only": true,
+  "next_safe_action": "Review the local execution record and continue only with explicit local operator commands.",
+  "boundary_confirmations": [
+    "M130 runs only deterministic low-risk local agents.",
+    "M130 real execution may write local execution records and local artifact files only.",
+    "M130 does not execute Codex, Codex CLI, Ollama, local LLMs, remote LLMs, GitHub, gh, network services, validation commands, or patches.",
+    "M130 does not mutate source files, apply documentation patches, complete queue items, or start follow-on work."
+  ]
+}

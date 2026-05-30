@@ -1,5 +1,40 @@
 # Runnable Skeleton
 
+## M130 Single-Agent Real Executor for Low-Risk Agents
+
+M130 adds a local-only real single-agent executor command:
+
+- `python -m aresforge run-agent --agent-id <agent_id> --item-id <item_id> --format json`
+- optional `--queue-path`, `--output`, `--force`, and `--require-machine-gates`
+
+Runnable behavior:
+
+- validates the requested agent against the M126 registry
+- permits only deterministic low-risk local agents
+- reads one local queue item
+- checks machine gates for local-only, no-network, no-model, no-GitHub, no-patch execution
+- writes a stable `single_agent_real_execution` local execution record
+- refuses to overwrite output files unless `--force` is explicit
+
+Supported real agents:
+
+- `artifact-registry-agent`
+- `evidence-parser-agent`
+- `completion-recommendation-agent`
+- `validation-agent`
+- `queue-planner-agent`
+- `sprint-summary-agent`
+
+Still absent by design:
+
+- Codex execution or Codex CLI shell-out
+- Ollama/local LLM prompt execution
+- remote LLM execution
+- GitHub API, `gh`, issues, PRs, workflows, network calls, or external services
+- validation command execution
+- patch application or documentation patch application
+- source mutation, queue completion, automatic handoff, automatic completion, autonomous execution, or next-item execution
+
 ## M121 Human Approval Inventory and Review Ledger
 
 M121 adds local approval ledger commands:

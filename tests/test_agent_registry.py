@@ -64,7 +64,14 @@ def test_agent_registry_loads_all_initial_agents(tmp_path):
     assert payload["agent_count"] == 12
     assert payload["local_only"] is True
     assert payload["execution_performed"] is False
-    assert payload["executable_agents"] == []
+    assert sorted(payload["executable_agents"]) == [
+        "artifact-registry-agent",
+        "completion-recommendation-agent",
+        "evidence-parser-agent",
+        "queue-planner-agent",
+        "sprint-summary-agent",
+        "validation-agent",
+    ]
     assert sorted(agent["agent_id"] for agent in payload["agents"]) == [
         "approval-ledger-agent",
         "artifact-registry-agent",
@@ -88,6 +95,27 @@ def test_agent_registry_filters_by_agent_id(tmp_path):
     assert payload["agents"][0]["agent_id"] == "documentation-agent"
     assert payload["agents_by_type"] == {"documentation": ["documentation-agent"]}
     assert payload["dry_run_only_agents"] == ["documentation-agent"]
+
+
+def test_agent_registry_marks_only_m130_low_risk_agents_real_runnable(tmp_path):
+    payload = build_agent_registry(_config(tmp_path))
+
+    real_agents = {agent["agent_id"] for agent in payload["agents"] if agent["can_run_real"]}
+    assert real_agents == {
+        "artifact-registry-agent",
+        "completion-recommendation-agent",
+        "evidence-parser-agent",
+        "queue-planner-agent",
+        "sprint-summary-agent",
+        "validation-agent",
+    }
+    blocked_real_agents = {
+        "codex-dispatch-agent",
+        "local-llm-advisory-agent",
+        "documentation-agent",
+        "github-sync-agent",
+    }
+    assert not blocked_real_agents.intersection(real_agents)
 
 
 def test_agent_registry_filters_by_safety_class(tmp_path):
