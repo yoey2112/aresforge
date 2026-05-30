@@ -2,7 +2,7 @@
 
 ## M84 Ollama Health Check and Model Inspection Context
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main`.
 
 Current Ollama inspection scope:
 

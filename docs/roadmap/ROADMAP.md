@@ -2,7 +2,7 @@
 
 ## M84 Ollama Health Check and Model Inspection
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main`.
 
 Purpose:
 
