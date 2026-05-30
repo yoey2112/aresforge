@@ -6,7 +6,7 @@ Status: Completed locally on `main` after validation.
 
 Queue item: `m100-documentation-agent-dry-run-review-workflow`.
 
-Implementation commit: pending final commit.
+Implementation commit: `bc05476`.
 
 Purpose:
 

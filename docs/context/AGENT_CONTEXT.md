@@ -6,7 +6,7 @@ Status: Completed locally on `main` after validation.
 
 Queue item: `m100-documentation-agent-dry-run-review-workflow`.
 
-Implementation commit: pending final commit.
+Implementation commit: `bc05476`.
 
 M100 builds on M97 by validating documentation-agent dry-run readiness only when the M97 selected lane is `documentation_agent_dry_run` and the plan remains safe:
 
