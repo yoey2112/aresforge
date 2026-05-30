@@ -2,11 +2,11 @@
 
 ## Current Phase
 
-M117 implements the Agent Routing Decision Dashboard as a local-only advisory surface for queue item lane recommendations. It recommends the next review/dispatch artifact lane but does not execute Codex, local LLMs, Ollama, agents, GitHub, patches, tests, or network services.
+M118 reconciles the controlled automation planning contracts delivered in M110-M117. This is a docs/data-only milestone that aligns the queue, roadmap, architecture notes, and operator workflow without adding runtime behavior.
 
 ## Current Goal
 
-M117 adds `recommend-agent-route --item-id <id> --format json` and a Hub Agent Routing Decision Dashboard. Both emit machine-readable `agent_route_recommendation` records with `dispatch_performed=false`, `execution_allowed=false`, `local_only=true`, recommended lane, alternatives, reasons, required artifacts, approval requirements, and next safe action.
+M118 records the current post-automation planning posture: local advisory artifacts, approval-gated patch intake, pasted Codex result evidence parsing, completion recommendations, Hub dispatch review, safe Ollama provider probing, documentation patch proposals, and agent route recommendations are available as local-only operator-gated planning surfaces.
 
 ## M128 Agent Orchestration Plan Builder
 
@@ -45,6 +45,50 @@ Safety boundaries:
 - no Codex, Codex CLI, Ollama, local LLM, remote LLM, documentation-agent runtime, GitHub API, `gh`, network service, workflow, patch application, source mutation, queue mutation from the plan, validation command execution, autonomous execution, or next-item execution
 - future runners must be separate explicit operator-approved milestones
 
+## M118 Post-Automation Planning Reconciliation
+
+Status: In progress locally on `main`.
+
+Queue item: `m118-post-automation-planning-reconciliation`.
+
+Reconciled milestones:
+
+- M110 Local LLM Advisory Artifact Generator prepares advisory request packages only; it does not invoke Ollama or local models.
+- M111 Approval-Gated Patch Intake Contract records proposed patch review metadata only; it does not apply patches.
+- M112 Dispatch Result Evidence Parser parses human-pasted Codex completion text into local evidence records only.
+- M113 Queue Item Auto-Completion Recommendation Engine recommends whether an operator may complete work; it does not mutate queue status.
+- M114 Hub Dispatch Review Panel displays local dispatch/advisory/evidence/recommendation artifacts read-only.
+- M115 Local Ollama Provider Probe Integration performs config-only or loopback `/api/tags` discovery; it sends no prompts and requests no model output.
+- M116 Documentation Agent Patch Proposal Generator creates documentation patch proposals for review; generated proposals are not applied.
+- M117 Agent Routing Decision Dashboard recommends an advisory lane and required artifacts; it does not dispatch or execute.
+
+Current boundary:
+
+- AresForge may prepare local artifacts, dry-run validators, advisory recommendations, handoff packages, approval records, and evidence records.
+- AresForge must not perform unattended Codex execution, Ollama/local LLM prompting, agent execution, GitHub/`gh` calls, network workflow behavior, patch application, automatic queue completion, or automatic next-item execution.
+- All current automation-facing surfaces remain local-only and operator-gated.
+
+Current operator workflow:
+
+- inspect queue/project state
+- generate or inspect advisory artifacts for one item
+- review approval, dispatch, evidence, and completion recommendations in the Hub or CLI
+- manually decide whether to hand work to an external tool or approve a patch proposal
+- parse external result evidence after a human-pasted completion report
+- use a separate explicit queue completion command only after validation evidence is reviewed
+
+Remaining gaps:
+
+- no real agent runtime
+- no automated Codex or local LLM execution path
+- no patch apply workflow
+- no GitHub issue, PR, workflow, or `gh` integration
+- no automatic queue completion, follow-on dispatch, or autonomous multi-item execution
+
+Next recommended milestones:
+
+- M119 should define the next docs/data checkpoint or operator evidence ledger hardening pass.
+- A future runner milestone must remain separate from M118 and require explicit operator approval before any execution behavior exists.
 ## M117 Agent Routing Decision Dashboard
 
 Status: Completed locally on `main` after validation.

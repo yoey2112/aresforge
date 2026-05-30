@@ -1,5 +1,10 @@
 # Documentation Agent Contract
 
+## M118 Post-Automation Planning Reconciliation
+
+M118 reconciles documentation-agent-related source-of-truth after M110-M117. It records that M116 can generate documentation patch proposal artifacts for review and that M111 can intake approved patch proposals as metadata, but no generated documentation patch is applied automatically.
+
+M118 does not execute a documentation-agent runtime, does not call models, does not mutate documentation from generated output, does not call GitHub/`gh`, does not make network calls, does not apply patches, does not complete queue items, and does not start follow-on work. Any future documentation-agent apply path must remain a separate explicit milestone with operator approval, validation evidence, and a patch application boundary.
 ## M116 Patch Proposal Generator
 
 M116 adds a local-only documentation-agent patch proposal generator. It reads the local queue item and selected source-of-truth documentation, detects missing milestone/item/command coverage, and writes a structured `documentation_agent_patch_proposal` artifact plus a local proposed patch text file for operator review.

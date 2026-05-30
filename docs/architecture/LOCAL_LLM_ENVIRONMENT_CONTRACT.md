@@ -84,6 +84,8 @@ M128 adds the Agent Orchestration Plan Builder. It may place `local-llm-advisory
 
 M117 may mark a queue item as suitable for a local LLM advisory artifact, but it does not probe Ollama, submit prompts, invoke local models, or produce model output. The `agent_route_recommendation` record is advisory queue metadata only and keeps `dispatch_performed=false`, `execution_allowed=false`, and `local_only=true`; any local LLM advisory artifact remains a separate operator-gated local artifact workflow.
 
+M118 reconciles the post-automation planning documentation after M110-M117. It does not change the local LLM environment contract, does not call Ollama, does not inspect models, does not send prompts, does not run inference, and does not authorize local provider execution. The local LLM posture remains artifact-first, advisory-only, local-only, and operator-gated.
+
 ## Storage
 
 The contract is stored locally at:

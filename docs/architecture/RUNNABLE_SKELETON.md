@@ -28,6 +28,31 @@ Still absent by design:
 - patch application
 - source mutation, queue mutation, automatic handoff, automatic completion, autonomous execution, or next-item execution
 
+## M118 Post-Automation Planning Reconciliation
+
+M118 adds no runnable product feature. It reconciles the current local-only planning skeleton after M110-M117 and confirms that every automation-facing surface remains advisory, file-backed, and operator-gated.
+
+Current local-only planning skeleton:
+
+- M110 prepares local LLM advisory request artifacts.
+- M111 records approval-gated patch proposal intake metadata.
+- M112 parses human-pasted dispatch result evidence.
+- M113 recommends, but does not perform, queue completion.
+- M114 displays dispatch review artifacts in the Hub.
+- M115 probes Ollama configuration or loopback model metadata without prompts.
+- M116 generates documentation patch proposal artifacts.
+- M117 recommends an agent/advisor route lane.
+
+Still absent by design:
+
+- unattended Codex execution
+- Ollama or local LLM prompt execution from these contracts
+- real agent runtime execution
+- GitHub API, `gh`, issues, PRs, workflows, network calls, or external services
+- patch application
+- source mutation from generated proposals
+- queue mutation from recommendations
+- automatic handoff, automatic completion, autonomous execution, or next-item execution
 ## M117 Agent Routing Decision Dashboard
 
 M117 adds a local-only route recommendation command:

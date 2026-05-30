@@ -25,6 +25,42 @@ Constraints preserved:
 - real execution target requests block and recommend dry-run
 - no agent execution, Codex, local LLM, Ollama, remote LLM, GitHub API, `gh`, network service, validation command execution, patch application, source mutation, queue mutation from the plan, autonomous execution, or next-item execution
 
+## M118 Post-Automation Planning Reconciliation
+
+Status: In progress locally on `main`.
+
+Queue item: `m118-post-automation-planning-reconciliation`.
+
+Purpose:
+
+- reconcile source-of-truth documentation after M110-M117
+- align queue state, roadmap, architecture notes, operator usage, and current safety boundaries
+- document the current operator workflow and remaining automation gaps
+- define the next safe milestone direction without adding runtime features
+
+Reconciliation scope:
+
+- M110 Local LLM Advisory Artifact Generator
+- M111 Approval-Gated Patch Intake Contract
+- M112 Dispatch Result Evidence Parser
+- M113 Queue Item Auto-Completion Recommendation Engine
+- M114 Hub Dispatch Review Panel
+- M115 Local Ollama Provider Probe Integration
+- M116 Documentation Agent Patch Proposal Generator
+- M117 Agent Routing Decision Dashboard
+
+Constraints preserved:
+
+- docs/data-only milestone
+- no new CLI, API, Hub runtime, or background automation behavior
+- no Codex, Ollama, local LLM, agent runtime, GitHub API, `gh`, network service, workflow, patch application, automatic queue completion, or next-item execution
+- all dispatch, advisory, patch, evidence, completion, and routing surfaces remain local-only and operator-gated
+
+Next recommended milestones:
+
+- define the next operator evidence or documentation ledger checkpoint
+- keep any future execution runner as a separate explicitly approved milestone
+- preserve artifact-first, approval-gated, validation-evidence-driven sequencing
 ## M117 Agent Routing Decision Dashboard
 
 Status: Completed locally on `main` after validation.

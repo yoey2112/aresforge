@@ -24,6 +24,45 @@ The output includes `plan_type=agent_orchestration_plan`, queue identity, reques
 
 Real execution requests are blocked in M128. Use the output as planning metadata only until a later explicit operator-approved runner exists.
 
+## M118 Post-Automation Planning Reconciliation
+
+M118 is a documentation and queue-state reconciliation checkpoint for M110-M117. It does not add runtime features, execute Codex, invoke Ollama or local LLMs, run agents, call GitHub, call `gh`, make network calls, apply patches, mutate source files beyond this operator-authored docs update, automatically complete queue items, or start follow-on work.
+
+Current operator workflow after M110-M117:
+
+1. Inspect local project and queue state.
+2. Generate or inspect one local planning artifact for one queue item.
+3. Review Hub Dispatch Review and Agent Routing Decision Dashboard output.
+4. Create or inspect approval records before manual handoff or patch intake.
+5. Parse human-pasted external completion evidence when Codex or another external tool was run outside AresForge.
+6. Generate a completion recommendation from parsed evidence.
+7. Complete the queue item only with an explicit local queue completion command and validation evidence.
+
+Useful commands:
+
+    python -m aresforge inspect-local-project-report
+    python -m aresforge inspect-local-queue-agent-summary
+    python -m aresforge inspect-project-queue --project-id aresforge
+    python -m aresforge generate-safe-dispatch-handoff
+
+Controlled automation planning commands:
+
+    python -m aresforge generate-local-llm-advisory-artifact --item-id <item_id> --format json
+    python -m aresforge intake-patch-proposal --item-id <item_id> --patch-artifact <path> --format json
+    python -m aresforge parse-dispatch-result-evidence --item-id <item_id> --result-path <path> --format json
+    python -m aresforge recommend-queue-completion --item-id <item_id> --evidence-path <path> --format json
+    python -m aresforge probe-local-ollama-provider --no-network --format json
+    python -m aresforge generate-doc-agent-patch-proposal --item-id <item_id> --format json
+    python -m aresforge recommend-agent-route --item-id <item_id> --format json
+
+Remaining gaps:
+
+- no unattended Codex dispatch
+- no local LLM prompt execution from these planning contracts
+- no real agent runtime
+- no patch apply command
+- no GitHub or workflow integration
+- no automatic queue completion or next-item execution
 ## M117 Agent Routing Decision Dashboard
 
 M117 recommends the advisory lane for one queue item and displays the result in the Hub. It does not dispatch Codex, call Ollama, invoke local LLMs, execute agents, call GitHub or `gh`, make network requests, apply patches, mutate source files, mutate the queue, complete items, or start follow-on work.

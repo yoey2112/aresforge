@@ -20,6 +20,31 @@ M128 boundaries:
 - real execution target requests are blocked and recommend `dry-run`
 - no agents, Codex, Ollama/local LLMs, remote LLMs, GitHub, `gh`, network services, validation commands, patch application, source mutation, queue mutation from the plan, autonomous execution, or next-item execution
 
+## M118 Post-Automation Planning Reconciliation Context
+
+Status: In progress locally on `main`.
+
+Queue item: `m118-post-automation-planning-reconciliation`.
+
+M118 is a docs/data reconciliation milestone after M110-M117. It aligns source-of-truth docs, roadmap notes, operator instructions, architecture boundaries, and queue state for the controlled automation planning layer.
+
+M110-M117 current capabilities:
+
+- M110 generates local LLM advisory request artifacts without invoking local models.
+- M111 records approval-gated patch proposal intake metadata without applying patches.
+- M112 parses human-pasted Codex result text into local evidence records without executing Codex.
+- M113 recommends queue completion decisions without mutating queue state.
+- M114 displays dispatch review artifacts in the Hub without execution endpoints.
+- M115 probes only local Ollama configuration or loopback `/api/tags` metadata without prompts or inference.
+- M116 generates documentation patch proposals for review without applying them.
+- M117 recommends an advisory route lane in CLI/API/Hub without dispatch.
+
+M118 boundaries:
+
+- docs/data only
+- no new runtime features
+- no Codex, Ollama, local LLM, agent, GitHub API, `gh`, network service, patch application, source mutation beyond this operator-authored docs reconciliation, automatic completion, or next-item execution
+- any future execution runner must be a separate explicit milestone with human approval requirements
 ## M117 Agent Routing Decision Dashboard Context
 
 Status: Completed locally on `main` after validation.
