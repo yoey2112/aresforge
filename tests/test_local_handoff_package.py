@@ -238,6 +238,76 @@ def test_generate_handoff_package_includes_project_queue_summary(monkeypatch, tm
     assert summary['status_counts']['ready'] == 1
 
 
+def test_generate_handoff_package_v2_includes_active_routing_dispatch_and_safety(
+    monkeypatch, tmp_path: Path
+) -> None:
+    _write_source_docs(tmp_path)
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert (
+        add_queue_item(
+            config,
+            item_id='m93-operator-handoff-package-v2',
+            project_id='aresforge',
+            repo_id='aresforge-main',
+            title='M93 Operator Handoff Package v2',
+            status='proposed',
+            item_type='handoff',
+            dependencies=['m92-documentation-reconciliation-plan-generator'],
+        )['ok']
+        is True
+    )
+    run_state = tmp_path / ".aresforge" / "codex_dispatch" / "runs" / "recovered-run" / "run_state.json"
+    run_state.parent.mkdir(parents=True, exist_ok=True)
+    run_state.write_text(
+        json.dumps(
+            {
+                "run_id": "recovered-run",
+                "item_id": "m80-llm-decision-matrix-v2",
+                "dispatch_state": "failed",
+                "recovery": {"recovered_at": "2026-05-30T00:00:00+00:00"},
+                "review_required": True,
+                "validation_evidence_required": True,
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(
+        subprocess,
+        'run',
+        lambda command, **_kwargs: subprocess.CompletedProcess(
+            command,
+            0,
+            stdout={
+                "git branch --show-current": "main\n",
+                "git rev-parse HEAD": "abc123\n",
+                "git status --short": "",
+                "git log -n 10 --oneline": "abc123 M93\n",
+            }.get(" ".join(command), ""),
+            stderr='',
+        ),
+    )
+    payload = generate_handoff_package(config, output_format='json')
+
+    assert payload['ok'] is True
+    handoff = payload['payload']
+    assert handoff['handoff_package_version'] == 'm93.v2'
+    assert handoff['local_only'] is True
+    assert handoff['read_only_by_default'] is True
+    assert handoff['current_head'] == 'abc123'
+    assert handoff['active_or_ready_items'][0]['item_id'] == 'm93-operator-handoff-package-v2'
+    assert handoff['queue_v2_summary']['status_counts']['proposed'] == 1
+    assert handoff['recovered_dispatch_summary']['recovered_count'] == 1
+    assert handoff['model_routing_summary']['inspected_item_count'] == 1
+    assert handoff['model_routing_summary']['execution_allowed'] is False
+    assert handoff['safety_boundary']['executes_codex'] is False
+    assert handoff['safety_boundary']['invokes_local_llm'] is False
+    assert handoff['safety_boundary']['mutates_github'] is False
+    assert handoff['safety_boundary']['auto_starts_next_item'] is False
+    assert 'python -m aresforge inspect-local-project-report' in handoff['safe_command_suggestions']
+    assert any('do not execute Codex' in item for item in handoff['next_safe_actions'])
+
+
 def test_generate_handoff_package_includes_agent_profiles_summary(monkeypatch, tmp_path: Path) -> None:
     _write_source_docs(tmp_path)
     config = _config(tmp_path)

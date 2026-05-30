@@ -1,5 +1,23 @@
 # AresForge Build State
 
+## M93 Operator Handoff Package v2
+
+Status: In progress locally on `main`.
+
+Delivered in this pass:
+
+- expands `generate-handoff-package` to emit `handoff_package_version: m93.v2`
+- adds current HEAD/recent commits, queue v2 active/ready item details, recovered dispatch summary, model routing summary, safe command suggestions, and next safe actions
+- preserves stdout/read-only default behavior; `--output` remains the only local artifact write path
+
+M93 safety posture:
+
+- no Codex execution
+- no local LLM invocation
+- no model routing execution
+- no GitHub mutation, GitHub API, or `gh`
+- no automatic queue completion or next-item execution
+
 ## M92 Documentation Reconciliation Plan Generator
 
 Status: Completed locally on `main`.

@@ -1,5 +1,26 @@
 # AresForge Roadmap
 
+## M93 Operator Handoff Package v2
+
+Status: In progress locally on `main`.
+
+Purpose:
+
+- improve local operator/chat continuation from the current repo and queue state
+- make safe next actions and continuation commands explicit without executing anything
+
+Delivered scope:
+
+- `generate-handoff-package` v2 payload fields
+- current HEAD, recent commits, queue summary, active/ready items, recovered dispatch summary, model routing summary, known warnings, safe command suggestions, and next safe actions
+- read-only default with explicit local artifact writing only through `--output`
+
+Constraints preserved:
+
+- no Codex execution, local LLM invocation, or model routing execution
+- no GitHub API, `gh`, GitHub mutation, issues, PRs, workflows, daemon, watcher, scheduler, or external workflow execution
+- no automatic queue completion or next-item execution
+
 ## M92 Documentation Reconciliation Plan Generator
 
 Status: Completed locally on `main`.

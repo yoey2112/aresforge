@@ -10,10 +10,15 @@ from typing import Any
 from aresforge.config import AppConfig
 from aresforge.operator.local_agent_profiles import agent_profiles_summary_for_handoff
 from aresforge.operator.managed_project_registry_local import managed_project_registry_summary_for_handoff
-from aresforge.operator.local_project_queue import project_queue_summary_for_handoff
+from aresforge.operator.local_project_queue import (
+    default_queue_routing_metadata,
+    project_queue_summary_for_handoff,
+    resolve_project_queue_path,
+)
 from aresforge.operator.local_project_state import project_state_summary_for_handoff
 from aresforge.operator.local_agent_orchestration import DEFAULT_OUTPUT_DIR
 from aresforge.operator.local_llm_escalation import DEFAULT_OUTPUT_DIR as ESCALATION_OUTPUT_DIR
+from aresforge.operator.llm_decision_matrix import build_llm_decision_matrix
 
 COMMAND_NAME = "generate-handoff-package"
 ALLOWED_GIT_COMMANDS: tuple[tuple[str, ...], ...] = (
@@ -110,12 +115,11 @@ def generate_handoff_package(
         "force": force,
         "wrote_output_file": True,
         "warnings": payload["warnings"],
-        "boundary_confirmations": [
-            "Local-only handoff generation.",
-            "No gh command was executed.",
-            "No GitHub API calls were executed.",
-            "No network access was required.",
-        ],
+        "handoff_package_version": payload["handoff_package_version"],
+        "safety_boundary": payload["safety_boundary"],
+        "safe_command_suggestions": payload["safe_command_suggestions"],
+        "next_safe_actions": payload["next_safe_actions"],
+        "boundary_confirmations": payload["boundary_confirmations"],
     }
 
 
@@ -267,6 +271,9 @@ def _build_payload(
     agent_profiles_summary = agent_profiles_summary_for_handoff(config)
     managed_project_registry_summary = managed_project_registry_summary_for_handoff(config)
     project_queue_summary = project_queue_summary_for_handoff(config)
+    queue_v2 = _queue_v2_summary(config)
+    recovered_dispatch_summary = _recovered_dispatch_summary(repo_root)
+    model_routing_summary = _model_routing_summary(config, queue_v2.get("active_or_ready_items", []))
     latest_doc_reconciliation_plan = _latest_doc_reconciliation_plan(repo_root)
     latest_github_sync_plan = _latest_github_sync_plan(repo_root)
     latest_orchestration_plan = _latest_orchestration_plan(repo_root)
@@ -298,11 +305,32 @@ def _build_payload(
         project_state_warnings.append(
             "Local project queue exists but could not be parsed."
         )
+    project_state_warnings.extend(str(warning) for warning in queue_v2.get("warnings", []))
+    project_state_warnings.extend(str(warning) for warning in model_routing_summary.get("warnings", []))
+    project_state_warnings.extend(str(warning) for warning in recovered_dispatch_summary.get("warnings", []))
+
+    safe_command_suggestions = [
+        "python -m aresforge inspect-local-project-report",
+        "python -m aresforge inspect-local-queue-agent-summary",
+        "python -m aresforge inspect-project-queue --project-id aresforge",
+        "python -m aresforge plan-doc-reconciliation --format json",
+        "python -m aresforge generate-handoff-package",
+        "git status --short --branch",
+    ]
+    next_safe_actions = [
+        "Review active_or_ready_items before choosing one item manually.",
+        "Run readiness inspection for a selected queue item before starting it.",
+        "Keep generated handoff output as advisory context; do not execute Codex or local LLM from it.",
+        "Regenerate this package after completing the next local milestone.",
+    ]
 
     payload: dict[str, Any] = {
         "title": "AresForge Local Handoff Package",
+        "handoff_package_version": "m93.v2",
         "generated_at": datetime.now(UTC).isoformat(),
         "repo_path": str(repo_root),
+        "local_only": True,
+        "read_only_by_default": True,
         "current_branch": git_state["current_branch"],
         "current_head": git_state["current_head"],
         "working_tree_summary": git_state["working_tree_summary"],
@@ -318,6 +346,10 @@ def _build_payload(
         "agent_profiles_summary": agent_profiles_summary,
         "managed_project_registry_summary": managed_project_registry_summary,
         "project_queue_summary": project_queue_summary,
+        "queue_v2_summary": queue_v2,
+        "active_or_ready_items": queue_v2.get("active_or_ready_items", []),
+        "recovered_dispatch_summary": recovered_dispatch_summary,
+        "model_routing_summary": model_routing_summary,
         "active_local_milestone": (
             project_state_summary.get("current_milestone")
             if isinstance(project_state_summary, dict)
@@ -329,6 +361,36 @@ def _build_payload(
         "latest_escalation_plan": latest_escalation_plan,
         "orchestration_capability_note": orchestration_capability_note,
         "escalation_capability_note": escalation_capability_note,
+        "safe_command_suggestions": safe_command_suggestions,
+        "next_safe_actions": next_safe_actions,
+        "safety_boundary": {
+            "local_only": True,
+            "read_only_by_default": True,
+            "writes_files_by_default": False,
+            "explicit_output_write_only": True,
+            "executes_codex": False,
+            "invokes_local_llm": False,
+            "executes_model_routing": False,
+            "mutates_github": False,
+            "uses_github_api": False,
+            "uses_gh": False,
+            "auto_starts_next_item": False,
+            "auto_completes_queue_items": False,
+            "external_workflow_allowed": False,
+        },
+        "boundary_confirmations": [
+            "Local-only handoff generation.",
+            "Read-only by default; optional --output writes a local artifact only.",
+            "No Codex execution.",
+            "No local LLM invocation.",
+            "No model routing execution.",
+            "No GitHub API calls.",
+            "No gh calls.",
+            "No GitHub mutation.",
+            "No automatic queue completion.",
+            "No automatic next-item execution.",
+            "No network access was required.",
+        ],
         "warnings": sorted(
             set(warnings + list(git_state.get("warnings", [])) + project_state_warnings)
         ),
@@ -350,8 +412,11 @@ def _render_markdown(payload: dict[str, Any]) -> str:
     lines: list[str] = [
         f"# {payload['title']}",
         "",
+        f"- handoff_package_version: {payload.get('handoff_package_version')}",
         f"- generated_at: {payload['generated_at']}",
         f"- repo path: {payload['repo_path']}",
+        f"- local_only: {payload.get('local_only')}",
+        f"- read_only_by_default: {payload.get('read_only_by_default')}",
         f"- current branch: {payload['current_branch']}",
         f"- current HEAD: {payload['current_head']}",
         "",
@@ -449,6 +514,50 @@ def _render_markdown(payload: dict[str, Any]) -> str:
     else:
         lines.append("- No local project queue summary available.")
 
+    lines.extend(["", "## Active Or Ready Queue Items"])
+    active_items = payload.get("active_or_ready_items", [])
+    if isinstance(active_items, list) and active_items:
+        for item in active_items:
+            if isinstance(item, dict):
+                lines.append(
+                    f"- {item.get('item_id')} ({item.get('status')}): {item.get('title')} "
+                    f"[priority={item.get('priority')}, type={item.get('item_type')}]"
+                )
+    else:
+        lines.append("- None detected.")
+
+    lines.extend(["", "## Recovered Dispatch Summary"])
+    recovered = payload.get("recovered_dispatch_summary")
+    if isinstance(recovered, dict):
+        lines.append(f"- recovered_count: {recovered.get('recovered_count')}")
+        lines.append(f"- blocking_count: {recovered.get('blocking_count')}")
+        lines.append(f"- failed_or_review_required_count: {recovered.get('failed_or_review_required_count')}")
+        runs = recovered.get("recovered_runs", [])
+        if isinstance(runs, list) and runs:
+            lines.append("- recovered_runs:")
+            for run in runs[:8]:
+                if isinstance(run, dict):
+                    lines.append(f"  - {run.get('run_id')} ({run.get('dispatch_state')}): {run.get('item_id')}")
+    else:
+        lines.append("- No recovered dispatch summary available.")
+
+    lines.extend(["", "## Model Routing Summary"])
+    routing = payload.get("model_routing_summary")
+    if isinstance(routing, dict):
+        lines.append(f"- inspected_item_count: {routing.get('inspected_item_count')}")
+        by_lane = routing.get("by_recommended_lane")
+        if isinstance(by_lane, dict):
+            lines.append("- by_recommended_lane:")
+            for key in sorted(by_lane.keys()):
+                lines.append(f"  - {key}: {by_lane.get(key)}")
+        by_engine = routing.get("by_recommended_engine")
+        if isinstance(by_engine, dict):
+            lines.append("- by_recommended_engine:")
+            for key in sorted(by_engine.keys()):
+                lines.append(f"  - {key}: {by_engine.get(key)}")
+    else:
+        lines.append("- No model routing summary available.")
+
     lines.extend(["", "## Latest Doc Reconciliation Plan"])
     latest_plan = payload.get("latest_doc_reconciliation_plan")
     if isinstance(latest_plan, dict):
@@ -489,6 +598,18 @@ def _render_markdown(payload: dict[str, Any]) -> str:
 
     lines.extend(["", "## Codex Continuation Prompt", "```text", payload.get("codex_continuation_prompt", ""), "```"])
 
+    lines.extend(["", "## Safe Command Suggestions"])
+    lines.extend(f"- `{item}`" for item in payload.get("safe_command_suggestions", []))
+
+    lines.extend(["", "## Next Safe Actions"])
+    lines.extend(f"- {item}" for item in payload.get("next_safe_actions", []))
+
+    lines.extend(["", "## Safety Boundary"])
+    safety = payload.get("safety_boundary")
+    if isinstance(safety, dict):
+        for key in sorted(safety.keys()):
+            lines.append(f"- {key}: {safety.get(key)}")
+
     warnings = payload.get("warnings", [])
     if warnings:
         lines.extend(["", "## Warnings"])
@@ -525,6 +646,215 @@ def _extract_items_after_label(text: str, label: str) -> list[str]:
         if stripped == "" and items:
             break
     return items
+
+
+def _queue_v2_summary(config: AppConfig) -> dict[str, Any]:
+    queue_path = resolve_project_queue_path(config.repo_root, None)
+    if not queue_path.exists():
+        return {
+            "path": str(queue_path),
+            "detected": False,
+            "item_count": 0,
+            "status_counts": {},
+            "active_or_ready_items": [],
+            "warnings": [f"Local project queue not found: {queue_path}"],
+        }
+    try:
+        raw = json.loads(queue_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return {
+            "path": str(queue_path),
+            "detected": True,
+            "error": str(exc),
+            "item_count": 0,
+            "status_counts": {},
+            "active_or_ready_items": [],
+            "warnings": [f"Local project queue could not be read: {exc}"],
+        }
+    items = raw.get("work_items", []) if isinstance(raw, dict) else []
+    items = [item for item in items if isinstance(item, dict)]
+    status_counts: dict[str, int] = {}
+    for item in items:
+        status = str(item.get("status") or "unknown").strip()
+        status_counts[status] = status_counts.get(status, 0) + 1
+
+    sorted_items = sorted(items, key=lambda item: str(item.get("updated_at") or item.get("created_at") or ""), reverse=True)
+    active_statuses = {"proposed", "ready", "in_progress", "blocked"}
+    active_items = [
+        _queue_item_handoff_view(item)
+        for item in sorted_items
+        if str(item.get("status", "")).strip() in active_statuses
+    ]
+    ready_items = [
+        _queue_item_handoff_view(item)
+        for item in sorted_items
+        if str(item.get("status", "")).strip() in {"proposed", "ready"}
+    ]
+    return {
+        "path": str(queue_path),
+        "detected": True,
+        "schema_version": raw.get("schema_version") if isinstance(raw, dict) else "",
+        "updated_at": raw.get("updated_at") if isinstance(raw, dict) else "",
+        "item_count": len(items),
+        "status_counts": dict(sorted(status_counts.items())),
+        "active_or_ready_items": active_items[:16],
+        "ready_candidate_items": ready_items[:16],
+        "known_blocked_items": [
+            _queue_item_handoff_view(item)
+            for item in sorted_items
+            if str(item.get("status", "")).strip() == "blocked"
+        ][:16],
+        "warnings": [],
+    }
+
+
+def _queue_item_handoff_view(item: dict[str, Any]) -> dict[str, Any]:
+    routing = default_queue_routing_metadata(
+        item.get("routing_metadata", {}) if isinstance(item.get("routing_metadata"), dict) else {}
+    )
+    return {
+        "item_id": item.get("item_id"),
+        "project_id": item.get("project_id"),
+        "repo_id": item.get("repo_id"),
+        "title": item.get("title"),
+        "status": item.get("status"),
+        "priority": item.get("priority"),
+        "item_type": item.get("item_type") or item.get("type"),
+        "dependencies": item.get("dependencies") if isinstance(item.get("dependencies"), list) else [],
+        "blocked_by": item.get("blocked_by") if isinstance(item.get("blocked_by"), list) else [],
+        "updated_at": item.get("updated_at"),
+        "routing_metadata": {
+            "recommended_agent_lane": routing.get("recommended_agent_lane"),
+            "recommended_engine": routing.get("recommended_engine"),
+            "recommended_model": routing.get("recommended_model"),
+            "risk_level": routing.get("risk_level"),
+            "complexity_level": routing.get("complexity_level"),
+            "routing_policy_source": routing.get("routing_policy_source"),
+        },
+    }
+
+
+def _model_routing_summary(config: AppConfig, active_items: list[Any]) -> dict[str, Any]:
+    rows: list[dict[str, Any]] = []
+    warnings: list[str] = []
+    for item in active_items:
+        if not isinstance(item, dict):
+            continue
+        item_id = str(item.get("item_id") or "").strip()
+        if not item_id:
+            continue
+        matrix = build_llm_decision_matrix(config, item_id=item_id)
+        if not matrix.get("ok", False) and matrix.get("blockers"):
+            warnings.extend(str(blocker) for blocker in matrix.get("blockers", []) if str(blocker).strip())
+        warnings.extend(str(warning) for warning in matrix.get("warnings", []) if str(warning).strip())
+        decision = matrix.get("routing_decision", {}) if isinstance(matrix.get("routing_decision"), dict) else {}
+        confidence = matrix.get("routing_confidence", {}) if isinstance(matrix.get("routing_confidence"), dict) else {}
+        rows.append(
+            {
+                "item_id": item_id,
+                "status": matrix.get("queue_item_status"),
+                "risk": (matrix.get("risk_classification") or {}).get("risk_level")
+                if isinstance(matrix.get("risk_classification"), dict)
+                else "unknown",
+                "task_size": (matrix.get("task_sizing") or {}).get("task_size")
+                if isinstance(matrix.get("task_sizing"), dict)
+                else "unknown",
+                "recommended_engine": decision.get("recommended_engine", ""),
+                "recommended_lane": decision.get("recommended_lane", ""),
+                "recommended_model": decision.get("recommended_model", ""),
+                "confidence_score": confidence.get("score"),
+                "validation_burden": (matrix.get("validation_burden") or {}).get("validation_burden")
+                if isinstance(matrix.get("validation_burden"), dict)
+                else "unknown",
+                "execution_allowed": bool(matrix.get("execution_allowed", False)),
+                "local_llm_invocation_allowed": bool(matrix.get("local_llm_invocation_allowed", False)),
+                "codex_dispatch_allowed": bool(matrix.get("codex_dispatch_allowed", False)),
+            }
+        )
+    return {
+        "local_only": True,
+        "advisory_only": True,
+        "execution_allowed": False,
+        "inspected_item_count": len(rows),
+        "items": rows,
+        "by_recommended_engine": _count_rows(rows, "recommended_engine"),
+        "by_recommended_lane": _count_rows(rows, "recommended_lane"),
+        "warnings": sorted(set(warnings)),
+    }
+
+
+def _recovered_dispatch_summary(repo_root: Path) -> dict[str, Any]:
+    runs_root = repo_root / ".aresforge" / "codex_dispatch" / "runs"
+    if not runs_root.exists():
+        return {
+            "path": str(runs_root),
+            "detected": False,
+            "recovered_count": 0,
+            "blocking_count": 0,
+            "failed_or_review_required_count": 0,
+            "recovered_runs": [],
+            "blocking_runs": [],
+            "warnings": [],
+        }
+    recovered_runs: list[dict[str, Any]] = []
+    blocking_runs: list[dict[str, Any]] = []
+    failed_or_review_required: list[dict[str, Any]] = []
+    warnings: list[str] = []
+    for state_path in sorted(runs_root.rglob("run_state.json")):
+        try:
+            state = json.loads(state_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            warnings.append(f"Dispatch run state unreadable: {state_path}: {exc}")
+            continue
+        if not isinstance(state, dict):
+            continue
+        row = {
+            "run_id": state.get("run_id") or state_path.parent.name,
+            "item_id": state.get("item_id"),
+            "dispatch_state": state.get("dispatch_state"),
+            "review_required": bool(state.get("review_required", False)),
+            "validation_evidence_required": bool(state.get("validation_evidence_required", False)),
+            "recovery_required": bool(state.get("recovery_required", False)),
+            "recovered": isinstance(state.get("recovery"), dict),
+            "error_summary": state.get("error_summary"),
+            "next_safe_action": state.get("next_safe_action"),
+        }
+        if row["recovered"]:
+            recovered_runs.append(row)
+        if str(row.get("dispatch_state") or "").strip() in {
+            "awaiting_operator_approval",
+            "approved_pending_dispatch",
+            "running",
+        }:
+            blocking_runs.append(row)
+        if str(row.get("dispatch_state") or "").strip() in {"failed", "review_required"}:
+            failed_or_review_required.append(row)
+    recovered_runs = sorted(recovered_runs, key=lambda row: str(row.get("run_id") or ""), reverse=True)
+    blocking_runs = sorted(blocking_runs, key=lambda row: str(row.get("run_id") or ""), reverse=True)
+    failed_or_review_required = sorted(
+        failed_or_review_required,
+        key=lambda row: str(row.get("run_id") or ""),
+        reverse=True,
+    )
+    return {
+        "path": str(runs_root),
+        "detected": True,
+        "recovered_count": len(recovered_runs),
+        "blocking_count": len(blocking_runs),
+        "failed_or_review_required_count": len(failed_or_review_required),
+        "recovered_runs": recovered_runs[:12],
+        "blocking_runs": blocking_runs[:12],
+        "failed_or_review_required_runs": failed_or_review_required[:12],
+        "warnings": warnings,
+    }
+
+
+def _count_rows(rows: list[dict[str, Any]], field: str) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for row in rows:
+        key = str(row.get(field) or "unknown").strip() or "unknown"
+        counts[key] = counts.get(key, 0) + 1
+    return dict(sorted(counts.items()))
 
 
 def _latest_doc_reconciliation_plan(repo_root: Path) -> dict[str, str] | None:

@@ -1,5 +1,36 @@
 # Local Operator Usage
 
+## M93 Operator Handoff Package v2
+
+Generate a read-only operator handoff package:
+
+    python -m aresforge generate-handoff-package
+
+Optionally write a local handoff artifact:
+
+    python -m aresforge generate-handoff-package --output artifacts/handoff/m93-handoff.md --force
+
+Payload highlights:
+
+- `handoff_package_version`
+- `current_head`
+- `recent_commits`
+- `queue_v2_summary`
+- `active_or_ready_items`
+- `recovered_dispatch_summary`
+- `model_routing_summary`
+- `safe_command_suggestions`
+- `next_safe_actions`
+- `safety_boundary`
+
+Operator rules:
+
+- use the handoff package as continuation context only
+- choose and start any next queue item manually after readiness inspection
+- do not execute Codex or local LLMs from handoff output
+- do not treat model routing summary as execution approval
+- do not use GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, or external workflow behavior
+
 ## M92 Documentation Reconciliation Plan Generator
 
 Generate a read-only documentation reconciliation plan:

@@ -5471,6 +5471,71 @@ def test_plan_doc_reconciliation_dispatch_preserves_m92_boundaries(
     assert parsed["safety_boundary"]["uses_gh"] is False
 
 
+def test_generate_handoff_package_dispatch_preserves_m93_boundaries(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], tmp_path: Path
+) -> None:
+    config = AppConfig(
+        repo_root=tmp_path,
+        db_host="127.0.0.1",
+        db_port=5433,
+        db_name="aresforge",
+        db_user="aresforge",
+        db_password="aresforge",
+        ollama_base_url="http://127.0.0.1:11434",
+        ollama_model="qwen2.5:32b",
+        artifact_root=tmp_path / "artifacts",
+        prompts_dir=tmp_path / "artifacts" / "prompts",
+        evidence_dir=tmp_path / "artifacts" / "evidence",
+        codex_handoffs_dir=tmp_path / "artifacts" / "codex_handoffs",
+        github_owner="local",
+        github_repo="aresforge",
+    )
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: config)
+    seen: dict[str, object] = {}
+
+    def fake_generate(_config, **kwargs):
+        seen.update(kwargs)
+        return {
+            "ok": True,
+            "wrote_output_file": False,
+            "stdout": json.dumps(
+                {
+                    "handoff_package_version": "m93.v2",
+                    "local_only": True,
+                    "read_only_by_default": True,
+                    "current_head": "abc123",
+                    "queue_v2_summary": {"status_counts": {"proposed": 1}},
+                    "active_or_ready_items": [{"item_id": "m93-operator-handoff-package-v2"}],
+                    "recovered_dispatch_summary": {"recovered_count": 1},
+                    "model_routing_summary": {"execution_allowed": False},
+                    "safe_command_suggestions": ["python -m aresforge inspect-local-project-report"],
+                    "safety_boundary": {
+                        "executes_codex": False,
+                        "invokes_local_llm": False,
+                        "mutates_github": False,
+                        "auto_starts_next_item": False,
+                    },
+                }
+            ),
+        }
+
+    monkeypatch.setattr(cli, "generate_handoff_package", fake_generate)
+    exit_code = cli.main(["generate-handoff-package", "--format", "json"])
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert seen["output_format"] == "json"
+    assert seen["include_doc_excerpts"] is False
+    assert parsed["handoff_package_version"] == "m93.v2"
+    assert parsed["local_only"] is True
+    assert parsed["read_only_by_default"] is True
+    assert parsed["model_routing_summary"]["execution_allowed"] is False
+    assert parsed["safety_boundary"]["executes_codex"] is False
+    assert parsed["safety_boundary"]["invokes_local_llm"] is False
+    assert parsed["safety_boundary"]["mutates_github"] is False
+    assert parsed["safety_boundary"]["auto_starts_next_item"] is False
+
+
 def test_test_ollama_uses_health_inspection_without_generation(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:

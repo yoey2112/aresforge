@@ -1,5 +1,21 @@
 # AresForge Agent Context
 
+## M93 Operator Handoff Package v2 Context
+
+Status: In progress locally on `main`.
+
+Current handoff scope:
+
+- `generate-handoff-package` now reports the M93 v2 handoff contract.
+- Handoff output includes current HEAD, recent commits, queue summary, active/ready queue items, recovered dispatch summary, model routing summary, known warnings, safe command suggestions, and next safe actions.
+- The default path writes nothing; `--output` is the only local artifact write path.
+
+Boundaries preserved:
+
+- no Codex execution, local LLM invocation, or model routing execution
+- no queue mutation, queue completion, or automatic next-item execution
+- no GitHub API, `gh`, GitHub mutation, issues, PRs, workflows, daemon, watcher, scheduler, or external workflow execution
+
 ## M92 Documentation Reconciliation Plan Generator Context
 
 Status: Completed locally on `main`.
