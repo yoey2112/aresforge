@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T01:15:28.331116+00:00",
+  "updated_at": "2026-05-30T01:37:31.877920+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -175,7 +175,7 @@
       "repo_id": "aresforge-main",
       "title": "M77 Codex CLI Dispatch Contract",
       "description": "Define the operator-gated Codex CLI dispatch contract, run-state model, evidence fields, dry-run/no-execute behavior, and safety boundaries before any process invocation exists.",
-      "status": "in_progress",
+      "status": "done",
       "priority": "high",
       "item_type": "architecture",
       "tags": [
@@ -192,15 +192,38 @@
       "notes": "Acceptance criteria:\n- Contract is documented and testable.\n- Dry-run/no-execute behavior is explicit.\n- No Codex process invocation is added.\n- No automatic queue execution is added.\n- No GitHub API, gh, issue, PR, workflow, or external mutation behavior is added.\n\nM76 safety notes:\n- Seeded for review only.\n- Not started automatically.\n- No prompt, agent, Codex, local LLM, GitHub, gh, issue, PR, workflow, commit, or push action was invoked.",
       "started_at": "2026-05-30T01:15:28.331116+00:00",
       "started_via": "local_operator",
-      "previous_status": "proposed",
-      "completed_at": "",
-      "completed_by": "",
-      "completion_commit": "",
-      "validation_summary": "",
-      "evidence_note": "",
-      "tests_run": [],
-      "changed_files": [],
-      "artifact_paths": [],
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-30T01:37:31.877920+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "aa66dc5",
+      "validation_summary": "M77 implemented and validated. Added local-only Codex CLI Dispatch Contract, dry-run/no-execute inspection and preparation commands, tests, and documentation updates. Codex CLI was not invoked. No Codex dispatch, GitHub API, gh, issue, PR, workflow, local LLM execution expansion, or automatic next-item execution was added.",
+      "evidence_note": "Codex result reported 152 focused tests passed, requested targeted suite 440 passed, smoke checks passed for inspect-codex-dispatch-contract and prepare-codex-dispatch-dry-run, inspect-project-queue passed with M77 in progress and M78-M82 proposed, inspect-local-queue-agent-summary passed, inspect-local-project-report passed, and git diff --check passed with line-ending warnings only.",
+      "tests_run": [
+        "python -m pytest tests/test_codex_dispatch_contract.py tests/test_cli.py -> 152 passed",
+        "Requested targeted suite -> 440 passed",
+        "python -m aresforge inspect-codex-dispatch-contract --item-id m77-codex-cli-dispatch-contract --format json -> passed",
+        "python -m aresforge prepare-codex-dispatch-dry-run --item-id m77-codex-cli-dispatch-contract --format json -> passed",
+        "python -m aresforge inspect-project-queue --project-id aresforge --format json -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "git diff --check -> passed with line-ending warnings only"
+      ],
+      "changed_files": [
+        ".aresforge/queue/work_items.json",
+        "src/aresforge/operator/codex_dispatch_contract.py",
+        "src/aresforge/cli.py",
+        "tests/test_codex_dispatch_contract.py",
+        "tests/test_cli.py",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/CODEX_CLI_MODEL_PROFILE_CONTRACT.md"
+      ],
+      "artifact_paths": [
+        ".aresforge/codex_dispatch/contracts"
+      ],
       "completion_evidence": {},
       "routing_metadata": {
         "recommended_agent_lane": "architect_planner",
@@ -221,7 +244,7 @@
       "closeout_summary": "",
       "closeout_history": [],
       "created_at": "2026-05-30T01:07:02.906874+00:00",
-      "updated_at": "2026-05-30T01:15:28.331116+00:00"
+      "updated_at": "2026-05-30T01:37:31.877920+00:00"
     },
     {
       "item_id": "m78-operator-gated-codex-cli-dispatch-prototype",
