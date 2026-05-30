@@ -2,9 +2,11 @@
 
 ## M98 Codex Prompt Dispatch Artifact Generator Context
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main`.
 
 Queue item: `m98-codex-prompt-dispatch-artifact-generator`.
+
+Implementation commit: `80f64dd`.
 
 M98 builds on M97 by generating a local Codex prompt artifact only when the M97 selected lane is `codex_prompt_artifact` and the plan remains safe:
 

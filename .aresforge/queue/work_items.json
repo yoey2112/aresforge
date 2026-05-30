@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T15:39:32.394963+00:00",
+  "updated_at": "2026-05-30T15:46:38.363643+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -1999,7 +1999,7 @@
       "repo_id": "aresforge-main",
       "title": "M98 Codex Prompt Dispatch Artifact Generator v1",
       "description": "Create a local-only Codex prompt dispatch artifact generator that consumes the M97 queue-to-agent dispatch plan and writes or prints manual/operator-gated Codex prompt artifacts only for the codex_prompt_artifact lane.",
-      "status": "in_progress",
+      "status": "done",
       "priority": "high",
       "item_type": "feature",
       "tags": [
@@ -2016,15 +2016,29 @@
       "notes": "Acceptance criteria: consumes or derives the M97 dispatch plan; generates copy/paste-ready Codex prompt artifacts only for codex_prompt_artifact; blocks local_llm_advisory, local_llm_coding_draft, documentation_agent_dry_run, and human_only_manual lanes; blocks if plan has blocked reasons, local_only is not true, or execution_allowed is not false; supports readable and JSON CLI output; optional file output is overwrite-safe; no Codex execution, Ollama, GitHub API, gh, network calls, external agents, patch application, issue creation, automatic queue mutation, or automatic next-item execution.",
       "started_at": "2026-05-30T15:39:32.394963+00:00",
       "started_via": "local_operator",
-      "previous_status": "proposed",
-      "completed_at": "",
-      "completed_by": "",
-      "completion_commit": "",
-      "validation_summary": "",
-      "evidence_note": "",
-      "tests_run": [],
-      "changed_files": [],
-      "artifact_paths": [],
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-30T15:46:38.363643+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "80f64dd",
+      "validation_summary": "M98 Codex prompt dispatch artifact generator implemented and validated locally. Targeted CLI, M97 dispatch plan, new M98 generator, and local queue/report tests passed. Smoke checks passed for local reports, queue inspection, safe blocked M98 plan/generation, and generated prompt/file output using a temporary ready queue item. No Codex, Ollama, local LLM, GitHub API, gh, network call, external agent, patch application, issue creation, or automatic next-item execution was performed.",
+      "evidence_note": "M98 adds generate-codex-dispatch-artifact for manual/operator-gated prompt artifacts. It consumes M97 plans, generates only for codex_prompt_artifact, blocks non-Codex lanes and unsafe plan flags, avoids nested markdown fences, supports JSON/readable output and overwrite-safe file output, and keeps execution_allowed=false.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 165 passed",
+        "python -m pytest tests/test_queue_agent_dispatch_plan.py -> 6 passed",
+        "python -m pytest tests/test_codex_prompt_dispatch_artifact.py -> 8 passed",
+        "python -m pytest tests/test_local_project_queue.py tests/test_local_queue_agent_summary.py tests/test_local_project_report.py -> 112 passed",
+        "git diff --check -> passed with CRLF warnings only"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/codex_prompt_dispatch_artifact.py",
+        "src/aresforge/cli.py",
+        "tests/test_codex_prompt_dispatch_artifact.py",
+        "tests/test_cli.py",
+        "docs/context/BUILD_STATE.md; docs/context/AGENT_CONTEXT.md; docs/roadmap/ROADMAP.md; docs/operator/LOCAL_OPERATOR_USAGE.md; docs/architecture/RUNNABLE_SKELETON.md; docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md; docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md; docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md"
+      ],
+      "artifact_paths": [
+        "temporary smoke artifact under %TEMP%\\\\aresforge-m98-smoke-prompt.txt"
+      ],
       "completion_evidence": {},
       "routing_metadata": {
         "recommended_agent_lane": "",
@@ -2045,7 +2059,7 @@
       "closeout_summary": "",
       "closeout_history": [],
       "created_at": "2026-05-30T15:39:28.911991+00:00",
-      "updated_at": "2026-05-30T15:39:32.394963+00:00"
+      "updated_at": "2026-05-30T15:46:38.363643+00:00"
     }
   ]
 }

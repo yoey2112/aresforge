@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-M98 is implementing the local-only Codex Prompt Dispatch Artifact Generator v1 on top of the completed M97 queue-to-agent dispatch plan contract.
+M98 completed the local-only Codex Prompt Dispatch Artifact Generator v1 on top of the completed M97 queue-to-agent dispatch plan contract.
 
 ## Current Goal
 
@@ -10,9 +10,13 @@ M98 generates copy/paste-ready Codex prompt artifacts from approved-safe M97 dis
 
 ## M98 Codex Prompt Dispatch Artifact Generator v1
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main`.
 
 Queue item: `m98-codex-prompt-dispatch-artifact-generator`.
+
+Implementation commit: `80f64dd`.
+
+Queue status: `done`; M96 remains `proposed` for planning context and M97 remains `done`.
 
 M98 consumes or derives the M97 dispatch plan and adds:
 

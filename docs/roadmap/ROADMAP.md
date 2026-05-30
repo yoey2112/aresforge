@@ -2,9 +2,11 @@
 
 ## M98 Codex Prompt Dispatch Artifact Generator v1
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main`.
 
 Queue item: `m98-codex-prompt-dispatch-artifact-generator`.
+
+Implementation commit: `80f64dd`.
 
 Purpose:
 
@@ -101,7 +103,7 @@ Define a queue-to-agent dispatch plan payload that maps a selected queue item to
 
 ### M98 Codex Prompt Dispatch Artifact Generator v1
 
-Status: In progress locally.
+Status: Completed locally.
 
 Generate local Codex prompt dispatch artifacts from queue items and M97 plans without invoking Codex. Artifacts are reviewable, manual/operator-gated, clearly marked non-executing, and blocked for non-Codex lanes.
 
