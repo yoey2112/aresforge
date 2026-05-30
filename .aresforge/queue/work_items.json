@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T03:59:09.812891+00:00",
+  "updated_at": "2026-05-30T04:11:38.752779+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -544,7 +544,7 @@
       "repo_id": "aresforge-main",
       "title": "M79.3 Codex Run Token Usage Capture",
       "description": "Capture and store token usage metadata for each Codex CLI run so future routing, cost analysis, and LLM decision matrix work can compare effort and usage across runs.",
-      "status": "in_progress",
+      "status": "done",
       "priority": "high",
       "item_type": "feature",
       "tags": [
@@ -564,15 +564,32 @@
       "notes": "Acceptance criteria:\n- Codex run state stores token usage fields when available.\n- Run state should include prompt_tokens, completion_tokens, total_tokens, model, provider, reasoning_effort, and source/extraction status where available.\n- If token usage cannot be extracted, the run state must record token_usage_available=false and explain why.\n- Token metadata must be exposed through inspect-codex-dispatch-run.\n- Token metadata must be usable by future decision matrix/routing work.\n- Tests must cover available token usage, missing token usage, malformed usage payloads, and backward compatibility with old run_state files.",
       "started_at": "2026-05-30T03:59:09.812891+00:00",
       "started_via": "prepare-queue-item-dispatch",
-      "previous_status": "proposed",
-      "completed_at": "",
-      "completed_by": "",
-      "completion_commit": "",
-      "validation_summary": "",
-      "evidence_note": "",
-      "tests_run": [],
-      "changed_files": [],
-      "artifact_paths": [],
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-30T04:11:38.752779+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "8f10754",
+      "validation_summary": "M79.3 Codex token usage capture was implemented and committed. Codex reported focused validation passed with 183 tests, required bundle passed with 488 tests, smoke checks passed, and git diff --check passed with line-ending warnings only.",
+      "evidence_note": "Operator reviewed Codex output, implementation diff, validation report, local git status, commit, and push result. Codex authored the implementation but could not commit due to sandbox Git permission restrictions, so operator committed and pushed validated implementation manually. Live terminal token usage clue showed tokens used 192,296.",
+      "tests_run": [
+        "python -m pytest tests/test_codex_dispatch_runner.py tests/test_codex_dispatch_contract.py tests/test_cli.py -> 183 passed",
+        "Required bundle including tests/test_prompt_builder_agent.py and tests/test_hub_ui_foundation.py -> 488 passed",
+        "Smoke checks: prepare-queue-item-dispatch for M79, inspect-project-queue --project-id aresforge, inspect-local-queue-agent-summary, inspect-local-project-report -> passed",
+        "git diff --check -> passed with line-ending warnings only"
+      ],
+      "changed_files": [
+        "docs/architecture/CODEX_CLI_MODEL_PROFILE_CONTRACT.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/context/BUILD_STATE.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/roadmap/ROADMAP.md",
+        "src/aresforge/operator/codex_dispatch_contract.py",
+        "src/aresforge/operator/codex_dispatch_runner.py",
+        "tests/test_codex_dispatch_runner.py"
+      ],
+      "artifact_paths": [
+        ".aresforge/codex_dispatch/runs"
+      ],
       "completion_evidence": {},
       "routing_metadata": {
         "recommended_agent_lane": "coding",
@@ -593,7 +610,7 @@
       "closeout_summary": "",
       "closeout_history": [],
       "created_at": "2026-05-30T03:40:04.873501+00:00",
-      "updated_at": "2026-05-30T03:59:09.812891+00:00"
+      "updated_at": "2026-05-30T04:11:38.752779+00:00"
     },
     {
       "item_id": "m80-llm-decision-matrix-v2",
