@@ -1,5 +1,30 @@
 # AresForge Build State
 
+## M78.5 Operator Workflow Compression and Prompt Builder Agent Contract
+
+Status: Completed locally on `main`.
+
+Delivered:
+
+- added the local-only Prompt Builder Agent / Prompt Architect Agent contract
+- exposed `python -m aresforge prepare-queue-item-dispatch --item-id <item_id> --target codex --format json`
+- added workflow preparation that inspects readiness, optionally starts only with `--start-if-ready`, generates a stronger prompt artifact, and inspects the Codex dispatch contract
+- writes prompt artifacts under `.aresforge/codex_dispatch/prompts/`
+- returns stable JSON fields for prompt artifact path, readiness, dispatch contract summary, approval requirement, next safe action, blockers, warnings, and boundary confirmations
+
+M78.5 safety posture:
+
+- Prompt Builder is artifact-only and local-only
+- preparation does not dispatch, approve, complete, or auto-run any item
+- Codex approval and execution remain separate M78 operator-gated commands
+- queue completion still requires review and validation evidence
+- no GitHub API, `gh`, issues, PRs, workflows, external workflow execution, or GitHub mutation behavior
+- no local LLM execution expansion; local LLM remains local-only, advisory-only, operator-gated, prototype-scoped, and non-mutating
+
+Recommended next milestone:
+
+- M79 - Queue Blocking and Sequencing Enforcement.
+
 ## M78 Operator-Gated Codex CLI Dispatch Prototype
 
 Status: Completed locally on `main`.
@@ -36,9 +61,9 @@ M78 safety posture:
 - no local LLM execution expansion
 - local LLM remains local-only, advisory-only, operator-gated, prototype-scoped, and non-mutating
 
-Future design note:
+M78.5 follow-on note:
 
-- A future Prompt Builder Agent / Prompt Architect Agent should create high-quality prompt artifacts from queue items, docs, routing metadata, model profiles, and safety gates for operator review before dispatch. It must not execute prompts, call Codex, invoke local LLMs, mutate files, or advance queue items automatically.
+- M78.5 now creates high-quality Prompt Builder Agent / Prompt Architect Agent artifacts from queue items, docs, routing metadata, model profiles, and safety gates for operator review before dispatch. It must not execute prompts, call Codex, invoke local LLMs, mutate files, or advance queue items automatically.
 
 Recommended next milestone:
 

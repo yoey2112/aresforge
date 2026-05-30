@@ -1,5 +1,35 @@
 # AresForge Roadmap
 
+## M78.5 Operator Workflow Compression and Prompt Builder Agent Contract
+
+Status: Completed locally on `main`.
+
+Purpose:
+
+- insert a workflow-compression milestone between M78 and M79
+- turn queue item context, routing metadata, source-of-truth reading, safety gates, validation commands, smoke checks, and final-response requirements into a reviewed prompt artifact
+- reduce manual prompt rewriting after M77/M78 without adding autonomous execution
+
+Delivered scope:
+
+- Prompt Builder Agent / Prompt Architect Agent contract
+- `prepare-queue-item-dispatch` workflow preparation command
+- explicit `--start-if-ready` gate for queue item start
+- stable preparation payload fields for readiness, prompt artifact path, dispatch contract summary, approval requirement, blocked automatic execution, blocked queue completion, warnings, blockers, and next safe action
+
+Constraints preserved:
+
+- no automatic prompt dispatch
+- no automatic Codex execution
+- no automatic queue completion
+- no automatic next-item execution
+- no local LLM execution expansion
+- no GitHub API, `gh`, issues, PRs, workflows, external workflow execution, or GitHub mutation
+
+Next recommended milestone:
+
+- M79 Queue Blocking and Sequencing Enforcement.
+
 ## M78 Operator-Gated Codex CLI Dispatch Prototype
 
 Status: Completed locally on `main`.
@@ -29,9 +59,9 @@ Constraints preserved:
 - no GitHub API, `gh`, issues, PRs, workflows, external workflow execution, or GitHub mutation
 - no local LLM execution expansion; local LLM remains local-only, advisory-only, operator-gated, prototype-scoped, and non-mutating
 
-Future design note:
+M78.5 follow-on note:
 
-- A Prompt Builder Agent / Prompt Architect Agent should later generate high-quality prompt artifacts for operator review from queue items, docs, routing metadata, model profiles, and safety gates. It must not execute prompts, call Codex, invoke local LLMs, mutate files, or advance queue items automatically.
+- The Prompt Builder Agent / Prompt Architect Agent now generates high-quality prompt artifacts for operator review from queue items, docs, routing metadata, model profiles, and safety gates. It must not execute prompts, call Codex, invoke local LLMs, mutate files, or advance queue items automatically.
 
 Next recommended milestone:
 

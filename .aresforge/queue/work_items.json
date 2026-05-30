@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T01:57:22.471518+00:00",
+  "updated_at": "2026-05-30T02:03:59.099548+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -544,6 +544,62 @@
       "closeout_history": [],
       "created_at": "2026-05-30T01:07:03.066427+00:00",
       "updated_at": "2026-05-30T01:08:04.045882+00:00"
+    },
+    {
+      "item_id": "m78-5-operator-workflow-compression-prompt-builder-contract",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M78.5 Operator Workflow Compression and Prompt Builder Agent Contract",
+      "description": "Compress the current manual queue-to-prompt-to-Codex workflow by adding an operator workflow preparation layer and a Prompt Builder Agent contract that generates high-quality reviewed prompt artifacts before dispatch.",
+      "status": "in_progress",
+      "priority": "high",
+      "item_type": "feature",
+      "tags": [
+        "milestone:m78.5",
+        "workflow-compression",
+        "prompt-builder-agent",
+        "operator-gated",
+        "codex-dispatch"
+      ],
+      "dependencies": [
+        "m78-operator-gated-codex-cli-dispatch-prototype"
+      ],
+      "blocked_by": [],
+      "assigned_agent": "",
+      "source": "local_operator",
+      "notes": "Acceptance criteria:\n- Add a workflow preparation command that reduces manual inspection/start/prompt-generation steps.\n- Add a Prompt Builder Agent / Prompt Architect Agent contract.\n- Generated prompts must use queue item context, docs, routing metadata, model/engine target, safety gates, and validation requirements.\n- Prompt Builder creates prompt artifacts only.\n- Prompt Builder does not execute prompts, call Codex, invoke local LLMs, mutate source files, or advance queue items automatically.\n- Workflow preparation must remain local-only and operator-gated.\n- No automatic next-item execution.\n- No unattended multi-item execution.\n- No GitHub API, gh, issue, PR, workflow, or GitHub mutation.",
+      "started_at": "2026-05-30T02:03:59.099548+00:00",
+      "started_via": "local_operator",
+      "previous_status": "proposed",
+      "completed_at": "",
+      "completed_by": "",
+      "completion_commit": "",
+      "validation_summary": "",
+      "evidence_note": "",
+      "tests_run": [],
+      "changed_files": [],
+      "artifact_paths": [],
+      "completion_evidence": {},
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-30T02:03:57.972900+00:00",
+      "updated_at": "2026-05-30T02:03:59.099548+00:00"
     }
   ]
 }

@@ -1,5 +1,36 @@
 # Local Operator Usage
 
+## M78.5 Operator Workflow Compression and Prompt Builder Agent Contract
+
+Prepare a queue item for operator-reviewed Codex dispatch without dispatching:
+
+    python -m aresforge prepare-queue-item-dispatch --item-id m79-queue-blocking-and-sequencing-enforcement --target codex --format json
+
+Start the item only when readiness passes and the operator explicitly chooses that step:
+
+    python -m aresforge prepare-queue-item-dispatch --item-id m78-5-operator-workflow-compression-prompt-builder-contract --target codex --start-if-ready --format json
+
+Payload highlights:
+
+- `prompt_artifact_path` points to the generated local prompt artifact
+- `dispatch_contract_summary` reports the Codex dispatch contract without approving or running it
+- `operator_approval_required` remains true for Codex
+- `dispatch_allowed` remains false in the preparation command
+- `automatic_next_item_execution_allowed` remains false
+- `queue_completion_allowed` remains false
+
+Operator rules:
+
+- review the generated prompt artifact before handoff
+- use `approve-codex-dispatch` and `run-codex-dispatch` separately if Codex dispatch is desired
+- do not treat preparation as approval, dispatch, validation, or completion
+- queue completion still requires review and validation evidence
+- no GitHub API, `gh`, issues, PRs, workflows, external workflow execution, or GitHub mutation occurs
+
+Next recommended milestone:
+
+- M79 - Queue Blocking and Sequencing Enforcement.
+
 ## M78 Operator-Gated Codex CLI Dispatch Prototype
 
 Approve exactly one local dispatch run:
@@ -39,9 +70,9 @@ Operator rules:
 - no GitHub API, `gh`, issues, PRs, workflows, external workflow execution, or GitHub mutation capability is added
 - no local LLM execution expansion is performed
 
-Future design note:
+M78.5 follow-on note:
 
-- A Prompt Builder Agent / Prompt Architect Agent should later prepare prompt artifacts for operator review. It must not execute prompts, call Codex, invoke local LLMs, mutate files, or advance queue items automatically.
+- The Prompt Builder Agent / Prompt Architect Agent now prepares prompt artifacts for operator review. It must not execute prompts, call Codex, invoke local LLMs, mutate files, or advance queue items automatically.
 
 Next recommended milestone:
 

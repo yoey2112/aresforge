@@ -2,6 +2,8 @@
 
 ## Status
 
+M78.5 adds a local Prompt Builder Agent / Prompt Architect Agent contract and a workflow preparation command before Codex approval or dispatch. `prepare-queue-item-dispatch` can inspect readiness, optionally start a ready item only with `--start-if-ready`, generate a local prompt artifact, and inspect the Codex dispatch contract. It does not approve Codex dispatch, execute Codex, invoke local LLMs, dispatch prompts, complete queue items, or run the next item automatically.
+
 M78 adds the first operator-gated local dispatch prototype on top of the M77 contract. It requires the exact approval phrase `APPROVE CODEX DISPATCH`, allows only one active run at a time, stores run state under `.aresforge/codex_dispatch/runs/<run_id>/`, captures `prompt.txt`, `stdout.txt`, `stderr.txt`, and `artifacts/`, and leaves successful runs in `review_required`. M78 does not infer a Codex command; the operator must provide `--command`, so tests and smoke checks can use harmless local commands without requiring Codex CLI installation. Dispatch output does not complete queue items, does not auto-run the next item, does not call GitHub or `gh`, and does not expand local LLM execution.
 
 M77 adds the Codex CLI Dispatch Contract. It is local-only, contract-first, and dry-run/no-execute. It inspects one queue item at a time, validates the managed project/repo binding, reserves future `.aresforge/codex_dispatch` contract/run paths, and defines the expected M78 run-state shape. It does not invoke Codex CLI, dispatch Codex, start runs, mutate queue item status, call GitHub, call `gh`, or implement M78 execution.
@@ -28,7 +30,7 @@ M74 stabilized Hub UX wording around Codex high-value prompt preview/copy behavi
 
 This contract represents future Codex CLI model preferences for routing, high-value lane planning, and future contract-first dispatch design. It does not execute Codex CLI, send prompts, run agents, call GitHub, call `gh`, or run external workflows.
 
-Future design note: a Prompt Builder Agent / Prompt Architect Agent should later create high-quality prompt artifacts from queue items, docs, routing metadata, model profiles, and safety gates for operator review before dispatch. It must not execute prompts, call Codex, invoke local LLMs, mutate files, or advance queue items automatically.
+M78.5 follow-on note: the Prompt Builder Agent / Prompt Architect Agent now creates high-quality prompt artifacts from queue items, docs, routing metadata, model profiles, and safety gates for operator review before dispatch. It must not execute prompts, call Codex, invoke local LLMs, mutate files, or advance queue items automatically.
 
 ## Storage
 
@@ -52,6 +54,54 @@ Reading defaults does not write this file. Updating the contract writes the file
 - `POST /api/ai-action-safety-gate`
 - `GET /api/ai-artifacts`
 - `GET /api/operator-run-history`
+
+## M78.5 Prompt Builder Workflow
+
+Command:
+
+- `python -m aresforge prepare-queue-item-dispatch --item-id <item_id> --target codex --format json`
+
+Stable preparation fields include:
+
+- `ok`
+- `local_only`
+- `item_id`
+- `project_id`
+- `repo_id`
+- `target`
+- `readiness_status`
+- `can_start`
+- `started`
+- `prompt_artifact_path`
+- `dispatch_contract_summary`
+- `operator_approval_required`
+- `dispatch_ready`
+- `dispatch_allowed`
+- `automatic_next_item_execution_allowed`
+- `queue_completion_allowed`
+- `warnings`
+- `blockers`
+- `next_safe_action`
+- `boundary_confirmations`
+
+Prompt Builder fields include:
+
+- `artifact_only: true`
+- `prompt_builder_version`
+- `prompt_preview`
+- `source_context`
+- `safety_boundaries`
+- `validation_plan`
+- `smoke_checks`
+- `final_response_requirements`
+
+M78.5 invariants:
+
+- `dispatch_allowed` remains false in preparation.
+- `automatic_next_item_execution_allowed` remains false.
+- `queue_completion_allowed` remains false.
+- Codex targets still require explicit M78 operator approval.
+- Prompt Builder does not execute prompts, call Codex, invoke local LLMs, mutate source files, or advance queue items automatically.
 
 ## Fields
 

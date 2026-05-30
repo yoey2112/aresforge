@@ -1,5 +1,28 @@
 # Runnable Skeleton
 
+## M78.5 Operator Workflow Compression and Prompt Builder Agent Contract
+
+M78.5 adds a local workflow preparation layer before any operator-approved dispatch:
+
+- `python -m aresforge prepare-queue-item-dispatch --item-id <item_id> --target codex --format json`
+- `python -m aresforge prepare-queue-item-dispatch --item-id <item_id> --target codex --start-if-ready --format json`
+
+The command inspects local queue readiness, optionally starts a ready item only when `--start-if-ready` is present, generates a Prompt Builder Agent artifact under `.aresforge/codex_dispatch/prompts/`, inspects the Codex dispatch contract for Codex targets, and returns the next safe operator action.
+
+Behavior contract:
+
+- Prompt Builder output is artifact-only
+- no prompt is dispatched automatically
+- no Codex approval is created
+- no Codex command is executed
+- no queue completion is performed
+- no next queue item is run automatically
+- queue completion still requires review and validation evidence
+
+Next skeleton focus:
+
+- M79 should enforce queue blocking and sequencing.
+
 ## M78 Operator-Gated Codex CLI Dispatch Prototype
 
 M78 adds the first local operator-gated dispatch prototype:

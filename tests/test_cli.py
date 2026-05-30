@@ -56,6 +56,7 @@ def test_cli_has_expected_commands() -> None:
         "generate-local-queue-item-codex-prompt",
         "inspect-codex-dispatch-contract",
         "prepare-codex-dispatch-dry-run",
+        "prepare-queue-item-dispatch",
         "approve-codex-dispatch",
         "run-codex-dispatch",
         "inspect-codex-dispatch-run",
@@ -4865,6 +4866,72 @@ def test_prepare_codex_dispatch_dry_run_dispatch_json(
     assert exit_code == 0
     assert parsed["execution_mode"] == "dry_run_no_execute"
     assert parsed["codex_cli_invocation_allowed"] is False
+
+
+def test_prepare_queue_item_dispatch_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "ok": True,
+                "local_only": True,
+                "item_id": "m78-5",
+                "target": "codex",
+                "dispatch_allowed": False,
+                "automatic_next_item_execution_allowed": False,
+                "queue_completion_allowed": False,
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_prepare(
+        _config,
+        item_id,
+        target="codex",
+        queue_path=None,
+        registry_path=None,
+        output=None,
+        start_if_ready=False,
+        force=False,
+        output_format="json",
+    ):
+        seen["item_id"] = item_id
+        seen["target"] = target
+        seen["start_if_ready"] = start_if_ready
+        seen["force"] = force
+        return payload
+
+    monkeypatch.setattr(cli, "prepare_queue_item_dispatch", fake_prepare)
+    exit_code = cli.main(
+        [
+            "prepare-queue-item-dispatch",
+            "--item-id",
+            "m78-5",
+            "--target",
+            "codex",
+            "--start-if-ready",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["dispatch_allowed"] is False
+    assert parsed["automatic_next_item_execution_allowed"] is False
+    assert parsed["queue_completion_allowed"] is False
+    assert seen["item_id"] == "m78-5"
+    assert seen["target"] == "codex"
+    assert seen["start_if_ready"] is True
+    assert seen["force"] is True
 
 
 def test_approve_codex_dispatch_dispatch_json(

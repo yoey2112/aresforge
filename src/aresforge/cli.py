@@ -216,6 +216,7 @@ from aresforge.operator.codex_dispatch_runner import (
     list_codex_dispatch_runs,
     run_operator_gated_codex_dispatch,
 )
+from aresforge.operator.queue_dispatch_preparation import prepare_queue_item_dispatch
 from aresforge.operator.local_agent_profiles import (
     AGENT_PROFILE_STATUSES,
     AGENT_ROLES,
@@ -1535,6 +1536,26 @@ def build_parser() -> argparse.ArgumentParser:
     prepare_codex_dispatch_dry_run_parser.add_argument("--output")
     prepare_codex_dispatch_dry_run_parser.add_argument("--force", action="store_true")
     prepare_codex_dispatch_dry_run_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="json",
+    )
+    prepare_queue_item_dispatch_parser = subparsers.add_parser(
+        "prepare-queue-item-dispatch",
+        help="Prepare one queue item for operator-reviewed dispatch without executing or approving it.",
+    )
+    prepare_queue_item_dispatch_parser.add_argument("--item-id", required=True)
+    prepare_queue_item_dispatch_parser.add_argument(
+        "--target",
+        choices=["codex", "local-llm", "manual"],
+        default="codex",
+    )
+    prepare_queue_item_dispatch_parser.add_argument("--queue-path")
+    prepare_queue_item_dispatch_parser.add_argument("--registry-path")
+    prepare_queue_item_dispatch_parser.add_argument("--output")
+    prepare_queue_item_dispatch_parser.add_argument("--start-if-ready", action="store_true")
+    prepare_queue_item_dispatch_parser.add_argument("--force", action="store_true")
+    prepare_queue_item_dispatch_parser.add_argument(
         "--format",
         choices=["json", "markdown"],
         default="json",
@@ -3716,6 +3737,24 @@ def main(argv: list[str] | None = None) -> int:
             queue_path=args.queue_path,
             registry_path=args.registry_path,
             output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "prepare-queue-item-dispatch":
+        payload = prepare_queue_item_dispatch(
+            config,
+            item_id=args.item_id,
+            target=args.target,
+            queue_path=args.queue_path,
+            registry_path=args.registry_path,
+            output=args.output,
+            start_if_ready=bool(args.start_if_ready),
             force=bool(args.force),
             output_format=args.format,
         )
