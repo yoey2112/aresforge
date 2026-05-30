@@ -1,5 +1,29 @@
 # AresForge Roadmap
 
+## M70 Local AI Operations Verification Sweep
+
+Status: Completed locally on `main`.
+
+Delivered scope:
+
+- verified the M58-M69 local AI operations chain across docs, safety gate payloads, execution audit entries, artifact registry records, Operator Run History, queue lifecycle responses, Hub API responses, and Hub UI rendering expectations
+- reconciled stale latest-milestone and future-state wording now that M69 hardening is complete and M70 is the current verification milestone
+- tightened blocked/policy wording for PR-shaped prohibited action names in the AI action safety gate
+- surfaced existing safety/gate/non-mutation metadata in Operator Run History timeline rendering
+- added targeted contract regressions for local AI docs, static Hub source boundaries, safety gate policy classification, advisory local LLM non-mutation, and run-history safety rendering
+
+Constraints preserved:
+
+- local LLM execution remains local-only, advisory-only, operator-gated, and prototype-scoped
+- Codex high-value lane remains prompt-generation/operator-handoff only
+- no GitHub API, no `gh`, no GitHub issues/PRs/workflow activity, no GitHub mutation from the app
+- no automatic Codex execution, automatic agent execution, external workflow execution, or automatic repo mutation from local LLM/Codex output
+- M70 was a verification and stabilization milestone, not a feature expansion
+
+Recommended next milestone:
+
+- M71 - Operator-Facing AI Action Review Panel.
+
 ## M69 Local AI Operations Hardening
 
 Status: Completed locally on `main`.
@@ -20,7 +44,7 @@ Constraints preserved:
 
 Recommended next milestone:
 
-- M70 - Local AI Operations Readiness Review, if operator-facing readiness/report polish is needed after hardening.
+- M70 completed Local AI Operations Verification Sweep.
 
 ## M68 Local AI Operations Closeout Reconciliation
 

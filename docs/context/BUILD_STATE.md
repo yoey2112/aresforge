@@ -1,5 +1,29 @@
 # AresForge Build State
 
+## M70 Local AI Operations Verification Sweep
+
+Status: Completed locally on `main`.
+
+Verification outcome:
+
+- swept the M58-M69 local AI operations chain for stale milestone references, implemented/future-state drift, and operator-facing boundary wording
+- confirmed local LLM environment, health check, prompt preview, operator-gated local execution prototype, Codex model profile contract, Codex high-value prompt lane, execution audit log, AI action safety gate, AI artifact registry, Operator Run History, and M69 hardening remain aligned
+- tightened PR-shaped prohibited action classification in the AI action safety gate so GitHub pull request mutation representations are reported as policy-blocked
+- clarified Operator Run History UI rendering so existing safety/gate/non-mutation metadata is visible in the timeline
+- added targeted regression coverage for local AI docs wording, static Hub source boundaries, safety metadata rendering, PR-shaped safety-gate blocking, and local LLM advisory non-mutation behavior
+
+Safety posture:
+
+- local AI operations remain local-first, file-backed, operator-gated, and advisory-only where local LLM output is involved
+- local LLM execution remains limited to the M62 explicit local provider prototype and does not apply output to repository files, queue state, project state, GitHub, `gh`, Codex, agents, commits, pushes, or workflows
+- Codex high-value lane remains prompt-generation/operator-handoff only
+- no GitHub API, `gh`, GitHub mutation, issue, PR, workflow, automatic Codex execution, automatic agent execution, external workflow execution, or automatic repo mutation was introduced
+- M70 was a verification and stabilization milestone, not a feature expansion
+
+Recommended next milestone:
+
+- M71 - Operator-Facing AI Action Review Panel.
+
 ## M69 Local AI Operations Hardening
 
 Status: Completed locally on `main`.
@@ -20,7 +44,7 @@ Safety posture:
 
 Recommended next milestone:
 
-- M70 - Local AI Operations Readiness Review, only if a follow-on milestone needs operator-facing readiness/report polish over the hardened records.
+- M70 completed Local AI Operations Verification Sweep.
 
 ## M68 Local AI Operations Closeout Reconciliation
 

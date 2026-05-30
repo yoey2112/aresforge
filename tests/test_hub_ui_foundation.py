@@ -247,6 +247,8 @@ def test_local_ai_hardening_sources_do_not_shell_out_or_call_github_api() -> Non
     source_paths = [
         repo_root / "src" / "aresforge" / "hub" / "api.py",
         repo_root / "src" / "aresforge" / "hub" / "server.py",
+        repo_root / "src" / "aresforge" / "hub" / "static" / "app.js",
+        repo_root / "src" / "aresforge" / "hub" / "static" / "js" / "sections" / "queue.js",
         repo_root / "src" / "aresforge" / "operator" / "local_ai_action_safety.py",
         repo_root / "src" / "aresforge" / "operator" / "local_ai_artifacts.py",
         repo_root / "src" / "aresforge" / "operator" / "local_execution_audit.py",
@@ -261,6 +263,35 @@ def test_local_ai_hardening_sources_do_not_shell_out_or_call_github_api() -> Non
     assert "api.github.com" not in combined
     assert "gh issue" not in combined
     assert "gh pr" not in combined
+
+
+def test_local_ai_operations_docs_do_not_advertise_automatic_execution() -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    doc_paths = [
+        repo_root / "docs" / "context" / "BUILD_STATE.md",
+        repo_root / "docs" / "context" / "AGENT_CONTEXT.md",
+        repo_root / "docs" / "roadmap" / "ROADMAP.md",
+        repo_root / "docs" / "architecture" / "RUNNABLE_SKELETON.md",
+        repo_root / "docs" / "operator" / "LOCAL_OPERATOR_USAGE.md",
+        repo_root / "docs" / "architecture" / "LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
+        repo_root / "docs" / "architecture" / "CODEX_CLI_MODEL_PROFILE_CONTRACT.md",
+    ]
+    combined = "\n".join(path.read_text(encoding="utf-8") for path in doc_paths).lower()
+
+    forbidden_claims = (
+        "automatic codex execution is implemented",
+        "codex cli invocation is implemented",
+        "automatic agent execution is implemented",
+        "local llm output is applied to repo files",
+        "github api calls are performed",
+        "gh is called",
+        "github mutation is performed",
+    )
+
+    assert "m70 local ai operations verification sweep" in combined
+    assert "m71 - operator-facing ai action review panel" in combined
+    for claim in forbidden_claims:
+        assert claim not in combined
 
 
 def test_project_factory_index_exports_remaining_project_factory_modules() -> None:
@@ -436,6 +467,11 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "renderAiArtifactRegistry" in queue_js
     assert "buildOperatorRunHistoryQuery" in queue_js
     assert "renderOperatorRunHistory" in queue_js
+    assert "safety=${entry.safety_status" in queue_js
+    assert "gate=${entry.gate_status" in queue_js
+    assert "repo_mutation=${Boolean(entry.repo_mutation_allowed)}" in queue_js
+    assert "external_mutation=${Boolean(entry.external_mutation_allowed)}" in queue_js
+    assert "automatic_execution=${Boolean(entry.automatic_execution_allowed)}" in queue_js
     assert "/codex-high-value-prompt" in queue_js
     assert "/api/execution-audit-log" in queue_js
     assert "/api/ai-artifacts" in queue_js

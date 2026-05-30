@@ -1,5 +1,34 @@
 # Runnable Skeleton
 
+## M70 Local AI Operations Verification Sweep
+
+Status: Completed locally on `main`.
+
+Verified runnable surface:
+
+- local LLM environment contract, health check, prompt preview, and M62 explicit operator-gated local execution prototype
+- Codex CLI model profile contract and Codex high-value prompt-generation/operator-handoff lane
+- execution audit log, AI action safety gate, AI artifact registry, and Operator Run History
+- queue lifecycle, Hub API, and Hub UI surfaces that render local AI safety and non-mutation metadata
+
+Stabilization applied:
+
+- prohibited PR-shaped action names are classified as policy-blocked by the safety gate
+- Operator Run History timeline rendering now shows existing safety status, gate status, and non-mutation state
+- docs now identify M70 as completed verification and recommend M71 as the next operator-facing review-panel milestone
+
+Still absent by design:
+
+- automatic Codex execution or Codex CLI invocation
+- automatic agent execution
+- GitHub API, `gh`, issues, PRs, workflows, or GitHub mutation
+- automatic repository mutation from generated local LLM or Codex output
+- local LLM execution beyond the M62 explicit operator-gated local prototype
+
+Next skeleton focus:
+
+- M71 may add an Operator-Facing AI Action Review Panel if approved.
+
 ## M69 Local AI Operations Hardening
 
 Status: Completed locally on `main`.
@@ -21,7 +50,7 @@ Still absent by design:
 
 Next skeleton focus:
 
-- M70 may review operator-facing readiness/report polish over the hardened local AI operation records if needed.
+- M70 completed Local AI Operations Verification Sweep.
 
 ## M68 Local AI Operations Closeout Reconciliation
 
@@ -49,7 +78,7 @@ Still absent by design:
 
 Next skeleton focus:
 
-- M69 should harden local AI operations around edge cases, consistency checks, and operator-facing readiness.
+- M69 completed Local AI Operations Hardening.
 
 ## M67 Operator Run History Panel
 

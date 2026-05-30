@@ -741,7 +741,7 @@ function renderOperatorRunHistory(payload) {
   setList(
     "queue-operator-run-history-timeline",
     "queue-operator-run-history-timeline-empty",
-    ((payload && payload.timeline) || []).map((entry) => `${entry.timestamp || "-"} | ${entry.kind || "-"} | item=${entry.item_id || "-"} | action=${entry.action_type || "-"} | artifact=${entry.artifact_type || "-"} | outcome=${entry.outcome || "-"} | executed=${Boolean(entry.executed)} | allowed=${Boolean(entry.execution_allowed)} | path=${entry.artifact_path || "-"}`),
+    ((payload && payload.timeline) || []).map((entry) => `${entry.timestamp || "-"} | ${entry.kind || "-"} | item=${entry.item_id || "-"} | action=${entry.action_type || "-"} | artifact=${entry.artifact_type || "-"} | outcome=${entry.outcome || "-"} | safety=${entry.safety_status || "-"} | gate=${entry.gate_status || "-"} | executed=${Boolean(entry.executed)} | allowed=${Boolean(entry.execution_allowed)} | repo_mutation=${Boolean(entry.repo_mutation_allowed)} | external_mutation=${Boolean(entry.external_mutation_allowed)} | automatic_execution=${Boolean(entry.automatic_execution_allowed)} | path=${entry.artifact_path || "-"}`),
   );
 }
 

@@ -26,7 +26,13 @@ _PREVIEW_ONLY_ACTIONS = {
 
 _PROHIBITED_ACTION_TOKENS = (
     'github',
+    'github_api',
     'pull_request',
+    'pull-request',
+    'pull request',
+    'pr_create',
+    'pr_update',
+    'pr_merge',
     'issue',
     'workflow',
     'codex_execute',
@@ -225,7 +231,7 @@ def _resolve_queue_path(repo_root: Path, queue_path: str | Path | None) -> Path:
 
 def _is_prohibited_external_or_automatic_action(action: str) -> bool:
     lowered = action.lower()
-    if lowered == 'gh' or lowered.startswith(('gh_', 'gh-')):
+    if lowered == 'gh' or lowered.startswith(('gh_', 'gh-', 'pr_', 'pr-')):
         return True
     return any(token in lowered for token in _PROHIBITED_ACTION_TOKENS)
 

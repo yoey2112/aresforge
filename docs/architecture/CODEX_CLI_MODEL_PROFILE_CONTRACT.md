@@ -16,6 +16,8 @@ M68 reconciles local AI operations documentation and confirms that Codex high-va
 
 M69 hardens the Codex-adjacent safety posture. Codex high-value lane payloads, audit entries, artifacts, and run-history records now make prompt-only, advisory-only, non-mutation, safety-status, and gate-status state explicit. Codex execution, Codex CLI invocation, GitHub API calls, `gh`, issues, PRs, workflows, and automatic repository mutation remain blocked and unimplemented.
 
+M70 verifies the full M58-M69 local AI operations chain. It reconciles documentation and payload wording, confirms the Codex high-value lane remains prompt-generation/operator-handoff only, and does not add Codex CLI invocation or automatic execution behavior.
+
 This contract represents future Codex CLI model preferences for routing and high-value lane planning. It does not execute Codex CLI, send prompts, run agents, call GitHub, call `gh`, or run external workflows.
 
 ## Storage
@@ -98,4 +100,6 @@ M67 adds an Operator Run History Panel for read-only audit/artifact timeline rev
 
 M68 reconciles local AI operations documentation without adding automatic Codex or GitHub execution.
 
-M69 should harden local AI operations around edge cases and readiness checks.
+M69 hardened local AI operations around edge cases, blocked/error metadata, and non-mutation state.
+
+M70 completed a verification sweep of the M58-M69 local AI operations chain without adding Codex execution or GitHub behavior.

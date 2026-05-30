@@ -606,7 +606,20 @@ Execution gates:
 
 Dry run validates gates and returns the prompt preview without calling the provider. Real execution calls only the configured local provider and captures advisory response text. Optional result artifacts are local-only and refuse overwrite unless `force=true`.
 
-M62 does not execute Codex CLI, call GitHub, call `gh`, mutate GitHub, execute external/non-local LLM providers, auto-run agents, apply response text to files, start/complete/close queue items, create commits, push code, or run workflows. M63 should add Codex CLI High-Value Lane as a non-automatic, operator-gated lane.
+M62 does not execute Codex CLI, call GitHub, call `gh`, mutate GitHub, execute external/non-local LLM providers, auto-run agents, apply response text to files, start/complete/close queue items, create commits, push code, or run workflows. M63 added Codex CLI High-Value Lane as a non-automatic prompt-generation/operator-handoff lane.
+
+## M70 Local AI Operations Verification Sweep
+
+M70 verifies the M58-M69 local AI operations chain without expanding execution.
+
+Verification scope:
+
+- local LLM environment contract, health check, prompt preview, and M62 operator-gated local execution prototype
+- Codex CLI model profile contract and Codex high-value prompt lane
+- execution audit log, AI action safety gate, AI artifact registry, and Operator Run History
+- queue lifecycle, Hub API, and Hub UI rendering expectations for safety/gate/non-mutation metadata
+
+The verified boundary remains: local-first, file-backed, operator-gated, advisory-only for local LLM output, and prompt-generation/operator-handoff only for Codex high-value work.
 
 ## Operating Boundaries
 
@@ -622,7 +635,7 @@ Routing strategy documentation does not authorize:
 
 - real agent execution
 - automatic Codex execution
-- local LLM execution
+- local LLM execution outside the M62 explicit operator-gated local prototype
 - LLM/model routing execution
 - GitHub API calls, `gh`, GitHub issues, PRs, workflows, or GitHub mutation from the app
 - external/network execution beyond existing local Hub API behavior

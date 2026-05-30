@@ -24,6 +24,8 @@ M68 reconciles local AI operations documentation and confirms that local LLM exe
 
 M69 hardens local AI operations around this contract. Local LLM execution payloads, audit entries, artifacts, and run-history records now make advisory-only, non-mutation, safety-status, gate-status, and blocked-reason state explicit. Local LLM output still never mutates repository files, queue state, project state, GitHub, `gh`, Codex, agents, commits, pushes, or workflows automatically.
 
+M70 verifies the full M58-M69 local AI operations chain. It reconciles documentation and payload wording, confirms the local-first/file-backed/operator-gated/advisory-only boundaries, and does not add local LLM execution behavior beyond the M62 prototype.
+
 ## Storage
 
 The contract is stored locally at:
@@ -186,4 +188,6 @@ M67 added the Operator Run History Panel as a read-only timeline.
 
 M68 reconciled local AI operations docs and validation without expanding execution.
 
-M69 should harden local AI operations around edge cases and readiness checks.
+M69 hardened local AI operations around edge cases, blocked/error metadata, and non-mutation state.
+
+M70 completed a verification sweep of the M58-M69 local AI operations chain without expanding execution.

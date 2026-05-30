@@ -1,5 +1,27 @@
 # Local Operator Usage
 
+## M70 Local AI Operations Verification Sweep
+
+Status: Completed locally on `main`.
+
+Operator workflow notes:
+
+1. Continue using the existing explicit local operator actions for local LLM preview/execution, Codex high-value prompt generation, prompt packs, routing, audit log, artifact registry, and Operator Run History.
+2. Treat the M70 updates as verification/stabilization only: no new execution lane, external integration, or automatic mutation path was added.
+3. When reviewing Operator Run History, use the visible safety status, gate status, execution state, and non-mutation flags to confirm that entries are local evidence only.
+4. Treat GitHub/`gh`/issue/PR/workflow/Codex execution/agent execution/repo mutation representations as policy-blocked unless a future approved milestone explicitly changes the contract.
+
+Operator safety notes:
+
+- local LLM execution remains local-only, advisory-only, operator-gated, and prototype-scoped
+- local LLM output is never applied to repo files, queue state, project state, GitHub, `gh`, Codex, agents, commits, pushes, or workflows automatically
+- Codex high-value lane remains prompt-generation/operator-handoff only and never runs Codex
+- no GitHub API, `gh`, GitHub mutation, issues, PRs, workflows, automatic Codex execution, automatic agent execution, external workflow execution, or automatic repo mutation was introduced
+
+Recommended next milestone:
+
+- M71 - Operator-Facing AI Action Review Panel.
+
 ## M69 Local AI Operations Hardening
 
 Status: Completed locally on `main`.
@@ -21,7 +43,7 @@ Operator safety notes:
 
 Recommended next milestone:
 
-- M70 - Local AI Operations Readiness Review, if the next step should be operator-facing readiness/report polish.
+- M70 completed Local AI Operations Verification Sweep.
 
 ## M68 Local AI Operations Closeout Reconciliation
 
@@ -41,8 +63,8 @@ Current supported local AI workflows:
 
 Operator safety notes:
 
-- no GitHub API, `gh`, issues, PRs, workflow activity, or GitHub mutation is performed by these local AI workflows
-- no automatic Codex execution, Codex CLI invocation, or automatic agent execution is implemented
+- these local AI workflows perform no GitHub API calls, `gh` calls, issue/PR/workflow activity, or GitHub mutation
+- no automatic Codex execution, no Codex CLI invocation, and no automatic agent execution are implemented
 - local LLM execution is prototype-only, local-only, advisory-only, and operator-gated
 - local LLM and Codex outputs are never applied to repo files automatically
 - routed queue views are filtered views, not separate queues

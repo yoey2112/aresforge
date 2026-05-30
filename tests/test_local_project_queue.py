@@ -459,15 +459,16 @@ def test_ai_action_safety_gate_blocks_codex_execution_and_github_actions(tmp_pat
 
     codex = evaluate_ai_action_safety_gate(config, action_type='codex_execute', engine='codex_cli')
     github = evaluate_ai_action_safety_gate(config, action_type='github_pr_create', engine='github')
+    pull_request = evaluate_ai_action_safety_gate(config, action_type='pr_create', engine='github')
 
-    assert codex['allowed'] is False
-    assert github['allowed'] is False
-    assert codex['decision'] == 'blocked'
-    assert github['decision'] == 'blocked'
-    assert codex['blocked_reason_category'] == 'policy_blocked'
-    assert github['blocked_reason_category'] == 'policy_blocked'
-    assert codex['execution_allowed'] is False
-    assert github['execution_allowed'] is False
+    for payload in (codex, github, pull_request):
+        assert payload['allowed'] is False
+        assert payload['decision'] == 'blocked'
+        assert payload['blocked_reason_category'] == 'policy_blocked'
+        assert payload['execution_allowed'] is False
+        assert payload['repo_mutation_allowed'] is False
+        assert payload['external_mutation_allowed'] is False
+        assert payload['automatic_execution_allowed'] is False
 
 
 def test_ai_action_safety_gate_blocks_automatic_agent_and_repo_mutation_paths(tmp_path: Path) -> None:
