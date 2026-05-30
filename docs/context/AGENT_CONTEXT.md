@@ -6,7 +6,7 @@ Status: Completed locally on `main` after validation.
 
 Queue item: `m101-human-approval-gate-ui-data-contract`.
 
-Implementation commit: pending final commit.
+Implementation commit: `da90ed3`.
 
 M101 creates local-only approval gate records for dispatch artifacts and dry-run outputs. It is a data/UI contract only:
 

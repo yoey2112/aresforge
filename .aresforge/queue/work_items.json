@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T16:22:39.221348+00:00",
+  "updated_at": "2026-05-30T16:24:39.129092+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -2201,7 +2201,7 @@
       "repo_id": "aresforge-main",
       "title": "M101 Human Approval Gate UI/Data Contract",
       "description": "Create a local-only human approval gate data and UI contract that records operator review requirements and approval status for dispatch artifacts and dry-run outputs without executing agents, models, Codex, GitHub, or patches.",
-      "status": "in_progress",
+      "status": "done",
       "priority": "high",
       "item_type": "feature",
       "tags": [
@@ -2218,15 +2218,28 @@
       "notes": "Acceptance criteria: local file-backed approval records; statuses pending_review, approved_for_manual_handoff, rejected, needs_revision; stable approval JSON fields; CLI create/read/update; read-only Hub panel; execution_allowed remains false; no Codex, Ollama, local LLM, documentation agent, GitHub API, gh, network, external agent, patch application, documentation mutation, automatic queue mutation, or automatic next-item execution.",
       "started_at": "2026-05-30T16:22:39.221348+00:00",
       "started_via": "local_operator",
-      "previous_status": "ready",
-      "completed_at": "",
-      "completed_by": "",
-      "completion_commit": "",
-      "validation_summary": "",
-      "evidence_note": "",
-      "tests_run": [],
-      "changed_files": [],
-      "artifact_paths": [],
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-30T16:24:39.129092+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "da90ed3",
+      "validation_summary": "M101 Human Approval Gate UI/Data Contract implemented and validated locally. Added local file-backed approval gate records, CLI create/read/update commands, read-only Hub review surface, tests, source-of-truth docs, and queue lifecycle evidence. Approval statuses preserve execution_allowed=false and do not authorize Codex, Ollama, local LLM, documentation-agent, GitHub, gh, external-agent, network, patch, documentation mutation, queue completion, or automatic next-item execution.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py; python -m pytest tests/test_queue_agent_dispatch_plan.py; python -m pytest tests/test_codex_prompt_dispatch_artifact.py; python -m pytest tests/test_dispatch_approval_gate.py; python -m pytest tests/test_local_project_queue.py tests/test_local_queue_agent_summary.py tests/test_local_project_report.py; python -m pytest tests/test_hub_ui_foundation.py tests/test_hub_local_queue_lifecycle_api.py; git diff --check passed with CRLF warnings only; smoke checks passed for create/inspect/update dispatch approval gate readable/json and inspect local reports/queue.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 172 passed",
+        "python -m pytest tests/test_queue_agent_dispatch_plan.py -> 6 passed",
+        "python -m pytest tests/test_codex_prompt_dispatch_artifact.py -> 8 passed",
+        "python -m pytest tests/test_dispatch_approval_gate.py -> 7 passed",
+        "python -m pytest tests/test_local_project_queue.py tests/test_local_queue_agent_summary.py tests/test_local_project_report.py -> 112 passed",
+        "python -m pytest tests/test_hub_ui_foundation.py tests/test_hub_local_queue_lifecycle_api.py -> 86 passed",
+        "git diff --check -> passed with CRLF warnings only"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/dispatch_approval_gate.py; src/aresforge/cli.py; src/aresforge/hub/api.py; src/aresforge/hub/server.py; src/aresforge/hub/static/index.html; src/aresforge/hub/static/js/sections/queue.js; tests/test_dispatch_approval_gate.py; tests/test_cli.py",
+        "docs/context/BUILD_STATE.md; docs/context/AGENT_CONTEXT.md; docs/roadmap/ROADMAP.md; docs/operator/LOCAL_OPERATOR_USAGE.md; docs/architecture/RUNNABLE_SKELETON.md; docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md; docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md; .aresforge/queue/work_items.json; .aresforge/dispatch_approval_gates.json"
+      ],
+      "artifact_paths": [
+        ".aresforge/dispatch_approval_gates.json"
+      ],
       "completion_evidence": {},
       "routing_metadata": {
         "recommended_agent_lane": "",
@@ -2247,7 +2260,7 @@
       "closeout_summary": "",
       "closeout_history": [],
       "created_at": "2026-05-30T16:22:34.887682+00:00",
-      "updated_at": "2026-05-30T16:22:39.221348+00:00"
+      "updated_at": "2026-05-30T16:24:39.129092+00:00"
     }
   ]
 }
