@@ -2,9 +2,11 @@
 
 ## M97 Queue-to-Agent Dispatch Plan Contract
 
-Status: Current local implementation milestone on `main`.
+Status: Completed locally on `main`.
 
 Queue item: `m97-queue-to-agent-dispatch-plan-contract`.
+
+Implementation commit: `4ec0500`.
 
 Purpose:
 
@@ -65,7 +67,7 @@ Current local planning and reconciliation milestone. M96 should close only after
 
 ### M97 Queue-to-Agent Dispatch Plan Contract
 
-Status: Active.
+Status: Completed locally.
 
 Define a queue-to-agent dispatch plan payload that maps a selected queue item to advisory lane, required operator gates, artifact expectations, validation burden, and blocked execution states. This should be a contract and inspection surface only.
 

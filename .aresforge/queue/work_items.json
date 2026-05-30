@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T15:25:35.208916+00:00",
+  "updated_at": "2026-05-30T15:29:04.509940+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -1937,7 +1937,7 @@
       "repo_id": "aresforge-main",
       "title": "M97 Queue-to-Agent Dispatch Plan Contract",
       "description": "Create a local-only advisory queue-to-agent dispatch plan contract that inspects one queue item and reports lane, confidence, planned artifact intent, blocked reasons, and operator gates without executing Codex, Ollama, local LLMs, GitHub, external agents, or network calls.",
-      "status": "proposed",
+      "status": "done",
       "priority": "high",
       "item_type": "feature",
       "tags": [
@@ -1952,16 +1952,24 @@
       "assigned_agent": "",
       "source": "local_operator",
       "notes": "Acceptance criteria: local-only; advisory plan only; supports codex_prompt_artifact, local_llm_advisory, local_llm_coding_draft, documentation_agent_dry_run, and human_only_manual lanes; execution_allowed=false; includes local_only marker, confidence, blocked reasons, planned artifact intent, next_safe_action, and approval gates; M98 generates Codex prompt artifacts later.",
-      "started_at": "",
-      "started_via": "",
-      "previous_status": "",
-      "completed_at": "",
-      "completed_by": "",
-      "completion_commit": "",
-      "validation_summary": "",
-      "evidence_note": "",
-      "tests_run": [],
-      "changed_files": [],
+      "started_at": "2026-05-30T15:28:46.285249+00:00",
+      "started_via": "local_operator",
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-30T15:29:04.509940+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "4ec0500",
+      "validation_summary": "M97 queue-to-agent dispatch plan contract implemented and validated locally. Added local-only advisory plan contract, inspect-queue-dispatch-plan CLI, tests, documentation updates, and M97 queue seed. No Codex, Ollama, local LLM, GitHub API, gh, network, external agent, or execution path was invoked.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py; python -m pytest tests/test_queue_agent_dispatch_plan.py; python -m pytest tests/test_local_project_queue.py tests/test_local_queue_agent_summary.py tests/test_local_project_report.py; git diff --check passed with line-ending warnings only; smoke checks passed for inspect-local-project-report, inspect-local-queue-agent-summary, inspect-project-queue --project-id aresforge, and inspect-queue-dispatch-plan markdown/json.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 163 passed before queue closeout; 169 passed with M97 tests",
+        "python -m pytest tests/test_queue_agent_dispatch_plan.py -> 6 passed",
+        "python -m pytest tests/test_local_project_queue.py tests/test_local_queue_agent_summary.py tests/test_local_project_report.py -> 112 passed",
+        "git diff --check -> passed with CRLF warnings only"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/queue_agent_dispatch_plan.py; src/aresforge/cli.py; tests/test_queue_agent_dispatch_plan.py; tests/test_cli.py",
+        "docs/context/BUILD_STATE.md; docs/context/AGENT_CONTEXT.md; docs/roadmap/ROADMAP.md; docs/operator/LOCAL_OPERATOR_USAGE.md; docs/architecture/RUNNABLE_SKELETON.md; docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md; docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md; docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md; .aresforge/queue/work_items.json"
+      ],
       "artifact_paths": [],
       "completion_evidence": {},
       "routing_metadata": {
@@ -1983,7 +1991,7 @@
       "closeout_summary": "",
       "closeout_history": [],
       "created_at": "2026-05-30T15:25:35.208916+00:00",
-      "updated_at": "2026-05-30T15:25:35.208916+00:00"
+      "updated_at": "2026-05-30T15:29:04.509940+00:00"
     }
   ]
 }

@@ -2,6 +2,8 @@
 
 ## M97 Queue-to-Agent Dispatch Plan Contract
 
+M97 is completed locally and recorded in the queue as `done`.
+
 Inspect one local queue item and build an advisory dispatch plan:
 
     python -m aresforge inspect-queue-dispatch-plan --item-id m97-queue-to-agent-dispatch-plan-contract

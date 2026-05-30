@@ -2,17 +2,19 @@
 
 ## Current Phase
 
-M97 local-only queue-to-agent dispatch plan contract implementation after the M96 planning pass.
+M97 completed local-only queue-to-agent dispatch plan contract implementation after the M96 planning pass.
 
 ## Current Goal
 
-M97 adds a safe inspection contract that can read one local queue item and produce an advisory dispatch plan with a selected lane, routing confidence, planned artifact intent, blocked reasons, next safe action, and required operator approval gates. It does not execute Codex, Ollama, local LLMs, documentation agents, GitHub, external agents, or network calls.
+M97 added a safe inspection contract that can read one local queue item and produce an advisory dispatch plan with a selected lane, routing confidence, planned artifact intent, blocked reasons, next safe action, and required operator approval gates. It does not execute Codex, Ollama, local LLMs, documentation agents, GitHub, external agents, or network calls. The next implementation milestone is M98 Codex Prompt Dispatch Artifact Generator v1.
 
 ## M97 Queue-to-Agent Dispatch Plan Contract
 
-Status: Current local implementation milestone on `main`.
+Status: Completed locally on `main`.
 
-Queue status: seeded locally as `m97-queue-to-agent-dispatch-plan-contract`; M96 remains `proposed` because no existing completion evidence was recorded for it in this pass.
+Implementation commit: `4ec0500`.
+
+Queue status: `m97-queue-to-agent-dispatch-plan-contract` is `done`; M96 remains `proposed` because no existing completion evidence was recorded for it in this pass.
 
 Delivered in this pass:
 

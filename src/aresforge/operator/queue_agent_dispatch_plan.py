@@ -139,7 +139,7 @@ def build_queue_agent_dispatch_plan(
     confidence = routing["confidence"]
     confidence_score = int(confidence.get("score", 0))
     if confidence_score < 60 and lane != "human_only_manual":
-        blocked_reasons.append("Routing confidence is below 60; using human_only_manual safe fallback.")
+        warnings.append("Routing confidence is below 60; using human_only_manual safe fallback.")
         lane = "human_only_manual"
         confidence = {
             "score": confidence_score,

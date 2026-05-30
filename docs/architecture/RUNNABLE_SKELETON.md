@@ -2,7 +2,7 @@
 
 ## M97 Queue-to-Agent Dispatch Plan Contract
 
-M97 adds a local-only inspection command:
+M97 adds a local-only inspection command and is completed locally:
 
 - `python -m aresforge inspect-queue-dispatch-plan --item-id <item_id>`
 - `python -m aresforge inspect-queue-dispatch-plan --item-id <item_id> --format json`

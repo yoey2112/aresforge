@@ -2,11 +2,13 @@
 
 ## M97 Queue-to-Agent Dispatch Plan Contract Context
 
-Status: Current local implementation milestone on `main`.
+Status: Completed locally on `main`.
 
 Queue item: `m97-queue-to-agent-dispatch-plan-contract`.
 
-M96 queue status: `m96-post-sprint-planning-and-prioritization` remains `proposed`; M97 was seeded separately for this implementation pass.
+Implementation commit: `4ec0500`.
+
+M96 queue status: `m96-post-sprint-planning-and-prioritization` remains `proposed`; M97 was seeded separately for this implementation pass and is now `done`.
 
 Current M97 scope:
 
