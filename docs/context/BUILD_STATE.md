@@ -1,5 +1,25 @@
 # AresForge Build State
 
+## M85 Local LLM Advisory Run Artifact
+
+Status: In progress locally on `main`.
+
+Delivered in this pass:
+
+- adds `prepare-local-llm-advisory-run` for local advisory prompt artifact generation
+- stores prompt artifacts under `artifacts/local_llm_advisory/generated/`
+- supports an explicit `--run` path that can write advisory response and metadata artifacts locally
+- returns prompt path, response path, provider/model metadata, safety confirmations, and next safe action
+- reports safe unavailable state when local Ollama advisory output is not available
+
+M85 safety posture:
+
+- prompt artifact generation is local-only and non-mutating
+- provider invocation is opt-in only through the explicit operator `--run` flag
+- advisory output is never applied to repository files
+- advisory output never completes queue items or starts another item
+- no GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, or external workflow behavior
+
 ## M84 Ollama Health Check and Model Inspection
 
 Status: Completed locally on `main`.

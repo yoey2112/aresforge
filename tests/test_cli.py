@@ -187,6 +187,7 @@ def test_cli_has_expected_commands() -> None:
         "record-evidence-package",
         "test-ollama",
         "inspect-ollama-health",
+        "prepare-local-llm-advisory-run",
         "prepare-codex-handoff",
     ):
         assert command in help_text
@@ -5107,6 +5108,52 @@ def test_inspect_ollama_health_dispatch_json(
     assert parsed["models"] == []
     assert parsed["safety_boundary"]["generation_allowed"] is False
     assert parsed["safety_boundary"]["repo_mutation_allowed"] is False
+    assert parsed["safety_boundary"]["automatic_next_item_execution_allowed"] is False
+
+
+def test_prepare_local_llm_advisory_run_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "ok": True,
+                "run_requested": False,
+                "run_status": "prepared_not_run",
+                "prompt_path": "artifacts/local_llm_advisory/generated/m85-prompt.md",
+                "response_path": "",
+                "provider_model_metadata": {"provider": "ollama", "model": "qwen"},
+                "safety_boundary": {
+                    "repo_mutation_allowed": False,
+                    "queue_completion_allowed": False,
+                    "automatic_next_item_execution_allowed": False,
+                },
+                "next_safe_action": "review prompt",
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_prepare(_config, **kwargs):
+        seen.update(kwargs)
+        return payload
+
+    monkeypatch.setattr(cli, "prepare_local_llm_advisory_run_artifact", fake_prepare)
+    exit_code = cli.main(["prepare-local-llm-advisory-run", "--item-id", "m85", "--run-id", "dry", "--format", "json"])
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert seen["item_id"] == "m85"
+    assert seen["run"] is False
+    assert parsed["run_status"] == "prepared_not_run"
+    assert parsed["response_path"] == ""
+    assert parsed["safety_boundary"]["repo_mutation_allowed"] is False
+    assert parsed["safety_boundary"]["queue_completion_allowed"] is False
     assert parsed["safety_boundary"]["automatic_next_item_execution_allowed"] is False
 
 

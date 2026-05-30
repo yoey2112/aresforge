@@ -1,5 +1,27 @@
 # Runnable Skeleton
 
+## M85 Local LLM Advisory Run Artifact
+
+M85 adds local advisory prompt and response artifacts:
+
+- `python -m aresforge prepare-local-llm-advisory-run --item-id <item_id> --format json`
+- `python -m aresforge prepare-local-llm-advisory-run --item-id <item_id> --run --format json`
+
+Runnable behavior:
+
+- creates a prompt artifact under `artifacts/local_llm_advisory/generated/`
+- default mode does not invoke a provider
+- explicit `--run` mode may call local Ollama for advisory output and stores response/metadata artifacts
+- reports prompt path, response path, provider/model metadata, safety confirmations, and next safe action
+- handles unavailable local LLM state safely
+
+Still absent by design:
+
+- automatic application of model output to repo files
+- queue mutation or queue completion from advisory output
+- automatic next-item execution
+- GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, or external workflow execution
+
 ## M84 Ollama Health Check and Model Inspection
 
 M84 adds explicit local-only Ollama health/model inspection commands:

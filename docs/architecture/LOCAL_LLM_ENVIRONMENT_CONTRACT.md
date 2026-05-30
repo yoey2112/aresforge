@@ -36,6 +36,8 @@ M83 adds a read-only local LLM provider contract inspection path. It formalizes 
 
 M84 adds an explicitly invoked Ollama health/model inspection path. It may call only the local `/api/tags` endpoint to report provider reachability and visible models. Ollama offline states are warning metadata and must not block normal project readiness. M84 does not call generation, chat, completion, or prompt endpoints, and it does not mutate repository files, mutate queue state, complete queue items, or start another queue item.
 
+M85 adds a local LLM advisory run artifact flow. It generates advisory prompt artifacts by default without invoking a provider. If the operator supplies an explicit run flag, it may call local Ollama for advisory output and store response/metadata artifacts locally. Advisory output is never applied to repository files, never mutates queue state, never completes queue items, and never starts another item.
+
 ## Storage
 
 The contract is stored locally at:
@@ -66,6 +68,7 @@ Reading defaults does not write this file. Updating the contract writes the file
 - CLI: `python -m aresforge inspect-local-llm-provider-contract --format json`
 - CLI: `python -m aresforge inspect-ollama-health --format json`
 - CLI: `python -m aresforge test-ollama`
+- CLI: `python -m aresforge prepare-local-llm-advisory-run --item-id <item_id> --format json`
 
 ## Fields
 
@@ -135,6 +138,26 @@ The inspection path may call only the configured local Ollama `/api/tags` endpoi
 When Ollama is not running, the command should still succeed as an inspection operation and return `available: false`, an `error_summary`, an empty model list, and a next safe operator action. This offline state is not a normal project readiness blocker.
 
 Visible model names are metadata only. Model presence does not authorize prompt execution, local LLM advisory execution, repo mutation, queue mutation, queue completion, automatic fallback selection, or automatic next-item execution.
+
+## M85 Advisory Run Artifacts
+
+`prepare-local-llm-advisory-run` creates a local prompt artifact for one queue item. The default behavior is artifact-only and does not call Ollama.
+
+The optional `--run` flag is an explicit operator gate for advisory output. When used, the command first inspects local Ollama model availability and then may call the local `/api/generate` endpoint for advisory text. The response and run metadata are stored under `artifacts/local_llm_advisory/generated/`.
+
+Required output includes:
+
+- `prompt_path`
+- `response_path`
+- `metadata_path`
+- `provider_model_metadata`
+- `safety_boundary`
+- `boundary_confirmations`
+- `next_safe_action`
+
+Unavailable provider or model states return safe unavailable metadata. They do not fail normal project readiness and do not authorize fallback execution.
+
+Advisory artifacts and responses are never applied automatically to repository files, queue state, project state, GitHub, `gh`, Codex, agents, commits, pushes, workflows, daemons, watchers, or schedulers.
 
 ## Provider Availability States
 

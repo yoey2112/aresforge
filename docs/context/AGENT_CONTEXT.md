@@ -1,5 +1,23 @@
 # AresForge Agent Context
 
+## M85 Local LLM Advisory Run Artifact Context
+
+Status: In progress locally on `main`.
+
+Current advisory artifact scope:
+
+- `prepare-local-llm-advisory-run` generates a local advisory prompt artifact for one queue item.
+- The default path is artifact-only and does not invoke Ollama.
+- An explicit `--run` flag may call local Ollama for advisory output and writes local response/metadata artifacts.
+- Outputs report prompt path, response path when present, provider/model metadata, safety confirmations, and next safe action.
+
+Boundaries preserved:
+
+- no automatic repo file mutation from advisory output
+- no queue mutation, queue completion, or automatic next-item execution from advisory output
+- no GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, external workflow execution, or GitHub mutation
+- local LLM unavailable states are reported safely for operator review
+
 ## M84 Ollama Health Check and Model Inspection Context
 
 Status: Completed locally on `main`.

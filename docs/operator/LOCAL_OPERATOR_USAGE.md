@@ -1,5 +1,35 @@
 # Local Operator Usage
 
+## M85 Local LLM Advisory Run Artifact
+
+Generate a local advisory prompt artifact without invoking a model:
+
+    python -m aresforge prepare-local-llm-advisory-run --item-id <item_id> --format json
+
+Explicitly request local advisory output only when the operator wants a local Ollama run:
+
+    python -m aresforge prepare-local-llm-advisory-run --item-id <item_id> --run --format json
+
+Payload highlights:
+
+- `prompt_path`
+- `response_path`
+- `metadata_path`
+- `provider_model_metadata`
+- `safety_boundary`
+- `boundary_confirmations`
+- `next_safe_action`
+
+Operator rules:
+
+- treat generated prompts and responses as advisory artifacts only
+- use artifact-only mode by default
+- use `--run` only for explicit local operator-gated advisory output
+- do not apply model output to repository files automatically
+- do not complete queue items or start another item from model output
+- treat unavailable local LLM states as safe, non-blocking operator metadata
+- do not use GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, or external workflow behavior
+
 ## M84 Ollama Health Check and Model Inspection
 
 Inspect the local Ollama provider without generation:

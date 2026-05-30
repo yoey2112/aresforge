@@ -1,5 +1,28 @@
 # AresForge Roadmap
 
+## M85 Local LLM Advisory Run Artifact
+
+Status: In progress locally on `main`.
+
+Purpose:
+
+- add local advisory prompt and run artifact flow for local LLM guidance
+- allow optional explicit local advisory output while preventing automatic repo or queue mutation
+
+Delivered scope:
+
+- `prepare-local-llm-advisory-run`
+- local advisory prompt artifacts
+- optional explicit local Ollama advisory response and metadata artifacts
+- safe unavailable status when the local provider cannot produce advisory output
+
+Constraints preserved:
+
+- no auto-apply of code or model output
+- no automatic queue completion
+- no automatic next-item execution
+- no GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, external workflow execution, or GitHub mutation
+
 ## M84 Ollama Health Check and Model Inspection
 
 Status: Completed locally on `main`.
