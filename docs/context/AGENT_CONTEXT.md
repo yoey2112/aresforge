@@ -2,11 +2,11 @@
 
 ## M111 Approval-Gated Patch Intake Contract Context
 
-Status: Implemented locally on `main`; validation pending commit.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m111-approval-gated-patch-intake-contract`.
 
-Implementation commit: pending.
+Implementation commit: `98ec90c`.
 
 M111 adds a local-only patch proposal intake command:
 

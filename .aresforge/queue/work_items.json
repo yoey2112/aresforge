@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T18:45:40.003011+00:00",
+  "updated_at": "2026-05-30T18:48:40.864542+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -2848,7 +2848,7 @@
       "repo_id": "aresforge-main",
       "title": "M111 Approval-Gated Patch Intake Contract",
       "description": "Record a proposed patch artifact for human review while keeping patch application blocked.",
-      "status": "ready",
+      "status": "done",
       "priority": "high",
       "item_type": "architecture",
       "tags": [
@@ -2866,17 +2866,27 @@
       "assigned_agent": "",
       "source": "local-roadmap",
       "notes": "Acceptance criteria: local-only patch proposal intake; validates queue item, patch artifact, approval gate, rejected approval, and approved approval states; records review metadata only; patch_application_allowed=false; patch_application_performed=false; no patch application, Codex, local LLM, documentation-agent, GitHub, gh, network, external agent, automatic queue mutation, or automatic next-item execution.",
-      "started_at": "",
-      "started_via": "",
-      "previous_status": "",
-      "completed_at": "",
-      "completed_by": "",
-      "completion_commit": "",
-      "validation_summary": "",
-      "evidence_note": "",
-      "tests_run": [],
-      "changed_files": [],
-      "artifact_paths": [],
+      "started_at": "2026-05-30T18:48:28.426455+00:00",
+      "started_via": "local_operator",
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-30T18:48:40.864542+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "98ec90c",
+      "validation_summary": "M111 Approval-Gated Patch Intake Contract implemented and validated locally. Added intake-patch-proposal, stable patch_proposal_intake records, approval gate validation, patch artifact summary metadata, readable/json CLI output, output no-overwrite safeguards, focused tests, docs, smoke patch artifact, and queue lifecycle evidence. Patch application remains blocked: no patches were applied, no repository mutation from patch content was performed, and no Codex, local LLM, documentation-agent, GitHub, gh, network, external-agent, automatic queue mutation, or next-item execution was performed.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py; python -m pytest tests/test_approval_gated_patch_intake.py; python -m pytest tests/test_human_approval_gate.py; git diff --check passed with CRLF warnings only; smoke checks passed for inspect-local-project-report, inspect-local-queue-agent-summary, inspect-project-queue --project-id aresforge, and intake-patch-proposal --item-id m111-approval-gated-patch-intake-contract --patch-artifact artifacts/manual/test.patch --format json.",
+      "tests_run": [
+        "tests/test_cli.py -> 187 passed",
+        "tests/test_approval_gated_patch_intake.py -> 7 passed",
+        "tests/test_human_approval_gate.py -> 1 passed",
+        "git diff --check -> passed with CRLF warnings only"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/approval_gated_patch_intake.py; src/aresforge/cli.py; tests/test_approval_gated_patch_intake.py; tests/test_human_approval_gate.py; tests/test_cli.py",
+        "docs/context/BUILD_STATE.md; docs/context/AGENT_CONTEXT.md; docs/roadmap/ROADMAP.md; docs/operator/LOCAL_OPERATOR_USAGE.md; docs/architecture/RUNNABLE_SKELETON.md; docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md; docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md; .aresforge/queue/work_items.json; .aresforge/dispatch_approval_gates.json; artifacts/manual/test.patch"
+      ],
+      "artifact_paths": [
+        "artifacts/manual/test.patch"
+      ],
       "completion_evidence": {},
       "routing_metadata": {
         "recommended_agent_lane": "",
@@ -2897,7 +2907,7 @@
       "closeout_summary": "",
       "closeout_history": [],
       "created_at": "2026-05-30T18:45:40.003011+00:00",
-      "updated_at": "2026-05-30T18:45:40.003011+00:00"
+      "updated_at": "2026-05-30T18:48:40.864542+00:00"
     }
   ]
 }
