@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T16:00:28.316659+00:00",
+  "updated_at": "2026-05-30T16:04:11.176516+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -2067,7 +2067,7 @@
       "repo_id": "aresforge-main",
       "title": "M99 Local LLM Advisory Execution Dry-Run Validator",
       "description": "Create a local-only dry-run validator that consumes the M97 dispatch plan and validates readiness only for the local_llm_advisory lane without executing Ollama, local models, Codex, GitHub, external agents, network calls, or patches.",
-      "status": "in_progress",
+      "status": "done",
       "priority": "high",
       "item_type": "architecture",
       "tags": [
@@ -2084,15 +2084,27 @@
       "notes": "Acceptance criteria: consumes or derives M97 dispatch plan; validates only local_llm_advisory; blocks codex_prompt_artifact, local_llm_coding_draft, documentation_agent_dry_run, and human_only_manual; blocks unsafe local_only/execution_allowed flags and dispatch-plan blockers; supports readable and JSON CLI output plus overwrite-safe optional output; no Ollama, local model, Codex, GitHub API, gh, network, external agent, patch application, issue creation, automatic queue mutation, or automatic next-item execution. Routing note: classify this item as architecture/contract validation so M97 can select the local_llm_advisory lane for M99 dry-run smoke validation.",
       "started_at": "2026-05-30T16:00:17.736548+00:00",
       "started_via": "local_operator",
-      "previous_status": "ready",
-      "completed_at": "",
-      "completed_by": "",
-      "completion_commit": "",
-      "validation_summary": "",
-      "evidence_note": "",
-      "tests_run": [],
-      "changed_files": [],
-      "artifact_paths": [],
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-30T16:04:11.176516+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "b04e868",
+      "validation_summary": "M99 Local LLM Advisory Execution Dry-Run Validator implemented and validated locally. Added the validator operator, validate-local-llm-advisory-dry-run CLI, tests, source-of-truth docs, and queue lifecycle evidence. No Ollama API, local model, Codex, GitHub API, gh, network, external agent, patch application, issue creation, automatic queue mutation beyond explicit lifecycle evidence, or automatic next-item execution was performed.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py; python -m pytest tests/test_queue_agent_dispatch_plan.py; python -m pytest tests/test_codex_prompt_dispatch_artifact.py; python -m pytest tests/test_local_llm_advisory_dry_run.py; python -m pytest tests/test_local_project_queue.py tests/test_local_queue_agent_summary.py tests/test_local_project_report.py; git diff --check passed with CRLF warnings only; smoke checks passed for inspect-local-project-report, inspect-local-queue-agent-summary, inspect-project-queue --project-id aresforge, and validate-local-llm-advisory-dry-run readable/json/output using a temporary local_llm_advisory queue item.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 167 passed",
+        "python -m pytest tests/test_queue_agent_dispatch_plan.py -> 6 passed",
+        "python -m pytest tests/test_codex_prompt_dispatch_artifact.py -> 8 passed",
+        "python -m pytest tests/test_local_llm_advisory_dry_run.py -> 8 passed",
+        "python -m pytest tests/test_local_project_queue.py tests/test_local_queue_agent_summary.py tests/test_local_project_report.py -> 112 passed",
+        "git diff --check -> passed with CRLF warnings only"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/local_llm_advisory_dry_run.py; src/aresforge/cli.py; tests/test_local_llm_advisory_dry_run.py; tests/test_cli.py",
+        "docs/context/BUILD_STATE.md; docs/context/AGENT_CONTEXT.md; docs/roadmap/ROADMAP.md; docs/operator/LOCAL_OPERATOR_USAGE.md; docs/architecture/RUNNABLE_SKELETON.md; docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md; docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md; docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md; .aresforge/queue/work_items.json"
+      ],
+      "artifact_paths": [
+        "%TEMP%\\\\aresforge-m99-smoke\\\\m99-dry-run.md"
+      ],
       "completion_evidence": {},
       "routing_metadata": {
         "recommended_agent_lane": "",
@@ -2113,7 +2125,7 @@
       "closeout_summary": "",
       "closeout_history": [],
       "created_at": "2026-05-30T16:00:13.706527+00:00",
-      "updated_at": "2026-05-30T16:00:28.316659+00:00"
+      "updated_at": "2026-05-30T16:04:11.176516+00:00"
     }
   ]
 }

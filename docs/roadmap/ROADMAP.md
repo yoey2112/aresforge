@@ -6,7 +6,7 @@ Status: Completed locally on `main` after validation.
 
 Queue item: `m99-local-llm-advisory-dry-run-validator`.
 
-Implementation commit: pending final commit.
+Implementation commit: `b04e868`.
 
 Purpose:
 

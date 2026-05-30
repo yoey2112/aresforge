@@ -6,7 +6,7 @@ Status: Completed locally on `main` after validation.
 
 Queue item: `m99-local-llm-advisory-dry-run-validator`.
 
-Implementation commit: pending final commit.
+Implementation commit: `b04e868`.
 
 M99 builds on M97 by validating local LLM advisory dry-run readiness only when the M97 selected lane is `local_llm_advisory` and the plan remains safe:
 

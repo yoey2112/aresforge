@@ -14,7 +14,7 @@ Status: Completed locally on `main` after validation.
 
 Queue item: `m99-local-llm-advisory-dry-run-validator`.
 
-Implementation commit: pending final commit.
+Implementation commit: `b04e868`.
 
 M99 consumes or derives the M97 dispatch plan and adds:
 
