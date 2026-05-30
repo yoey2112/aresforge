@@ -1,5 +1,27 @@
 # AresForge Roadmap
 
+## M86 Routing Confidence Scoring
+
+Status: In progress locally on `main`.
+
+Purpose:
+
+- add deterministic confidence scoring to the M80 advisory decision matrix
+- make Codex, local LLM advisory, local coding draft, and manual-only routing confidence visible for operator review
+
+Delivered scope:
+
+- `routing_confidence` in `inspect-llm-decision-matrix`
+- lane scores, selected score, confidence level, rationale, warnings, and factors
+- scoring factors for risk, task size, work mode, item type, dependencies, validation burden, provider/model availability, and recovery history
+
+Constraints preserved:
+
+- advisory scoring only
+- no prompt execution or model invocation
+- no automatic queue mutation or next-item execution
+- no GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, external workflow execution, or GitHub mutation
+
 ## M85 Local LLM Advisory Run Artifact
 
 Status: Completed locally on `main`.

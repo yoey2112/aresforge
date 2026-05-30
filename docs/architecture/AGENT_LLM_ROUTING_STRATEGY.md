@@ -10,6 +10,8 @@ M81 adds a read-only local LLM advisory/coding lane readiness inspection path. I
 
 M83 adds a read-only local LLM provider contract. It makes Ollama the initial local provider target and exposes provider URL, health-check endpoint limits, timeout expectations, model identifiers, roles/capabilities, and safety boundaries without invoking the provider.
 
+M86 adds deterministic confidence scoring to the M80 decision matrix. `inspect-llm-decision-matrix` now reports `routing_confidence` for Codex, local LLM advisory, local coding draft, and manual-only lanes. Scoring considers risk, task size, work mode, item type, dependencies, validation burden, provider availability, model profile availability, and recovery history. Scores are advisory metadata only and do not authorize execution or mutation.
+
 Current prompt-pack and Codex high-value lane behavior are advisory prompt generation/manual handoff only. Runtime routing execution, Codex dispatch, Codex CLI invocation, real agent execution, external workflow execution, and GitHub integration remain unimplemented. Local LLM execution exists only as the M62 operator-gated local prototype and remains local-only, advisory-only, prototype-scoped, and non-mutating.
 
 ## M75 Source-of-Truth and Next Decision Matrix Direction
@@ -26,6 +28,7 @@ The next decision-matrix direction is:
 - M81 extends local LLM lanes locally and advisory-first before any coding-output path
 - M82 tests self-management using AresForge itself
 - M83 formalizes the local LLM provider contract for advisory and future coding lanes
+- M86 adds advisory-only routing confidence scoring for Codex, local LLM advisory, local coding draft, and manual-only lanes
 
 Next phase safety gates before any Codex dispatch implementation:
 
@@ -77,6 +80,24 @@ The provider contract is a read-only routing input for advisory and future codin
 - explicit safety boundaries for no provider invocation, no repo mutation, no queue mutation, no automatic prompt execution, and no automatic next-item execution
 
 M83 does not add routing execution, Codex execution, local LLM execution, agent execution, GitHub API calls, `gh` calls, issues, PRs, workflow activity, daemon/watch/scheduler behavior, external workflow execution, automatic local LLM execution, or automatic repository mutation from local LLM output.
+
+## M86 Routing Confidence Scoring
+
+M86 extends the M80 decision matrix with `routing_confidence`.
+
+The confidence payload includes:
+
+- selected `score`
+- `confidence_level`
+- `recommended_lane`
+- rationale for the selected lane
+- warnings for low confidence or blocking factors
+- per-lane `scores` for Codex, local LLM advisory, local coding draft, and manual-only
+- deterministic `factors` used by scoring
+
+Scoring factors include risk, task size, work mode, item type, dependency count, unresolved dependencies, validation burden, local provider availability/configuration, local model profile availability, Codex model profile availability, recovered dispatch runs, and dispatch run blockers.
+
+M86 confidence scoring is advisory-only. It does not execute prompts, call providers, call Codex, run agents, mutate queue state, complete queue items, start next items, call GitHub APIs, call `gh`, or interact with issues, PRs, workflows, daemons, watchers, schedulers, or external workflow systems.
 
 ## M69 Local AI Operations Hardening
 

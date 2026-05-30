@@ -138,6 +138,20 @@ def build_llm_decision_matrix(
         work_mode=mode["work_mode"],
         engine=engine["recommended_engine"],
     )
+    confidence = _routing_confidence_scoring(
+        item=item,
+        readiness=readiness,
+        local_profiles=local_profiles,
+        codex_profiles=codex_profiles,
+        risk=risk,
+        task_size=task_size,
+        mode=mode,
+        engine=engine,
+        lane=lane,
+        model=model,
+        validation=validation,
+    )
+    warnings.extend(confidence.get("warnings", []))
 
     payload: dict[str, Any] = {
         "ok": bool(loaded.get("ok", False)) and not blockers,
@@ -158,6 +172,7 @@ def build_llm_decision_matrix(
         "lane_recommendation": lane,
         "model_profile_selection": model,
         "validation_burden": validation,
+        "routing_confidence": confidence,
         "safety_gating": _safety_gating(engine["recommended_engine"], risk["risk_level"]),
         "routing_decision": {
             "recommended_engine": engine["recommended_engine"],
@@ -408,6 +423,197 @@ def _validation_focus(burden: str, work_mode: str, engine: str) -> list[str]:
     if engine == "codex_cli":
         focus.append("operator review of Codex output before queue completion")
     return focus
+
+
+def _routing_confidence_scoring(
+    *,
+    item: dict[str, Any],
+    readiness: dict[str, Any],
+    local_profiles: dict[str, Any],
+    codex_profiles: dict[str, Any],
+    risk: dict[str, Any],
+    task_size: dict[str, Any],
+    mode: dict[str, Any],
+    engine: dict[str, str],
+    lane: dict[str, str],
+    model: dict[str, str],
+    validation: dict[str, Any],
+) -> dict[str, Any]:
+    risk_level = str(risk.get("risk_level", "unknown")).strip() or "unknown"
+    size = str(task_size.get("task_size", "unknown")).strip() or "unknown"
+    work_mode = str(mode.get("work_mode", "unknown")).strip() or "unknown"
+    item_type = str(item.get("item_type", "")).strip() or "unknown"
+    validation_burden = str(validation.get("validation_burden", "medium")).strip() or "medium"
+    dependency_summary = readiness.get("dependency_summary", {}) if isinstance(readiness.get("dependency_summary"), dict) else {}
+    dependency_count = _int_value(dependency_summary.get("total_dependencies"))
+    unresolved_dependency_count = len(dependency_summary.get("unresolved_dependencies", [])) if isinstance(dependency_summary.get("unresolved_dependencies"), list) else 0
+    recovered_count = len(dependency_summary.get("recovered_dispatch_runs", [])) if isinstance(dependency_summary.get("recovered_dispatch_runs"), list) else 0
+    dispatch_blocker_count = len(dependency_summary.get("dispatch_run_blockers", [])) if isinstance(dependency_summary.get("dispatch_run_blockers"), list) else 0
+    provider_status = str(local_profiles.get("provider_availability_status", "unknown")).strip() or "unknown"
+    provider_config_status = str(local_profiles.get("provider_configuration_status", "unknown")).strip() or "unknown"
+    local_model_available = _local_model_available(local_profiles=local_profiles, engine=engine["recommended_engine"], model_name=model["recommended_model"])
+    codex_model_available = bool(str(model.get("recommended_model", "")).strip()) if engine["recommended_engine"] == "codex_cli" else _codex_profile_has_model(codex_profiles)
+
+    factors = {
+        "risk": risk_level,
+        "task_size": size,
+        "work_mode": work_mode,
+        "item_type": item_type,
+        "dependency_count": dependency_count,
+        "unresolved_dependency_count": unresolved_dependency_count,
+        "validation_burden": validation_burden,
+        "provider_availability": provider_status,
+        "provider_configuration": provider_config_status,
+        "local_model_profile_available": local_model_available,
+        "codex_model_profile_available": codex_model_available,
+        "recovered_dispatch_run_count": recovered_count,
+        "dispatch_run_blocker_count": dispatch_blocker_count,
+    }
+    lane_scores = {
+        "codex": _score_codex_lane(factors),
+        "local_llm_advisory": _score_local_advisory_lane(factors),
+        "local_coding_draft": _score_local_coding_lane(factors),
+        "manual_only": _score_manual_lane(factors),
+    }
+    selected_lane = _confidence_lane_for_engine(engine["recommended_engine"])
+    selected_score = lane_scores[selected_lane]["score"]
+    warnings: list[str] = []
+    if selected_score < 60:
+        warnings.append(f"Routing confidence for {selected_lane} is below 60; operator review should treat this route as low confidence.")
+    if unresolved_dependency_count:
+        warnings.append("Unresolved dependencies reduce routing confidence.")
+    if dispatch_blocker_count:
+        warnings.append("Dispatch run blockers reduce routing confidence.")
+
+    return {
+        "scoring_version": "m86.1",
+        "advisory_only": True,
+        "execution_allowed": False,
+        "recommended_lane": selected_lane,
+        "recommended_engine": engine["recommended_engine"],
+        "recommended_agent_lane": lane["recommended_lane"],
+        "score": selected_score,
+        "confidence_level": _confidence_level(selected_score),
+        "rationale": lane_scores[selected_lane]["rationale"],
+        "warnings": warnings,
+        "scores": lane_scores,
+        "factors": factors,
+        "safety_boundary": {
+            "advisory_only": True,
+            "execution_allowed": False,
+            "queue_mutation_allowed": False,
+            "automatic_next_item_execution_allowed": False,
+            "github_api_allowed": False,
+            "gh_allowed": False,
+            "external_workflow_allowed": False,
+        },
+    }
+
+
+def _score_codex_lane(factors: dict[str, Any]) -> dict[str, Any]:
+    score = 50
+    rationale: list[str] = ["base codex confidence 50"]
+    score, rationale = _adjust(score, rationale, 20, factors["risk"] in {"high", "critical"}, "high/critical risk favors Codex review")
+    score, rationale = _adjust(score, rationale, 15, factors["task_size"] == "large", "large task favors Codex")
+    score, rationale = _adjust(score, rationale, 8, factors["work_mode"] == "coding", "coding work can benefit from Codex")
+    score, rationale = _adjust(score, rationale, 8, factors["validation_burden"] == "high", "high validation burden favors Codex")
+    score, rationale = _adjust(score, rationale, 10, bool(factors["codex_model_profile_available"]), "Codex model profile is available")
+    score, rationale = _adjust(score, rationale, -12, not bool(factors["codex_model_profile_available"]), "Codex model profile is missing")
+    score, rationale = _adjust(score, rationale, -8, factors["risk"] == "low", "low risk does not require Codex")
+    score, rationale = _adjust(score, rationale, -8, bool(factors["unresolved_dependency_count"]), "unresolved dependencies reduce Codex confidence")
+    score, rationale = _adjust(score, rationale, -10, bool(factors["dispatch_run_blocker_count"]), "dispatch blockers reduce Codex confidence")
+    return {"score": _clamp_score(score), "confidence_level": _confidence_level(score), "rationale": rationale}
+
+
+def _score_local_advisory_lane(factors: dict[str, Any]) -> dict[str, Any]:
+    score = 50
+    rationale: list[str] = ["base local advisory confidence 50"]
+    score, rationale = _adjust(score, rationale, 15, factors["work_mode"] == "reasoning", "reasoning work favors local advisory")
+    score, rationale = _adjust(score, rationale, 10, factors["risk"] in {"low", "medium"}, "low/medium risk fits advisory review")
+    score, rationale = _adjust(score, rationale, 10, factors["task_size"] in {"small", "medium"}, "small/medium task size fits advisory review")
+    score, rationale = _adjust(score, rationale, 8, factors["provider_configuration"] == "configured", "local provider configuration is present")
+    score, rationale = _adjust(score, rationale, 12, bool(factors["local_model_profile_available"]), "local model profile is available")
+    score, rationale = _adjust(score, rationale, -15, factors["risk"] in {"high", "critical"}, "high/critical risk lowers local advisory confidence")
+    score, rationale = _adjust(score, rationale, -10, factors["task_size"] == "large", "large tasks lower local advisory confidence")
+    score, rationale = _adjust(score, rationale, -12, not bool(factors["local_model_profile_available"]), "local model profile is missing")
+    score, rationale = _adjust(score, rationale, -8, bool(factors["unresolved_dependency_count"]), "unresolved dependencies reduce advisory confidence")
+    score, rationale = _adjust(score, rationale, -6, bool(factors["recovered_dispatch_run_count"]), "recovery history lowers advisory confidence")
+    return {"score": _clamp_score(score), "confidence_level": _confidence_level(score), "rationale": rationale}
+
+
+def _score_local_coding_lane(factors: dict[str, Any]) -> dict[str, Any]:
+    score = 45
+    rationale: list[str] = ["base local coding draft confidence 45"]
+    score, rationale = _adjust(score, rationale, 20, factors["work_mode"] == "coding", "coding work is required for local coding drafts")
+    score, rationale = _adjust(score, rationale, 15, factors["risk"] == "low", "low risk supports local coding draft")
+    score, rationale = _adjust(score, rationale, 8, factors["risk"] == "medium", "medium risk can support local coding draft with review")
+    score, rationale = _adjust(score, rationale, 10, factors["task_size"] in {"small", "medium"}, "small/medium task size supports local coding draft")
+    score, rationale = _adjust(score, rationale, 12, bool(factors["local_model_profile_available"]), "local coding model profile is available")
+    score, rationale = _adjust(score, rationale, -25, factors["risk"] in {"high", "critical"}, "high/critical risk blocks confidence in local coding draft")
+    score, rationale = _adjust(score, rationale, -15, factors["task_size"] == "large", "large task lowers local coding draft confidence")
+    score, rationale = _adjust(score, rationale, -10, factors["validation_burden"] == "high", "high validation burden lowers local coding draft confidence")
+    score, rationale = _adjust(score, rationale, -12, not bool(factors["local_model_profile_available"]), "local coding model profile is missing")
+    return {"score": _clamp_score(score), "confidence_level": _confidence_level(score), "rationale": rationale}
+
+
+def _score_manual_lane(factors: dict[str, Any]) -> dict[str, Any]:
+    score = 35
+    rationale: list[str] = ["base manual-only confidence 35"]
+    score, rationale = _adjust(score, rationale, 20, bool(factors["unresolved_dependency_count"]), "unresolved dependencies favor manual handling")
+    score, rationale = _adjust(score, rationale, 20, bool(factors["dispatch_run_blocker_count"]), "dispatch blockers favor manual handling")
+    score, rationale = _adjust(score, rationale, 15, not bool(factors["local_model_profile_available"]) and not bool(factors["codex_model_profile_available"]), "missing model profiles favor manual handling")
+    score, rationale = _adjust(score, rationale, 10, factors["risk"] in {"high", "critical"}, "high/critical risk may require manual review")
+    score, rationale = _adjust(score, rationale, 8, factors["provider_configuration"] in {"missing_provider", "unknown", "unsupported"}, "provider configuration uncertainty favors manual handling")
+    score, rationale = _adjust(score, rationale, -10, factors["risk"] == "low" and factors["task_size"] == "small", "small low-risk work does not require manual-only routing")
+    return {"score": _clamp_score(score), "confidence_level": _confidence_level(score), "rationale": rationale}
+
+
+def _local_model_available(*, local_profiles: dict[str, Any], engine: str, model_name: str) -> bool:
+    if engine not in {"local_reasoning_llm", "local_coding_llm"}:
+        return bool(str(model_name or "").strip())
+    if not str(model_name or "").strip():
+        return False
+    status = str(local_profiles.get("provider_configuration_status", "")).strip()
+    return status == "configured"
+
+
+def _codex_profile_has_model(codex_profiles: dict[str, Any]) -> bool:
+    profiles = codex_profiles.get("codex_cli_model_profiles", {}) if isinstance(codex_profiles.get("codex_cli_model_profiles"), dict) else {}
+    return any(str(profiles.get(field, "")).strip() for field in ("high_value_codex_model", "default_codex_model", "fast_codex_model"))
+
+
+def _confidence_lane_for_engine(engine: str) -> str:
+    if engine == "codex_cli":
+        return "codex"
+    if engine == "local_coding_llm":
+        return "local_coding_draft"
+    if engine == "local_reasoning_llm":
+        return "local_llm_advisory"
+    return "manual_only"
+
+
+def _adjust(score: int, rationale: list[str], delta: int, condition: bool, reason: str) -> tuple[int, list[str]]:
+    if condition:
+        rationale.append(f"{delta:+d}: {reason}")
+        return score + delta, rationale
+    return score, rationale
+
+
+def _clamp_score(score: int) -> int:
+    return max(0, min(100, int(score)))
+
+
+def _confidence_level(score: int) -> str:
+    clamped = _clamp_score(score)
+    if clamped >= 80:
+        return "high"
+    if clamped >= 60:
+        return "medium"
+    return "low"
+
+
+def _int_value(value: Any) -> int:
+    return value if isinstance(value, int) and not isinstance(value, bool) else 0
 
 
 def _safety_gating(engine: str, risk_level: str) -> dict[str, Any]:

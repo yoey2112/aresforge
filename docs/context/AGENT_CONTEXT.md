@@ -1,5 +1,22 @@
 # AresForge Agent Context
 
+## M86 Routing Confidence Scoring Context
+
+Status: In progress locally on `main`.
+
+Current confidence scoring scope:
+
+- `inspect-llm-decision-matrix` now includes `routing_confidence`.
+- Confidence scoring compares Codex, local LLM advisory, local coding draft, and manual-only lanes.
+- Factors include risk, task size, work mode, item type, dependencies, validation burden, provider/model availability, and recovery history.
+- The score is deterministic advisory metadata with rationale, warnings, confidence level, and recommended lane.
+
+Boundaries preserved:
+
+- no execution, prompt dispatch, provider invocation, Codex invocation, or agent invocation from scoring
+- no queue mutation, queue completion, or automatic next-item execution
+- no GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, external workflow execution, or GitHub mutation
+
 ## M85 Local LLM Advisory Run Artifact Context
 
 Status: Completed locally on `main`.

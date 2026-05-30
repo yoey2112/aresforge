@@ -165,6 +165,18 @@ def test_llm_decision_matrix_preserves_advisory_routing_and_safety_gates(tmp_pat
     assert payload["local_llm_invocation_allowed"] is False
     assert payload["automatic_next_item_execution_allowed"] is False
     assert payload["routing_decision"]["routing_policy_source"] == "m80_llm_decision_matrix_v2"
+    assert payload["routing_confidence"]["scoring_version"] == "m86.1"
+    assert payload["routing_confidence"]["advisory_only"] is True
+    assert payload["routing_confidence"]["execution_allowed"] is False
+    assert payload["routing_confidence"]["recommended_lane"] in {
+        "codex",
+        "local_llm_advisory",
+        "local_coding_draft",
+        "manual_only",
+    }
+    assert isinstance(payload["routing_confidence"]["score"], int)
+    assert payload["routing_confidence"]["scores"]["local_llm_advisory"]["score"] >= 0
+    assert payload["routing_confidence"]["factors"]["validation_burden"] == payload["validation_burden"]["validation_burden"]
     assert payload["validation_burden"]["review_evidence_required"] is True
     assert payload["safety_gating"]["queue_completion_requires_review_and_validation"] is True
 

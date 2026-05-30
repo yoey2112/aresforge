@@ -1,5 +1,22 @@
 # AresForge Build State
 
+## M86 Routing Confidence Scoring
+
+Status: In progress locally on `main`.
+
+Delivered in this pass:
+
+- adds deterministic routing confidence scoring to the M80 decision matrix
+- scores Codex, local LLM advisory, local coding draft, and manual-only lanes
+- includes risk, task size, work mode, item type, dependencies, validation burden, provider/model availability, and recovery history factors
+- reports selected score, confidence level, rationale, warnings, and recommended lane
+
+M86 safety posture:
+
+- scoring is advisory only and does not execute prompts
+- no provider, Codex, or agent invocation is performed by scoring
+- no queue mutation, queue completion, automatic next-item execution, GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, or external workflow behavior
+
 ## M85 Local LLM Advisory Run Artifact
 
 Status: Completed locally on `main`.

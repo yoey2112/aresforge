@@ -4953,6 +4953,11 @@ def test_inspect_llm_decision_matrix_dispatch_json(
                 "ok": True,
                 "advisory_only": True,
                 "item_id": "m80",
+                "routing_confidence": {
+                    "score": 72,
+                    "recommended_lane": "local_llm_advisory",
+                    "warnings": [],
+                },
                 "execution_allowed": False,
                 "automatic_next_item_execution_allowed": False,
             }
@@ -4972,6 +4977,8 @@ def test_inspect_llm_decision_matrix_dispatch_json(
 
     assert exit_code == 0
     assert parsed["advisory_only"] is True
+    assert parsed["routing_confidence"]["score"] == 72
+    assert parsed["routing_confidence"]["recommended_lane"] == "local_llm_advisory"
     assert parsed["execution_allowed"] is False
     assert parsed["automatic_next_item_execution_allowed"] is False
     assert seen["item_id"] == "m80"

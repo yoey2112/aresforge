@@ -1,5 +1,29 @@
 # Local Operator Usage
 
+## M86 Routing Confidence Scoring
+
+Inspect routing confidence for one queue item:
+
+    python -m aresforge inspect-llm-decision-matrix --item-id <item_id> --format json
+
+Payload highlights:
+
+- `routing_confidence.score`
+- `routing_confidence.confidence_level`
+- `routing_confidence.recommended_lane`
+- `routing_confidence.rationale`
+- `routing_confidence.warnings`
+- `routing_confidence.scores`
+- `routing_confidence.factors`
+
+Operator rules:
+
+- treat confidence scores as advisory routing metadata only
+- compare Codex, local LLM advisory, local coding draft, and manual-only lane scores before choosing a handoff
+- do not treat a high score as approval to execute prompts or mutate files
+- do not complete queue items or start another item from scoring output
+- do not use GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, or external workflow behavior
+
 ## M85 Local LLM Advisory Run Artifact
 
 Generate a local advisory prompt artifact without invoking a model:
