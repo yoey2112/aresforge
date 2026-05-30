@@ -1,5 +1,49 @@
 # AresForge Build State
 
+## M78 Operator-Gated Codex CLI Dispatch Prototype
+
+Status: Completed locally on `main`.
+
+Delivered:
+
+- added `src/aresforge/operator/codex_dispatch_runner.py`
+- exposed `python -m aresforge approve-codex-dispatch --item-id <item_id> --approved-by <operator> --approval-phrase "APPROVE CODEX DISPATCH" --format json`
+- exposed `python -m aresforge run-codex-dispatch --item-id <item_id> --run-id <run_id> --command "<operator-provided command>" --format json`
+- exposed `python -m aresforge inspect-codex-dispatch-run --run-id <run_id> --format json`
+- exposed `python -m aresforge list-codex-dispatch-runs --format json`
+- exposed `python -m aresforge cancel-codex-dispatch-run --run-id <run_id> --format json`
+- implemented local run-state storage under `.aresforge/codex_dispatch/runs/<run_id>/`
+- captured `run_state.json`, `prompt.txt`, `stdout.txt`, `stderr.txt`, and `artifacts/`
+- kept the real command operator-provided so tests and smoke checks do not require Codex CLI installation
+
+M78 run-state highlights:
+
+- explicit operator approval is required before invocation
+- one active dispatch run is allowed at a time
+- `approved_pending_dispatch` and `running` are active run states
+- successful command completion moves the run to `review_required`
+- failed commands move the run to `failed` with `exit_code` and `error_summary`
+- dispatch output does not mark queue items complete
+- no automatic next-item execution is allowed
+- review evidence and validation evidence remain required before queue completion
+
+M78 safety posture:
+
+- local-only and file-backed
+- operator-gated command invocation only
+- no autonomous multi-item execution
+- no GitHub API, `gh`, GitHub issue, GitHub PR, GitHub workflow, external workflow, or GitHub mutation behavior
+- no local LLM execution expansion
+- local LLM remains local-only, advisory-only, operator-gated, prototype-scoped, and non-mutating
+
+Future design note:
+
+- A future Prompt Builder Agent / Prompt Architect Agent should create high-quality prompt artifacts from queue items, docs, routing metadata, model profiles, and safety gates for operator review before dispatch. It must not execute prompts, call Codex, invoke local LLMs, mutate files, or advance queue items automatically.
+
+Recommended next milestone:
+
+- M79 - Queue Blocking and Sequencing Enforcement.
+
 ## M77 Codex CLI Dispatch Contract
 
 Status: Completed locally on `main`.

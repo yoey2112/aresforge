@@ -56,6 +56,11 @@ def test_cli_has_expected_commands() -> None:
         "generate-local-queue-item-codex-prompt",
         "inspect-codex-dispatch-contract",
         "prepare-codex-dispatch-dry-run",
+        "approve-codex-dispatch",
+        "run-codex-dispatch",
+        "inspect-codex-dispatch-run",
+        "list-codex-dispatch-runs",
+        "cancel-codex-dispatch-run",
         "inspect-queue-work-state",
         "inspect-work-item-readiness",
         "inspect-queue-readiness",
@@ -4860,6 +4865,123 @@ def test_prepare_codex_dispatch_dry_run_dispatch_json(
     assert exit_code == 0
     assert parsed["execution_mode"] == "dry_run_no_execute"
     assert parsed["codex_cli_invocation_allowed"] is False
+
+
+def test_approve_codex_dispatch_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps({"ok": True, "run_id": "run-one", "dispatch_state": "approved_pending_dispatch"}),
+        "payload": {},
+    }
+    monkeypatch.setattr(
+        cli,
+        "approve_codex_dispatch",
+        lambda _config, item_id, approved_by, approval_phrase, queue_path=None, registry_path=None, run_id=None, output_format="json": payload,
+    )
+    exit_code = cli.main(
+        [
+            "approve-codex-dispatch",
+            "--item-id",
+            "m78",
+            "--approved-by",
+            "local_operator",
+            "--approval-phrase",
+            "APPROVE CODEX DISPATCH",
+            "--run-id",
+            "run-one",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["dispatch_state"] == "approved_pending_dispatch"
+
+
+def test_run_codex_dispatch_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps({"ok": True, "run_id": "run-one", "dispatch_state": "review_required"}),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_run(_config, item_id, run_id, command, timeout_seconds=300, output_format="json"):
+        seen["command"] = command
+        seen["timeout_seconds"] = timeout_seconds
+        return payload
+
+    monkeypatch.setattr(cli, "run_operator_gated_codex_dispatch", fake_run)
+    exit_code = cli.main(
+        [
+            "run-codex-dispatch",
+            "--item-id",
+            "m78",
+            "--run-id",
+            "run-one",
+            "--command",
+            "python -c \"print('smoke')\"",
+            "--command-arg",
+            "python",
+            "--command-arg=-c",
+            "--command-arg",
+            "print('smoke')",
+            "--timeout-seconds",
+            "12",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["dispatch_state"] == "review_required"
+    assert seen["command"] == ["python", "-c", "print('smoke')"]
+    assert seen["timeout_seconds"] == 12
+
+
+def test_inspect_and_list_codex_dispatch_run_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    inspect_payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps({"ok": True, "run_id": "run-one"}),
+        "payload": {},
+    }
+    list_payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps({"ok": True, "run_count": 1}),
+        "payload": {},
+    }
+    monkeypatch.setattr(cli, "inspect_codex_dispatch_run", lambda _config, run_id, output_format="json": inspect_payload)
+    monkeypatch.setattr(cli, "list_codex_dispatch_runs", lambda _config, output_format="json": list_payload)
+
+    inspect_exit = cli.main(["inspect-codex-dispatch-run", "--run-id", "run-one", "--format", "json"])
+    inspected = json.loads(capsys.readouterr().out)
+    list_exit = cli.main(["list-codex-dispatch-runs", "--format", "json"])
+    listed = json.loads(capsys.readouterr().out)
+
+    assert inspect_exit == 0
+    assert inspected["run_id"] == "run-one"
+    assert list_exit == 0
+    assert listed["run_count"] == 1
 
 
 def test_complete_local_queue_item_dispatch_json(

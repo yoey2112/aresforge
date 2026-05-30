@@ -1,5 +1,42 @@
 # AresForge Roadmap
 
+## M78 Operator-Gated Codex CLI Dispatch Prototype
+
+Status: Completed locally on `main`.
+
+Purpose:
+
+- prototype one explicitly operator-approved Codex CLI dispatch for one local queue item
+- build on the M77 dispatch contract
+- track local run state and capture stdout/stderr without adding autonomous execution
+
+Delivered scope:
+
+- approval command with required phrase: `APPROVE CODEX DISPATCH`
+- explicit dispatch command requiring an operator-provided command string
+- inspect/list/cancel run commands
+- local run-state records under `.aresforge/codex_dispatch/runs/<run_id>/`
+- stdout, stderr, prompt artifact, and artifact directory capture
+- targeted tests that use harmless Python commands or injected runners, not a real Codex install
+
+Constraints preserved:
+
+- one queue item at a time
+- explicit operator approval required
+- no automatic next-item execution
+- no automatic queue item completion
+- review evidence and validation evidence required before queue completion
+- no GitHub API, `gh`, issues, PRs, workflows, external workflow execution, or GitHub mutation
+- no local LLM execution expansion; local LLM remains local-only, advisory-only, operator-gated, prototype-scoped, and non-mutating
+
+Future design note:
+
+- A Prompt Builder Agent / Prompt Architect Agent should later generate high-quality prompt artifacts for operator review from queue items, docs, routing metadata, model profiles, and safety gates. It must not execute prompts, call Codex, invoke local LLMs, mutate files, or advance queue items automatically.
+
+Next recommended milestone:
+
+- M79 Queue Blocking and Sequencing Enforcement.
+
 ## M77 Codex CLI Dispatch Contract
 
 Status: Completed locally on `main`.

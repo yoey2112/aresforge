@@ -1,5 +1,52 @@
 # Local Operator Usage
 
+## M78 Operator-Gated Codex CLI Dispatch Prototype
+
+Approve exactly one local dispatch run:
+
+    python -m aresforge approve-codex-dispatch --item-id m78-operator-gated-codex-cli-dispatch-prototype --approved-by local_operator --approval-phrase "APPROVE CODEX DISPATCH" --format json
+
+Run the approved dispatch with an explicit operator-provided command:
+
+    python -m aresforge run-codex-dispatch --item-id m78-operator-gated-codex-cli-dispatch-prototype --run-id <run_id> --command "python -c \"print('codex dispatch smoke')\"" --format json
+
+On Windows, the safer smoke form is repeated command arguments:
+
+    python -m aresforge run-codex-dispatch --item-id m78-operator-gated-codex-cli-dispatch-prototype --run-id <run_id> --command-arg python --command-arg=-c --command-arg "print('codex dispatch smoke')" --format json
+
+Inspect or list local run records:
+
+    python -m aresforge inspect-codex-dispatch-run --run-id <run_id> --format json
+    python -m aresforge list-codex-dispatch-runs --format json
+
+Run-state files are local:
+
+- `.aresforge/codex_dispatch/runs/<run_id>/run_state.json`
+- `.aresforge/codex_dispatch/runs/<run_id>/prompt.txt`
+- `.aresforge/codex_dispatch/runs/<run_id>/stdout.txt`
+- `.aresforge/codex_dispatch/runs/<run_id>/stderr.txt`
+- `.aresforge/codex_dispatch/runs/<run_id>/artifacts/`
+
+Operator rules:
+
+- approval phrase must exactly match `APPROVE CODEX DISPATCH`
+- only one active run is allowed at a time
+- commands are never inferred automatically; the operator supplies `--command`
+- successful command completion leaves the run in `review_required`
+- dispatch output does not complete the queue item
+- review evidence and validation evidence are required before queue completion
+- no automatic next-item execution is allowed
+- no GitHub API, `gh`, issues, PRs, workflows, external workflow execution, or GitHub mutation capability is added
+- no local LLM execution expansion is performed
+
+Future design note:
+
+- A Prompt Builder Agent / Prompt Architect Agent should later prepare prompt artifacts for operator review. It must not execute prompts, call Codex, invoke local LLMs, mutate files, or advance queue items automatically.
+
+Next recommended milestone:
+
+- M79 - Queue Blocking and Sequencing Enforcement.
+
 ## M77 Codex CLI Dispatch Contract
 
 Status: Completed locally on `main`.

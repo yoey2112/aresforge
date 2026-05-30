@@ -209,6 +209,13 @@ from aresforge.operator.codex_dispatch_contract import (
     inspect_codex_dispatch_contract,
     prepare_codex_dispatch_dry_run,
 )
+from aresforge.operator.codex_dispatch_runner import (
+    approve_codex_dispatch,
+    cancel_codex_dispatch_run,
+    inspect_codex_dispatch_run,
+    list_codex_dispatch_runs,
+    run_operator_gated_codex_dispatch,
+)
 from aresforge.operator.local_agent_profiles import (
     AGENT_PROFILE_STATUSES,
     AGENT_ROLES,
@@ -1528,6 +1535,64 @@ def build_parser() -> argparse.ArgumentParser:
     prepare_codex_dispatch_dry_run_parser.add_argument("--output")
     prepare_codex_dispatch_dry_run_parser.add_argument("--force", action="store_true")
     prepare_codex_dispatch_dry_run_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="json",
+    )
+    approve_codex_dispatch_parser = subparsers.add_parser(
+        "approve-codex-dispatch",
+        help="Approve one M78 operator-gated Codex dispatch run without executing it.",
+    )
+    approve_codex_dispatch_parser.add_argument("--item-id", required=True)
+    approve_codex_dispatch_parser.add_argument("--approved-by", required=True)
+    approve_codex_dispatch_parser.add_argument("--approval-phrase", required=True)
+    approve_codex_dispatch_parser.add_argument("--run-id")
+    approve_codex_dispatch_parser.add_argument("--queue-path")
+    approve_codex_dispatch_parser.add_argument("--registry-path")
+    approve_codex_dispatch_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="json",
+    )
+    run_codex_dispatch_parser = subparsers.add_parser(
+        "run-codex-dispatch",
+        help="Run one previously approved M78 Codex dispatch using an explicit operator-provided command.",
+    )
+    run_codex_dispatch_parser.add_argument("--item-id", required=True)
+    run_codex_dispatch_parser.add_argument("--run-id", required=True)
+    run_codex_dispatch_parser.add_argument("--command", dest="codex_command")
+    run_codex_dispatch_parser.add_argument("--command-arg", action="append", default=[])
+    run_codex_dispatch_parser.add_argument("--timeout-seconds", type=int, default=300)
+    run_codex_dispatch_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="json",
+    )
+    inspect_codex_dispatch_run_parser = subparsers.add_parser(
+        "inspect-codex-dispatch-run",
+        help="Inspect one local M78 Codex dispatch run-state record.",
+    )
+    inspect_codex_dispatch_run_parser.add_argument("--run-id", required=True)
+    inspect_codex_dispatch_run_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="json",
+    )
+    list_codex_dispatch_runs_parser = subparsers.add_parser(
+        "list-codex-dispatch-runs",
+        help="List local M78 Codex dispatch run-state records.",
+    )
+    list_codex_dispatch_runs_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="json",
+    )
+    cancel_codex_dispatch_run_parser = subparsers.add_parser(
+        "cancel-codex-dispatch-run",
+        help="Cancel one approved-but-not-running local M78 Codex dispatch run.",
+    )
+    cancel_codex_dispatch_run_parser.add_argument("--run-id", required=True)
+    cancel_codex_dispatch_run_parser.add_argument(
         "--format",
         choices=["json", "markdown"],
         default="json",
@@ -3652,6 +3717,70 @@ def main(argv: list[str] | None = None) -> int:
             registry_path=args.registry_path,
             output=args.output,
             force=bool(args.force),
+            output_format=args.format,
+        )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "approve-codex-dispatch":
+        payload = approve_codex_dispatch(
+            config,
+            item_id=args.item_id,
+            approved_by=args.approved_by,
+            approval_phrase=args.approval_phrase,
+            queue_path=args.queue_path,
+            registry_path=args.registry_path,
+            run_id=args.run_id,
+            output_format=args.format,
+        )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "run-codex-dispatch":
+        payload = run_operator_gated_codex_dispatch(
+            config,
+            item_id=args.item_id,
+            run_id=args.run_id,
+            command=args.command_arg or args.codex_command,
+            timeout_seconds=args.timeout_seconds,
+            output_format=args.format,
+        )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-codex-dispatch-run":
+        payload = inspect_codex_dispatch_run(
+            config,
+            run_id=args.run_id,
+            output_format=args.format,
+        )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "list-codex-dispatch-runs":
+        payload = list_codex_dispatch_runs(config, output_format=args.format)
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "cancel-codex-dispatch-run":
+        payload = cancel_codex_dispatch_run(
+            config,
+            run_id=args.run_id,
             output_format=args.format,
         )
         if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):

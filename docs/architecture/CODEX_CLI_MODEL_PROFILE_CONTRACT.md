@@ -2,6 +2,8 @@
 
 ## Status
 
+M78 adds the first operator-gated local dispatch prototype on top of the M77 contract. It requires the exact approval phrase `APPROVE CODEX DISPATCH`, allows only one active run at a time, stores run state under `.aresforge/codex_dispatch/runs/<run_id>/`, captures `prompt.txt`, `stdout.txt`, `stderr.txt`, and `artifacts/`, and leaves successful runs in `review_required`. M78 does not infer a Codex command; the operator must provide `--command`, so tests and smoke checks can use harmless local commands without requiring Codex CLI installation. Dispatch output does not complete queue items, does not auto-run the next item, does not call GitHub or `gh`, and does not expand local LLM execution.
+
 M77 adds the Codex CLI Dispatch Contract. It is local-only, contract-first, and dry-run/no-execute. It inspects one queue item at a time, validates the managed project/repo binding, reserves future `.aresforge/codex_dispatch` contract/run paths, and defines the expected M78 run-state shape. It does not invoke Codex CLI, dispatch Codex, start runs, mutate queue item status, call GitHub, call `gh`, or implement M78 execution.
 
 M60 adds a local-only Codex CLI Model Profile Contract. M63 adds Codex CLI High-Value Lane prompt generation that may reference queue routing metadata and model profile intent, but still does not execute Codex.
@@ -25,6 +27,8 @@ M73 improves routing-aware prompt-pack guidance. Prompt packs that reference the
 M74 stabilized Hub UX wording around Codex high-value prompt preview/copy behavior. M75 reconciles source-of-truth documentation and roadmap sequencing. Neither milestone implements Codex CLI dispatch.
 
 This contract represents future Codex CLI model preferences for routing, high-value lane planning, and future contract-first dispatch design. It does not execute Codex CLI, send prompts, run agents, call GitHub, call `gh`, or run external workflows.
+
+Future design note: a Prompt Builder Agent / Prompt Architect Agent should later create high-quality prompt artifacts from queue items, docs, routing metadata, model profiles, and safety gates for operator review before dispatch. It must not execute prompts, call Codex, invoke local LLMs, mutate files, or advance queue items automatically.
 
 ## Storage
 

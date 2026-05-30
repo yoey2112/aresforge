@@ -1,5 +1,31 @@
 # Runnable Skeleton
 
+## M78 Operator-Gated Codex CLI Dispatch Prototype
+
+M78 adds the first local operator-gated dispatch prototype:
+
+- `python -m aresforge approve-codex-dispatch --item-id <item_id> --approved-by local_operator --approval-phrase "APPROVE CODEX DISPATCH" --format json`
+- `python -m aresforge run-codex-dispatch --item-id <item_id> --run-id <run_id> --command "<operator-provided command>" --format json`
+- `python -m aresforge run-codex-dispatch --item-id <item_id> --run-id <run_id> --command-arg python --command-arg=-c --command-arg "print('codex dispatch smoke')" --format json`
+- `python -m aresforge inspect-codex-dispatch-run --run-id <run_id> --format json`
+- `python -m aresforge list-codex-dispatch-runs --format json`
+- `python -m aresforge cancel-codex-dispatch-run --run-id <run_id> --format json`
+
+Run state is written under `.aresforge/codex_dispatch/runs/<run_id>/` with `run_state.json`, `prompt.txt`, `stdout.txt`, `stderr.txt`, and `artifacts/`.
+
+M78 keeps these runnable-skeleton boundaries:
+
+- one active run at a time
+- explicit operator approval before invocation
+- operator-provided command only
+- no automatic next-item execution
+- no automatic queue completion
+- review and validation evidence required before queue closeout
+- no GitHub API, `gh`, issues, PRs, workflows, external workflow execution, or GitHub mutation
+- no local LLM execution expansion
+
+Next recommended milestone: M79 Queue Blocking and Sequencing Enforcement.
+
 ## M77 Codex CLI Dispatch Contract
 
 Status: Completed locally on `main`.

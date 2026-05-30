@@ -1,5 +1,59 @@
 # AresForge Agent Context
 
+## M78 Operator-Gated Codex CLI Dispatch Prototype Context
+
+Status: Completed locally on `main`.
+
+Purpose:
+
+- add the first safe local Codex CLI dispatch prototype after the M77 contract
+- require explicit operator approval before invocation
+- allow exactly one active run at a time
+- capture run state, prompt artifact, stdout, stderr, and artifact directory locally
+- leave queue completion as a separate operator-reviewed and validation-evidenced action
+
+Implemented in M78:
+
+- `approve_codex_dispatch(...)`
+- `run_operator_gated_codex_dispatch(...)`
+- `inspect_codex_dispatch_run(...)`
+- `list_codex_dispatch_runs(...)`
+- `cancel_codex_dispatch_run(...)`
+- `validate_codex_dispatch_run_state(...)`
+- CLI commands: `approve-codex-dispatch`, `run-codex-dispatch`, `inspect-codex-dispatch-run`, `list-codex-dispatch-runs`, and `cancel-codex-dispatch-run`
+
+Operator command shape:
+
+- `python -m aresforge approve-codex-dispatch --item-id m78-operator-gated-codex-cli-dispatch-prototype --approved-by local_operator --approval-phrase "APPROVE CODEX DISPATCH" --format json`
+- `python -m aresforge run-codex-dispatch --item-id m78-operator-gated-codex-cli-dispatch-prototype --run-id <run_id> --command "<operator-provided command>" --format json`
+- Windows-friendly alternative: `python -m aresforge run-codex-dispatch --item-id m78-operator-gated-codex-cli-dispatch-prototype --run-id <run_id> --command-arg python --command-arg=-c --command-arg "print('codex dispatch smoke')" --format json`
+- `python -m aresforge inspect-codex-dispatch-run --run-id <run_id> --format json`
+
+Run-state storage:
+
+- `.aresforge/codex_dispatch/runs/<run_id>/run_state.json`
+- `.aresforge/codex_dispatch/runs/<run_id>/prompt.txt`
+- `.aresforge/codex_dispatch/runs/<run_id>/stdout.txt`
+- `.aresforge/codex_dispatch/runs/<run_id>/stderr.txt`
+- `.aresforge/codex_dispatch/runs/<run_id>/artifacts/`
+
+Boundaries:
+
+- no automatic next-item execution
+- no queue item status mutation from dispatch
+- no automatic queue completion from Codex output
+- review evidence and validation evidence are required before queue completion
+- no GitHub API, `gh`, issues, PRs, workflows, external workflow execution, or GitHub mutation
+- no local LLM execution expansion; local LLM remains local-only, advisory-only, operator-gated, prototype-scoped, and non-mutating
+
+Future-agent reminder:
+
+- A Prompt Builder Agent / Prompt Architect Agent should be introduced later to prepare reviewed prompt artifacts from queue context, docs, routing metadata, model profiles, and safety gates. It must be prompt-generation only and must not execute prompts, call Codex, invoke local LLMs, mutate files, or advance queue items.
+
+Recommended next milestone:
+
+- M79 - Queue Blocking and Sequencing Enforcement.
+
 ## M77 Codex CLI Dispatch Contract Context
 
 Status: Completed locally on `main`.

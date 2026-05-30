@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T01:37:31.877920+00:00",
+  "updated_at": "2026-05-30T01:39:45.047714+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -252,7 +252,7 @@
       "repo_id": "aresforge-main",
       "title": "M78 Operator-Gated Codex CLI Dispatch Prototype",
       "description": "Prototype one explicitly operator-approved Codex CLI dispatch for one local queue item after M77 contract is complete.",
-      "status": "proposed",
+      "status": "in_progress",
       "priority": "high",
       "item_type": "feature",
       "tags": [
@@ -268,9 +268,9 @@
       "assigned_agent": "",
       "source": "m76_self_seed",
       "notes": "Acceptance criteria:\n- Requires explicit operator approval.\n- Allows only one queue item at a time.\n- Does not auto-run the next item.\n- Captures run state and available stdout/stderr/artifacts.\n- Records error and completion states.\n- Requires review evidence before completion.\n\nM76 safety notes:\n- Seeded for review only.\n- Not started automatically.\n- No prompt, agent, Codex, local LLM, GitHub, gh, issue, PR, workflow, commit, or push action was invoked.",
-      "started_at": "",
-      "started_via": "",
-      "previous_status": "",
+      "started_at": "2026-05-30T01:39:45.047714+00:00",
+      "started_via": "local_operator",
+      "previous_status": "proposed",
       "completed_at": "",
       "completed_by": "",
       "completion_commit": "",
@@ -299,7 +299,7 @@
       "closeout_summary": "",
       "closeout_history": [],
       "created_at": "2026-05-30T01:07:02.934932+00:00",
-      "updated_at": "2026-05-30T01:08:03.921817+00:00"
+      "updated_at": "2026-05-30T01:39:45.047714+00:00"
     },
     {
       "item_id": "m79-queue-blocking-and-sequencing-enforcement",
