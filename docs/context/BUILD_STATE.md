@@ -1,14 +1,59 @@
 # AresForge Build State
 
+## M76 Self-Seed AresForge as the First Managed Project
+
+Status: Completed locally on `main`.
+
+Delivered:
+
+- added `seed_aresforge_self_project(...)` as an idempotent local-only operator workflow
+- exposed `python -m aresforge seed-aresforge-self-project --format json`
+- registers or updates AresForge as managed project `aresforge`
+- registers or updates primary repo `aresforge-main`
+- ensures the canonical local project queue exists
+- seeds reviewable proposed queue items for M77 through M82 without starting any item
+- can set AresForge as the active project only when `--set-active` is supplied
+
+Seeded self-project identity:
+
+- project_id: `aresforge`
+- project_name: `AresForge`
+- repo_id: `aresforge-main`
+- repo_name: `AresForge Main Repository`
+- project status: `active`
+- repo role/status: `primary` / `active`
+
+Seeded queue item purpose:
+
+- M77 Codex CLI Dispatch Contract
+- M78 Operator-Gated Codex CLI Dispatch Prototype
+- M79 Queue Blocking and Sequencing Enforcement
+- M80 LLM Decision Matrix v2
+- M81 Local LLM Advisory/Coding Lane Prototype
+- M82 Self-Managed AresForge Test Run
+
+M76 safety posture:
+
+- self-seed is local-only, file-backed, and idempotent
+- seeded items are proposed/reviewable only and are not started
+- no Codex dispatch, automatic Codex execution, Codex CLI invocation, agent execution, prompt dispatch, or unattended multi-item execution was added
+- no local LLM execution expansion was added
+- local LLM remains local-only, advisory-only, operator-gated, prototype-scoped, and non-mutating
+- no GitHub API, `gh`, GitHub issue, GitHub PR, GitHub workflow, external workflow, or GitHub mutation behavior was added
+
+Recommended next milestone:
+
+- M77 - Codex CLI Dispatch Contract.
+
 ## M75 Source-of-Truth Documentation and Roadmap Reconciliation
 
-Status: In progress on `main`.
+Status: Completed on `main` in commit `7088204`.
 
 Scope:
 
 - documentation-only reconciliation after M74
-- align source-of-truth docs around the current local-first, file-backed, operator-gated state
-- prepare the roadmap for self-managing AresForge as the first managed project and for future approved Codex/local LLM milestones
+- aligned source-of-truth docs around the current local-first, file-backed, operator-gated state
+- prepared the roadmap for self-managing AresForge as the first managed project and for future approved Codex/local LLM milestones
 
 Current implemented surfaces:
 

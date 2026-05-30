@@ -37,6 +37,7 @@ QUEUE_PRIORITIES: tuple[str, ...] = (
 )
 QUEUE_ITEM_TYPES: tuple[str, ...] = (
     'milestone',
+    'architecture',
     'feature',
     'bug',
     'task',

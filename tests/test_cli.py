@@ -136,6 +136,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-managed-project-registry",
         "inspect-managed-project",
         "inspect-managed-repo",
+        "seed-aresforge-self-project",
         "inspect-local-project-dashboard",
         "list-local-projects",
         "inspect-local-project-readiness",
@@ -292,6 +293,50 @@ def test_cli_route_status_defaults_use_canonical_vocabulary() -> None:
         ]
     )
     assert handoff_args.route_status == "ready"
+
+
+def test_cli_seed_aresforge_self_project_returns_stable_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], tmp_path: Path
+) -> None:
+    config = AppConfig(
+        repo_root=tmp_path,
+        db_host="127.0.0.1",
+        db_port=5433,
+        db_name="aresforge",
+        db_user="aresforge",
+        db_password="aresforge",
+        ollama_base_url="http://127.0.0.1:11434",
+        ollama_model="qwen2.5:32b",
+        artifact_root=tmp_path / "artifacts",
+        prompts_dir=tmp_path / "artifacts" / "prompts" / "generated",
+        evidence_dir=tmp_path / "artifacts" / "evidence" / "generated",
+        codex_handoffs_dir=tmp_path / "artifacts" / "codex_handoffs" / "generated",
+        github_owner="yoey2112",
+        github_repo="aresforge",
+    )
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: config)
+
+    exit_code = cli.main(
+        [
+            "seed-aresforge-self-project",
+            "--root-path",
+            str(tmp_path),
+            "--set-active",
+            "--format",
+            "json",
+        ]
+    )
+
+    assert exit_code == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["ok"] is True
+    assert payload["local_only"] is True
+    assert payload["project_id"] == "aresforge"
+    assert payload["repo_id"] == "aresforge-main"
+    assert payload["active_project_status"]["active_project_id"] == "aresforge"
+    assert len(payload["seeded_queue_items"]) == 6
+    assert all(item["status"] == "proposed" for item in payload["seeded_queue_items"])
+    assert any("No GitHub API calls." == item for item in payload["boundary_confirmations"])
 
 
 def test_cli_update_roadmap_task_status_dispatch_parses_details_json(

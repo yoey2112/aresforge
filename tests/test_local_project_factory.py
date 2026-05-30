@@ -67,6 +67,7 @@ from aresforge.operator.local_project_factory import (
     update_project_scope_package,
 )
 from aresforge.operator.local_project_queue import add_queue_item, inspect_queue_item
+from aresforge.operator.self_seed import seed_aresforge_self_project
 
 
 class _FakeHttpResponse:
@@ -117,6 +118,69 @@ def _payload(tmp_path: Path) -> dict[str, object]:
         "initial_requirements": "Define scope and architecture before coding.",
         "tags": ["alpha", "wizard"],
     }
+
+
+def test_seed_aresforge_self_project_creates_project_repo_and_queue_items(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+
+    payload = seed_aresforge_self_project(config, root_path=tmp_path, set_active=True)
+
+    assert payload["ok"] is True
+    assert payload["local_only"] is True
+    assert payload["project_id"] == "aresforge"
+    assert payload["project_name"] == "AresForge"
+    assert payload["repo_id"] == "aresforge-main"
+    assert payload["repo_path"] == str(tmp_path.resolve())
+    assert payload["active_project_status"]["active_project_id"] == "aresforge"
+    assert payload["active_project_status"]["active_repo_id"] == "aresforge-main"
+    assert len(payload["seeded_queue_items"]) == 6
+    assert payload["created_or_updated"]["registry_created"] is True
+    assert payload["created_or_updated"]["queue_created"] is True
+    assert payload["created_or_updated"]["project_created"] is True
+    assert payload["created_or_updated"]["repo_created"] is True
+    assert payload["created_or_updated"]["active_project_set"] is True
+
+    registry = json.loads(Path(payload["registry_path"]).read_text(encoding="utf-8"))
+    project = registry["projects"][0]
+    assert project["project_id"] == "aresforge"
+    assert project["primary_repo_id"] == "aresforge-main"
+    repo = project["repos"][0]
+    assert repo["repo_id"] == "aresforge-main"
+    assert repo["role"] == "primary"
+    assert repo["status"] == "active"
+
+    queue = json.loads(Path(payload["queue_path"]).read_text(encoding="utf-8"))
+    seeded = [item for item in queue["work_items"] if item["source"] == "m76_self_seed"]
+    assert len(seeded) == 6
+    assert {item["status"] for item in seeded} == {"proposed"}
+    assert all(not item.get("started_at") for item in seeded)
+    assert all(item["routing_metadata"]["routing_policy_source"] == "m76_self_seed" for item in seeded)
+    assert "architecture" in {item["item_type"] for item in seeded}
+
+
+def test_seed_aresforge_self_project_is_idempotent_without_duplicates(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+
+    first = seed_aresforge_self_project(config, root_path=tmp_path)
+    second = seed_aresforge_self_project(config, root_path=tmp_path)
+
+    assert first["ok"] is True
+    assert second["ok"] is True
+    assert second["created_or_updated"]["registry_created"] is False
+    assert second["created_or_updated"]["queue_created"] is False
+    assert second["created_or_updated"]["project_created"] is False
+    assert second["created_or_updated"]["repo_created"] is False
+    assert len(second["created_or_updated"]["queue_items_updated"]) == 6
+
+    registry = json.loads(Path(second["registry_path"]).read_text(encoding="utf-8"))
+    assert [project["project_id"] for project in registry["projects"]].count("aresforge") == 1
+    project = registry["projects"][0]
+    assert [repo["repo_id"] for repo in project["repos"]].count("aresforge-main") == 1
+
+    queue = json.loads(Path(second["queue_path"]).read_text(encoding="utf-8"))
+    item_ids = [item["item_id"] for item in queue["work_items"] if item.get("source") == "m76_self_seed"]
+    assert len(item_ids) == 6
+    assert len(set(item_ids)) == 6
 
 
 def test_read_local_llm_environment_contract_returns_default_without_writing(tmp_path: Path) -> None:

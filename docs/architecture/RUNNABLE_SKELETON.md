@@ -1,12 +1,16 @@
 # Runnable Skeleton
 
-## M75 Source-of-Truth Documentation and Roadmap Reconciliation
+## M76 Self-Seed AresForge as the First Managed Project
 
-Status: Current documentation-only milestone on `main`.
+Status: Completed locally on `main`.
 
 Current runnable local skeleton:
 
 - `python -m aresforge serve-hub` serves the local Hub
+- `python -m aresforge seed-aresforge-self-project --format json` idempotently registers AresForge as managed project `aresforge`, primary repo `aresforge-main`, and seeds proposed M77-M82 queue items
+- `python -m aresforge inspect-managed-project --project-id aresforge --format json` inspects the self-managed project
+- `python -m aresforge inspect-managed-repo --project-id aresforge --repo-id aresforge-main --format json` inspects the primary self-managed repo
+- `python -m aresforge inspect-project-queue --project-id aresforge --format json` inspects the canonical queue entries
 - project/repo surfaces use the local managed-project registry and project factory storage
 - queue lifecycle uses the canonical local queue
 - prompt-pack generation creates preview text and optional local artifacts for manual handoff
@@ -26,6 +30,11 @@ Still absent by design:
 - unattended multi-item queue execution
 - local LLM or Codex output applying changes to repo files automatically
 
+M76 self-seed boundary:
+
+- no Hub/API/UI surface was required; the existing local CLI/registry/queue inspection surfaces cover this milestone
+- self-seed does not dispatch Codex, run Codex CLI, execute agents, execute prompts, call local LLMs, call GitHub APIs, call `gh`, create issues, open PRs, run workflows, commit, or push
+
 Next phase safety gates before any Codex dispatch implementation:
 
 - explicit operator approval
@@ -37,6 +46,14 @@ Next phase safety gates before any Codex dispatch implementation:
 - review evidence required before marking complete
 - queue/dependency blocking enforced
 - local validation required before commit/push
+
+Recommended next milestone:
+
+- M77 Codex CLI Dispatch Contract.
+
+## M75 Source-of-Truth Documentation and Roadmap Reconciliation
+
+Status: Completed on `main` in commit `7088204`.
 
 ## M74 Hub UX Stabilization Pass
 

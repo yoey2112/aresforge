@@ -1,37 +1,37 @@
 # AresForge Agent Context
 
-## M75 Source-of-Truth Documentation and Roadmap Reconciliation Context
+## M76 Self-Seed AresForge as the First Managed Project Context
 
-Status: In progress on `main`.
+Status: Completed locally on `main`.
 
 Purpose:
 
-- reconcile the major source-of-truth docs after M74
-- keep future agents anchored to the current local-first, file-backed, operator-gated, preview/review-only operating model
-- prepare the next phase without implementing Codex dispatch, agent execution, GitHub behavior, or external workflow execution
+- let AresForge recognize and inspect itself as the first managed local project
+- seed the next planned milestones into the canonical local queue as reviewable work
+- preserve local-only, file-backed, operator-gated behavior
 
-Implemented today:
+Implemented in M76:
 
-- local project registry/factory and local queue storage
-- Hub UI for local projects, repos, queue lifecycle, routing views, prompt packs, local LLM configuration/health/preview/prototype use, Codex high-value prompt generation, AI Action Review, execution audit log, artifact registry, and run history
-- prompt-pack previews and Codex high-value prompts as manual copy/paste handoff only
-- AI Action Review, audit, artifact, and run-history panels as review-only local evidence
-- local LLM provider/model metadata as prototype-scoped configuration/health evidence
-- M62 local LLM execution prototype as local-only, advisory-only, operator-gated, prototype-scoped, and non-mutating
+- `seed_aresforge_self_project(...)`
+- CLI command: `python -m aresforge seed-aresforge-self-project --format json`
+- managed project `aresforge` with primary repo `aresforge-main`
+- proposed queue items for M77, M78, M79, M80, M81, and M82
+- active-project update only when `--set-active` is supplied
 
-Not implemented today:
+Not implemented in M76:
 
 - Codex CLI dispatch
 - automatic Codex execution
 - automatic agent execution
+- automatic prompt dispatch
 - external workflow execution
 - GitHub API, `gh`, GitHub issues, GitHub PRs, GitHub workflows, or GitHub mutation from the app
 - unattended multi-item queue execution
+- local LLM execution expansion
 - automatic repo mutation from local LLM or Codex output
 
 Next-phase direction:
 
-- M76 - Self-Seed AresForge as the First Managed Project
 - M77 - Codex CLI Dispatch Contract
 - M78 - Operator-Gated Codex CLI Dispatch Prototype
 - M79 - Queue Blocking and Sequencing Enforcement
@@ -60,6 +60,20 @@ Next phase safety gates before any Codex dispatch implementation:
 - review evidence required before marking complete
 - queue/dependency blocking enforced
 - local validation required before commit/push
+
+Recommended next milestone:
+
+- M77 - Codex CLI Dispatch Contract.
+
+## M75 Source-of-Truth Documentation and Roadmap Reconciliation Context
+
+Status: Completed on `main` in commit `7088204`.
+
+Purpose:
+
+- reconciled the major source-of-truth docs after M74
+- kept future agents anchored to the current local-first, file-backed, operator-gated, preview/review-only operating model
+- prepared the next phase without implementing Codex dispatch, agent execution, GitHub behavior, or external workflow execution
 
 ## M74 Hub UX Stabilization Pass Context
 

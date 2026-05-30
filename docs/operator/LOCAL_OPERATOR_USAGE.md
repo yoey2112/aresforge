@@ -1,24 +1,26 @@
 # Local Operator Usage
 
-## M75 Source-of-Truth Documentation and Roadmap Reconciliation
+## M76 Self-Seed AresForge as the First Managed Project
 
-Status: Current documentation-only milestone on `main`.
+Status: Completed locally on `main`.
 
 Current operator workflow:
 
-1. Inspect project state with `python -m aresforge inspect-local-project-report`.
-2. Inspect queue and AI-adjacent state with `python -m aresforge inspect-local-queue-agent-summary`.
-3. Use the Hub Queue page as the local review surface for queue lifecycle, prompt packs, routed views, local LLM prototype/config status, AI Action Review, execution audit log, artifact registry, and Operator Run History.
-4. Treat prompt-pack preview and Codex high-value prompt output as manual copy/paste handoff only.
-5. Use Copy Prompt Pack Preview only after reviewing the generated text and safety notes.
-6. Treat AI Action Review, audit log, artifact registry, and run history as review-only evidence; they do not approve, dispatch, apply, commit, push, or close work.
-7. Treat local LLM provider/model status as prototype-scoped evidence, not production-ready execution approval.
+1. Run `python -m aresforge seed-aresforge-self-project --format json` to idempotently seed or refresh the self-managed project.
+2. Add `--set-active` only when you explicitly want AresForge selected as the active local project.
+3. Inspect the self-managed project with `python -m aresforge inspect-managed-project --project-id aresforge --format json`.
+4. Inspect the self-managed repo with `python -m aresforge inspect-managed-repo --project-id aresforge --repo-id aresforge-main --format json`.
+5. Inspect seeded work with `python -m aresforge inspect-project-queue --project-id aresforge --format json`.
+6. Review the proposed M77-M82 queue items before starting anything.
 
 Operator safety notes:
 
 - no GitHub API, `gh`, GitHub issues, GitHub PRs, GitHub workflows, or GitHub mutation from the app
-- no automatic Codex execution, Codex CLI dispatch, agent execution, external workflow execution, or unattended multi-item execution
+- no automatic Codex execution, Codex CLI dispatch, prompt dispatch, agent execution, external workflow execution, or unattended multi-item execution
+- self-seed does not start queue items
 - Codex high-value lane remains prompt-generation/operator-handoff only
+- M76 does not add Codex dispatch
+- M76 does not add local LLM execution expansion
 - local LLM execution remains local-only, advisory-only, operator-gated, prototype-scoped, and non-mutating
 - local LLM output must never automatically mutate repository files, queue state, project state, GitHub, `gh`, Codex, agents, commits, pushes, or workflows
 - normal `git commit` and `git push origin main` are allowed only after local validation, smoke checks, clean diff check, and explicit prompt instruction
@@ -34,6 +36,14 @@ Next phase safety gates before any Codex dispatch implementation:
 - review evidence required before marking complete
 - queue/dependency blocking enforced
 - local validation required before commit/push
+
+Recommended next milestone:
+
+- M77 - Codex CLI Dispatch Contract.
+
+## M75 Source-of-Truth Documentation and Roadmap Reconciliation
+
+Status: Completed on `main` in commit `7088204`.
 
 ## M74 Hub UX Stabilization Pass
 

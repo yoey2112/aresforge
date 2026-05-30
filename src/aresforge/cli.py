@@ -231,6 +231,7 @@ from aresforge.operator.local_project_readiness import (
 )
 from aresforge.operator.local_queue_agent_summary import inspect_local_queue_agent_summary
 from aresforge.operator.local_project_report import inspect_local_project_report
+from aresforge.operator.self_seed import seed_aresforge_self_project
 from aresforge.hub.server import serve_hub
 from aresforge.operator.milestone_reconciliation_planner import plan_milestone_final_reconciliation
 from aresforge.operator.preflight_snapshot import (
@@ -1349,6 +1350,27 @@ def build_parser() -> argparse.ArgumentParser:
     inspect_managed_repo_github_link_parser.add_argument(
         "--format",
         choices=["json", "markdown"],
+        default="json",
+    )
+    seed_aresforge_self_project_parser = subparsers.add_parser(
+        "seed-aresforge-self-project",
+        help="Idempotently seed AresForge as its own local managed project and queue next milestones.",
+    )
+    seed_aresforge_self_project_parser.add_argument("--project-id", default="aresforge")
+    seed_aresforge_self_project_parser.add_argument("--repo-id", default="aresforge-main")
+    seed_aresforge_self_project_parser.add_argument("--root-path")
+    seed_aresforge_self_project_parser.add_argument("--queue-path")
+    seed_aresforge_self_project_parser.add_argument("--registry-path")
+    seed_aresforge_self_project_parser.add_argument("--set-active", action="store_true")
+    seed_aresforge_self_project_parser.add_argument(
+        "--seed-next-milestones",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+    )
+    seed_aresforge_self_project_parser.add_argument("--force-update", action="store_true")
+    seed_aresforge_self_project_parser.add_argument(
+        "--format",
+        choices=["json"],
         default="json",
     )
     init_project_queue_parser = subparsers.add_parser(
@@ -3407,6 +3429,21 @@ def main(argv: list[str] | None = None) -> int:
         if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
             print(payload["stdout"])
             return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "seed-aresforge-self-project":
+        payload = seed_aresforge_self_project(
+            config,
+            project_id=args.project_id,
+            repo_id=args.repo_id,
+            root_path=args.root_path,
+            queue_path=args.queue_path,
+            registry_path=args.registry_path,
+            set_active=bool(args.set_active),
+            seed_next_milestones=bool(args.seed_next_milestones),
+            force_update=bool(args.force_update),
+        )
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 

@@ -1,35 +1,51 @@
 # AresForge Roadmap
 
-## M75 Source-of-Truth Documentation and Roadmap Reconciliation
+## M76 Self-Seed AresForge as the First Managed Project
 
-Status: Current milestone on `main`.
+Status: Completed locally on `main`.
 
 Purpose:
 
-- reconcile the major source-of-truth docs after M74
-- document the current local-first, file-backed, operator-gated, preview-only, review-only state
-- prepare the next phase for self-management, future Codex CLI dispatch contracts, and future local LLM routing without adding execution behavior in M75
+- seed AresForge into its own local project registry and queue as the first managed self-project
+- make the self-project inspectable as managed project `aresforge`
+- register the primary local repo as `aresforge-main`
+- create reviewable local queue items for M77 through M82
 
 Scope boundary:
 
-- documentation-only unless a tiny doc/test consistency helper is absolutely required
+- local-only and file-backed
+- idempotent on rerun
+- proposed/reviewable queue items only
+- no Codex CLI dispatch
+- no agent execution
+- no GitHub API, `gh`, GitHub issues, GitHub PRs, GitHub workflows, or GitHub mutation from the app
+- no external workflow execution
+- no unattended multi-item autonomous execution
+- no local LLM execution expansion or local LLM repo mutation
+
+Next recommended milestone:
+
+- M77 Codex CLI Dispatch Contract.
+
+## M75 Source-of-Truth Documentation and Roadmap Reconciliation
+
+Status: Completed on `main` in commit `7088204`.
+
+Purpose:
+
+- reconciled the major source-of-truth docs after M74
+- documented the current local-first, file-backed, operator-gated, preview-only, review-only state
+- prepared the next phase for self-management, future Codex CLI dispatch contracts, and future local LLM routing without adding execution behavior in M75
+
+Scope boundary:
+
+- documentation-only
 - no Codex CLI dispatch
 - no agent execution
 - no GitHub API, `gh`, GitHub issues, GitHub PRs, GitHub workflows, or GitHub mutation from the app
 - no external workflow execution
 - no unattended multi-item autonomous execution
 - no local LLM repo mutation
-
-## M76 Self-Seed AresForge as the First Managed Project
-
-Purpose: seed AresForge into its own local project registry and queue as the first managed self-project.
-
-Boundaries:
-
-- local-only and file-backed
-- no GitHub API, `gh`, issue, PR, workflow, or external workflow execution
-- no Codex dispatch or automatic agent execution
-- self-project entries must be reviewable before any future execution milestone consumes them
 
 ## M77 Codex CLI Dispatch Contract
 
