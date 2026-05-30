@@ -2,11 +2,51 @@
 
 ## Current Phase
 
-M126 implements the Agent Registry as a local-only declarative catalog of known AresForge agents. It lists supported agents, capabilities, inputs, outputs, scopes, safety classes, and autonomy levels without creating an execution workflow.
+M114 implements the Hub Dispatch Review Panel as a local-only, read-only review surface for dispatch artifacts and recommendations. The Hub may display local review records, but it must not execute Codex, Ollama, local LLMs, GitHub, agents, network calls, or patch application.
 
 ## Current Goal
 
-M126 adds `inspect-agent-registry` for local-only inspection of registered AresForge agents. The registry builds on the M125 runtime boundary and keeps `local_only=true`, `execution_allowed=false`, and `execution_performed=false`.
+M114 adds a `GET /api/dispatch-review` endpoint and Queue panel UI for manual dispatch preparation records, local LLM advisory artifacts, patch intake records, parsed dispatch evidence, and queue completion recommendations. The API returns `local_only=true`, `read_only=true`, and `execution_allowed=false`.
+
+## M114 Hub Dispatch Review Panel
+
+Status: Implemented locally on `main`; validation and completion evidence pending.
+
+Queue item: `m114-hub-dispatch-review-panel`.
+
+Implementation commit: pending.
+
+M114 adds:
+
+- `GET /api/dispatch-review`
+- optional `item_id` and `limit` query filters
+- Queue panel Dispatch Review section
+
+The panel shows:
+
+- item id
+- milestone
+- artifact type
+- artifact path and existence
+- blocked status and blocked reasons
+- next safe action
+- operator checklist
+- local-only, read-only, execution, queue mutation, and patch application flags
+
+Review sources:
+
+- manual dispatch preparation records
+- local LLM advisory request artifacts
+- patch proposal intake records
+- dispatch result evidence records
+- queue completion recommendation records
+
+Safety boundaries:
+
+- read-only Hub display and artifact scan only
+- no execution endpoints
+- no Codex, Codex CLI, Ollama, local LLM, documentation-agent, GitHub API, `gh`, network service, external-agent, workflow, issue, PR, or patch application behavior
+- no queue completion automation, approval mutation, handoff automation, or next-item execution
 
 ## M126 Agent Registry
 

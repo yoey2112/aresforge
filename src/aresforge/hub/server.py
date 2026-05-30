@@ -15,6 +15,7 @@ from aresforge.hub.api import (
     get_codex_cli_model_profiles,
     get_dashboard_summary,
     get_dispatch_approval_gates,
+    get_dispatch_review_panel,
     get_active_project,
     get_active_project_workspace,
     get_agent,
@@ -249,6 +250,16 @@ def _build_handler(config: AppConfig, static_root: Path) -> type[BaseHTTPRequest
                     config,
                     {
                         "approval_id": query_values.get("approval_id", [None])[0],
+                        "item_id": query_values.get("item_id", [None])[0],
+                        "limit": query_values.get("limit", [None])[0],
+                    },
+                )
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+            if method == "GET" and path == "/api/dispatch-review":
+                payload = get_dispatch_review_panel(
+                    config,
+                    {
                         "item_id": query_values.get("item_id", [None])[0],
                         "limit": query_values.get("limit", [None])[0],
                     },

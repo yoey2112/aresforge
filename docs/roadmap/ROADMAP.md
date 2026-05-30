@@ -1,5 +1,45 @@
 # AresForge Roadmap
 
+## M114 Hub Dispatch Review Panel
+
+Status: Implemented locally on `main`; validation and completion evidence pending.
+
+Queue item: `m114-hub-dispatch-review-panel`.
+
+Implementation commit: pending.
+
+Purpose:
+
+- add a read-only Hub surface for dispatch review artifacts
+- let operators inspect manual dispatch preparation, local LLM advisory, patch intake, parsed evidence, and completion recommendation records
+- keep all review actions local-only and advisory
+- preserve execution denial from the Hub
+
+Runnable operator surface:
+
+- Hub Queue panel Dispatch Review section
+- `GET /api/dispatch-review`
+- optional `item_id` and `limit` filters
+
+API behavior:
+
+- scans known local artifact folders
+- normalizes record type, item id, milestone, blocked status, next safe action, and operator checklist
+- returns stable JSON with `local_only=true`, `read_only=true`, and `execution_allowed=false`
+
+UI behavior:
+
+- shows dispatch review summary counts
+- lists review records with artifact type, item id, milestone, blocked status, status, next safe action, and local path
+- shows an operator checklist for human review
+- labels the panel local-only and operator-gated
+
+Constraints preserved:
+
+- no execution endpoints
+- no Codex, local LLM, Ollama, documentation-agent runtime, external-agent, GitHub API, `gh`, network, workflow, issue, PR, patch application, automatic queue mutation, automatic handoff, or next-item execution
+
+
 ## M126 Agent Registry
 
 Status: Completed locally on `main` after validation.

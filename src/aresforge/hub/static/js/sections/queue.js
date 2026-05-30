@@ -549,6 +549,13 @@ function buildDispatchApprovalGatesQuery() {
   });
 }
 
+function buildDispatchReviewQuery() {
+  return toQuery({
+    item_id: byId("queue-dispatch-review-item-id") && byId("queue-dispatch-review-item-id").value.trim(),
+    limit: byId("queue-dispatch-review-limit") && byId("queue-dispatch-review-limit").value.trim(),
+  });
+}
+
 function buildOperatorRunHistoryQuery() {
   return toQuery({
     project_id: byId("queue-operator-run-history-project-id") && byId("queue-operator-run-history-project-id").value.trim(),
@@ -777,6 +784,30 @@ function renderDispatchApprovalGates(payload) {
     "queue-dispatch-approval-gates-entries-empty",
     gates.map((entry) => `${entry.updated_at || entry.created_at || "-"} | ${entry.approval_id || "-"} | status=${entry.status || "-"} | item=${entry.item_id || "-"} | lane=${entry.dispatch_lane || "-"} | artifact=${entry.artifact_type || "-"} | execution_allowed=${Boolean(entry.execution_allowed)}`),
   );
+}
+
+function renderDispatchReviewPanel(payload) {
+  const categories = (payload && payload.categories) || {};
+  const categoryLines = Object.keys(categories).sort().map((key) => {
+    const category = categories[key] || {};
+    return `${key}: count=${category.count || 0} | blocked=${category.blocked || 0}`;
+  });
+  setList("queue-dispatch-review-summary", "queue-dispatch-review-summary-empty", [
+    `panel_type: ${payload && payload.panel_type ? payload.panel_type : "-"}`,
+    `record_count: ${payload && typeof payload.record_count === "number" ? payload.record_count : 0}`,
+    `local_only: ${Boolean(payload && payload.local_only)}`,
+    `read_only: ${Boolean(payload && payload.read_only)}`,
+    `execution_allowed: ${Boolean(payload && payload.execution_allowed)}`,
+    `queue_mutation_performed: ${Boolean(payload && payload.queue_mutation_performed)}`,
+    `patch_application_allowed: ${Boolean(payload && payload.patch_application_allowed)}`,
+    `next_safe_action: ${payload && payload.next_safe_action ? payload.next_safe_action : "-"}`,
+  ].concat(categoryLines).concat((payload && payload.warnings ? payload.warnings : []).map((warning) => `warning: ${warning}`)));
+  setList(
+    "queue-dispatch-review-records",
+    "queue-dispatch-review-records-empty",
+    ((payload && payload.records) || []).map((record) => `${record.updated_at || "-"} | ${record.artifact_type || "-"} | item=${record.item_id || "-"} | milestone=${record.milestone || "-"} | blocked=${Boolean(record.blocked)} | status=${record.status || "-"} | next safe action=${record.next_safe_action || "-"} | path=${record.artifact_path || "-"}`),
+  );
+  setList("queue-dispatch-review-checklist", "queue-dispatch-review-checklist-empty", (payload && payload.operator_checklist) || []);
 }
 
 function renderOperatorRunHistory(payload) {
@@ -1232,6 +1263,30 @@ export function bindQueueLifecycleActions({
       setMessage("queue-lifecycle-message", "Dispatch approval gates loaded. No execution performed.", "success");
     } catch (error) {
       renderDispatchApprovalGates((error && error.payload) || null);
+      setMessage("queue-lifecycle-message", String(error.message || error), "error");
+    } finally {
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = originalLabel;
+      }
+    }
+  });
+
+  on("queue-dispatch-review-form", "submit", async (event) => {
+    event.preventDefault();
+    const submitButton = byId("queue-dispatch-review-submit");
+    const originalLabel = submitButton ? submitButton.textContent : "";
+    try {
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = "Loading...";
+      }
+      setMessage("queue-lifecycle-message", "Loading dispatch review panel...", "loading");
+      const payload = await fetchJson(`/api/dispatch-review${buildDispatchReviewQuery()}`, { method: "GET" });
+      renderDispatchReviewPanel(payload);
+      setMessage("queue-lifecycle-message", "Dispatch review loaded. Local-only and no execution performed.", "success");
+    } catch (error) {
+      renderDispatchReviewPanel((error && error.payload) || null);
       setMessage("queue-lifecycle-message", String(error.message || error), "error");
     } finally {
       if (submitButton) {

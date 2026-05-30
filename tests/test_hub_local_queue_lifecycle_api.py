@@ -9,6 +9,7 @@ import threading
 from aresforge.config import AppConfig
 from aresforge.hub.server import _build_handler
 from aresforge.hub.api import (
+    get_dispatch_review_panel,
     get_local_queue_routing_dashboard,
     post_active_project,
     post_local_queue_item_routing_metadata,
@@ -150,6 +151,77 @@ def _write_local_llm_environment(repo_root: Path, *, execution_enabled: bool = F
         + "\n",
         encoding="utf-8",
     )
+
+
+def test_get_dispatch_review_panel_reads_local_review_artifacts(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    artifact_dir = tmp_path / "artifacts" / "queue_completion_recommendations"
+    artifact_dir.mkdir(parents=True, exist_ok=True)
+    artifact_dir.joinpath("m114.json").write_text(
+        json.dumps(
+            {
+                "recommendation_record_type": "queue_completion_recommendation",
+                "recommended_complete": True,
+                "blocked": False,
+                "blocked_reasons": [],
+                "item_id": "m114-hub-dispatch-review-panel",
+                "title": "M114 Hub Dispatch Review Panel",
+                "project_id": "aresforge",
+                "milestone": "m114",
+                "evidence_path": "artifacts/manual/sample-dispatch-evidence.json",
+                "evidence_valid": True,
+                "operator_decision_required": True,
+                "queue_mutation_performed": False,
+                "local_only": True,
+                "execution_allowed": False,
+                "next_safe_action": "Review locally before explicit completion.",
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
+    payload = get_dispatch_review_panel(
+        config,
+        {"item_id": "m114-hub-dispatch-review-panel", "limit": "10"},
+    )
+
+    assert payload["ok"] is True
+    assert payload["panel_type"] == "hub_dispatch_review_panel"
+    assert payload["local_only"] is True
+    assert payload["read_only"] is True
+    assert payload["execution_allowed"] is False
+    assert payload["queue_mutation_performed"] is False
+    assert payload["patch_application_allowed"] is False
+    assert payload["record_count"] == 1
+    assert payload["records"][0]["artifact_type"] == "queue_completion_recommendation"
+    assert payload["records"][0]["item_id"] == "m114-hub-dispatch-review-panel"
+    assert payload["records"][0]["milestone"] == "m114"
+    assert payload["records"][0]["blocked"] is False
+    assert payload["operator_checklist"]
+
+
+def test_dispatch_review_route_is_get_only_and_read_only(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    server, thread = _start_server(config)
+
+    try:
+        port = int(server.server_address[1])
+        status, payload = _request_json(port, "GET", "/api/dispatch-review?limit=5")
+
+        assert status == 200
+        assert payload["ok"] is True
+        assert payload["panel_type"] == "hub_dispatch_review_panel"
+        assert payload["local_only"] is True
+        assert payload["execution_allowed"] is False
+        assert payload["execution_performed"] is False
+        assert payload["queue_mutation_performed"] is False
+        assert payload["patch_application_allowed"] is False
+        assert "No execution endpoints are exposed by this panel." in payload["boundary_confirmations"]
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
 
 
 def test_post_local_queue_item_route_adds_item_with_active_project_defaults(tmp_path: Path) -> None:

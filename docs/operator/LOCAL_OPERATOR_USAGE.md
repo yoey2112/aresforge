@@ -1,5 +1,45 @@
 # Local Operator Usage
 
+## M114 Hub Dispatch Review Panel
+
+M114 adds a read-only Dispatch Review panel in the Hub Queue section. It displays local dispatch review artifacts and recommendations only. It does not execute Codex, Ollama, local LLMs, agents, GitHub, `gh`, network services, patch application, approval updates, queue completion, handoff automation, or follow-on work.
+
+Hub API:
+
+    GET /api/dispatch-review
+    GET /api/dispatch-review?item_id=<item_id>&limit=25
+
+The API returns:
+
+- `panel_type=hub_dispatch_review_panel`
+- `local_only=true`
+- `read_only=true`
+- `execution_allowed=false`
+- `queue_mutation_performed=false`
+- `patch_application_allowed=false`
+- source directories
+- category counts
+- normalized review records
+- operator checklist
+- next safe action
+
+Review record sources:
+
+- manual dispatch preparation records
+- local LLM advisory artifacts
+- patch intake records
+- parsed dispatch evidence
+- queue completion recommendations
+
+Operator workflow:
+
+- open Hub Queue
+- load Dispatch Review
+- optionally filter by item id
+- review artifact type, milestone, blocked status, next safe action, and checklist
+- use explicit local-only operator commands for any later action
+
+
 ## M126 Agent Registry
 
 M126 inspects the local declarative registry of known AresForge agents. It does not execute agents, invoke Codex, invoke Ollama or local LLMs, run documentation agents, call GitHub, call `gh`, call network services, apply patches, mutate queue state, create autonomous workflows, or start follow-on work.

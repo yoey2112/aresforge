@@ -1,5 +1,38 @@
 # AresForge Agent Context
 
+## M114 Hub Dispatch Review Panel Context
+
+Status: Implemented locally on `main`; validation and completion evidence pending.
+
+Queue item: `m114-hub-dispatch-review-panel`.
+
+Implementation commit: pending.
+
+M114 adds a read-only Hub dispatch review surface:
+
+- `GET /api/dispatch-review`
+- Queue panel Dispatch Review section
+
+The panel normalizes local review records for:
+
+- manual dispatch preparation
+- local LLM advisory request artifacts
+- patch proposal intake records
+- dispatch result evidence
+- queue completion recommendations
+
+Each normalized record exposes item id, title, project id, milestone, artifact type, artifact path, blocked status, blocked reasons, status, next safe action, and operator checklist entries. The API and UI preserve `local_only=true`, `read_only=true`, `execution_allowed=false`, `queue_mutation_performed=false`, and `patch_application_allowed=false`.
+
+M114 boundaries:
+
+- no execution endpoints
+- no Codex execution
+- no Codex CLI shell-out
+- no local LLM or Ollama invocation
+- no documentation-agent runtime, GitHub API, `gh`, network service, external-agent, workflow, issue, PR, or patch application behavior
+- no queue completion, approval mutation, automatic handoff, or next-item execution
+
+
 ## M126 Agent Registry Context
 
 Status: Completed locally on `main` after validation.

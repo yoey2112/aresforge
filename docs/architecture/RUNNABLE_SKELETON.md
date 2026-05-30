@@ -1,5 +1,56 @@
 # Runnable Skeleton
 
+## M114 Hub Dispatch Review Panel
+
+M114 adds a local-only, read-only Hub review surface:
+
+- Hub Queue panel Dispatch Review section
+- `GET /api/dispatch-review`
+- optional `item_id` and `limit` filters
+
+Runnable behavior:
+
+- scans known local artifact directories
+- reads local JSON review artifacts
+- normalizes manual dispatch preparation, local LLM advisory request, patch intake, dispatch evidence, and queue completion recommendation records
+- emits stable Hub JSON
+- displays records in the Queue panel
+- preserves `local_only=true`, `read_only=true`, `execution_allowed=false`, `queue_mutation_performed=false`, and `patch_application_allowed=false`
+
+Stable panel fields:
+
+- `panel_type`
+- `panel_version`
+- `generated_at`
+- `local_only`
+- `read_only`
+- `execution_allowed`
+- `execution_performed`
+- `queue_mutation_performed`
+- `network_execution_performed`
+- `patch_application_allowed`
+- `patch_application_performed`
+- `filters`
+- `source_directories`
+- `record_count`
+- `categories`
+- `records`
+- `operator_checklist`
+- `warnings`
+- `next_safe_action`
+
+Still absent by design:
+
+- execution endpoints
+- Codex execution or Codex CLI shell-out
+- local LLM or Ollama invocation
+- documentation-agent execution or apply mode
+- GitHub API, `gh`, issues, PRs, workflows, network calls, or external services
+- external agent execution
+- patch application
+- queue mutation, approval mutation, automatic handoff, automatic completion, or next-item execution
+
+
 ## M126 Agent Registry
 
 M126 adds a local-only declarative registry inspection command:

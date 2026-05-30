@@ -1177,6 +1177,19 @@
                 <p id="queue-dispatch-approval-gates-summary-empty" class="empty">No approval gate registry loaded yet.</p>
                 <ul id="queue-dispatch-approval-gates-entries" class="list"></ul>
                 <p id="queue-dispatch-approval-gates-entries-empty" class="empty">No approval gate records to show.</p>
+                <h4>Dispatch Review Panel</h4>
+                <p class="message-note">Read-only local dispatch review across manual dispatch preparation records, local LLM advisory artifacts, patch intake records, parsed dispatch evidence, and queue completion recommendations. Local-only and operator-gated: no Codex, Ollama, local LLM, GitHub, agent, network, patch application, or queue completion execution.</p>
+                <form id="queue-dispatch-review-form" class="form-grid">
+                  <label>Item ID<input id="queue-dispatch-review-item-id" name="item_id" placeholder="optional item filter" /></label>
+                  <label>Limit<input id="queue-dispatch-review-limit" name="limit" placeholder="25" /></label>
+                  <button id="queue-dispatch-review-submit" type="submit">Load Dispatch Review</button>
+                </form>
+                <ul id="queue-dispatch-review-summary" class="list"></ul>
+                <p id="queue-dispatch-review-summary-empty" class="empty">No dispatch review snapshot loaded yet.</p>
+                <ul id="queue-dispatch-review-records" class="list"></ul>
+                <p id="queue-dispatch-review-records-empty" class="empty">No dispatch review records to show.</p>
+                <ul id="queue-dispatch-review-checklist" class="list"></ul>
+                <p id="queue-dispatch-review-checklist-empty" class="empty">No operator checklist loaded yet.</p>
                 <h4>Operator Run History</h4>
                 <p class="message-note">Read-only timeline combining execution audit entries and AI artifact registry records. No execution, apply, GitHub, Codex, or local LLM run controls.</p>
                 <form id="queue-operator-run-history-form" class="form-grid">

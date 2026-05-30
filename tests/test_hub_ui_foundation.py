@@ -472,6 +472,12 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "It groups safety status, gate status, no automatic execution, no repo mutation, and next safe action labels" in index_text
     assert "It does not execute agents, Codex, local LLMs, GitHub actions, workflows, or repo mutations" in index_text
     assert "No execution controls" in index_text
+    assert "Dispatch Review Panel" in index_text
+    assert "queue-dispatch-review-form" in index_text
+    assert "queue-dispatch-review-records" in index_text
+    assert "queue-dispatch-review-checklist" in index_text
+    assert "manual dispatch preparation records, local LLM advisory artifacts, patch intake records, parsed dispatch evidence, and queue completion recommendations" in index_text
+    assert "Local-only and operator-gated: no Codex, Ollama, local LLM, GitHub, agent, network, patch application, or queue completion execution" in index_text
     assert "buildCodexHighValuePromptPayload" in queue_js
     assert "renderCodexHighValuePromptResult" in queue_js
     assert "buildExecutionAuditQuery" in queue_js
@@ -482,6 +488,11 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "renderOperatorRunHistory" in queue_js
     assert "buildAiActionReviewQuery" in queue_js
     assert "renderAiActionReview" in queue_js
+    assert "buildDispatchReviewQuery" in queue_js
+    assert "renderDispatchReviewPanel" in queue_js
+    assert "/api/dispatch-review" in queue_js
+    assert "/api/dispatch-review${buildDispatchReviewQuery()}`" in queue_js
+    assert "/api/dispatch-review\", {\n        method: \"POST\"" not in queue_js
     assert "safety status=${entry.safety_status" in queue_js
     assert "gate status=${entry.gate_status" in queue_js
     assert "no automatic execution=${Boolean(entry.no_automatic_execution_flag)}" in queue_js
@@ -683,6 +694,7 @@ def test_frontend_scripts_reference_m39_api_endpoints_and_forms() -> None:
         "/api/local-queue/prompt-pack",
         "/api/execution-audit-log",
         "/api/ai-artifacts",
+        "/api/dispatch-review",
         "/api/operator-run-history",
         "/evidence",
         "/closeout",
@@ -725,6 +737,7 @@ def test_frontend_scripts_reference_m39_api_endpoints_and_forms() -> None:
         "queue-lifecycle-add-form",
         "queue-lifecycle-codex-form",
         "queue-prompt-pack-form",
+        "queue-dispatch-review-form",
         "queue-lifecycle-evidence-form",
         "queue-lifecycle-closeout-form",
         "queue-lifecycle-complete-form",

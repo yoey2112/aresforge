@@ -14,6 +14,7 @@ from aresforge.operator.local_active_project import inspect_active_project, set_
 from aresforge.operator.local_ai_action_safety import evaluate_ai_action_safety_gate
 from aresforge.operator.local_ai_artifacts import filter_ai_artifacts
 from aresforge.operator.dispatch_approval_gate import inspect_dispatch_approval_gate
+from aresforge.operator.hub_dispatch_review import build_hub_dispatch_review_panel
 from aresforge.operator.local_execution_audit import filter_execution_audit_log
 from aresforge.operator.local_operator_run_history import read_ai_action_review_panel, read_operator_run_history
 from aresforge.operator.local_project_queue import (
@@ -692,6 +693,34 @@ def get_dispatch_approval_gates(config: AppConfig, params: dict[str, str | None]
         "Dispatch approval gate Hub panel is read-only and never executes approved artifacts.",
     )
     return gate_payload
+
+
+def get_dispatch_review_panel(config: AppConfig, params: dict[str, str | None]) -> dict[str, Any]:
+    limit_value = _normalize_optional_str(params.get("limit"))
+    limit: int | None = None
+    if limit_value is not None:
+        try:
+            limit = int(limit_value)
+        except ValueError:
+            return _api_error("invalid_limit", "limit must be an integer.", details={"limit": limit_value})
+        if limit <= 0:
+            return _api_error("invalid_limit", "limit must be greater than zero.", details={"limit": limit_value})
+
+    payload = build_hub_dispatch_review_panel(
+        config,
+        item_id=_normalize_optional_str(params.get("item_id")),
+        limit=limit,
+    )
+    payload["service"] = SERVICE_NAME
+    payload["hub_read_only"] = True
+    payload["local_only"] = True
+    payload["execution_allowed"] = False
+    payload["boundary_confirmations"] = _merge_boundary_confirmations(
+        payload,
+        "Dispatch review API is read-only and advisory.",
+        "No execution endpoints are exposed by this panel.",
+    )
+    return payload
 
 
 def get_operator_run_history(config: AppConfig, params: dict[str, str | None]) -> dict[str, Any]:
