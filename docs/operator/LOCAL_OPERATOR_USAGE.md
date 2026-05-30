@@ -1,5 +1,29 @@
 # Local Operator Usage
 
+## M128 Agent Orchestration Plan Builder
+
+M128 builds a machine-readable orchestration plan for one local queue item. It does not execute agents, Codex, Ollama, local LLMs, remote LLMs, GitHub, `gh`, network services, validation commands, patches, queue mutation, source mutation, autonomous execution, or follow-on work.
+
+JSON plan:
+
+    python -m aresforge build-agent-orchestration-plan --item-id <item_id> --format json
+
+Use an explicit primary agent and execution target:
+
+    python -m aresforge build-agent-orchestration-plan --item-id <item_id> --agent-id validation-agent --execution-target dry-run --format json
+
+Write a local plan:
+
+    python -m aresforge build-agent-orchestration-plan --item-id <item_id> --format json --output artifacts/orchestration-plans/<item_id>.json
+
+Overwrite only with explicit force:
+
+    python -m aresforge build-agent-orchestration-plan --item-id <item_id> --format json --output artifacts/orchestration-plans/<item_id>.json --force
+
+The output includes `plan_type=agent_orchestration_plan`, queue identity, requested and recommended execution targets, ordered agent steps, required artifacts, dependency checks, machine gates, blocked reasons, `autonomy_level`, `execution_performed=false`, `local_only=true`, and `next_safe_action`.
+
+Real execution requests are blocked in M128. Use the output as planning metadata only until a later explicit operator-approved runner exists.
+
 ## M127 LLM Decision Policy v1
 
 M127 recommends which LLM/provider/lane should be used for a queue item or agent task. It does not execute Codex, local LLMs, remote LLMs, Ollama, agents, GitHub, `gh`, network services, validation commands, patches, queue mutation, source mutation, autonomous execution, or follow-on work.

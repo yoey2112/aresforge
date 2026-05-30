@@ -8,6 +8,43 @@ M127 implements the LLM Decision Policy v1 as a local-only recommendation layer 
 
 M127 adds `recommend-llm-decision --item-id <id> --format json`. The command emits machine-readable `llm_decision_policy_v1` records with `execution_performed=false`, `local_only` decision metadata, human/machine gate flags, risk assessment, alternatives, and next safe action.
 
+## M128 Agent Orchestration Plan Builder
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m128-agent-orchestration-plan-builder`.
+
+M128 adds:
+
+- `build-agent-orchestration-plan --item-id <item_id> --format json`
+- optional `--agent-id`, `--execution-target dry-run|real`, `--queue-path`, `--output`, and `--force`
+- machine-readable `agent_orchestration_plan` records
+
+Plan behavior:
+
+- reads one local queue item
+- reads the M126 declarative agent registry
+- reads the M127 LLM decision policy recommendation
+- chooses an ordered set of agent steps
+- records required artifacts, dependency checks, machine gates, blocked state, blocked reasons, autonomy level, and next safe action
+- refuses output overwrite unless `--force` is explicit
+- blocks `--execution-target real` because no M128 runner exists
+
+Validation:
+
+- `python -m pytest tests/test_cli.py` passed (`198 passed`)
+- `python -m pytest tests/test_agent_orchestration_plan_builder.py` passed (`6 passed`)
+- `python -m pytest tests/test_llm_decision_policy.py` passed (`7 passed`)
+- `python -m pytest tests/test_agent_registry.py` passed (`9 passed`)
+- `git diff --check` passed with CRLF warnings only
+- smoke checks passed for `build-agent-orchestration-plan`, `inspect-local-project-report`, and `inspect-local-queue-agent-summary`
+
+Safety boundaries:
+
+- no agent execution
+- no Codex, Codex CLI, Ollama, local LLM, remote LLM, documentation-agent runtime, GitHub API, `gh`, network service, workflow, patch application, source mutation, queue mutation from the plan, validation command execution, autonomous execution, or next-item execution
+- future runners must be separate explicit operator-approved milestones
+
 ## M127 LLM Decision Policy v1
 
 Status: Completed locally on `main` after validation.

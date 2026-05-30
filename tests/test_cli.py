@@ -5368,6 +5368,85 @@ def test_recommend_llm_decision_dispatch_json(
     }
 
 
+def test_build_agent_orchestration_plan_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "plan_type": "agent_orchestration_plan",
+                "generated": True,
+                "item_id": "m128",
+                "requested_execution_target": "dry-run",
+                "recommended_execution_target": "dry-run",
+                "steps": [],
+                "execution_performed": False,
+                "local_only": True,
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_build(
+        _config,
+        *,
+        item_id,
+        agent_id=None,
+        execution_target="dry-run",
+        queue_path=None,
+        output=None,
+        force=False,
+        output_format="json",
+    ):
+        seen["item_id"] = item_id
+        seen["agent_id"] = agent_id
+        seen["execution_target"] = execution_target
+        seen["queue_path"] = queue_path
+        seen["output"] = output
+        seen["force"] = force
+        seen["output_format"] = output_format
+        return payload
+
+    monkeypatch.setattr(cli, "build_agent_orchestration_plan", fake_build)
+    exit_code = cli.main(
+        [
+            "build-agent-orchestration-plan",
+            "--item-id",
+            "m128",
+            "--agent-id",
+            "documentation-agent",
+            "--execution-target",
+            "dry-run",
+            "--queue-path",
+            ".aresforge/queue/work_items.json",
+            "--output",
+            "artifacts/orchestration-plans/m128.json",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["plan_type"] == "agent_orchestration_plan"
+    assert parsed["execution_performed"] is False
+    assert seen == {
+        "item_id": "m128",
+        "agent_id": "documentation-agent",
+        "execution_target": "dry-run",
+        "queue_path": ".aresforge/queue/work_items.json",
+        "output": "artifacts/orchestration-plans/m128.json",
+        "force": True,
+        "output_format": "json",
+    }
+
+
 def test_prepare_local_llm_advisory_run_dispatch_json(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:

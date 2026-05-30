@@ -1,5 +1,30 @@
 # AresForge Roadmap
 
+## M128 Agent Orchestration Plan Builder
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m128-agent-orchestration-plan-builder`.
+
+Purpose:
+
+- convert one local queue item into an ordered machine-readable agent orchestration plan
+- combine queue metadata, the M126 agent registry, and the M127 LLM decision policy
+- surface required artifacts, dependency checks, machine gates, blocked reasons, autonomy level, and next safe action
+- keep orchestration plan generation separate from runtime execution
+
+Runnable operator surface:
+
+- `python -m aresforge build-agent-orchestration-plan --item-id <item_id> --format json`
+- optional `--agent-id`, `--execution-target dry-run|real`, `--output`, and `--force`
+
+Constraints preserved:
+
+- plan-only
+- `execution_performed=false`
+- real execution target requests block and recommend dry-run
+- no agent execution, Codex, local LLM, Ollama, remote LLM, GitHub API, `gh`, network service, validation command execution, patch application, source mutation, queue mutation from the plan, autonomous execution, or next-item execution
+
 ## M127 LLM Decision Policy v1
 
 Status: Completed locally on `main` after validation.

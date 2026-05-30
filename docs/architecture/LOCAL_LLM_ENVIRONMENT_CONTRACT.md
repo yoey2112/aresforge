@@ -80,6 +80,8 @@ M126 adds the local Agent Registry. The `local-llm-advisory-agent` record declar
 
 M127 adds LLM Decision Policy v1. The policy may recommend local reasoning or local coding review lanes from queue and agent metadata, but it does not read visible model lists, call Ollama, list models, send prompts, run inference, execute routing, execute agents, execute Codex, call GitHub/`gh`, make network calls, apply patches, mutate queue state, or authorize provider execution. Local LLM-related recommendations remain advisory inputs for later explicit artifacts or operator-approved runners only.
 
+M128 adds the Agent Orchestration Plan Builder. It may place `local-llm-advisory-agent` in an ordered plan when M127 recommends local reasoning or coding review, but the step is metadata only. M128 does not call Ollama, list models, send prompts, run inference, execute agents, execute Codex, call GitHub/`gh`, make network calls, apply patches, mutate queue state, or authorize provider execution. Real execution target requests are blocked and reduced to a dry-run recommendation until a later explicit runner exists.
+
 ## Storage
 
 The contract is stored locally at:

@@ -1,5 +1,33 @@
 # Runnable Skeleton
 
+## M128 Agent Orchestration Plan Builder
+
+M128 adds a local-only orchestration plan builder command:
+
+- `python -m aresforge build-agent-orchestration-plan --item-id <item_id> --format json`
+- optional `--agent-id`, `--execution-target dry-run|real`, `--queue-path`, `--output`, and `--force`
+
+Runnable behavior:
+
+- reads one local queue item
+- reads the M126 declarative agent registry
+- reads the M127 LLM decision policy recommendation for the item
+- emits an ordered `agent_orchestration_plan`
+- records required artifacts, dependency checks, machine gates, blocked reasons, and next safe action
+- refuses to overwrite output files unless `--force` is explicit
+- preserves `execution_performed=false`
+
+Still absent by design:
+
+- agent execution
+- Codex execution or Codex CLI shell-out
+- Ollama/local LLM prompt execution
+- remote LLM execution
+- GitHub API, `gh`, issues, PRs, workflows, network calls, or external services
+- validation command execution
+- patch application
+- source mutation, queue mutation, automatic handoff, automatic completion, autonomous execution, or next-item execution
+
 ## M127 LLM Decision Policy v1
 
 M127 adds a local-only recommendation command:

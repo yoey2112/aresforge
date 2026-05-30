@@ -250,6 +250,7 @@ from aresforge.operator.safe_dispatch_handoff import generate_safe_dispatch_hand
 from aresforge.operator.manual_codex_dispatch_runner import prepare_manual_codex_dispatch
 from aresforge.operator.agent_runtime_boundary import inspect_agent_runtime_boundary
 from aresforge.operator.agent_registry import inspect_agent_registry
+from aresforge.operator.agent_orchestration_plan_builder import build_agent_orchestration_plan
 from aresforge.operator.llm_decision_policy import recommend_llm_decision
 from aresforge.operator.single_ready_codex_queue_item import run_single_ready_codex_queue_item
 from aresforge.operator.local_agent_profiles import (
@@ -1872,6 +1873,25 @@ def build_parser() -> argparse.ArgumentParser:
     recommend_llm_decision_parser.add_argument("--output")
     recommend_llm_decision_parser.add_argument("--force", action="store_true")
     recommend_llm_decision_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+    )
+    build_agent_orchestration_plan_parser = subparsers.add_parser(
+        "build-agent-orchestration-plan",
+        help="Build an M128 non-executing agent orchestration plan for one queue item.",
+    )
+    build_agent_orchestration_plan_parser.add_argument("--item-id", required=True)
+    build_agent_orchestration_plan_parser.add_argument("--agent-id")
+    build_agent_orchestration_plan_parser.add_argument(
+        "--execution-target",
+        choices=["dry-run", "real"],
+        default="dry-run",
+    )
+    build_agent_orchestration_plan_parser.add_argument("--queue-path")
+    build_agent_orchestration_plan_parser.add_argument("--output")
+    build_agent_orchestration_plan_parser.add_argument("--force", action="store_true")
+    build_agent_orchestration_plan_parser.add_argument(
         "--format",
         choices=["json"],
         default="json",
@@ -4569,6 +4589,23 @@ def main(argv: list[str] | None = None) -> int:
             task_type=args.task_type,
             risk_level=args.risk_level,
             mutation_scope=args.mutation_scope,
+            queue_path=args.queue_path,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "build-agent-orchestration-plan":
+        payload = build_agent_orchestration_plan(
+            config,
+            item_id=args.item_id,
+            agent_id=args.agent_id,
+            execution_target=args.execution_target,
             queue_path=args.queue_path,
             output=args.output,
             force=bool(args.force),
