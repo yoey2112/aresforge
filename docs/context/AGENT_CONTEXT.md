@@ -2,7 +2,7 @@
 
 ## M83 Local LLM Provider Contract Context
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main`.
 
 Current provider contract scope:
 
