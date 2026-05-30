@@ -1,5 +1,66 @@
 # Local Operator Usage
 
+## M98 Codex Prompt Dispatch Artifact Generator v1
+
+M98 generates local Codex prompt dispatch artifacts from M97 plans. It is manual/operator-gated and never executes Codex.
+
+Inspect the dispatch plan first:
+
+    python -m aresforge inspect-queue-dispatch-plan --item-id <item_id>
+    python -m aresforge inspect-queue-dispatch-plan --item-id <item_id> --format json
+
+Generate a readable prompt artifact to console:
+
+    python -m aresforge generate-codex-dispatch-artifact --item-id <item_id>
+
+Generate JSON:
+
+    python -m aresforge generate-codex-dispatch-artifact --item-id <item_id> --format json
+
+Write a local artifact file:
+
+    python -m aresforge generate-codex-dispatch-artifact --item-id <item_id> --output artifacts/codex_prompt_dispatch/generated/<item_id>.txt
+
+Overwrite only with explicit force:
+
+    python -m aresforge generate-codex-dispatch-artifact --item-id <item_id> --output artifacts/codex_prompt_dispatch/generated/<item_id>.txt --force
+
+M98 only generates when the M97 plan has:
+
+- `selected_lane: codex_prompt_artifact`
+- `local_only: true`
+- `execution_allowed: false`
+- no blocked reasons
+
+M98 blocks without prompt text for:
+
+- `local_llm_advisory`
+- `local_llm_coding_draft`
+- `documentation_agent_dry_run`
+- `human_only_manual`
+- any plan with blocked reasons
+- any plan where `local_only` is not true
+- any plan where `execution_allowed` is not false
+
+Operator workflow:
+
+- inspect dispatch plan
+- generate Codex prompt artifact
+- review artifact locally
+- manually copy/paste into Codex only after approval
+- paste final Codex results back into the existing queue completion evidence process
+
+M98 boundaries:
+
+- no Codex execution
+- no Ollama or local LLM invocation
+- no documentation-agent execution
+- no GitHub API, `gh`, issues, PRs, workflows, or network calls
+- no external agents
+- no patch application
+- no automatic queue start, completion, dispatch, or next-item execution
+- generated artifacts must clearly preserve `execution_allowed=false`
+
 ## M97 Queue-to-Agent Dispatch Plan Contract
 
 M97 is completed locally and recorded in the queue as `done`.

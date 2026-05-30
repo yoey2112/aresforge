@@ -22,6 +22,8 @@ M96 is post-sprint planning and prioritization. It does not add routing runtime,
 
 M97 adds the first queue-to-agent dispatch plan contract. It wraps queue readiness and M80/M86 routing confidence into a local-only advisory payload with one selected lane, planned artifact intent, approval gates, blocked reasons, and `execution_allowed: false`. Its lanes are `codex_prompt_artifact`, `local_llm_advisory`, `local_llm_coding_draft`, `documentation_agent_dry_run`, and `human_only_manual`. Low-confidence, blocked, missing, or unclear items fall back to `human_only_manual`. M97 does not dispatch prompts, call Codex, invoke local LLMs, execute agents, or mutate queue/source state.
 
+M98 adds the Codex prompt dispatch artifact generator for the `codex_prompt_artifact` lane only. It consumes or derives the M97 plan, blocks all non-Codex lanes, blocks unsafe plan flags, and emits manual/operator-gated prompt text or a local file. It does not execute Codex, invoke local LLMs, execute documentation agents, apply patches, call GitHub/`gh`, make network calls, or mutate queue state.
+
 Current prompt-pack and Codex high-value lane behavior are advisory prompt generation/manual handoff only. Runtime routing execution, Codex dispatch, Codex CLI invocation, real agent execution, external workflow execution, and GitHub integration remain unimplemented. Local LLM execution exists only as the M62 operator-gated local prototype and remains local-only, advisory-only, prototype-scoped, and non-mutating.
 
 ## M75 Source-of-Truth and Next Decision Matrix Direction

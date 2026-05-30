@@ -1,5 +1,33 @@
 # AresForge Roadmap
 
+## M98 Codex Prompt Dispatch Artifact Generator v1
+
+Status: In progress locally on `main`.
+
+Queue item: `m98-codex-prompt-dispatch-artifact-generator`.
+
+Purpose:
+
+- consume or derive the M97 queue-to-agent dispatch plan
+- generate a copy/paste-ready Codex prompt artifact only for `codex_prompt_artifact`
+- support readable console output, JSON output, and optional local file output
+- preserve manual/operator-gated review before any Codex session
+
+Constraints preserved:
+
+- `local_only` remains true and `execution_allowed` remains false
+- non-Codex lanes are blocked with clear reasons and no prompt text
+- blocked M97 plans, non-local plans, or execution-allowed plans cannot generate artifacts
+- no Codex, Ollama, local LLM, documentation-agent, external-agent, GitHub API, `gh`, network, workflow, issue creation, patch application, queue completion, or next-item execution occurs
+
+Operator workflow:
+
+- inspect M97 dispatch plan
+- generate M98 Codex prompt artifact
+- review the prompt artifact locally
+- manually copy/paste into Codex only after approval
+- return final Codex results to the existing queue completion evidence process
+
 ## M97 Queue-to-Agent Dispatch Plan Contract
 
 Status: Completed locally on `main`.
@@ -73,9 +101,9 @@ Define a queue-to-agent dispatch plan payload that maps a selected queue item to
 
 ### M98 Codex Prompt Dispatch Artifact Generator v1
 
-Status: Planned.
+Status: In progress locally.
 
-Generate local Codex prompt dispatch artifacts from queue items and M97 plans without invoking Codex. Artifacts should be reviewable, checksumable, and clearly marked non-executing.
+Generate local Codex prompt dispatch artifacts from queue items and M97 plans without invoking Codex. Artifacts are reviewable, manual/operator-gated, clearly marked non-executing, and blocked for non-Codex lanes.
 
 ### M99 Local LLM Advisory Execution Dry-Run Validator
 

@@ -58,6 +58,7 @@ def test_cli_has_expected_commands() -> None:
         "prepare-codex-dispatch-dry-run",
         "prepare-queue-item-dispatch",
         "inspect-queue-dispatch-plan",
+        "generate-codex-dispatch-artifact",
         "inspect-llm-decision-matrix",
         "inspect-local-llm-provider-contract",
         "run-single-ready-codex-queue-item",
@@ -5781,6 +5782,104 @@ def test_inspect_queue_dispatch_plan_dispatch_markdown(
     assert exit_code == 0
     assert "selected_lane: documentation_agent_dry_run" in output
     assert "next_safe_action: Review this plan." in output
+
+
+def test_generate_codex_dispatch_artifact_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "generated": True,
+                "blocked": False,
+                "item_id": "m98",
+                "selected_lane": "codex_prompt_artifact",
+                "output_path": "",
+                "local_only": True,
+                "execution_allowed": False,
+                "next_safe_action": "Review the generated prompt.",
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_generate(
+        _config,
+        item_id,
+        queue_path=None,
+        registry_path=None,
+        output=None,
+        force=False,
+        output_format="markdown",
+    ):
+        seen["item_id"] = item_id
+        seen["queue_path"] = queue_path
+        seen["registry_path"] = registry_path
+        seen["output"] = output
+        seen["force"] = force
+        seen["output_format"] = output_format
+        return payload
+
+    monkeypatch.setattr(cli, "generate_codex_prompt_dispatch_artifact", fake_generate)
+    exit_code = cli.main(
+        [
+            "generate-codex-dispatch-artifact",
+            "--item-id",
+            "m98",
+            "--queue-path",
+            "queue.json",
+            "--registry-path",
+            "projects.json",
+            "--output",
+            "artifacts/codex_prompt_dispatch/generated/m98.txt",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["generated"] is True
+    assert parsed["execution_allowed"] is False
+    assert seen == {
+        "item_id": "m98",
+        "queue_path": "queue.json",
+        "registry_path": "projects.json",
+        "output": "artifacts/codex_prompt_dispatch/generated/m98.txt",
+        "force": True,
+        "output_format": "json",
+    }
+
+
+def test_generate_codex_dispatch_artifact_dispatch_markdown(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "markdown",
+        "wrote_output_file": False,
+        "stdout": "# Codex Dispatch Artifact Generator\n\n- generated: True\n- selected_lane: codex_prompt_artifact\n",
+        "payload": {},
+    }
+    monkeypatch.setattr(
+        cli,
+        "generate_codex_prompt_dispatch_artifact",
+        lambda _config, item_id, queue_path=None, registry_path=None, output=None, force=False, output_format="markdown": payload,
+    )
+
+    exit_code = cli.main(["generate-codex-dispatch-artifact", "--item-id", "m98"])
+    output = capsys.readouterr().out
+
+    assert exit_code == 0
+    assert "generated: True" in output
+    assert "selected_lane: codex_prompt_artifact" in output
 
 
 def test_approve_codex_dispatch_dispatch_json(

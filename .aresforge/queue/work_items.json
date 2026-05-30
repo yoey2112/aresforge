@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T15:29:04.509940+00:00",
+  "updated_at": "2026-05-30T15:39:32.394963+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -1992,6 +1992,60 @@
       "closeout_history": [],
       "created_at": "2026-05-30T15:25:35.208916+00:00",
       "updated_at": "2026-05-30T15:29:04.509940+00:00"
+    },
+    {
+      "item_id": "m98-codex-prompt-dispatch-artifact-generator",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M98 Codex Prompt Dispatch Artifact Generator v1",
+      "description": "Create a local-only Codex prompt dispatch artifact generator that consumes the M97 queue-to-agent dispatch plan and writes or prints manual/operator-gated Codex prompt artifacts only for the codex_prompt_artifact lane.",
+      "status": "in_progress",
+      "priority": "high",
+      "item_type": "feature",
+      "tags": [
+        "milestone:m98",
+        "codex-prompt-artifact",
+        "local-only"
+      ],
+      "dependencies": [
+        "m97-queue-to-agent-dispatch-plan-contract"
+      ],
+      "blocked_by": [],
+      "assigned_agent": "",
+      "source": "local_operator",
+      "notes": "Acceptance criteria: consumes or derives the M97 dispatch plan; generates copy/paste-ready Codex prompt artifacts only for codex_prompt_artifact; blocks local_llm_advisory, local_llm_coding_draft, documentation_agent_dry_run, and human_only_manual lanes; blocks if plan has blocked reasons, local_only is not true, or execution_allowed is not false; supports readable and JSON CLI output; optional file output is overwrite-safe; no Codex execution, Ollama, GitHub API, gh, network calls, external agents, patch application, issue creation, automatic queue mutation, or automatic next-item execution.",
+      "started_at": "2026-05-30T15:39:32.394963+00:00",
+      "started_via": "local_operator",
+      "previous_status": "proposed",
+      "completed_at": "",
+      "completed_by": "",
+      "completion_commit": "",
+      "validation_summary": "",
+      "evidence_note": "",
+      "tests_run": [],
+      "changed_files": [],
+      "artifact_paths": [],
+      "completion_evidence": {},
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-30T15:39:28.911991+00:00",
+      "updated_at": "2026-05-30T15:39:32.394963+00:00"
     }
   ]
 }

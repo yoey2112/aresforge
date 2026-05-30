@@ -48,6 +48,8 @@ M96 is post-sprint planning and prioritization. It does not add local LLM provid
 
 M97 adds a queue-to-agent dispatch plan contract that may select `local_llm_advisory` or `local_llm_coding_draft` as advisory future lanes. That selection is metadata only. M97 does not call Ollama, check model inference, send prompts, invoke local advisory or coding draft runs, apply patches, mutate queue state, or complete work. Any future local LLM dry-run validation remains M99 or later and requires explicit operator approval.
 
+M98 adds Codex prompt artifact generation only for the M97 `codex_prompt_artifact` lane. It explicitly blocks `local_llm_advisory` and `local_llm_coding_draft`, does not call Ollama, does not invoke provider health or inference endpoints, and does not authorize local LLM advisory or coding draft execution. M99 remains the planned local LLM dry-run validation milestone.
+
 ## Storage
 
 The contract is stored locally at:

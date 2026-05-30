@@ -1,5 +1,50 @@
 # AresForge Agent Context
 
+## M98 Codex Prompt Dispatch Artifact Generator Context
+
+Status: In progress locally on `main`.
+
+Queue item: `m98-codex-prompt-dispatch-artifact-generator`.
+
+M98 builds on M97 by generating a local Codex prompt artifact only when the M97 selected lane is `codex_prompt_artifact` and the plan remains safe:
+
+- `local_only: true`
+- `execution_allowed: false`
+- no dispatch-plan blocked reasons
+- selected lane exactly `codex_prompt_artifact`
+
+Primary command:
+
+- `python -m aresforge generate-codex-dispatch-artifact --item-id <item_id> [--format json|markdown] [--output <path>] [--force]`
+
+M98 artifact boundaries:
+
+- prompt artifacts are manual/operator-gated and copy/paste-only
+- no Codex execution
+- no Ollama or local LLM invocation
+- no documentation-agent execution
+- no GitHub API, `gh`, issues, PRs, workflows, or network calls
+- no external agents
+- no patch application
+- no automatic queue start, completion, dispatch, or next-item execution
+
+Blocked lanes:
+
+- `local_llm_advisory`
+- `local_llm_coding_draft`
+- `documentation_agent_dry_run`
+- `human_only_manual`
+
+Operator workflow:
+
+- inspect the M97 dispatch plan
+- generate the M98 Codex prompt artifact
+- review the artifact locally
+- manually copy/paste into Codex only after approval
+- paste final Codex results back into the queue completion evidence flow
+
+M99 remains the local LLM dry-run validation milestone and is not authorized by M98.
+
 ## M97 Queue-to-Agent Dispatch Plan Contract Context
 
 Status: Completed locally on `main`.

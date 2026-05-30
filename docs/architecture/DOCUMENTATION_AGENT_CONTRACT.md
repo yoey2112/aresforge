@@ -78,6 +78,8 @@ M96 is post-sprint planning and prioritization. It may update source-of-truth do
 
 M97 may select `documentation_agent_dry_run` for documentation or reconciliation queue items. This is only a dispatch plan lane and planned artifact intent. It does not execute a documentation agent, generate documentation patches, apply documentation changes, complete queue items, or create an apply mode. M100 remains the planned milestone for a documentation-agent dry-run review workflow.
 
+M98 generates Codex prompt dispatch artifacts only for `codex_prompt_artifact`. If M97 selects `documentation_agent_dry_run`, M98 blocks generation and emits no Codex prompt text. This preserves M100 as the future documentation-agent dry-run review workflow and does not add documentation-agent execution, patch generation, apply mode, or automatic documentation mutation.
+
 ## Safety Boundaries
 
 - local-only

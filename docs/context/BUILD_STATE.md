@@ -2,11 +2,45 @@
 
 ## Current Phase
 
-M97 completed local-only queue-to-agent dispatch plan contract implementation after the M96 planning pass.
+M98 is implementing the local-only Codex Prompt Dispatch Artifact Generator v1 on top of the completed M97 queue-to-agent dispatch plan contract.
 
 ## Current Goal
 
-M97 added a safe inspection contract that can read one local queue item and produce an advisory dispatch plan with a selected lane, routing confidence, planned artifact intent, blocked reasons, next safe action, and required operator approval gates. It does not execute Codex, Ollama, local LLMs, documentation agents, GitHub, external agents, or network calls. The next implementation milestone is M98 Codex Prompt Dispatch Artifact Generator v1.
+M98 generates copy/paste-ready Codex prompt artifacts from approved-safe M97 dispatch plans when, and only when, the selected lane is `codex_prompt_artifact`. It preserves operator control: it never executes Codex, invokes Ollama or local LLMs, calls GitHub or `gh`, runs external agents, applies patches, creates issues, makes network calls, or automatically starts/completes/dispatches queue items.
+
+## M98 Codex Prompt Dispatch Artifact Generator v1
+
+Status: In progress locally on `main`.
+
+Queue item: `m98-codex-prompt-dispatch-artifact-generator`.
+
+M98 consumes or derives the M97 dispatch plan and adds:
+
+- `generate-codex-dispatch-artifact --item-id <item_id>`
+- `generate-codex-dispatch-artifact --item-id <item_id> --format json`
+- optional `--output <path>` with overwrite refusal unless `--force` is explicit
+- prompt text that includes item identity, queue status, selected lane, routing confidence, selection reason, planned artifact intent, safety boundaries, docs/files to inspect, implementation requirements, validation commands, completion criteria, and final response format
+
+M98 blocked behavior:
+
+- blocks every lane except `codex_prompt_artifact`
+- blocks when the M97 plan has blocked reasons
+- blocks when `local_only` is not true
+- blocks when `execution_allowed` is not false
+- emits only local console output or local files
+
+Operator workflow:
+
+- inspect dispatch plan
+- generate Codex prompt artifact
+- review the artifact
+- manually copy/paste into Codex only after approval
+- paste final Codex results back into the existing queue completion evidence process
+
+M98 to M99 relationship:
+
+- M98 only covers Codex prompt artifacts.
+- M99 remains the planned local LLM advisory/coding dry-run validator and must not inherit Codex prompt generation as local LLM execution approval.
 
 ## M97 Queue-to-Agent Dispatch Plan Contract
 

@@ -1,5 +1,34 @@
 # Runnable Skeleton
 
+## M98 Codex Prompt Dispatch Artifact Generator v1
+
+M98 adds a local-only artifact generation command:
+
+- `python -m aresforge generate-codex-dispatch-artifact --item-id <item_id>`
+- `python -m aresforge generate-codex-dispatch-artifact --item-id <item_id> --format json`
+- `python -m aresforge generate-codex-dispatch-artifact --item-id <item_id> --output artifacts/codex_prompt_dispatch/generated/<item_id>.txt`
+
+Runnable behavior:
+
+- derives the M97 queue-to-agent dispatch plan for the selected item
+- validates `selected_lane == codex_prompt_artifact`
+- validates no dispatch-plan blocked reasons
+- validates `local_only is true`
+- validates `execution_allowed is false`
+- renders a copy/paste-ready prompt with safety boundaries, docs/files to inspect, implementation requirements, validation commands, completion criteria, and final response format
+- writes a local artifact only when `--output` is provided
+- refuses to overwrite an existing output file unless `--force` is explicit
+
+Still absent by design:
+
+- Codex execution or automatic prompt dispatch
+- Ollama or local LLM invocation
+- documentation-agent execution or apply mode
+- external agent execution
+- GitHub API, `gh`, issues, PRs, workflows, network calls, or external services
+- patch application
+- queue mutation, queue completion, or automatic next-item execution from artifact generation
+
 ## M97 Queue-to-Agent Dispatch Plan Contract
 
 M97 adds a local-only inspection command and is completed locally:
