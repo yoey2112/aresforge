@@ -34,6 +34,32 @@ Closeout guidance:
 - require parsed evidence and validation results before completion decisions
 - keep future execution runners as separate explicit milestones with machine and human gates
 
+## M131 Machine Safety Gate Engine
+
+M131 adds a local-only machine safety gate evaluator:
+
+- `python -m aresforge evaluate-machine-safety-gates --item-id <item_id> --format json`
+- optional `--gate-profile`, `--artifact-path`, `--patch-path`, `--execution-record`, `--output`, and `--force`
+
+Runnable behavior:
+
+- reads one local queue item
+- evaluates one of eight gate profiles
+- checks queue existence, status, dependencies, artifacts, execution records, forbidden capabilities, working tree state, path allowlists, docs-only patch targets, tests/evidence, warning thresholds, transaction logs, and explicit external allowance
+- emits stable `machine_safety_gate_evaluation` JSON
+- refuses output overwrite unless `--force` is explicit
+- always reports `execution_performed=false` and `mutation_performed=false`
+
+Still absent by design:
+
+- agent execution
+- Codex execution or Codex CLI shell-out
+- Ollama/local LLM or remote LLM prompt execution
+- GitHub API, `gh`, issues, PRs, workflows, network calls, or external services
+- validation command execution
+- patch application
+- queue mutation, external mutation, autonomous execution, or next-item execution
+
 ## M123 Hub Controlled Automation Workspace Polish
 
 M123 adds no execution surface. It polishes the existing Hub Queue controlled automation workspace so operators can distinguish local advisory review from executable work.

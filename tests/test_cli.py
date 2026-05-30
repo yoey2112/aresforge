@@ -80,6 +80,7 @@ def test_cli_has_expected_commands() -> None:
         "recommend-llm-decision",
         "run-agent-dry-run",
         "run-agent",
+        "evaluate-machine-safety-gates",
         "probe-local-ollama-provider",
         "inspect-llm-decision-matrix",
         "inspect-local-llm-provider-contract",
@@ -5601,6 +5602,95 @@ def test_run_agent_dispatch_json(
         "output": "record.json",
         "force": True,
         "require_machine_gates": True,
+        "output_format": "json",
+    }
+
+
+def test_evaluate_machine_safety_gates_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "gate_result_type": "machine_safety_gate_evaluation",
+                "item_id": "m131",
+                "gate_profile": "docs_only_patch_apply",
+                "passed": True,
+                "blocked": False,
+                "execution_performed": False,
+                "mutation_performed": False,
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_evaluate(
+        _config,
+        *,
+        item_id,
+        gate_profile="read_only_agent",
+        artifact_path=None,
+        patch_path=None,
+        execution_record=None,
+        queue_path=None,
+        output=None,
+        force=False,
+        output_format="json",
+    ):
+        seen["item_id"] = item_id
+        seen["gate_profile"] = gate_profile
+        seen["artifact_path"] = artifact_path
+        seen["patch_path"] = patch_path
+        seen["execution_record"] = execution_record
+        seen["queue_path"] = queue_path
+        seen["output"] = output
+        seen["force"] = force
+        seen["output_format"] = output_format
+        return payload
+
+    monkeypatch.setattr(cli, "evaluate_machine_safety_gates", fake_evaluate)
+    exit_code = cli.main(
+        [
+            "evaluate-machine-safety-gates",
+            "--item-id",
+            "m131",
+            "--gate-profile",
+            "docs_only_patch_apply",
+            "--artifact-path",
+            "artifacts/m131.json",
+            "--patch-path",
+            "artifacts/m131.patch",
+            "--execution-record",
+            "artifacts/m131-record.json",
+            "--queue-path",
+            "queue.json",
+            "--output",
+            "gates.json",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["gate_result_type"] == "machine_safety_gate_evaluation"
+    assert parsed["execution_performed"] is False
+    assert parsed["mutation_performed"] is False
+    assert seen == {
+        "item_id": "m131",
+        "gate_profile": "docs_only_patch_apply",
+        "artifact_path": "artifacts/m131.json",
+        "patch_path": "artifacts/m131.patch",
+        "execution_record": "artifacts/m131-record.json",
+        "queue_path": "queue.json",
+        "output": "gates.json",
+        "force": True,
         "output_format": "json",
     }
 

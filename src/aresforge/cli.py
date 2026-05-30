@@ -257,6 +257,7 @@ from aresforge.operator.agent_orchestration_plan_builder import build_agent_orch
 from aresforge.operator.llm_decision_policy import recommend_llm_decision
 from aresforge.operator.single_agent_dry_run_executor import run_single_agent_dry_run
 from aresforge.operator.single_agent_real_executor import run_single_agent_real_execution
+from aresforge.operator.machine_safety_gate_engine import evaluate_machine_safety_gates
 from aresforge.operator.single_ready_codex_queue_item import run_single_ready_codex_queue_item
 from aresforge.operator.local_agent_profiles import (
     AGENT_PROFILE_STATUSES,
@@ -1999,6 +2000,23 @@ def build_parser() -> argparse.ArgumentParser:
     run_agent_parser.add_argument("--force", action="store_true")
     run_agent_parser.add_argument("--require-machine-gates", action="store_true")
     run_agent_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+    )
+    evaluate_machine_safety_gates_parser = subparsers.add_parser(
+        "evaluate-machine-safety-gates",
+        help="Evaluate M131 machine safety gates for one queue item without execution or mutation.",
+    )
+    evaluate_machine_safety_gates_parser.add_argument("--item-id", required=True)
+    evaluate_machine_safety_gates_parser.add_argument("--gate-profile", default="read_only_agent")
+    evaluate_machine_safety_gates_parser.add_argument("--artifact-path")
+    evaluate_machine_safety_gates_parser.add_argument("--patch-path")
+    evaluate_machine_safety_gates_parser.add_argument("--execution-record")
+    evaluate_machine_safety_gates_parser.add_argument("--queue-path")
+    evaluate_machine_safety_gates_parser.add_argument("--output")
+    evaluate_machine_safety_gates_parser.add_argument("--force", action="store_true")
+    evaluate_machine_safety_gates_parser.add_argument(
         "--format",
         choices=["json"],
         default="json",
@@ -4846,6 +4864,25 @@ def main(argv: list[str] | None = None) -> int:
             output=args.output,
             force=bool(args.force),
             require_machine_gates=bool(args.require_machine_gates),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "evaluate-machine-safety-gates":
+        payload = evaluate_machine_safety_gates(
+            config,
+            item_id=args.item_id,
+            gate_profile=args.gate_profile,
+            artifact_path=args.artifact_path,
+            patch_path=args.patch_path,
+            execution_record=args.execution_record,
+            queue_path=args.queue_path,
+            output=args.output,
+            force=bool(args.force),
             output_format=args.format,
         )
         if "stdout" in payload:

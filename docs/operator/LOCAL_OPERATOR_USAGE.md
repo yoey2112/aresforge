@@ -46,6 +46,34 @@ Operator reminders:
 - Completion recommendations do not mutate queue status.
 - The Hub is a local review workspace, not an execution dashboard.
 
+## M131 Machine Safety Gate Engine
+
+M131 evaluates deterministic machine safety gates before future autonomous workflows perform queue mutation, docs patch application, Codex dispatch, GitHub sync, local LLM execution, or multi-agent orchestration. It evaluates only; it does not execute agents, execute Codex, invoke Ollama or local LLMs, call GitHub, call `gh`, make network calls, run validation commands, apply patches, mutate queue state, or start follow-on work.
+
+Basic read-only gate:
+
+    python -m aresforge evaluate-machine-safety-gates --item-id <item_id> --format json
+
+Evaluate a specific profile:
+
+    python -m aresforge evaluate-machine-safety-gates --item-id <item_id> --gate-profile docs_only_patch_apply --patch-path artifacts/patches/docs.patch --format json
+
+Evaluate with artifact and execution evidence:
+
+    python -m aresforge evaluate-machine-safety-gates --item-id <item_id> --gate-profile local_llm_execution --artifact-path artifacts/local_llm_advisory/request.json --execution-record artifacts/local_llm_advisory/record.json --format json
+
+Write a local gate report:
+
+    python -m aresforge evaluate-machine-safety-gates --item-id <item_id> --gate-profile local_artifact_write --output artifacts/machine-gates/<item_id>.json --format json
+
+Overwrite only with explicit force:
+
+    python -m aresforge evaluate-machine-safety-gates --item-id <item_id> --gate-profile local_artifact_write --output artifacts/machine-gates/<item_id>.json --format json --force
+
+Supported profiles are `read_only_agent`, `local_artifact_write`, `queue_status_mutation`, `docs_only_patch_apply`, `local_llm_execution`, `codex_dispatch`, `github_sync`, and `multi_agent_orchestration`.
+
+The gate result includes `gate_result_type=machine_safety_gate_evaluation`, `passed`, `blocked`, `blocked_reasons`, `warnings`, `checks`, `required_next_steps`, `autonomy_allowed`, `human_review_required`, `machine_gate_version`, `local_only=true`, `execution_performed=false`, `mutation_performed=false`, and `next_safe_action`.
+
 ## M123 Hub Controlled Automation Workspace Polish
 
 M123 improves Hub wording and empty states for the controlled automation workspace. It does not execute Codex, invoke Ollama or local LLMs, run agents, call GitHub, call `gh`, make network calls, run validation commands, apply patches, mutate external systems, or start follow-on work.
