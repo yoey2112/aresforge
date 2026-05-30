@@ -2,9 +2,11 @@
 
 ## M95 Final Overnight Sprint Reconciliation Context
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main`.
 
-Current reconciliation focus:
+Implementation commit: `21008e644bc433e820bd30346da23b422db43e8c`.
+
+Final reconciliation focus:
 
 - align `BUILD_STATE`, `AGENT_CONTEXT`, roadmap, local operator usage, and architecture docs with the completed M81-M94 sprint
 - keep M95 contract-first and documentation-only, with no new runtime feature work

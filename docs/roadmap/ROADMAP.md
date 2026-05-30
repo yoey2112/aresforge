@@ -2,7 +2,9 @@
 
 ## M95 Final Overnight Sprint Reconciliation
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main`.
+
+Implementation commit: `21008e644bc433e820bd30346da23b422db43e8c`.
 
 Purpose:
 
@@ -10,7 +12,7 @@ Purpose:
 - make the completed M81-M95 posture clear for a future operator or chat handoff
 - identify the next recommended milestone without seeding or starting it automatically
 
-Delivered scope in progress:
+Delivered scope:
 
 - source-of-truth documentation alignment for M81-M95
 - roadmap/current-state alignment with completed local LLM, routing, documentation agent, handoff, and sprint report work

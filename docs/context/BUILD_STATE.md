@@ -2,9 +2,11 @@
 
 ## M95 Final Overnight Sprint Reconciliation
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main`.
 
-Current reconciliation scope:
+Implementation commit: `21008e644bc433e820bd30346da23b422db43e8c`.
+
+Final reconciliation scope:
 
 - reconciles source-of-truth docs after the completed M81-M94 overnight sprint
 - confirms the local queue is complete through M94 and M95 is the final documentation cleanup item
