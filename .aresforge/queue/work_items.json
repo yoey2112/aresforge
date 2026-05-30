@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T19:06:30.948874+00:00",
+  "updated_at": "2026-05-30T19:14:54.965703+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -3051,7 +3051,7 @@
       "repo_id": "aresforge-main",
       "title": "M113 Queue Item Auto-Completion Recommendation Engine",
       "description": "Generate a local-only recommendation on whether an operator may safely complete a queue item from parsed dispatch evidence, validation results, and known completion requirements.",
-      "status": "in_progress",
+      "status": "done",
       "priority": "high",
       "item_type": "architecture",
       "tags": [
@@ -3072,15 +3072,25 @@
       "notes": "Acceptance criteria: add recommend-queue-completion CLI and operator function; consume local M112 evidence JSON; recommend only without mutating queue status; report missing evidence, test/smoke status, warnings/blockers, commit hash presence, confidence, and next safe action.",
       "started_at": "2026-05-30T19:06:30.948874+00:00",
       "started_via": "local_operator",
-      "previous_status": "ready",
-      "completed_at": "",
-      "completed_by": "",
-      "completion_commit": "",
-      "validation_summary": "",
-      "evidence_note": "",
-      "tests_run": [],
-      "changed_files": [],
-      "artifact_paths": [],
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-30T19:14:54.965703+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "a988af7",
+      "validation_summary": "M113 Queue Item Auto-Completion Recommendation Engine implemented and validated locally. Added recommend-queue-completion, stable queue_completion_recommendation records, local M112 evidence validation, required evidence checks, tests/smoke/commit/warning evaluation, readable/json CLI output, output no-overwrite safeguards, tests, sample evidence artifact, docs, and queue lifecycle evidence. No queue mutation from the recommendation, Codex, local LLM, Ollama, documentation-agent, GitHub, gh, network service, patch application, approval mutation, handoff automation, or next-item execution was performed.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py; python -m pytest tests/test_queue_completion_recommendation.py; python -m pytest tests/test_dispatch_result_evidence_parser.py; git diff --check passed with CRLF warnings only; smoke checks passed for inspect-local-project-report, inspect-local-queue-agent-summary, inspect-project-queue --project-id aresforge, and recommend-queue-completion --item-id m113-queue-item-auto-completion-recommendation-engine --evidence-path artifacts/manual/sample-dispatch-evidence.json --format json.",
+      "tests_run": [
+        "tests/test_cli.py -> 192 passed",
+        "tests/test_queue_completion_recommendation.py -> 5 passed",
+        "tests/test_dispatch_result_evidence_parser.py -> 6 passed",
+        "git diff --check -> passed with CRLF warnings only"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/queue_completion_recommendation.py; src/aresforge/cli.py; tests/test_queue_completion_recommendation.py; tests/test_cli.py",
+        "artifacts/manual/sample-dispatch-evidence.json; docs/context/BUILD_STATE.md; docs/context/AGENT_CONTEXT.md; docs/roadmap/ROADMAP.md; docs/operator/LOCAL_OPERATOR_USAGE.md; docs/architecture/RUNNABLE_SKELETON.md; .aresforge/queue/work_items.json"
+      ],
+      "artifact_paths": [
+        "artifacts/manual/sample-dispatch-evidence.json"
+      ],
       "completion_evidence": {},
       "routing_metadata": {
         "recommended_agent_lane": "",
@@ -3101,7 +3111,7 @@
       "closeout_summary": "",
       "closeout_history": [],
       "created_at": "2026-05-30T19:06:25.695582+00:00",
-      "updated_at": "2026-05-30T19:06:30.948874+00:00"
+      "updated_at": "2026-05-30T19:14:54.965703+00:00"
     }
   ]
 }
