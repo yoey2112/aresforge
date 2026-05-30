@@ -39,7 +39,6 @@ Operator workflow:
 - review artifact type, milestone, blocked status, next safe action, and checklist
 - use explicit local-only operator commands for any later action
 
-
 ## M126 Agent Registry
 
 M126 inspects the local declarative registry of known AresForge agents. It does not execute agents, invoke Codex, invoke Ollama or local LLMs, run documentation agents, call GitHub, call `gh`, call network services, apply patches, mutate queue state, create autonomous workflows, or start follow-on work.

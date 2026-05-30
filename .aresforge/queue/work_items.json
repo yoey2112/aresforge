@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T19:17:17.386650+00:00",
+  "updated_at": "2026-05-30T19:24:10.494463+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -3189,7 +3189,7 @@
       "repo_id": "aresforge-main",
       "title": "M114 Hub Dispatch Review Panel",
       "description": "Add a read-only Hub dispatch review panel for manual dispatch records, local LLM advisory artifacts, patch intake records, dispatch evidence, and completion recommendations.",
-      "status": "in_progress",
+      "status": "done",
       "priority": "high",
       "item_type": "feature",
       "tags": [
@@ -3210,14 +3210,22 @@
       "notes": "Acceptance criteria: Hub UI panel or section lists dispatch review artifacts; API wrappers are local-only/read-only; no Codex, Ollama, local LLM, GitHub, network, agent, workflow, patch application, approval mutation, or automatic queue completion endpoints.",
       "started_at": "2026-05-30T19:17:17.386650+00:00",
       "started_via": "local_operator",
-      "previous_status": "ready",
-      "completed_at": "",
-      "completed_by": "",
-      "completion_commit": "",
-      "validation_summary": "",
-      "evidence_note": "",
-      "tests_run": [],
-      "changed_files": [],
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-30T19:24:10.494463+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "d5ffb6b",
+      "validation_summary": "M114 Hub Dispatch Review Panel implemented and validated locally. Added read-only GET /api/dispatch-review, a normalized local dispatch review aggregator, Queue panel Dispatch Review UI, API and UI tests, and source-of-truth documentation updates. The panel displays manual dispatch preparation records, local LLM advisory artifacts, patch intake records, parsed dispatch evidence, and queue completion recommendations without execution endpoints. No Codex, Ollama, local LLM, GitHub, gh, network service, agent execution, patch application, approval mutation, automatic queue completion, or next-item execution was performed.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_hub_ui_foundation.py; python -m pytest tests/test_hub_local_queue_lifecycle_api.py; python -m pytest tests/test_cli.py; git diff --check passed with CRLF warnings only; smoke checks passed for inspect-local-project-report, inspect-local-queue-agent-summary, and direct get_dispatch_review_panel API smoke with local_only=true, read_only=true, execution_allowed=false.",
+      "tests_run": [
+        "tests/test_hub_ui_foundation.py -> 58 passed",
+        "tests/test_hub_local_queue_lifecycle_api.py -> 30 passed",
+        "tests/test_cli.py -> 193 passed",
+        "git diff --check -> passed with CRLF warnings only"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/hub_dispatch_review.py; src/aresforge/hub/api.py; src/aresforge/hub/server.py; src/aresforge/hub/static/index.html; src/aresforge/hub/static/js/sections/queue.js",
+        "tests/test_hub_local_queue_lifecycle_api.py; tests/test_hub_ui_foundation.py; docs/context/BUILD_STATE.md; docs/context/AGENT_CONTEXT.md; docs/roadmap/ROADMAP.md; docs/operator/LOCAL_OPERATOR_USAGE.md; docs/architecture/RUNNABLE_SKELETON.md; .aresforge/queue/work_items.json"
+      ],
       "artifact_paths": [],
       "completion_evidence": {},
       "routing_metadata": {
@@ -3239,7 +3247,7 @@
       "closeout_summary": "",
       "closeout_history": [],
       "created_at": "2026-05-30T19:17:11.347965+00:00",
-      "updated_at": "2026-05-30T19:17:17.386650+00:00"
+      "updated_at": "2026-05-30T19:24:10.494463+00:00"
     }
   ]
 }

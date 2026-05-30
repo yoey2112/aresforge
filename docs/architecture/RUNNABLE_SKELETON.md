@@ -50,7 +50,6 @@ Still absent by design:
 - patch application
 - queue mutation, approval mutation, automatic handoff, automatic completion, or next-item execution
 
-
 ## M126 Agent Registry
 
 M126 adds a local-only declarative registry inspection command:

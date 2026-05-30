@@ -2,11 +2,11 @@
 
 ## M114 Hub Dispatch Review Panel Context
 
-Status: Implemented locally on `main`; validation and completion evidence pending.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m114-hub-dispatch-review-panel`.
 
-Implementation commit: pending.
+Implementation commit: `d5ffb6b`.
 
 M114 adds a read-only Hub dispatch review surface:
 
@@ -31,7 +31,6 @@ M114 boundaries:
 - no local LLM or Ollama invocation
 - no documentation-agent runtime, GitHub API, `gh`, network service, external-agent, workflow, issue, PR, or patch application behavior
 - no queue completion, approval mutation, automatic handoff, or next-item execution
-
 
 ## M126 Agent Registry Context
 

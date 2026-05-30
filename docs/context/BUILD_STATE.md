@@ -10,11 +10,11 @@ M114 adds a `GET /api/dispatch-review` endpoint and Queue panel UI for manual di
 
 ## M114 Hub Dispatch Review Panel
 
-Status: Implemented locally on `main`; validation and completion evidence pending.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m114-hub-dispatch-review-panel`.
 
-Implementation commit: pending.
+Implementation commit: `d5ffb6b`.
 
 M114 adds:
 
