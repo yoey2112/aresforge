@@ -66,6 +66,7 @@ def test_cli_has_expected_commands() -> None:
         "update-dispatch-approval-gate",
         "inspect-dispatch-artifacts",
         "prepare-manual-codex-dispatch",
+        "intake-patch-proposal",
         "inspect-llm-decision-matrix",
         "inspect-local-llm-provider-contract",
         "run-single-ready-codex-queue-item",
@@ -6311,6 +6312,128 @@ def test_generate_local_llm_advisory_artifact_dispatch_markdown(
     assert exit_code == 0
     assert "generated: True" in output
     assert "selected_lane: local_llm_advisory" in output
+
+
+def test_intake_patch_proposal_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "intake_record_type": "patch_proposal_intake",
+                "accepted_for_review": True,
+                "blocked": False,
+                "item_id": "m111",
+                "patch_artifact_path": "artifacts/manual/test.patch",
+                "approval_gate_id": "approval-1",
+                "approval_status": "approved_for_manual_handoff",
+                "operator_review_required": True,
+                "patch_application_allowed": False,
+                "patch_application_performed": False,
+                "local_only": True,
+                "execution_allowed": False,
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_intake(
+        _config,
+        item_id,
+        patch_artifact,
+        approval_id=None,
+        queue_path=None,
+        approval_path=None,
+        output=None,
+        force=False,
+        output_format="markdown",
+    ):
+        seen["item_id"] = item_id
+        seen["patch_artifact"] = patch_artifact
+        seen["approval_id"] = approval_id
+        seen["queue_path"] = queue_path
+        seen["approval_path"] = approval_path
+        seen["output"] = output
+        seen["force"] = force
+        seen["output_format"] = output_format
+        return payload
+
+    monkeypatch.setattr(cli, "intake_patch_proposal", fake_intake)
+    exit_code = cli.main(
+        [
+            "intake-patch-proposal",
+            "--item-id",
+            "m111",
+            "--patch-artifact",
+            "artifacts/manual/test.patch",
+            "--approval-id",
+            "approval-1",
+            "--queue-path",
+            "queue.json",
+            "--approval-path",
+            "approvals.json",
+            "--output",
+            "artifacts/patch_intake/m111.json",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["intake_record_type"] == "patch_proposal_intake"
+    assert parsed["patch_application_allowed"] is False
+    assert seen == {
+        "item_id": "m111",
+        "patch_artifact": "artifacts/manual/test.patch",
+        "approval_id": "approval-1",
+        "queue_path": "queue.json",
+        "approval_path": "approvals.json",
+        "output": "artifacts/patch_intake/m111.json",
+        "force": True,
+        "output_format": "json",
+    }
+
+
+def test_intake_patch_proposal_dispatch_markdown(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "markdown",
+        "wrote_output_file": False,
+        "stdout": "# Patch Proposal Intake\n\n- accepted_for_review: True\n- patch_application_allowed: False\n",
+        "payload": {},
+    }
+    monkeypatch.setattr(
+        cli,
+        "intake_patch_proposal",
+        lambda _config,
+        item_id,
+        patch_artifact,
+        approval_id=None,
+        queue_path=None,
+        approval_path=None,
+        output=None,
+        force=False,
+        output_format="markdown": payload,
+    )
+
+    exit_code = cli.main(
+        ["intake-patch-proposal", "--item-id", "m111", "--patch-artifact", "artifacts/manual/test.patch"]
+    )
+    output = capsys.readouterr().out
+
+    assert exit_code == 0
+    assert "accepted_for_review: True" in output
+    assert "patch_application_allowed: False" in output
 
 
 def test_validate_documentation_agent_dry_run_dispatch_json(

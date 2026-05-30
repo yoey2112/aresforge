@@ -1,5 +1,57 @@
 # AresForge Roadmap
 
+## M111 Approval-Gated Patch Intake Contract
+
+Status: Implemented locally on `main`; validation pending commit.
+
+Queue item: `m111-approval-gated-patch-intake-contract`.
+
+Implementation commit: pending.
+
+Purpose:
+
+- record a proposed patch artifact for human review
+- validate queue item, patch artifact existence, and approval status
+- accept patch proposals for review only after explicit human approval exists
+- keep patch application blocked in every intake state
+
+Runnable operator surface:
+
+- `python -m aresforge intake-patch-proposal --item-id <item_id> --patch-artifact <path>`
+- `python -m aresforge intake-patch-proposal --item-id <item_id> --patch-artifact <path> --format json`
+- `python -m aresforge intake-patch-proposal --item-id <item_id> --patch-artifact <path> --approval-id <approval_id>`
+- optional `--output <path>` and `--force`
+
+Ready behavior:
+
+- queue item must exist
+- local patch artifact must exist
+- approval gate must exist and be `approved_for_manual_handoff`
+- record always reports `operator_review_required=true`
+- record always reports `patch_application_allowed=false`
+- record always reports `patch_application_performed=false`
+
+Blocked behavior:
+
+- missing queue item blocks
+- missing patch artifact blocks
+- missing approval gate blocks
+- `pending_review`, `rejected`, `needs_revision`, missing, or unknown approval status blocks
+- explicit output path overwrite blocks unless `--force` is provided
+
+Constraints preserved:
+
+- no patch application
+- no repository mutation
+- no Codex, local LLM, documentation-agent, external-agent, GitHub API, `gh`, network, issue, PR, or workflow behavior
+- no automatic queue mutation, approval mutation, handoff, completion, or next-item execution
+
+Relationship:
+
+- M111 is the intake boundary for patch proposals returned by manual Codex, local LLM advisory/draft, or documentation-agent proposal workflows.
+- M111 does not implement an apply command.
+- Any future patch application remains a separate explicit operator-approved workflow with validation gates.
+
 ## M110 Local LLM Advisory Artifact Generator
 
 Status: Completed locally on `main` after validation.

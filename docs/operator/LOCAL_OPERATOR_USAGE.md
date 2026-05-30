@@ -1,5 +1,58 @@
 # Local Operator Usage
 
+## M111 Approval-Gated Patch Intake Contract
+
+M111 records a proposed patch artifact for human review. It does not apply patches, mutate repository files, execute Codex, invoke local LLMs, execute documentation agents, call GitHub, call `gh`, call network services, mutate approval state, complete queue items, or start follow-on work.
+
+Readable intake:
+
+    python -m aresforge intake-patch-proposal --item-id <item_id> --patch-artifact <path>
+
+JSON intake:
+
+    python -m aresforge intake-patch-proposal --item-id <item_id> --patch-artifact <path> --format json
+
+Use a specific approval gate:
+
+    python -m aresforge intake-patch-proposal --item-id <item_id> --patch-artifact <path> --approval-id <approval_id> --format json
+
+Write a local intake record:
+
+    python -m aresforge intake-patch-proposal --item-id <item_id> --patch-artifact <path> --output artifacts/patch_intake/<item_id>.json --format json
+
+Overwrite only with explicit force:
+
+    python -m aresforge intake-patch-proposal --item-id <item_id> --patch-artifact <path> --output artifacts/patch_intake/<item_id>.json --format json --force
+
+Required behavior:
+
+- queue item must exist
+- patch artifact must exist locally
+- approval gate must exist
+- approval status must be `approved_for_manual_handoff`
+- accepted records still keep `patch_application_allowed=false`
+- accepted records still keep `patch_application_performed=false`
+
+The intake record includes:
+
+- `intake_record_type=patch_proposal_intake`
+- accepted/blocked status and blocked reasons
+- queue identity
+- patch artifact path and existence
+- patch summary
+- approval gate id and status
+- operator review requirement
+- local-only and execution-denial fields
+- next safe action
+
+M111 boundaries:
+
+- no patch application
+- no repository file mutation
+- no Codex, local LLM, documentation-agent, or external-agent execution
+- no GitHub API, `gh`, network, issue, PR, or workflow behavior
+- no queue completion, approval mutation, handoff automation, or next-item execution
+
 ## M110 Local LLM Advisory Artifact Generator
 
 M110 prepares a local LLM advisory request artifact. It does not run Ollama, invoke local models, execute Codex, call GitHub, call network services, execute agents, apply patches, mutate queue state, or complete work. The artifact is a review package an operator may inspect before any later separately approved local LLM invocation milestone.

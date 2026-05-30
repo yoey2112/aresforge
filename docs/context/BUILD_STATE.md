@@ -2,11 +2,63 @@
 
 ## Current Phase
 
-M110 implements the Local LLM Advisory Artifact Generator after M109. It prepares a local request package describing what a local reasoning model would be asked to review, without invoking any model or execution surface.
+M111 implements the Approval-Gated Patch Intake Contract after M110. It records proposed patch artifacts for human review while keeping patch application blocked.
 
 ## Current Goal
 
-M110 adds `generate-local-llm-advisory-artifact` for local-only advisory request package generation. It consumes or derives the M97 dispatch plan, requires `selected_lane=local_llm_advisory`, writes a JSON artifact under `artifacts/local_llm_advisory/requests` when no output path is supplied, and preserves `execution_allowed=false`. It does not call Ollama/local LLMs, execute Codex, call GitHub/`gh`, make network calls, execute agents, apply patches, mutate queue state, or complete work automatically.
+M111 adds `intake-patch-proposal` for local-only patch proposal intake. It validates the queue item, patch artifact path, approval gate id/status, and output overwrite behavior before recording review metadata. It accepts a patch only for review when an M101 approval gate is `approved_for_manual_handoff`; it never applies patches and always preserves `patch_application_allowed=false`, `patch_application_performed=false`, and `execution_allowed=false`.
+
+## M111 Approval-Gated Patch Intake Contract
+
+Status: Implemented locally on `main`; validation pending commit.
+
+Queue item: `m111-approval-gated-patch-intake-contract`.
+
+Implementation commit: pending.
+
+M111 adds:
+
+- `intake-patch-proposal --item-id <item_id> --patch-artifact <path>`
+- `intake-patch-proposal --item-id <item_id> --patch-artifact <path> --format json`
+- optional `--approval-id`, `--output`, `--force`, `--queue-path`, and `--approval-path`
+
+The intake record includes:
+
+- `intake_record_type=patch_proposal_intake`
+- `accepted_for_review`, `blocked`, and `blocked_reasons`
+- queue identity fields: `item_id`, `title`, `project_id`, and `milestone`
+- patch artifact path/existence and patch summary
+- approval gate id/status
+- `operator_review_required=true`
+- `patch_application_allowed=false`
+- `patch_application_performed=false`
+- `local_only=true`
+- `execution_allowed=false`
+- next safe action
+
+Ready behavior:
+
+- requires a known queue item
+- requires an existing local patch artifact
+- requires an approval gate for the item/patch artifact or the provided `--approval-id`
+- requires approval status `approved_for_manual_handoff`
+- records review metadata only
+
+Blocked behavior:
+
+- missing queue item blocks
+- missing patch artifact blocks
+- missing approval gate blocks
+- rejected, pending, needs-revision, missing, or unknown approval status blocks
+- output overwrite blocks unless `--force` is provided
+
+Safety boundaries:
+
+- no patch application
+- no repository file mutation
+- no Codex, local LLM, documentation-agent, or external-agent execution
+- no GitHub API, `gh`, network service, issue, PR, or workflow behavior
+- no automatic queue completion, approval mutation, handoff, or next-item execution
 
 ## M110 Local LLM Advisory Artifact Generator
 

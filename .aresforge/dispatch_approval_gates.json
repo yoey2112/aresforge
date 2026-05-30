@@ -1,6 +1,6 @@
 {
   "schema_version": "m101.1",
-  "updated_at": "2026-05-30T16:23:11.738625+00:00",
+  "updated_at": "2026-05-30T18:45:53.416274+00:00",
   "approval_gates": [
     {
       "approval_id": "approval-20260530T16230990317-m101-human-approval-gate-ui-data-contract-0001",
@@ -20,6 +20,29 @@
       ],
       "created_at": "2026-05-30T16:23:09.903175+00:00",
       "updated_at": "2026-05-30T16:23:11.738625+00:00",
+      "status": "approved_for_manual_handoff",
+      "local_only": true,
+      "execution_allowed": false,
+      "next_safe_action": "Manual handoff may be prepared by the operator; automated execution remains blocked."
+    },
+    {
+      "approval_id": "approval-20260530T18454862962-m111-approval-gated-patch-intake-contract-0002",
+      "item_id": "m111-approval-gated-patch-intake-contract",
+      "artifact_type": "patch_proposal",
+      "artifact_path": "C:\\Projects\\aresforge\\artifacts\\manual\\test.patch",
+      "dispatch_lane": "human_only_manual",
+      "reviewer": "local_operator",
+      "review_notes": "Approved for M111 patch intake smoke only; patch application remains blocked.",
+      "checklist": [
+        "operator_reviewed_dispatch_or_dry_run_output",
+        "operator_confirmed_artifact_matches_selected_lane",
+        "operator_confirmed_local_only_boundary",
+        "operator_confirmed_execution_allowed_false",
+        "operator_confirmed_no_automatic_handoff_or_execution",
+        "operator_recorded_review_notes_before_status_change"
+      ],
+      "created_at": "2026-05-30T18:45:48.629625+00:00",
+      "updated_at": "2026-05-30T18:45:53.416274+00:00",
       "status": "approved_for_manual_handoff",
       "local_only": true,
       "execution_allowed": false,

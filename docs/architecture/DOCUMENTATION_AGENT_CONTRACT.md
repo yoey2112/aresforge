@@ -1,5 +1,9 @@
 # Documentation Agent Contract
 
+## M111 Patch Intake Boundary
+
+M111 defines the local-only approval-gated intake boundary for patch proposals that may come from Codex, local LLM, or documentation-agent proposal workflows. Documentation-agent output may be recorded as a patch proposal only after a local approval gate exists and is `approved_for_manual_handoff`. The intake command records review metadata and patch summary data only; it does not apply documentation changes, mutate repository files, execute a documentation agent, call local LLMs, execute Codex, call GitHub/`gh`, make network calls, mutate queue state, or complete work automatically.
+
 ## M91 Documentation Agent v1
 
 Documentation Agent v1 is a local-only, source-of-truth documentation reconciliation contract.

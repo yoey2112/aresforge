@@ -1,0 +1,6 @@
+diff --git a/docs/manual-smoke-target.md b/docs/manual-smoke-target.md
+--- a/docs/manual-smoke-target.md
++++ b/docs/manual-smoke-target.md
+@@ -1 +1 @@
+-old smoke text
++new smoke text

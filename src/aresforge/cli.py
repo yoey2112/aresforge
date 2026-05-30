@@ -234,6 +234,7 @@ from aresforge.operator.codex_prompt_dispatch_artifact import generate_codex_pro
 from aresforge.operator.local_llm_advisory_dry_run import validate_local_llm_advisory_dry_run
 from aresforge.operator.local_llm_advisory_artifact import generate_local_llm_advisory_artifact
 from aresforge.operator.documentation_agent_dry_run import validate_documentation_agent_dry_run
+from aresforge.operator.approval_gated_patch_intake import intake_patch_proposal
 from aresforge.operator.dispatch_approval_gate import (
     APPROVAL_GATE_STATUSES,
     create_dispatch_approval_gate,
@@ -1763,6 +1764,22 @@ def build_parser() -> argparse.ArgumentParser:
     prepare_manual_codex_dispatch_parser.add_argument("--output")
     prepare_manual_codex_dispatch_parser.add_argument("--force", action="store_true")
     prepare_manual_codex_dispatch_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="markdown",
+    )
+    intake_patch_proposal_parser = subparsers.add_parser(
+        "intake-patch-proposal",
+        help="Record a local-only approval-gated patch proposal intake without applying patches.",
+    )
+    intake_patch_proposal_parser.add_argument("--item-id", required=True)
+    intake_patch_proposal_parser.add_argument("--patch-artifact", required=True)
+    intake_patch_proposal_parser.add_argument("--approval-id")
+    intake_patch_proposal_parser.add_argument("--queue-path")
+    intake_patch_proposal_parser.add_argument("--approval-path")
+    intake_patch_proposal_parser.add_argument("--output")
+    intake_patch_proposal_parser.add_argument("--force", action="store_true")
+    intake_patch_proposal_parser.add_argument(
         "--format",
         choices=["json", "markdown"],
         default="markdown",
@@ -4343,6 +4360,24 @@ def main(argv: list[str] | None = None) -> int:
             queue_path=args.queue_path,
             registry_path=args.registry_path,
             artifact_root=args.artifact_root,
+            approval_path=args.approval_path,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "intake-patch-proposal":
+        payload = intake_patch_proposal(
+            config,
+            item_id=args.item_id,
+            patch_artifact=args.patch_artifact,
+            approval_id=args.approval_id,
+            queue_path=args.queue_path,
             approval_path=args.approval_path,
             output=args.output,
             force=bool(args.force),

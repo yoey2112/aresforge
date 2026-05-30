@@ -1,5 +1,59 @@
 # Runnable Skeleton
 
+## M111 Approval-Gated Patch Intake Contract
+
+M111 adds a local-only patch proposal intake command:
+
+- `python -m aresforge intake-patch-proposal --item-id <item_id> --patch-artifact <path>`
+- `python -m aresforge intake-patch-proposal --item-id <item_id> --patch-artifact <path> --format json`
+- optional `--approval-id`, `--output`, `--force`, `--queue-path`, and `--approval-path`
+
+Runnable behavior:
+
+- reads local queue state
+- reads local M101 approval gate records
+- validates the patch artifact path exists
+- summarizes a unified diff locally
+- accepts proposals for review only when approval status is `approved_for_manual_handoff`
+- emits stable readable or JSON CLI output
+- refuses to overwrite output files unless `--force` is explicit
+- preserves `operator_review_required=true`, `patch_application_allowed=false`, `patch_application_performed=false`, `local_only=true`, and `execution_allowed=false`
+
+Stable intake fields:
+
+- `intake_record_type`
+- `accepted_for_review`
+- `blocked`
+- `blocked_reasons`
+- `item_id`
+- `title`
+- `project_id`
+- `milestone`
+- `patch_artifact_path`
+- `patch_artifact_exists`
+- `patch_summary`
+- `approval_gate_id`
+- `approval_status`
+- `operator_review_required`
+- `patch_application_allowed`
+- `patch_application_performed`
+- `local_only`
+- `execution_allowed`
+- `next_safe_action`
+
+Still absent by design:
+
+- patch application
+- repository file mutation
+- Codex execution or Codex CLI shell-out
+- local LLM invocation
+- documentation-agent execution or apply mode
+- GitHub API, `gh`, issues, PRs, workflows, network calls, or external services
+- external agent execution
+- queue mutation, approval mutation, automatic handoff, automatic completion, or next-item execution
+
+M111 records patch proposal review metadata only. It does not authorize applying a patch.
+
 ## M110 Local LLM Advisory Artifact Generator
 
 M110 adds a local-only request artifact command:

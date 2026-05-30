@@ -1,5 +1,36 @@
 # AresForge Agent Context
 
+## M111 Approval-Gated Patch Intake Contract Context
+
+Status: Implemented locally on `main`; validation pending commit.
+
+Queue item: `m111-approval-gated-patch-intake-contract`.
+
+Implementation commit: pending.
+
+M111 adds a local-only patch proposal intake command:
+
+- `python -m aresforge intake-patch-proposal --item-id <item_id> --patch-artifact <path>`
+- `python -m aresforge intake-patch-proposal --item-id <item_id> --patch-artifact <path> --format json`
+- optional `--approval-id`, `--output`, and `--force`
+
+The command validates a queue item, a local patch artifact path, and an M101 approval gate. A patch proposal is accepted for review only when the approval gate is `approved_for_manual_handoff`. The intake record includes patch summary metadata and always reports `operator_review_required=true`, `patch_application_allowed=false`, `patch_application_performed=false`, `local_only=true`, and `execution_allowed=false`.
+
+M111 blocked behavior:
+
+- missing item, missing patch artifact, missing approval, rejected approval, pending approval, and needs-revision approval block intake
+- existing output files block unless `--force` is explicit
+
+M111 boundaries:
+
+- no patch application
+- no repository file mutation
+- no Codex, Codex CLI, local LLM, documentation-agent, or external-agent execution
+- no GitHub API, `gh`, network, issue, PR, or workflow behavior
+- no queue mutation, approval mutation, automatic handoff, completion, or next-item execution
+
+M111 does not authorize applying a patch. It records patch proposal review metadata only.
+
 ## M110 Local LLM Advisory Artifact Generator Context
 
 Status: Completed locally on `main` after validation.
