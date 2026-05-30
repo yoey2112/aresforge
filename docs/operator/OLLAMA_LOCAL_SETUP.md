@@ -4,7 +4,7 @@
 
 This document provides the Windows PowerShell setup and validation steps for the planned local Ollama models used by AresForge.
 
-This is a setup and validation guide only. It does not wire Ollama into live AresForge workflows.
+This is a setup and validation guide only. It does not add new AresForge workflow behavior. As of M75, AresForge has an M62 operator-gated local LLM execution prototype, but local LLM use remains local-only, advisory-only, prototype-scoped, and non-mutating.
 
 ## Local model plan
 
@@ -57,6 +57,8 @@ Show currently loaded or running models:
     ollama ps
 
 AresForge’s baseline posture is one loaded large model at a time.
+
+AresForge must not treat a running Ollama model as approval to dispatch work automatically, apply model output to files, run the next queue item, commit, push, call GitHub, call `gh`, or run workflows.
 
 ## Check GPU visibility
 

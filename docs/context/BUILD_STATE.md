@@ -1,5 +1,50 @@
 # AresForge Build State
 
+## M75 Source-of-Truth Documentation and Roadmap Reconciliation
+
+Status: In progress on `main`.
+
+Scope:
+
+- documentation-only reconciliation after M74
+- align source-of-truth docs around the current local-first, file-backed, operator-gated state
+- prepare the roadmap for self-managing AresForge as the first managed project and for future approved Codex/local LLM milestones
+
+Current implemented surfaces:
+
+- local managed-project registry and project factory surfaces are file-backed and local-only
+- local queue is the canonical work-tracking source for project/repo items, statuses, dependencies, routing metadata, and prompt-pack inputs
+- Hub UI exposes local queue lifecycle controls, project/repo management, prompt-pack generation, routed queue views, local LLM environment/health/preview/prototype controls, Codex high-value prompt preview, AI Action Review visibility, execution audit log, AI artifact registry, and Operator Run History
+- prompt-pack generation and Codex high-value lane output remain preview-only/manual handoff surfaces
+- Copy Prompt Pack Preview is copy-only and does not dispatch prompts
+- AI Action Review, execution audit log, artifact registry, and run history are review-only evidence surfaces
+- local LLM provider/model status remains prototype-scoped configuration and health evidence, not production-ready dispatch
+- M62 local LLM execution remains the only provider-calling local LLM path, and it is local-only, advisory-only, operator-gated, prototype-scoped, and non-mutating
+
+Hard boundaries:
+
+- no GitHub API, `gh`, GitHub issues, GitHub PRs, GitHub workflow activity, or GitHub mutation from the app
+- no automatic agent execution, automatic Codex execution, automatic Codex CLI invocation, external workflow execution, or unattended multi-item execution
+- Codex high-value lane currently remains prompt-generation/operator-handoff only
+- local LLM output must never automatically mutate repository files, queue state, project state, GitHub, `gh`, Codex, agents, commits, pushes, or workflows
+- normal `git commit` and `git push origin main` are operator/developer actions only after local validation, smoke checks, clean diff check, and explicit prompt instruction
+
+Next phase safety gates before any Codex dispatch implementation:
+
+- explicit operator approval
+- one queue item at a time
+- no automatic next-item execution
+- run state tracked
+- stdout/stderr/artifacts captured where applicable
+- error and completion states recorded
+- review evidence required before marking complete
+- queue/dependency blocking enforced
+- local validation required before commit/push
+
+Recommended next milestone:
+
+- M76 - Self-Seed AresForge as the First Managed Project.
+
 ## M74 Hub UX Stabilization Pass
 
 Status: Completed locally on `main`.
@@ -19,7 +64,7 @@ Safety posture:
 
 Recommended next milestone:
 
-- M75 - Local Project Queue Operational Readiness Review.
+- M75 - Source-of-Truth Documentation and Roadmap Reconciliation.
 
 ## M73 Prompt Pack Quality and Routing Improvements
 
@@ -1792,12 +1837,10 @@ Future (not implemented in M41):
 
 ## Known Limitations (Current Foundation Batch)
 
-- No actual LLM invocation yet.
+- No production-ready LLM dispatch exists; only the M62 explicit local LLM prototype may call a local provider under operator gates.
 - No cloud LLM API integration yet.
 - No GitHub sync execution yet.
-- Hub UI is a foundation shell only; full CRUD management screens are deferred to M38.
-- Full agent/orchestration/escalation/handoff screens are deferred to M39.
-- Full reporting and dashboard polish are deferred to M40.
+- Hub now includes local project/repo/queue, agent/handoff/orchestration/escalation, reporting, dashboard, prompt-pack, AI review, audit, artifact, and run-history surfaces; execution gates/auth/deployment hardening remain future work.
 - No cross-machine coordination yet.
 - No background daemon/scheduler yet.
 

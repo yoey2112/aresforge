@@ -4,7 +4,7 @@
 
 This document defines the future task routing plan for local LLM usage in AresForge.
 
-The plan is advisory only. AresForge is not yet wiring live LLM execution into workflows.
+The plan is advisory only. As of M75, AresForge has an M62 operator-gated local LLM execution prototype, but it is local-only, advisory-only, prototype-scoped, and non-mutating. This plan does not authorize production-ready dispatch, automatic model routing execution, automatic file changes, or unattended queue execution.
 
 The first implementation must remain local-first, read-only where possible, and operator-gated.
 
@@ -149,6 +149,22 @@ In this phase, AresForge must not:
 - Automatically commit or push changes.
 - Automatically call GitHub APIs.
 - Automatically create GitHub issues.
+- Automatically run the next queue item.
+- Treat local LLM output as authority to mutate the repo.
+
+## Next Phase Safety Gates
+
+Before local LLM routing or Codex dispatch can move beyond advisory/prototype behavior:
+
+- explicit operator approval
+- one item at a time
+- no automatic next-item execution
+- run state tracked
+- stdout/stderr/artifacts captured where applicable
+- error and completion states recorded
+- review evidence required before marking complete
+- queue/dependency blocking enforced
+- local validation required before commit/push
 
 ## Suggested routing metadata
 

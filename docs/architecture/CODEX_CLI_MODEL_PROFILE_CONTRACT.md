@@ -20,7 +20,9 @@ M70 verifies the full M58-M69 local AI operations chain. It reconciles documenta
 
 M73 improves routing-aware prompt-pack guidance. Prompt packs that reference the Codex high-value lane now explicitly state prompt-generation/operator-handoff only, include advisory model/engine recommendation metadata, and continue to prohibit Codex CLI invocation unless a future approved milestone explicitly permits it.
 
-This contract represents future Codex CLI model preferences for routing and high-value lane planning. It does not execute Codex CLI, send prompts, run agents, call GitHub, call `gh`, or run external workflows.
+M74 stabilized Hub UX wording around Codex high-value prompt preview/copy behavior. M75 reconciles source-of-truth documentation and roadmap sequencing. Neither milestone implements Codex CLI dispatch.
+
+This contract represents future Codex CLI model preferences for routing, high-value lane planning, and future contract-first dispatch design. It does not execute Codex CLI, send prompts, run agents, call GitHub, call `gh`, or run external workflows.
 
 ## Storage
 
@@ -78,15 +80,32 @@ Reading defaults does not write this file. Updating the contract writes the file
 - operator-gated
 - configuration only
 - no Codex CLI execution
+- no Codex CLI dispatch implemented today
 - no prompt execution
 - no agent execution
 - no GitHub API or `gh`
 - no GitHub issues, PRs, workflow activity, or GitHub mutation
 - no external workflow execution
+- no unattended multi-item execution
+- no automatic repository mutation from Codex output
 - audit logging is local-only and non-executing
 - safety gate decisions are local-only and non-executing
 - artifact registry tracking is local-only and non-executing
 - operator run history is local-only, read-only, and non-executing
+
+## Future Dispatch Safety Gates
+
+Before Codex CLI dispatch can be implemented:
+
+- explicit operator approval
+- one queue item at a time
+- no automatic next-item execution
+- run state tracked
+- stdout/stderr/artifacts captured where applicable
+- error and completion states recorded
+- review evidence required before marking complete
+- queue/dependency blocking enforced
+- local validation required before commit/push
 
 ## Next Milestone Relationship
 
@@ -105,3 +124,5 @@ M68 reconciles local AI operations documentation without adding automatic Codex 
 M69 hardened local AI operations around edge cases, blocked/error metadata, and non-mutation state.
 
 M70 completed a verification sweep of the M58-M69 local AI operations chain without adding Codex execution or GitHub behavior.
+
+M75 keeps this contract as future planning only. M77 should define a dry-run/no-execute Codex dispatch contract, and M78 may only prototype one explicitly operator-approved item dispatch if that later milestone is approved.

@@ -1,5 +1,120 @@
 # AresForge Roadmap
 
+## M75 Source-of-Truth Documentation and Roadmap Reconciliation
+
+Status: Current milestone on `main`.
+
+Purpose:
+
+- reconcile the major source-of-truth docs after M74
+- document the current local-first, file-backed, operator-gated, preview-only, review-only state
+- prepare the next phase for self-management, future Codex CLI dispatch contracts, and future local LLM routing without adding execution behavior in M75
+
+Scope boundary:
+
+- documentation-only unless a tiny doc/test consistency helper is absolutely required
+- no Codex CLI dispatch
+- no agent execution
+- no GitHub API, `gh`, GitHub issues, GitHub PRs, GitHub workflows, or GitHub mutation from the app
+- no external workflow execution
+- no unattended multi-item autonomous execution
+- no local LLM repo mutation
+
+## M76 Self-Seed AresForge as the First Managed Project
+
+Purpose: seed AresForge into its own local project registry and queue as the first managed self-project.
+
+Boundaries:
+
+- local-only and file-backed
+- no GitHub API, `gh`, issue, PR, workflow, or external workflow execution
+- no Codex dispatch or automatic agent execution
+- self-project entries must be reviewable before any future execution milestone consumes them
+
+## M77 Codex CLI Dispatch Contract
+
+Purpose: define the contract, data model, run-state shape, evidence fields, and dry-run/no-execute behavior required before any Codex CLI dispatch prototype.
+
+Boundaries:
+
+- contract-first and dry-run/no-execute friendly
+- no Codex CLI process invocation
+- no automatic queue execution
+- no GitHub API, `gh`, issues, PRs, workflows, or GitHub mutation
+
+## M78 Operator-Gated Codex CLI Dispatch Prototype
+
+Purpose: prototype one explicitly operator-approved Codex CLI dispatch for one queue item.
+
+Boundaries:
+
+- one queue item at a time
+- explicit operator approval required
+- no automatic next-item execution
+- run state, stdout/stderr/artifacts, errors, and completion states must be captured where applicable
+- review evidence required before marking work complete
+- no GitHub API, `gh`, issues, PRs, workflows, or GitHub mutation from the app
+
+## M79 Queue Blocking and Sequencing Enforcement
+
+Purpose: enforce queue/dependency blocking so dependent items cannot move forward until upstream LLM/Codex completion, review, validation, and evidence are recorded.
+
+Boundaries:
+
+- blocking/sequencing enforcement only
+- no unattended multi-item execution
+- no automatic next-item execution
+- no GitHub or external workflow behavior
+
+## M80 LLM Decision Matrix v2
+
+Purpose: define routing/decision logic for local LLM vs Codex, coding vs reasoning, model/profile selection, task size, risk, validation burden, and safety gating.
+
+Boundaries:
+
+- decision/recommendation logic only unless a later milestone explicitly approves execution expansion
+- operator-gated and auditable
+- local LLM recommendations remain advisory and non-mutating
+- Codex recommendations remain prompt-generation/operator-handoff unless an approved dispatch gate applies
+
+## M81 Local LLM Advisory/Coding Lane Prototype
+
+Purpose: extend local LLM lanes carefully, starting with local-only advisory/reasoning before any coding-output path.
+
+Boundaries:
+
+- local-only provider use
+- advisory-only and prototype-scoped
+- no automatic repo mutation from local LLM output
+- no unattended execution
+- coding-output paths require explicit future gates before any application to files
+
+## M82 Self-Managed AresForge Test Run
+
+Purpose: test the self-management loop using AresForge itself as the managed project.
+
+Boundaries:
+
+- operator-gated self-management only
+- local validation required before commit/push
+- review evidence required before marking queue items complete
+- no GitHub API, `gh`, GitHub issues, GitHub PRs, GitHub workflows, or GitHub mutation from the app
+- no unattended multi-item autonomous execution
+
+## Next Phase Safety Gates
+
+Before Codex dispatch can be implemented:
+
+- explicit operator approval
+- one item at a time
+- no automatic next-item execution
+- run state tracked
+- stdout/stderr/artifacts captured where applicable
+- error and completion states recorded
+- review evidence required before marking complete
+- queue/dependency blocking enforced
+- local validation required before commit/push
+
 ## M74 Hub UX Stabilization Pass
 
 Status: Completed locally on `main`.
@@ -20,7 +135,7 @@ Constraints preserved:
 
 Recommended next milestone:
 
-- M75 - Local Project Queue Operational Readiness Review.
+- M75 - Source-of-Truth Documentation and Roadmap Reconciliation.
 
 ## M73 Prompt Pack Quality and Routing Improvements
 
@@ -2159,9 +2274,9 @@ The next phase shifts from single-repo local foundation hardening to multi-proje
 
 ## Known Limitations (Current Foundation Batch)
 
-- No actual LLM invocation yet.
+- No production-ready LLM dispatch exists; only the M62 explicit local LLM prototype may call a local provider under operator gates.
 - No cloud LLM API integration yet.
 - No GitHub sync execution yet.
-- No web dashboard UI yet.
+- Hub provides the local web UI; auth/deployment hardening and execution gates remain future work.
 - No cross-machine coordination yet.
 - No background daemon/scheduler yet.

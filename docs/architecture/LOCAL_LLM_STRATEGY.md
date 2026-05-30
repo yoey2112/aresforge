@@ -6,18 +6,18 @@ This document captures the planned local LLM strategy for AresForge.
 
 AresForge is a local-first, operator-gated AI/operator control-plane. The project will eventually use local and remote model providers to assist with planning, coding, documentation, validation, and agent workflows. This document focuses only on the future local Ollama-backed model strategy.
 
-This is not an implementation document for live LLM execution. It is a decision and configuration gameplan so the project has a clear baseline before any LLM-backed workflow is wired into the application.
+This is not an implementation document for production-ready LLM dispatch. It is a decision and configuration gameplan so the project has a clear baseline before any broader LLM-backed workflow is promoted beyond prototype behavior.
 
 ## Current position
 
-AresForge is not yet executing local LLM tasks.
+AresForge has an M62 operator-gated local LLM execution prototype. That prototype can call only a configured local provider after explicit gates and remains local-only, advisory-only, prototype-scoped, and non-mutating.
 
-The current scope is documentation only:
+The current strategy scope remains conservative:
 
-- No live LLM execution is being added.
+- No production-ready LLM dispatch is being added.
 - No agent workflow is being connected to Ollama yet.
 - No GitHub API usage is being introduced.
-- No network execution is being introduced.
+- No external network execution is being introduced.
 - No cloud LLM access is assumed.
 - All future usage must remain local-first and operator-gated until explicitly promoted through validation.
 
@@ -181,6 +181,8 @@ The local LLM layer must not:
 - Automatically call GitHub APIs
 - Automatically push commits
 - Automatically run network actions
+- Automatically run the next queue item
+- Mutate the repo from local LLM output
 - Assume cloud LLM availability
 - Treat model output as trusted execution authority
 

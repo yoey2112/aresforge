@@ -4,7 +4,35 @@
 
 M44A documented the future Agent/LLM routing strategy. M51 through M73 now add non-executing contracts and local Hub surfaces for project AI settings, agent/engine registry, queue routing metadata, recommendation-only routing decisions, Project AI Settings UI, routed queue views, routing-aware prompt packs, local LLM environment/health checks, Codex CLI model profile configuration, local LLM prompt preview/execution gates, Codex high-value prompt generation, a local execution audit log, centralized AI action safety gate decisions, a local AI artifact registry, an Operator Run History panel, an AI Action Review Panel, closeout reconciliation documentation, local AI operations hardening, verification, local LLM provider configuration hardening, and prompt-pack quality/routing guidance.
 
-Current prompt-pack and Codex high-value lane behavior are advisory prompt generation only. Runtime routing, Codex execution, real agent execution, and GitHub integration remain unimplemented. Local LLM execution exists only as the M62 operator-gated local prototype.
+M74 stabilized the Hub wording around those surfaces. M75 reconciles the source-of-truth documentation and roadmap without adding execution behavior.
+
+Current prompt-pack and Codex high-value lane behavior are advisory prompt generation/manual handoff only. Runtime routing execution, Codex dispatch, Codex CLI invocation, real agent execution, external workflow execution, and GitHub integration remain unimplemented. Local LLM execution exists only as the M62 operator-gated local prototype and remains local-only, advisory-only, prototype-scoped, and non-mutating.
+
+## M75 Source-of-Truth and Next Decision Matrix Direction
+
+M75 is documentation-only. It prepares the next phase without implementing Codex CLI dispatch, agent execution, GitHub behavior, external workflow execution, unattended multi-item queue execution, or repository mutation from local LLM output.
+
+The next decision-matrix direction is:
+
+- M76 seeds AresForge as its first managed local project
+- M77 defines the Codex CLI dispatch contract before execution exists
+- M78 prototypes only one explicitly operator-approved Codex queue-item dispatch
+- M79 enforces queue/dependency blocking before dependent movement
+- M80 defines LLM decision matrix v2 for local LLM vs Codex, coding vs reasoning, model/profile selection, task size, risk, validation burden, and safety gating
+- M81 extends local LLM lanes locally and advisory-first before any coding-output path
+- M82 tests self-management using AresForge itself
+
+Next phase safety gates before any Codex dispatch implementation:
+
+- explicit operator approval
+- one item at a time
+- no automatic next-item execution
+- run state tracked
+- stdout/stderr/artifacts captured where applicable
+- error and completion states recorded
+- review evidence required before marking complete
+- queue/dependency blocking enforced
+- local validation required before commit/push
 
 ## M73 Prompt Pack Quality and Routing Improvements
 
@@ -661,6 +689,8 @@ Routing strategy documentation does not authorize:
 - LLM/model routing execution
 - GitHub API calls, `gh`, GitHub issues, PRs, workflows, or GitHub mutation from the app
 - external/network execution beyond existing local Hub API behavior
+- unattended multi-item execution
+- repository mutation from local LLM or Codex output
 
 ## Routing Flow
 

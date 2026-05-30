@@ -28,6 +28,8 @@ M70 verifies the full M58-M69 local AI operations chain. It reconciles documenta
 
 M72 hardens provider and model configuration metadata. Environment reads, updates, and health-check responses now expose explicit provider availability status, provider configuration status, provider execution mode, advisory model profile metadata, fallback behavior, and next safe operator action. M72 does not add provider execution, automatic local LLM execution, or repository mutation behavior.
 
+M75 reconciles source-of-truth documentation after M74. It does not add local LLM execution behavior. The local LLM contract remains local-only, advisory-only, operator-gated, prototype-scoped, and non-mutating. Local LLM output must never automatically mutate repository files, queue state, project state, GitHub, `gh`, Codex, agents, commits, pushes, or workflows.
+
 ## Storage
 
 The contract is stored locally at:
@@ -204,6 +206,9 @@ M65 centralizes execution gate reporting for this path. The local LLM execution 
 - local-only
 - file-backed
 - operator-gated
+- advisory-only
+- prototype-scoped
+- non-mutating
 - configuration and health metadata only
 - prompt preview metadata only
 - local LLM execution only through M62 explicit operator-gated prototype
@@ -212,6 +217,21 @@ M65 centralizes execution gate reporting for this path. The local LLM execution 
 - no agent execution
 - no GitHub API or `gh`
 - no external/network execution beyond explicitly operator-invoked local provider health check and local provider execution behavior
+- no automatic queue progression, commit, push, workflow, or repository file mutation from local LLM output
+
+## Next Phase Safety Gates
+
+Before any local LLM coding-output expansion can move beyond advisory prototype behavior:
+
+- explicit operator approval
+- one queue item at a time
+- no automatic next-item execution
+- run state tracked
+- stdout/stderr/artifacts captured where applicable
+- error and completion states recorded
+- review evidence required before marking complete
+- queue/dependency blocking enforced
+- local validation required before commit/push
 
 ## Next Milestones
 
@@ -235,4 +255,10 @@ M70 completed a verification sweep of the M58-M69 local AI operations chain with
 
 M71 added an operator-facing AI Action Review Panel without adding execution.
 
-M72 hardened local LLM provider/model configuration and recommends M73 - Prompt Pack Quality and Routing Improvements next.
+M72 hardened local LLM provider/model configuration.
+
+M73 improved prompt-pack quality and routing guidance.
+
+M74 stabilized Hub UX wording.
+
+M75 reconciles source-of-truth docs and prepares M76-M82 without expanding local LLM execution.

@@ -1,5 +1,40 @@
 # Local Operator Usage
 
+## M75 Source-of-Truth Documentation and Roadmap Reconciliation
+
+Status: Current documentation-only milestone on `main`.
+
+Current operator workflow:
+
+1. Inspect project state with `python -m aresforge inspect-local-project-report`.
+2. Inspect queue and AI-adjacent state with `python -m aresforge inspect-local-queue-agent-summary`.
+3. Use the Hub Queue page as the local review surface for queue lifecycle, prompt packs, routed views, local LLM prototype/config status, AI Action Review, execution audit log, artifact registry, and Operator Run History.
+4. Treat prompt-pack preview and Codex high-value prompt output as manual copy/paste handoff only.
+5. Use Copy Prompt Pack Preview only after reviewing the generated text and safety notes.
+6. Treat AI Action Review, audit log, artifact registry, and run history as review-only evidence; they do not approve, dispatch, apply, commit, push, or close work.
+7. Treat local LLM provider/model status as prototype-scoped evidence, not production-ready execution approval.
+
+Operator safety notes:
+
+- no GitHub API, `gh`, GitHub issues, GitHub PRs, GitHub workflows, or GitHub mutation from the app
+- no automatic Codex execution, Codex CLI dispatch, agent execution, external workflow execution, or unattended multi-item execution
+- Codex high-value lane remains prompt-generation/operator-handoff only
+- local LLM execution remains local-only, advisory-only, operator-gated, prototype-scoped, and non-mutating
+- local LLM output must never automatically mutate repository files, queue state, project state, GitHub, `gh`, Codex, agents, commits, pushes, or workflows
+- normal `git commit` and `git push origin main` are allowed only after local validation, smoke checks, clean diff check, and explicit prompt instruction
+
+Next phase safety gates before any Codex dispatch implementation:
+
+- explicit operator approval
+- one item at a time
+- no automatic next-item execution
+- run state tracked
+- stdout/stderr/artifacts captured where applicable
+- error and completion states recorded
+- review evidence required before marking complete
+- queue/dependency blocking enforced
+- local validation required before commit/push
+
 ## M74 Hub UX Stabilization Pass
 
 Status: Completed locally on `main`.
@@ -21,7 +56,7 @@ Operator safety notes:
 
 Recommended next milestone:
 
-- M75 - Local Project Queue Operational Readiness Review.
+- M75 - Source-of-Truth Documentation and Roadmap Reconciliation.
 
 ## M73 Prompt Pack Quality and Routing Improvements
 
@@ -1406,7 +1441,7 @@ Foundation status:
 
 ## Known Limitations (Current Foundation Batch)
 
-- No actual LLM invocation yet.
+- No production-ready LLM dispatch exists; only the M62 explicit local LLM prototype may call a local provider under operator gates.
 - No cloud LLM API integration yet.
 - No GitHub sync execution yet.
 - Hub now supports M40 local reporting/dashboard/operator workflows, but execution gates/auth/deployment hardening remain future work.

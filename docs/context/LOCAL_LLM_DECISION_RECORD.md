@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted for future implementation planning.
+Accepted for future implementation planning and M75 source-of-truth reconciliation.
 
 ## Date
 
@@ -23,7 +23,7 @@ The models are not intended to run concurrently on the current hardware.
 
 AresForge is a local-first, document-driven, operator-gated AI/operator control-plane.
 
-The project is not yet implementing live LLM execution. This decision record captures the future local Ollama model baseline so that installation, configuration, validation, and task routing can be planned before the LLM integration phase begins.
+The project has an M62 operator-gated local LLM execution prototype, but no production-ready LLM dispatch. This decision record captures the future local Ollama model baseline so that installation, configuration, validation, and task routing can be planned before broader LLM integration is promoted beyond prototype behavior.
 
 The current local machine has:
 
@@ -96,7 +96,7 @@ The decision has the following constraints:
 - Reduce to 8K or 16K if memory pressure occurs.
 - Treat q4 quantization as the baseline.
 - Do not assume cloud LLM access.
-- Do not add live model execution until the project reaches the LLM integration phase.
+- Do not expand beyond the M62 local-only, advisory-only, operator-gated prototype without a future approved milestone.
 - Preserve operator approval before applying model output.
 
 ## Consequences
@@ -139,6 +139,8 @@ Before any AresForge workflow calls Ollama, validate:
 - No automatic file modification.
 - No GitHub API usage.
 - No network execution.
+- No automatic next-item execution.
+- No repository mutation from local LLM output.
 
 ## Related documents
 

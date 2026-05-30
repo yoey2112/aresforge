@@ -1,5 +1,43 @@
 # Runnable Skeleton
 
+## M75 Source-of-Truth Documentation and Roadmap Reconciliation
+
+Status: Current documentation-only milestone on `main`.
+
+Current runnable local skeleton:
+
+- `python -m aresforge serve-hub` serves the local Hub
+- project/repo surfaces use the local managed-project registry and project factory storage
+- queue lifecycle uses the canonical local queue
+- prompt-pack generation creates preview text and optional local artifacts for manual handoff
+- Local LLM Health Check inspects only configured local provider availability/model listing when explicitly invoked
+- Local LLM Prompt Preview is preview-only and does not call a provider
+- M62 local LLM execution prototype can call only a configured local provider after explicit operator gates and remains advisory-only/non-mutating
+- Codex high-value lane generates prompts for manual handoff and does not invoke Codex CLI
+- AI Action Review, execution audit log, AI artifact registry, and Operator Run History are review-only local evidence surfaces
+
+Still absent by design:
+
+- Codex CLI dispatch
+- automatic Codex execution
+- automatic agent execution
+- external workflow execution
+- GitHub API, `gh`, issues, PRs, workflows, or GitHub mutation from the app
+- unattended multi-item queue execution
+- local LLM or Codex output applying changes to repo files automatically
+
+Next phase safety gates before any Codex dispatch implementation:
+
+- explicit operator approval
+- one item at a time
+- no automatic next-item execution
+- run state tracked
+- stdout/stderr/artifacts captured where applicable
+- error and completion states recorded
+- review evidence required before marking complete
+- queue/dependency blocking enforced
+- local validation required before commit/push
+
 ## M74 Hub UX Stabilization Pass
 
 Status: Completed locally on `main`.
@@ -28,7 +66,7 @@ Still absent by design:
 
 Next skeleton focus:
 
-- M75 should review local project queue operational readiness.
+- M75 should reconcile source-of-truth documentation and the roadmap.
 
 ## M73 Prompt Pack Quality and Routing Improvements
 
@@ -2021,10 +2059,10 @@ Offline state-file command surface:
 
 ## Known Limitations
 
-- No actual LLM invocation yet.
+- No production-ready LLM dispatch exists; only the M62 explicit local LLM prototype may call a local provider under operator gates.
 - No cloud LLM API integration yet.
 - No GitHub sync execution yet.
-- No web dashboard UI yet.
+- Hub provides the local web UI; auth/deployment hardening and execution gates remain future work.
 - No cross-machine coordination yet.
 - No background daemon/scheduler yet.
 

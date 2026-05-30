@@ -1,5 +1,66 @@
 # AresForge Agent Context
 
+## M75 Source-of-Truth Documentation and Roadmap Reconciliation Context
+
+Status: In progress on `main`.
+
+Purpose:
+
+- reconcile the major source-of-truth docs after M74
+- keep future agents anchored to the current local-first, file-backed, operator-gated, preview/review-only operating model
+- prepare the next phase without implementing Codex dispatch, agent execution, GitHub behavior, or external workflow execution
+
+Implemented today:
+
+- local project registry/factory and local queue storage
+- Hub UI for local projects, repos, queue lifecycle, routing views, prompt packs, local LLM configuration/health/preview/prototype use, Codex high-value prompt generation, AI Action Review, execution audit log, artifact registry, and run history
+- prompt-pack previews and Codex high-value prompts as manual copy/paste handoff only
+- AI Action Review, audit, artifact, and run-history panels as review-only local evidence
+- local LLM provider/model metadata as prototype-scoped configuration/health evidence
+- M62 local LLM execution prototype as local-only, advisory-only, operator-gated, prototype-scoped, and non-mutating
+
+Not implemented today:
+
+- Codex CLI dispatch
+- automatic Codex execution
+- automatic agent execution
+- external workflow execution
+- GitHub API, `gh`, GitHub issues, GitHub PRs, GitHub workflows, or GitHub mutation from the app
+- unattended multi-item queue execution
+- automatic repo mutation from local LLM or Codex output
+
+Next-phase direction:
+
+- M76 - Self-Seed AresForge as the First Managed Project
+- M77 - Codex CLI Dispatch Contract
+- M78 - Operator-Gated Codex CLI Dispatch Prototype
+- M79 - Queue Blocking and Sequencing Enforcement
+- M80 - LLM Decision Matrix v2
+- M81 - Local LLM Advisory/Coding Lane Prototype
+- M82 - Self-Managed AresForge Test Run
+
+Future-agent reminders:
+
+- Codex remains manual prompt-pack handoff until a future approved milestone changes the contract
+- M77 must be contract-first and dry-run/no-execute friendly
+- M78 may dispatch only one explicitly operator-approved queue item and must not auto-run the next item
+- M79 must block dependent queue movement until completion/review/evidence is recorded
+- M80 must decide local LLM vs Codex, coding vs reasoning, model/profile selection, task size, risk, and safety gating without creating autonomous execution
+- M81 must start local-only with advisory/reasoning before any coding-output path, and local LLM output remains non-mutating
+- M82 must test self-management using AresForge itself while preserving operator gates
+
+Next phase safety gates before any Codex dispatch implementation:
+
+- explicit operator approval
+- one queue item at a time
+- no automatic next-item execution
+- run state tracked
+- stdout/stderr/artifacts captured where applicable
+- error and completion states recorded
+- review evidence required before marking complete
+- queue/dependency blocking enforced
+- local validation required before commit/push
+
 ## M74 Hub UX Stabilization Pass Context
 
 Status: Completed locally on `main`.
@@ -20,7 +81,7 @@ Boundary reminders:
 
 Recommended next milestone:
 
-- M75 - Local Project Queue Operational Readiness Review.
+- M75 - Source-of-Truth Documentation and Roadmap Reconciliation.
 
 ## M73 Prompt Pack Quality and Routing Improvements Context
 
@@ -1677,7 +1738,7 @@ Provide minimum operating context for M42 first-run bootstrap/setup with a local
 
 ## Known Limitations
 
-- No actual LLM invocation yet.
+- No production-ready LLM dispatch exists; only the M62 explicit local LLM prototype may call a local provider under operator gates.
 - No cloud LLM API integration yet.
 - No GitHub sync execution yet.
 - Hub now provides M40 local management/planning/reporting workflows; execution gates/auth/deployment hardening remain future work.
