@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T04:37:21.302358+00:00",
+  "updated_at": "2026-05-30T04:39:52.829072+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -889,6 +889,63 @@
       "closeout_history": [],
       "created_at": "2026-05-30T02:03:57.972900+00:00",
       "updated_at": "2026-05-30T02:19:42.271883+00:00"
+    },
+    {
+      "item_id": "m79-4-codex-dispatch-recovery-windows-argv-hardening",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M79.4 Codex Dispatch Recovery and Windows argv Hardening",
+      "description": "Harden Codex dispatch recovery after partial failures and fix Windows command/argv handling discovered during M80 manual recovery.",
+      "status": "ready",
+      "priority": "high",
+      "item_type": "task",
+      "tags": [
+        "milestone:m79.4",
+        "codex-dispatch",
+        "windows",
+        "argv-hardening",
+        "recovery",
+        "single-item-automation"
+      ],
+      "dependencies": [
+        "m80-llm-decision-matrix-v2"
+      ],
+      "blocked_by": [],
+      "assigned_agent": "",
+      "source": "operator_followup",
+      "notes": "Acceptance criteria:\n- run-single-ready-codex-queue-item can recover or resume safely after a partial failure where the item is already in_progress.\n- Recovery must not start a next queue item automatically.\n- Existing approved dispatch runs can be continued or safely superseded by a new approved run with clear evidence.\n- Windows command paths must be preserved correctly, including backslash paths and forward-slash paths.\n- --command must not be dropped when --command-arg is present.\n- Codex CLI dispatch should support codex.cmd exec non-interactive execution on Windows.\n- Dispatch must block if the prompt artifact is empty before execution.\n- Run state should clearly record command argv, resolved executable, prompt bytes, exit code, stderr, stdout, token usage availability, and recovery guidance.\n- Tests must cover command path preservation, command plus args, empty prompt blocking, in_progress recovery, and failed dispatch recovery.\n- Source-of-truth docs must document the recovered Windows Codex workflow.\n- Preserve local-only, operator-gated boundaries.\n- No automatic next-item execution.\n- No GitHub API, gh, issue, PR, workflow, or external mutation behavior.",
+      "started_at": "",
+      "started_via": "",
+      "previous_status": "",
+      "completed_at": "",
+      "completed_by": "",
+      "completion_commit": "",
+      "validation_summary": "",
+      "evidence_note": "",
+      "tests_run": [],
+      "changed_files": [],
+      "artifact_paths": [],
+      "completion_evidence": {},
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-30T04:39:52.829072+00:00",
+      "updated_at": "2026-05-30T04:39:52.829072+00:00"
     }
   ]
 }
