@@ -1,5 +1,53 @@
 # Local Operator Usage
 
+## M115 Local Ollama Provider Probe Integration
+
+M115 probes local Ollama provider readiness for environment discovery only. It does not send prompts, ask a model to reason or code, generate advisory output, execute Codex, call GitHub, call `gh`, execute agents, apply patches, mutate files, mutate queue state, or start follow-on work.
+
+Readable probe:
+
+    python -m aresforge probe-local-ollama-provider
+
+JSON probe:
+
+    python -m aresforge probe-local-ollama-provider --format json
+
+Configuration-only probe:
+
+    python -m aresforge probe-local-ollama-provider --no-network --format json
+
+Write a local probe record:
+
+    python -m aresforge probe-local-ollama-provider --output artifacts/local_ollama_provider_probes/probe.json --format json
+
+Overwrite only with explicit force:
+
+    python -m aresforge probe-local-ollama-provider --output artifacts/local_ollama_provider_probes/probe.json --format json --force
+
+The probe record includes:
+
+- `probe_type=local_ollama_provider_probe`
+- probed/blocked status and blocked reasons
+- Ollama expected/detected status
+- probe method
+- configured model profiles
+- available models when safely detectable through loopback `/api/tags`
+- coding and reasoning model recommendation metadata
+- `advisory_execution_allowed=false`
+- `prompt_execution_performed=false`
+- `coding_execution_performed=false`
+- `reasoning_execution_performed=false`
+- `local_only=true`
+- `execution_allowed=false`
+
+Safety behavior:
+
+- `--no-network` performs config-only inspection
+- network probing is limited to loopback `localhost`, `127.0.0.1`, or `::1`
+- non-loopback provider URLs block network probing
+- offline Ollama is warning metadata, not a queue readiness blocker
+- no prompt-bearing Ollama endpoints are called
+
 ## M114 Hub Dispatch Review Panel
 
 M114 adds a read-only Dispatch Review panel in the Hub Queue section. It displays local dispatch review artifacts and recommendations only. It does not execute Codex, Ollama, local LLMs, agents, GitHub, `gh`, network services, patch application, approval updates, queue completion, handoff automation, or follow-on work.

@@ -2,11 +2,40 @@
 
 ## Current Phase
 
-M114 implements the Hub Dispatch Review Panel as a local-only, read-only review surface for dispatch artifacts and recommendations. The Hub may display local review records, but it must not execute Codex, Ollama, local LLMs, GitHub, agents, network calls, or patch application.
+M115 implements the Local Ollama Provider Probe Integration as a local-only environment discovery surface. The probe may inspect configuration and, unless `--no-network` is supplied, call only the loopback Ollama `/api/tags` endpoint for model metadata.
 
 ## Current Goal
 
-M114 adds a `GET /api/dispatch-review` endpoint and Queue panel UI for manual dispatch preparation records, local LLM advisory artifacts, patch intake records, parsed dispatch evidence, and queue completion recommendations. The API returns `local_only=true`, `read_only=true`, and `execution_allowed=false`.
+M115 adds `probe-local-ollama-provider` for operator-visible Ollama provider readiness metadata. It reports configured model profiles, safely visible models when detectable, recommendation metadata, and explicit safety flags while preserving `advisory_execution_allowed=false`, `prompt_execution_performed=false`, `coding_execution_performed=false`, and `reasoning_execution_performed=false`.
+
+## M115 Local Ollama Provider Probe Integration
+
+Status: In progress locally on `main`.
+
+Queue item: `m115-local-ollama-provider-probe-integration`.
+
+M115 adds:
+
+- `probe-local-ollama-provider`
+- optional `--format json`
+- optional `--output`, `--force`, `--no-network`, and `--config`
+- stable `local_ollama_provider_probe` records
+
+Probe behavior:
+
+- reads the local LLM environment contract or an explicit local config file
+- reports expected Ollama configuration and configured reasoning/coding/fallback profiles
+- in `--no-network` mode, performs configuration-only inspection
+- otherwise calls only loopback `http://localhost`, `http://127.0.0.1`, or `http://[::1]` `/api/tags`
+- treats offline Ollama as warning metadata, not normal project readiness failure
+
+Safety boundaries:
+
+- no prompts are sent
+- no generation, chat, completion, coding, reasoning, or advisory endpoint is called
+- no model output is requested or used
+- no Codex, GitHub API, `gh`, agent execution, documentation-agent execution, workflow, patch application, queue mutation, or repository mutation
+- non-loopback provider URLs are blocked for network probing unless the operator reruns in config-only `--no-network` mode
 
 ## M114 Hub Dispatch Review Panel
 

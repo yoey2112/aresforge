@@ -72,6 +72,8 @@ M109 adds manual Codex dispatch preparation only. It may read local dispatch and
 
 M110 adds local LLM advisory request artifact generation for the M97 `local_llm_advisory` lane. It prepares a structured local JSON package with queue context, source documents, advisory prompt, expected response shape, and operator checklist. It does not call Ollama, list models, send prompts, run inference, execute Codex, call GitHub/`gh`, make network calls, apply patches, mutate queue state, or authorize provider execution. Generated artifacts preserve `local_only=true`, `execution_allowed=false`, `local_llm_execution_performed=false`, and `patch_application_allowed=false`.
 
+M115 adds a local Ollama provider probe for environment discovery only. The probe reads the local LLM environment contract or an explicit local config file, supports `--no-network` configuration-only inspection, and otherwise may call only a loopback `/api/tags` endpoint to list visible local model metadata. It never sends prompts, never calls generation/chat/completion endpoints, never asks a model to reason or code, and never authorizes advisory execution, coding execution, repository mutation, queue mutation, Codex execution, GitHub/`gh`, agents, workflows, or patch application.
+
 M125 adds an Agent Runtime Boundary Contract. The boundary contract may describe model scope values such as `none`, `metadata_only`, `local_health_probe_only`, `operator_gated_local_advisory`, and `codex_handoff_only`, but inspection is metadata-only and does not call Ollama, list models, send prompts, run inference, execute agents, execute Codex, call GitHub/`gh`, make network calls, apply patches, mutate queue state, or authorize provider execution. Any future agent runtime that uses local models must satisfy the M125 boundary and the local LLM environment/provider contracts before a separate explicit operator-approved execution milestone may run.
 
 M126 adds the local Agent Registry. The `local-llm-advisory-agent` record declares local provider health probing and advisory request artifact generation as allowed metadata capabilities, while explicitly forbidding Ollama prompt execution and local LLM inference. Its `network_scope` is `localhost_health_only`, `model_scope` is `local_health_probe_only`, `safety_class` is `local_provider_probe`, and `can_run_real=false`. Registry inspection does not call Ollama, list models, send prompts, run inference, execute agents, execute Codex, call GitHub/`gh`, make network calls beyond no-op metadata inspection, apply patches, mutate queue state, or authorize provider execution.
@@ -105,6 +107,7 @@ Reading defaults does not write this file. Updating the contract writes the file
 - CLI: `python -m aresforge inspect-local-llm-advisory-lane-readiness --item-id <item_id> --format json`
 - CLI: `python -m aresforge inspect-local-llm-provider-contract --format json`
 - CLI: `python -m aresforge inspect-ollama-health --format json`
+- CLI: `python -m aresforge probe-local-ollama-provider --format json`
 - CLI: `python -m aresforge test-ollama`
 - CLI: `python -m aresforge prepare-local-llm-advisory-run --item-id <item_id> --format json`
 - CLI: `python -m aresforge prepare-local-coding-draft --item-id <item_id> --format json`

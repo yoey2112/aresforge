@@ -228,6 +228,7 @@ from aresforge.operator.local_llm_provider import (
     inspect_local_llm_provider_contract,
     inspect_ollama_health_and_models,
 )
+from aresforge.operator.local_ollama_provider_probe import probe_local_ollama_provider
 from aresforge.operator.queue_dispatch_preparation import prepare_queue_item_dispatch
 from aresforge.operator.queue_agent_dispatch_plan import inspect_queue_agent_dispatch_plan
 from aresforge.operator.codex_prompt_dispatch_artifact import generate_codex_prompt_dispatch_artifact
@@ -1838,6 +1839,19 @@ def build_parser() -> argparse.ArgumentParser:
         "--format",
         choices=["json"],
         default="json",
+    )
+    probe_local_ollama_provider_parser = subparsers.add_parser(
+        "probe-local-ollama-provider",
+        help="Probe local Ollama provider configuration and loopback model metadata without prompt execution.",
+    )
+    probe_local_ollama_provider_parser.add_argument("--output")
+    probe_local_ollama_provider_parser.add_argument("--force", action="store_true")
+    probe_local_ollama_provider_parser.add_argument("--no-network", action="store_true")
+    probe_local_ollama_provider_parser.add_argument("--config")
+    probe_local_ollama_provider_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="markdown",
     )
     inspect_llm_decision_matrix_parser = subparsers.add_parser(
         "inspect-llm-decision-matrix",
@@ -4484,6 +4498,21 @@ def main(argv: list[str] | None = None) -> int:
             autonomy_level=args.autonomy_level,
             output=args.output,
             force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "probe-local-ollama-provider":
+        payload = probe_local_ollama_provider(
+            config,
+            output=args.output,
+            force=bool(args.force),
+            no_network=bool(args.no_network),
+            config_path=args.config,
             output_format=args.format,
         )
         if "stdout" in payload:

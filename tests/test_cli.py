@@ -71,6 +71,7 @@ def test_cli_has_expected_commands() -> None:
         "recommend-queue-completion",
         "inspect-agent-runtime-boundary",
         "inspect-agent-registry",
+        "probe-local-ollama-provider",
         "inspect-llm-decision-matrix",
         "inspect-local-llm-provider-contract",
         "run-single-ready-codex-queue-item",
@@ -5192,6 +5193,81 @@ def test_inspect_ollama_health_dispatch_json(
     assert parsed["safety_boundary"]["generation_allowed"] is False
     assert parsed["safety_boundary"]["repo_mutation_allowed"] is False
     assert parsed["safety_boundary"]["automatic_next_item_execution_allowed"] is False
+
+
+def test_probe_local_ollama_provider_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "probe_type": "local_ollama_provider_probe",
+                "probed": True,
+                "blocked": False,
+                "ollama_expected": True,
+                "ollama_detected": False,
+                "probe_method": "config_only_no_network",
+                "configured_model_profiles": [],
+                "available_models": [],
+                "advisory_execution_allowed": False,
+                "prompt_execution_performed": False,
+                "coding_execution_performed": False,
+                "reasoning_execution_performed": False,
+                "network_execution_performed": False,
+                "local_only": True,
+                "execution_allowed": False,
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_probe(
+        _config,
+        output=None,
+        force=False,
+        no_network=False,
+        config_path=None,
+        output_format="markdown",
+    ):
+        seen["output"] = output
+        seen["force"] = force
+        seen["no_network"] = no_network
+        seen["config_path"] = config_path
+        seen["output_format"] = output_format
+        return payload
+
+    monkeypatch.setattr(cli, "probe_local_ollama_provider", fake_probe)
+    exit_code = cli.main(
+        [
+            "probe-local-ollama-provider",
+            "--format",
+            "json",
+            "--output",
+            "artifacts/probes/ollama.json",
+            "--force",
+            "--no-network",
+            "--config",
+            ".aresforge/local_llm_environment.json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["probe_type"] == "local_ollama_provider_probe"
+    assert parsed["prompt_execution_performed"] is False
+    assert parsed["network_execution_performed"] is False
+    assert seen == {
+        "output": "artifacts/probes/ollama.json",
+        "force": True,
+        "no_network": True,
+        "config_path": ".aresforge/local_llm_environment.json",
+        "output_format": "json",
+    }
 
 
 def test_prepare_local_llm_advisory_run_dispatch_json(

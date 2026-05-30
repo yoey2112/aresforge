@@ -1,5 +1,41 @@
 # AresForge Roadmap
 
+## M115 Local Ollama Provider Probe Integration
+
+Status: In progress locally on `main`.
+
+Queue item: `m115-local-ollama-provider-probe-integration`.
+
+Purpose:
+
+- report whether local Ollama appears configured and detectable
+- surface configured reasoning, coding, and fallback model profiles
+- optionally inspect visible local models through loopback `/api/tags`
+- preserve a strict no-prompt, no-inference, no-generation boundary
+
+Runnable operator surface:
+
+- `python -m aresforge probe-local-ollama-provider`
+- `python -m aresforge probe-local-ollama-provider --format json`
+- `python -m aresforge probe-local-ollama-provider --no-network --format json`
+- optional `--config <path>`, `--output <path>`, and `--force`
+
+Probe contract:
+
+- `probe_type=local_ollama_provider_probe`
+- records probed/blocked status and blocked reasons
+- records `ollama_expected`, `ollama_detected`, `probe_method`, configured model profiles, visible models when safely detectable, and model recommendation metadata
+- records `advisory_execution_allowed=false`
+- records `prompt_execution_performed=false`, `coding_execution_performed=false`, and `reasoning_execution_performed=false`
+- records `local_only=true` and `execution_allowed=false`
+
+Constraints preserved:
+
+- `--no-network` performs configuration-only inspection
+- network probing is limited to local loopback `/api/tags`
+- non-loopback provider URLs block network probing
+- no prompts, generation, chat, completion, coding, reasoning, advisory execution, Codex execution, GitHub API, `gh`, agent execution, workflow behavior, patch application, queue mutation, repository mutation, or next-item execution
+
 ## M114 Hub Dispatch Review Panel
 
 Status: Completed locally on `main` after validation.

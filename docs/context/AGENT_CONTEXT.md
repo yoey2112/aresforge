@@ -1,5 +1,26 @@
 # AresForge Agent Context
 
+## M115 Local Ollama Provider Probe Integration Context
+
+Status: In progress locally on `main`.
+
+Queue item: `m115-local-ollama-provider-probe-integration`.
+
+M115 adds a local-only Ollama provider probe:
+
+- `python -m aresforge probe-local-ollama-provider`
+- `python -m aresforge probe-local-ollama-provider --format json`
+- optional `--output`, `--force`, `--no-network`, and `--config`
+
+The probe reports `probe_type=local_ollama_provider_probe`, configured local model profiles, optional visible model metadata from the loopback `/api/tags` endpoint, coding/reasoning profile recommendation metadata, and explicit non-execution flags.
+
+M115 boundaries:
+
+- configuration-only when `--no-network` is supplied
+- loopback `/api/tags` only when network probing is allowed
+- non-loopback provider URLs block network probing
+- no prompts, generation, chat, completion, coding, reasoning, advisory execution, Codex execution, GitHub API, `gh`, agent execution, patch application, repository mutation, queue mutation, workflow behavior, or next-item execution
+
 ## M114 Hub Dispatch Review Panel Context
 
 Status: Completed locally on `main` after validation.
