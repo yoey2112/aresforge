@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T01:39:45.047714+00:00",
+  "updated_at": "2026-05-30T01:57:22.471518+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -252,7 +252,7 @@
       "repo_id": "aresforge-main",
       "title": "M78 Operator-Gated Codex CLI Dispatch Prototype",
       "description": "Prototype one explicitly operator-approved Codex CLI dispatch for one local queue item after M77 contract is complete.",
-      "status": "in_progress",
+      "status": "done",
       "priority": "high",
       "item_type": "feature",
       "tags": [
@@ -270,15 +270,38 @@
       "notes": "Acceptance criteria:\n- Requires explicit operator approval.\n- Allows only one queue item at a time.\n- Does not auto-run the next item.\n- Captures run state and available stdout/stderr/artifacts.\n- Records error and completion states.\n- Requires review evidence before completion.\n\nM76 safety notes:\n- Seeded for review only.\n- Not started automatically.\n- No prompt, agent, Codex, local LLM, GitHub, gh, issue, PR, workflow, commit, or push action was invoked.",
       "started_at": "2026-05-30T01:39:45.047714+00:00",
       "started_via": "local_operator",
-      "previous_status": "proposed",
-      "completed_at": "",
-      "completed_by": "",
-      "completion_commit": "",
-      "validation_summary": "",
-      "evidence_note": "",
-      "tests_run": [],
-      "changed_files": [],
-      "artifact_paths": [],
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-30T01:57:22.471518+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "fc3a6da",
+      "validation_summary": "M78 implemented and validated. Added operator-gated Codex dispatch prototype with explicit approval, one-active-run enforcement, subprocess invocation, stdout/stderr capture, failure capture, inspect/list/cancel commands, and run-state validation. Successful dispatch ends in review_required and does not complete queue items automatically. No automatic next-item execution, GitHub API, gh, issue, PR, workflow, local LLM expansion, or API/UI surface was added.",
+      "evidence_note": "Codex result reported 451 targeted tests passed. git diff --check passed with line-ending warnings only. Smoke checks passed for inspect-codex-dispatch-contract, approve-codex-dispatch, run-codex-dispatch using harmless injected command, inspect-codex-dispatch-run, inspect-project-queue, inspect-local-queue-agent-summary, and inspect-local-project-report. Dispatch smoke used run m78-smoke-run-2 and captured stdout containing codex dispatch smoke, empty stderr, exit_code 0, and review_required state. Queue item remained in_progress after dispatch smoke.",
+      "tests_run": [
+        "python -m pytest tests/test_codex_dispatch_contract.py tests/test_codex_dispatch_runner.py tests/test_cli.py tests/test_local_project_queue.py tests/test_local_project_factory.py tests/test_hub_local_queue_lifecycle_api.py tests/test_hub_project_factory_api.py tests/test_hub_ui_foundation.py -> 451 passed",
+        "git diff --check -> passed with line-ending warnings only",
+        "python -m aresforge inspect-codex-dispatch-contract --item-id m78-operator-gated-codex-cli-dispatch-prototype --format json -> passed",
+        "python -m aresforge approve-codex-dispatch -> passed with run m78-smoke-run-2",
+        "python -m aresforge run-codex-dispatch using --command-arg python --command-arg=-c --command-arg print('codex dispatch smoke') -> passed",
+        "python -m aresforge inspect-codex-dispatch-run --run-id m78-smoke-run-2 --format json -> review_required, exit_code 0, stdout captured, stderr empty",
+        "python -m aresforge inspect-project-queue --project-id aresforge --format json -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed",
+        "python -m aresforge inspect-local-project-report -> passed"
+      ],
+      "changed_files": [
+        ".aresforge/queue/work_items.json",
+        "src/aresforge/operator/codex_dispatch_runner.py",
+        "src/aresforge/cli.py",
+        "tests/test_codex_dispatch_runner.py",
+        "tests/test_cli.py",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md"
+      ],
+      "artifact_paths": [
+        ".aresforge/codex_dispatch/runs/m78-smoke-run-2"
+      ],
       "completion_evidence": {},
       "routing_metadata": {
         "recommended_agent_lane": "high_value_codex",
@@ -299,7 +322,7 @@
       "closeout_summary": "",
       "closeout_history": [],
       "created_at": "2026-05-30T01:07:02.934932+00:00",
-      "updated_at": "2026-05-30T01:39:45.047714+00:00"
+      "updated_at": "2026-05-30T01:57:22.471518+00:00"
     },
     {
       "item_id": "m79-queue-blocking-and-sequencing-enforcement",
