@@ -2,9 +2,11 @@
 
 ## M119 Dispatch Artifact Registry Index v2 Context
 
-Status: Implemented locally on `main` pending completion evidence commit.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m119-dispatch-artifact-registry-index-v2`.
+
+Implementation commit: `6c31268`.
 
 M119 adds `python -m aresforge inspect-artifact-registry --format json` for a versioned local artifact registry. The registry indexes local dispatch/review artifacts, applies optional project/item/type filters, and reports missing expected artifact folders, stale artifacts, duplicates, blocked artifacts, review-required artifacts, and the next safe action.
 

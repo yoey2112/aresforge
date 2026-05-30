@@ -2,9 +2,11 @@
 
 ## M119 Dispatch Artifact Registry Index v2
 
-Status: Implemented locally on `main` pending completion evidence commit.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m119-dispatch-artifact-registry-index-v2`.
+
+Implementation commit: `6c31268`.
 
 Purpose:
 
