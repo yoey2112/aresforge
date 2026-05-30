@@ -78,6 +78,8 @@ M125 adds an Agent Runtime Boundary Contract. The boundary contract may describe
 
 M126 adds the local Agent Registry. The `local-llm-advisory-agent` record declares local provider health probing and advisory request artifact generation as allowed metadata capabilities, while explicitly forbidding Ollama prompt execution and local LLM inference. Its `network_scope` is `localhost_health_only`, `model_scope` is `local_health_probe_only`, `safety_class` is `local_provider_probe`, and `can_run_real=false`. Registry inspection does not call Ollama, list models, send prompts, run inference, execute agents, execute Codex, call GitHub/`gh`, make network calls beyond no-op metadata inspection, apply patches, mutate queue state, or authorize provider execution.
 
+M127 adds LLM Decision Policy v1. The policy may recommend local reasoning or local coding review lanes from queue and agent metadata, but it does not read visible model lists, call Ollama, list models, send prompts, run inference, execute routing, execute agents, execute Codex, call GitHub/`gh`, make network calls, apply patches, mutate queue state, or authorize provider execution. Local LLM-related recommendations remain advisory inputs for later explicit artifacts or operator-approved runners only.
+
 ## Storage
 
 The contract is stored locally at:

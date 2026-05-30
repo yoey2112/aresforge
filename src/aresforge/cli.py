@@ -249,6 +249,7 @@ from aresforge.operator.safe_dispatch_handoff import generate_safe_dispatch_hand
 from aresforge.operator.manual_codex_dispatch_runner import prepare_manual_codex_dispatch
 from aresforge.operator.agent_runtime_boundary import inspect_agent_runtime_boundary
 from aresforge.operator.agent_registry import inspect_agent_registry
+from aresforge.operator.llm_decision_policy import recommend_llm_decision
 from aresforge.operator.single_ready_codex_queue_item import run_single_ready_codex_queue_item
 from aresforge.operator.local_agent_profiles import (
     AGENT_PROFILE_STATUSES,
@@ -1696,6 +1697,7 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["json", "markdown"],
         default="markdown",
     )
+
     create_dispatch_approval_gate_parser = subparsers.add_parser(
         "create-dispatch-approval-gate",
         help="Create a local-only human approval gate record for a dispatch artifact or dry-run output.",
@@ -1836,6 +1838,23 @@ def build_parser() -> argparse.ArgumentParser:
     inspect_agent_registry_parser.add_argument("--output")
     inspect_agent_registry_parser.add_argument("--force", action="store_true")
     inspect_agent_registry_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+    )
+    recommend_llm_decision_parser = subparsers.add_parser(
+        "recommend-llm-decision",
+        help="Recommend an LLM/provider/lane decision for one queue item without executing anything.",
+    )
+    recommend_llm_decision_parser.add_argument("--item-id", required=True)
+    recommend_llm_decision_parser.add_argument("--agent-id")
+    recommend_llm_decision_parser.add_argument("--task-type")
+    recommend_llm_decision_parser.add_argument("--risk-level")
+    recommend_llm_decision_parser.add_argument("--mutation-scope")
+    recommend_llm_decision_parser.add_argument("--queue-path")
+    recommend_llm_decision_parser.add_argument("--output")
+    recommend_llm_decision_parser.add_argument("--force", action="store_true")
+    recommend_llm_decision_parser.add_argument(
         "--format",
         choices=["json"],
         default="json",
@@ -4353,6 +4372,7 @@ def main(argv: list[str] | None = None) -> int:
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 
+
     if args.command == "create-dispatch-approval-gate":
         payload = create_dispatch_approval_gate(
             config,
@@ -4496,6 +4516,25 @@ def main(argv: list[str] | None = None) -> int:
             agent_id=args.agent_id,
             safety_class=args.safety_class,
             autonomy_level=args.autonomy_level,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "recommend-llm-decision":
+        payload = recommend_llm_decision(
+            config,
+            item_id=args.item_id,
+            agent_id=args.agent_id,
+            task_type=args.task_type,
+            risk_level=args.risk_level,
+            mutation_scope=args.mutation_scope,
+            queue_path=args.queue_path,
             output=args.output,
             force=bool(args.force),
             output_format=args.format,

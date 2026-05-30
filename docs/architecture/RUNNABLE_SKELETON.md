@@ -1,5 +1,49 @@
 # Runnable Skeleton
 
+## M127 LLM Decision Policy v1
+
+M127 adds a local-only recommendation command:
+
+- `python -m aresforge recommend-llm-decision --item-id <item_id> --format json`
+- optional `--agent-id`, `--task-type`, `--risk-level`, `--mutation-scope`, `--output`, and `--force`
+
+Runnable behavior:
+
+- reads local queue metadata for one item
+- applies optional CLI overrides for agent, task type, risk, and mutation scope
+- classifies code, docs, planning, validation, GitHub/network, no-LLM, context-size, local-only, repo-aware coding, deterministic validation, test-verifiability, and autonomous-execution signals
+- emits stable JSON only
+- refuses to overwrite output files unless `--force` is explicit
+- preserves `execution_performed=false`
+
+Stable recommendation fields:
+
+- `recommendation_type`
+- `item_id`
+- `agent_id`
+- `recommended_lane`
+- `recommended_provider`
+- `recommended_model_profile`
+- `alternatives`
+- `decision_reasons`
+- `risk_assessment`
+- `autonomy_allowed`
+- `machine_gate_required`
+- `human_review_required`
+- `execution_performed`
+- `local_only`
+- `next_safe_action`
+
+Still absent by design:
+
+- Codex execution or Codex CLI shell-out
+- Ollama/local LLM prompt execution
+- remote LLM execution
+- documentation-agent, validation-agent, GitHub-sync-agent, or external-agent execution
+- GitHub API, `gh`, issues, PRs, workflows, network calls, or external services
+- patch application
+- source mutation, queue mutation, automatic handoff, automatic completion, autonomous execution, or next-item execution
+
 ## M114 Hub Dispatch Review Panel
 
 M114 adds a local-only, read-only Hub review surface:

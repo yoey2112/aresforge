@@ -1,5 +1,27 @@
 # AresForge Agent Context
 
+## M127 LLM Decision Policy v1 Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m127-llm-decision-policy-v1`.
+
+M127 adds a local-only LLM decision policy:
+
+- `python -m aresforge recommend-llm-decision --item-id <item_id> --format json`
+- optional `--agent-id`, `--task-type`, `--risk-level`, `--mutation-scope`, `--output`, and `--force`
+
+The policy recommends one of: `no_llm_required`, `local_llm_reasoning`, `local_llm_coding_review`, `codex_coding`, `codex_reasoning`, `remote_high_value_reasoning`, `remote_low_cost_reasoning`, `documentation_agent`, `validation_agent`, or `github_sync_agent`.
+
+Recommendation inputs include queue item type, risk level, mutation requirement, code/docs/planning shape, context size, repo-aware coding need, deterministic validation need, local-only requirement, GitHub/network requirement, test verifiability, agent id, and autonomous execution hints.
+
+M127 boundaries:
+
+- recommendation only
+- `execution_performed=false`
+- no Codex, local LLM, remote LLM, Ollama, agent runtime, GitHub API, `gh`, network service, patch application, validation execution, source mutation, queue mutation, autonomous execution, or next-item execution
+- future autonomous execution hints do not authorize execution
+
 ## M115 Local Ollama Provider Probe Integration Context
 
 Status: Completed locally on `main` after validation.

@@ -2,11 +2,51 @@
 
 ## Current Phase
 
-M115 implements the Local Ollama Provider Probe Integration as a local-only environment discovery surface. The probe may inspect configuration and, unless `--no-network` is supplied, call only the loopback Ollama `/api/tags` endpoint for model metadata.
+M127 implements the LLM Decision Policy v1 as a local-only recommendation layer for queue items and agent tasks. It recommends a lane, provider, and model profile but does not execute Codex, local LLMs, remote LLMs, GitHub, agents, patches, tests, or network services.
 
 ## Current Goal
 
-M115 adds `probe-local-ollama-provider` for operator-visible Ollama provider readiness metadata. It reports configured model profiles, safely visible models when detectable, recommendation metadata, and explicit safety flags while preserving `advisory_execution_allowed=false`, `prompt_execution_performed=false`, `coding_execution_performed=false`, and `reasoning_execution_performed=false`.
+M127 adds `recommend-llm-decision --item-id <id> --format json`. The command emits machine-readable `llm_decision_policy_v1` records with `execution_performed=false`, `local_only` decision metadata, human/machine gate flags, risk assessment, alternatives, and next safe action.
+
+## M127 LLM Decision Policy v1
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m127-llm-decision-policy-v1`.
+
+Implementation commit: pending final commit.
+
+M127 adds:
+
+- `recommend-llm-decision --item-id <item_id> --format json`
+- optional `--agent-id`, `--task-type`, `--risk-level`, `--mutation-scope`, `--output`, and `--force`
+- machine-readable `llm_decision_policy_v1` records
+
+Supported lanes:
+
+- `no_llm_required`
+- `local_llm_reasoning`
+- `local_llm_coding_review`
+- `codex_coding`
+- `codex_reasoning`
+- `remote_high_value_reasoning`
+- `remote_low_cost_reasoning`
+- `documentation_agent`
+- `validation_agent`
+- `github_sync_agent`
+
+Policy behavior:
+
+- reads local queue metadata and optional CLI overrides
+- considers task type, risk, mutation scope, code/docs/planning shape, context size, repo-aware coding need, deterministic validation need, local-only requirement, GitHub/network requirement, test verifiability, and autonomous execution hints
+- recommends a future lane/provider/model profile only
+- records `execution_performed=false` for every recommendation
+
+Safety boundaries:
+
+- no Codex, Codex CLI, Ollama, local LLM, remote LLM, documentation-agent, validation-agent, GitHub API, `gh`, network service, workflow, patch application, source mutation, queue mutation, autonomous execution, or next-item execution
+- `autonomy_allowed` is a future-policy hint only and is not execution authorization
+- machine and human gates remain advisory metadata until a later explicit runner consumes them
 
 ## M115 Local Ollama Provider Probe Integration
 

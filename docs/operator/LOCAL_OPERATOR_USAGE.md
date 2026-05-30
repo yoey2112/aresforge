@@ -1,5 +1,31 @@
 # Local Operator Usage
 
+## M127 LLM Decision Policy v1
+
+M127 recommends which LLM/provider/lane should be used for a queue item or agent task. It does not execute Codex, local LLMs, remote LLMs, Ollama, agents, GitHub, `gh`, network services, validation commands, patches, queue mutation, source mutation, autonomous execution, or follow-on work.
+
+JSON recommendation:
+
+    python -m aresforge recommend-llm-decision --item-id <item_id> --format json
+
+Use explicit operator overrides:
+
+    python -m aresforge recommend-llm-decision --item-id <item_id> --agent-id validation-agent --task-type validation --risk-level medium --mutation-scope none --format json
+
+Write a local recommendation:
+
+    python -m aresforge recommend-llm-decision --item-id <item_id> --format json --output artifacts/llm-decisions/<item_id>.json
+
+Overwrite only with explicit force:
+
+    python -m aresforge recommend-llm-decision --item-id <item_id> --format json --output artifacts/llm-decisions/<item_id>.json --force
+
+The output includes `recommendation_type=llm_decision_policy_v1`, the recommended lane/provider/model profile, alternatives, decision reasons, risk assessment, `autonomy_allowed`, `machine_gate_required`, `human_review_required`, `execution_performed=false`, `local_only`, and `next_safe_action`.
+
+Supported lanes are `no_llm_required`, `local_llm_reasoning`, `local_llm_coding_review`, `codex_coding`, `codex_reasoning`, `remote_high_value_reasoning`, `remote_low_cost_reasoning`, `documentation_agent`, `validation_agent`, and `github_sync_agent`.
+
+Treat `autonomy_allowed` as future-policy metadata only. It is not permission to execute anything from this command.
+
 ## M115 Local Ollama Provider Probe Integration
 
 M115 probes local Ollama provider readiness for environment discovery only. It does not send prompts, ask a model to reason or code, generate advisory output, execute Codex, call GitHub, call `gh`, execute agents, apply patches, mutate files, mutate queue state, or start follow-on work.

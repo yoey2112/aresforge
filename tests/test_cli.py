@@ -71,6 +71,7 @@ def test_cli_has_expected_commands() -> None:
         "recommend-queue-completion",
         "inspect-agent-runtime-boundary",
         "inspect-agent-registry",
+        "recommend-llm-decision",
         "probe-local-ollama-provider",
         "inspect-llm-decision-matrix",
         "inspect-local-llm-provider-contract",
@@ -5270,6 +5271,102 @@ def test_probe_local_ollama_provider_dispatch_json(
     }
 
 
+def test_recommend_llm_decision_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "recommendation_type": "llm_decision_policy_v1",
+                "item_id": "m127",
+                "agent_id": "validation-agent",
+                "recommended_lane": "validation_agent",
+                "recommended_provider": "agent_registry",
+                "recommended_model_profile": "deterministic_validation_plan",
+                "alternatives": [],
+                "decision_reasons": ["validation"],
+                "risk_assessment": {"effective_risk_level": "medium"},
+                "autonomy_allowed": True,
+                "machine_gate_required": True,
+                "human_review_required": True,
+                "execution_performed": False,
+                "local_only": True,
+                "next_safe_action": "Review only.",
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_recommend(
+        _config,
+        *,
+        item_id,
+        agent_id=None,
+        task_type=None,
+        risk_level=None,
+        mutation_scope=None,
+        queue_path=None,
+        output=None,
+        force=False,
+        output_format="json",
+    ):
+        seen["item_id"] = item_id
+        seen["agent_id"] = agent_id
+        seen["task_type"] = task_type
+        seen["risk_level"] = risk_level
+        seen["mutation_scope"] = mutation_scope
+        seen["queue_path"] = queue_path
+        seen["output"] = output
+        seen["force"] = force
+        seen["output_format"] = output_format
+        return payload
+
+    monkeypatch.setattr(cli, "recommend_llm_decision", fake_recommend)
+    exit_code = cli.main(
+        [
+            "recommend-llm-decision",
+            "--item-id",
+            "m127",
+            "--agent-id",
+            "validation-agent",
+            "--task-type",
+            "validation",
+            "--risk-level",
+            "medium",
+            "--mutation-scope",
+            "none",
+            "--queue-path",
+            ".aresforge/queue/work_items.json",
+            "--output",
+            "artifacts/llm-decisions/m127.json",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["recommendation_type"] == "llm_decision_policy_v1"
+    assert parsed["execution_performed"] is False
+    assert seen == {
+        "item_id": "m127",
+        "agent_id": "validation-agent",
+        "task_type": "validation",
+        "risk_level": "medium",
+        "mutation_scope": "none",
+        "queue_path": ".aresforge/queue/work_items.json",
+        "output": "artifacts/llm-decisions/m127.json",
+        "force": True,
+        "output_format": "json",
+    }
+
+
 def test_prepare_local_llm_advisory_run_dispatch_json(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -6515,6 +6612,7 @@ def test_generate_local_llm_advisory_artifact_dispatch_markdown(
     assert exit_code == 0
     assert "generated: True" in output
     assert "selected_lane: local_llm_advisory" in output
+
 
 
 def test_intake_patch_proposal_dispatch_json(

@@ -1,5 +1,44 @@
 # AresForge Roadmap
 
+## M127 LLM Decision Policy v1
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m127-llm-decision-policy-v1`.
+
+Implementation commit: pending final commit.
+
+Purpose:
+
+- create the first formal LLM-level decision policy above queue and agent metadata
+- recommend the appropriate lane, provider, and model profile for a queue item or agent task
+- separate recommendation from execution with explicit human/machine gates
+- keep all output machine-readable and local-only unless the recommended future lane itself requires network/GitHub review
+
+Runnable operator surface:
+
+- `python -m aresforge recommend-llm-decision --item-id <item_id> --format json`
+- optional `--agent-id`, `--task-type`, `--risk-level`, `--mutation-scope`, `--output`, and `--force`
+
+Supported lanes:
+
+- `no_llm_required`
+- `local_llm_reasoning`
+- `local_llm_coding_review`
+- `codex_coding`
+- `codex_reasoning`
+- `remote_high_value_reasoning`
+- `remote_low_cost_reasoning`
+- `documentation_agent`
+- `validation_agent`
+- `github_sync_agent`
+
+Constraints preserved:
+
+- recommendation-only
+- `execution_performed=false`
+- no Codex, local LLM, remote LLM, Ollama, GitHub API, `gh`, agent runtime, validation command, network service, patch application, queue mutation, source mutation, autonomous execution, or next-item execution
+
 ## M115 Local Ollama Provider Probe Integration
 
 Status: Completed locally on `main` after validation.
