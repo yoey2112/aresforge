@@ -1,5 +1,39 @@
 # Runnable Skeleton
 
+## M124 Sprint Summary and Documentation Sync Closeout
+
+M124 adds no runnable product feature. It synchronizes the M110-M124 controlled automation sprint docs and queue evidence.
+
+Runnable behavior after M110-M124:
+
+- local advisory artifact generation for LLM review requests
+- local patch proposal intake metadata, blocked from application
+- local dispatch result evidence parsing
+- local queue completion recommendations
+- Hub read-only dispatch/review/routing workspace
+- local Ollama environment/provider metadata probing without prompts
+- local documentation patch proposals for human review
+- local artifact registry, approval ledger, batch sequencing, and queue transaction log inspection
+
+Still absent by design:
+
+- unattended Codex dispatch or Codex CLI shell-out
+- Ollama/local LLM prompt execution from this sprint's planning contracts
+- remote LLM execution
+- real agent execution from M110-M124 contracts
+- GitHub API, `gh`, issues, PRs, workflows, network calls, or external services
+- validation command execution
+- patch application or documentation-agent apply mode
+- queue mutation from recommendations
+- automatic handoff, automatic completion, autonomous execution, or next-item execution
+
+Closeout guidance:
+
+- use artifacts and recommendations as review inputs only
+- require explicit human approval before patch intake or manual handoff
+- require parsed evidence and validation results before completion decisions
+- keep future execution runners as separate explicit milestones with machine and human gates
+
 ## M123 Hub Controlled Automation Workspace Polish
 
 M123 adds no execution surface. It polishes the existing Hub Queue controlled automation workspace so operators can distinguish local advisory review from executable work.

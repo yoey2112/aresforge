@@ -1,5 +1,29 @@
 # AresForge Roadmap
 
+## M131 Machine Safety Gate Engine
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m131-machine-safety-gate-engine`.
+
+Purpose:
+
+- replace human-gated review with deterministic machine gates where local evidence is sufficient
+- provide one evaluation surface for queue mutation, docs-only patch application, local artifact writes, local LLM execution, Codex dispatch, GitHub sync, and multi-agent orchestration
+- keep every gate evaluation non-executing and non-mutating
+
+Runnable operator surface:
+
+- `python -m aresforge evaluate-machine-safety-gates --item-id <item_id> --format json`
+- optional `--gate-profile`, `--artifact-path`, `--patch-path`, `--execution-record`, `--output`, and `--force`
+
+Constraints preserved:
+
+- evaluation only with `execution_performed=false` and `mutation_performed=false`
+- profiles fail closed when required artifacts, evidence, allowlisted paths, docs-only patch targets, transaction logs, or explicit external allowance are missing
+- no agent execution, Codex, Ollama/local LLM prompting, remote LLM call, GitHub API, `gh`, network service, validation command execution, patch application, queue mutation, external mutation, autonomous execution, or next-item execution
+
+
 ## M123 Hub Controlled Automation Workspace Polish
 
 Status: Completed locally on `main` after validation.

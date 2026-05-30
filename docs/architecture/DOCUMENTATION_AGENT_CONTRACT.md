@@ -1,5 +1,11 @@
 # Documentation Agent Contract
 
+## M124 Sprint Closeout Note
+
+M124 closes the M110-M124 controlled automation sprint without adding documentation-agent execution. M116 can generate documentation patch proposal artifacts and M111 can record approved patch proposal intake metadata, but generated documentation proposals remain human-review-only and are not applied automatically.
+
+Documentation-agent apply mode, model-generated documentation mutation, patch application, queue completion, GitHub/`gh`, network workflows, and automatic next-item execution remain blocked until a later explicit operator-approved milestone defines and validates that boundary.
+
 ## M118 Post-Automation Planning Reconciliation
 
 M118 reconciles documentation-agent-related source-of-truth after M110-M117. It records that M116 can generate documentation patch proposal artifacts for review and that M111 can intake approved patch proposals as metadata, but no generated documentation patch is applied automatically.

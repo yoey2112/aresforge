@@ -1,5 +1,28 @@
 # AresForge Agent Context
 
+## M131 Machine Safety Gate Engine Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m131-machine-safety-gate-engine`.
+
+M131 introduces `evaluate-machine-safety-gates` as the deterministic replacement path for human review before future queue mutation, docs patch application, Codex dispatch, GitHub sync, local LLM execution, or multi-agent orchestration.
+
+Command:
+
+- `python -m aresforge evaluate-machine-safety-gates --item-id <item_id> --gate-profile <profile> --format json`
+
+Profiles are `read_only_agent`, `local_artifact_write`, `queue_status_mutation`, `docs_only_patch_apply`, `local_llm_execution`, `codex_dispatch`, `github_sync`, and `multi_agent_orchestration`.
+
+Every gate record reports `gate_result_type=machine_safety_gate_evaluation`, blocked reasons, warnings, per-check results, required next steps, autonomy allowance, human-review requirement, `machine_gate_version`, `local_only=true`, `execution_performed=false`, and `mutation_performed=false`.
+
+M131 boundaries:
+
+- evaluates gates only
+- no agents, Codex, local LLM/Ollama, remote LLM, GitHub, `gh`, network service, validation command execution, patch application, queue mutation, external mutation, autonomous execution, or next-item execution
+- future workflows may remove human review only when the profile passes and the next action is still separately explicit
+
+
 ## M123 Hub Controlled Automation Workspace Polish Context
 
 Status: Completed locally on `main` after validation.

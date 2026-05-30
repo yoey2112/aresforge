@@ -1,5 +1,51 @@
 # Local Operator Usage
 
+## M124 Sprint Summary and Documentation Sync Closeout
+
+M124 closes the M110-M124 controlled automation sprint. It does not add runtime behavior, execute Codex, invoke Ollama or local LLMs, run agents, call GitHub, call `gh`, make network calls, run validation commands, apply patches, mutate external systems, or start follow-on work.
+
+Current controlled automation workflow:
+
+1. Inspect local state:
+
+       python -m aresforge inspect-local-project-report
+       python -m aresforge inspect-local-queue-agent-summary
+       python -m aresforge inspect-project-queue --project-id aresforge
+
+2. Select one item and inspect its recommended lane:
+
+       python -m aresforge recommend-agent-route --item-id <item_id> --format json
+
+3. Generate or inspect local artifacts:
+
+       python -m aresforge generate-local-llm-advisory-artifact --item-id <item_id> --format json
+       python -m aresforge generate-doc-agent-patch-proposal --item-id <item_id> --format json
+       python -m aresforge inspect-artifact-registry --item-id <item_id> --format json
+
+4. Review approvals and patch intake metadata:
+
+       python -m aresforge inspect-approval-ledger --project-id aresforge --item-id <item_id> --format json
+       python -m aresforge intake-patch-proposal --item-id <item_id> --patch-artifact <path> --format json
+
+5. Parse pasted external results and request a completion recommendation:
+
+       python -m aresforge parse-dispatch-result-evidence --item-id <item_id> --result-path <path> --format json
+       python -m aresforge recommend-queue-completion --item-id <item_id> --evidence-path <path> --format json
+
+6. Complete or close out queue items only with explicit local queue lifecycle commands after evidence and human review.
+
+Useful closeout inspection:
+
+    python -m aresforge inspect-queue-transaction-log --project-id aresforge --format json
+    python -m aresforge generate-safe-dispatch-handoff
+
+Operator reminders:
+
+- Artifact generation is local-only and advisory unless a later explicit milestone says otherwise.
+- Approval records do not apply patches, run agents, or start Codex/model execution.
+- Completion recommendations do not mutate queue status.
+- The Hub is a local review workspace, not an execution dashboard.
+
 ## M123 Hub Controlled Automation Workspace Polish
 
 M123 improves Hub wording and empty states for the controlled automation workspace. It does not execute Codex, invoke Ollama or local LLMs, run agents, call GitHub, call `gh`, make network calls, run validation commands, apply patches, mutate external systems, or start follow-on work.
