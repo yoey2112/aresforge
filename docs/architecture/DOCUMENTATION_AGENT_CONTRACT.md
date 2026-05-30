@@ -37,6 +37,12 @@ Documentation Agent v1 treats these as source-of-truth docs:
 
 Future milestones may expand this list only through an explicit contract update.
 
+M95 confirms the documentation agent contract also treats these architecture docs as required review inputs when local LLM, routing, and documentation-agent behavior changes:
+
+- `docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md`
+- `docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md`
+- `docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md`
+
 ## Evidence Required
 
 Before documentation is updated, the operator must have:
@@ -65,6 +71,8 @@ Future gated apply mode is not available in M91. It requires a later milestone a
     APPROVE DOCUMENTATION AGENT APPLY
 
 Apply mode must also require validation evidence, selected source docs, worktree review, and post-apply validation. Queue completion remains a separate explicit evidence command.
+
+M92 plan generation and M95 reconciliation are manual documentation workflows. They may identify stale sections and recommended updates, but they do not authorize automatic documentation rewrites or model-generated apply behavior.
 
 ## Safety Boundaries
 

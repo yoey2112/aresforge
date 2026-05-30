@@ -42,6 +42,8 @@ M87 adds local coding draft artifact mode. It generates coding draft prompt arti
 
 M88 adds a human-gated patch application contract. It defines the patch artifact structure, explicit operator approval record requirements, pre-apply safety gates, and post-apply validation requirements for any future patch application path. The contract inspector is read-only, contract-first, and dry-run only; it does not apply patches, mutate files, mutate queue state, complete queue items, or start another item.
 
+M95 reconciles the overnight sprint documentation after M81-M94. It does not add local LLM provider behavior. The local LLM model remains local-only, explicit-operator-gated for any advisory/draft run, advisory/manual-review-only, and non-mutating. Provider output still never automatically mutates repository files, applies patches, mutates queue state, completes queue items, starts another item, calls GitHub, calls `gh`, or triggers workflows, daemons, watchers, schedulers, or external workflow systems.
+
 ## Storage
 
 The contract is stored locally at:

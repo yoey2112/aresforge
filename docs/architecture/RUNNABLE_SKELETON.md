@@ -1,5 +1,72 @@
 # Runnable Skeleton
 
+## M95 Final Overnight Sprint Reconciliation
+
+M95 is documentation reconciliation and queue evidence only. It adds no runtime command.
+
+Runnable review surface:
+
+- `python -m aresforge inspect-local-project-report`
+- `python -m aresforge inspect-local-queue-agent-summary`
+- `python -m aresforge inspect-project-queue --project-id aresforge`
+- `python -m aresforge generate-handoff-package`
+- `python -m aresforge inspect-sprint-batch-report --format json`
+
+Still absent by design:
+
+- new runtime feature behavior
+- automatic documentation rewrites
+- local LLM or Codex invocation
+- automatic generated-output application
+- queue mutation except explicit local queue evidence commands
+- automatic next-item execution
+- GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, or external workflow execution
+
+## M94 Overnight Sprint Batch Report
+
+M94 adds a local sprint batch report:
+
+- `python -m aresforge inspect-sprint-batch-report --format json`
+- `python -m aresforge inspect-sprint-batch-report --since-commit <commit> --format json`
+- `python -m aresforge inspect-sprint-batch-report --commit-count 20 --output artifacts/reports/m94-sprint-batch.json`
+
+Runnable behavior:
+
+- reads recent local git commits
+- reads local queue completion evidence
+- reads local dispatch run states and recovered run metadata
+- summarizes validation evidence, unresolved warnings, queue posture, and next recommended milestone
+- writes a local report artifact only when `--output` is explicitly supplied
+
+Still absent by design:
+
+- GitHub API or `gh`
+- external workflows
+- Codex execution
+- local LLM invocation
+- queue mutation or automatic next-item execution
+
+## M93 Operator Handoff Package v2
+
+M93 improves local operator handoff generation:
+
+- `python -m aresforge generate-handoff-package`
+- `python -m aresforge generate-handoff-package --output artifacts/handoff/m93-handoff.md --force`
+
+Runnable behavior:
+
+- reports current HEAD and recent local commits
+- summarizes queue state, active/ready/proposed items, recovered dispatch history, model routing posture, warnings, and safe command suggestions
+- writes a local handoff artifact only when `--output` is explicitly supplied
+
+Still absent by design:
+
+- Codex execution
+- local LLM invocation
+- prompt or routing execution
+- GitHub API or `gh`
+- automatic queue completion or next-item execution
+
 ## M92 Documentation Reconciliation Plan Generator
 
 M92 expands the existing plan-only documentation reconciliation command:

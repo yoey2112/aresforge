@@ -1,5 +1,38 @@
 # AresForge Roadmap
 
+## M95 Final Overnight Sprint Reconciliation
+
+Status: In progress locally on `main`.
+
+Purpose:
+
+- reconcile source-of-truth docs and local queue state after the overnight sprint
+- make the completed M81-M95 posture clear for a future operator or chat handoff
+- identify the next recommended milestone without seeding or starting it automatically
+
+Delivered scope in progress:
+
+- source-of-truth documentation alignment for M81-M95
+- roadmap/current-state alignment with completed local LLM, routing, documentation agent, handoff, and sprint report work
+- confirmation that no runtime features are introduced by this cleanup milestone
+
+Completed overnight sprint themes:
+
+- M81-M88: local LLM advisory/coding safety model, local Ollama provider/health inspection, advisory artifacts, routing confidence, coding draft artifacts, and human-gated patch application contract
+- M89-M90: local model usage reporting and read-only Hub routing dashboard data
+- M91-M92: Documentation Agent v1 and deterministic documentation reconciliation planning
+- M93-M94: operator handoff package v2 and overnight sprint batch reporting
+
+Next recommended milestone:
+
+- M96 post-sprint planning and prioritization, to be seeded manually after operator review of M95 evidence, the handoff package, and the sprint batch report
+
+Constraints preserved:
+
+- no GitHub API, `gh`, GitHub mutation, or external workflow execution
+- no Codex execution, local LLM invocation, or automatic generated-output application
+- no automatic queue completion or next-item execution
+
 ## M94 Overnight Sprint Batch Report
 
 Status: Completed locally on `main`.

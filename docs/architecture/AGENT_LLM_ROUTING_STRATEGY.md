@@ -16,6 +16,8 @@ M87 adds a local coding draft artifact mode. `prepare-local-coding-draft` can ge
 
 M88 adds a human-gated patch application contract. `inspect-human-gated-patch-application-contract` defines patch artifact structure, explicit operator approval requirements, pre-apply safety gates, and post-apply validation requirements for any future manual patch application path. It is read-only and dry-run only.
 
+M95 reconciles the completed overnight sprint documentation through M94. No routing runtime is added. Routing confidence, provider/model metadata, local advisory artifacts, local coding draft artifacts, and patch application contracts remain advisory/manual-review inputs only.
+
 Current prompt-pack and Codex high-value lane behavior are advisory prompt generation/manual handoff only. Runtime routing execution, Codex dispatch, Codex CLI invocation, real agent execution, external workflow execution, and GitHub integration remain unimplemented. Local LLM execution exists only as the M62 operator-gated local prototype and remains local-only, advisory-only, prototype-scoped, and non-mutating.
 
 ## M75 Source-of-Truth and Next Decision Matrix Direction
@@ -35,6 +37,7 @@ The next decision-matrix direction is:
 - M86 adds advisory-only routing confidence scoring for Codex, local LLM advisory, local coding draft, and manual-only lanes
 - M87 adds local coding draft artifacts while preserving no automatic patch application or file mutation
 - M88 defines the human-gated patch application contract while preserving dry-run-only behavior
+- M95 reconciles the overnight sprint documentation and keeps the next phase manual/operator-selected
 
 Next phase safety gates before any Codex dispatch implementation:
 
@@ -132,6 +135,18 @@ The command reports:
 - safety boundaries confirming patch application is not implemented and is not allowed automatically
 
 M88 does not add routing execution, automatic local LLM execution, patch application, repository mutation, queue mutation, queue completion, automatic next-item execution, GitHub API calls, `gh` calls, issues, PRs, workflows, daemons, watchers, schedulers, or external workflow behavior.
+
+## M95 Overnight Sprint Reconciliation
+
+M95 is documentation reconciliation for the completed M81-M94 sprint. It confirms:
+
+- local LLM advisory outputs are advisory artifacts only
+- local coding draft outputs are non-applied and non-authoritative
+- patch application remains future work behind explicit human approval and validation gates
+- documentation reconciliation can plan but cannot automatically rewrite docs
+- routing dashboard and confidence scoring are read-only/advisory data
+
+M95 does not add routing execution, automatic local LLM execution, Codex invocation, patch application, repository mutation from generated output, queue mutation beyond explicit queue evidence commands, automatic queue completion, automatic next-item execution, GitHub API calls, `gh` calls, issues, PRs, workflows, daemons, watchers, schedulers, or external workflow behavior.
 
 ## M69 Local AI Operations Hardening
 

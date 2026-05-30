@@ -1,5 +1,24 @@
 # Local Operator Usage
 
+## M95 Final Overnight Sprint Reconciliation
+
+M95 is documentation reconciliation only. It does not add a runtime command.
+
+Recommended final review commands:
+
+    python -m aresforge inspect-local-project-report
+    python -m aresforge inspect-local-queue-agent-summary
+    python -m aresforge inspect-project-queue --project-id aresforge
+    python -m aresforge generate-handoff-package
+    python -m aresforge inspect-sprint-batch-report --format json
+
+Operator rules:
+
+- use the reports to review the completed M81-M95 sprint posture
+- seed any follow-up milestone manually after reviewing the final handoff and sprint batch report
+- do not treat documentation reconciliation as approval to run Codex, invoke local LLMs, apply patches, complete unrelated queue items, or start the next item automatically
+- do not use GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, or external workflow behavior
+
 ## M94 Overnight Sprint Batch Report
 
 Inspect the current local sprint batch using the default recent commit window:

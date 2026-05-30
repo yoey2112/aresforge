@@ -1,5 +1,34 @@
 # AresForge Agent Context
 
+## M95 Final Overnight Sprint Reconciliation Context
+
+Status: In progress locally on `main`.
+
+Current reconciliation focus:
+
+- align `BUILD_STATE`, `AGENT_CONTEXT`, roadmap, local operator usage, and architecture docs with the completed M81-M94 sprint
+- keep M95 contract-first and documentation-only, with no new runtime feature work
+- preserve local-only/manual gates for queue completion evidence
+
+Current implementation posture:
+
+- local LLM advisory and coding lanes can produce artifacts only through explicit local operator commands
+- local coding draft output remains non-applied and non-authoritative
+- human-gated patch application remains a dry-run contract only
+- documentation reconciliation can plan but cannot rewrite docs automatically
+- handoff and sprint batch reports are read-only by default and write local artifacts only through explicit `--output`
+
+Recommended next milestone:
+
+- after M95 evidence is recorded, review `generate-handoff-package` and `inspect-sprint-batch-report`; seed a new M96 planning or priority item manually if more work is desired
+
+Boundaries preserved:
+
+- no GitHub API or `gh`
+- no external workflow execution
+- no Codex execution, local LLM invocation, prompt/model execution, or generated-output apply path
+- no automatic queue completion or next-item execution
+
 ## M94 Overnight Sprint Batch Report Context
 
 Status: Completed locally on `main`.

@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T07:10:18.100046+00:00",
+  "updated_at": "2026-05-30T07:11:50.421421+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -1816,6 +1816,61 @@
       "closeout_history": [],
       "created_at": "2026-05-30T07:04:25.120330+00:00",
       "updated_at": "2026-05-30T07:10:18.100046+00:00"
+    },
+    {
+      "item_id": "m95-final-overnight-sprint-reconciliation",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M95 Final Overnight Sprint Reconciliation",
+      "description": "Reconcile source-of-truth docs and queue state after the overnight sprint. This is the final cleanup and documentation alignment milestone for the batch.",
+      "status": "proposed",
+      "priority": "high",
+      "item_type": "documentation",
+      "tags": [
+        "milestone:m95",
+        "documentation",
+        "reconciliation",
+        "overnight-sprint"
+      ],
+      "dependencies": [
+        "m94-overnight-sprint-batch-report"
+      ],
+      "blocked_by": [],
+      "assigned_agent": "",
+      "source": "local_cli",
+      "notes": "Acceptance criteria:\n- Update source-of-truth docs to reflect completed M81-M95 scope; ensure roadmap accurately shows completed, current, and next recommended milestones; ensure BUILD_STATE and AGENT_CONTEXT match actual implementation; ensure LOCAL_OPERATOR_USAGE includes new CLI commands; ensure architecture docs describe local LLM advisory/coding draft safety model and documentation agent contracts; no GitHub API; no gh; no external workflows; no automatic next-item execution.",
+      "started_at": "",
+      "started_via": "",
+      "previous_status": "",
+      "completed_at": "",
+      "completed_by": "",
+      "completion_commit": "",
+      "validation_summary": "",
+      "evidence_note": "",
+      "tests_run": [],
+      "changed_files": [],
+      "artifact_paths": [],
+      "completion_evidence": {},
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-30T07:11:50.421421+00:00",
+      "updated_at": "2026-05-30T07:11:50.421421+00:00"
     }
   ]
 }
