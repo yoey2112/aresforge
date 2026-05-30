@@ -2,11 +2,53 @@
 
 ## Current Phase
 
-M112 implements the Dispatch Result Evidence Parser after M111. It parses a human-pasted local Codex result file into structured evidence without executing Codex or making network calls.
+M125 implements the Agent Runtime Boundary Contract as the foundation for future AresForge agents. It defines the agent runtime boundary without creating real agent execution.
 
 ## Current Goal
 
-M112 adds `parse-dispatch-result-evidence` for local-only evidence parsing. It reads a local text or markdown result file, extracts common Codex completion sections, warns on missing sections, and preserves `human_review_required=true`, `local_only=true`, and `execution_allowed=false`. It does not mark queue items complete automatically.
+M125 adds `inspect-agent-runtime-boundary` for local-only, read-only inspection of the agent boundary model. The contract defines schema-like fields for agent identity, runtime mode, input/output contracts, capabilities, mutation/network/model scopes, timeout/retry policy, evidence requirements, safety class, and autonomy level while preserving `execution_performed=false`.
+
+## M125 Agent Runtime Boundary Contract
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m125-agent-runtime-boundary-contract`.
+
+Implementation commit: pending final commit.
+
+M125 adds:
+
+- `inspect-agent-runtime-boundary`
+- `inspect-agent-runtime-boundary --format json`
+- `inspect-agent-runtime-boundary --format markdown`
+
+The contract output includes:
+
+- `contract_type=agent_runtime_boundary`
+- `generated=true`
+- `agent_boundary_version`
+- supported execution modes, autonomy levels, and safety classes
+- allowed and forbidden capability catalogs
+- mutation, network, and model scope catalogs
+- evidence requirements
+- default runtime limits, timeout policy, and retry policy
+- `local_only=true`
+- `execution_performed=false`
+- next safe action
+
+Boundary model:
+
+- an AresForge agent must declare `agent_id`, `agent_type`, `execution_mode`, `input_contract`, `output_contract`, `allowed_capabilities`, `forbidden_capabilities`, `mutation_scope`, `network_scope`, `model_scope`, `timeout_policy`, `retry_policy`, `evidence_requirements`, `safety_class`, and `autonomy_level`
+- requested capabilities must be intersected with the allowed catalog and blocked by the forbidden catalog
+- mutation, network, and model access must be scoped before any future runner can start
+- timeout, retry, and evidence policies are required before runtime handoff or completion recommendation
+
+Safety boundaries:
+
+- no real agent execution
+- no Codex, Ollama, local LLM, documentation-agent, GitHub API, `gh`, network service, patch application, workflow, daemon, watcher, scheduler, or external-agent execution
+- no queue auto-completion, automatic handoff, or next-item execution
+- future runners must be separate explicit operator-approved milestones
 
 ## M112 Dispatch Result Evidence Parser
 

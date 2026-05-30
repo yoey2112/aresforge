@@ -245,6 +245,7 @@ from aresforge.operator.dispatch_approval_gate import (
 from aresforge.operator.dispatch_artifact_report import inspect_dispatch_artifacts
 from aresforge.operator.safe_dispatch_handoff import generate_safe_dispatch_handoff
 from aresforge.operator.manual_codex_dispatch_runner import prepare_manual_codex_dispatch
+from aresforge.operator.agent_runtime_boundary import inspect_agent_runtime_boundary
 from aresforge.operator.single_ready_codex_queue_item import run_single_ready_codex_queue_item
 from aresforge.operator.local_agent_profiles import (
     AGENT_PROFILE_STATUSES,
@@ -1798,6 +1799,15 @@ def build_parser() -> argparse.ArgumentParser:
         "--format",
         choices=["json", "markdown"],
         default="markdown",
+    )
+    inspect_agent_runtime_boundary_parser = subparsers.add_parser(
+        "inspect-agent-runtime-boundary",
+        help="Inspect the M125 local-only agent runtime boundary contract without executing agents.",
+    )
+    inspect_agent_runtime_boundary_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="json",
     )
     inspect_llm_decision_matrix_parser = subparsers.add_parser(
         "inspect-llm-decision-matrix",
@@ -4539,6 +4549,14 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "inspect-documentation-agent-contract":
         payload = inspect_documentation_agent_contract(config, output_format=args.format)
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-agent-runtime-boundary":
+        payload = inspect_agent_runtime_boundary(config, output_format=args.format)
         if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
             print(payload["stdout"])
             return 0

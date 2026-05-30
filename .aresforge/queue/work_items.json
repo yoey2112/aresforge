@@ -2910,6 +2910,75 @@
       "updated_at": "2026-05-30T18:48:40.864542+00:00"
     },
     {
+      "item_id": "m125-agent-runtime-boundary-contract",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M125 Agent Runtime Boundary Contract",
+      "description": "Define the AresForge agent runtime boundary contract, including identity, capabilities, scopes, evidence, runtime limits, safety class, and autonomy level, without creating real agent execution.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "architecture",
+      "tags": [
+        "milestone:m125",
+        "agent-runtime-boundary",
+        "local-only",
+        "contract-first"
+      ],
+      "dependencies": [
+        "m111-approval-gated-patch-intake-contract"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [],
+      "evidence_required": [],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: documented runtime boundary model; schema-like definitions for agent_id, agent_type, execution_mode, input_contract, output_contract, allowed_capabilities, forbidden_capabilities, mutation_scope, network_scope, model_scope, timeout_policy, retry_policy, evidence_requirements, safety_class, and autonomy_level; operator inspector and CLI support; no real agent execution, Codex, Ollama, local LLMs, GitHub, network services, patch application, or next-item execution.",
+      "started_at": "2026-05-30T18:53:00.000000+00:00",
+      "started_via": "local_operator",
+      "previous_status": "proposed",
+      "completed_at": "2026-05-30T18:57:30.000000+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M125 Agent Runtime Boundary Contract implemented and validated locally. Added inspect-agent-runtime-boundary, stable agent_runtime_boundary JSON output, schema-like field definitions, capability catalogs, mutation/network/model scope catalogs, default runtime limits, timeout/retry policy, tests, CLI coverage, and source-of-truth documentation updates. No real agent execution, Codex, Ollama, local LLM, documentation-agent, GitHub, gh, network service, patch application, queue auto-completion, or next-item execution was performed.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py; python -m pytest tests/test_agent_runtime_boundary.py; git diff --check passed with CRLF warnings only; smoke checks passed for inspect-agent-runtime-boundary --format json, inspect-local-project-report, inspect-local-queue-agent-summary, and inspect-project-queue --project-id aresforge. Pre-existing queue state still has m112-dispatch-result-evidence-parser marked in_progress; M125 did not modify that item.",
+      "tests_run": [
+        "tests/test_cli.py -> 190 passed",
+        "tests/test_agent_runtime_boundary.py -> 5 passed",
+        "git diff --check -> passed with CRLF warnings only",
+        "python -m aresforge inspect-agent-runtime-boundary --format json -> passed",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed",
+        "python -m aresforge inspect-project-queue --project-id aresforge -> passed"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/agent_runtime_boundary.py; src/aresforge/cli.py; tests/test_agent_runtime_boundary.py; tests/test_cli.py",
+        "docs/context/BUILD_STATE.md; docs/context/AGENT_CONTEXT.md; docs/roadmap/ROADMAP.md; docs/operator/LOCAL_OPERATOR_USAGE.md; docs/architecture/RUNNABLE_SKELETON.md; docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md; docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md; docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md; .aresforge/queue/work_items.json"
+      ],
+      "artifact_paths": [],
+      "completion_evidence": {},
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-30T18:53:00.000000+00:00",
+      "updated_at": "2026-05-30T18:57:30.000000+00:00"
+    },
+    {
       "item_id": "m112-dispatch-result-evidence-parser",
       "project_id": "aresforge",
       "repo_id": "aresforge-main",

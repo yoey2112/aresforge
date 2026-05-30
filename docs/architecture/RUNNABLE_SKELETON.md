@@ -1,5 +1,53 @@
 # Runnable Skeleton
 
+## M125 Agent Runtime Boundary Contract
+
+M125 adds a local-only, read-only boundary inspection command:
+
+- `python -m aresforge inspect-agent-runtime-boundary`
+- `python -m aresforge inspect-agent-runtime-boundary --format json`
+- `python -m aresforge inspect-agent-runtime-boundary --format markdown`
+
+Runnable behavior:
+
+- builds a deterministic runtime boundary contract in memory
+- emits stable readable or JSON CLI output
+- defines schema-like agent declaration fields
+- defines capability, mutation, network, model, evidence, timeout, retry, safety, and autonomy catalogs
+- preserves `local_only=true`, `read_only=true`, `execution_allowed=false`, and `execution_performed=false`
+
+Stable output fields:
+
+- `contract_type`
+- `generated`
+- `agent_boundary_version`
+- `supported_execution_modes`
+- `supported_autonomy_levels`
+- `supported_safety_classes`
+- `allowed_capability_catalog`
+- `forbidden_capability_catalog`
+- `mutation_scope_catalog`
+- `network_scope_catalog`
+- `model_scope_catalog`
+- `evidence_requirements`
+- `default_runtime_limits`
+- `local_only`
+- `execution_performed`
+- `next_safe_action`
+
+Still absent by design:
+
+- real agent execution
+- Codex execution or Codex CLI shell-out
+- Ollama/local LLM prompt execution
+- documentation-agent execution or apply mode
+- GitHub API, `gh`, issues, PRs, workflows, network calls, or external services
+- external agent execution
+- patch application
+- queue mutation, approval mutation, automatic handoff, automatic completion, or next-item execution
+
+M125 is a boundary contract only. Future agent runners must be separate explicit milestones and must enforce this contract before any execution path can start.
+
 ## M112 Dispatch Result Evidence Parser
 
 M112 adds a local-only evidence parsing command:

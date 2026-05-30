@@ -1,5 +1,56 @@
 # AresForge Roadmap
 
+## M125 Agent Runtime Boundary Contract
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m125-agent-runtime-boundary-contract`.
+
+Implementation commit: pending final commit.
+
+Purpose:
+
+- define what an AresForge agent is before runtime execution exists
+- define allowed and forbidden capabilities, inputs, outputs, scopes, runtime limits, evidence requirements, safety classes, and autonomy levels
+- expose a deterministic operator inspection command for future agent/runtime milestones
+- keep execution denied by default
+
+Runnable operator surface:
+
+- `python -m aresforge inspect-agent-runtime-boundary`
+- `python -m aresforge inspect-agent-runtime-boundary --format json`
+- `python -m aresforge inspect-agent-runtime-boundary --format markdown`
+
+Stable output fields:
+
+- `contract_type`
+- `generated`
+- `agent_boundary_version`
+- `supported_execution_modes`
+- `supported_autonomy_levels`
+- `supported_safety_classes`
+- `allowed_capability_catalog`
+- `forbidden_capability_catalog`
+- `mutation_scope_catalog`
+- `network_scope_catalog`
+- `model_scope_catalog`
+- `evidence_requirements`
+- `default_runtime_limits`
+- `local_only`
+- `execution_performed`
+- `next_safe_action`
+
+Constraints preserved:
+
+- no agent execution
+- no Codex, local LLM, Ollama, documentation-agent, external-agent, GitHub API, `gh`, network, workflow, issue, PR, patch application, automatic queue mutation, automatic handoff, or next-item execution
+
+Relationship:
+
+- M125 is the foundation contract future agents and runners must satisfy.
+- It does not replace M97-M111 dispatch, dry-run, approval, handoff, or patch-intake contracts.
+- Any future runtime runner must separately enforce this boundary and require explicit operator approval.
+
 ## M112 Dispatch Result Evidence Parser
 
 Status: Completed locally on `main` after validation.

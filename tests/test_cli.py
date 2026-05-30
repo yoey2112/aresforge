@@ -68,6 +68,7 @@ def test_cli_has_expected_commands() -> None:
         "prepare-manual-codex-dispatch",
         "intake-patch-proposal",
         "parse-dispatch-result-evidence",
+        "inspect-agent-runtime-boundary",
         "inspect-llm-decision-matrix",
         "inspect-local-llm-provider-contract",
         "run-single-ready-codex-queue-item",
@@ -5565,6 +5566,52 @@ def test_inspect_documentation_agent_contract_dispatch_json(
     assert parsed["safety_boundary"]["gh_allowed"] is False
 
 
+def test_inspect_agent_runtime_boundary_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "contract_type": "agent_runtime_boundary",
+                "generated": True,
+                "agent_boundary_version": "m125.1",
+                "supported_execution_modes": ["inspect_only", "plan_only"],
+                "supported_autonomy_levels": ["manual_only", "recommendation_only"],
+                "supported_safety_classes": ["read_only"],
+                "allowed_capability_catalog": {"read_local_queue": {}},
+                "forbidden_capability_catalog": {"execute_codex": "blocked"},
+                "mutation_scope_catalog": {"none": {}},
+                "network_scope_catalog": {"none": {}},
+                "model_scope_catalog": {"none": {}},
+                "evidence_requirements": {"required_before_runtime_handoff": ["agent_id"]},
+                "default_runtime_limits": {"execution_allowed_by_this_contract": False},
+                "local_only": True,
+                "execution_performed": False,
+                "next_safe_action": "Use the boundary before future agent execution.",
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_inspect(_config, output_format="json"):
+        seen["output_format"] = output_format
+        return payload
+
+    monkeypatch.setattr(cli, "inspect_agent_runtime_boundary", fake_inspect)
+    exit_code = cli.main(["inspect-agent-runtime-boundary", "--format", "json"])
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert seen["output_format"] == "json"
+    assert parsed["contract_type"] == "agent_runtime_boundary"
+    assert parsed["generated"] is True
+    assert parsed["agent_boundary_version"] == "m125.1"
+    assert parsed["execution_performed"] is False
+
+
 def test_plan_doc_reconciliation_dispatch_preserves_m92_boundaries(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], tmp_path: Path
 ) -> None:
@@ -6555,9 +6602,6 @@ def test_parse_dispatch_result_evidence_dispatch_markdown(
     assert exit_code == 0
     assert "parsed: True" in output
     assert "validation_confidence: high" in output
-
-
-
 
 
 def test_validate_documentation_agent_dry_run_dispatch_json(

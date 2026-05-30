@@ -72,6 +72,8 @@ M109 adds manual Codex dispatch preparation only. It may read local dispatch and
 
 M110 adds local LLM advisory request artifact generation for the M97 `local_llm_advisory` lane. It prepares a structured local JSON package with queue context, source documents, advisory prompt, expected response shape, and operator checklist. It does not call Ollama, list models, send prompts, run inference, execute Codex, call GitHub/`gh`, make network calls, apply patches, mutate queue state, or authorize provider execution. Generated artifacts preserve `local_only=true`, `execution_allowed=false`, `local_llm_execution_performed=false`, and `patch_application_allowed=false`.
 
+M125 adds an Agent Runtime Boundary Contract. The boundary contract may describe model scope values such as `none`, `metadata_only`, `local_health_probe_only`, `operator_gated_local_advisory`, and `codex_handoff_only`, but inspection is metadata-only and does not call Ollama, list models, send prompts, run inference, execute agents, execute Codex, call GitHub/`gh`, make network calls, apply patches, mutate queue state, or authorize provider execution. Any future agent runtime that uses local models must satisfy the M125 boundary and the local LLM environment/provider contracts before a separate explicit operator-approved execution milestone may run.
+
 ## Storage
 
 The contract is stored locally at:

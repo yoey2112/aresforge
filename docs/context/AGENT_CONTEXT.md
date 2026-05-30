@@ -1,5 +1,61 @@
 # AresForge Agent Context
 
+## M125 Agent Runtime Boundary Contract Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m125-agent-runtime-boundary-contract`.
+
+Implementation commit: pending final commit.
+
+M125 adds a local-only runtime boundary inspector:
+
+- `python -m aresforge inspect-agent-runtime-boundary`
+- `python -m aresforge inspect-agent-runtime-boundary --format json`
+
+The contract defines what an AresForge agent is before real execution exists. An agent is a declared local control-plane actor with a stable `agent_id`, `agent_type`, `execution_mode`, bounded inputs, declared outputs, explicit capability catalogs, scoped side effects, evidence requirements, runtime limits, safety class, and autonomy level.
+
+M125 schema terms:
+
+- `agent_id`
+- `agent_type`
+- `execution_mode`
+- `input_contract`
+- `output_contract`
+- `allowed_capabilities`
+- `forbidden_capabilities`
+- `mutation_scope`
+- `network_scope`
+- `model_scope`
+- `timeout_policy`
+- `retry_policy`
+- `evidence_requirements`
+- `safety_class`
+- `autonomy_level`
+
+Supported autonomy levels:
+
+- `manual_only`
+- `recommendation_only`
+- `operator_approved_single_step`
+- `operator_approved_bounded_run`
+
+Supported safety classes:
+
+- `read_only`
+- `local_file_write`
+- `local_provider_probe`
+- `operator_gated_local_provider_execution`
+- `external_mutation_prohibited`
+
+M125 boundaries:
+
+- boundary inspection is local-only and read-only
+- `execution_performed=false`
+- no real agent execution is introduced
+- no Codex, Ollama, local LLM, documentation-agent, GitHub API, `gh`, network service, patch application, workflow, daemon, watcher, scheduler, or external-agent execution
+- future runtime execution requires a separate explicit operator-approved milestone
+
 ## M112 Dispatch Result Evidence Parser Context
 
 Status: Completed locally on `main` after validation.

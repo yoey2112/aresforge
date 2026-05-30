@@ -1,5 +1,68 @@
 # Local Operator Usage
 
+## M125 Agent Runtime Boundary Contract
+
+M125 inspects the agent runtime boundary contract. It does not execute agents, Codex, Ollama, local LLMs, documentation agents, GitHub, `gh`, network services, patch application, workflows, queue completion, handoff automation, or next-item execution.
+
+Readable inspection:
+
+    python -m aresforge inspect-agent-runtime-boundary
+
+JSON inspection:
+
+    python -m aresforge inspect-agent-runtime-boundary --format json
+
+The JSON output includes:
+
+- `contract_type=agent_runtime_boundary`
+- `generated=true`
+- `agent_boundary_version`
+- supported execution modes
+- supported autonomy levels
+- supported safety classes
+- allowed and forbidden capability catalogs
+- mutation, network, and model scope catalogs
+- evidence requirements
+- default runtime limits
+- `local_only=true`
+- `execution_performed=false`
+- next safe action
+
+Required agent declaration fields for future runtimes:
+
+- `agent_id`
+- `agent_type`
+- `execution_mode`
+- `input_contract`
+- `output_contract`
+- `allowed_capabilities`
+- `forbidden_capabilities`
+- `mutation_scope`
+- `network_scope`
+- `model_scope`
+- `timeout_policy`
+- `retry_policy`
+- `evidence_requirements`
+- `safety_class`
+- `autonomy_level`
+
+Supported autonomy levels:
+
+- `manual_only`
+- `recommendation_only`
+- `operator_approved_single_step`
+- `operator_approved_bounded_run`
+
+Supported safety classes:
+
+- `read_only`
+- `local_file_write`
+- `local_provider_probe`
+- `operator_gated_local_provider_execution`
+- `external_mutation_prohibited`
+
+Use this contract as the preflight boundary for future agent profiles, planners, dry-runs, and operator-gated runners. Do not treat it as execution approval.
+
 ## M112 Dispatch Result Evidence Parser
 
 M112 parses a local text or markdown file containing human-pasted Codex result output. It does not execute Codex, invoke models, call GitHub, call `gh`, call network services, apply patches, mutate repository files from the parsed result, complete queue items, or start follow-on work.

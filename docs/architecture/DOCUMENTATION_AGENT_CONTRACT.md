@@ -4,6 +4,12 @@
 
 M111 defines the local-only approval-gated intake boundary for patch proposals that may come from Codex, local LLM, or documentation-agent proposal workflows. Documentation-agent output may be recorded as a patch proposal only after a local approval gate exists and is `approved_for_manual_handoff`. The intake command records review metadata and patch summary data only; it does not apply documentation changes, mutate repository files, execute a documentation agent, call local LLMs, execute Codex, call GitHub/`gh`, make network calls, mutate queue state, or complete work automatically.
 
+## M125 Agent Runtime Boundary
+
+M125 defines the general Agent Runtime Boundary Contract that future documentation-agent runtimes must satisfy before any execution or apply path can exist. The boundary requires declared `agent_id`, `agent_type`, `execution_mode`, `input_contract`, `output_contract`, `allowed_capabilities`, `forbidden_capabilities`, `mutation_scope`, `network_scope`, `model_scope`, `timeout_policy`, `retry_policy`, `evidence_requirements`, `safety_class`, and `autonomy_level`.
+
+For documentation-agent work, M125 preserves the existing documentation contract boundaries: no documentation-agent execution, no automatic documentation mutation, no model-generated apply mode, no GitHub API/`gh`, no network services, no patch application, no queue completion, and no automatic next-item execution. Future documentation-agent patch proposal or apply milestones must enforce both this M125 runtime boundary and the documentation-agent-specific contract.
+
 ## M91 Documentation Agent v1
 
 Documentation Agent v1 is a local-only, source-of-truth documentation reconciliation contract.
