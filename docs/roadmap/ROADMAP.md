@@ -1,5 +1,26 @@
 # AresForge Roadmap
 
+## M94 Overnight Sprint Batch Report
+
+Status: In progress locally on `main`.
+
+Purpose:
+
+- summarize an overnight sprint batch from local commits, queue evidence, validation records, and dispatch run history
+- give the next operator a compact read-only view of what completed and what remains
+
+Delivered scope:
+
+- `inspect-sprint-batch-report`
+- commit window selection by `--since-commit` or `--commit-count`
+- queue completion/evidence summary, test summary, dispatch/recovered run summary, queue posture, unresolved warnings, and next recommended milestone
+
+Constraints preserved:
+
+- no GitHub API, `gh`, GitHub mutation, or external workflow execution
+- no Codex execution or local LLM invocation
+- no automatic queue completion or next-item execution
+
 ## M93 Operator Handoff Package v2
 
 Status: Completed locally on `main`.

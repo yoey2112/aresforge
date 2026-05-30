@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T07:02:25.255031+00:00",
+  "updated_at": "2026-05-30T07:04:25.120330+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -1758,6 +1758,60 @@
       "closeout_history": [],
       "created_at": "2026-05-30T06:53:55.703945+00:00",
       "updated_at": "2026-05-30T07:02:25.255031+00:00"
+    },
+    {
+      "item_id": "m94-overnight-sprint-batch-report",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M94 Overnight Sprint Batch Report",
+      "description": "Add a local report that summarizes an overnight sprint batch: items completed, commits made, validation evidence, unresolved warnings, queue posture, and next recommended milestone.",
+      "status": "proposed",
+      "priority": "normal",
+      "item_type": "validation",
+      "tags": [
+        "milestone:m94",
+        "sprint-report",
+        "validation"
+      ],
+      "dependencies": [
+        "m93-operator-handoff-package-v2"
+      ],
+      "blocked_by": [],
+      "assigned_agent": "",
+      "source": "local_operator",
+      "notes": "Acceptance criteria: local-only; read-only by default; summarize recent commits since a provided commit hash or last N commits; summarize queue completions and evidence; summarize dispatch runs and recovered runs; summarize tests if available in queue evidence; no GitHub API; no gh; no external workflows; no automatic next-item execution.",
+      "started_at": "",
+      "started_via": "",
+      "previous_status": "",
+      "completed_at": "",
+      "completed_by": "",
+      "completion_commit": "",
+      "validation_summary": "",
+      "evidence_note": "",
+      "tests_run": [],
+      "changed_files": [],
+      "artifact_paths": [],
+      "completion_evidence": {},
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-30T07:04:25.120330+00:00",
+      "updated_at": "2026-05-30T07:04:25.120330+00:00"
     }
   ]
 }

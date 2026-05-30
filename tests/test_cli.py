@@ -191,6 +191,7 @@ def test_cli_has_expected_commands() -> None:
         "prepare-local-coding-draft",
         "inspect-human-gated-patch-application-contract",
         "inspect-model-usage-report",
+        "inspect-sprint-batch-report",
         "inspect-documentation-agent-contract",
         "plan-doc-reconciliation",
         "prepare-codex-handoff",
@@ -5339,6 +5340,64 @@ def test_inspect_model_usage_report_dispatch_json(
     assert parsed["safety_boundary"]["automatic_next_item_execution_allowed"] is False
     assert parsed["safety_boundary"]["github_api_allowed"] is False
     assert parsed["safety_boundary"]["gh_allowed"] is False
+
+
+def test_inspect_sprint_batch_report_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "ok": True,
+                "local_only": True,
+                "read_only_by_default": True,
+                "commit_window": {"count": 2},
+                "items_completed": {"count": 1},
+                "validation_evidence": {"tests_recorded_count": 3},
+                "dispatch_runs": {"run_count": 4, "recovered_count": 2},
+                "queue_posture": {"status_counts": {"done": 27}},
+                "next_recommended_milestone": {"item_id": "m95-next"},
+                "safety_boundary": {
+                    "github_api_allowed": False,
+                    "gh_allowed": False,
+                    "external_workflow_allowed": False,
+                    "automatic_next_item_execution_allowed": False,
+                },
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_inspect(_config, since_commit=None, commit_count=20, output=None, output_format="json"):
+        seen["since_commit"] = since_commit
+        seen["commit_count"] = commit_count
+        seen["output"] = output
+        seen["output_format"] = output_format
+        return payload
+
+    monkeypatch.setattr(cli, "inspect_sprint_batch_report", fake_inspect)
+    exit_code = cli.main(
+        ["inspect-sprint-batch-report", "--since-commit", "abc123", "--commit-count", "7", "--format", "json"]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert seen["since_commit"] == "abc123"
+    assert seen["commit_count"] == 7
+    assert seen["output"] is None
+    assert seen["output_format"] == "json"
+    assert parsed["commit_window"]["count"] == 2
+    assert parsed["items_completed"]["count"] == 1
+    assert parsed["dispatch_runs"]["recovered_count"] == 2
+    assert parsed["safety_boundary"]["github_api_allowed"] is False
+    assert parsed["safety_boundary"]["gh_allowed"] is False
+    assert parsed["safety_boundary"]["external_workflow_allowed"] is False
+    assert parsed["safety_boundary"]["automatic_next_item_execution_allowed"] is False
 
 
 def test_inspect_documentation_agent_contract_dispatch_json(

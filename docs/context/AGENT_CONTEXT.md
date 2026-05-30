@@ -1,5 +1,23 @@
 # AresForge Agent Context
 
+## M94 Overnight Sprint Batch Report Context
+
+Status: In progress locally on `main`.
+
+Current batch report scope:
+
+- `inspect-sprint-batch-report` summarizes an overnight sprint batch from local git history, queue evidence, and dispatch run states.
+- Operators can choose `--since-commit <hash>` or `--commit-count <n>`.
+- The report includes completed items, commits, validation evidence from queue completion, dispatch/recovered run summary, queue posture, unresolved warnings, and next recommended milestone.
+- The default path writes nothing; `--output` is the only local artifact write path.
+
+Boundaries preserved:
+
+- no GitHub API or `gh`
+- no external workflow execution
+- no Codex execution, local LLM invocation, or prompt/model execution
+- no queue mutation, queue completion, or automatic next-item execution
+
 ## M93 Operator Handoff Package v2 Context
 
 Status: Completed locally on `main`.

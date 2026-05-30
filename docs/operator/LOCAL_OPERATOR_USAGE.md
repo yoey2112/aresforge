@@ -1,5 +1,38 @@
 # Local Operator Usage
 
+## M94 Overnight Sprint Batch Report
+
+Inspect the current local sprint batch using the default recent commit window:
+
+    python -m aresforge inspect-sprint-batch-report --format json
+
+Inspect a batch since a known baseline commit:
+
+    python -m aresforge inspect-sprint-batch-report --since-commit <commit> --format json
+
+Optionally write a local report artifact:
+
+    python -m aresforge inspect-sprint-batch-report --commit-count 20 --output artifacts/reports/m94-sprint-batch.json
+
+Payload highlights:
+
+- `commit_window`
+- `items_completed`
+- `validation_evidence`
+- `dispatch_runs`
+- `queue_posture`
+- `unresolved_warnings`
+- `next_recommended_milestone`
+- `safe_next_actions`
+- `safety_boundary`
+
+Operator rules:
+
+- use the report for local review and handoff only
+- inspect readiness manually before starting any next queue item
+- do not execute Codex or local LLMs from report output
+- do not use GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, or external workflow behavior
+
 ## M93 Operator Handoff Package v2
 
 Generate a read-only operator handoff package:

@@ -1,5 +1,23 @@
 # AresForge Build State
 
+## M94 Overnight Sprint Batch Report
+
+Status: In progress locally on `main`.
+
+Delivered in this pass:
+
+- adds `inspect-sprint-batch-report` for local overnight sprint batch summaries
+- summarizes recent local commits by `--since-commit` or `--commit-count`
+- summarizes completed queue items, completion evidence, tests recorded in queue evidence, dispatch runs, recovered runs, queue posture, unresolved warnings, and next recommended milestone
+- keeps the report read-only by default; `--output` is the only local artifact write path
+
+M94 safety posture:
+
+- no GitHub API or `gh`
+- no external workflows
+- no Codex execution or local LLM invocation
+- no queue mutation or automatic next-item execution
+
 ## M93 Operator Handoff Package v2
 
 Status: Completed locally on `main`.

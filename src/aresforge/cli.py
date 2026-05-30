@@ -256,6 +256,7 @@ from aresforge.operator.local_project_readiness import (
 from aresforge.operator.local_queue_agent_summary import inspect_local_queue_agent_summary
 from aresforge.operator.local_project_report import inspect_local_project_report
 from aresforge.operator.model_usage_report import inspect_model_usage_report
+from aresforge.operator.sprint_batch_report import inspect_sprint_batch_report
 from aresforge.operator.self_seed import seed_aresforge_self_project
 from aresforge.hub.server import serve_hub
 from aresforge.operator.milestone_reconciliation_planner import plan_milestone_final_reconciliation
@@ -1653,6 +1654,18 @@ def build_parser() -> argparse.ArgumentParser:
     )
     inspect_model_usage_report_parser.add_argument("--output")
     inspect_model_usage_report_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="json",
+    )
+    inspect_sprint_batch_report_parser = subparsers.add_parser(
+        "inspect-sprint-batch-report",
+        help="Inspect a local overnight sprint batch summary from git, queue, and dispatch evidence.",
+    )
+    inspect_sprint_batch_report_parser.add_argument("--since-commit")
+    inspect_sprint_batch_report_parser.add_argument("--commit-count", type=int, default=20)
+    inspect_sprint_batch_report_parser.add_argument("--output")
+    inspect_sprint_batch_report_parser.add_argument(
         "--format",
         choices=["json", "markdown"],
         default="json",
@@ -4008,6 +4021,20 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "inspect-model-usage-report":
         payload = inspect_model_usage_report(config, output=args.output, output_format=args.format)
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-sprint-batch-report":
+        payload = inspect_sprint_batch_report(
+            config,
+            since_commit=args.since_commit,
+            commit_count=args.commit_count,
+            output=args.output,
+            output_format=args.format,
+        )
         if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
             print(payload["stdout"])
             return 0
