@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T03:22:04.096812+00:00",
+  "updated_at": "2026-05-30T03:25:12.580861+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -396,7 +396,7 @@
       "repo_id": "aresforge-main",
       "title": "M79.1 Codex CLI Windows Runner Hardening",
       "description": "Harden the Windows Codex CLI workflow after M79 by documenting and/or fixing sandbox Git permission limits, stdin prompt handoff reliability, and Windows output decoding behavior.",
-      "status": "proposed",
+      "status": "in_progress",
       "priority": "high",
       "item_type": "hardening",
       "tags": [
@@ -414,9 +414,9 @@
       "assigned_agent": "",
       "source": "operator_followup",
       "notes": "Acceptance criteria:\n- Document or implement a reliable prompt handoff pattern so Codex receives the full prompt body, not only the first line.\n- Document or implement Windows output decoding hardening for Codex dispatch/stdout/stderr capture.\n- Document current Codex sandbox Git permission behavior where implementation can be authored by Codex but commit/push may remain operator-owned.\n- Preserve local-only, operator-gated workflow boundaries.\n- No automatic queue completion.\n- No automatic next-item execution.",
-      "started_at": "",
-      "started_via": "",
-      "previous_status": "",
+      "started_at": "2026-05-30T03:25:12.580861+00:00",
+      "started_via": "prepare-queue-item-dispatch",
+      "previous_status": "proposed",
       "completed_at": "",
       "completed_by": "",
       "completion_commit": "",
@@ -445,7 +445,7 @@
       "closeout_summary": "",
       "closeout_history": [],
       "created_at": "2026-05-30T03:22:04.096812+00:00",
-      "updated_at": "2026-05-30T03:22:04.096812+00:00"
+      "updated_at": "2026-05-30T03:25:12.580861+00:00"
     },
     {
       "item_id": "m80-llm-decision-matrix-v2",
