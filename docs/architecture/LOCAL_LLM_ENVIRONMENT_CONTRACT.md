@@ -62,6 +62,12 @@ M103 adds read-only self-managed project review, and M104 adds read-only operato
 
 M105 reconciles source-of-truth docs after M99-M104. It does not add local LLM provider behavior. Any future local LLM advisory artifact generator remains a later explicit milestone such as M110.
 
+M106 indexes local dispatch artifacts and dry-run outputs, including local LLM advisory dry-run files if they exist, but it does not call Ollama, inspect models, send prompts, or run inference.
+
+M107 includes local LLM-related dispatch summaries and artifact index summaries in a safe handoff package, but it remains read-only context and does not authorize provider execution.
+
+M108 closes the M99-M107 sprint and recommends M110 and M115 as future controlled local LLM milestones. M110 should generate advisory artifacts without broadening execution by default. M115 should be provider probing only unless a later explicit milestone authorizes inference. M108 itself does not call Ollama, list models, send prompts, run inference, or mutate repository/queue state.
+
 ## Storage
 
 The contract is stored locally at:

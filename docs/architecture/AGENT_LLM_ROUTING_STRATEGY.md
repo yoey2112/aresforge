@@ -38,7 +38,13 @@ M104 adds the Operator Batch Planner v1. It reads local queue state, excludes do
 
 M105 reconciles source-of-truth documentation and local project state after M99-M104. It does not add routing runtime, dispatch execution, model invocation, documentation-agent apply mode, or patch application.
 
-Current prompt-pack, dispatch-plan, dry-run, approval, queue-locking, self-review, and batch-planning behavior is advisory/manual-gated only. Runtime routing execution, automated Codex dispatch, automated Codex CLI invocation, real documentation-agent execution, external workflow execution, GitHub integration, automatic patch intake, and automatic next-item execution remain unimplemented. Local LLM execution exists only as the M62 operator-gated local prototype and remains local-only, advisory-only, prototype-scoped, and non-mutating.
+M106 adds a read-only dispatch artifact index/report for local Codex prompt artifacts, local LLM advisory dry-run outputs, documentation-agent dry-run outputs, and approval gate status. It does not execute or validate artifacts beyond safe local reads.
+
+M107 adds a safe dispatch handoff package that bundles queue state, dispatch plan summaries, artifact index summaries, approval gate summaries, warnings, blockers, and operator next actions. It keeps `execution_allowed=false` and does not authorize dispatch.
+
+M108 closes the M99-M107 sprint and defines the next controlled automation batch. It is docs/data-only and does not add routing runtime, runner behavior, provider invocation, documentation-agent apply mode, patch intake, or automated queue completion.
+
+Current prompt-pack, dispatch-plan, dry-run, approval, queue-locking, self-review, batch-planning, artifact-index, and safe-handoff behavior is advisory/manual-gated only. Runtime routing execution, automated Codex dispatch, automated Codex CLI invocation, real documentation-agent execution, external workflow execution, GitHub integration, automatic patch intake, and automatic next-item execution remain unimplemented. Local LLM execution exists only as the M62 operator-gated local prototype and remains local-only, advisory-only, prototype-scoped, and non-mutating.
 
 ## M75 Source-of-Truth and Next Decision Matrix Direction
 
@@ -60,6 +66,9 @@ The next decision-matrix direction is:
 - M95 reconciles the overnight sprint documentation and keeps the next phase manual/operator-selected
 - M99-M104 add dispatch-plan dry-runs, approval gates, queue locks, self-managed review, and batch planning without widening execution
 - M105 reconciles docs/data before the next manual sequence
+- M106 indexes dispatch artifacts without execution
+- M107 packages safe dispatch handoff context without execution authorization
+- M108 closes the sprint and defines the next controlled automation batch
 
 Next phase safety gates before any Codex dispatch implementation:
 
@@ -75,12 +84,16 @@ Next phase safety gates before any Codex dispatch implementation:
 
 Next recommended milestones remain manual/operator-selected:
 
-- M106 Dispatch Artifact Index/Report
-- M107 Safe Dispatch Handoff Package
-- M108 Sprint Closeout and Next-Stage Automation Plan
 - M109 Manual Codex Dispatch Runner Contract
 - M110 Local LLM Advisory Artifact Generator
 - M111 Approval-Gated Patch Intake Contract
+- M112 Dispatch Result Evidence Parser
+- M113 Queue Item Auto-Completion Recommendation Engine
+- M114 Hub Dispatch Review Panel
+- M115 Local Ollama Provider Probe Integration
+- M116 Documentation Agent Patch Proposal Generator
+- M117 Agent Routing Decision Dashboard
+- M118 Post-Automation-Planning Reconciliation
 
 ## M73 Prompt Pack Quality and Routing Improvements
 

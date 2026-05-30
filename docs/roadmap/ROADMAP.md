@@ -1,5 +1,59 @@
 # AresForge Roadmap
 
+## M108 Sprint Closeout and Next-Stage Automation Plan
+
+Status: In progress locally on `main`.
+
+Queue item: `m105-post-batch-documentation-reconciliation-m108-sprint-closeout-and-next-stage-automation-plan`.
+
+Purpose:
+
+- close the M99-M107 sprint with local report evidence
+- reconcile roadmap, build state, agent context, operator usage, and architecture docs
+- summarize completed dispatch-preparation capabilities
+- identify gaps and risks before automation work
+- define the next controlled automation batch without implementing it
+
+Current sprint achievements:
+
+- M99 validates local LLM advisory dry-run readiness without invoking models.
+- M100 validates documentation-agent dry-run review readiness without mutating docs.
+- M101 records local human approval gate status while keeping execution blocked.
+- M102 enforces dependency and completion evidence locks.
+- M103 confirms AresForge as its self-managed project.
+- M104 proposes read-only operator batches.
+- M105 reconciles docs/data after M99-M104.
+- M106 indexes dispatch artifacts and approval status.
+- M107 generates safe dispatch handoff packages.
+
+Current report posture:
+
+- M99-M107 are complete.
+- M108 is active during this closeout pass.
+- M96 remains proposed as older manual planning context.
+- No queue blockers are reported.
+- The artifact index currently has zero entries and warns that known artifact folders are missing.
+- Safe dispatch handoff and standard handoff outputs remain local-only/read-only.
+
+Next recommended milestone batch:
+
+- M109 Manual Codex Dispatch Runner Contract
+- M110 Local LLM Advisory Artifact Generator
+- M111 Approval-Gated Patch Intake Contract
+- M112 Dispatch Result Evidence Parser
+- M113 Queue Item Auto-Completion Recommendation Engine
+- M114 Hub Dispatch Review Panel
+- M115 Local Ollama Provider Probe Integration
+- M116 Documentation Agent Patch Proposal Generator
+- M117 Agent Routing Decision Dashboard
+- M118 Post-Automation-Planning Reconciliation
+
+Constraints preserved:
+
+- no new runtime feature implementation in M108
+- no artifact execution, dispatch execution, Codex, Ollama, local LLM, documentation-agent, external-agent, GitHub API, `gh`, network, workflow, issue creation, PR creation, queue auto-mutation, approval auto-mutation, or patch application
+- next-stage items must remain one-at-a-time and operator approved
+
 ## M107 Safe Dispatch Handoff Package
 
 Status: Completed locally on `main` after validation.

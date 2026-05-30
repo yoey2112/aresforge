@@ -1,5 +1,44 @@
 # AresForge Agent Context
 
+## M108 Sprint Closeout and Next-Stage Automation Plan Context
+
+Status: In progress locally on `main`.
+
+Queue item: `m105-post-batch-documentation-reconciliation-m108-sprint-closeout-and-next-stage-automation-plan`.
+
+M108 is a docs/data closeout pass for the completed M99-M107 dispatch-preparation sprint. It uses the local project report, queue summary, project queue report, operator batch plan, dispatch artifact index, safe dispatch handoff, and standard handoff package as evidence. It does not add runtime features.
+
+Current closeout findings:
+
+- M99-M107 are complete in the local queue.
+- M108 is active while closeout docs/data are reconciled.
+- M96 remains proposed as older planning context.
+- The local queue has no blocked items.
+- The operator batch planner proposes M96 as the only remaining non-done plannable item when M108 is not active.
+- The dispatch artifact index is empty because default dispatch artifact folders are not present yet.
+- The safe dispatch handoff reports queue, dispatch plan, artifact index, approval status, warnings, and operator next actions with `execution_allowed=false`.
+- Persistent local warning noise remains from untracked `.codex-pytest-cache/` and inaccessible old pytest temp directories.
+
+Next-stage automation should stay controlled and manual-gated:
+
+- M109 Manual Codex Dispatch Runner Contract
+- M110 Local LLM Advisory Artifact Generator
+- M111 Approval-Gated Patch Intake Contract
+- M112 Dispatch Result Evidence Parser
+- M113 Queue Item Auto-Completion Recommendation Engine
+- M114 Hub Dispatch Review Panel
+- M115 Local Ollama Provider Probe Integration
+- M116 Documentation Agent Patch Proposal Generator
+- M117 Agent Routing Decision Dashboard
+- M118 Post-Automation-Planning Reconciliation
+
+M108 boundaries:
+
+- docs/data-only reconciliation
+- no Codex, local LLM, Ollama, documentation-agent, GitHub API, `gh`, network service, external-agent, patch, or automated dispatch execution
+- no automatic queue start, completion, next-item execution, artifact execution, or approval mutation
+- no seeding of the entire next-stage batch
+
 ## M107 Safe Dispatch Handoff Package Context
 
 Status: Completed locally on `main` after validation.

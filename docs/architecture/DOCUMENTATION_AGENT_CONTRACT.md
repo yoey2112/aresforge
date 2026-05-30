@@ -94,6 +94,12 @@ M104 adds read-only operator batch planning. It may classify documentation items
 
 M105 is an operator-authored docs/data reconciliation pass after M99-M104. It updates source-of-truth docs directly under operator control, records queue/report/handoff warnings, and does not add documentation-agent apply mode, model-generated documentation rewrites, patch generation, or automatic queue completion.
 
+M106 may index documentation-agent dry-run artifacts if they exist under the configured local artifact folders, but it does not execute documentation agents, validate document semantics, generate patches, or apply documentation changes.
+
+M107 may include documentation-agent dry-run artifact summaries and approval status in a safe handoff package, but the package is context only and does not authorize documentation-agent execution or apply mode.
+
+M108 is an operator-authored sprint closeout and next-stage automation plan after M99-M107. It reconciles docs/data and recommends M116 as a future documentation-agent patch proposal milestone. M108 does not execute a documentation agent, does not generate documentation patches, does not apply documentation changes from model output, and does not complete queue items automatically.
+
 ## Safety Boundaries
 
 - local-only

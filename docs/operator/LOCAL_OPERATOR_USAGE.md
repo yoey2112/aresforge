@@ -1,5 +1,61 @@
 # Local Operator Usage
 
+## M108 Sprint Closeout and Next-Stage Automation Plan
+
+M108 is a docs/data-only sprint closeout workflow after M99-M107. It reconciles local report state, source-of-truth docs, queue evidence, and the next controlled automation sequence. It does not add runtime features or execute any agent/model/dispatch workflow.
+
+Recommended inspection commands:
+
+    python -m aresforge inspect-local-project-report
+    python -m aresforge inspect-local-queue-agent-summary
+    python -m aresforge inspect-project-queue --project-id aresforge
+    python -m aresforge plan-operator-batch --project-id aresforge --limit 10 --format json
+    python -m aresforge inspect-dispatch-artifacts --format json
+    python -m aresforge generate-safe-dispatch-handoff --format json
+    python -m aresforge generate-handoff-package
+
+Current closeout findings:
+
+- M99-M107 are complete in the local queue.
+- M108 is the active closeout item while docs/data reconciliation is underway.
+- M96 remains proposed as older manual planning context.
+- The artifact index currently reports zero artifacts and warning-only missing default artifact folders.
+- Safe dispatch handoff remains local-only/read-only and preserves `execution_allowed=false`.
+- Persistent local warning noise remains from untracked `.codex-pytest-cache/` and inaccessible old pytest temp directories.
+
+Operator workflow:
+
+- run the local reports above
+- update source-of-truth docs only
+- keep implemented capabilities distinct from future automation
+- select the next milestone manually
+- seed/start only one approved next-stage milestone at a time
+- record queue completion evidence after validation
+
+Next controlled automation batch:
+
+- M109 Manual Codex Dispatch Runner Contract
+- M110 Local LLM Advisory Artifact Generator
+- M111 Approval-Gated Patch Intake Contract
+- M112 Dispatch Result Evidence Parser
+- M113 Queue Item Auto-Completion Recommendation Engine
+- M114 Hub Dispatch Review Panel
+- M115 Local Ollama Provider Probe Integration
+- M116 Documentation Agent Patch Proposal Generator
+- M117 Agent Routing Decision Dashboard
+- M118 Post-Automation-Planning Reconciliation
+
+M108 boundaries:
+
+- no Codex execution
+- no Ollama or local model invocation
+- no documentation-agent execution
+- no artifact execution
+- no GitHub API, `gh`, issues, PRs, workflows, or network calls
+- no external agents
+- no patch application
+- no queue auto-start, auto-completion, automatic handoff, dispatch, approval mutation, or next-item execution
+
 ## M107 Safe Dispatch Handoff Package
 
 M107 generates a local-only handoff report for dispatch review and new chat handoffs. It bundles queue state, dispatch plans, the M106 artifact index, M101 approval status, and explicit operator instructions. It does not execute anything.

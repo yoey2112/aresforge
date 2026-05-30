@@ -1,5 +1,40 @@
 # Runnable Skeleton
 
+## M108 Sprint Closeout and Next-Stage Automation Plan
+
+M108 does not add a new runtime command. It is a docs/data closeout workflow that uses existing local inspection commands:
+
+- `python -m aresforge inspect-local-project-report`
+- `python -m aresforge inspect-local-queue-agent-summary`
+- `python -m aresforge inspect-project-queue --project-id aresforge`
+- `python -m aresforge plan-operator-batch --project-id aresforge --limit 10 --format json`
+- `python -m aresforge inspect-dispatch-artifacts --format json`
+- `python -m aresforge generate-safe-dispatch-handoff --format json`
+- `python -m aresforge generate-handoff-package`
+
+Runnable behavior:
+
+- reads current local project, queue, batch plan, artifact index, approval summary, and handoff state through existing commands
+- records M99-M107 as the completed dispatch-preparation sprint
+- records M96 as older proposed manual planning context
+- records empty artifact-index posture until M98-M100 artifacts exist under the default artifact folders
+- records persistent local warning noise from `.codex-pytest-cache/` and old pytest temp permission errors
+- defines the next controlled automation batch without seeding or implementing it
+
+Still absent by design:
+
+- new runtime feature implementation
+- automatic queue seeding
+- Codex execution
+- Ollama or local LLM invocation
+- documentation-agent execution or apply mode
+- GitHub API, `gh`, issues, PRs, workflows, network calls, or external services
+- external agent execution
+- patch application
+- automatic artifact execution, handoff, dispatch, queue completion, or next-item execution
+
+M108 prepares the repo for M109+ controlled automation planning. It is not an execution milestone.
+
 ## M107 Safe Dispatch Handoff Package
 
 M107 adds a local-only handoff command:

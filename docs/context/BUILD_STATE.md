@@ -2,11 +2,86 @@
 
 ## Current Phase
 
-M107 completed the local-only Safe Dispatch Handoff Package for queue state, dispatch plans, artifact index data, approval status, and operator instructions.
+M108 is the sprint closeout and next-stage automation planning pass after M99-M107. It is docs/data-only and uses local inspection reports to reconcile the completed dispatch-preparation sprint before any new automation is implemented.
 
 ## Current Goal
 
-M107 gives operators one read-only handoff report for dispatch review and new chat handoffs. It does not execute artifacts, dispatch Codex, invoke models or agents, call network services, mutate queue or approval state, or apply patches.
+M108 closes the M99-M107 sprint, records the current queue/report/artifact/handoff posture, and defines the next controlled automation stage. It does not add runtime features, execute dispatch artifacts, invoke Codex, invoke Ollama or local models, run documentation agents, call external services, mutate source through generated patches, or seed the entire next batch.
+
+## M108 Sprint Closeout and Next-Stage Automation Plan
+
+Status: In progress locally on `main`.
+
+Queue item: `m105-post-batch-documentation-reconciliation-m108-sprint-closeout-and-next-stage-automation-plan`.
+
+M108 inspection inputs:
+
+- `inspect-local-project-report`
+- `inspect-local-queue-agent-summary`
+- `inspect-project-queue --project-id aresforge`
+- `plan-operator-batch --project-id aresforge --limit 10 --format json`
+- `inspect-dispatch-artifacts --format json`
+- `generate-safe-dispatch-handoff --format json`
+- `generate-handoff-package`
+
+Sprint closeout summary:
+
+- M99-M100 provide lane-specific dry-run validators for local LLM advisory and documentation-agent review.
+- M101 provides local human approval gate records and a read-only Hub approval surface.
+- M102 enforces dependency and evidence locking for queue start/completion.
+- M103 confirms AresForge as its own first managed project.
+- M104 proposes local-only operator batches without execution.
+- M105 reconciled source docs after M99-M104.
+- M106 indexes local dispatch artifacts and approval status.
+- M107 packages queue state, dispatch plans, artifact index data, approval status, and operator instructions for safe handoff.
+
+Current report posture:
+
+- The queue has no blocked items.
+- M108 is the active closeout item while it is being reconciled.
+- M96 remains proposed as older manual planning context and should not be treated as a blocker for M97-M108 evidence.
+- `plan-operator-batch --project-id aresforge --limit 10 --format json` proposes only M96 when M108 is not considered, because M99-M107 are done.
+- `inspect-dispatch-artifacts --format json` currently reports zero artifacts and warning-only missing known artifact folders under `artifacts/`.
+- `generate-safe-dispatch-handoff --format json` remains local-only/read-only and reports `execution_allowed=false`.
+- `generate-handoff-package` remains local-only/read-only but still reports untracked `.codex-pytest-cache/` and old pytest temp permission warnings.
+
+Remaining gaps:
+
+- No dispatch artifact index entries exist yet because no M98-M100 artifacts are present under the default artifact folders.
+- Approval gate data exists, but it is not yet a complete per-artifact review inventory.
+- Safe dispatch handoff is a context package, not a runner or execution approval.
+- Automated Codex dispatch, local LLM advisory artifact generation, approval-gated patch intake, documentation-agent patch proposal generation, dashboard execution controls, and auto-completion recommendations remain future work.
+
+Next recommended controlled automation batch:
+
+- M109 Manual Codex Dispatch Runner Contract
+- M110 Local LLM Advisory Artifact Generator
+- M111 Approval-Gated Patch Intake Contract
+- M112 Dispatch Result Evidence Parser
+- M113 Queue Item Auto-Completion Recommendation Engine
+- M114 Hub Dispatch Review Panel
+- M115 Local Ollama Provider Probe Integration
+- M116 Documentation Agent Patch Proposal Generator
+- M117 Agent Routing Decision Dashboard
+- M118 Post-Automation-Planning Reconciliation
+
+Batch guardrails:
+
+- Keep M109-M114 contract/report/review-first before any widened execution.
+- Treat M115 as provider probing only unless an explicit later milestone authorizes inference.
+- Keep M116 proposal-only and require M111/M112 evidence before any patch intake.
+- Use M118 to reconcile docs after the automation-planning batch.
+- Do not seed the entire batch automatically; choose and start one approved milestone at a time.
+
+Safety boundaries:
+
+- docs/data reconciliation only
+- no new runtime feature implementation
+- no Codex execution
+- no Ollama or local model invocation
+- no documentation-agent execution or automatic documentation mutation
+- no GitHub API, `gh`, network service, workflow, issue, PR, external-agent, or patch application
+- no automatic queue start, completion, dispatch, handoff, or next-item execution
 
 ## M107 Safe Dispatch Handoff Package
 
