@@ -2,7 +2,7 @@
 
 ## M88 Human-Gated Patch Application Contract
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main`.
 
 Purpose:
 
