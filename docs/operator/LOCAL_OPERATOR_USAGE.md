@@ -1,5 +1,32 @@
 # Local Operator Usage
 
+## M90 Hub Routing Dashboard Data Contract
+
+Inspect routing dashboard data through the local Hub API:
+
+    GET /api/local-queue/routing-dashboard
+    GET /api/local-queue/routing-dashboard?project_id=aresforge&status=proposed
+
+Payload highlights:
+
+- `items[].item_id`
+- `items[].status`
+- `items[].risk`
+- `items[].task_size`
+- `items[].recommended_engine`
+- `items[].recommended_lane`
+- `items[].confidence_score`
+- `items[].validation_burden`
+- `items[].warnings`
+- `items[].blockers`
+
+Operator rules:
+
+- use this endpoint for dashboard display and routing review only
+- do not treat routing dashboard data as approval to execute prompts or invoke models
+- do not mutate queue state, complete items, or start another item from this endpoint
+- do not use GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, or external workflow behavior
+
 ## M89 Model Usage and Token Accounting Report
 
 Inspect local model usage and token accounting:

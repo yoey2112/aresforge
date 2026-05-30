@@ -1,5 +1,22 @@
 # AresForge Build State
 
+## M90 Hub Routing Dashboard Data Contract
+
+Status: In progress locally on `main`.
+
+Delivered in this pass:
+
+- adds `GET /api/local-queue/routing-dashboard` as a read-only Hub data contract
+- summarizes queue routing decision data for dashboard use
+- includes item id, status, risk, task size, recommended engine, recommended lane, recommended model, confidence score, validation burden, warnings, and blockers
+- exposes safety flags showing no prompt execution, local LLM invocation, Codex invocation, queue mutation, or automatic next-item execution
+
+M90 safety posture:
+
+- API route is read-only
+- no mutation endpoints are added
+- no prompt execution, local LLM invocation, Codex invocation, GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, or external workflow behavior
+
 ## M89 Model Usage and Token Accounting Report
 
 Status: Completed locally on `main`.

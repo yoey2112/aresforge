@@ -118,6 +118,7 @@ from aresforge.operator.local_project_factory import (
     update_project_scope_package,
     start_new_project_factory,
 )
+from aresforge.operator.llm_decision_matrix import build_llm_decision_matrix
 from aresforge.operator.managed_project_registry_local import (
     PROJECT_STATUSES,
     REPO_ROLES,
@@ -2869,6 +2870,107 @@ def get_local_queue_routed_views(config: AppConfig, filters: dict[str, str | Non
         "Routed queue views are read-only filters over the canonical local queue.",
     )
     return result
+
+
+def get_local_queue_routing_dashboard(config: AppConfig, filters: dict[str, str | None]) -> dict[str, Any]:
+    items, warnings, queue_path = _load_queue_if_present(config)
+    project_id_filter = _normalize_optional_str(filters.get("project_id"))
+    status_filter = _normalize_optional_str(filters.get("status"))
+    repo_id_filter = _normalize_optional_str(filters.get("repo_id"))
+
+    if status_filter and status_filter not in QUEUE_STATUSES:
+        return _api_error(
+            "invalid_queue_status",
+            "Invalid queue status supplied.",
+            details={"status": status_filter, "supported_statuses": list(QUEUE_STATUSES)},
+        )
+
+    filtered = [
+        item
+        for item in items
+        if (not project_id_filter or item.get("project_id") == project_id_filter)
+        and (not repo_id_filter or item.get("repo_id") == repo_id_filter)
+        and (not status_filter or item.get("status") == status_filter)
+    ]
+    rows = [_routing_dashboard_row(config, item, queue_path) for item in filtered]
+    confidence_available = [
+        row for row in rows if isinstance(row.get("confidence_score"), (int, float)) and row.get("confidence_score") is not None
+    ]
+    return {
+        "ok": True,
+        "local_only": True,
+        "read_only": True,
+        "service": SERVICE_NAME,
+        "contract_name": "hub_routing_dashboard_data_contract",
+        "contract_version": "m90.1",
+        "queue_path": str(queue_path),
+        "filters": {
+            "project_id": project_id_filter,
+            "repo_id": repo_id_filter,
+            "status": status_filter,
+        },
+        "item_count": len(rows),
+        "confidence_score_available_count": len(confidence_available),
+        "counts_by_status": _counts_by(rows, "status"),
+        "counts_by_risk": _counts_by(rows, "risk"),
+        "counts_by_task_size": _counts_by(rows, "task_size"),
+        "counts_by_recommended_engine": _counts_by(rows, "recommended_engine"),
+        "counts_by_recommended_lane": _counts_by(rows, "recommended_lane"),
+        "items": rows,
+        "warnings": sorted(set(warnings)),
+        "safety_boundary": {
+            "read_only": True,
+            "mutation_endpoints_added": False,
+            "prompt_execution_allowed": False,
+            "local_llm_invocation_allowed": False,
+            "codex_invocation_allowed": False,
+            "automatic_next_item_execution_allowed": False,
+            "github_api_allowed": False,
+            "gh_allowed": False,
+            "external_workflow_allowed": False,
+        },
+        "boundary_confirmations": [
+            *_BOUNDARY_CONFIRMATIONS,
+            "Routing dashboard data is read-only.",
+            "Decision matrix inspection is advisory metadata only.",
+            "No prompt execution, local LLM invocation, Codex invocation, queue mutation, or next-item execution.",
+        ],
+    }
+
+
+def _routing_dashboard_row(config: AppConfig, item: dict[str, Any], queue_path: Path) -> dict[str, Any]:
+    item_id = str(item.get("item_id", "")).strip()
+    matrix = build_llm_decision_matrix(config, item_id=item_id, queue_path=queue_path)
+    decision = matrix.get("routing_decision", {}) if isinstance(matrix.get("routing_decision"), dict) else {}
+    risk = matrix.get("risk_classification", {}) if isinstance(matrix.get("risk_classification"), dict) else {}
+    task_sizing = matrix.get("task_sizing", {}) if isinstance(matrix.get("task_sizing"), dict) else {}
+    validation = matrix.get("validation_burden", {}) if isinstance(matrix.get("validation_burden"), dict) else {}
+    confidence = matrix.get("routing_confidence", {}) if isinstance(matrix.get("routing_confidence"), dict) else {}
+    score = confidence.get("score")
+    return {
+        "item_id": item_id,
+        "project_id": str(item.get("project_id", "")).strip(),
+        "repo_id": str(item.get("repo_id", "")).strip(),
+        "title": str(item.get("title", "")).strip(),
+        "status": str(item.get("status", "")).strip(),
+        "item_type": str(item.get("item_type", "")).strip(),
+        "priority": str(item.get("priority", "")).strip(),
+        "risk": str(risk.get("risk_level", "")).strip(),
+        "task_size": str(task_sizing.get("task_size", "")).strip(),
+        "recommended_engine": str(decision.get("recommended_engine", "")).strip(),
+        "recommended_lane": str(decision.get("recommended_lane", "")).strip(),
+        "recommended_model": str(decision.get("recommended_model", "")).strip(),
+        "confidence_score": score if isinstance(score, (int, float)) else None,
+        "confidence_level": str(confidence.get("confidence_level", "")).strip(),
+        "validation_burden": str(validation.get("validation_burden", "")).strip(),
+        "warnings": list(matrix.get("warnings", [])) if isinstance(matrix.get("warnings"), list) else [],
+        "blockers": list(matrix.get("blockers", [])) if isinstance(matrix.get("blockers"), list) else [],
+        "execution_allowed": False,
+        "prompt_dispatch_allowed": False,
+        "local_llm_invocation_allowed": False,
+        "codex_invocation_allowed": False,
+        "automatic_next_item_execution_allowed": False,
+    }
 
 
 def post_queue_item(config: AppConfig, body: dict[str, Any]) -> dict[str, Any]:

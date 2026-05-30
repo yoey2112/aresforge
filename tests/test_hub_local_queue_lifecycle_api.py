@@ -8,7 +8,14 @@ import threading
 
 from aresforge.config import AppConfig
 from aresforge.hub.server import _build_handler
-from aresforge.hub.api import post_active_project, post_project, post_project_repo, post_queue_item
+from aresforge.hub.api import (
+    get_local_queue_routing_dashboard,
+    post_active_project,
+    post_local_queue_item_routing_metadata,
+    post_project,
+    post_project_repo,
+    post_queue_item,
+)
 from aresforge.operator.local_ai_artifacts import register_ai_artifact
 from aresforge.operator.local_execution_audit import append_execution_audit_entry
 from aresforge.operator.local_project_queue import complete_local_queue_item
@@ -331,6 +338,93 @@ def test_get_local_queue_routed_views_route_returns_grouped_read_only_view(tmp_p
         assert payload["total_items"] == 1
         assert "local_coding_llm" in payload["groups"]
         assert payload["items"][0]["item_id"] == "routed-api-item"
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
+
+
+def test_get_local_queue_routing_dashboard_returns_decision_contract(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_active_project(config, tmp_path)
+    _seed_queue_item(
+        config,
+        item_id="routing-dashboard-api-item",
+        status="proposed",
+        title="Build routing dashboard data contract",
+        description="Expose read-only routing confidence metadata.",
+    )
+    routed = post_local_queue_item_routing_metadata(
+        config,
+        "routing-dashboard-api-item",
+        {
+            "routing_metadata": {
+                "recommended_agent_lane": "coding",
+                "recommended_engine": "local_coding_llm",
+                "recommended_model": "qwen2.5-coder:32b",
+                "risk_level": "low",
+                "complexity_level": "low",
+                "routing_policy_source": "api-test",
+                "routing_reason": "Read-only dashboard data.",
+            }
+        },
+    )
+    assert routed["ok"] is True
+
+    payload = get_local_queue_routing_dashboard(config, {"project_id": "aresforge", "status": "proposed"})
+
+    assert payload["ok"] is True
+    assert payload["read_only"] is True
+    assert payload["contract_name"] == "hub_routing_dashboard_data_contract"
+    assert payload["item_count"] == 1
+    row = payload["items"][0]
+    assert row["item_id"] == "routing-dashboard-api-item"
+    assert row["status"] == "proposed"
+    assert row["risk"] == "low"
+    assert row["task_size"] == "small"
+    assert row["recommended_engine"] == "local_coding_llm"
+    assert row["recommended_lane"] == "coding"
+    assert isinstance(row["confidence_score"], int)
+    assert row["validation_burden"]
+    assert isinstance(row["warnings"], list)
+    assert isinstance(row["blockers"], list)
+    assert row["prompt_dispatch_allowed"] is False
+    assert row["local_llm_invocation_allowed"] is False
+    assert row["codex_invocation_allowed"] is False
+    assert row["automatic_next_item_execution_allowed"] is False
+    assert payload["safety_boundary"]["mutation_endpoints_added"] is False
+    assert payload["safety_boundary"]["github_api_allowed"] is False
+    assert payload["safety_boundary"]["gh_allowed"] is False
+
+
+def test_get_local_queue_routing_dashboard_route_is_read_only(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_active_project(config, tmp_path)
+    _seed_queue_item(
+        config,
+        item_id="routing-dashboard-http-item",
+        status="proposed",
+        title="Review routing dashboard data",
+        description="Read-only API route contract.",
+    )
+    server, thread = _start_server(config)
+
+    try:
+        port = int(server.server_address[1])
+        status, payload = _request_json(
+            port,
+            "GET",
+            "/api/local-queue/routing-dashboard?project_id=aresforge&status=proposed",
+        )
+        assert status == 200
+        assert payload["ok"] is True
+        assert payload["read_only"] is True
+        assert payload["item_count"] == 1
+        assert payload["items"][0]["item_id"] == "routing-dashboard-http-item"
+        assert payload["items"][0]["prompt_dispatch_allowed"] is False
+        assert payload["items"][0]["local_llm_invocation_allowed"] is False
+        assert payload["items"][0]["codex_invocation_allowed"] is False
+        assert payload["safety_boundary"]["automatic_next_item_execution_allowed"] is False
     finally:
         server.shutdown()
         server.server_close()

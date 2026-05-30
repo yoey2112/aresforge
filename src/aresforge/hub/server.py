@@ -35,6 +35,7 @@ from aresforge.hub.api import (
     get_local_queue_item_readiness,
     get_local_queue_agent_summary,
     get_local_queue_routed_views,
+    get_local_queue_routing_dashboard,
     get_orchestration_plan,
     get_operator_run_history,
     get_project,
@@ -301,6 +302,17 @@ def _build_handler(config: AppConfig, static_root: Path) -> type[BaseHTTPRequest
                         "operator_override": query_values.get("operator_override", [None])[0],
                         "group_by": query_values.get("group_by", [None])[0],
                         "include_unrouted": query_values.get("include_unrouted", [None])[0],
+                    },
+                )
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+            if method == "GET" and path == "/api/local-queue/routing-dashboard":
+                payload = get_local_queue_routing_dashboard(
+                    config,
+                    {
+                        "project_id": query_values.get("project_id", [None])[0],
+                        "repo_id": query_values.get("repo_id", [None])[0],
+                        "status": query_values.get("status", [None])[0],
                     },
                 )
                 _render_json(self, _status_from_payload(payload), payload)

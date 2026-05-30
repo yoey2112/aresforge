@@ -1,5 +1,23 @@
 # AresForge Agent Context
 
+## M90 Hub Routing Dashboard Data Contract Context
+
+Status: In progress locally on `main`.
+
+Current routing dashboard contract scope:
+
+- `GET /api/local-queue/routing-dashboard` returns read-only routing decision data for local queue items.
+- Rows include item id, status, risk, task size, recommended engine, recommended lane, recommended model, confidence score, validation burden, warnings, and blockers.
+- The endpoint may filter by `project_id`, `repo_id`, and `status`.
+- The payload is intended for Hub/dashboard display and future operator review.
+
+Boundaries preserved:
+
+- no mutation endpoints added
+- no prompt execution, local LLM invocation, Codex invocation, or automatic next-item execution
+- no queue mutation or queue completion
+- no GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, external workflow execution, or GitHub mutation
+
 ## M89 Model Usage and Token Accounting Report Context
 
 Status: Completed locally on `main`.

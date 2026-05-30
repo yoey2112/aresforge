@@ -1,5 +1,27 @@
 # Runnable Skeleton
 
+## M90 Hub Routing Dashboard Data Contract
+
+M90 adds a read-only Hub routing dashboard data endpoint:
+
+- `GET /api/local-queue/routing-dashboard`
+- `GET /api/local-queue/routing-dashboard?project_id=<project_id>&status=<status>`
+
+Runnable behavior:
+
+- reads local queue items and M80/M86 decision metadata
+- returns item id, status, risk, task size, recommended engine, recommended lane, recommended model, confidence score, validation burden, warnings, and blockers
+- returns summary counts by status, risk, task size, recommended engine, and recommended lane
+- includes explicit safety flags for no execution or mutation
+
+Still absent by design:
+
+- mutation endpoints for this contract
+- prompt execution
+- local LLM or Codex invocation
+- automatic queue completion or next-item execution
+- GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, or external workflow execution
+
 ## M88 Human-Gated Patch Application Contract
 
 M88 adds a read-only patch application contract inspector:

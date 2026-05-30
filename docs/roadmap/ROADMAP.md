@@ -1,5 +1,27 @@
 # AresForge Roadmap
 
+## M90 Hub Routing Dashboard Data Contract
+
+Status: In progress locally on `main`.
+
+Purpose:
+
+- expose routing and model decision information through a read-only Hub/API contract
+- provide stable dashboard data before full UI polish
+
+Delivered scope:
+
+- `GET /api/local-queue/routing-dashboard`
+- queue item routing decision rows with risk, task size, recommended engine/lane/model, confidence score, validation burden, warnings, and blockers
+- summary counts by status, risk, task size, engine, and lane
+- safety metadata confirming read-only/no-execution behavior
+
+Constraints preserved:
+
+- no mutation endpoints
+- no prompt execution, local LLM invocation, Codex invocation, automatic queue completion, or next-item execution
+- no GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, external workflow execution, or GitHub mutation
+
 ## M89 Model Usage and Token Accounting Report
 
 Status: Completed locally on `main`.
