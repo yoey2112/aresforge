@@ -2,7 +2,7 @@
 
 ## M93 Operator Handoff Package v2
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main`.
 
 Purpose:
 
