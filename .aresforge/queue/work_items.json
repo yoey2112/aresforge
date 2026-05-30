@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T20:44:00.000000+00:00",
+  "updated_at": "2026-05-30T20:48:44.660238+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -3772,7 +3772,7 @@
       "repo_id": "aresforge-main",
       "title": "M120 Operator Batch Queue Sequencer v2",
       "description": "Create a local-only v2 operator batch sequencer that recommends ordered queue work and prerequisites without execution.",
-      "status": "in_progress",
+      "status": "done",
       "priority": "high",
       "item_type": "orchestration",
       "tags": [
@@ -3794,7 +3794,23 @@
       "started_at": "2026-05-30T20:44:00.000000+00:00",
       "started_via": "local_operator",
       "created_at": "2026-05-30T20:44:00.000000+00:00",
-      "updated_at": "2026-05-30T20:44:00.000000+00:00"
+      "updated_at": "2026-05-30T20:48:44.660238+00:00",
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-30T20:48:44.660238+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "b4f6a39",
+      "validation_summary": "M120 Operator Batch Queue Sequencer v2 implemented and validated locally. Added plan-operator-batch-v2, stable operator_batch_sequence_v2 JSON output, dependency-aware and priority-aware sequencing, include-blocked advisory handling, artifact readiness warnings from the local artifact registry, approval gate warnings, lane grouping, output no-overwrite safeguards, CLI coverage, tests, docs, and queue lifecycle evidence. No queue item start, agent execution, Codex execution, Ollama/local LLM prompting, remote LLM call, GitHub, gh, network service, validation command execution from the sequencer, patch application, queue mutation from the sequencer, external mutation, automatic completion, autonomous execution, or next-item execution was performed.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 201 passed; python -m pytest tests/test_operator_batch_planner.py -> 4 passed; python -m pytest tests/test_operator_batch_queue_sequencer_v2.py -> 6 passed; git diff --check -> passed with CRLF warnings only; git diff --cached --check -> passed; python -m aresforge plan-operator-batch-v2 --project-id aresforge --format json -> passed; python -m aresforge inspect-local-project-report -> passed; python -m aresforge inspect-local-queue-agent-summary -> passed.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 201 passed",
+        "python -m pytest tests/test_operator_batch_planner.py -> 4 passed",
+        "python -m pytest tests/test_operator_batch_queue_sequencer_v2.py -> 6 passed",
+        "git diff --check -> passed with CRLF warnings only",
+        "git diff --cached --check -> passed",
+        "python -m aresforge plan-operator-batch-v2 --project-id aresforge --format json -> passed",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed"
+      ]
     }
   ]
 }

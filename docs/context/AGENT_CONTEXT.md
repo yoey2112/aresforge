@@ -2,9 +2,11 @@
 
 ## M120 Operator Batch Queue Sequencer v2 Context
 
-Status: Implemented locally on `main` pending completion evidence commit.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m120-operator-batch-queue-sequencer-v2`.
+
+Implementation commit: `b4f6a39`.
 
 M120 adds `python -m aresforge plan-operator-batch-v2 --project-id aresforge --format json` for advisory batch sequencing. The command reads local queue state, the local dispatch artifact registry, and local approval gate metadata to recommend an ordered sequence with prerequisites.
 

@@ -2,9 +2,11 @@
 
 ## M120 Operator Batch Queue Sequencer v2
 
-Status: Implemented locally on `main` pending completion evidence commit.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m120-operator-batch-queue-sequencer-v2`.
+
+Implementation commit: `b4f6a39`.
 
 Purpose:
 
