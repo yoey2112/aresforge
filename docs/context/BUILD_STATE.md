@@ -1,5 +1,25 @@
 # AresForge Build State
 
+## M122 Safe Queue Mutation Transaction Log
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m122-safe-queue-mutation-transaction-log`.
+
+M122 adds a local-only transaction log for file-backed queue mutations:
+
+- `python -m aresforge inspect-queue-transaction-log --project-id aresforge --format json`
+- optional `--item-id`, `--output`, and `--force`
+- transaction log storage under `.aresforge/queue/transaction_log.json`
+
+Transaction entries are appended after successful local queue item creation/update, routing metadata update, start, completion evidence capture, explicit completion, and closeout where practical. Each entry records timestamp, item id, project id, previous status, new status, actor/source, evidence summary, reason, queue path, and local-only execution flags.
+
+Safety boundaries:
+
+- inspection is read-only and advisory
+- append failures are warning-only so existing queue mutations remain compatible
+- no Codex, Ollama/local LLM prompting, remote LLM call, GitHub API, `gh`, network service, validation command execution, patch application, external mutation, autonomous execution, or next-item execution
+
 ## M130 Single-Agent Real Executor for Low-Risk Agents
 
 Status: In progress locally on `main`.

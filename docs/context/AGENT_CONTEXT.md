@@ -1,5 +1,22 @@
 # AresForge Agent Context
 
+## M122 Safe Queue Mutation Transaction Log Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m122-safe-queue-mutation-transaction-log`.
+
+M122 adds `.aresforge/queue/transaction_log.json` as a local audit trail for file-backed queue mutations and `inspect-queue-transaction-log` for read-only inspection.
+
+The log records successful local queue item proposal/update, routing metadata update, start, validation evidence capture, explicit completion, and closeout mutations where practical. Records include timestamp, item id, project id, previous status, new status, mutation type, actor/source, evidence summary, reason, queue path, `local_only=true`, and `execution_allowed=false`.
+
+M122 boundaries:
+
+- append-only local metadata for explicit queue mutations
+- inspection does not mutate queue state
+- append failures are surfaced as warnings and do not break existing queue behavior
+- no Codex, Codex CLI, Ollama/local LLMs, remote LLMs, agents, GitHub API, `gh`, network services, validation command execution, patch application, source mutation beyond the requested queue write, external mutation, autonomous execution, or next-item execution
+
 ## M130 Single-Agent Real Executor Context
 
 Status: In progress locally on `main`.

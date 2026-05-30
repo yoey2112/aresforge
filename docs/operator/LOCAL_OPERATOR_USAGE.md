@@ -1,5 +1,27 @@
 # Local Operator Usage
 
+## M122 Safe Queue Mutation Transaction Log
+
+M122 records local queue mutation metadata in `.aresforge/queue/transaction_log.json`. It does not execute Codex, invoke Ollama or local LLMs, run agents, call GitHub, call `gh`, make network calls, run validation commands, apply patches, mutate external systems, or start follow-on work.
+
+Inspect the full project transaction log:
+
+    python -m aresforge inspect-queue-transaction-log --project-id aresforge --format json
+
+Filter to one queue item:
+
+    python -m aresforge inspect-queue-transaction-log --project-id aresforge --item-id <item_id> --format json
+
+Write a local inspection report:
+
+    python -m aresforge inspect-queue-transaction-log --project-id aresforge --output artifacts/queue-transaction-log.json --format json
+
+Overwrite only with explicit force:
+
+    python -m aresforge inspect-queue-transaction-log --project-id aresforge --output artifacts/queue-transaction-log.json --format json --force
+
+Queue mutations append records where practical for item proposal/update, routing metadata update, start, validation evidence capture, explicit completion, and closeout. Append failures are warning-only so older queue workflows remain compatible.
+
 ## M130 Single-Agent Real Executor for Low-Risk Agents
 
 M130 can run one deterministic low-risk local agent with real execution gates. It writes a local execution record and does not execute Codex, invoke Ollama or local LLMs, call GitHub, call `gh`, make network calls, run validation commands, apply patches, mutate source files, complete queue items, or start follow-on work.

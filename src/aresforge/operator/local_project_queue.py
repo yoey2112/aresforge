@@ -16,6 +16,7 @@ from aresforge.operator.local_execution_audit import append_execution_audit_entr
 from aresforge.operator.local_active_project import inspect_active_project
 from aresforge.operator.local_project_state import resolve_project_state_path
 from aresforge.operator.managed_project_registry_local import resolve_managed_project_registry_path
+from aresforge.operator.queue_transaction_log import append_queue_transaction, queue_transaction_warning
 
 QUEUE_DIR_RELATIVE = Path('.aresforge') / 'queue'
 QUEUE_FILE_NAME = 'work_items.json'
@@ -476,6 +477,7 @@ def add_queue_item(
         }
         items.append(existing)
         created = True
+    previous_status = '' if created else str(existing.get('status', '')).strip()
 
     existing['item_id'] = normalized_item_id
     existing['project_id'] = project_id.strip()
@@ -548,6 +550,22 @@ def add_queue_item(
     warnings.extend(_dependency_warnings(existing, items))
 
     _write_queue(resolved_queue_path, queue)
+    transaction_result = append_queue_transaction(
+        config,
+        project_id=str(existing.get('project_id', '')).strip(),
+        item_id=normalized_item_id,
+        title=str(existing.get('title', '')).strip(),
+        previous_status=previous_status,
+        new_status=str(existing.get('status', '')).strip(),
+        mutation_type='propose' if created else 'update_queue_item',
+        actor='local_operator',
+        source=str(existing.get('source', '')).strip() or 'add-queue-item',
+        evidence_summary='',
+        reason='Queue item created.' if created else 'Queue item updated through add_queue_item.',
+        queue_path=resolved_queue_path,
+        metadata={'created': created},
+    )
+    warnings.extend(queue_transaction_warning(transaction_result))
 
     return {
         'command': 'add-queue-item',
@@ -639,6 +657,7 @@ def update_queue_item(
             },
         )
 
+    previous_status = str(existing.get('status', '')).strip()
     updated_fields: list[str] = []
 
     if project_id is not None:
@@ -701,6 +720,23 @@ def update_queue_item(
     warnings = _dependency_warnings(existing, items)
 
     _write_queue(resolved_queue_path, queue)
+    if updated_fields:
+        transaction_result = append_queue_transaction(
+            config,
+            project_id=str(existing.get('project_id', '')).strip(),
+            item_id=normalized_item_id,
+            title=str(existing.get('title', '')).strip(),
+            previous_status=previous_status,
+            new_status=str(existing.get('status', '')).strip(),
+            mutation_type='update_queue_item',
+            actor='local_operator',
+            source=str(existing.get('source', '')).strip() or 'update-queue-item',
+            evidence_summary='',
+            reason=f"Updated fields: {', '.join(sorted(updated_fields))}.",
+            queue_path=resolved_queue_path,
+            metadata={'updated_fields': sorted(updated_fields)},
+        )
+        warnings.extend(queue_transaction_warning(transaction_result))
 
     return {
         'command': 'update-queue-item',
@@ -797,6 +833,21 @@ def update_local_queue_item_routing_metadata(
         summary='Routing metadata updated locally; no routing execution or model invocation performed.',
         source_function='update_local_queue_item_routing_metadata',
     )
+    transaction_result = append_queue_transaction(
+        config,
+        project_id=str(item.get('project_id', '')).strip(),
+        item_id=normalized_item_id,
+        title=str(item.get('title', '')).strip(),
+        previous_status=str(item.get('status', '')).strip(),
+        new_status=str(item.get('status', '')).strip(),
+        mutation_type='update_routing_metadata',
+        actor='local_operator',
+        source='update-local-queue-item-routing-metadata',
+        evidence_summary='',
+        reason='Routing metadata updated locally without dispatch or execution.',
+        queue_path=resolved_queue_path,
+        metadata={'routing_metadata': normalized_metadata},
+    )
 
     return {
         'command': 'update-local-queue-item-routing-metadata',
@@ -807,7 +858,7 @@ def update_local_queue_item_routing_metadata(
         'routing_metadata': normalized_metadata,
         'validation': validation,
         'next_safe_action': 'review_routing_metadata_as_non_executing_queue_context',
-        'warnings': sorted(set(list(validation.get('warnings', [])) + audit_warning(audit_result))),
+        'warnings': sorted(set(list(validation.get('warnings', [])) + audit_warning(audit_result) + queue_transaction_warning(transaction_result))),
         'blockers': [],
         'item': _item_view(item),
         'boundary_confirmations': list(_QUEUE_ROUTING_METADATA_BOUNDARY_CONFIRMATIONS),
@@ -1902,6 +1953,21 @@ def start_local_queue_item(
         for warning in readiness.get('warnings', [])
         if str(warning).strip()
     ]
+    transaction_result = append_queue_transaction(
+        config,
+        project_id=str(started_item.get('project_id', '')).strip(),
+        item_id=normalized_item_id,
+        title=str(started_item.get('title', '')).strip(),
+        previous_status=previous_status,
+        new_status=str(started_item.get('status', '')).strip(),
+        mutation_type='start',
+        actor=str(raw_item.get('started_via', '')).strip() or 'local_operator',
+        source='start-local-queue-item',
+        evidence_summary='',
+        reason='Operator explicitly started the local queue item.',
+        queue_path=resolved_queue_path,
+    )
+    warnings.extend(queue_transaction_warning(transaction_result))
     return {
         'command': 'start-local-queue-item',
         'ok': True,
@@ -2032,6 +2098,27 @@ def complete_local_queue_item(
     _write_queue(resolved_queue_path, queue)
 
     completed_item = _item_view(raw_item)
+    transaction_result = append_queue_transaction(
+        config,
+        project_id=str(completed_item.get('project_id', '')).strip(),
+        item_id=normalized_item_id,
+        title=str(completed_item.get('title', '')).strip(),
+        previous_status=previous_status,
+        new_status=str(completed_item.get('status', '')).strip(),
+        mutation_type='complete',
+        actor=normalized_completed_by,
+        source='complete-local-queue-item',
+        evidence_summary=normalized_validation_summary,
+        reason='Operator explicitly completed the local queue item with validation evidence.',
+        queue_path=resolved_queue_path,
+        metadata={
+            'commit_hash': normalized_commit_hash,
+            'tests_run': _normalize_list(tests_run or []),
+            'changed_files': _normalize_list(changed_files or []),
+            'artifact_paths': _normalize_list(artifact_paths or []),
+        },
+    )
+    warnings = queue_transaction_warning(transaction_result)
     return {
         'command': 'complete-local-queue-item',
         'ok': True,
@@ -2042,7 +2129,7 @@ def complete_local_queue_item(
         'completion_commit': str(completed_item.get('completion_commit', '')).strip(),
         'validation_summary': str(completed_item.get('validation_summary', '')).strip(),
         'next_safe_action': 'Inspect queue summary and reconcile source-of-truth docs as needed.',
-        'warnings': [],
+        'warnings': sorted(set(warnings)),
         'dependency_summary': dependency_summary['payload'],
         'missing_required_evidence': [],
         'boundary_confirmations': list(_QUEUE_ITEM_COMPLETE_BOUNDARY_CONFIRMATIONS),
@@ -2139,6 +2226,22 @@ def capture_local_queue_completion_evidence(
 
     captured_item = _item_view(raw_item)
     closeout_eligible = _completion_evidence_closeout_eligible(captured_item)
+    transaction_result = append_queue_transaction(
+        config,
+        project_id=str(captured_item.get('project_id', '')).strip(),
+        item_id=normalized_item_id,
+        title=str(captured_item.get('title', '')).strip(),
+        previous_status=previous_status,
+        new_status=str(captured_item.get('status', '')).strip(),
+        mutation_type='record_validation_evidence',
+        actor='local_operator',
+        source='capture-local-queue-completion-evidence',
+        evidence_summary=str(evidence.get('evidence_summary', '')).strip(),
+        reason='Operator captured local queue completion evidence without completing the item.',
+        queue_path=resolved_queue_path,
+        metadata={'closeout_eligible': closeout_eligible},
+    )
+    warnings = queue_transaction_warning(transaction_result)
     return {
         'command': 'capture-local-queue-completion-evidence',
         'ok': True,
@@ -2154,7 +2257,7 @@ def capture_local_queue_completion_evidence(
             if closeout_eligible
             else 'Continue local validation or start the item before closeout.'
         ),
-        'warnings': [],
+        'warnings': sorted(set(warnings)),
         'boundary_confirmations': list(_QUEUE_ITEM_EVIDENCE_BOUNDARY_CONFIRMATIONS),
         'item': captured_item,
     }
@@ -2257,6 +2360,21 @@ def close_local_queue_item(
     _write_queue(resolved_queue_path, queue)
 
     closed_item = _item_view(raw_item)
+    transaction_result = append_queue_transaction(
+        config,
+        project_id=str(closed_item.get('project_id', '')).strip(),
+        item_id=normalized_item_id,
+        title=str(closed_item.get('title', '')).strip(),
+        previous_status=previous_status,
+        new_status=str(closed_item.get('status', '')).strip(),
+        mutation_type='closeout',
+        actor=normalized_closed_by,
+        source='close-local-queue-item',
+        evidence_summary=normalized_summary,
+        reason='Operator explicitly closed the local queue item after reviewing captured evidence.',
+        queue_path=resolved_queue_path,
+    )
+    warnings = queue_transaction_warning(transaction_result)
     return {
         'command': 'close-local-queue-item',
         'ok': True,
@@ -2269,7 +2387,7 @@ def close_local_queue_item(
         'closeout_summary': normalized_summary,
         'closeout_eligible': False,
         'next_safe_action': 'Inspect local queue and project reports for updated progress rollup.',
-        'warnings': [],
+        'warnings': sorted(set(warnings)),
         'boundary_confirmations': list(_QUEUE_ITEM_CLOSEOUT_BOUNDARY_CONFIRMATIONS),
         'item': closed_item,
     }

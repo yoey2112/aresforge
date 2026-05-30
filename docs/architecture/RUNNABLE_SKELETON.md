@@ -1,5 +1,31 @@
 # Runnable Skeleton
 
+## M122 Safe Queue Mutation Transaction Log
+
+M122 adds a local-only transaction log for queue mutation traceability:
+
+- `python -m aresforge inspect-queue-transaction-log --project-id aresforge --format json`
+- optional `--item-id`, `--output`, and `--force`
+
+Runnable behavior:
+
+- stores transaction metadata under `.aresforge/queue/transaction_log.json`
+- appends records after successful explicit local queue mutations where practical
+- records timestamp, item id, project id, previous status, new status, mutation type, actor/source, evidence summary, and reason
+- supports read-only inspection by project and item
+- refuses to overwrite output files unless `--force` is explicit
+
+Still absent by design:
+
+- autonomous queue mutation
+- Codex execution or Codex CLI shell-out
+- Ollama/local LLM or remote LLM prompt execution
+- agent execution
+- GitHub API, `gh`, issues, PRs, workflows, network calls, or external services
+- validation command execution
+- patch application
+- external mutation, automatic completion, autonomous execution, or next-item execution
+
 ## M130 Single-Agent Real Executor for Low-Risk Agents
 
 M130 adds a local-only real single-agent executor command:

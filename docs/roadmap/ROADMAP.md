@@ -1,5 +1,34 @@
 # AresForge Roadmap
 
+## M122 Safe Queue Mutation Transaction Log
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m122-safe-queue-mutation-transaction-log`.
+
+Purpose:
+
+- improve traceability for local queue mutations
+- provide rollback visibility by recording status transitions and evidence metadata
+- keep queue mutation inspection local-only and non-executing
+
+Runnable operator surface:
+
+- `python -m aresforge inspect-queue-transaction-log --project-id aresforge --format json`
+- optional `--item-id`, `--output`, and `--force`
+
+Contract:
+
+- appends transaction records under `.aresforge/queue/transaction_log.json`
+- records timestamp, item id, project id, previous status, new status, actor/source, evidence summary, and reason
+- inspection emits `queue_mutation_transaction_log`, transaction counts, filtered transactions, latest transaction by item, mutation warnings, `local_only=true`, `execution_allowed=false`, and next safe action
+
+Constraints preserved:
+
+- inspection is read-only
+- transaction appends are best-effort and warning-only
+- no autonomous queue mutation, Codex execution, local LLM/Ollama prompting, remote LLM call, agent execution, GitHub API, `gh`, network service, validation command execution, patch application, external mutation, automatic completion, or next-item execution
+
 ## M130 Single-Agent Real Executor for Low-Risk Agents
 
 Status: In progress locally on `main`.

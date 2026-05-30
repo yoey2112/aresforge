@@ -69,6 +69,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-dispatch-artifacts",
         "inspect-artifact-registry",
         "inspect-approval-ledger",
+        "inspect-queue-transaction-log",
         "record-artifact-review",
         "prepare-manual-codex-dispatch",
         "intake-patch-proposal",

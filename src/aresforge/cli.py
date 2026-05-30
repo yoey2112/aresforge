@@ -289,6 +289,7 @@ from aresforge.operator.model_usage_report import inspect_model_usage_report
 from aresforge.operator.sprint_batch_report import inspect_sprint_batch_report
 from aresforge.operator.operator_batch_planner import plan_operator_batch
 from aresforge.operator.operator_batch_queue_sequencer_v2 import plan_operator_batch_v2
+from aresforge.operator.queue_transaction_log import inspect_queue_transaction_log
 from aresforge.operator.self_seed import seed_aresforge_self_project
 from aresforge.hub.server import serve_hub
 from aresforge.operator.milestone_reconciliation_planner import plan_milestone_final_reconciliation
@@ -1821,6 +1822,19 @@ def build_parser() -> argparse.ArgumentParser:
         "--format",
         choices=["json", "markdown"],
         default="markdown",
+    )
+    inspect_queue_transaction_log_parser = subparsers.add_parser(
+        "inspect-queue-transaction-log",
+        help="Inspect the local queue mutation transaction log without mutating queue state.",
+    )
+    inspect_queue_transaction_log_parser.add_argument("--project-id", required=True)
+    inspect_queue_transaction_log_parser.add_argument("--item-id")
+    inspect_queue_transaction_log_parser.add_argument("--output")
+    inspect_queue_transaction_log_parser.add_argument("--force", action="store_true")
+    inspect_queue_transaction_log_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="json",
     )
     record_artifact_review_parser = subparsers.add_parser(
         "record-artifact-review",
@@ -4641,6 +4655,21 @@ def main(argv: list[str] | None = None) -> int:
             project_id=args.project_id,
             item_id=args.item_id,
             artifact_path=args.artifact_path,
+            output=args.output,
+            force=args.force,
+            output_format=args.format,
+        )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-queue-transaction-log":
+        payload = inspect_queue_transaction_log(
+            config,
+            project_id=args.project_id,
+            item_id=args.item_id,
             output=args.output,
             force=args.force,
             output_format=args.format,
