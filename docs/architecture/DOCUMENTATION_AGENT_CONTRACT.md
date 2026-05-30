@@ -100,6 +100,8 @@ M107 may include documentation-agent dry-run artifact summaries and approval sta
 
 M108 is an operator-authored sprint closeout and next-stage automation plan after M99-M107. It reconciles docs/data and recommends M116 as a future documentation-agent patch proposal milestone. M108 does not execute a documentation agent, does not generate documentation patches, does not apply documentation changes from model output, and does not complete queue items automatically.
 
+M109 prepares manual Codex dispatch records only for `codex_prompt_artifact` items. It does not route documentation-agent dry-runs into Codex, execute a documentation agent, generate documentation patches, apply documentation changes, or approve documentation-agent apply mode. Documentation-agent patch proposal generation remains future M116 work and any patch application remains behind a later approval-gated intake path.
+
 ## Safety Boundaries
 
 - local-only

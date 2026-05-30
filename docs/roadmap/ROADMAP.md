@@ -1,5 +1,57 @@
 # AresForge Roadmap
 
+## M109 Manual Codex Dispatch Runner Contract
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m109-manual-codex-dispatch-runner-contract`.
+
+Implementation commit: pending final commit.
+
+Purpose:
+
+- prepare a local manual Codex dispatch run record from a reviewed M98 prompt artifact
+- bridge "prompt artifact generated" to "operator manually dispatched it" without automating Codex
+- validate M97 lane/safety flags, M98 artifact presence, M101 approval status, M106 artifact index data when available, and queue lifecycle safety
+- emit operator steps, checklist, expected post-run evidence, and next safe action
+
+Runnable operator surface:
+
+- `python -m aresforge prepare-manual-codex-dispatch --item-id <item_id>`
+- `python -m aresforge prepare-manual-codex-dispatch --item-id <item_id> --format json`
+- `python -m aresforge prepare-manual-codex-dispatch --item-id <item_id> --artifact-path <path> --approval-id <approval_id>`
+
+Ready behavior:
+
+- selected lane must be `codex_prompt_artifact`
+- queue item must not be done, blocked, cancelled, or lifecycle-unsafe
+- plan/artifact must be `local_only=true` and `execution_allowed=false`
+- Codex prompt artifact must exist
+- approval gate must be `approved_for_manual_handoff`
+- result always reports `execution_allowed=false` and `codex_execution_performed=false`
+
+Blocked behavior:
+
+- missing artifact blocks
+- missing approval gate blocks as `needs_approval`
+- pending, rejected, needs-revision, or unknown approval status blocks
+- non-Codex lane blocks
+- unsafe queue status blocks
+- any source plan/artifact that allows execution blocks
+
+Constraints preserved:
+
+- no Codex execution or Codex CLI shell-out
+- no patch application
+- no GitHub API, `gh`, network, Ollama/local LLM, documentation-agent, external-agent, workflow, issue, or PR behavior
+- no automatic queue mutation, completion, approval mutation, handoff, or next-item execution
+
+Relationship:
+
+- M109 consumes M97/M98/M101/M106 context and prepares manual dispatch only.
+- M110 should generate local LLM advisory artifacts without inheriting Codex runner behavior.
+- M111 should define approval-gated patch intake for evidence returned after a manual Codex run.
+
 ## M108 Sprint Closeout and Next-Stage Automation Plan
 
 Status: Completed locally on `main` after validation.

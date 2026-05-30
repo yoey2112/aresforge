@@ -2,11 +2,63 @@
 
 ## Current Phase
 
-M108 completed the sprint closeout and next-stage automation planning pass after M99-M107. It was docs/data-only and used local inspection reports to reconcile the completed dispatch-preparation sprint before any new automation is implemented.
+M109 implemented the Manual Codex Dispatch Runner Contract after the M99-M108 dispatch-preparation sprint. It bridges a generated M98 Codex prompt artifact and an operator-performed manual Codex run by preparing a local record and checklist only.
 
 ## Current Goal
 
-M108 closed the M99-M107 sprint, recorded the current queue/report/artifact/handoff posture, and defined the next controlled automation stage. It did not add runtime features, execute dispatch artifacts, invoke Codex, invoke Ollama or local models, run documentation agents, call external services, mutate source through generated patches, or seed the entire next batch.
+M109 adds `prepare-manual-codex-dispatch` for local-only manual dispatch preparation. It validates the queue item, M97 selected lane, M98 prompt artifact, M101 approval status, M106 artifact index data when available, and safety flags before producing a preparation record. It does not execute Codex, shell out to Codex CLI, call GitHub/`gh`, call Ollama/local LLMs, execute documentation agents, apply patches, mutate queue state, or complete work automatically.
+
+## M109 Manual Codex Dispatch Runner Contract
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m109-manual-codex-dispatch-runner-contract`.
+
+Implementation commit: pending final commit.
+
+M109 adds:
+
+- `prepare-manual-codex-dispatch`
+- `prepare-manual-codex-dispatch --format json`
+- optional `--artifact-path`, `--approval-id`, `--queue-path`, `--registry-path`, `--artifact-root`, `--approval-path`, `--output`, and `--force`
+
+The preparation record includes:
+
+- `prepared`, `blocked`, and `blocked_reasons`
+- queue identity fields: `item_id`, `title`, `project_id`, `milestone`, and `queue_status`
+- `selected_lane`, `codex_artifact_path`, approval id/status, manual dispatch steps, operator checklist, expected evidence after manual run, `local_only`, `execution_allowed=false`, `codex_execution_performed=false`, and `next_safe_action`
+
+Ready behavior:
+
+- requires `selected_lane=codex_prompt_artifact`
+- requires `local_only=true`
+- requires `execution_allowed=false` on the M97 plan and discovered artifact metadata
+- requires an existing Codex prompt artifact
+- requires an M101 approval gate with `approved_for_manual_handoff`
+- requires the queue item to be lifecycle-safe and not done/blocked
+
+Blocked behavior:
+
+- blocks non-Codex lanes
+- blocks missing Codex prompt artifacts
+- blocks missing approval gates as `needs_approval`
+- blocks approval statuses other than `approved_for_manual_handoff`
+- blocks done, blocked, cancelled, closed, or otherwise unsafe queue states
+- blocks source plans/artifacts that are not local-only or allow execution
+
+Safety boundaries:
+
+- local-only preparation record
+- no Codex execution or Codex CLI shell-out
+- no patch application or source mutation from generated output
+- no GitHub API, `gh`, network service, Ollama/local LLM, documentation-agent, or external-agent invocation
+- no automatic queue start, completion, handoff, approval mutation, or next-item execution
+
+M109 to M110/M111 relationship:
+
+- M109 prepares manual Codex handoff only after a reviewed M98 prompt artifact exists.
+- M110 remains the future local LLM advisory artifact generator and must not inherit Codex execution behavior.
+- M111 remains the future approval-gated patch intake contract for any returned Codex patch/proposal evidence.
 
 ## M108 Sprint Closeout and Next-Stage Automation Plan
 

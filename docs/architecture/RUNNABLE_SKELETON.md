@@ -1,5 +1,61 @@
 # Runnable Skeleton
 
+## M109 Manual Codex Dispatch Runner Contract
+
+M109 adds a local-only preparation command:
+
+- `python -m aresforge prepare-manual-codex-dispatch --item-id <item_id>`
+- `python -m aresforge prepare-manual-codex-dispatch --item-id <item_id> --format json`
+- optional `--artifact-path`, `--approval-id`, `--queue-path`, `--registry-path`, `--artifact-root`, `--approval-path`, `--output`, and `--force`
+
+Runnable behavior:
+
+- reads local queue state
+- derives or consumes the M97 dispatch plan
+- requires `selected_lane=codex_prompt_artifact`
+- inspects the M106 artifact index when available
+- verifies the M98 Codex prompt artifact exists
+- reads M101 approval gate records
+- requires `approved_for_manual_handoff`
+- emits stable readable or JSON preparation records
+- refuses to overwrite output files unless `--force` is explicit
+- preserves `local_only=true`, `execution_allowed=false`, and `codex_execution_performed=false`
+
+Stable record fields:
+
+- `prepared`
+- `blocked`
+- `blocked_reasons`
+- `item_id`
+- `title`
+- `project_id`
+- `milestone`
+- `queue_status`
+- `selected_lane`
+- `codex_artifact_path`
+- `approval_gate_id`
+- `approval_status`
+- `manual_dispatch_steps`
+- `operator_checklist`
+- `evidence_expected_after_manual_run`
+- `local_only`
+- `execution_allowed`
+- `codex_execution_performed`
+- `next_safe_action`
+
+Still absent by design:
+
+- Codex execution
+- Codex CLI shell-out
+- local LLM/Ollama invocation
+- documentation-agent execution or apply mode
+- GitHub API, `gh`, issues, PRs, workflows, network calls, or external services
+- external agent execution
+- patch application
+- queue mutation, approval mutation, automatic handoff, automatic completion, or next-item execution
+
+M109 is a manual-dispatch preparation contract only. It prepares evidence expectations for a later manual run and for M111 approval-gated patch intake.
+
 ## M108 Sprint Closeout and Next-Stage Automation Plan
 
 M108 does not add a new runtime command. It is a docs/data closeout workflow that uses existing local inspection commands:

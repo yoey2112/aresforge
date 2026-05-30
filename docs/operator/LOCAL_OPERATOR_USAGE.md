@@ -1,5 +1,77 @@
 # Local Operator Usage
 
+## M109 Manual Codex Dispatch Runner Contract
+
+M109 prepares a manual Codex dispatch run record. It does not run Codex. It is the operator checklist and evidence contract between a generated M98 Codex prompt artifact and a human manually pasting that artifact into Codex outside AresForge.
+
+Readable preparation:
+
+    python -m aresforge prepare-manual-codex-dispatch --item-id <item_id>
+
+JSON preparation:
+
+    python -m aresforge prepare-manual-codex-dispatch --item-id <item_id> --format json
+
+Use explicit artifact and approval records when the artifact index has multiple candidates:
+
+    python -m aresforge prepare-manual-codex-dispatch --item-id <item_id> --artifact-path <path> --approval-id <approval_id> --format json
+
+Write a local preparation record:
+
+    python -m aresforge prepare-manual-codex-dispatch --item-id <item_id> --output artifacts/manual_codex_dispatch/prepared/<item_id>.json --format json
+
+Overwrite only with explicit force:
+
+    python -m aresforge prepare-manual-codex-dispatch --item-id <item_id> --output artifacts/manual_codex_dispatch/prepared/<item_id>.json --format json --force
+
+The preparation record includes:
+
+- prepared/blocked status and blocked reasons
+- queue identity and lifecycle status
+- selected lane
+- Codex prompt artifact path
+- approval gate id and approval status when available
+- manual dispatch steps
+- operator checklist
+- evidence expected after the manual Codex run
+- `local_only=true`
+- `execution_allowed=false`
+- `codex_execution_performed=false`
+- next safe action
+
+Required approval behavior:
+
+- approval gate status must be `approved_for_manual_handoff`
+- missing approval blocks as needs approval
+- `pending_review`, `needs_revision`, `rejected`, and unknown statuses block
+- approval still does not authorize automated execution
+
+Required artifact behavior:
+
+- selected lane must be `codex_prompt_artifact`
+- Codex prompt artifact must exist
+- M97 plan and artifact metadata must preserve `local_only=true` and `execution_allowed=false`
+- missing artifacts block the preparation record
+
+After the operator manually runs Codex outside AresForge, expected evidence includes:
+
+- manual run transcript or summary
+- proposed file changes
+- patch or diff artifact if one was produced
+- validation commands and output
+- operator accept/reject/defer notes
+- later M111 patch-intake approval evidence before any patch application
+
+M109 boundaries:
+
+- no Codex execution
+- no Codex CLI shell-out
+- no GitHub API, `gh`, network, Ollama/local LLM, documentation-agent, or external-agent invocation
+- no patch application
+- no queue completion, approval mutation, handoff automation, or next-item execution
+
+M110 is the future local LLM advisory artifact generator. M111 is the future approval-gated patch intake contract for returned manual Codex results.
+
 ## M108 Sprint Closeout and Next-Stage Automation Plan
 
 M108 is a completed docs/data-only sprint closeout workflow after M99-M107. It reconciled local report state, source-of-truth docs, queue evidence, and the next controlled automation sequence. It did not add runtime features or execute any agent/model/dispatch workflow.

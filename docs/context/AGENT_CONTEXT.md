@@ -1,5 +1,47 @@
 # AresForge Agent Context
 
+## M109 Manual Codex Dispatch Runner Contract Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m109-manual-codex-dispatch-runner-contract`.
+
+Implementation commit: pending final commit.
+
+M109 adds a local-only manual dispatch preparation command:
+
+- `python -m aresforge prepare-manual-codex-dispatch --item-id <item_id>`
+- `python -m aresforge prepare-manual-codex-dispatch --item-id <item_id> --format json`
+- optional `--artifact-path`, `--approval-id`, `--output`, and `--force`
+
+The command consumes current queue state, the M97 dispatch plan, the M98 Codex prompt artifact, M101 approval gate status, and M106 artifact index data when available. It produces a dispatch run preparation record only.
+
+M109 ready behavior:
+
+- requires `selected_lane=codex_prompt_artifact`
+- requires `local_only=true`
+- requires `execution_allowed=false`
+- requires a present Codex prompt artifact
+- requires approval status `approved_for_manual_handoff`
+- requires the queue item to be lifecycle-safe and not done or blocked
+
+M109 blocked behavior:
+
+- blocks non-Codex lanes, missing artifacts, missing approval gates, non-approved gates, done/blocked queue items, non-local plans/artifacts, and any source plan/artifact that allows execution
+- represents missing approval as a blocked `needs_approval` state
+
+M109 boundaries:
+
+- no Codex execution
+- no Codex CLI shell-out
+- no GitHub API, `gh`, network, Ollama/local LLM, documentation-agent, or external-agent calls
+- no patch application
+- no queue mutation, approval mutation, automatic handoff, or next-item execution
+
+After the operator manually runs Codex outside AresForge, expected evidence includes the transcript or summary, proposed file changes, any patch/diff artifact, validation output, operator notes, and future M111 patch-intake approval evidence.
+
+M110 remains the next local LLM advisory artifact generator milestone. M111 remains the approval-gated patch intake contract for returned manual Codex results.
+
 ## M108 Sprint Closeout and Next-Stage Automation Plan Context
 
 Status: Completed locally on `main` after validation.

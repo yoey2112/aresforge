@@ -44,7 +44,9 @@ M107 adds a safe dispatch handoff package that bundles queue state, dispatch pla
 
 M108 closes the M99-M107 sprint and defines the next controlled automation batch. It is docs/data-only and does not add routing runtime, runner behavior, provider invocation, documentation-agent apply mode, patch intake, or automated queue completion.
 
-Current prompt-pack, dispatch-plan, dry-run, approval, queue-locking, self-review, batch-planning, artifact-index, and safe-handoff behavior is advisory/manual-gated only. Runtime routing execution, automated Codex dispatch, automated Codex CLI invocation, real documentation-agent execution, external workflow execution, GitHub integration, automatic patch intake, and automatic next-item execution remain unimplemented. Local LLM execution exists only as the M62 operator-gated local prototype and remains local-only, advisory-only, prototype-scoped, and non-mutating.
+M109 adds the Manual Codex Dispatch Runner Contract. It prepares a local record and operator checklist for manually running a previously generated M98 Codex prompt artifact outside AresForge. It requires `selected_lane=codex_prompt_artifact`, `local_only=true`, `execution_allowed=false`, an existing Codex prompt artifact, an approved M101 gate, and lifecycle-safe queue state. It always reports `codex_execution_performed=false` and does not execute Codex, shell out to Codex CLI, invoke providers, call GitHub/`gh`, apply patches, mutate queue state, or complete work automatically.
+
+Current prompt-pack, dispatch-plan, dry-run, approval, queue-locking, self-review, batch-planning, artifact-index, safe-handoff, and manual Codex dispatch preparation behavior is advisory/manual-gated only. Runtime routing execution, automated Codex dispatch, automated Codex CLI invocation, real documentation-agent execution, external workflow execution, GitHub integration, automatic patch intake, and automatic next-item execution remain unimplemented. Local LLM execution exists only as the M62 operator-gated local prototype and remains local-only, advisory-only, prototype-scoped, and non-mutating.
 
 ## M75 Source-of-Truth and Next Decision Matrix Direction
 

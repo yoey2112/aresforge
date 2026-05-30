@@ -241,6 +241,7 @@ from aresforge.operator.dispatch_approval_gate import (
 )
 from aresforge.operator.dispatch_artifact_report import inspect_dispatch_artifacts
 from aresforge.operator.safe_dispatch_handoff import generate_safe_dispatch_handoff
+from aresforge.operator.manual_codex_dispatch_runner import prepare_manual_codex_dispatch
 from aresforge.operator.single_ready_codex_queue_item import run_single_ready_codex_queue_item
 from aresforge.operator.local_agent_profiles import (
     AGENT_PROFILE_STATUSES,
@@ -1727,6 +1728,24 @@ def build_parser() -> argparse.ArgumentParser:
     inspect_dispatch_artifacts_parser.add_argument("--artifact-root")
     inspect_dispatch_artifacts_parser.add_argument("--approval-path")
     inspect_dispatch_artifacts_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="markdown",
+    )
+    prepare_manual_codex_dispatch_parser = subparsers.add_parser(
+        "prepare-manual-codex-dispatch",
+        help="Prepare a local-only manual Codex dispatch run record without executing Codex.",
+    )
+    prepare_manual_codex_dispatch_parser.add_argument("--item-id", required=True)
+    prepare_manual_codex_dispatch_parser.add_argument("--artifact-path")
+    prepare_manual_codex_dispatch_parser.add_argument("--approval-id")
+    prepare_manual_codex_dispatch_parser.add_argument("--queue-path")
+    prepare_manual_codex_dispatch_parser.add_argument("--registry-path")
+    prepare_manual_codex_dispatch_parser.add_argument("--artifact-root")
+    prepare_manual_codex_dispatch_parser.add_argument("--approval-path")
+    prepare_manual_codex_dispatch_parser.add_argument("--output")
+    prepare_manual_codex_dispatch_parser.add_argument("--force", action="store_true")
+    prepare_manual_codex_dispatch_parser.add_argument(
         "--format",
         choices=["json", "markdown"],
         default="markdown",
@@ -4272,6 +4291,26 @@ def main(argv: list[str] | None = None) -> int:
             project_id=args.project_id,
             artifact_root=args.artifact_root,
             approval_path=args.approval_path,
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "prepare-manual-codex-dispatch":
+        payload = prepare_manual_codex_dispatch(
+            config,
+            item_id=args.item_id,
+            artifact_path=args.artifact_path,
+            approval_id=args.approval_id,
+            queue_path=args.queue_path,
+            registry_path=args.registry_path,
+            artifact_root=args.artifact_root,
+            approval_path=args.approval_path,
+            output=args.output,
+            force=bool(args.force),
             output_format=args.format,
         )
         if "stdout" in payload:

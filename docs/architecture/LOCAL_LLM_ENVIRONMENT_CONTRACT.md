@@ -68,6 +68,8 @@ M107 includes local LLM-related dispatch summaries and artifact index summaries 
 
 M108 closes the M99-M107 sprint and recommends M110 and M115 as future controlled local LLM milestones. M110 should generate advisory artifacts without broadening execution by default. M115 should be provider probing only unless a later explicit milestone authorizes inference. M108 itself does not call Ollama, list models, send prompts, run inference, or mutate repository/queue state.
 
+M109 adds manual Codex dispatch preparation only. It may read local dispatch and approval records that sit beside local LLM dry-run artifacts, but it does not invoke Ollama, list models, send prompts to a local provider, run inference, produce local LLM advice, or authorize local LLM execution. M110 remains the future milestone for local LLM advisory artifact generation.
+
 ## Storage
 
 The contract is stored locally at:

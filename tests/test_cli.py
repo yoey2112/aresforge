@@ -64,6 +64,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-dispatch-approval-gate",
         "update-dispatch-approval-gate",
         "inspect-dispatch-artifacts",
+        "prepare-manual-codex-dispatch",
         "inspect-llm-decision-matrix",
         "inspect-local-llm-provider-contract",
         "run-single-ready-codex-queue-item",
@@ -6560,6 +6561,125 @@ def test_inspect_dispatch_artifacts_dispatch_json(
         "project_id": "aresforge",
         "artifact_root": "artifacts",
         "approval_path": ".aresforge/gates.json",
+        "output_format": "json",
+    }
+
+
+def test_prepare_manual_codex_dispatch_dispatch_markdown(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "markdown",
+        "wrote_output_file": False,
+        "stdout": "# Manual Codex Dispatch Preparation\n\n- prepared: True\n- codex_execution_performed: False\n",
+        "payload": {},
+    }
+    monkeypatch.setattr(
+        cli,
+        "prepare_manual_codex_dispatch",
+        lambda _config, item_id, artifact_path=None, approval_id=None, queue_path=None, registry_path=None, artifact_root=None, approval_path=None, output=None, force=False, output_format="markdown": payload,
+    )
+
+    exit_code = cli.main(["prepare-manual-codex-dispatch", "--item-id", "m109-target"])
+    output = capsys.readouterr().out
+
+    assert exit_code == 0
+    assert "Manual Codex Dispatch Preparation" in output
+    assert "codex_execution_performed: False" in output
+
+
+def test_prepare_manual_codex_dispatch_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    seen: dict[str, object] = {}
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "prepared": True,
+                "item_id": "m109-target",
+                "execution_allowed": False,
+                "codex_execution_performed": False,
+            }
+        ),
+        "payload": {},
+    }
+
+    def fake_prepare(
+        _config: AppConfig,
+        *,
+        item_id: str,
+        artifact_path=None,
+        approval_id=None,
+        queue_path=None,
+        registry_path=None,
+        artifact_root=None,
+        approval_path=None,
+        output=None,
+        force=False,
+        output_format="markdown",
+    ):
+        seen.update(
+            {
+                "item_id": item_id,
+                "artifact_path": artifact_path,
+                "approval_id": approval_id,
+                "queue_path": queue_path,
+                "registry_path": registry_path,
+                "artifact_root": artifact_root,
+                "approval_path": approval_path,
+                "output": output,
+                "force": force,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "prepare_manual_codex_dispatch", fake_prepare)
+    exit_code = cli.main(
+        [
+            "prepare-manual-codex-dispatch",
+            "--item-id",
+            "m109-target",
+            "--artifact-path",
+            "artifact.txt",
+            "--approval-id",
+            "approval-1",
+            "--queue-path",
+            "queue.json",
+            "--registry-path",
+            "projects.json",
+            "--artifact-root",
+            "artifacts",
+            "--approval-path",
+            ".aresforge/gates.json",
+            "--output",
+            "prepared.json",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["execution_allowed"] is False
+    assert parsed["codex_execution_performed"] is False
+    assert seen == {
+        "item_id": "m109-target",
+        "artifact_path": "artifact.txt",
+        "approval_id": "approval-1",
+        "queue_path": "queue.json",
+        "registry_path": "projects.json",
+        "artifact_root": "artifacts",
+        "approval_path": ".aresforge/gates.json",
+        "output": "prepared.json",
+        "force": True,
         "output_format": "json",
     }
 
