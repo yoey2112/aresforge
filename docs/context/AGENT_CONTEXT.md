@@ -2,11 +2,11 @@
 
 ## M110 Local LLM Advisory Artifact Generator Context
 
-Status: Implemented locally on `main`; validation pending commit.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m110-local-llm-advisory-artifact-generator`.
 
-Implementation commit: pending.
+Implementation commit: `f4e81ff`.
 
 M110 adds a local-only advisory request artifact command:
 
@@ -79,7 +79,7 @@ M109 boundaries:
 
 After the operator manually runs Codex outside AresForge, expected evidence includes the transcript or summary, proposed file changes, any patch/diff artifact, validation output, operator notes, and future M111 patch-intake approval evidence.
 
-M110 remains the next local LLM advisory artifact generator milestone. M111 remains the approval-gated patch intake contract for returned manual Codex results.
+M110 is now the completed local LLM advisory artifact generator milestone. M111 remains the approval-gated patch intake contract for returned manual Codex results.
 
 ## M108 Sprint Closeout and Next-Stage Automation Plan Context
 

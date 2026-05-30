@@ -2,11 +2,11 @@
 
 ## M110 Local LLM Advisory Artifact Generator
 
-Status: Implemented locally on `main`; validation pending commit.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m110-local-llm-advisory-artifact-generator`.
 
-Implementation commit: pending.
+Implementation commit: `f4e81ff`.
 
 Purpose:
 

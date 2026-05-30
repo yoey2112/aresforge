@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T18:36:00.935127+00:00",
+  "updated_at": "2026-05-30T18:40:05.477725+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -2780,7 +2780,7 @@
       "repo_id": "aresforge-main",
       "title": "M110 Local LLM Advisory Artifact Generator",
       "description": "Prepare a local reasoning advisory request package for an operator-selected queue item without executing models or services.",
-      "status": "ready",
+      "status": "done",
       "priority": "high",
       "item_type": "architecture",
       "tags": [
@@ -2798,17 +2798,28 @@
       "assigned_agent": "",
       "source": "local-roadmap",
       "notes": "Acceptance criteria: local-only advisory request package; selected lane must be local_llm_advisory; generated artifact preserves execution_allowed=false; includes queue context, source documents, advisory prompt, expected response shape, operator review checklist, and blocked reasons; no Ollama, local model, Codex, GitHub, network, external agent, patch application, issue creation, automatic queue mutation, or automatic next-item execution.",
-      "started_at": "",
-      "started_via": "",
-      "previous_status": "",
-      "completed_at": "",
-      "completed_by": "",
-      "completion_commit": "",
-      "validation_summary": "",
-      "evidence_note": "",
-      "tests_run": [],
-      "changed_files": [],
-      "artifact_paths": [],
+      "started_at": "2026-05-30T18:39:46.431734+00:00",
+      "started_via": "local_operator",
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-30T18:40:05.477725+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "f4e81ff",
+      "validation_summary": "M110 Local LLM Advisory Artifact Generator implemented and validated locally. Added generate-local-llm-advisory-artifact, stable local_llm_advisory_request JSON artifacts, readable/json CLI output, default local artifact storage, no-overwrite safeguards, blocked lane behavior, tests, docs, and queue lifecycle evidence. No Ollama, local LLM, Codex, Codex CLI, GitHub, gh, network, documentation-agent, external-agent, patch application, automatic queue mutation, or next-item execution was performed.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py; python -m pytest tests/test_local_llm_advisory_artifact.py; python -m pytest tests/test_queue_agent_dispatch_plan.py; git diff --check passed with CRLF warnings only; smoke checks passed for inspect-local-project-report, inspect-local-queue-agent-summary, inspect-project-queue --project-id aresforge, generate-local-llm-advisory-artifact readable, and generate-local-llm-advisory-artifact --format json. Initial parallel smoke exposed a same-second default artifact path collision; fixed with microsecond timestamp pathing and reran smoke successfully.",
+      "tests_run": [
+        "tests/test_cli.py -> 185 passed",
+        "tests/test_local_llm_advisory_artifact.py -> 5 passed",
+        "tests/test_queue_agent_dispatch_plan.py -> 6 passed",
+        "git diff --check -> passed with CRLF warnings only"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/local_llm_advisory_artifact.py; src/aresforge/cli.py; tests/test_local_llm_advisory_artifact.py; tests/test_cli.py",
+        "docs/context/BUILD_STATE.md; docs/context/AGENT_CONTEXT.md; docs/roadmap/ROADMAP.md; docs/operator/LOCAL_OPERATOR_USAGE.md; docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md; docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md; docs/architecture/RUNNABLE_SKELETON.md; .aresforge/queue/work_items.json"
+      ],
+      "artifact_paths": [
+        "artifacts/local_llm_advisory/requests/20260530T183903869275Z-m110-local-llm-advisory-artifact-generator.json",
+        "artifacts/local_llm_advisory/requests/20260530T183903861627Z-m110-local-llm-advisory-artifact-generator.json"
+      ],
       "completion_evidence": {},
       "routing_metadata": {
         "recommended_agent_lane": "architect_planner",
@@ -2829,7 +2840,7 @@
       "closeout_summary": "",
       "closeout_history": [],
       "created_at": "2026-05-30T18:35:46.020599+00:00",
-      "updated_at": "2026-05-30T18:36:00.935127+00:00"
+      "updated_at": "2026-05-30T18:40:05.477725+00:00"
     }
   ]
 }

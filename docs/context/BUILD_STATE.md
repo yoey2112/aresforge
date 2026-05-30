@@ -10,11 +10,11 @@ M110 adds `generate-local-llm-advisory-artifact` for local-only advisory request
 
 ## M110 Local LLM Advisory Artifact Generator
 
-Status: Implemented locally on `main`; validation pending commit.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m110-local-llm-advisory-artifact-generator`.
 
-Implementation commit: pending.
+Implementation commit: `f4e81ff`.
 
 M110 adds:
 
@@ -117,7 +117,7 @@ Safety boundaries:
 M109 to M110/M111 relationship:
 
 - M109 prepares manual Codex handoff only after a reviewed M98 prompt artifact exists.
-- M110 remains the future local LLM advisory artifact generator and must not inherit Codex execution behavior.
+- M110 generates local LLM advisory request artifacts without inheriting Codex execution behavior.
 - M111 remains the future approval-gated patch intake contract for any returned Codex patch/proposal evidence.
 
 ## M108 Sprint Closeout and Next-Stage Automation Plan
