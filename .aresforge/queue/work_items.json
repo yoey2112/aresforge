@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T16:54:23.339861+00:00",
+  "updated_at": "2026-05-30T16:57:57.837523+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -2479,7 +2479,7 @@
       "repo_id": "aresforge-main",
       "title": "M105 Post-Batch Documentation Reconciliation",
       "description": "Reconcile source-of-truth documentation after M99-M104 local-only operator workflow milestones without implementing new runtime features.",
-      "status": "in_progress",
+      "status": "done",
       "priority": "high",
       "item_type": "documentation",
       "tags": [
@@ -2497,14 +2497,18 @@
       "notes": "",
       "started_at": "2026-05-30T16:54:23.339861+00:00",
       "started_via": "local_operator",
-      "previous_status": "proposed",
-      "completed_at": "",
-      "completed_by": "",
-      "completion_commit": "",
-      "validation_summary": "",
-      "evidence_note": "",
-      "tests_run": [],
-      "changed_files": [],
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-30T16:57:57.837523+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "962ac8c",
+      "validation_summary": "M105 Post-Batch Documentation Reconciliation completed locally. Reconciled source-of-truth docs for M99-M104, updated current milestone posture, clarified local-only/manual-gated boundaries, documented next recommended milestones, and recorded persistent local warning noise. No new runtime features or external execution were added.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py; git diff --check passed with CRLF warnings only; smoke checks passed for inspect-local-project-report, inspect-local-queue-agent-summary, inspect-project-queue --project-id aresforge, plan-operator-batch --project-id aresforge --limit 10 --format json, and generate-handoff-package.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 177 passed; git diff --check -> passed with CRLF warnings only"
+      ],
+      "changed_files": [
+        "docs/context/BUILD_STATE.md; docs/context/AGENT_CONTEXT.md; docs/roadmap/ROADMAP.md; docs/operator/LOCAL_OPERATOR_USAGE.md; docs/architecture/RUNNABLE_SKELETON.md; docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md; docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md; docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md; .aresforge/queue/work_items.json"
+      ],
       "artifact_paths": [],
       "completion_evidence": {},
       "routing_metadata": {
@@ -2526,7 +2530,7 @@
       "closeout_summary": "",
       "closeout_history": [],
       "created_at": "2026-05-30T16:54:17.695032+00:00",
-      "updated_at": "2026-05-30T16:54:23.339861+00:00"
+      "updated_at": "2026-05-30T16:57:57.837523+00:00"
     }
   ]
 }

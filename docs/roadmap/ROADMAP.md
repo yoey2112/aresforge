@@ -2,11 +2,11 @@
 
 ## M105 Post-Batch Documentation Reconciliation
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m96-post-sprint-planning-and-prioritization-m105-post-batch-documentation-reconciliation`.
 
-Implementation commit: pending.
+Implementation commit: `962ac8c`.
 
 Purpose:
 

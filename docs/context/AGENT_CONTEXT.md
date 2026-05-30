@@ -2,11 +2,11 @@
 
 ## M105 Post-Batch Documentation Reconciliation Context
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m96-post-sprint-planning-and-prioritization-m105-post-batch-documentation-reconciliation`.
 
-Implementation commit: pending.
+Implementation commit: `962ac8c`.
 
 M105 is a docs/data reconciliation pass for the completed M99-M104 operator workflow batch. It does not add runtime features.
 
