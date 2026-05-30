@@ -1,5 +1,68 @@
 # Local Operator Usage
 
+## M110 Local LLM Advisory Artifact Generator
+
+M110 prepares a local LLM advisory request artifact. It does not run Ollama, invoke local models, execute Codex, call GitHub, call network services, execute agents, apply patches, mutate queue state, or complete work. The artifact is a review package an operator may inspect before any later separately approved local LLM invocation milestone.
+
+Readable generation:
+
+    python -m aresforge generate-local-llm-advisory-artifact --item-id <item_id>
+
+JSON generation:
+
+    python -m aresforge generate-local-llm-advisory-artifact --item-id <item_id> --format json
+
+Write a specific local artifact:
+
+    python -m aresforge generate-local-llm-advisory-artifact --item-id <item_id> --output artifacts/local_llm_advisory/requests/<item_id>.json --format json
+
+Overwrite only with explicit force:
+
+    python -m aresforge generate-local-llm-advisory-artifact --item-id <item_id> --output artifacts/local_llm_advisory/requests/<item_id>.json --format json --force
+
+Optionally name the intended advisory profile and scope:
+
+    python -m aresforge generate-local-llm-advisory-artifact --item-id <item_id> --model-profile reasoning-fast --reasoning-scope safety_review
+
+If `--output` is omitted, the command writes a timestamped JSON artifact under:
+
+- `artifacts/local_llm_advisory/requests`
+
+The artifact includes:
+
+- `artifact_type=local_llm_advisory_request`
+- generated/blocked status and blocked reasons
+- queue identity and lifecycle status
+- requested model profile and reasoning scope
+- source documents
+- queue context
+- advisory prompt
+- expected response shape
+- operator review checklist
+- `local_only=true`
+- `execution_allowed=false`
+- `local_llm_execution_performed=false`
+- `codex_execution_performed=false`
+- `network_execution_performed=false`
+- `patch_application_allowed=false`
+- next safe action
+
+Required behavior:
+
+- selected lane must be `local_llm_advisory`
+- dispatch plan must be unblocked
+- dispatch plan must preserve `local_only=true`
+- dispatch plan must preserve `execution_allowed=false`
+- explicit output files are not overwritten unless `--force` is provided
+
+M110 boundaries:
+
+- no Ollama API calls or local model inference
+- no Codex execution or Codex CLI shell-out
+- no GitHub API, `gh`, network, documentation-agent, or external-agent invocation
+- no patch application
+- no queue completion, approval mutation, handoff automation, or next-item execution
+
 ## M109 Manual Codex Dispatch Runner Contract
 
 M109 prepares a manual Codex dispatch run record. It does not run Codex. It is the operator checklist and evidence contract between a generated M98 Codex prompt artifact and a human manually pasting that artifact into Codex outside AresForge.
@@ -70,7 +133,7 @@ M109 boundaries:
 - no patch application
 - no queue completion, approval mutation, handoff automation, or next-item execution
 
-M110 is the future local LLM advisory artifact generator. M111 is the future approval-gated patch intake contract for returned manual Codex results.
+M110 now generates local LLM advisory request artifacts only. M111 is the future approval-gated patch intake contract for returned manual Codex results.
 
 ## M108 Sprint Closeout and Next-Stage Automation Plan
 

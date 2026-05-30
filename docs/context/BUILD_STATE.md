@@ -2,11 +2,71 @@
 
 ## Current Phase
 
-M109 implemented the Manual Codex Dispatch Runner Contract after the M99-M108 dispatch-preparation sprint. It bridges a generated M98 Codex prompt artifact and an operator-performed manual Codex run by preparing a local record and checklist only.
+M110 implements the Local LLM Advisory Artifact Generator after M109. It prepares a local request package describing what a local reasoning model would be asked to review, without invoking any model or execution surface.
 
 ## Current Goal
 
-M109 adds `prepare-manual-codex-dispatch` for local-only manual dispatch preparation. It validates the queue item, M97 selected lane, M98 prompt artifact, M101 approval status, M106 artifact index data when available, and safety flags before producing a preparation record. It does not execute Codex, shell out to Codex CLI, call GitHub/`gh`, call Ollama/local LLMs, execute documentation agents, apply patches, mutate queue state, or complete work automatically.
+M110 adds `generate-local-llm-advisory-artifact` for local-only advisory request package generation. It consumes or derives the M97 dispatch plan, requires `selected_lane=local_llm_advisory`, writes a JSON artifact under `artifacts/local_llm_advisory/requests` when no output path is supplied, and preserves `execution_allowed=false`. It does not call Ollama/local LLMs, execute Codex, call GitHub/`gh`, make network calls, execute agents, apply patches, mutate queue state, or complete work automatically.
+
+## M110 Local LLM Advisory Artifact Generator
+
+Status: Implemented locally on `main`; validation pending commit.
+
+Queue item: `m110-local-llm-advisory-artifact-generator`.
+
+Implementation commit: pending.
+
+M110 adds:
+
+- `generate-local-llm-advisory-artifact`
+- `generate-local-llm-advisory-artifact --format json`
+- optional `--output`, `--force`, `--model-profile`, `--reasoning-scope`, `--queue-path`, and `--registry-path`
+
+The generated artifact contract includes:
+
+- `artifact_type=local_llm_advisory_request`
+- generated/blocked status and blocked reasons
+- queue identity fields: `item_id`, `title`, `project_id`, `milestone`, and `queue_status`
+- requested model profile and reasoning scope
+- source documents, queue context, advisory prompt, expected response shape, and operator review checklist
+- `local_only=true`
+- `execution_allowed=false`
+- `local_llm_execution_performed=false`
+- `codex_execution_performed=false`
+- `network_execution_performed=false`
+- `patch_application_allowed=false`
+- next safe action
+
+Ready behavior:
+
+- requires the M97 selected lane to be `local_llm_advisory`
+- requires the M97 plan to be local-only and unblocked
+- requires `execution_allowed=false`
+- writes a stable local JSON artifact to `artifacts/local_llm_advisory/requests` if `--output` is omitted
+- refuses to overwrite explicit output files unless `--force` is provided
+
+Blocked behavior:
+
+- blocks Codex prompt, local coding draft, documentation-agent, manual-only, missing, or unsafe lanes
+- blocks M97 plan blockers
+- blocks source plans with `local_only` other than true
+- blocks source plans with `execution_allowed` other than false
+- blocks output overwrite attempts without `--force`
+
+Safety boundaries:
+
+- local-only request artifact generation
+- no Ollama API calls or local model inference
+- no Codex execution or Codex CLI shell-out
+- no GitHub API, `gh`, network service, documentation-agent, or external-agent invocation
+- no patch application or source mutation from advisory output
+- no automatic queue start, completion, approval mutation, handoff, or next-item execution
+
+M110 relationship:
+
+- M110 builds on M97/M99 by turning the advisory lane into a structured request artifact only.
+- M110 does not inherit M85 optional provider run behavior.
+- Any future local LLM invocation remains a separate operator-approved milestone.
 
 ## M109 Manual Codex Dispatch Runner Contract
 

@@ -1,5 +1,56 @@
 # AresForge Roadmap
 
+## M110 Local LLM Advisory Artifact Generator
+
+Status: Implemented locally on `main`; validation pending commit.
+
+Queue item: `m110-local-llm-advisory-artifact-generator`.
+
+Implementation commit: pending.
+
+Purpose:
+
+- generate a local-only advisory request artifact for queue items routed to `local_llm_advisory`
+- describe what a future local reasoning model would review without invoking it
+- capture queue context, source documents, advisory prompt, expected response shape, and operator checklist
+- preserve local-only/manual-gated dispatch boundaries before any future provider run
+
+Runnable operator surface:
+
+- `python -m aresforge generate-local-llm-advisory-artifact --item-id <item_id>`
+- `python -m aresforge generate-local-llm-advisory-artifact --item-id <item_id> --format json`
+- `python -m aresforge generate-local-llm-advisory-artifact --item-id <item_id> --output <path> --force`
+- optional `--model-profile <profile>` and `--reasoning-scope <scope>`
+
+Ready behavior:
+
+- selected lane must be `local_llm_advisory`
+- M97 plan must be unblocked
+- plan must preserve `local_only=true` and `execution_allowed=false`
+- default artifacts are written under `artifacts/local_llm_advisory/requests`
+- explicit output paths are overwrite-safe unless `--force` is present
+
+Blocked behavior:
+
+- non-advisory lanes block
+- blocked M97 plans block
+- unsafe local/execution flags block
+- existing explicit output files block without `--force`
+
+Constraints preserved:
+
+- no Ollama/local LLM calls
+- no Codex execution or Codex CLI shell-out
+- no GitHub API, `gh`, network, external-agent, or documentation-agent behavior
+- no patch application
+- no automatic queue mutation, completion, approval mutation, handoff, or next-item execution
+
+Relationship:
+
+- M110 follows M99 advisory readiness validation and prepares the advisory request package only.
+- M110 is separate from M85's optional provider execution prototype.
+- Future local LLM execution still requires a separate explicit operator gate and milestone.
+
 ## M109 Manual Codex Dispatch Runner Contract
 
 Status: Completed locally on `main` after validation.

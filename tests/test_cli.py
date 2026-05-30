@@ -59,6 +59,7 @@ def test_cli_has_expected_commands() -> None:
         "prepare-queue-item-dispatch",
         "inspect-queue-dispatch-plan",
         "generate-codex-dispatch-artifact",
+        "generate-local-llm-advisory-artifact",
         "validate-documentation-agent-dry-run",
         "create-dispatch-approval-gate",
         "inspect-dispatch-approval-gate",
@@ -6187,6 +6188,128 @@ def test_validate_local_llm_advisory_dry_run_dispatch_markdown(
 
     assert exit_code == 0
     assert "ready_for_future_advisory_run: True" in output
+    assert "selected_lane: local_llm_advisory" in output
+
+
+def test_generate_local_llm_advisory_artifact_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": True,
+        "stdout": json.dumps(
+            {
+                "artifact_type": "local_llm_advisory_request",
+                "generated": True,
+                "blocked": False,
+                "item_id": "m110",
+                "selected_lane": "local_llm_advisory",
+                "requested_model_profile": "reasoning-fast",
+                "reasoning_scope": "safety_review",
+                "local_only": True,
+                "execution_allowed": False,
+                "local_llm_execution_performed": False,
+                "codex_execution_performed": False,
+                "network_execution_performed": False,
+                "patch_application_allowed": False,
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_generate(
+        _config,
+        item_id,
+        queue_path=None,
+        registry_path=None,
+        output=None,
+        force=False,
+        output_format="markdown",
+        model_profile=None,
+        reasoning_scope=None,
+    ):
+        seen["item_id"] = item_id
+        seen["queue_path"] = queue_path
+        seen["registry_path"] = registry_path
+        seen["output"] = output
+        seen["force"] = force
+        seen["output_format"] = output_format
+        seen["model_profile"] = model_profile
+        seen["reasoning_scope"] = reasoning_scope
+        return payload
+
+    monkeypatch.setattr(cli, "generate_local_llm_advisory_artifact", fake_generate)
+    exit_code = cli.main(
+        [
+            "generate-local-llm-advisory-artifact",
+            "--item-id",
+            "m110",
+            "--queue-path",
+            "queue.json",
+            "--registry-path",
+            "projects.json",
+            "--output",
+            "artifacts/local_llm_advisory/requests/m110.json",
+            "--force",
+            "--model-profile",
+            "reasoning-fast",
+            "--reasoning-scope",
+            "safety_review",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["artifact_type"] == "local_llm_advisory_request"
+    assert parsed["selected_lane"] == "local_llm_advisory"
+    assert parsed["execution_allowed"] is False
+    assert seen == {
+        "item_id": "m110",
+        "queue_path": "queue.json",
+        "registry_path": "projects.json",
+        "output": "artifacts/local_llm_advisory/requests/m110.json",
+        "force": True,
+        "output_format": "json",
+        "model_profile": "reasoning-fast",
+        "reasoning_scope": "safety_review",
+    }
+
+
+def test_generate_local_llm_advisory_artifact_dispatch_markdown(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "markdown",
+        "wrote_output_file": True,
+        "stdout": "# Local LLM Advisory Request Artifact\n\n- generated: True\n- selected_lane: local_llm_advisory\n",
+        "payload": {},
+    }
+    monkeypatch.setattr(
+        cli,
+        "generate_local_llm_advisory_artifact",
+        lambda _config,
+        item_id,
+        queue_path=None,
+        registry_path=None,
+        output=None,
+        force=False,
+        output_format="markdown",
+        model_profile=None,
+        reasoning_scope=None: payload,
+    )
+
+    exit_code = cli.main(["generate-local-llm-advisory-artifact", "--item-id", "m110"])
+    output = capsys.readouterr().out
+
+    assert exit_code == 0
+    assert "generated: True" in output
     assert "selected_lane: local_llm_advisory" in output
 
 

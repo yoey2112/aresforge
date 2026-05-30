@@ -1,5 +1,64 @@
 # Runnable Skeleton
 
+## M110 Local LLM Advisory Artifact Generator
+
+M110 adds a local-only request artifact command:
+
+- `python -m aresforge generate-local-llm-advisory-artifact --item-id <item_id>`
+- `python -m aresforge generate-local-llm-advisory-artifact --item-id <item_id> --format json`
+- optional `--output`, `--force`, `--model-profile`, `--reasoning-scope`, `--queue-path`, and `--registry-path`
+
+Runnable behavior:
+
+- reads local queue state
+- derives or consumes the M97 dispatch plan
+- requires `selected_lane=local_llm_advisory`
+- requires an unblocked local-only plan
+- requires `execution_allowed=false`
+- emits stable readable or JSON CLI output
+- writes a JSON artifact under `artifacts/local_llm_advisory/requests` when `--output` is omitted
+- refuses to overwrite explicit output files unless `--force` is explicit
+- preserves `local_only=true`, `execution_allowed=false`, `local_llm_execution_performed=false`, `codex_execution_performed=false`, `network_execution_performed=false`, and `patch_application_allowed=false`
+
+Stable artifact fields:
+
+- `artifact_type`
+- `generated`
+- `generated_at`
+- `blocked`
+- `blocked_reasons`
+- `item_id`
+- `title`
+- `project_id`
+- `milestone`
+- `queue_status`
+- `requested_model_profile`
+- `reasoning_scope`
+- `source_documents`
+- `queue_context`
+- `advisory_prompt`
+- `expected_response_shape`
+- `operator_review_checklist`
+- `local_only`
+- `execution_allowed`
+- `local_llm_execution_performed`
+- `codex_execution_performed`
+- `network_execution_performed`
+- `patch_application_allowed`
+- `next_safe_action`
+
+Still absent by design:
+
+- Ollama API calls or local LLM inference
+- Codex execution or Codex CLI shell-out
+- documentation-agent execution or apply mode
+- GitHub API, `gh`, issues, PRs, workflows, network calls, or external services
+- external agent execution
+- patch application
+- queue mutation, approval mutation, automatic handoff, automatic completion, or next-item execution
+
+M110 is a request artifact generator only. It does not authorize local LLM execution.
+
 ## M109 Manual Codex Dispatch Runner Contract
 
 M109 adds a local-only preparation command:

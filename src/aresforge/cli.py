@@ -232,6 +232,7 @@ from aresforge.operator.queue_dispatch_preparation import prepare_queue_item_dis
 from aresforge.operator.queue_agent_dispatch_plan import inspect_queue_agent_dispatch_plan
 from aresforge.operator.codex_prompt_dispatch_artifact import generate_codex_prompt_dispatch_artifact
 from aresforge.operator.local_llm_advisory_dry_run import validate_local_llm_advisory_dry_run
+from aresforge.operator.local_llm_advisory_artifact import generate_local_llm_advisory_artifact
 from aresforge.operator.documentation_agent_dry_run import validate_documentation_agent_dry_run
 from aresforge.operator.dispatch_approval_gate import (
     APPROVAL_GATE_STATUSES,
@@ -1655,6 +1656,22 @@ def build_parser() -> argparse.ArgumentParser:
     validate_local_llm_advisory_dry_run_parser.add_argument("--output")
     validate_local_llm_advisory_dry_run_parser.add_argument("--force", action="store_true")
     validate_local_llm_advisory_dry_run_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="markdown",
+    )
+    generate_local_llm_advisory_artifact_parser = subparsers.add_parser(
+        "generate-local-llm-advisory-artifact",
+        help="Generate a local-only Local LLM advisory request artifact from an M97 dispatch plan.",
+    )
+    generate_local_llm_advisory_artifact_parser.add_argument("--item-id", required=True)
+    generate_local_llm_advisory_artifact_parser.add_argument("--queue-path")
+    generate_local_llm_advisory_artifact_parser.add_argument("--registry-path")
+    generate_local_llm_advisory_artifact_parser.add_argument("--output")
+    generate_local_llm_advisory_artifact_parser.add_argument("--force", action="store_true")
+    generate_local_llm_advisory_artifact_parser.add_argument("--model-profile")
+    generate_local_llm_advisory_artifact_parser.add_argument("--reasoning-scope")
+    generate_local_llm_advisory_artifact_parser.add_argument(
         "--format",
         choices=["json", "markdown"],
         default="markdown",
@@ -4209,6 +4226,24 @@ def main(argv: list[str] | None = None) -> int:
             output=args.output,
             force=bool(args.force),
             output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "generate-local-llm-advisory-artifact":
+        payload = generate_local_llm_advisory_artifact(
+            config,
+            item_id=args.item_id,
+            queue_path=args.queue_path,
+            registry_path=args.registry_path,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+            model_profile=args.model_profile,
+            reasoning_scope=args.reasoning_scope,
         )
         if "stdout" in payload:
             print(payload["stdout"])

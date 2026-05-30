@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T18:29:17.382768+00:00",
+  "updated_at": "2026-05-30T18:36:00.935127+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -2773,6 +2773,63 @@
       "closeout_history": [],
       "created_at": "2026-05-30T18:27:22.186988+00:00",
       "updated_at": "2026-05-30T18:29:17.382768+00:00"
+    },
+    {
+      "item_id": "m110-local-llm-advisory-artifact-generator",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M110 Local LLM Advisory Artifact Generator",
+      "description": "Prepare a local reasoning advisory request package for an operator-selected queue item without executing models or services.",
+      "status": "ready",
+      "priority": "high",
+      "item_type": "architecture",
+      "tags": [
+        "milestone:m110",
+        "local-llm-advisory",
+        "local-only"
+      ],
+      "dependencies": [
+        "m109-manual-codex-dispatch-runner-contract"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [],
+      "evidence_required": [],
+      "assigned_agent": "",
+      "source": "local-roadmap",
+      "notes": "Acceptance criteria: local-only advisory request package; selected lane must be local_llm_advisory; generated artifact preserves execution_allowed=false; includes queue context, source documents, advisory prompt, expected response shape, operator review checklist, and blocked reasons; no Ollama, local model, Codex, GitHub, network, external agent, patch application, issue creation, automatic queue mutation, or automatic next-item execution.",
+      "started_at": "",
+      "started_via": "",
+      "previous_status": "",
+      "completed_at": "",
+      "completed_by": "",
+      "completion_commit": "",
+      "validation_summary": "",
+      "evidence_note": "",
+      "tests_run": [],
+      "changed_files": [],
+      "artifact_paths": [],
+      "completion_evidence": {},
+      "routing_metadata": {
+        "recommended_agent_lane": "architect_planner",
+        "recommended_engine": "local_reasoning_llm",
+        "recommended_model": "qwen2.5:32b",
+        "fallback_engine": "codex_cli",
+        "fallback_model": "",
+        "routing_policy_source": "m110_local_queue_seed",
+        "routing_reason": "M110 prepares a local reasoning advisory request package only.",
+        "risk_level": "low",
+        "complexity_level": "low",
+        "escalation_reason": "",
+        "project_ai_mode": "manual_gated",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-30T18:35:46.020599+00:00",
+      "updated_at": "2026-05-30T18:36:00.935127+00:00"
     }
   ]
 }

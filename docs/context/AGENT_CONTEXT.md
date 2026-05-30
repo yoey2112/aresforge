@@ -1,5 +1,44 @@
 # AresForge Agent Context
 
+## M110 Local LLM Advisory Artifact Generator Context
+
+Status: Implemented locally on `main`; validation pending commit.
+
+Queue item: `m110-local-llm-advisory-artifact-generator`.
+
+Implementation commit: pending.
+
+M110 adds a local-only advisory request artifact command:
+
+- `python -m aresforge generate-local-llm-advisory-artifact --item-id <item_id>`
+- `python -m aresforge generate-local-llm-advisory-artifact --item-id <item_id> --format json`
+- optional `--output`, `--force`, `--model-profile`, and `--reasoning-scope`
+
+The command consumes current queue state and the M97 dispatch plan. It generates a JSON request artifact under `artifacts/local_llm_advisory/requests` by default, or at the operator-provided output path. The artifact describes what a future local reasoning model would be asked to review, including source documents, queue context, advisory prompt, expected response shape, and operator checklist.
+
+M110 ready behavior:
+
+- requires `selected_lane=local_llm_advisory`
+- requires `local_only=true`
+- requires `execution_allowed=false`
+- requires no M97 plan blockers
+- refuses to overwrite explicit output files unless `--force` is provided
+
+M110 blocked behavior:
+
+- blocks non-advisory lanes, blocked dispatch plans, unsafe plan flags, and no-overwrite conflicts
+- still emits blocked reasons, next safe action, and execution-denial flags
+
+M110 boundaries:
+
+- no Ollama or local model execution
+- no Codex execution or Codex CLI shell-out
+- no GitHub API, `gh`, network, documentation-agent, or external-agent calls
+- no patch application
+- no queue mutation, approval mutation, automatic handoff, completion, or next-item execution
+
+M110 does not authorize advisory execution. Any later local LLM invocation requires a separate operator-approved milestone and evidence gate.
+
 ## M109 Manual Codex Dispatch Runner Contract Context
 
 Status: Completed locally on `main` after validation.
