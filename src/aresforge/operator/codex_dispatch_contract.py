@@ -406,7 +406,7 @@ def _inspect_existing_run_state(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {"active": False, "warnings": [], "blockers": []}
     try:
-        raw = json.loads(path.read_text(encoding="utf-8"))
+        raw = json.loads(path.read_text(encoding="utf-8-sig"))
     except (OSError, json.JSONDecodeError) as exc:
         return {"active": False, "warnings": [f"Existing run-state file could not be inspected: {exc}"], "blockers": []}
     state = str(raw.get("dispatch_state", "") if isinstance(raw, dict) else "").strip()

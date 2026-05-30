@@ -1,5 +1,29 @@
 # AresForge Build State
 
+## M79.1 Codex CLI Windows Runner Hardening
+
+Status: In progress locally on `main`.
+
+Delivered in this hardening pass:
+
+- Codex dispatch run-state JSON reads tolerate a UTF-8 BOM for Windows-created `run_state.json` files.
+- Codex dispatch subprocess output is captured as bytes and decoded with UTF-8-sig plus replacement handling before writing `stdout.txt` and `stderr.txt`.
+- The approved prompt artifact is copied from the reviewed prompt source when available and passed to the dispatch subprocess over UTF-8 stdin so multi-line prompt bodies are preserved.
+- Run-state payloads record `stdin_prompt_path`, `stdin_prompt_bytes`, `stdin_prompt_handoff`, and `output_decoding` for operator review.
+- Windows Codex sandbox guidance is documented: Codex can author validated implementation changes, but the operator may need to perform `git commit` and `git push` outside the sandbox when `.git` write access is unavailable.
+
+M79.1 safety posture:
+
+- dispatch remains local-only and operator-gated
+- no automatic queue completion
+- no automatic next-item execution
+- no GitHub API, `gh`, issues, PRs, workflows, external workflow execution, or GitHub mutation from AresForge
+- local LLM safety posture is unchanged
+
+Recommended next milestone:
+
+- Complete M79.1 review/evidence capture, then continue to the next approved queue item only after explicit operator action.
+
 ## M78.5 Operator Workflow Compression and Prompt Builder Agent Contract
 
 Status: Completed locally on `main`.

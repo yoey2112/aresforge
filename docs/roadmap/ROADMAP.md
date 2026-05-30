@@ -1,5 +1,30 @@
 # AresForge Roadmap
 
+## M79.1 Codex CLI Windows Runner Hardening
+
+Status: In progress locally on `main`.
+
+Purpose:
+
+- harden the post-M79 Codex CLI runner path for Windows operator workflows
+- make dispatch run-state reads tolerant of UTF-8 BOMs
+- make subprocess output capture resilient to Unicode decoding edge cases
+- pass the full reviewed prompt artifact to the dispatch subprocess over stdin
+- document current Codex sandbox Git limitations where operator commit/push may be required
+
+Constraints preserved:
+
+- explicit operator approval remains required before Codex dispatch
+- one active dispatch run at a time
+- no automatic queue completion
+- no automatic next-item execution
+- no GitHub API, `gh`, issues, PRs, workflows, external workflow execution, or GitHub mutation from AresForge
+- no local LLM execution expansion
+
+Next recommended milestone:
+
+- complete M79.1 validation/evidence capture, then proceed only by explicit operator queue action.
+
 ## M78.5 Operator Workflow Compression and Prompt Builder Agent Contract
 
 Status: Completed locally on `main`.

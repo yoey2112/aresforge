@@ -1,5 +1,30 @@
 # AresForge Agent Context
 
+## M79.1 Codex CLI Windows Runner Hardening Context
+
+Status: In progress locally on `main`.
+
+Current hardening scope:
+
+- M78 runner approval and execution gates remain unchanged.
+- Dispatch run-state JSON is read with BOM-tolerant decoding for Windows-authored `run_state.json` files.
+- Dispatch stdout/stderr capture uses bytes plus tolerant UTF-8-sig decoding, avoiding platform-default decoding failures.
+- The reviewed prompt artifact is copied into the run directory and sent to the subprocess over UTF-8 stdin so full multi-line prompts are delivered.
+- Run-state records expose prompt handoff and decoding metadata for review.
+- Current Codex sandbox behavior may prevent commits/pushes because `.git` can be outside writable sandbox permissions; in that case, leave validated source changes unstaged/uncommitted for the operator to commit and push.
+
+Boundaries preserved:
+
+- no automatic prompt dispatch beyond the explicitly approved M78 runner command
+- no automatic queue completion
+- no automatic next-item execution
+- no GitHub API, `gh`, GitHub issues, PRs, workflows, external workflow execution, or GitHub mutation from AresForge
+- no local LLM execution expansion
+
+Recommended next milestone:
+
+- Finish M79.1 validation and evidence capture without marking the item complete automatically.
+
 ## M78.5 Operator Workflow Compression and Prompt Builder Agent Contract
 
 Status: Completed locally on `main`.

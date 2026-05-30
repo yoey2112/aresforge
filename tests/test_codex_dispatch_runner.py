@@ -176,6 +176,8 @@ def test_successful_dispatch_captures_stdout_stderr_exit_code_and_requires_revie
     assert "stderr smoke" in Path(result["payload"]["stderr_path"]).read_text(encoding="utf-8")
     assert state["queue_completion_allowed"] is False
     assert queue_item["status"] == "in_progress"
+    assert state["stdin_prompt_handoff"] == "full_prompt_artifact_stdin_utf8"
+    assert state["output_decoding"] == "captured_bytes_decoded_as_utf8_sig_with_replacement"
 
 
 def test_failed_dispatch_records_failed_state_and_error_summary(tmp_path: Path) -> None:
@@ -247,3 +249,82 @@ def test_injected_runner_does_not_require_codex_cli_installation(tmp_path: Path)
 
     assert result["ok"] is True
     assert Path(result["payload"]["stdout_path"]).read_text(encoding="utf-8") == "fake codex\n"
+
+
+def test_dispatch_runner_sends_full_prompt_artifact_to_stdin(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_project_and_item(config, tmp_path)
+    prompt_source = tmp_path / ".aresforge" / "codex_dispatch" / "prompts" / "m78-item.prompt.txt"
+    prompt_source.parent.mkdir(parents=True, exist_ok=True)
+    prompt_source.write_text("first line\nsecond line\nthird line\n", encoding="utf-8")
+    approve_codex_dispatch(
+        config,
+        item_id="m78-item",
+        approved_by="local_operator",
+        approval_phrase=APPROVAL_PHRASE,
+        run_id="run-one",
+    )
+    seen: dict[str, bytes] = {}
+
+    def fake_runner(*args, **kwargs):
+        seen["input"] = kwargs["input"]
+        return subprocess.CompletedProcess(args=args[0], returncode=0, stdout=b"ok\n", stderr=b"")
+
+    result = run_operator_gated_codex_dispatch(
+        config,
+        item_id="m78-item",
+        run_id="run-one",
+        command=["codex", "--fake"],
+        command_runner=fake_runner,
+    )
+
+    assert result["ok"] is True
+    assert seen["input"].decode("utf-8") == "first line\nsecond line\nthird line\n"
+    assert result["payload"]["stdin_prompt_bytes"] == len(seen["input"])
+    assert result["payload"]["stdin_prompt_handoff"] == "full_prompt_artifact_stdin_utf8"
+
+
+def test_dispatch_runner_decodes_non_utf8_output_with_replacement(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_project_and_item(config, tmp_path)
+    approve_codex_dispatch(
+        config,
+        item_id="m78-item",
+        approved_by="local_operator",
+        approval_phrase=APPROVAL_PHRASE,
+        run_id="run-one",
+    )
+
+    def fake_runner(*args, **kwargs):
+        return subprocess.CompletedProcess(args=args[0], returncode=0, stdout=b"unicode \xe2\x9c\x93 invalid \xff\n", stderr=b"")
+
+    result = run_operator_gated_codex_dispatch(
+        config,
+        item_id="m78-item",
+        run_id="run-one",
+        command=["codex", "--fake"],
+        command_runner=fake_runner,
+    )
+
+    rendered = Path(result["payload"]["stdout_path"]).read_text(encoding="utf-8")
+    assert result["ok"] is True
+    assert "unicode \u2713 invalid \ufffd" in rendered
+
+
+def test_run_state_json_reading_accepts_utf8_bom(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_project_and_item(config, tmp_path)
+    approve = approve_codex_dispatch(
+        config,
+        item_id="m78-item",
+        approved_by="local_operator",
+        approval_phrase=APPROVAL_PHRASE,
+        run_id="run-one",
+    )
+    state_path = tmp_path / ".aresforge" / "codex_dispatch" / "runs" / "run-one" / "run_state.json"
+    state_path.write_text(json.dumps(approve["payload"], indent=2) + "\n", encoding="utf-8-sig")
+
+    inspected = inspect_codex_dispatch_run(config, run_id="run-one")
+
+    assert inspected["ok"] is True
+    assert inspected["payload"]["run_id"] == "run-one"

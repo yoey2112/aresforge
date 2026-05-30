@@ -3571,7 +3571,7 @@ def _dispatch_run_blocking_summary(*, repo_root: Path, item_id: str) -> dict[str
         return {'blocking_runs': blocking_runs, 'blockers': blockers}
     for path in sorted(runs_root.glob(f'*/{_CODEX_DISPATCH_RUN_STATE_FILE_NAME}')):
         try:
-            raw = json.loads(path.read_text(encoding='utf-8'))
+            raw = json.loads(path.read_text(encoding='utf-8-sig'))
         except (OSError, json.JSONDecodeError) as exc:
             blocking_runs.append(
                 {

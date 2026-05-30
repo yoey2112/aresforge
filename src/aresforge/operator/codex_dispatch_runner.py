@@ -26,7 +26,7 @@ ALLOWED_DISPATCH_STATES = (
     "review_required",
 )
 
-CommandRunner = Callable[..., subprocess.CompletedProcess[str]]
+CommandRunner = Callable[..., subprocess.CompletedProcess[Any]]
 
 _BOUNDARY_CONFIRMATIONS = (
     "M78 Codex dispatch is local-only and operator-gated.",
@@ -142,7 +142,7 @@ def approve_codex_dispatch(
         paths=paths,
     )
     paths["prompt_path"].parent.mkdir(parents=True, exist_ok=True)
-    paths["prompt_path"].write_text(_prompt_artifact_text(contract), encoding="utf-8")
+    paths["prompt_path"].write_text(_prompt_artifact_text(config.repo_root, contract), encoding="utf-8")
     _write_run_state(paths["run_state_path"], state)
     return _stdout_result("approve-codex-dispatch", {"ok": True, **state}, output_format)
 
@@ -209,6 +209,7 @@ def run_operator_gated_codex_dispatch(
         )
 
     started_at = _now_iso()
+    prompt_input = _read_prompt_input(paths["prompt_path"])
     state.update(
         {
             "dispatch_state": "running",
@@ -216,6 +217,10 @@ def run_operator_gated_codex_dispatch(
             "codex_cli_invocation_allowed": True,
             "codex_cli_invoked": True,
             "codex_cli_command": command_args,
+            "stdin_prompt_path": str(paths["prompt_path"]),
+            "stdin_prompt_bytes": len(prompt_input.encode("utf-8")),
+            "stdin_prompt_handoff": "full_prompt_artifact_stdin_utf8",
+            "output_decoding": "captured_bytes_decoded_as_utf8_sig_with_replacement",
             "next_safe_action": "Wait for dispatch completion, then inspect captured stdout/stderr and review evidence.",
         }
     )
@@ -228,12 +233,12 @@ def run_operator_gated_codex_dispatch(
             cwd=str(Path(state["working_directory"]).resolve()),
             check=False,
             capture_output=True,
-            text=True,
+            input=prompt_input.encode("utf-8"),
             timeout=max(1, int(timeout_seconds)),
             shell=False,
         )
-        stdout = str(completed.stdout or "")
-        stderr = str(completed.stderr or "")
+        stdout = _decode_process_output(completed.stdout)
+        stderr = _decode_process_output(completed.stderr)
         exit_code = int(completed.returncode)
         error_summary = "" if exit_code == 0 else (stderr.strip() or f"Command exited with code {exit_code}.")
         final_state = "review_required" if exit_code == 0 else "failed"
@@ -375,6 +380,10 @@ def validate_codex_dispatch_run_state(run_state: dict[str, Any], *, repo_root: P
         "artifact_dir",
         "exit_code",
         "error_summary",
+        "stdin_prompt_path",
+        "stdin_prompt_bytes",
+        "stdin_prompt_handoff",
+        "output_decoding",
         "review_required",
         "review_evidence_required",
         "validation_evidence_required",
@@ -438,6 +447,10 @@ def _new_run_state(
         "codex_cli_command": [],
         "working_directory": str(Path(str(contract.get("working_directory") or paths["run_dir"].parent)).resolve()),
         "prompt_artifact_path": str(paths["prompt_path"]),
+        "stdin_prompt_path": str(paths["prompt_path"]),
+        "stdin_prompt_bytes": 0,
+        "stdin_prompt_handoff": "pending_full_prompt_artifact_stdin_utf8",
+        "output_decoding": "captured_bytes_decoded_as_utf8_sig_with_replacement",
         "stdout_path": str(paths["stdout_path"]),
         "stderr_path": str(paths["stderr_path"]),
         "artifact_dir": str(paths["artifact_dir"]),
@@ -488,7 +501,7 @@ def _load_run_state(path: Path) -> dict[str, Any]:
     if not path.exists():
         return _error_payload("codex_dispatch_run_not_found", {"run_state_path": str(path)})
     try:
-        raw = json.loads(path.read_text(encoding="utf-8"))
+        raw = json.loads(path.read_text(encoding="utf-8-sig"))
     except (OSError, json.JSONDecodeError) as exc:
         return _error_payload("codex_dispatch_run_state_invalid", {"run_state_path": str(path), "message": str(exc)})
     if not isinstance(raw, dict):
@@ -509,7 +522,15 @@ def _normalize_command(command: str | Sequence[str] | None) -> list[str]:
     return [str(part) for part in command if str(part).strip()]
 
 
-def _prompt_artifact_text(contract: dict[str, Any]) -> str:
+def _prompt_artifact_text(repo_root: Path, contract: dict[str, Any]) -> str:
+    source = Path(str(contract.get("prompt_artifact_path", "")).strip())
+    if source:
+        try:
+            source.resolve().relative_to(repo_root.resolve())
+            if source.exists() and source.is_file():
+                return source.read_text(encoding="utf-8-sig")
+        except (OSError, ValueError):
+            pass
     return "\n".join(
         [
             "M78 Operator-Gated Codex Dispatch Prompt Artifact",
@@ -525,6 +546,21 @@ def _prompt_artifact_text(contract: dict[str, Any]) -> str:
             "- Review and validation evidence remain required before queue completion.",
         ]
     ).rstrip() + "\n"
+
+
+def _read_prompt_input(path: Path) -> str:
+    try:
+        return path.read_text(encoding="utf-8-sig")
+    except OSError:
+        return ""
+
+
+def _decode_process_output(value: bytes | str | None) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, bytes):
+        return value.decode("utf-8-sig", errors="replace")
+    return str(value)
 
 
 def _stdout_result(command: str, payload: dict[str, Any], output_format: str) -> dict[str, Any]:

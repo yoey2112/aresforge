@@ -1909,6 +1909,43 @@ def test_downstream_readiness_blocks_on_active_upstream_dispatch_state(tmp_path:
     assert start_payload['ok'] is False
 
 
+def test_downstream_readiness_accepts_bom_prefixed_dispatch_run_state(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    assert init_project_queue(config)['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='upstream-bom',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Upstream BOM',
+        description='Upstream implementation.',
+        status='done',
+    )['ok'] is True
+    assert add_queue_item(
+        config,
+        item_id='downstream-bom',
+        project_id='project-one',
+        repo_id='repo-main',
+        title='Downstream BOM',
+        description='Must read BOM-prefixed run state.',
+        status='ready',
+        dependencies=['upstream-bom'],
+    )['ok'] is True
+    state_path = _write_codex_run_state(
+        tmp_path,
+        item_id='upstream-bom',
+        run_id='run-bom',
+        dispatch_state='running',
+    )
+    state_path.write_text(state_path.read_text(encoding='utf-8'), encoding='utf-8-sig')
+
+    payload = inspect_local_queue_item_readiness(config, item_id='downstream-bom')
+
+    assert payload['readiness_status'] == 'blocked'
+    assert payload['dependency_summary']['dispatch_run_blockers'][0]['run_id'] == 'run-bom'
+    assert payload['dependency_summary']['dispatch_run_blockers'][0]['dispatch_state'] == 'running'
+
+
 def test_downstream_readiness_blocks_on_review_required_upstream_dispatch_state(tmp_path: Path) -> None:
     config = _config(tmp_path)
     assert init_project_queue(config)['ok'] is True

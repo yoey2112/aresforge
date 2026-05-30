@@ -1,5 +1,30 @@
 # Runnable Skeleton
 
+## M79.1 Codex CLI Windows Runner Hardening
+
+M79.1 hardens the M78 runner without changing dispatch gates:
+
+- run-state JSON reads use BOM-tolerant decoding for Windows-created files
+- subprocess output is captured as bytes and decoded safely before `stdout.txt` and `stderr.txt` are written
+- the approved prompt artifact is passed over UTF-8 stdin to preserve full multi-line prompt bodies
+- run-state metadata records prompt stdin handoff and output decoding behavior
+
+Runnable path remains:
+
+- `python -m aresforge prepare-queue-item-dispatch --item-id <item_id> --target codex --format json`
+- `python -m aresforge approve-codex-dispatch --item-id <item_id> --approved-by local_operator --approval-phrase "APPROVE CODEX DISPATCH" --format json`
+- `python -m aresforge run-codex-dispatch --item-id <item_id> --run-id <run_id> --command-arg codex --format json`
+- `python -m aresforge inspect-codex-dispatch-run --run-id <run_id> --format json`
+
+Behavior contract:
+
+- explicit approval is still required before invocation
+- one active run at a time remains enforced
+- no queue item is completed from dispatch output
+- no next queue item is run automatically
+- no GitHub API, `gh`, issue, PR, workflow, or external workflow behavior is added
+- Codex sandbox limitations may require the operator to commit and push manually when `.git` writes are unavailable
+
 ## M78.5 Operator Workflow Compression and Prompt Builder Agent Contract
 
 M78.5 adds a local workflow preparation layer before any operator-approved dispatch:

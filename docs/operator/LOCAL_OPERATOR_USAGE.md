@@ -1,5 +1,26 @@
 # Local Operator Usage
 
+## M79.1 Codex CLI Windows Runner Hardening
+
+For Windows Codex dispatch runs, prefer the reviewed prompt artifact workflow:
+
+    python -m aresforge prepare-queue-item-dispatch --item-id <item_id> --target codex --format json
+    python -m aresforge approve-codex-dispatch --item-id <item_id> --approved-by local_operator --approval-phrase "APPROVE CODEX DISPATCH" --format json
+    python -m aresforge run-codex-dispatch --item-id <item_id> --run-id <run_id> --command-arg codex --format json
+
+Runner behavior:
+
+- `run_state.json` reads tolerate UTF-8 BOMs.
+- subprocess stdout and stderr are captured as bytes and decoded with UTF-8-sig plus replacement handling before local files are written.
+- the full reviewed prompt artifact is sent to the subprocess over UTF-8 stdin, preserving multi-line prompt bodies.
+- run-state metadata reports `stdin_prompt_handoff` and `output_decoding` for operator review.
+
+Windows sandbox note:
+
+- Codex may be able to edit repository files while `.git` writes are blocked by sandbox permissions.
+- If commit or push fails because `.git` is inaccessible, keep the validated changes in the worktree and have the operator run `git status`, `git diff --check`, `git add`, `git commit`, and `git push` manually from an approved shell.
+- Do not mark the queue item complete until review and validation evidence are captured.
+
 ## M78.5 Operator Workflow Compression and Prompt Builder Agent Contract
 
 Prepare a queue item for operator-reviewed Codex dispatch without dispatching:
