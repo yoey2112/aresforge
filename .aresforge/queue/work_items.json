@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T19:39:59.859142+00:00",
+  "updated_at": "2026-05-30T19:55:45.984414+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -3395,7 +3395,7 @@
       "repo_id": "aresforge-main",
       "title": "M116 Documentation Agent Patch Proposal Generator",
       "description": "Generate local-only documentation patch proposal artifacts for operator review without applying patches.",
-      "status": "in_progress",
+      "status": "done",
       "priority": "high",
       "item_type": "documentation",
       "tags": [
@@ -3416,12 +3416,12 @@
       "notes": "Acceptance criteria: compare queue/build state against source-of-truth docs; generate documentation_agent_patch_proposal artifacts and proposed patch files; support output, json, force, include-roadmap, include-context, and include-operator-docs; never apply generated patches or execute documentation agents.",
       "started_at": "2026-05-30T19:39:59.859142+00:00",
       "started_via": "local_operator",
-      "previous_status": "ready",
-      "completed_at": "",
-      "completed_by": "",
-      "completion_commit": "",
-      "validation_summary": "",
-      "evidence_note": "",
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-30T19:55:45.984414+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "0d8bbdf",
+      "validation_summary": "M116 Documentation Agent Patch Proposal Generator implemented and validated locally. Added generate-doc-agent-patch-proposal, stable documentation_agent_patch_proposal output, local proposed patch artifacts, selected source document review, detected documentation gap reporting, output no-overwrite safeguards, tests, CLI coverage, docs, and queue lifecycle evidence. No generated patch application, documentation-agent runtime execution, Codex, Ollama, local LLM, GitHub, gh, network, source mutation from proposals, approval mutation, queue mutation from proposal output, workflow, or next-item execution was performed.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 196 passed; python -m pytest tests/test_documentation_agent_patch_proposal.py -> 5 passed; python -m pytest tests/test_approval_gated_patch_intake.py -> 7 passed; git diff --check -> passed with CRLF warnings only; smoke generate-doc-agent-patch-proposal --item-id m116-documentation-agent-patch-proposal-generator --format json -> passed and generated local JSON/patch proposal artifacts; inspect-local-project-report -> passed; inspect-local-queue-agent-summary -> passed.",
       "tests_run": [],
       "changed_files": [],
       "artifact_paths": [],
@@ -3445,7 +3445,7 @@
       "closeout_summary": "",
       "closeout_history": [],
       "created_at": "2026-05-30T19:39:55.521526+00:00",
-      "updated_at": "2026-05-30T19:39:59.859142+00:00"
+      "updated_at": "2026-05-30T19:55:45.984414+00:00"
     }
   ]
 }

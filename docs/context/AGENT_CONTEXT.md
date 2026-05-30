@@ -24,9 +24,11 @@ M127 boundaries:
 
 ## M116 Documentation Agent Patch Proposal Generator Context
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m116-documentation-agent-patch-proposal-generator`.
+
+Implementation commit: `0d8bbdf`.
 
 M116 adds a local-only documentation patch proposal command:
 

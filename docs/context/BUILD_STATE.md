@@ -50,9 +50,11 @@ Safety boundaries:
 
 ## M116 Documentation Agent Patch Proposal Generator
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m116-documentation-agent-patch-proposal-generator`.
+
+Implementation commit: `0d8bbdf`.
 
 M116 adds:
 
@@ -76,6 +78,7 @@ Safety boundaries:
 - no documentation-agent runtime execution
 - no model, Codex, Ollama, local LLM, GitHub API, `gh`, network service, workflow, source mutation, queue mutation, automatic completion, or next-item execution
 - patch application remains unavailable until a separate explicit operator-approved apply workflow exists
+
 ## M115 Local Ollama Provider Probe Integration
 
 Status: Completed locally on `main` after validation.

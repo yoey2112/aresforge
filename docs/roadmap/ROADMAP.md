@@ -41,9 +41,11 @@ Constraints preserved:
 
 ## M116 Documentation Agent Patch Proposal Generator
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m116-documentation-agent-patch-proposal-generator`.
+
+Implementation commit: `0d8bbdf`.
 
 Purpose:
 
