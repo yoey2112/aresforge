@@ -1,5 +1,94 @@
 # AresForge Roadmap
 
+## M96 Post-Sprint Planning and Prioritization
+
+Status: Current local planning milestone on `main`.
+
+Queue item: `m96-post-sprint-planning-and-prioritization`.
+
+Purpose:
+
+- review final M81-M95 reports, queue state, source-of-truth docs, and generated handoff output
+- identify mismatches, stale claims, undocumented warnings, and next-step gaps
+- seed a clean next milestone batch plan without starting implementation work
+
+Findings:
+
+- M81-M95 are complete in local queue evidence.
+- M96 did not exist in the queue before this pass and was seeded as a local-only planning item.
+- The sprint batch report had no next proposed/ready milestone, so roadmap planning needed a new explicit batch.
+- Recovered M80 dispatch runs remain audited as non-blocking warnings and should stay visible in handoff/report review.
+- The generated handoff package remains read-only and useful for continuity, but its prose summary can lag when current phase/goal headings are stale.
+
+Constraints preserved:
+
+- no new implementation features
+- no GitHub API, `gh`, GitHub mutation, issues, PRs, workflows, or external workflow execution
+- no Codex CLI dispatch, Ollama generation, local LLM inference, or unsupervised agent execution
+- no automatic generated-output application, queue completion, or next-item execution
+
+## Planned Milestone Sequence
+
+### M96 Post-Sprint Planning and Prioritization
+
+Status: Active.
+
+Current local planning and reconciliation milestone. M96 should close only after the source-of-truth docs, queue state, smoke checks, and next planned batch are reviewed.
+
+### M97 Queue-to-Agent Dispatch Plan Contract
+
+Status: Planned.
+
+Define a queue-to-agent dispatch plan payload that maps a selected queue item to advisory lane, required operator gates, artifact expectations, validation burden, and blocked execution states. This should be a contract and inspection surface only.
+
+### M98 Codex Prompt Dispatch Artifact Generator v1
+
+Status: Planned.
+
+Generate local Codex prompt dispatch artifacts from queue items and M97 plans without invoking Codex. Artifacts should be reviewable, checksumable, and clearly marked non-executing.
+
+### M99 Local LLM Advisory Execution Dry-Run Validator
+
+Status: Planned.
+
+Validate local LLM advisory run requests without invoking a provider by checking provider contract state, item risk, artifact paths, approval state, and expected non-mutation boundaries.
+
+### M100 Documentation Agent Dry-Run Review Workflow
+
+Status: Planned.
+
+Add a dry-run review workflow for documentation reconciliation plans that verifies selected docs, evidence, stale sections, and operator review requirements without rewriting documentation automatically.
+
+### M101 Human Approval Gate UI/Data Contract
+
+Status: Planned.
+
+Define the data contract and Hub read surface for human approvals across Codex dispatch artifacts, local LLM advisory/draft artifacts, documentation plans, and future patch gates. This remains a UI/data contract, not an apply path.
+
+### M102 Queue Dependency and Completion Locking Hardening
+
+Status: Planned.
+
+Harden dependency, active-item, completion, and evidence-lock behavior so operator batch workflows cannot accidentally advance dependent or incomplete work.
+
+### M103 AresForge Self-Managed Project Seed Review
+
+Status: Planned.
+
+Review the self-managed AresForge seed, local project state, stale handoff summary inputs, queue conventions, and registry metadata before wider self-management workflows.
+
+### M104 Operator Batch Planner v1
+
+Status: Planned.
+
+Plan a small operator-selected batch from local queue state, dependencies, and validation burden while preserving one-item-at-a-time execution and explicit approval gates.
+
+### M105 Post-M96 Documentation Reconciliation
+
+Status: Planned.
+
+Reconcile source-of-truth docs after M97-M104 so contracts, local-only boundaries, queue state, and operator instructions remain aligned.
+
 ## M95 Final Overnight Sprint Reconciliation
 
 Status: Completed locally on `main`.

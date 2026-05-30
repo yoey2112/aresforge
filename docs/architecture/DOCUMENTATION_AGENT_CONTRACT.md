@@ -74,6 +74,8 @@ Apply mode must also require validation evidence, selected source docs, worktree
 
 M92 plan generation and M95 reconciliation are manual documentation workflows. They may identify stale sections and recommended updates, but they do not authorize automatic documentation rewrites or model-generated apply behavior.
 
+M96 is post-sprint planning and prioritization. It may update source-of-truth docs directly as an operator-authored reconciliation step, but it does not add Documentation Agent apply mode and does not permit model-generated documentation rewrites. The next documentation-agent work should be a dry-run review workflow before any future apply gate is designed.
+
 ## Safety Boundaries
 
 - local-only

@@ -1,5 +1,42 @@
 # Local Operator Usage
 
+## M96 Post-Sprint Planning and Prioritization
+
+M96 is local planning and reconciliation only. It does not add a runtime command.
+
+Required review commands for this milestone:
+
+    python -m aresforge inspect-local-project-report
+    python -m aresforge inspect-local-queue-agent-summary
+    python -m aresforge inspect-project-queue --project-id aresforge
+    python -m aresforge inspect-sprint-batch-report --format json
+    python -m aresforge generate-handoff-package
+
+M96 queue status:
+
+- M96 was not present before the post-sprint review.
+- M96 is now represented locally as `m96-post-sprint-planning-and-prioritization`.
+- Do not create GitHub issues for this local-only planning item unless a future explicit project contract changes that boundary.
+
+Operator rules:
+
+- use M96 to review reports, reconcile docs, and choose the next local milestone batch
+- do not execute Codex, Ollama, local LLMs, GitHub CLI, GitHub API, external agents, issues, PRs, workflows, daemons, watchers, or schedulers
+- do not apply generated patches or model output automatically
+- do not start M97 or any later item automatically
+
+Recommended next batch after M96:
+
+- M97 Queue-to-Agent Dispatch Plan Contract
+- M98 Codex Prompt Dispatch Artifact Generator v1
+- M99 Local LLM Advisory Execution Dry-Run Validator
+- M100 Documentation Agent Dry-Run Review Workflow
+- M101 Human Approval Gate UI/Data Contract
+- M102 Queue Dependency and Completion Locking Hardening
+- M103 AresForge Self-Managed Project Seed Review
+- M104 Operator Batch Planner v1
+- M105 Post-M96 Documentation Reconciliation
+
 ## M95 Final Overnight Sprint Reconciliation
 
 M95 is documentation reconciliation only. It does not add a runtime command.

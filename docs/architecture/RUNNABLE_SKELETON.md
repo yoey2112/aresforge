@@ -1,5 +1,33 @@
 # Runnable Skeleton
 
+## M96 Post-Sprint Planning and Prioritization
+
+M96 adds no runtime command. It uses existing local inspection/report commands to reconcile the completed M81-M95 sprint and plan the next operator-gated batch.
+
+Runnable review surface:
+
+- `python -m aresforge inspect-local-project-report`
+- `python -m aresforge inspect-local-queue-agent-summary`
+- `python -m aresforge inspect-project-queue --project-id aresforge`
+- `python -m aresforge inspect-sprint-batch-report --format json`
+- `python -m aresforge generate-handoff-package`
+
+Local data updates allowed:
+
+- seed the M96 queue item if absent
+- update source-of-truth documentation
+- update local project-state planning fields
+
+Still absent by design:
+
+- new implementation features
+- Codex CLI dispatch
+- Ollama generation or local LLM inference
+- documentation-agent apply mode
+- patch application
+- GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, or external workflow execution
+- automatic queue completion or next-item execution
+
 ## M95 Final Overnight Sprint Reconciliation
 
 M95 is documentation reconciliation and queue evidence only. It adds no runtime command.

@@ -1,5 +1,56 @@
 # AresForge Build State
 
+## Current Phase
+
+Post-sprint planning and prioritization after the completed M81-M95 local sprint.
+
+## Current Goal
+
+M96 reviews the final local reports, queue state, handoff package, and source-of-truth docs; records any mismatches or non-blocking warnings; and defines the next operator-gated milestone batch without starting new implementation features.
+
+## M96 Post-Sprint Planning and Prioritization
+
+Status: Current local planning milestone on `main`.
+
+Queue status: seeded locally as `m96-post-sprint-planning-and-prioritization`.
+
+M96 findings from initial review:
+
+- M96 was not present in the queue before this planning pass; the queue had 29 items, all `done`, through M95.
+- `inspect-sprint-batch-report --format json` reported no proposed or ready next milestone and recommended roadmap review before seeding more work.
+- `generate-handoff-package` correctly reported current HEAD, queue totals, recovered dispatch summary, and local-only boundaries, but its high-level project summary still depended on older source-doc headings and was stale until this M96 reconciliation updated the current phase/goal.
+- Four recovered M80 dispatch attempts remain audited as non-blocking historical context; they do not block current project readiness.
+- No GitHub issue creation is required for this local-only planning item.
+
+M96 scope boundaries:
+
+- planning, reconciliation, and queue/documentation data only
+- no new runtime feature behavior
+- no Codex CLI dispatch
+- no Ollama or local LLM inference
+- no generated patch application
+- no GitHub API, `gh`, issue, PR, workflow, daemon, watcher, scheduler, or external workflow execution
+- no automatic next-item execution
+
+Next recommended milestone batch after M96:
+
+- M97 Queue-to-Agent Dispatch Plan Contract
+- M98 Codex Prompt Dispatch Artifact Generator v1
+- M99 Local LLM Advisory Execution Dry-Run Validator
+- M100 Documentation Agent Dry-Run Review Workflow
+- M101 Human Approval Gate UI/Data Contract
+- M102 Queue Dependency and Completion Locking Hardening
+- M103 AresForge Self-Managed Project Seed Review
+- M104 Operator Batch Planner v1
+- M105 Post-M96 Documentation Reconciliation
+
+Batch rationale:
+
+- M97-M98 should convert queue and Codex handoff contracts into non-executing dispatch artifacts before any process execution expansion.
+- M99-M101 should validate advisory/dry-run flows and approval gates before any apply path exists.
+- M102 should harden queue locking before larger operator batches.
+- M103-M105 should review the self-managed seed, add batch planning support, and reconcile docs after the batch.
+
 ## M95 Final Overnight Sprint Reconciliation
 
 Status: Completed locally on `main`.

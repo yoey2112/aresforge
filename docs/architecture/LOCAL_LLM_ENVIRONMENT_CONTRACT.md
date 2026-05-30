@@ -44,6 +44,8 @@ M88 adds a human-gated patch application contract. It defines the patch artifact
 
 M95 reconciles the overnight sprint documentation after M81-M94. It does not add local LLM provider behavior. The local LLM model remains local-only, explicit-operator-gated for any advisory/draft run, advisory/manual-review-only, and non-mutating. Provider output still never automatically mutates repository files, applies patches, mutates queue state, completes queue items, starts another item, calls GitHub, calls `gh`, or triggers workflows, daemons, watchers, schedulers, or external workflow systems.
 
+M96 is post-sprint planning and prioritization. It does not add local LLM provider behavior, does not call Ollama, does not invoke advisory or coding draft runs, and does not validate provider inference. The next batch should first add dry-run validation and approval contracts before any wider local LLM workflow is considered.
+
 ## Storage
 
 The contract is stored locally at:

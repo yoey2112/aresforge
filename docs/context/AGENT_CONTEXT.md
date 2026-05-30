@@ -1,5 +1,41 @@
 # AresForge Agent Context
 
+## M96 Post-Sprint Planning and Prioritization Context
+
+Status: Current local planning milestone on `main`.
+
+Queue item: `m96-post-sprint-planning-and-prioritization`.
+
+Current review posture:
+
+- M81-M95 are complete in the local queue.
+- M96 was absent before this pass and has been seeded locally for planning/reconciliation.
+- The local project report is ready, local-only, and shows no blockers.
+- The queue summary shows no blocked, ready, or in-progress items before M96 seeding.
+- The sprint batch report shows no next proposed milestone, so the roadmap now carries the next planned batch.
+- The handoff package is safe/read-only but depended on older current-phase headings for its prose summary; use the M96 source docs as the fresher authority.
+
+M96 operator boundaries:
+
+- do not execute Codex, Ollama, local LLMs, external agents, GitHub CLI, GitHub API, issues, PRs, workflows, daemons, watchers, or schedulers
+- do not apply generated patches or rewrite docs from model output automatically
+- do not auto-start or auto-complete any next queue item
+- treat local LLM, Codex, documentation-agent, and patch application flows as advisory/contract-level unless an existing command explicitly writes a local artifact under operator control
+
+Next recommended batch:
+
+- M97 Queue-to-Agent Dispatch Plan Contract
+- M98 Codex Prompt Dispatch Artifact Generator v1
+- M99 Local LLM Advisory Execution Dry-Run Validator
+- M100 Documentation Agent Dry-Run Review Workflow
+- M101 Human Approval Gate UI/Data Contract
+- M102 Queue Dependency and Completion Locking Hardening
+- M103 AresForge Self-Managed Project Seed Review
+- M104 Operator Batch Planner v1
+- M105 Post-M96 Documentation Reconciliation
+
+Do not start M97 automatically. Seed or start it only after M96 closeout review and explicit operator selection.
+
 ## M95 Final Overnight Sprint Reconciliation Context
 
 Status: Completed locally on `main`.

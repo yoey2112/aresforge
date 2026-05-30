@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T07:15:26.524476+00:00",
+  "updated_at": "2026-05-30T15:08:57.692929+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -1875,6 +1875,61 @@
       "closeout_history": [],
       "created_at": "2026-05-30T07:11:50.421421+00:00",
       "updated_at": "2026-05-30T07:15:26.524476+00:00"
+    },
+    {
+      "item_id": "m96-post-sprint-planning-and-prioritization",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M96 Post-Sprint Planning and Prioritization",
+      "description": "Review the completed M81-M95 sprint state, reconcile source-of-truth docs and reports, identify local-only gaps or warnings, and define the next clean operator-gated milestone batch without implementing new features.",
+      "status": "proposed",
+      "priority": "high",
+      "item_type": "documentation",
+      "tags": [
+        "milestone:m96",
+        "planning",
+        "reconciliation",
+        "local-only"
+      ],
+      "dependencies": [
+        "m95-final-overnight-sprint-reconciliation"
+      ],
+      "blocked_by": [],
+      "assigned_agent": "",
+      "source": "local_operator",
+      "notes": "Acceptance criteria: confirm M96 queue status; review M81-M95 reports, docs, queue state, handoff output, and sprint report; document mismatches or warnings; update source-of-truth docs; define the next prioritized milestone batch; no GitHub API; no gh; no external workflows; no Codex CLI dispatch; no Ollama/local LLM execution; no new implementation features; no automatic next-item execution.",
+      "started_at": "",
+      "started_via": "",
+      "previous_status": "",
+      "completed_at": "",
+      "completed_by": "",
+      "completion_commit": "",
+      "validation_summary": "",
+      "evidence_note": "",
+      "tests_run": [],
+      "changed_files": [],
+      "artifact_paths": [],
+      "completion_evidence": {},
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-30T15:08:57.692929+00:00",
+      "updated_at": "2026-05-30T15:08:57.692929+00:00"
     }
   ]
 }
