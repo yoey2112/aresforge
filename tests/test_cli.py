@@ -59,6 +59,7 @@ def test_cli_has_expected_commands() -> None:
         "prepare-queue-item-dispatch",
         "inspect-queue-dispatch-plan",
         "generate-codex-dispatch-artifact",
+        "validate-documentation-agent-dry-run",
         "inspect-llm-decision-matrix",
         "inspect-local-llm-provider-contract",
         "run-single-ready-codex-queue-item",
@@ -5981,6 +5982,107 @@ def test_validate_local_llm_advisory_dry_run_dispatch_markdown(
     assert exit_code == 0
     assert "ready_for_future_advisory_run: True" in output
     assert "selected_lane: local_llm_advisory" in output
+
+
+def test_validate_documentation_agent_dry_run_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "dry_run": True,
+                "ready_for_future_documentation_review": True,
+                "blocked": False,
+                "item_id": "m100",
+                "selected_lane": "documentation_agent_dry_run",
+                "documentation_review_intent": "Prepare a future non-mutating documentation review plan.",
+                "source_docs_to_review": ["docs/context/BUILD_STATE.md"],
+                "local_only": True,
+                "execution_allowed": False,
+                "next_safe_action": "Review the documentation dry-run output.",
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_validate(
+        _config,
+        item_id,
+        queue_path=None,
+        registry_path=None,
+        output=None,
+        force=False,
+        output_format="markdown",
+    ):
+        seen["item_id"] = item_id
+        seen["queue_path"] = queue_path
+        seen["registry_path"] = registry_path
+        seen["output"] = output
+        seen["force"] = force
+        seen["output_format"] = output_format
+        return payload
+
+    monkeypatch.setattr(cli, "validate_documentation_agent_dry_run", fake_validate)
+    exit_code = cli.main(
+        [
+            "validate-documentation-agent-dry-run",
+            "--item-id",
+            "m100",
+            "--queue-path",
+            "queue.json",
+            "--registry-path",
+            "projects.json",
+            "--output",
+            "artifacts/documentation_agent/dry_runs/m100.json",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["dry_run"] is True
+    assert parsed["selected_lane"] == "documentation_agent_dry_run"
+    assert parsed["execution_allowed"] is False
+    assert seen == {
+        "item_id": "m100",
+        "queue_path": "queue.json",
+        "registry_path": "projects.json",
+        "output": "artifacts/documentation_agent/dry_runs/m100.json",
+        "force": True,
+        "output_format": "json",
+    }
+
+
+def test_validate_documentation_agent_dry_run_dispatch_markdown(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "markdown",
+        "wrote_output_file": False,
+        "stdout": "# Documentation Agent Dry-Run Validator\n\n- ready_for_future_documentation_review: True\n- selected_lane: documentation_agent_dry_run\n",
+        "payload": {},
+    }
+    monkeypatch.setattr(
+        cli,
+        "validate_documentation_agent_dry_run",
+        lambda _config, item_id, queue_path=None, registry_path=None, output=None, force=False, output_format="markdown": payload,
+    )
+
+    exit_code = cli.main(["validate-documentation-agent-dry-run", "--item-id", "m100"])
+    output = capsys.readouterr().out
+
+    assert exit_code == 0
+    assert "ready_for_future_documentation_review: True" in output
+    assert "selected_lane: documentation_agent_dry_run" in output
 
 
 def test_approve_codex_dispatch_dispatch_json(

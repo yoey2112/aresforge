@@ -1,5 +1,52 @@
 # AresForge Agent Context
 
+## M100 Documentation Agent Dry-Run Review Workflow Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m100-documentation-agent-dry-run-review-workflow`.
+
+Implementation commit: pending final commit.
+
+M100 builds on M97 by validating documentation-agent dry-run readiness only when the M97 selected lane is `documentation_agent_dry_run` and the plan remains safe:
+
+- `local_only: true`
+- `execution_allowed: false`
+- no dispatch-plan blocked reasons
+- selected lane exactly `documentation_agent_dry_run`
+
+Primary command:
+
+- `python -m aresforge validate-documentation-agent-dry-run --item-id <item_id> [--format json|markdown] [--output <path>] [--force]`
+
+M100 dry-run boundaries:
+
+- dry-run output only
+- no documentation-agent execution
+- no documentation mutation
+- no local LLM or Ollama invocation
+- no Codex execution
+- no GitHub API, `gh`, issues, PRs, workflows, or network calls
+- no external agents
+- no patch application
+- no automatic queue start, completion, dispatch, or next-item execution
+
+Blocked lanes:
+
+- `codex_prompt_artifact`
+- `local_llm_advisory`
+- `local_llm_coding_draft`
+- `human_only_manual`
+
+Operator workflow:
+
+- inspect the M97 dispatch plan
+- validate the M100 documentation-agent dry-run
+- review source docs, stale-doc checks, expected updates, and reconciliation scope locally
+- approve any future documentation apply path only in a later milestone
+
+M101 remains the human approval gate contract milestone and is not authorized by M100.
+
 ## M99 Local LLM Advisory Execution Dry-Run Validator Context
 
 Status: Completed locally on `main` after validation.

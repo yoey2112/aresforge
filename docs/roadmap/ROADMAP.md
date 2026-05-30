@@ -1,5 +1,36 @@
 # AresForge Roadmap
 
+## M100 Documentation Agent Dry-Run Review Workflow
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m100-documentation-agent-dry-run-review-workflow`.
+
+Implementation commit: pending final commit.
+
+Purpose:
+
+- consume or derive the M97 queue-to-agent dispatch plan
+- validate future documentation-agent dry-run readiness only for `documentation_agent_dry_run`
+- produce structured dry-run output for source-doc review, expected updates, stale-doc checks, reconciliation scope, operator gates, and validation expectations
+- support readable console output, JSON output, and optional local file output
+- preserve manual/operator-gated approval before any future documentation-agent apply or documentation mutation path
+
+Constraints preserved:
+
+- `local_only` remains true and `execution_allowed` remains false
+- non-documentation-agent lanes are blocked with clear reasons
+- blocked M97 plans, non-local plans, or execution-allowed plans cannot be marked ready
+- no documentation-agent execution, documentation mutation, local LLM, Codex, external-agent, GitHub API, `gh`, network, workflow, issue creation, patch application, queue completion, or next-item execution occurs
+
+Operator workflow:
+
+- inspect M97 dispatch plan
+- validate documentation-agent dry-run
+- review source docs, stale-doc checks, expected updates, and reconciliation scope locally
+- approve future documentation apply only through a later human approval gate milestone
+- return any later documentation changes to the existing queue evidence process
+
 ## M99 Local LLM Advisory Execution Dry-Run Validator
 
 Status: Completed locally on `main` after validation.
@@ -146,9 +177,9 @@ Validate local LLM advisory run readiness without invoking a provider by consumi
 
 ### M100 Documentation Agent Dry-Run Review Workflow
 
-Status: Planned.
+Status: Completed locally.
 
-Add a dry-run review workflow for documentation reconciliation plans that verifies selected docs, evidence, stale sections, and operator review requirements without rewriting documentation automatically.
+Add a dry-run review workflow for documentation reconciliation plans that verifies selected docs, expected updates, stale sections, scope, and operator review requirements without rewriting documentation automatically.
 
 ### M101 Human Approval Gate UI/Data Contract
 

@@ -1,5 +1,35 @@
 # Runnable Skeleton
 
+## M100 Documentation Agent Dry-Run Review Workflow
+
+M100 adds a local-only dry-run validation command:
+
+- `python -m aresforge validate-documentation-agent-dry-run --item-id <item_id>`
+- `python -m aresforge validate-documentation-agent-dry-run --item-id <item_id> --format json`
+- `python -m aresforge validate-documentation-agent-dry-run --item-id <item_id> --output artifacts/documentation_agent/dry_runs/<item_id>.md`
+
+Runnable behavior:
+
+- derives the M97 queue-to-agent dispatch plan for the selected item
+- validates `selected_lane == documentation_agent_dry_run`
+- validates no dispatch-plan blocked reasons
+- validates `local_only is true`
+- validates `execution_allowed is false`
+- reports dry-run status, readiness, blocked reasons, item identity, queue status, selected lane, confidence, documentation review intent, source docs to review, expected doc updates, stale-doc checks, reconciliation scope, validation expectations, operator gates, and next safe action
+- writes a local dry-run artifact only when `--output` is provided
+- refuses to overwrite an existing output file unless `--force` is explicit
+
+Still absent by design:
+
+- documentation-agent execution or apply mode
+- automatic documentation mutation
+- local LLM or Ollama invocation
+- Codex execution or automatic prompt dispatch
+- external agent execution
+- GitHub API, `gh`, issues, PRs, workflows, network calls, or external services
+- patch application
+- queue mutation, queue completion, or automatic next-item execution from dry-run validation
+
 ## M99 Local LLM Advisory Execution Dry-Run Validator
 
 M99 adds a local-only dry-run validation command:

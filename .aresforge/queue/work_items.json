@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T16:04:11.176516+00:00",
+  "updated_at": "2026-05-30T16:11:43.020358+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -2126,6 +2126,61 @@
       "closeout_history": [],
       "created_at": "2026-05-30T16:00:13.706527+00:00",
       "updated_at": "2026-05-30T16:04:11.176516+00:00"
+    },
+    {
+      "item_id": "m100-documentation-agent-dry-run-review-workflow",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M100 Documentation Agent Dry-Run Review Workflow",
+      "description": "Create a local-only documentation-agent dry-run review workflow that consumes the M97 dispatch plan and validates documentation_agent_dry_run readiness without executing agents, applying documentation changes, calling local LLMs, Codex, GitHub, network services, or patches.",
+      "status": "in_progress",
+      "priority": "high",
+      "item_type": "documentation",
+      "tags": [
+        "milestone:m100",
+        "documentation-agent",
+        "dry-run",
+        "local-only"
+      ],
+      "dependencies": [
+        "m99-local-llm-advisory-dry-run-validator"
+      ],
+      "blocked_by": [],
+      "assigned_agent": "",
+      "source": "local_operator",
+      "notes": "Acceptance criteria: consumes or derives M97 dispatch plan; validates only documentation_agent_dry_run; blocks codex_prompt_artifact, local_llm_advisory, local_llm_coding_draft, and human_only_manual; blocks unsafe local_only/execution_allowed flags and dispatch-plan blockers; supports readable and JSON CLI output plus overwrite-safe optional output; no local LLM, Codex, GitHub API, gh, network, external agent, patch application, documentation mutation, issue creation, automatic queue mutation, or automatic next-item execution.",
+      "started_at": "2026-05-30T16:11:43.020358+00:00",
+      "started_via": "local_operator",
+      "previous_status": "ready",
+      "completed_at": "",
+      "completed_by": "",
+      "completion_commit": "",
+      "validation_summary": "",
+      "evidence_note": "",
+      "tests_run": [],
+      "changed_files": [],
+      "artifact_paths": [],
+      "completion_evidence": {},
+      "routing_metadata": {
+        "recommended_agent_lane": "documentation",
+        "recommended_engine": "local_reasoning_llm",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "m100_local_queue_setup",
+        "routing_reason": "Documentation dry-run review workflow should route to documentation_agent_dry_run under M97.",
+        "risk_level": "low",
+        "complexity_level": "low",
+        "escalation_reason": "",
+        "project_ai_mode": "manual_only",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-30T16:09:29.614795+00:00",
+      "updated_at": "2026-05-30T16:11:43.020358+00:00"
     }
   ]
 }

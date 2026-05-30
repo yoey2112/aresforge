@@ -26,6 +26,8 @@ M98 adds the Codex prompt dispatch artifact generator for the `codex_prompt_arti
 
 M99 adds the Local LLM Advisory Execution Dry-Run Validator for the `local_llm_advisory` lane only. It consumes or derives the M97 plan, blocks Codex, local coding draft, documentation-agent, and manual-only lanes, blocks unsafe plan flags, and emits structured dry-run readiness data with operator gates. It does not call Ollama APIs, execute local models, execute Codex, execute documentation agents, apply patches, call GitHub/`gh`, make network calls, or mutate queue state.
 
+M100 adds the Documentation Agent Dry-Run Review Workflow for the `documentation_agent_dry_run` lane only. It consumes or derives the M97 plan, blocks Codex, local LLM advisory, local coding draft, and manual-only lanes, blocks unsafe plan flags, and emits structured dry-run review data with source docs, expected updates, stale-doc checks, reconciliation scope, validation expectations, and operator gates. It does not execute documentation agents, mutate documentation, call local LLMs, execute Codex, apply patches, call GitHub/`gh`, make network calls, or mutate queue state.
+
 Current prompt-pack and Codex high-value lane behavior are advisory prompt generation/manual handoff only. Runtime routing execution, Codex dispatch, Codex CLI invocation, real agent execution, external workflow execution, and GitHub integration remain unimplemented. Local LLM execution exists only as the M62 operator-gated local prototype and remains local-only, advisory-only, prototype-scoped, and non-mutating.
 
 ## M75 Source-of-Truth and Next Decision Matrix Direction

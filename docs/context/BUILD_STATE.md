@@ -2,11 +2,55 @@
 
 ## Current Phase
 
-M99 adds the local-only Local LLM Advisory Execution Dry-Run Validator on top of the completed M97 queue-to-agent dispatch plan contract and M98 Codex prompt artifact generator.
+M100 adds the local-only Documentation Agent Dry-Run Review Workflow on top of the completed M97 dispatch plan, M98 Codex prompt artifact generator, and M99 local LLM advisory dry-run validator.
 
 ## Current Goal
 
-M99 validates whether a queue item selected by M97 for `local_llm_advisory` is safe and ready to be prepared for a future local LLM advisory run. It produces dry-run output only and preserves `execution_allowed=false`: it never calls Ollama APIs, executes local models, executes Codex, calls GitHub or `gh`, runs external agents, applies patches, creates issues, makes network calls, or automatically starts/completes/dispatches queue items.
+M100 validates whether a queue item selected by M97 for `documentation_agent_dry_run` is safe and ready for a future documentation-agent review workflow. It produces dry-run output only and preserves `execution_allowed=false`: it never executes documentation agents, mutates documentation, calls local LLMs, executes Codex, calls GitHub or `gh`, runs external agents, applies patches, creates issues, makes network calls, or automatically starts/completes/dispatches queue items.
+
+## M100 Documentation Agent Dry-Run Review Workflow
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m100-documentation-agent-dry-run-review-workflow`.
+
+Implementation commit: pending final commit.
+
+M100 consumes or derives the M97 dispatch plan and adds:
+
+- `validate-documentation-agent-dry-run --item-id <item_id>`
+- `validate-documentation-agent-dry-run --item-id <item_id> --format json`
+- optional `--output <path>` with overwrite refusal unless `--force` is explicit
+- a structured dry-run payload with item identity, queue status, selected lane, confidence, selection reason, documentation review intent, source docs to review, expected doc updates, stale doc checks, reconciliation scope, validation expectations, operator gates, and next safe action
+
+M100 ready behavior:
+
+- succeeds only when the M97 selected lane is exactly `documentation_agent_dry_run`
+- requires no M97 blocked reasons
+- requires `local_only: true`
+- requires `execution_allowed: false`
+- reports `dry_run: true`, `ready_for_future_documentation_review: true`, and `execution_allowed: false`
+
+M100 blocked behavior:
+
+- blocks `codex_prompt_artifact`, `local_llm_advisory`, `local_llm_coding_draft`, and `human_only_manual`
+- blocks when the M97 plan has blocked reasons
+- blocks when `local_only` is not true
+- blocks when `execution_allowed` is not false
+- emits clear blocked reasons and does not execute agents or mutate documentation
+
+Operator workflow:
+
+- inspect dispatch plan
+- validate documentation-agent dry-run
+- review source docs, stale-doc checks, expected updates, and reconciliation scope
+- approve any future documentation apply path only in a later milestone
+
+M100 to M101 relationship:
+
+- M100 only covers dry-run review readiness for `documentation_agent_dry_run`.
+- M101 remains the planned Human Approval Gate UI/Data Contract for approval records across Codex, local LLM, documentation, and patch gates.
+- M100 does not authorize documentation-agent execution, documentation mutation, local LLM execution, Codex execution, or patch application.
 
 ## M99 Local LLM Advisory Execution Dry-Run Validator
 

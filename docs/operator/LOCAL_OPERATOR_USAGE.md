@@ -1,5 +1,67 @@
 # Local Operator Usage
 
+## M100 Documentation Agent Dry-Run Review Workflow
+
+M100 validates documentation-agent dry-run readiness from M97 plans. It is dry-run only and never executes a documentation agent or mutates documentation.
+
+Inspect the dispatch plan first:
+
+    python -m aresforge inspect-queue-dispatch-plan --item-id <item_id>
+    python -m aresforge inspect-queue-dispatch-plan --item-id <item_id> --format json
+
+Validate a readable documentation dry-run to console:
+
+    python -m aresforge validate-documentation-agent-dry-run --item-id <item_id>
+
+Generate JSON:
+
+    python -m aresforge validate-documentation-agent-dry-run --item-id <item_id> --format json
+
+Write a local dry-run artifact file:
+
+    python -m aresforge validate-documentation-agent-dry-run --item-id <item_id> --output artifacts/documentation_agent/dry_runs/<item_id>.md
+
+Overwrite only with explicit force:
+
+    python -m aresforge validate-documentation-agent-dry-run --item-id <item_id> --output artifacts/documentation_agent/dry_runs/<item_id>.md --force
+
+M100 only reports ready when the M97 plan has:
+
+- `selected_lane: documentation_agent_dry_run`
+- `local_only: true`
+- `execution_allowed: false`
+- no blocked reasons
+
+M100 blocks for:
+
+- `codex_prompt_artifact`
+- `local_llm_advisory`
+- `local_llm_coding_draft`
+- `human_only_manual`
+- any plan with blocked reasons
+- any plan where `local_only` is not true
+- any plan where `execution_allowed` is not false
+
+Operator workflow:
+
+- inspect dispatch plan
+- validate documentation-agent dry-run
+- review source docs, expected updates, stale-doc checks, reconciliation scope, and validation expectations
+- approve any future documentation apply path only in a later milestone
+- keep later documentation changes in the existing queue completion evidence process
+
+M100 boundaries:
+
+- no documentation-agent execution
+- no documentation mutation
+- no local LLM or Ollama invocation
+- no Codex execution
+- no GitHub API, `gh`, issues, PRs, workflows, or network calls
+- no external agents
+- no patch application
+- no automatic queue start, completion, dispatch, or next-item execution
+- dry-run output must preserve `execution_allowed=false`
+
 ## M99 Local LLM Advisory Execution Dry-Run Validator
 
 M99 validates local LLM advisory dry-run readiness from M97 plans. It is dry-run only and never calls Ollama or executes a local model.
