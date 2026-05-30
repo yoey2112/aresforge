@@ -1,5 +1,28 @@
 # AresForge Roadmap
 
+## M84 Ollama Health Check and Model Inspection
+
+Status: In progress locally on `main`.
+
+Purpose:
+
+- add a local-only Ollama health/model inspection path
+- report provider reachability and visible models without requiring Ollama availability for normal test or project readiness success
+
+Delivered scope:
+
+- `test-ollama` health/model inspection without generation
+- `inspect-ollama-health`
+- stable status fields for availability, provider, endpoint, visible models, error summary, and next safe action
+- graceful offline handling for local operator review
+
+Constraints preserved:
+
+- no model generation, chat, completion, or prompt execution
+- no repo/source mutation or queue mutation from provider output
+- no automatic next-item execution
+- no GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, external workflow execution, or GitHub mutation
+
 ## M83 Local LLM Provider Contract
 
 Status: Completed locally on `main`.

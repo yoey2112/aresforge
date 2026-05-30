@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import socket
+from urllib import error, request
 from urllib.parse import urlparse
 from typing import Any
 
@@ -11,6 +13,7 @@ PROVIDER_CONTRACT_VERSION = "m83.1"
 DEFAULT_OLLAMA_BASE_URL = "http://127.0.0.1:11434"
 DEFAULT_REQUEST_TIMEOUT_SECONDS = 60
 SUPPORTED_PROVIDER_TARGETS = ("ollama",)
+OLLAMA_HEALTH_CONTRACT_VERSION = "m84.1"
 
 _BOUNDARY_CONFIRMATIONS: tuple[str, ...] = (
     "M83 local LLM provider contract is local-only.",
@@ -22,6 +25,20 @@ _BOUNDARY_CONFIRMATIONS: tuple[str, ...] = (
     "No repository files are mutated from provider output.",
     "No queue item status is mutated from provider output.",
     "No automatic prompt execution.",
+    "No automatic next-item execution.",
+    "No GitHub API calls.",
+    "No gh calls.",
+    "No issues, PRs, workflows, daemons, watchers, schedulers, or external workflow behavior.",
+)
+
+_HEALTH_BOUNDARY_CONFIRMATIONS: tuple[str, ...] = (
+    "M84 Ollama health/model inspection is local-only.",
+    "Only the local Ollama /api/tags endpoint is inspected.",
+    "No prompt is sent.",
+    "No generation, chat, completion, or inference endpoint is invoked.",
+    "Ollama offline is reported as unavailable without failing normal project readiness.",
+    "No repository files are mutated from model output.",
+    "No queue item status is mutated from model output.",
     "No automatic next-item execution.",
     "No GitHub API calls.",
     "No gh calls.",
@@ -41,6 +58,112 @@ def inspect_local_llm_provider_contract(
         output_format,
         _render_markdown(payload),
     )
+
+
+def inspect_ollama_health_and_models(
+    config: AppConfig,
+    *,
+    output_format: str = "json",
+) -> dict[str, Any]:
+    payload = build_ollama_health_and_model_inspection(config)
+    return _stdout_result(
+        "inspect-ollama-health",
+        payload,
+        output_format,
+        _render_health_markdown(payload),
+    )
+
+
+def build_ollama_health_and_model_inspection(
+    config: AppConfig,
+    *,
+    urlopen_fn: Any | None = None,
+) -> dict[str, Any]:
+    environment = read_local_llm_environment_contract(config)
+    env = environment.get("local_llm_environment", {})
+    if not isinstance(env, dict):
+        env = {}
+    provider = str(env.get("local_llm_provider", "") or "").strip() or "ollama"
+    configured_url = str(env.get("provider_base_url", "") or "").strip()
+    endpoint_base = configured_url or str(config.ollama_base_url or DEFAULT_OLLAMA_BASE_URL).strip() or DEFAULT_OLLAMA_BASE_URL
+    endpoint = endpoint_base.rstrip("/") + "/api/tags"
+    timeout_seconds = _positive_int_or_default(env.get("request_timeout_seconds"), DEFAULT_REQUEST_TIMEOUT_SECONDS)
+
+    warnings: list[str] = []
+    error_summary = ""
+    models: list[dict[str, Any]] = []
+    available = False
+    checked = False
+
+    if provider not in {"ollama", "unknown", "none"}:
+        error_summary = f"Unsupported local LLM provider for Ollama inspection: {provider}"
+    elif provider == "none":
+        error_summary = "Local LLM provider is disabled."
+    elif not _is_local_provider_url(endpoint_base):
+        error_summary = "Ollama endpoint must point to localhost, 127.0.0.1, or ::1."
+    else:
+        checked = True
+        opener = urlopen_fn or request.urlopen
+        req = request.Request(endpoint, method="GET")
+        try:
+            with opener(req, timeout=timeout_seconds) as response:
+                raw = response.read().decode("utf-8")
+            payload = json.loads(raw)
+            models = _ollama_model_inspection_contracts(payload)
+            available = True
+        except (error.URLError, TimeoutError, socket.timeout, OSError) as exc:
+            error_summary = f"Ollama tags endpoint is unavailable: {exc}"
+        except json.JSONDecodeError as exc:
+            error_summary = f"Ollama tags endpoint returned invalid JSON: {exc}"
+
+    if not available:
+        warnings.append("Ollama is not available for model inspection; normal project readiness remains unaffected.")
+
+    return {
+        "ok": True,
+        "local_only": True,
+        "read_only": True,
+        "contract_version": OLLAMA_HEALTH_CONTRACT_VERSION,
+        "available": available,
+        "provider": "ollama",
+        "configured_provider": provider,
+        "endpoint": endpoint,
+        "endpoint_checked": checked,
+        "models": models,
+        "model_count": len(models),
+        "error_summary": error_summary,
+        "next_safe_action": (
+            "Review visible local models before any separate operator-gated local LLM prompt preview or invocation."
+            if available
+            else "Start or configure local Ollama when local LLM model inspection is needed; continue normal project readiness without blocking on Ollama."
+        ),
+        "model_inspection_contract": {
+            "source_endpoint": "/api/tags",
+            "model_identifier_fields": ["name", "model"],
+            "generation_invoked": False,
+            "prompt_sent": False,
+            "repo_mutation_allowed": False,
+            "queue_mutation_allowed": False,
+            "automatic_next_item_execution_allowed": False,
+        },
+        "safety_boundary": {
+            "local_only": True,
+            "provider_invocation_allowed_from_this_command": True,
+            "allowed_provider_endpoint": "/api/tags",
+            "prompt_execution_allowed_from_this_command": False,
+            "generation_allowed": False,
+            "repo_mutation_allowed": False,
+            "queue_mutation_allowed": False,
+            "queue_completion_allowed": False,
+            "automatic_next_item_execution_allowed": False,
+            "external_workflow_allowed": False,
+            "github_api_allowed": False,
+            "gh_allowed": False,
+        },
+        "warnings": sorted(set(warnings)),
+        "blockers": [],
+        "boundary_confirmations": list(_HEALTH_BOUNDARY_CONFIRMATIONS),
+    }
 
 
 def build_local_llm_provider_contract(config: AppConfig) -> dict[str, Any]:
@@ -188,6 +311,38 @@ def _model_contracts(
     return contracts
 
 
+def _ollama_model_inspection_contracts(payload: Any) -> list[dict[str, Any]]:
+    if not isinstance(payload, dict):
+        return []
+    raw_models = payload.get("models", [])
+    if not isinstance(raw_models, list):
+        return []
+    models: list[dict[str, Any]] = []
+    for model in raw_models:
+        if not isinstance(model, dict):
+            continue
+        name = str(model.get("name") or model.get("model") or "").strip()
+        if not name:
+            continue
+        details = model.get("details", {}) if isinstance(model.get("details"), dict) else {}
+        models.append(
+            {
+                "name": name,
+                "model": str(model.get("model") or name).strip(),
+                "modified_at": str(model.get("modified_at", "") or "").strip(),
+                "size": model.get("size"),
+                "digest": str(model.get("digest", "") or "").strip(),
+                "family": str(details.get("family", "") or "").strip(),
+                "parameter_size": str(details.get("parameter_size", "") or "").strip(),
+                "quantization_level": str(details.get("quantization_level", "") or "").strip(),
+                "may_generate_from_this_inspection": False,
+                "may_mutate_repo": False,
+                "may_advance_queue": False,
+            }
+        )
+    return sorted(models, key=lambda item: item["name"])
+
+
 def _positive_int_or_default(value: Any, default: int) -> int:
     if isinstance(value, int) and not isinstance(value, bool) and value > 0:
         return value
@@ -241,4 +396,22 @@ def _render_markdown(payload: dict[str, Any]) -> str:
     if blockers:
         lines.extend(["", "## Blockers"])
         lines.extend(f"- {entry}" for entry in blockers)
+    return "\n".join(lines)
+
+
+def _render_health_markdown(payload: dict[str, Any]) -> str:
+    lines = [
+        "# Ollama Health And Model Inspection",
+        "",
+        f"- ok: {payload.get('ok')}",
+        f"- available: {payload.get('available')}",
+        f"- provider: {payload.get('provider', '')}",
+        f"- endpoint: {payload.get('endpoint', '')}",
+        f"- model_count: {payload.get('model_count')}",
+        f"- error_summary: {payload.get('error_summary', '')}",
+        f"- next_safe_action: {payload.get('next_safe_action', '')}",
+        "",
+        "## Boundaries",
+    ]
+    lines.extend(f"- {entry}" for entry in payload.get("boundary_confirmations", []))
     return "\n".join(lines)

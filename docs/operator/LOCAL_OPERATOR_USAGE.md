@@ -1,5 +1,33 @@
 # Local Operator Usage
 
+## M84 Ollama Health Check and Model Inspection
+
+Inspect the local Ollama provider without generation:
+
+    python -m aresforge test-ollama
+    python -m aresforge inspect-ollama-health --format json
+
+Payload highlights:
+
+- `available`
+- `provider`
+- `endpoint`
+- `models`
+- `error_summary`
+- `next_safe_action`
+- `model_inspection_contract`
+- `safety_boundary`
+
+Operator rules:
+
+- treat the output as local provider availability/model metadata only
+- expect Ollama offline states to return `available: false` without blocking normal project readiness
+- call only the local `/api/tags` endpoint for model listing
+- do not send prompts, invoke generation, or call chat/completion endpoints in this milestone
+- do not apply provider output to repo files or queue state
+- do not start another queue item automatically
+- do not use GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, or external workflow behavior
+
 ## M83 Local LLM Provider Contract
 
 Inspect the local LLM provider contract:

@@ -1,5 +1,23 @@
 # AresForge Agent Context
 
+## M84 Ollama Health Check and Model Inspection Context
+
+Status: In progress locally on `main`.
+
+Current Ollama inspection scope:
+
+- `test-ollama` now performs health/model inspection only and does not invoke generation.
+- `inspect-ollama-health` exposes the same local-only inspection path for operator review.
+- The payload reports `available`, `provider`, `endpoint`, visible `models`, `error_summary`, and `next_safe_action`.
+- Ollama being offline is reported as `available: false` with warning metadata and does not block normal project readiness.
+
+Boundaries preserved:
+
+- only the local `/api/tags` endpoint may be checked
+- no prompts are sent and no inference or generation endpoint is called
+- no repo file mutation, queue mutation, queue completion, or automatic next-item execution
+- no GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, external workflow execution, or GitHub mutation
+
 ## M83 Local LLM Provider Contract Context
 
 Status: Completed locally on `main`.

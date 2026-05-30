@@ -34,6 +34,8 @@ M81 adds a read-only local LLM advisory/coding lane readiness inspection path. I
 
 M83 adds a read-only local LLM provider contract inspection path. It formalizes Ollama as the initial provider target and reports provider URL, health-check endpoint limits, timeout expectations, model identifiers, role/capability metadata, and safety boundaries. It does not call Ollama, send prompts, run inference, execute routing, mutate repository files, mutate queue state, complete queue items, or start another queue item.
 
+M84 adds an explicitly invoked Ollama health/model inspection path. It may call only the local `/api/tags` endpoint to report provider reachability and visible models. Ollama offline states are warning metadata and must not block normal project readiness. M84 does not call generation, chat, completion, or prompt endpoints, and it does not mutate repository files, mutate queue state, complete queue items, or start another queue item.
+
 ## Storage
 
 The contract is stored locally at:
@@ -62,6 +64,8 @@ Reading defaults does not write this file. Updating the contract writes the file
 - `GET /api/ai-action-review`
 - CLI: `python -m aresforge inspect-local-llm-advisory-lane-readiness --item-id <item_id> --format json`
 - CLI: `python -m aresforge inspect-local-llm-provider-contract --format json`
+- CLI: `python -m aresforge inspect-ollama-health --format json`
+- CLI: `python -m aresforge test-ollama`
 
 ## Fields
 
@@ -112,6 +116,25 @@ Model fields are placeholders/configuration only. A non-empty model name does no
 The provider contract supports future local reasoning and local coding model selection, but selection remains operator-reviewed metadata. Fallback model configuration is never selected or executed automatically.
 
 Provider contract inspection does not require Ollama to be running. Tests must mock or inspect local files only and must not require a real Ollama service.
+
+## M84 Ollama Health and Model Inspection
+
+`test-ollama` and `inspect-ollama-health` are explicit local-only inspection commands. They return a stable payload with:
+
+- `available`
+- `provider`
+- `endpoint`
+- `models`
+- `error_summary`
+- `next_safe_action`
+- `model_inspection_contract`
+- `safety_boundary`
+
+The inspection path may call only the configured local Ollama `/api/tags` endpoint. It must not call `/api/generate`, `/api/chat`, `/api/completions`, `/v1/chat/completions`, or any prompt-bearing endpoint.
+
+When Ollama is not running, the command should still succeed as an inspection operation and return `available: false`, an `error_summary`, an empty model list, and a next safe operator action. This offline state is not a normal project readiness blocker.
+
+Visible model names are metadata only. Model presence does not authorize prompt execution, local LLM advisory execution, repo mutation, queue mutation, queue completion, automatic fallback selection, or automatic next-item execution.
 
 ## Provider Availability States
 

@@ -1,5 +1,23 @@
 # AresForge Build State
 
+## M84 Ollama Health Check and Model Inspection
+
+Status: In progress locally on `main`.
+
+Delivered in this pass:
+
+- repurposes `test-ollama` as a local-only Ollama health/model inspection command that does not generate text
+- adds `inspect-ollama-health` for explicit read-only inspection of Ollama reachability and visible models
+- reports stable fields for `available`, `provider`, `endpoint`, `models`, `error_summary`, and `next_safe_action`
+- handles Ollama being offline as non-blocking inspection metadata so normal project readiness is unaffected
+
+M84 safety posture:
+
+- local-only and operator-invoked
+- calls only the local Ollama `/api/tags` model listing endpoint
+- no `/api/generate`, `/api/chat`, completion, or prompt endpoint is invoked
+- no provider output can mutate repo files, mutate queue state, execute prompts, start the next item, or use GitHub/`gh`/workflows/external automation
+
 ## M83 Local LLM Provider Contract
 
 Status: Completed locally on `main`.

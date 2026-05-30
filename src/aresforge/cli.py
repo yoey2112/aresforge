@@ -219,7 +219,10 @@ from aresforge.operator.codex_dispatch_runner import (
 )
 from aresforge.operator.llm_decision_matrix import inspect_llm_decision_matrix
 from aresforge.operator.local_llm_advisory_lane import inspect_local_llm_advisory_lane_readiness
-from aresforge.operator.local_llm_provider import inspect_local_llm_provider_contract
+from aresforge.operator.local_llm_provider import (
+    inspect_local_llm_provider_contract,
+    inspect_ollama_health_and_models,
+)
 from aresforge.operator.queue_dispatch_preparation import prepare_queue_item_dispatch
 from aresforge.operator.single_ready_codex_queue_item import run_single_ready_codex_queue_item
 from aresforge.operator.local_agent_profiles import (
@@ -2343,10 +2346,25 @@ def build_parser() -> argparse.ArgumentParser:
     )
     evidence_parser.add_argument("--store-db", action="store_true")
 
-    ollama_parser = subparsers.add_parser("test-ollama", help="Send a small prompt to Ollama.")
+    ollama_parser = subparsers.add_parser("test-ollama", help="Inspect local Ollama health and visible models without generation.")
     ollama_parser.add_argument(
         "--prompt",
         default="Return one short sentence confirming that the local AresForge skeleton check reached Ollama.",
+        help="Deprecated; ignored by the non-generative M84 health/model inspection.",
+    )
+    ollama_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+    )
+    inspect_ollama_health_parser = subparsers.add_parser(
+        "inspect-ollama-health",
+        help="Inspect local Ollama health and visible models without invoking generation.",
+    )
+    inspect_ollama_health_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="json",
     )
 
     handoff_parser = subparsers.add_parser(
@@ -4608,15 +4626,20 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.command == "test-ollama":
-        result = test_generate(config, args.prompt)
-        emit_json(
-            {
-                "ok": result.ok,
-                "message": result.message,
-                "response_text": result.response_text,
-            }
-        )
-        return 0 if result.ok else 1
+        payload = inspect_ollama_health_and_models(config, output_format=args.format)
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-ollama-health":
+        payload = inspect_ollama_health_and_models(config, output_format=args.format)
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
 
     if args.command == "prepare-codex-handoff":
         route_plan = build_route_plan(

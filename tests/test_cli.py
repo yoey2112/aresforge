@@ -186,6 +186,7 @@ def test_cli_has_expected_commands() -> None:
         "generate-prompt-package",
         "record-evidence-package",
         "test-ollama",
+        "inspect-ollama-health",
         "prepare-codex-handoff",
     ):
         assert command in help_text
@@ -5067,6 +5068,75 @@ def test_inspect_local_llm_provider_contract_dispatch_json(
     assert parsed["safety_boundary"]["github_api_allowed"] is False
     assert parsed["safety_boundary"]["gh_allowed"] is False
     assert seen["output_format"] == "json"
+
+
+def test_inspect_ollama_health_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "ok": True,
+                "available": False,
+                "provider": "ollama",
+                "endpoint": "http://127.0.0.1:11434/api/tags",
+                "models": [],
+                "error_summary": "offline",
+                "next_safe_action": "continue without blocking readiness",
+                "safety_boundary": {
+                    "generation_allowed": False,
+                    "repo_mutation_allowed": False,
+                    "automatic_next_item_execution_allowed": False,
+                },
+            }
+        ),
+        "payload": {},
+    }
+
+    monkeypatch.setattr(cli, "inspect_ollama_health_and_models", lambda _config, output_format="json": payload)
+    exit_code = cli.main(["inspect-ollama-health", "--format", "json"])
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["available"] is False
+    assert parsed["provider"] == "ollama"
+    assert parsed["models"] == []
+    assert parsed["safety_boundary"]["generation_allowed"] is False
+    assert parsed["safety_boundary"]["repo_mutation_allowed"] is False
+    assert parsed["safety_boundary"]["automatic_next_item_execution_allowed"] is False
+
+
+def test_test_ollama_uses_health_inspection_without_generation(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps({"ok": True, "available": True, "models": [{"name": "qwen"}]}),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_inspect(_config, output_format="json"):
+        seen["called"] = True
+        return payload
+
+    monkeypatch.setattr(cli, "inspect_ollama_health_and_models", fake_inspect)
+    monkeypatch.setattr(cli, "test_generate", lambda *_args, **_kwargs: pytest.fail("test-ollama must not invoke generation"))
+
+    exit_code = cli.main(["test-ollama", "--prompt", "ignored"])
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert seen["called"] is True
+    assert parsed["available"] is True
+    assert parsed["models"][0]["name"] == "qwen"
 
 
 def test_run_single_ready_codex_queue_item_dispatch_json(

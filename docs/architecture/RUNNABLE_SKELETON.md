@@ -1,5 +1,27 @@
 # Runnable Skeleton
 
+## M84 Ollama Health Check and Model Inspection
+
+M84 adds explicit local-only Ollama health/model inspection commands:
+
+- `python -m aresforge test-ollama`
+- `python -m aresforge inspect-ollama-health --format json`
+
+Runnable behavior:
+
+- checks only the configured local Ollama `/api/tags` endpoint
+- reports `available`, `provider`, `endpoint`, `models`, `error_summary`, and `next_safe_action`
+- treats Ollama offline state as non-blocking inspection metadata for normal project readiness
+- returns visible model metadata without sending prompts or invoking generation
+
+Still absent by design:
+
+- model generation, chat, completion, or prompt execution
+- repo or queue mutation from provider output
+- automatic queue completion
+- automatic next-item execution
+- GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, or external workflow execution
+
 ## M83 Local LLM Provider Contract
 
 M83 adds a local-only provider contract inspection path:

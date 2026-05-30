@@ -1,8 +1,12 @@
 import json
 from pathlib import Path
+from urllib import error, request
 
 from aresforge.config import AppConfig
-from aresforge.operator.local_llm_provider import build_local_llm_provider_contract
+from aresforge.operator.local_llm_provider import (
+    build_local_llm_provider_contract,
+    build_ollama_health_and_model_inspection,
+)
 from aresforge.operator.local_project_factory import update_local_llm_environment_contract
 
 
@@ -115,3 +119,75 @@ def test_local_llm_environment_update_marks_non_local_provider_url_unsupported(t
     assert payload["provider_availability_status"] == "unsupported"
     assert payload["provider_configuration_status"] == "non_local_provider_url"
     assert payload["execution_allowed"] is False
+
+
+class _FakeResponse:
+    def __init__(self, payload: dict[str, object]) -> None:
+        self._payload = payload
+
+    def __enter__(self) -> "_FakeResponse":
+        return self
+
+    def __exit__(self, *_args: object) -> None:
+        return None
+
+    def read(self) -> bytes:
+        return json.dumps(self._payload).encode("utf-8")
+
+
+def test_ollama_health_model_inspection_lists_models_without_generation(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    seen: dict[str, object] = {}
+
+    def fake_urlopen(req: request.Request, timeout: int) -> _FakeResponse:
+        seen["url"] = req.full_url
+        seen["method"] = req.get_method()
+        seen["timeout"] = timeout
+        return _FakeResponse(
+            {
+                "models": [
+                    {
+                        "name": "qwen2.5:32b",
+                        "model": "qwen2.5:32b",
+                        "modified_at": "2026-05-30T00:00:00Z",
+                        "size": 123,
+                        "digest": "abc",
+                        "details": {
+                            "family": "qwen2",
+                            "parameter_size": "32B",
+                            "quantization_level": "Q4_K_M",
+                        },
+                    }
+                ]
+            }
+        )
+
+    payload = build_ollama_health_and_model_inspection(config, urlopen_fn=fake_urlopen)
+
+    assert payload["ok"] is True
+    assert payload["available"] is True
+    assert payload["endpoint"].endswith("/api/tags")
+    assert seen["url"].endswith("/api/tags")
+    assert seen["method"] == "GET"
+    assert payload["models"][0]["name"] == "qwen2.5:32b"
+    assert payload["models"][0]["may_generate_from_this_inspection"] is False
+    assert payload["model_inspection_contract"]["generation_invoked"] is False
+    assert payload["safety_boundary"]["generation_allowed"] is False
+    assert payload["safety_boundary"]["repo_mutation_allowed"] is False
+
+
+def test_ollama_health_model_inspection_handles_offline_without_blocking(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+
+    def fake_urlopen(_req: request.Request, timeout: int) -> _FakeResponse:
+        raise error.URLError("connection refused")
+
+    payload = build_ollama_health_and_model_inspection(config, urlopen_fn=fake_urlopen)
+
+    assert payload["ok"] is True
+    assert payload["available"] is False
+    assert payload["models"] == []
+    assert "unavailable" in payload["error_summary"]
+    assert payload["blockers"] == []
+    assert "normal project readiness remains unaffected" in payload["warnings"][0]
+    assert payload["safety_boundary"]["automatic_next_item_execution_allowed"] is False
