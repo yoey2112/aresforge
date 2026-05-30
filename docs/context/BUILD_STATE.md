@@ -2,7 +2,7 @@
 
 ## M92 Documentation Reconciliation Plan Generator
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main`.
 
 Delivered in this pass:
 
