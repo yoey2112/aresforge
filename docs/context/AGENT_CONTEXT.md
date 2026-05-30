@@ -1,5 +1,27 @@
 # AresForge Agent Context
 
+## M74 Hub UX Stabilization Pass Context
+
+Status: Completed locally on `main`.
+
+Current Hub UX state:
+
+- Queue copy more clearly marks local-only, operator-gated, preview-only, and review-only AI operations
+- prompt-pack generation is labeled as preview output and has a copy-only prompt-pack preview control for manual operator handoff
+- local LLM prototype wording makes provider/model status a prototype configuration signal, not production execution approval
+- AI Action Review Panel wording groups safety status, gate status, no automatic execution, no repo mutation, and next safe action labels for operator scanning
+- empty states better explain what blocked, audit, artifact, prompt-pack, and AI review panels will show once local data exists
+
+Boundary reminders:
+
+- Hub UX changes did not add backend capabilities or execution controls
+- no Codex execution, Codex CLI invocation, local LLM repo mutation, agent execution, GitHub API, `gh`, issue/PR/workflow activity, external workflow execution, or automatic repository mutation was added
+- prompt-pack previews and AI review surfaces remain manual/operator handoff only
+
+Recommended next milestone:
+
+- M75 - Local Project Queue Operational Readiness Review.
+
 ## M73 Prompt Pack Quality and Routing Improvements Context
 
 Status: Completed locally on `main`.

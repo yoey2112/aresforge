@@ -1,5 +1,28 @@
 # Local Operator Usage
 
+## M74 Hub UX Stabilization Pass
+
+Status: Completed locally on `main`.
+
+Operator workflow:
+
+1. Use Queue as the local operations review surface for queue lifecycle, prompt previews, audit log, artifact registry, Operator Run History, and AI Action Review Panel.
+2. Treat controls labeled inspect, review, preview, copy, or generate prompt as local operator handoff/review actions only.
+3. Use Copy Prompt Pack Preview to copy generated prompt-pack text manually after review.
+4. Review AI Action Review Panel safety status, gate status, no automatic execution, no repo mutation, and next safe action labels before acting outside the Hub.
+5. Treat local LLM provider/model status as prototype configuration evidence only, not production execution approval.
+
+Operator safety notes:
+
+- Hub UX stabilization did not add backend execution behavior
+- prompt-pack previews and AI review surfaces remain manual/operator handoff only
+- no automatic execution, Codex execution, Codex CLI invocation, local LLM repo mutation, GitHub behavior, `gh`, workflow behavior, or external service behavior was introduced
+- local LLM output remains advisory-only and cannot mutate repo files automatically
+
+Recommended next milestone:
+
+- M75 - Local Project Queue Operational Readiness Review.
+
 ## M73 Prompt Pack Quality and Routing Improvements
 
 Status: Completed locally on `main`.

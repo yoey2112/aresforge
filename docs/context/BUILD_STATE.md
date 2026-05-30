@@ -1,5 +1,26 @@
 # AresForge Build State
 
+## M74 Hub UX Stabilization Pass
+
+Status: Completed locally on `main`.
+
+Delivered:
+
+- clarified Hub Queue copy around local-only status, operator-gated lifecycle actions, prompt previews, local LLM prototype/config status, and review-only AI metadata
+- improved empty states for blocked items, ready items, prompt-pack previews, audit entries, artifacts, and AI Action Review Panel blocked/safety metadata
+- added a copy-only prompt-pack preview affordance for manual operator handoff
+- strengthened AI Action Review Panel wording around safety status, gate status, no automatic execution, no repo mutation, and next safe action labels
+
+Safety posture:
+
+- Hub UX changes are wording and copy/paste affordance only
+- prompt-pack previews and AI review surfaces remain manual/operator handoff only
+- no automatic execution, Codex execution, Codex CLI invocation, local LLM repo mutation, GitHub behavior, external workflow behavior, or new backend capability was introduced
+
+Recommended next milestone:
+
+- M75 - Local Project Queue Operational Readiness Review.
+
 ## M73 Prompt Pack Quality and Routing Improvements
 
 Status: Completed locally on `main`.

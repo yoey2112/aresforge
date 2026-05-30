@@ -1,5 +1,27 @@
 # AresForge Roadmap
 
+## M74 Hub UX Stabilization Pass
+
+Status: Completed locally on `main`.
+
+Delivered scope:
+
+- stabilized Hub Queue wording after the local AI operations sequence
+- clarified local-only/operator-gated behavior for queue lifecycle controls, prompt previews, local LLM prototype/config status, AI Action Review Panel, audit log, artifact registry, and run-history surfaces
+- improved prompt-pack preview/copy wording so copy/paste handoff cannot be mistaken for execution
+- improved empty states for safety, blocked, artifact, audit, and review surfaces
+- kept safety/gate/no-mutation metadata labels visible and scan-friendly
+
+Constraints preserved:
+
+- no new backend capability or execution control
+- prompt-pack previews and AI review surfaces remain manual/operator handoff only
+- no automatic execution, Codex execution, Codex CLI invocation, local LLM repo mutation, GitHub behavior, external workflow behavior, or repository mutation was introduced
+
+Recommended next milestone:
+
+- M75 - Local Project Queue Operational Readiness Review.
+
 ## M73 Prompt Pack Quality and Routing Improvements
 
 Status: Completed locally on `main`.

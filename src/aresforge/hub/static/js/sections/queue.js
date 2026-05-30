@@ -714,6 +714,21 @@ function renderLocalQueuePromptPackResult(payload) {
   setCodeBlock("queue-prompt-pack-preview", "queue-prompt-pack-preview-empty", (payload && payload.prompt_pack) || "");
 }
 
+async function copyPromptPackPreview() {
+  const preview = byId("queue-prompt-pack-preview");
+  const text = preview ? String(preview.textContent || "").trim() : "";
+  if (!text) {
+    setMessage("queue-lifecycle-message", "No prompt pack preview to copy. Generate a preview first.", "error");
+    return;
+  }
+  if (!navigator.clipboard || !navigator.clipboard.writeText) {
+    setMessage("queue-lifecycle-message", "Clipboard copy is unavailable in this browser. Select the preview text and copy manually.", "error");
+    return;
+  }
+  await navigator.clipboard.writeText(text);
+  setMessage("queue-lifecycle-message", "Prompt pack preview copied. Manual operator paste only; no execution performed.", "success");
+}
+
 function renderExecutionAuditLog(payload) {
   setList("queue-execution-audit-summary", "queue-execution-audit-summary-empty", [
     `total_entries: ${payload && typeof payload.total_entries === "number" ? payload.total_entries : 0}`,
@@ -1119,6 +1134,14 @@ export function bindQueueLifecycleActions({
         submitButton.disabled = false;
         submitButton.textContent = originalLabel;
       }
+    }
+  });
+
+  on("queue-prompt-pack-copy", "click", async () => {
+    try {
+      await copyPromptPackPreview();
+    } catch (error) {
+      setMessage("queue-lifecycle-message", String(error.message || error), "error");
     }
   });
 

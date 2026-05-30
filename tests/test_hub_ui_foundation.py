@@ -405,7 +405,7 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "Use Active Project Defaults" in index_text
     assert "Filter To Active Project" in index_text
     assert "Local Queue Lifecycle" in index_text
-    assert "Local-only and manual queue lifecycle controls: no automatic Codex execution, no agent execution, no GitHub sync/mutation." in index_text
+    assert "Local-only and manual queue lifecycle controls: operator-gated status changes only" in index_text
     assert "Add Task" in index_text
     assert "Item ID is generated automatically from the title and active project context exposed by the local queue lifecycle API." in index_text
     assert "Task Lifecycle Controls" in index_text
@@ -447,7 +447,7 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "queue-codex-high-value-operator-override" in index_text
     assert "queue-codex-high-value-preview" in index_text
     assert "Generate Codex High-Value Prompt" in index_text
-    assert "No Run Codex control, no GitHub buttons" in index_text
+    assert "No Run Codex control, no Codex CLI invocation, no GitHub buttons" in index_text
     assert "Execution Audit Log" in index_text
     assert "queue-execution-audit-form" in index_text
     assert "queue-execution-audit-entries" in index_text
@@ -469,6 +469,7 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "No artifacts found" in index_text
     assert "No blocked actions found" in index_text
     assert "No audit entries found" in index_text
+    assert "It groups safety status, gate status, no automatic execution, no repo mutation, and next safe action labels" in index_text
     assert "It does not execute agents, Codex, local LLMs, GitHub actions, workflows, or repo mutations" in index_text
     assert "No execution controls" in index_text
     assert "buildCodexHighValuePromptPayload" in queue_js
@@ -499,7 +500,14 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "method: \"GET\" });" in queue_js
     assert "/api/ai-action-review${buildAiActionReviewQuery()}`" in queue_js
     assert "/api/ai-action-review\", {\n        method: \"POST\"" not in queue_js
+    assert "Local-only and manual queue lifecycle controls: operator-gated status changes only" in index_text
     assert "Generates local copy/paste prompt pack only with advisory routing, sizing, validation, and final-response guidance" in index_text
+    assert "Agent Prompt Pack Preview" in index_text
+    assert "Generate Prompt Pack Preview" in index_text
+    assert "Copy Prompt Pack Preview" in index_text
+    assert "queue-prompt-pack-copy" in index_text
+    assert "copyPromptPackPreview" in queue_js
+    assert "Manual operator paste only; no execution performed." in queue_js
     assert "queue-prompt-pack-include-routing" in index_text
     assert "queue-prompt-pack-group-by-routing" in index_text
     assert "queue-prompt-pack-routing-group-by" in index_text
@@ -508,7 +516,8 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "include_routing" in queue_js
     assert "routing_group_by" in queue_js
     assert "Local LLM Prompt Preview" in index_text
-    assert "Preview-only local LLM prompt for locally routed items. Does not call Ollama, execute inference, run agents, Codex, GitHub, or workflows." in index_text
+    assert "Provider/model status is prototype configuration metadata only" in index_text
+    assert "does not call Ollama, execute inference, run agents, Codex, GitHub, or workflows." in index_text
     assert "queue-local-llm-preview-form" in index_text
     assert "queue-local-llm-preview-style" in index_text
     assert "queue-local-llm-preview-output" in index_text
@@ -521,14 +530,15 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "buildLocalLlmPromptPreviewPayload" in queue_js
     assert "renderLocalLlmPromptPreviewResult" in queue_js
     assert "/local-llm-prompt-preview" in queue_js
-    assert "Prototype: Run Local LLM" in index_text
+    assert "Local LLM Prototype (Operator-Gated)" in index_text
     assert "queue-local-llm-execute-form" in index_text
     assert "queue-local-llm-execute-confirm" in index_text
     assert "queue-local-llm-execute-dry-run" in index_text
     assert "queue-local-llm-execute-operator-override" in index_text
     assert "queue-local-llm-execute-output" in index_text
     assert "queue-local-llm-execute-submit" in index_text
-    assert "Advisory output only; does not apply changes" in index_text
+    assert "provider availability does not imply production execution" in index_text
+    assert "Advisory output only" in index_text
     assert "buildLocalLlmExecutePayload" in queue_js
     assert "renderLocalLlmExecuteResult" in queue_js
     assert "/local-llm-execute" in queue_js
@@ -617,7 +627,7 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "queue-routed-items" in index_text
     assert "/api/local-queue/routed-views" in queue_js
     assert "No queue item selected. Select a queue item to inspect details." in index_text
-    assert "Local-only and read-only queue view: no queue mutation, no agent execution, no GitHub sync/mutation." in index_text
+    assert "Local-only and read-only queue view: no queue mutation, no agent execution, no GitHub sync/mutation, and no external workflow activity." in index_text
     assert "Recommended Next Action" in index_text
     assert "Blockers" in index_text
     assert "Warnings" in index_text

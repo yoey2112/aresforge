@@ -1,5 +1,35 @@
 # Runnable Skeleton
 
+## M74 Hub UX Stabilization Pass
+
+Status: Completed locally on `main`.
+
+Implemented runnable path:
+
+- Queue UI copy and labels in `src/aresforge/hub/static/index.html`
+- Queue UI render/bind helpers in `src/aresforge/hub/static/js/sections/queue.js`
+- existing local-only Hub routes for queue lifecycle, prompt packs, local LLM preview/prototype, audit log, artifact registry, run history, and AI Action Review Panel
+
+Behavior contract:
+
+- Hub labels now more clearly distinguish inspect/review/preview/copy/gated status actions from execution
+- prompt-pack preview includes a copy-only manual handoff control
+- local LLM provider/config wording remains prototype-scoped and does not imply production execution
+- AI review wording emphasizes safety status, gate status, no automatic execution, no repo mutation, and next safe action metadata
+
+Still absent by design:
+
+- new backend capabilities
+- automatic execution or prompt dispatch
+- Codex execution or Codex CLI invocation
+- local LLM repo mutation
+- automatic agent execution
+- GitHub API, `gh`, issues, PRs, workflows, or external workflow behavior
+
+Next skeleton focus:
+
+- M75 should review local project queue operational readiness.
+
 ## M73 Prompt Pack Quality and Routing Improvements
 
 Status: Completed locally on `main`.

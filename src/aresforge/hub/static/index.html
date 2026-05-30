@@ -845,11 +845,11 @@
 
         <section id="panel-queue" class="panel" data-panel="queue">
           <h2>Queue</h2>
-          <p>Track local queue items with filters, dependency warnings, and quick status updates.</p>
+          <p>Track local queue items with local-only filters, dependency warnings, operator-gated actions, and review-only AI metadata.</p>
           <p id="queue-message" class="message"></p>
           <section class="subpanel">
             <h3>Local Queue Read-Only Summary</h3>
-            <p class="message-note">Local-only and read-only queue view: no queue mutation, no agent execution, no GitHub sync/mutation.</p>
+            <p class="message-note">Local-only and read-only queue view: no queue mutation, no agent execution, no GitHub sync/mutation, and no external workflow activity.</p>
             <div class="stats-grid">
               <article class="card"><h4>Total Queue Item Count</h4><p id="queue-readonly-total-count">0</p></article>
               <article class="card"><h4>Active Project Context</h4><p id="queue-readonly-active-project">None selected</p></article>
@@ -871,12 +871,12 @@
               <section>
                 <h4>Blocked Items</h4>
                 <ul id="queue-readonly-blocked-items" class="list"></ul>
-                <p id="queue-readonly-blocked-items-empty" class="empty">No blocked items.</p>
+                <p id="queue-readonly-blocked-items-empty" class="empty">No blocked items. Safety or dependency blockers will appear here for operator review.</p>
               </section>
               <section>
                 <h4>Ready Items</h4>
                 <ul id="queue-readonly-ready-items" class="list"></ul>
-                <p id="queue-readonly-ready-items-empty" class="empty">No ready items.</p>
+                <p id="queue-readonly-ready-items-empty" class="empty">No ready items. Use readiness inspection before any manual lifecycle action.</p>
               </section>
             </div>
           </section>
@@ -890,7 +890,7 @@
           </section>
           <section class="subpanel">
             <h3>Routed Queue Views</h3>
-            <p class="boundary-banner">Read-only filters over the one canonical local queue. No separate queues, prompt execution, Codex, local LLMs, agents, GitHub, or workflows.</p>
+            <p class="boundary-banner">Read-only filters over the one canonical local queue. No separate queues, prompt execution, Codex, Codex CLI, local LLMs, agents, GitHub, or workflows.</p>
             <form id="queue-routed-views-form" class="form-grid">
               <label>Status
                 <select id="queue-routed-status">
@@ -969,7 +969,7 @@
 
           <section class="subpanel">
             <h3>Local Queue Lifecycle</h3>
-            <p class="message-note">Local-only and manual queue lifecycle controls: no automatic Codex execution, no agent execution, no GitHub sync/mutation.</p>
+            <p class="message-note">Local-only and manual queue lifecycle controls: operator-gated status changes only; no automatic Codex execution, no agent execution, no GitHub sync/mutation.</p>
             <p id="queue-lifecycle-message" class="message"></p>
             <div class="split two-col">
               <section>
@@ -1010,10 +1010,10 @@
               <section>
                 <h4>Task Lifecycle Controls</h4>
                 <label>Item ID<input id="queue-lifecycle-item-id" name="item_id" placeholder="Enter item_id or use a queue card" /></label>
-                <p class="message-note">Inspect readiness, start manually, generate a local Codex prompt artifact, or complete with local evidence.</p>
+                <p class="message-note">Inspect readiness, start with a local status change only, generate prompt artifacts, or complete with local evidence. Nothing here dispatches agents or models.</p>
                 <div class="quick-actions">
                   <button id="queue-lifecycle-readiness" type="button">Inspect Readiness</button>
-                  <button id="queue-lifecycle-start" type="button">Start Task</button>
+                  <button id="queue-lifecycle-start" type="button">Start Task (Local Status)</button>
                 </div>
                 <h4>Readiness Result</h4>
                 <ul id="queue-lifecycle-readiness-summary" class="list"></ul>
@@ -1028,7 +1028,7 @@
                 <ul id="queue-lifecycle-start-summary" class="list"></ul>
                 <p id="queue-lifecycle-start-summary-empty" class="empty">No start result yet.</p>
                 <h4>Routing Decision Matrix v1</h4>
-                <p class="message-note">Recommendation-only metadata preview. Applying writes queue metadata only and does not execute prompts, agents, Codex, local LLMs, GitHub, or workflows.</p>
+                <p class="message-note">Recommendation-only metadata preview. Applying writes queue metadata only and does not execute prompts, agents, Codex, Codex CLI, local LLMs, GitHub, or workflows.</p>
                 <form id="queue-lifecycle-routing-form" class="form-grid">
                   <label>Risk Level<input id="queue-lifecycle-routing-risk" name="risk_level" placeholder="unknown" /></label>
                   <label>Complexity Level<input id="queue-lifecycle-routing-complexity" name="complexity_level" placeholder="unknown" /></label>
@@ -1044,7 +1044,7 @@
               </section>
               <section>
                 <h4>Local LLM Prompt Preview</h4>
-                <p class="message-note">Preview-only local LLM prompt for locally routed items. Does not call Ollama, execute inference, run agents, Codex, GitHub, or workflows.</p>
+                <p class="message-note">Preview-only local LLM prompt for locally routed items. Provider/model status is prototype configuration metadata only; this does not call Ollama, execute inference, run agents, Codex, GitHub, or workflows.</p>
                 <form id="queue-local-llm-preview-form" class="form-grid">
                   <label>Prompt Style<input id="queue-local-llm-preview-style" name="prompt_style" placeholder="implementation_planning" /></label>
                   <label>Output Path (optional)<input id="queue-local-llm-preview-output" name="output" placeholder="optional local artifact path" /></label>
@@ -1057,37 +1057,37 @@
                 <p id="queue-local-llm-preview-summary-empty" class="empty">No local LLM prompt preview yet.</p>
                 <pre id="queue-local-llm-preview" class="code-block"></pre>
                 <p id="queue-local-llm-preview-empty" class="empty">No preview generated yet.</p>
-                <h4>Prototype: Run Local LLM</h4>
-                <p class="message-note">Explicit operator-gated local LLM prototype. Advisory output only; does not apply changes, complete queue items, run Codex, GitHub, gh, agents, or workflows.</p>
+                <h4>Local LLM Prototype (Operator-Gated)</h4>
+                <p class="message-note">Explicit operator-gated local LLM prototype. Advisory output only; provider availability does not imply production execution, and output never applies repo changes, completes queue items, runs Codex, GitHub, gh, agents, or workflows.</p>
                 <form id="queue-local-llm-execute-form" class="form-grid">
                   <label>Result Artifact Path (optional)<input id="queue-local-llm-execute-output" name="output" placeholder="optional local result artifact path" /></label>
                   <label class="inline-checkbox"><input id="queue-local-llm-execute-confirm" name="confirm_operator_gate" type="checkbox" /> Confirm explicit operator gate</label>
                   <label class="inline-checkbox"><input id="queue-local-llm-execute-dry-run" name="dry_run" type="checkbox" checked /> Dry run</label>
                   <label class="inline-checkbox"><input id="queue-local-llm-execute-operator-override" name="operator_override" type="checkbox" /> Operator override high-risk/manual gate</label>
                   <label class="inline-checkbox"><input id="queue-local-llm-execute-force" name="force" type="checkbox" /> Force overwrite existing artifact</label>
-                  <button id="queue-local-llm-execute-submit" type="submit">Prototype: Run Local LLM</button>
+                  <button id="queue-local-llm-execute-submit" type="submit">Run Local LLM Prototype Gate</button>
                 </form>
                 <ul id="queue-local-llm-execute-summary" class="list"></ul>
-                <p id="queue-local-llm-execute-summary-empty" class="empty">No local LLM execution result yet.</p>
+                <p id="queue-local-llm-execute-summary-empty" class="empty">No local LLM prototype result yet. Operator gate, local provider checks, and advisory-only boundaries apply.</p>
                 <pre id="queue-local-llm-execute-response" class="code-block"></pre>
                 <p id="queue-local-llm-execute-response-empty" class="empty">No advisory response captured yet.</p>
               </section>
             </div>
             <div class="split two-col">
               <section>
-                <h4>Generate Codex Prompt</h4>
+                <h4>Generate Codex Prompt Preview</h4>
                 <form id="queue-lifecycle-codex-form" class="form-grid">
                   <label>Output Path<input id="queue-lifecycle-codex-output" name="output" placeholder="optional local artifact path" /></label>
                   <label>Commit Message<input id="queue-lifecycle-codex-commit-message" name="commit_message" placeholder="optional local commit message" /></label>
                   <label><input id="queue-lifecycle-codex-force" name="force" type="checkbox" /> Force overwrite existing artifact</label>
-                  <button id="queue-lifecycle-codex-submit" type="submit">Generate Codex Prompt</button>
+                  <button id="queue-lifecycle-codex-submit" type="submit">Generate Codex Prompt Preview</button>
                 </form>
                 <ul id="queue-lifecycle-codex-summary" class="list"></ul>
                 <p id="queue-lifecycle-codex-summary-empty" class="empty">No Codex prompt metadata yet.</p>
                 <pre id="queue-lifecycle-codex-prompt" class="code-block"></pre>
-                <p id="queue-lifecycle-codex-prompt-empty" class="empty">No Codex prompt generated yet.</p>
+                <p id="queue-lifecycle-codex-prompt-empty" class="empty">No Codex prompt preview generated yet. AresForge does not execute Codex or Codex CLI.</p>
                 <h4>Codex High-Value Lane</h4>
-                <p class="message-note">Codex high-value lane prompt generation only. No Run Codex control, no GitHub buttons, and no external workflow execution.</p>
+                <p class="message-note">Codex high-value lane prompt generation only and manual operator handoff only. No Run Codex control, no Codex CLI invocation, no GitHub buttons, and no external workflow execution.</p>
                 <form id="queue-codex-high-value-form" class="form-grid">
                   <label>Output Path (optional)<input id="queue-codex-high-value-output" name="output" placeholder="optional local artifact path" /></label>
                   <label class="inline-checkbox"><input id="queue-codex-high-value-include-context" name="include_context" type="checkbox" checked /> Include context</label>
@@ -1095,13 +1095,13 @@
                   <label class="inline-checkbox"><input id="queue-codex-high-value-include-rules" name="include_operating_rules" type="checkbox" checked /> Include operating rules</label>
                   <label class="inline-checkbox"><input id="queue-codex-high-value-operator-override" name="operator_override" type="checkbox" /> Operator requests Codex review</label>
                   <label class="inline-checkbox"><input id="queue-codex-high-value-force" name="force" type="checkbox" /> Force overwrite existing artifact</label>
-                  <button id="queue-codex-high-value-submit" type="submit">Generate Codex High-Value Prompt</button>
+                  <button id="queue-codex-high-value-submit" type="submit">Generate Codex High-Value Prompt Preview</button>
                 </form>
                 <ul id="queue-codex-high-value-summary" class="list"></ul>
                 <p id="queue-codex-high-value-summary-empty" class="empty">No Codex high-value lane result yet.</p>
                 <pre id="queue-codex-high-value-preview" class="code-block"></pre>
-                <p id="queue-codex-high-value-preview-empty" class="empty">No high-value prompt generated yet.</p>
-                <h4>Agent Prompt Pack Generator</h4>
+                <p id="queue-codex-high-value-preview-empty" class="empty">No high-value prompt preview generated yet. Copy/paste handoff remains manual.</p>
+                <h4>Agent Prompt Pack Preview</h4>
                 <p class="message-note">Generates local copy/paste prompt pack only with advisory routing, sizing, validation, and final-response guidance. Does not execute Codex, Codex CLI, local LLMs, agents, prompts, GitHub, or workflows. Operator must manually run prompts.</p>
                 <form id="queue-prompt-pack-form" class="form-grid">
                   <label>Item IDs (optional, comma-separated)<input id="queue-prompt-pack-item-ids" name="item_ids" placeholder="item-1,item-2" /></label>
@@ -1122,12 +1122,15 @@
                   <label class="inline-checkbox"><input id="queue-prompt-pack-include-unrouted" name="include_unrouted" type="checkbox" checked /> Include unrouted items</label>
                   <label class="inline-checkbox"><input id="queue-prompt-pack-recommend-missing-routing" name="recommend_missing_routing" type="checkbox" /> Preview missing routing only</label>
                   <label><input id="queue-prompt-pack-force" name="force" type="checkbox" /> Force overwrite existing artifact</label>
-                  <button id="queue-prompt-pack-submit" type="submit">Generate Agent Prompt Pack</button>
+                  <button id="queue-prompt-pack-submit" type="submit">Generate Prompt Pack Preview</button>
                 </form>
                 <ul id="queue-prompt-pack-summary" class="list"></ul>
-                <p id="queue-prompt-pack-summary-empty" class="empty">No prompt pack result yet.</p>
+                <p id="queue-prompt-pack-summary-empty" class="empty">No prompt pack preview result yet.</p>
                 <pre id="queue-prompt-pack-preview" class="code-block"></pre>
-                <p id="queue-prompt-pack-preview-empty" class="empty">No prompt pack generated yet.</p>
+                <p id="queue-prompt-pack-preview-empty" class="empty">No prompt pack preview generated yet. Generate preview, then copy/paste manually.</p>
+                <div class="quick-actions">
+                  <button id="queue-prompt-pack-copy" type="button">Copy Prompt Pack Preview</button>
+                </div>
                 <h4>Execution Audit Log</h4>
                 <p class="message-note">Read-only local audit trail for operator-gated previews, blocked attempts, dry runs, health checks, and advisory outputs. No execution controls.</p>
                 <form id="queue-execution-audit-form" class="form-grid">
@@ -1138,11 +1141,11 @@
                   <button id="queue-execution-audit-submit" type="submit">Load Audit Log</button>
                 </form>
                 <ul id="queue-execution-audit-summary" class="list"></ul>
-                <p id="queue-execution-audit-summary-empty" class="empty">No audit log loaded yet.</p>
+                <p id="queue-execution-audit-summary-empty" class="empty">No audit log loaded yet. Load to review local safety and execution metadata only.</p>
                 <ul id="queue-execution-audit-entries" class="list"></ul>
-                <p id="queue-execution-audit-entries-empty" class="empty">No audit entries to show.</p>
+                <p id="queue-execution-audit-entries-empty" class="empty">No audit entries to show. Blocked attempts and advisory outputs will appear here after local actions.</p>
                 <h4>AI Artifact Registry</h4>
-                <p class="message-note">Read-only registry for local artifacts created by AresForge. No execution controls.</p>
+                <p class="message-note">Read-only registry for local artifacts created by AresForge. Artifact visibility only; no execution, apply, or repo mutation controls.</p>
                 <form id="queue-ai-artifacts-form" class="form-grid">
                   <label>Item ID<input id="queue-ai-artifacts-item-id" name="item_id" placeholder="optional item filter" /></label>
                   <label>Artifact Type<input id="queue-ai-artifacts-type" name="artifact_type" placeholder="optional artifact_type" /></label>
@@ -1161,9 +1164,9 @@
                 <ul id="queue-ai-artifacts-summary" class="list"></ul>
                 <p id="queue-ai-artifacts-summary-empty" class="empty">No artifact registry loaded yet.</p>
                 <ul id="queue-ai-artifacts-entries" class="list"></ul>
-                <p id="queue-ai-artifacts-entries-empty" class="empty">No artifact records to show.</p>
+                <p id="queue-ai-artifacts-entries-empty" class="empty">No artifact records to show. Prompt previews, prompt packs, and advisory outputs appear here only after local artifact writes.</p>
                 <h4>Operator Run History</h4>
-                <p class="message-note">Read-only timeline combining execution audit entries and AI artifact registry records. No execution, apply, GitHub, or Codex run controls.</p>
+                <p class="message-note">Read-only timeline combining execution audit entries and AI artifact registry records. No execution, apply, GitHub, Codex, or local LLM run controls.</p>
                 <form id="queue-operator-run-history-form" class="form-grid">
                   <label>Project ID<input id="queue-operator-run-history-project-id" name="project_id" placeholder="optional project filter" /></label>
                   <label>Item ID<input id="queue-operator-run-history-item-id" name="item_id" placeholder="optional item filter" /></label>
@@ -1177,7 +1180,7 @@
                 <ul id="queue-operator-run-history-timeline" class="list"></ul>
                 <p id="queue-operator-run-history-timeline-empty" class="empty">No run history timeline entries to show.</p>
                 <h4>AI Action Review Panel</h4>
-                <p class="message-note">Read-only local-only review of AI safety, gate, audit, artifact, run-history, and queue routing metadata. It does not execute agents, Codex, local LLMs, GitHub actions, workflows, or repo mutations.</p>
+                <p class="message-note">Read-only local-only review of AI safety, gate, audit, artifact, run-history, and queue routing metadata. It groups safety status, gate status, no automatic execution, no repo mutation, and next safe action labels. It does not execute agents, Codex, local LLMs, GitHub actions, workflows, or repo mutations.</p>
                 <form id="queue-ai-action-review-form" class="form-grid">
                   <label>Project ID<input id="queue-ai-action-review-project-id" name="project_id" placeholder="optional project filter" /></label>
                   <label>Item ID<input id="queue-ai-action-review-item-id" name="item_id" placeholder="optional item filter" /></label>
@@ -1189,9 +1192,9 @@
                 <ul id="queue-ai-action-review-summary" class="list"></ul>
                 <p id="queue-ai-action-review-summary-empty" class="empty">No recent AI actions found.</p>
                 <ul id="queue-ai-action-review-actions" class="list"></ul>
-                <p id="queue-ai-action-review-actions-empty" class="empty">No recent AI actions found.</p>
+                <p id="queue-ai-action-review-actions-empty" class="empty">No recent AI actions found. Safety/gate/no-mutation metadata will appear here after local AI-adjacent actions.</p>
                 <ul id="queue-ai-action-review-blocked" class="list"></ul>
-                <p id="queue-ai-action-review-blocked-empty" class="empty">No blocked actions found.</p>
+                <p id="queue-ai-action-review-blocked-empty" class="empty">No blocked actions found. Policy or gate blocks will show category, reason, and next safe action.</p>
                 <ul id="queue-ai-action-review-artifacts" class="list"></ul>
                 <p id="queue-ai-action-review-artifacts-empty" class="empty">No artifacts found.</p>
                 <ul id="queue-ai-action-review-audit" class="list"></ul>
