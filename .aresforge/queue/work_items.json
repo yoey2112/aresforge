@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T03:58:24.840764+00:00",
+  "updated_at": "2026-05-30T03:59:09.812891+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -544,7 +544,7 @@
       "repo_id": "aresforge-main",
       "title": "M79.3 Codex Run Token Usage Capture",
       "description": "Capture and store token usage metadata for each Codex CLI run so future routing, cost analysis, and LLM decision matrix work can compare effort and usage across runs.",
-      "status": "proposed",
+      "status": "in_progress",
       "priority": "high",
       "item_type": "feature",
       "tags": [
@@ -562,9 +562,9 @@
       "assigned_agent": "",
       "source": "operator_followup",
       "notes": "Acceptance criteria:\n- Codex run state stores token usage fields when available.\n- Run state should include prompt_tokens, completion_tokens, total_tokens, model, provider, reasoning_effort, and source/extraction status where available.\n- If token usage cannot be extracted, the run state must record token_usage_available=false and explain why.\n- Token metadata must be exposed through inspect-codex-dispatch-run.\n- Token metadata must be usable by future decision matrix/routing work.\n- Tests must cover available token usage, missing token usage, malformed usage payloads, and backward compatibility with old run_state files.",
-      "started_at": "",
-      "started_via": "",
-      "previous_status": "",
+      "started_at": "2026-05-30T03:59:09.812891+00:00",
+      "started_via": "prepare-queue-item-dispatch",
+      "previous_status": "proposed",
       "completed_at": "",
       "completed_by": "",
       "completion_commit": "",
@@ -593,7 +593,7 @@
       "closeout_summary": "",
       "closeout_history": [],
       "created_at": "2026-05-30T03:40:04.873501+00:00",
-      "updated_at": "2026-05-30T03:40:04.873501+00:00"
+      "updated_at": "2026-05-30T03:59:09.812891+00:00"
     },
     {
       "item_id": "m80-llm-decision-matrix-v2",
