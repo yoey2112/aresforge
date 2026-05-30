@@ -236,6 +236,7 @@ from aresforge.operator.local_llm_advisory_artifact import generate_local_llm_ad
 from aresforge.operator.documentation_agent_dry_run import validate_documentation_agent_dry_run
 from aresforge.operator.approval_gated_patch_intake import intake_patch_proposal
 from aresforge.operator.dispatch_result_evidence_parser import parse_dispatch_result_evidence
+from aresforge.operator.queue_completion_recommendation import recommend_queue_completion
 from aresforge.operator.dispatch_approval_gate import (
     APPROVAL_GATE_STATUSES,
     create_dispatch_approval_gate,
@@ -1796,6 +1797,20 @@ def build_parser() -> argparse.ArgumentParser:
     parse_dispatch_result_evidence_parser.add_argument("--output")
     parse_dispatch_result_evidence_parser.add_argument("--force", action="store_true")
     parse_dispatch_result_evidence_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="markdown",
+    )
+    recommend_queue_completion_parser = subparsers.add_parser(
+        "recommend-queue-completion",
+        help="Recommend whether an operator may complete a queue item from local dispatch evidence without mutating the queue.",
+    )
+    recommend_queue_completion_parser.add_argument("--item-id", required=True)
+    recommend_queue_completion_parser.add_argument("--evidence-path", required=True)
+    recommend_queue_completion_parser.add_argument("--queue-path")
+    recommend_queue_completion_parser.add_argument("--output")
+    recommend_queue_completion_parser.add_argument("--force", action="store_true")
+    recommend_queue_completion_parser.add_argument(
         "--format",
         choices=["json", "markdown"],
         default="markdown",
@@ -4419,6 +4434,22 @@ def main(argv: list[str] | None = None) -> int:
             config,
             item_id=args.item_id,
             result_path=args.result_path,
+            queue_path=args.queue_path,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "recommend-queue-completion":
+        payload = recommend_queue_completion(
+            config,
+            item_id=args.item_id,
+            evidence_path=args.evidence_path,
             queue_path=args.queue_path,
             output=args.output,
             force=bool(args.force),

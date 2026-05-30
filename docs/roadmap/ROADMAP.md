@@ -1,5 +1,57 @@
 # AresForge Roadmap
 
+## M113 Queue Item Auto-Completion Recommendation Engine
+
+Status: Implemented locally on `main`; validation and completion evidence pending.
+
+Queue item: `m113-queue-item-auto-completion-recommendation-engine`.
+
+Implementation commit: pending.
+
+Purpose:
+
+- evaluate local dispatch result evidence against known queue completion requirements
+- recommend whether an operator may safely complete a queue item
+- preserve explicit human completion by keeping queue mutation disabled
+- surface missing evidence, failed validation, warnings/blockers, commit hash absence, and confidence
+
+Runnable operator surface:
+
+- `python -m aresforge recommend-queue-completion --item-id <item_id> --evidence-path <path>`
+- `python -m aresforge recommend-queue-completion --item-id <item_id> --evidence-path <path> --format json`
+- optional `--output`, `--force`, and `--queue-path`
+
+Ready behavior:
+
+- queue item must exist
+- evidence file must be local JSON
+- evidence must be M112 `dispatch_result_evidence`
+- evidence must match the requested item and be parsed/unblocked
+- tests and smoke checks must be reported as passed
+- commit hash, files changed, and change summary evidence must be present
+- queue `completion_requires` and `evidence_required` are evaluated when present
+
+Blocked behavior:
+
+- missing queue item blocks
+- missing or invalid evidence file blocks
+- mismatched, blocked, or unsafe evidence blocks
+- missing required evidence blocks
+- failed tests, failed smoke checks, missing commit hash, or severe warnings/blockers block completion recommendation
+- output overwrite blocks unless `--force` is provided
+
+Constraints preserved:
+
+- no queue mutation or automatic completion
+- no Codex execution or Codex CLI shell-out
+- no local LLM, Ollama, documentation-agent, external-agent, GitHub API, `gh`, network, issue, PR, workflow, or patch application behavior
+- no approval mutation, handoff automation, or next-item execution
+
+Relationship:
+
+- M113 consumes M112 dispatch evidence.
+- M113 recommends only; human operators still complete queue items explicitly with validation evidence.
+
 ## M125 Agent Runtime Boundary Contract
 
 Status: Completed locally on `main` after validation.

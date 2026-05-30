@@ -1,5 +1,42 @@
 # AresForge Agent Context
 
+## M113 Queue Item Auto-Completion Recommendation Context
+
+Status: Implemented locally on `main`; validation and completion evidence pending.
+
+Queue item: `m113-queue-item-auto-completion-recommendation-engine`.
+
+Implementation commit: pending.
+
+M113 adds a local-only queue completion recommendation command:
+
+- `python -m aresforge recommend-queue-completion --item-id <item_id> --evidence-path <path>`
+- `python -m aresforge recommend-queue-completion --item-id <item_id> --evidence-path <path> --format json`
+- optional `--output`, `--force`, and `--queue-path`
+
+The command reads a local M112 `dispatch_result_evidence` JSON record and local queue metadata. It recommends whether a human operator may safely complete the item, but it never completes the queue item itself.
+
+The recommendation checks:
+
+- evidence record type and item id match
+- evidence parsed successfully and is not blocked
+- evidence confirms `local_only=true`, `execution_allowed=false`, and `human_review_required=true`
+- files changed and change summary are present
+- tests and smoke checks are reported as passed
+- warnings or blockers do not indicate severe failure
+- commit hash evidence is present
+- queue `completion_requires` and `evidence_required` entries are satisfied when present
+
+M113 boundaries:
+
+- no queue mutation or automatic completion
+- no Codex execution
+- no Codex CLI shell-out
+- no local LLM, Ollama, documentation-agent, GitHub API, `gh`, network service, external-agent, workflow, issue, PR, or patch application behavior
+- no approval mutation, handoff automation, or next-item execution
+
+M113 output is advisory only. A human operator must still run the explicit queue completion command with validation evidence.
+
 ## M125 Agent Runtime Boundary Contract Context
 
 Status: Completed locally on `main` after validation.

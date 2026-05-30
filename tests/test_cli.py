@@ -68,6 +68,7 @@ def test_cli_has_expected_commands() -> None:
         "prepare-manual-codex-dispatch",
         "intake-patch-proposal",
         "parse-dispatch-result-evidence",
+        "recommend-queue-completion",
         "inspect-agent-runtime-boundary",
         "inspect-llm-decision-matrix",
         "inspect-local-llm-provider-contract",
@@ -6602,6 +6603,121 @@ def test_parse_dispatch_result_evidence_dispatch_markdown(
     assert exit_code == 0
     assert "parsed: True" in output
     assert "validation_confidence: high" in output
+
+
+def test_recommend_queue_completion_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "recommendation_record_type": "queue_completion_recommendation",
+                "recommended_complete": True,
+                "blocked": False,
+                "item_id": "m113",
+                "operator_decision_required": True,
+                "queue_mutation_performed": False,
+                "local_only": True,
+                "execution_allowed": False,
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_recommend(
+        _config,
+        *,
+        item_id,
+        evidence_path,
+        queue_path=None,
+        output=None,
+        force=False,
+        output_format="markdown",
+    ):
+        seen["item_id"] = item_id
+        seen["evidence_path"] = evidence_path
+        seen["queue_path"] = queue_path
+        seen["output"] = output
+        seen["force"] = force
+        seen["output_format"] = output_format
+        return payload
+
+    monkeypatch.setattr(cli, "recommend_queue_completion", fake_recommend)
+    exit_code = cli.main(
+        [
+            "recommend-queue-completion",
+            "--item-id",
+            "m113",
+            "--evidence-path",
+            "artifacts/manual/sample-dispatch-evidence.json",
+            "--queue-path",
+            "queue.json",
+            "--output",
+            "artifacts/queue_completion_recommendations/m113.json",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["recommendation_record_type"] == "queue_completion_recommendation"
+    assert parsed["operator_decision_required"] is True
+    assert parsed["queue_mutation_performed"] is False
+    assert parsed["execution_allowed"] is False
+    assert seen == {
+        "item_id": "m113",
+        "evidence_path": "artifacts/manual/sample-dispatch-evidence.json",
+        "queue_path": "queue.json",
+        "output": "artifacts/queue_completion_recommendations/m113.json",
+        "force": True,
+        "output_format": "json",
+    }
+
+
+def test_recommend_queue_completion_dispatch_markdown(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "markdown",
+        "wrote_output_file": False,
+        "stdout": "# Queue Completion Recommendation\n\n- recommended_complete: True\n- confidence: high\n",
+        "payload": {},
+    }
+    monkeypatch.setattr(
+        cli,
+        "recommend_queue_completion",
+        lambda _config,
+        item_id,
+        evidence_path,
+        queue_path=None,
+        output=None,
+        force=False,
+        output_format="markdown": payload,
+    )
+
+    exit_code = cli.main(
+        [
+            "recommend-queue-completion",
+            "--item-id",
+            "m113",
+            "--evidence-path",
+            "artifacts/manual/sample-dispatch-evidence.json",
+        ]
+    )
+    output = capsys.readouterr().out
+
+    assert exit_code == 0
+    assert "recommended_complete: True" in output
+    assert "confidence: high" in output
 
 
 def test_validate_documentation_agent_dry_run_dispatch_json(

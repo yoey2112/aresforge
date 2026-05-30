@@ -2,11 +2,58 @@
 
 ## Current Phase
 
-M125 implements the Agent Runtime Boundary Contract as the foundation for future AresForge agents. It defines the agent runtime boundary without creating real agent execution.
+M113 implements the Queue Item Auto-Completion Recommendation Engine. It evaluates local dispatch evidence and known completion requirements, then recommends whether an operator may safely complete a queue item without mutating queue state.
 
 ## Current Goal
 
-M125 adds `inspect-agent-runtime-boundary` for local-only, read-only inspection of the agent boundary model. The contract defines schema-like fields for agent identity, runtime mode, input/output contracts, capabilities, mutation/network/model scopes, timeout/retry policy, evidence requirements, safety class, and autonomy level while preserving `execution_performed=false`.
+M113 adds `recommend-queue-completion` for local-only recommendation records. The command consumes an M112 dispatch evidence JSON file, verifies required evidence, tests, smoke checks, warnings/blockers, and commit hash presence, and preserves `queue_mutation_performed=false`.
+
+## M113 Queue Item Auto-Completion Recommendation Engine
+
+Status: Implemented locally on `main`; validation and completion evidence pending.
+
+Queue item: `m113-queue-item-auto-completion-recommendation-engine`.
+
+Implementation commit: pending.
+
+M113 adds:
+
+- `recommend-queue-completion --item-id <item_id> --evidence-path <path>`
+- `recommend-queue-completion --item-id <item_id> --evidence-path <path> --format json`
+- optional `--output`, `--force`, and `--queue-path`
+
+The recommendation record includes:
+
+- `recommendation_record_type=queue_completion_recommendation`
+- recommended/blocked status and blocked reasons
+- queue identity fields: `item_id`, `title`, `project_id`, and `milestone`
+- local evidence path
+- evidence validity
+- required evidence presence and missing evidence
+- tests and smoke checks passed indicators
+- warnings or blockers
+- commit hash presence
+- confidence
+- `operator_decision_required=true`
+- `queue_mutation_performed=false`
+- `local_only=true`
+- `execution_allowed=false`
+- next safe action
+
+Recommendation behavior:
+
+- reads local queue state and a local M112 `dispatch_result_evidence` JSON file
+- requires valid evidence for the requested item
+- requires passed tests, passed smoke checks, changed files, change summary, and commit hash evidence
+- treats queue `completion_requires` and `evidence_required` as additional local evidence requirements
+- blocks recommendations when evidence is missing, invalid, failed, mismatched, or reports severe warnings/blockers
+
+Safety boundaries:
+
+- no queue mutation or automatic completion
+- no Codex execution or Codex CLI shell-out
+- no local LLM, Ollama, documentation-agent, GitHub API, `gh`, network service, external-agent, workflow, issue, PR, or patch application behavior
+- no automatic handoff, approval mutation, or next-item execution
 
 ## M125 Agent Runtime Boundary Contract
 

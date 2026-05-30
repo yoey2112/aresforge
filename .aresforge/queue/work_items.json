@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T19:01:51.005012+00:00",
+  "updated_at": "2026-05-30T19:06:30.948874+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -3044,6 +3044,64 @@
       "closeout_history": [],
       "created_at": "2026-05-30T18:52:25.350944+00:00",
       "updated_at": "2026-05-30T19:01:51.005012+00:00"
+    },
+    {
+      "item_id": "m113-queue-item-auto-completion-recommendation-engine",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M113 Queue Item Auto-Completion Recommendation Engine",
+      "description": "Generate a local-only recommendation on whether an operator may safely complete a queue item from parsed dispatch evidence, validation results, and known completion requirements.",
+      "status": "in_progress",
+      "priority": "high",
+      "item_type": "architecture",
+      "tags": [
+        "milestone:m113",
+        "queue-completion",
+        "recommendation-only",
+        "local-only"
+      ],
+      "dependencies": [
+        "m112-dispatch-result-evidence-parser"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [],
+      "evidence_required": [],
+      "assigned_agent": "",
+      "source": "local_cli",
+      "notes": "Acceptance criteria: add recommend-queue-completion CLI and operator function; consume local M112 evidence JSON; recommend only without mutating queue status; report missing evidence, test/smoke status, warnings/blockers, commit hash presence, confidence, and next safe action.",
+      "started_at": "2026-05-30T19:06:30.948874+00:00",
+      "started_via": "local_operator",
+      "previous_status": "ready",
+      "completed_at": "",
+      "completed_by": "",
+      "completion_commit": "",
+      "validation_summary": "",
+      "evidence_note": "",
+      "tests_run": [],
+      "changed_files": [],
+      "artifact_paths": [],
+      "completion_evidence": {},
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-30T19:06:25.695582+00:00",
+      "updated_at": "2026-05-30T19:06:30.948874+00:00"
     }
   ]
 }

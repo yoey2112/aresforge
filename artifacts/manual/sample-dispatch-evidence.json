@@ -1,0 +1,38 @@
+{
+  "evidence_record_type": "dispatch_result_evidence",
+  "parsed": true,
+  "blocked": false,
+  "blocked_reasons": [],
+  "item_id": "m113-queue-item-auto-completion-recommendation-engine",
+  "title": "M113 Queue Item Auto-Completion Recommendation Engine",
+  "project_id": "aresforge",
+  "milestone": "m113",
+  "result_path": "artifacts/manual/sample-codex-result.md",
+  "result_exists": true,
+  "files_changed": [
+    "src/aresforge/operator/queue_completion_recommendation.py",
+    "src/aresforge/cli.py",
+    "tests/test_queue_completion_recommendation.py"
+  ],
+  "what_changed": [
+    "Added a local-only queue completion recommendation engine."
+  ],
+  "tests_reported": [
+    "python -m pytest tests/test_cli.py -> passed",
+    "python -m pytest tests/test_queue_completion_recommendation.py -> passed",
+    "python -m pytest tests/test_dispatch_result_evidence_parser.py -> passed",
+    "git diff --check -> passed"
+  ],
+  "smoke_checks_reported": [
+    "python -m aresforge recommend-queue-completion --item-id m113-queue-item-auto-completion-recommendation-engine --evidence-path artifacts/manual/sample-dispatch-evidence.json --format json -> passed"
+  ],
+  "warnings_or_blockers": [
+    "No blockers."
+  ],
+  "commit_hash": "abc1234",
+  "validation_confidence": "high",
+  "completion_recommendation": "ready_for_human_completion_review",
+  "human_review_required": true,
+  "local_only": true,
+  "execution_allowed": false
+}

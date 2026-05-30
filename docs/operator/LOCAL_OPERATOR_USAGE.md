@@ -1,5 +1,58 @@
 # Local Operator Usage
 
+## M113 Queue Item Auto-Completion Recommendation Engine
+
+M113 recommends whether a human operator may safely complete a queue item from local dispatch evidence. It does not complete queue items, mutate queue state, execute Codex, invoke models, call GitHub, call `gh`, call network services, apply patches, mutate approvals, hand off work, or start follow-on work.
+
+Readable recommendation:
+
+    python -m aresforge recommend-queue-completion --item-id <item_id> --evidence-path <path>
+
+JSON recommendation:
+
+    python -m aresforge recommend-queue-completion --item-id <item_id> --evidence-path <path> --format json
+
+Write a local recommendation record:
+
+    python -m aresforge recommend-queue-completion --item-id <item_id> --evidence-path <path> --output artifacts/queue_completion_recommendations/<item_id>.json --format json
+
+Overwrite only with explicit force:
+
+    python -m aresforge recommend-queue-completion --item-id <item_id> --evidence-path <path> --output artifacts/queue_completion_recommendations/<item_id>.json --format json --force
+
+The recommendation record includes:
+
+- `recommendation_record_type=queue_completion_recommendation`
+- recommended/blocked status and blocked reasons
+- queue identity
+- evidence path and validity
+- required evidence presence and missing evidence
+- tests and smoke checks passed indicators
+- warnings or blockers
+- commit hash presence
+- confidence
+- `operator_decision_required=true`
+- `queue_mutation_performed=false`
+- `local_only=true`
+- `execution_allowed=false`
+- next safe action
+
+Recommendation behavior:
+
+- reads the local queue item and local M112 evidence JSON
+- validates evidence type, item id, parsed/blocked state, local-only flag, execution flag, and human review flag
+- checks files changed, change summary, tests, smoke checks, warnings/blockers, and commit hash
+- evaluates queue `completion_requires` and `evidence_required` fields when present
+- blocks when evidence is missing, invalid, failed, incomplete, mismatched, or reports severe warnings/blockers
+
+Operator workflow:
+
+- save or generate an M112 dispatch evidence record
+- run `recommend-queue-completion`
+- review `missing_evidence`, `blocked_reasons`, and `confidence`
+- if the recommendation is complete-worthy, make the final human decision
+- complete the queue item only through `complete-local-queue-item` with explicit validation evidence
+
 ## M125 Agent Runtime Boundary Contract
 
 M125 inspects the agent runtime boundary contract. It does not execute agents, Codex, Ollama, local LLMs, documentation agents, GitHub, `gh`, network services, patch application, workflows, queue completion, handoff automation, or next-item execution.

@@ -1,5 +1,62 @@
 # Runnable Skeleton
 
+## M113 Queue Item Auto-Completion Recommendation Engine
+
+M113 adds a local-only recommendation command:
+
+- `python -m aresforge recommend-queue-completion --item-id <item_id> --evidence-path <path>`
+- `python -m aresforge recommend-queue-completion --item-id <item_id> --evidence-path <path> --format json`
+- optional `--output`, `--force`, and `--queue-path`
+
+Runnable behavior:
+
+- reads local queue state
+- reads a local M112 `dispatch_result_evidence` JSON file
+- validates evidence type, item id, parsed state, blocked state, local-only flag, execution flag, and human review requirement
+- checks required evidence for changed files, change summary, tests, smoke checks, warnings/blockers, and commit hash
+- evaluates queue `completion_requires` and `evidence_required` fields when present
+- emits stable readable or JSON CLI output
+- refuses to overwrite output files unless `--force` is explicit
+- preserves `operator_decision_required=true`, `queue_mutation_performed=false`, `local_only=true`, and `execution_allowed=false`
+
+Stable recommendation fields:
+
+- `recommendation_record_type`
+- `recommended_complete`
+- `blocked`
+- `blocked_reasons`
+- `item_id`
+- `title`
+- `project_id`
+- `milestone`
+- `evidence_path`
+- `evidence_valid`
+- `required_evidence_present`
+- `missing_evidence`
+- `tests_passed_reported`
+- `smoke_checks_passed_reported`
+- `warnings_or_blockers`
+- `commit_hash_present`
+- `confidence`
+- `operator_decision_required`
+- `queue_mutation_performed`
+- `local_only`
+- `execution_allowed`
+- `next_safe_action`
+
+Still absent by design:
+
+- automatic queue completion or any queue mutation
+- Codex execution or Codex CLI shell-out
+- local LLM or Ollama invocation
+- documentation-agent execution or apply mode
+- GitHub API, `gh`, issues, PRs, workflows, network calls, or external services
+- external agent execution
+- patch application
+- approval mutation, automatic handoff, or next-item execution
+
+M113 prepares a completion recommendation only. It does not replace human review or the explicit queue lifecycle completion command.
+
 ## M125 Agent Runtime Boundary Contract
 
 M125 adds a local-only, read-only boundary inspection command:
