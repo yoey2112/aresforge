@@ -1,5 +1,38 @@
 # AresForge Agent Context
 
+## M104 Operator Batch Planner v1 Context
+
+Status: Implemented locally on `main`; closeout evidence pending.
+
+Queue item: `m104-operator-batch-planner-v1`.
+
+Implementation commit: pending.
+
+M104 adds a read-only local batch planner:
+
+- `python -m aresforge plan-operator-batch --project-id aresforge`
+- `python -m aresforge plan-operator-batch --project-id aresforge --limit 10`
+- `python -m aresforge plan-operator-batch --project-id aresforge --limit 10 --format json`
+
+The planner reads the local queue and proposes an ordered sprint batch. It excludes `done` items, respects blocked statuses, blocks unresolved dependencies, and allows a dependency to be satisfied by an earlier item in the same proposed batch.
+
+Per-item safety classifications:
+
+- `manual_only`
+- `codex_artifact_possible`
+- `local_llm_dry_run_possible`
+- `documentation_dry_run_possible`
+- `blocked`
+
+M104 boundaries:
+
+- local-only/read-only inspection
+- no queue mutation or automatic seeding
+- no Codex, local LLM, Ollama, documentation-agent, GitHub API, `gh`, network service, external-agent, patch, or automatic dispatch execution
+- `execution_allowed` remains false at the batch and item level
+
+M105 remains the future post-batch reconciliation milestone. It should consume planned batch output and queue evidence after an operator sprint rather than treating M104 as an execution workflow.
+
 ## M103 AresForge Self-Managed Project Seed Review Context
 
 Status: Completed locally on `main` after validation.

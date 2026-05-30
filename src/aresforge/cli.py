@@ -269,6 +269,7 @@ from aresforge.operator.local_project_report import inspect_local_project_report
 from aresforge.operator.self_managed_project_report import inspect_self_managed_project
 from aresforge.operator.model_usage_report import inspect_model_usage_report
 from aresforge.operator.sprint_batch_report import inspect_sprint_batch_report
+from aresforge.operator.operator_batch_planner import plan_operator_batch
 from aresforge.operator.self_seed import seed_aresforge_self_project
 from aresforge.hub.server import serve_hub
 from aresforge.operator.milestone_reconciliation_planner import plan_milestone_final_reconciliation
@@ -1794,6 +1795,19 @@ def build_parser() -> argparse.ArgumentParser:
         "--format",
         choices=["json", "markdown"],
         default="json",
+    )
+    plan_operator_batch_parser = subparsers.add_parser(
+        "plan-operator-batch",
+        help="Plan a local-only sequential operator sprint batch from project queue state.",
+    )
+    plan_operator_batch_parser.add_argument("--project-id", required=True)
+    plan_operator_batch_parser.add_argument("--queue-path")
+    plan_operator_batch_parser.add_argument("--registry-path")
+    plan_operator_batch_parser.add_argument("--limit", type=int, default=10)
+    plan_operator_batch_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="markdown",
     )
     inspect_documentation_agent_contract_parser = subparsers.add_parser(
         "inspect-documentation-agent-contract",
@@ -4297,6 +4311,21 @@ def main(argv: list[str] | None = None) -> int:
             since_commit=args.since_commit,
             commit_count=args.commit_count,
             output=args.output,
+            output_format=args.format,
+        )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "plan-operator-batch":
+        payload = plan_operator_batch(
+            config,
+            project_id=args.project_id,
+            queue_path=args.queue_path,
+            registry_path=args.registry_path,
+            limit=args.limit,
             output_format=args.format,
         )
         if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):

@@ -1,5 +1,40 @@
 # Runnable Skeleton
 
+## M104 Operator Batch Planner v1
+
+M104 adds a local-only read-only planning command:
+
+- `python -m aresforge plan-operator-batch --project-id aresforge`
+- `python -m aresforge plan-operator-batch --project-id aresforge --limit 10`
+- `python -m aresforge plan-operator-batch --project-id aresforge --limit 10 --format json`
+
+Runnable behavior:
+
+- reads the canonical local queue
+- filters to the requested project
+- excludes completed queue items
+- treats `ready` and `proposed` items as plannable
+- reports blocked and non-plannable items separately
+- respects `dependencies`, `depends_on`, and `blocked_by`
+- allows a dependency to be satisfied by an item planned earlier in the same proposed batch
+- derives the M97 dispatch plan for safety classification only
+- emits `manual_only`, `codex_artifact_possible`, `local_llm_dry_run_possible`, `documentation_dry_run_possible`, or `blocked`
+- returns `batch_id`, `generated_at`, `proposed_items`, `excluded_items`, `blocked_items`, `warnings`, and `recommended_next_action`
+
+Still absent by design:
+
+- automatic queue seeding
+- queue mutation
+- Codex execution
+- Ollama or local LLM invocation
+- documentation-agent execution or apply mode
+- GitHub API, `gh`, issues, PRs, workflows, network calls, or external services
+- external agent execution
+- patch application
+- automatic batch execution or next-item execution
+
+M105 should reconcile planned batches against completed queue evidence and documentation/project drift after an operator-run sprint.
+
 ## M103 AresForge Self-Managed Project Seed Review
 
 M103 adds a read-only local review command:

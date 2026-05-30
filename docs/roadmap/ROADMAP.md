@@ -1,5 +1,40 @@
 # AresForge Roadmap
 
+## M104 Operator Batch Planner v1
+
+Status: Implemented locally on `main`; closeout evidence pending.
+
+Queue item: `m104-operator-batch-planner-v1`.
+
+Implementation commit: pending.
+
+Purpose:
+
+- propose a safe ordered sprint batch from local queue state
+- exclude completed queue items
+- respect dependency and blocked status constraints
+- prefer ready/proposed work in roadmap milestone order
+- classify each planned item by safe local dispatch posture
+- preserve local-only, read-only planning before M105 reconciliation
+
+Runnable operator surface:
+
+- `python -m aresforge plan-operator-batch --project-id aresforge`
+- `python -m aresforge plan-operator-batch --project-id aresforge --limit 10`
+- `python -m aresforge plan-operator-batch --project-id aresforge --limit 10 --format json`
+
+Constraints preserved:
+
+- planner output is advisory only
+- `execution_allowed` remains false
+- no queue mutation or default queue seeding occurs
+- no Codex, Ollama, local LLM, documentation-agent, external-agent, GitHub API, `gh`, network, workflow, issue creation, PR creation, patch application, or automatic next-item execution occurs
+
+M105 relationship:
+
+- M104 is the pre-sprint batch planning view.
+- M105 is expected to reconcile batch results, evidence, queue state, and documentation drift after operator-run work.
+
 ## M103 AresForge Self-Managed Project Seed Review
 
 Status: Completed locally on `main` after validation.

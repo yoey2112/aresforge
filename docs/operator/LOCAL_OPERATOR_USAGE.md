@@ -1,5 +1,61 @@
 # Local Operator Usage
 
+## M104 Operator Batch Planner
+
+M104 proposes a safe local sprint batch from queue state. It is read-only and does not seed, start, complete, execute, dispatch, or hand off work.
+
+Readable batch plan:
+
+    python -m aresforge plan-operator-batch --project-id aresforge
+
+Limit the batch size:
+
+    python -m aresforge plan-operator-batch --project-id aresforge --limit 10
+
+JSON batch plan:
+
+    python -m aresforge plan-operator-batch --project-id aresforge --limit 10 --format json
+
+The plan includes:
+
+- `batch_id` and `generated_at`
+- ordered `proposed_items`
+- `excluded_items` such as done work or items past the requested limit
+- `blocked_items` with JSON-serializable reasons
+- `warnings`
+- `recommended_next_action`
+- `local_only: true`
+- `read_only: true`
+- `execution_allowed: false`
+
+Safety classifications:
+
+- `manual_only`
+- `codex_artifact_possible`
+- `local_llm_dry_run_possible`
+- `documentation_dry_run_possible`
+- `blocked`
+
+Operator workflow before an overnight sprint:
+
+- run the M103 self-managed project review
+- run the M104 batch planner with the intended limit
+- inspect blocked and excluded items before choosing work
+- start only one approved queue item at a time through normal lifecycle commands
+- generate dispatch artifacts or dry-runs only through the existing local-only M97-M101 workflows
+- leave post-batch evidence and drift reconciliation to M105 or later workflow support
+
+M104 boundaries:
+
+- no queue mutation or default seeding
+- no Codex execution
+- no Ollama or local model invocation
+- no documentation-agent execution
+- no GitHub API, `gh`, issues, PRs, workflows, or network calls
+- no external agents
+- no patch application
+- no automatic queue start, completion, dispatch, handoff, or next-item execution
+
 ## M103 Self-Managed Project Review
 
 M103 reviews whether AresForge is ready to act as its own first managed project. The report is local-only and read-only.

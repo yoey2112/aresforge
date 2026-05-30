@@ -2,11 +2,61 @@
 
 ## Current Phase
 
-M103 reviews the AresForge self-managed project seed so AresForge can reliably serve as its own first managed project in local operator workflows.
+M104 adds the Operator Batch Planner v1 so AresForge can propose a safe, sequential local sprint batch from the queue without executing or mutating work.
 
 ## Current Goal
 
-M103 adds a read-only self-managed project review report that checks active-project identity, registry metadata, repo path and branch, roadmap/doc posture, queue counts, next recommended item, warnings, and gaps before M104 batch planning.
+M104 reads local queue state, excludes completed work, respects dependency and blocked status constraints, classifies each planned item by safe dispatch posture, and reports the next local operator action before M105 post-batch reconciliation.
+
+## M104 Operator Batch Planner v1
+
+Status: Implemented locally on `main`; closeout evidence pending.
+
+Queue item: `m104-operator-batch-planner-v1`.
+
+Implementation commit: pending.
+
+M104 adds:
+
+- `plan-operator-batch --project-id aresforge`
+- `plan-operator-batch --project-id aresforge --limit 10`
+- `plan-operator-batch --project-id aresforge --limit 10 --format json`
+- ordered local sprint batch planning from `.aresforge/queue/work_items.json`
+- exclusion of `done` items
+- blocking of unresolved dependency and blocked status items
+- intra-batch ordering support when a dependency is planned earlier in the same proposed batch
+- safety classification per planned item:
+  - `manual_only`
+  - `codex_artifact_possible`
+  - `local_llm_dry_run_possible`
+  - `documentation_dry_run_possible`
+  - `blocked`
+
+Planner output includes:
+
+- `batch_id`, `generated_at`, `project_id`
+- `proposed_items`, `excluded_items`, `blocked_items`
+- `warnings`
+- `recommended_next_action`
+- `local_only: true`
+- `read_only: true`
+- `execution_allowed: false`
+
+Safety boundaries:
+
+- local queue inspection only
+- no queue seeding by default
+- no queue mutation
+- no Codex execution
+- no Ollama or local model invocation
+- no documentation-agent execution
+- no GitHub API, `gh`, network service, workflow, issue, PR, external-agent, or patch application
+- no automatic next-item execution
+
+M104 to M105 relationship:
+
+- M104 proposes the safe ordered batch before an operator sprint.
+- M105 remains the future post-batch reconciliation milestone that should compare planned work, completed work, evidence, and queue/doc drift after a batch.
 
 ## M103 AresForge Self-Managed Project Seed Review
 

@@ -200,6 +200,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-human-gated-patch-application-contract",
         "inspect-model-usage-report",
         "inspect-sprint-batch-report",
+        "plan-operator-batch",
         "inspect-documentation-agent-contract",
         "plan-doc-reconciliation",
         "prepare-codex-handoff",
@@ -5458,6 +5459,43 @@ def test_inspect_sprint_batch_report_dispatch_json(
     assert parsed["safety_boundary"]["gh_allowed"] is False
     assert parsed["safety_boundary"]["external_workflow_allowed"] is False
     assert parsed["safety_boundary"]["automatic_next_item_execution_allowed"] is False
+
+
+def test_plan_operator_batch_dispatch_markdown(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {"ok": True, "wrote_output_file": False, "stdout": "# Operator Batch Plan\n"}
+    monkeypatch.setattr(
+        cli,
+        "plan_operator_batch",
+        lambda _config, project_id, queue_path=None, registry_path=None, limit=10, output_format="markdown": payload,
+    )
+
+    exit_code = cli.main(["plan-operator-batch", "--project-id", "aresforge", "--limit", "3"])
+
+    assert exit_code == 0
+    assert "Operator Batch Plan" in capsys.readouterr().out
+
+
+def test_plan_operator_batch_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "wrote_output_file": False,
+        "stdout": json.dumps({"project_id": "aresforge", "execution_allowed": False}),
+    }
+    monkeypatch.setattr(
+        cli,
+        "plan_operator_batch",
+        lambda _config, project_id, queue_path=None, registry_path=None, limit=10, output_format="markdown": payload,
+    )
+
+    exit_code = cli.main(["plan-operator-batch", "--project-id", "aresforge", "--format", "json"])
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed == {"project_id": "aresforge", "execution_allowed": False}
 
 
 def test_inspect_documentation_agent_contract_dispatch_json(

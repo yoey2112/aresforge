@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T16:42:43.356411+00:00",
+  "updated_at": "2026-05-30T16:45:26.173328+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -2404,6 +2404,70 @@
       "closeout_history": [],
       "created_at": "2026-05-30T16:37:54.102561+00:00",
       "updated_at": "2026-05-30T16:42:43.356411+00:00"
+    },
+    {
+      "item_id": "m104-operator-batch-planner-v1",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M104 Operator Batch Planner v1",
+      "description": "Create a local-only operator batch planner that proposes a safe sequential sprint batch from local queue state without execution.",
+      "status": "in_progress",
+      "priority": "high",
+      "item_type": "feature",
+      "tags": [
+        "milestone:m104",
+        "batch-planner",
+        "local-only"
+      ],
+      "dependencies": [
+        "m103-aresforge-self-managed-project-seed-review"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [
+        "tests_run",
+        "changed_files"
+      ],
+      "evidence_required": [
+        "commit_hash",
+        "validation_summary",
+        "evidence_note"
+      ],
+      "assigned_agent": "",
+      "source": "local_operator",
+      "notes": "Acceptance criteria: ordered sprint batch proposal; exclude done items; respect dependencies and blocked statuses; safety classification; CLI readable/json; optional limit; no auto-seeding or execution.",
+      "started_at": "2026-05-30T16:45:26.173328+00:00",
+      "started_via": "local_operator",
+      "previous_status": "ready",
+      "completed_at": "",
+      "completed_by": "",
+      "completion_commit": "",
+      "validation_summary": "",
+      "evidence_note": "",
+      "tests_run": [],
+      "changed_files": [],
+      "artifact_paths": [],
+      "completion_evidence": {},
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-30T16:45:25.623999+00:00",
+      "updated_at": "2026-05-30T16:45:26.173328+00:00"
     }
   ]
 }
