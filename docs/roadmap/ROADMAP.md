@@ -1,5 +1,38 @@
 # AresForge Roadmap
 
+## M107 Safe Dispatch Handoff Package
+
+Status: In progress locally on `main`.
+
+Queue item: `m105-post-batch-documentation-reconciliation-m107-safe-dispatch-handoff-package`.
+
+Implementation commit: pending.
+
+Purpose:
+
+- bundle local queue state, dispatch plans, artifact index data, approval gate status, and operator instructions into one safe handoff report
+- support readable and JSON handoff output
+- support optional local file output without overwriting by default
+- clearly identify which actions require manual approval
+- preserve `execution_allowed=false` and avoid any implication of automated execution
+
+Runnable operator surface:
+
+- `python -m aresforge generate-safe-dispatch-handoff`
+- `python -m aresforge generate-safe-dispatch-handoff --format json`
+- `python -m aresforge generate-safe-dispatch-handoff --output artifacts/safe-dispatch/handoff.md`
+
+Constraints preserved:
+
+- read-only by default
+- optional output writes one local file only
+- no artifact execution, dispatch execution, Codex, Ollama, local LLM, documentation-agent, external-agent, GitHub API, `gh`, network, workflow, issue creation, PR creation, queue mutation, approval mutation, or patch application occurs
+
+M108 relationship:
+
+- M107 is the dispatch/new-chat handoff package.
+- M108 should reconcile sprint closeout and the next-stage automation plan after M107 evidence is available.
+
 ## M106 Dispatch Artifact Index/Report
 
 Status: Completed locally on `main` after validation.

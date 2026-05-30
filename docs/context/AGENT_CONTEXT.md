@@ -1,5 +1,30 @@
 # AresForge Agent Context
 
+## M107 Safe Dispatch Handoff Package Context
+
+Status: In progress locally on `main`.
+
+Queue item: `m105-post-batch-documentation-reconciliation-m107-safe-dispatch-handoff-package`.
+
+Implementation commit: pending.
+
+M107 adds a local-only safe dispatch handoff command:
+
+- `python -m aresforge generate-safe-dispatch-handoff`
+- `python -m aresforge generate-safe-dispatch-handoff --format json`
+- optional `--output <path>` and `--force`
+
+The package bundles queue state, active project identity, branch/HEAD, next recommended queue items, dispatch plan summaries, M106 artifact index summary, M101 approval gate summary, warnings/blockers, manual approval requirements, and operator next actions.
+
+M107 boundaries:
+
+- local-only/read-only by default
+- optional output writes one local file only and refuses overwrite unless `--force`
+- no artifact execution, Codex execution, local LLM/Ollama invocation, documentation-agent execution, GitHub API, `gh`, network service, external-agent, patch, automatic handoff, or queue/approval mutation
+- `execution_allowed` remains false
+
+M108 should use the M107 package as sprint closeout context, not as execution authorization.
+
 ## M106 Dispatch Artifact Index/Report Context
 
 Status: Completed locally on `main` after validation.

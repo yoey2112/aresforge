@@ -240,6 +240,7 @@ from aresforge.operator.dispatch_approval_gate import (
     update_dispatch_approval_gate,
 )
 from aresforge.operator.dispatch_artifact_report import inspect_dispatch_artifacts
+from aresforge.operator.safe_dispatch_handoff import generate_safe_dispatch_handoff
 from aresforge.operator.single_ready_codex_queue_item import run_single_ready_codex_queue_item
 from aresforge.operator.local_agent_profiles import (
     AGENT_PROFILE_STATUSES,
@@ -1160,6 +1161,23 @@ def build_parser() -> argparse.ArgumentParser:
         "--force",
         action="store_true",
         help="Overwrite existing output file.",
+    )
+    safe_dispatch_handoff_parser = subparsers.add_parser(
+        "generate-safe-dispatch-handoff",
+        help="Generate a local-only safe dispatch handoff package from queue, dispatch, artifact, and approval state.",
+    )
+    safe_dispatch_handoff_parser.add_argument("--project-id", default="aresforge")
+    safe_dispatch_handoff_parser.add_argument("--queue-path")
+    safe_dispatch_handoff_parser.add_argument("--registry-path")
+    safe_dispatch_handoff_parser.add_argument("--artifact-root")
+    safe_dispatch_handoff_parser.add_argument("--approval-path")
+    safe_dispatch_handoff_parser.add_argument("--output")
+    safe_dispatch_handoff_parser.add_argument("--force", action="store_true")
+    safe_dispatch_handoff_parser.add_argument(
+        "--format",
+        choices=["markdown", "json"],
+        default="markdown",
+        help="Output format for file writes or stdout rendering.",
     )
     doc_reconciliation_parser = subparsers.add_parser(
         "plan-doc-reconciliation",
@@ -3633,6 +3651,24 @@ def main(argv: list[str] | None = None) -> int:
             output_format=args.format,
             include_doc_excerpts=bool(args.include_doc_excerpts),
             force=bool(args.force),
+        )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "generate-safe-dispatch-handoff":
+        payload = generate_safe_dispatch_handoff(
+            config,
+            project_id=args.project_id,
+            queue_path=args.queue_path,
+            registry_path=args.registry_path,
+            artifact_root=args.artifact_root,
+            approval_path=args.approval_path,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
         )
         if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
             print(payload["stdout"])

@@ -1,5 +1,57 @@
 # Local Operator Usage
 
+## M107 Safe Dispatch Handoff Package
+
+M107 generates a local-only handoff report for dispatch review and new chat handoffs. It bundles queue state, dispatch plans, the M106 artifact index, M101 approval status, and explicit operator instructions. It does not execute anything.
+
+Readable safe dispatch handoff:
+
+    python -m aresforge generate-safe-dispatch-handoff
+
+JSON safe dispatch handoff:
+
+    python -m aresforge generate-safe-dispatch-handoff --format json
+
+Write a local handoff file:
+
+    python -m aresforge generate-safe-dispatch-handoff --output artifacts/safe-dispatch/handoff.md
+
+Overwrite only with explicit force:
+
+    python -m aresforge generate-safe-dispatch-handoff --output artifacts/safe-dispatch/handoff.md --force
+
+The handoff includes:
+
+- repo path, branch, and HEAD
+- active project identity
+- queue summary and next recommended items
+- dispatch plan summaries
+- artifact index summary
+- approval gate summary
+- warnings and blockers
+- local-only boundaries
+- manual approval requirements
+- operator next actions
+
+Manual approval is required before:
+
+- using any dispatch artifact in another tool or chat
+- preparing artifacts for a new chat handoff
+- changing approval gate status
+- starting, completing, or dispatching queue work
+
+M107 boundaries:
+
+- no Codex execution
+- no Ollama or local model invocation
+- no documentation-agent execution
+- no artifact execution
+- no GitHub API, `gh`, issues, PRs, workflows, or network calls
+- no external agents
+- no patch application
+- no queue mutation, approval mutation, automatic handoff, dispatch, or next-item execution
+- `execution_allowed` remains false
+
 ## M106 Dispatch Artifact Index/Report
 
 M106 indexes local dispatch artifacts and dry-run outputs so an operator can see what exists before handoff packaging. It is read-only and does not execute artifacts, agents, models, patches, or handoff workflows.

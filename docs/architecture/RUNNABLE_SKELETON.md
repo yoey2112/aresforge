@@ -1,5 +1,41 @@
 # Runnable Skeleton
 
+## M107 Safe Dispatch Handoff Package
+
+M107 adds a local-only handoff command:
+
+- `python -m aresforge generate-safe-dispatch-handoff`
+- `python -m aresforge generate-safe-dispatch-handoff --format json`
+- `python -m aresforge generate-safe-dispatch-handoff --output <path> [--force]`
+- optional `--project-id`, `--queue-path`, `--registry-path`, `--artifact-root`, and `--approval-path`
+
+Runnable behavior:
+
+- reads branch and HEAD from local git
+- reads local project report and queue state
+- identifies active/proposed/ready/blocked queue items as next recommended items
+- derives M97 dispatch plan summaries for those items
+- consumes the M106 dispatch artifact index summary
+- reads M101 approval gate status
+- emits readable markdown or stable JSON
+- refuses to overwrite output files unless `--force` is explicit
+- preserves `local_only: true`, `read_only_by_default: true`, and `execution_allowed: false`
+
+Still absent by design:
+
+- artifact execution
+- automatic Codex dispatch
+- Ollama or local LLM invocation
+- documentation-agent execution or apply mode
+- automatic approval gate mutation
+- queue mutation
+- GitHub API, `gh`, issues, PRs, workflows, network calls, or external services
+- external agent execution
+- patch application
+- automatic handoff, sprint execution, or next-item execution
+
+M107 supports new chat handoffs and operator reviews. It does not authorize execution; M108 should use it as closeout and planning context.
+
 ## M106 Dispatch Artifact Index/Report
 
 M106 adds a local-only read-only reporting command:

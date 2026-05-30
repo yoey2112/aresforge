@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T17:05:32.443062+00:00",
+  "updated_at": "2026-05-30T17:07:13.551520+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -2590,6 +2590,61 @@
       "closeout_history": [],
       "created_at": "2026-05-30T17:01:06.157236+00:00",
       "updated_at": "2026-05-30T17:05:32.443062+00:00"
+    },
+    {
+      "item_id": "m105-post-batch-documentation-reconciliation-m107-safe-dispatch-handoff-package",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M107 Safe Dispatch Handoff Package",
+      "description": "Create a local-only safe dispatch handoff package bundling queue state, dispatch plans, artifact index, approval gate status, and operator instructions without execution.",
+      "status": "in_progress",
+      "priority": "high",
+      "item_type": "handoff",
+      "tags": [
+        "milestone:m107,dispatch-handoff,local-only"
+      ],
+      "dependencies": [
+        "m105-post-batch-documentation-reconciliation-m106-dispatch-artifact-index-report"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [],
+      "evidence_required": [],
+      "assigned_agent": "",
+      "source": "local_cli",
+      "notes": "",
+      "started_at": "2026-05-30T17:07:13.551520+00:00",
+      "started_via": "local_operator",
+      "previous_status": "proposed",
+      "completed_at": "",
+      "completed_by": "",
+      "completion_commit": "",
+      "validation_summary": "",
+      "evidence_note": "",
+      "tests_run": [],
+      "changed_files": [],
+      "artifact_paths": [],
+      "completion_evidence": {},
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-30T17:07:07.670490+00:00",
+      "updated_at": "2026-05-30T17:07:13.551520+00:00"
     }
   ]
 }

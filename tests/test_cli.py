@@ -136,6 +136,7 @@ def test_cli_has_expected_commands() -> None:
         "check-closeout-readiness-by-construction",
         "generate-offline-closeout-state-template",
         "generate-handoff-package",
+        "generate-safe-dispatch-handoff",
         "generate-local-milestone-template",
         "inspect-local-milestone",
         "check-local-milestone-readiness",
@@ -5692,6 +5693,114 @@ def test_generate_handoff_package_dispatch_preserves_m93_boundaries(
     assert parsed["safety_boundary"]["invokes_local_llm"] is False
     assert parsed["safety_boundary"]["mutates_github"] is False
     assert parsed["safety_boundary"]["auto_starts_next_item"] is False
+
+
+def test_generate_safe_dispatch_handoff_dispatch_markdown(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "markdown",
+        "wrote_output_file": False,
+        "stdout": "# Safe Dispatch Handoff Package\n\n- execution_allowed: False\n",
+        "payload": {},
+    }
+    monkeypatch.setattr(
+        cli,
+        "generate_safe_dispatch_handoff",
+        lambda _config, project_id="aresforge", queue_path=None, registry_path=None, artifact_root=None, approval_path=None, output=None, force=False, output_format="markdown": payload,
+    )
+
+    exit_code = cli.main(["generate-safe-dispatch-handoff"])
+    output = capsys.readouterr().out
+
+    assert exit_code == 0
+    assert "Safe Dispatch Handoff Package" in output
+    assert "execution_allowed: False" in output
+
+
+def test_generate_safe_dispatch_handoff_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    seen: dict[str, object] = {}
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "handoff_type": "safe_dispatch_handoff",
+                "project_id": "aresforge",
+                "execution_allowed": False,
+            }
+        ),
+        "payload": {},
+    }
+
+    def fake_generate(
+        _config: AppConfig,
+        *,
+        project_id: str = "aresforge",
+        queue_path=None,
+        registry_path=None,
+        artifact_root=None,
+        approval_path=None,
+        output=None,
+        force: bool = False,
+        output_format: str = "markdown",
+    ):
+        seen.update(
+            {
+                "project_id": project_id,
+                "queue_path": queue_path,
+                "registry_path": registry_path,
+                "artifact_root": artifact_root,
+                "approval_path": approval_path,
+                "output": output,
+                "force": force,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "generate_safe_dispatch_handoff", fake_generate)
+    exit_code = cli.main(
+        [
+            "generate-safe-dispatch-handoff",
+            "--project-id",
+            "aresforge",
+            "--queue-path",
+            "queue.json",
+            "--registry-path",
+            "projects.json",
+            "--artifact-root",
+            "artifacts",
+            "--approval-path",
+            ".aresforge/gates.json",
+            "--output",
+            "artifacts/handoff.json",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["handoff_type"] == "safe_dispatch_handoff"
+    assert parsed["execution_allowed"] is False
+    assert seen == {
+        "project_id": "aresforge",
+        "queue_path": "queue.json",
+        "registry_path": "projects.json",
+        "artifact_root": "artifacts",
+        "approval_path": ".aresforge/gates.json",
+        "output": "artifacts/handoff.json",
+        "force": True,
+        "output_format": "json",
+    }
 
 
 def test_test_ollama_uses_health_inspection_without_generation(

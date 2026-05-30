@@ -2,11 +2,50 @@
 
 ## Current Phase
 
-M106 completed the local-only Dispatch Artifact Index/Report for generated dispatch artifacts, dry-run outputs, and approval gate status.
+M107 implements the local-only Safe Dispatch Handoff Package for queue state, dispatch plans, artifact index data, approval status, and operator instructions.
 
 ## Current Goal
 
-M106 gives operators one read-only report for known local dispatch artifact locations before M107 safe handoff packaging. It does not execute artifacts, validate artifact content beyond safe local reads, call agents/models/network services, mutate queue state, or apply patches.
+M107 gives operators one read-only handoff report for dispatch review and new chat handoffs. It does not execute artifacts, dispatch Codex, invoke models or agents, call network services, mutate queue or approval state, or apply patches.
+
+## M107 Safe Dispatch Handoff Package
+
+Status: In progress locally on `main`.
+
+Queue item: `m105-post-batch-documentation-reconciliation-m107-safe-dispatch-handoff-package`.
+
+Implementation commit: pending.
+
+M107 adds:
+
+- `generate-safe-dispatch-handoff`
+- `generate-safe-dispatch-handoff --format json`
+- optional `--project-id`, `--queue-path`, `--registry-path`, `--artifact-root`, `--approval-path`, `--output`, and `--force`
+- a local-only handoff package that bundles:
+  - repo path, branch, and HEAD
+  - active project summary
+  - queue summary and next recommended items
+  - M97 dispatch plan summaries for active/proposed/ready/blocked items
+  - M106 artifact index summary
+  - M101 approval gate summary
+  - warnings, blockers, local-only boundaries, and operator next actions
+
+Safety boundaries:
+
+- read-only by default
+- optional output writes one local file only
+- no artifact execution
+- no Codex execution
+- no Ollama or local model invocation
+- no documentation-agent execution or documentation mutation
+- no GitHub API, `gh`, network service, workflow, issue, PR, external-agent, or patch application
+- no queue mutation, approval mutation, automatic dispatch, automatic handoff, or automatic next-item execution
+- `execution_allowed: false` remains explicit
+
+M107 to M108 relationship:
+
+- M107 packages the current dispatch posture for operator review and new chat handoffs.
+- M108 is expected to reconcile sprint closeout and next-stage automation planning after this safe handoff layer exists.
 
 ## M106 Dispatch Artifact Index/Report
 
