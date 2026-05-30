@@ -2,16 +2,18 @@
 
 ## M108 Sprint Closeout and Next-Stage Automation Plan Context
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m105-post-batch-documentation-reconciliation-m108-sprint-closeout-and-next-stage-automation-plan`.
 
-M108 is a docs/data closeout pass for the completed M99-M107 dispatch-preparation sprint. It uses the local project report, queue summary, project queue report, operator batch plan, dispatch artifact index, safe dispatch handoff, and standard handoff package as evidence. It does not add runtime features.
+Implementation commit: `549c5fc`.
+
+M108 is a docs/data closeout pass for the completed M99-M107 dispatch-preparation sprint. It used the local project report, queue summary, project queue report, operator batch plan, dispatch artifact index, safe dispatch handoff, and standard handoff package as evidence. It did not add runtime features.
 
 Current closeout findings:
 
 - M99-M107 are complete in the local queue.
-- M108 is active while closeout docs/data are reconciled.
+- M108 is complete.
 - M96 remains proposed as older planning context.
 - The local queue has no blocked items.
 - The operator batch planner proposes M96 as the only remaining non-done plannable item when M108 is not active.

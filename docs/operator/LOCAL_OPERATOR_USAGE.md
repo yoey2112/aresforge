@@ -2,7 +2,7 @@
 
 ## M108 Sprint Closeout and Next-Stage Automation Plan
 
-M108 is a docs/data-only sprint closeout workflow after M99-M107. It reconciles local report state, source-of-truth docs, queue evidence, and the next controlled automation sequence. It does not add runtime features or execute any agent/model/dispatch workflow.
+M108 is a completed docs/data-only sprint closeout workflow after M99-M107. It reconciled local report state, source-of-truth docs, queue evidence, and the next controlled automation sequence. It did not add runtime features or execute any agent/model/dispatch workflow.
 
 Recommended inspection commands:
 
@@ -17,7 +17,7 @@ Recommended inspection commands:
 Current closeout findings:
 
 - M99-M107 are complete in the local queue.
-- M108 is the active closeout item while docs/data reconciliation is underway.
+- M108 is complete.
 - M96 remains proposed as older manual planning context.
 - The artifact index currently reports zero artifacts and warning-only missing default artifact folders.
 - Safe dispatch handoff remains local-only/read-only and preserves `execution_allowed=false`.

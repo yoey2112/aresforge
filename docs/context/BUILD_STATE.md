@@ -2,17 +2,19 @@
 
 ## Current Phase
 
-M108 is the sprint closeout and next-stage automation planning pass after M99-M107. It is docs/data-only and uses local inspection reports to reconcile the completed dispatch-preparation sprint before any new automation is implemented.
+M108 completed the sprint closeout and next-stage automation planning pass after M99-M107. It was docs/data-only and used local inspection reports to reconcile the completed dispatch-preparation sprint before any new automation is implemented.
 
 ## Current Goal
 
-M108 closes the M99-M107 sprint, records the current queue/report/artifact/handoff posture, and defines the next controlled automation stage. It does not add runtime features, execute dispatch artifacts, invoke Codex, invoke Ollama or local models, run documentation agents, call external services, mutate source through generated patches, or seed the entire next batch.
+M108 closed the M99-M107 sprint, recorded the current queue/report/artifact/handoff posture, and defined the next controlled automation stage. It did not add runtime features, execute dispatch artifacts, invoke Codex, invoke Ollama or local models, run documentation agents, call external services, mutate source through generated patches, or seed the entire next batch.
 
 ## M108 Sprint Closeout and Next-Stage Automation Plan
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m105-post-batch-documentation-reconciliation-m108-sprint-closeout-and-next-stage-automation-plan`.
+
+Implementation commit: `549c5fc`.
 
 M108 inspection inputs:
 
@@ -38,7 +40,7 @@ Sprint closeout summary:
 Current report posture:
 
 - The queue has no blocked items.
-- M108 is the active closeout item while it is being reconciled.
+- M108 is complete.
 - M96 remains proposed as older manual planning context and should not be treated as a blocker for M97-M108 evidence.
 - `plan-operator-batch --project-id aresforge --limit 10 --format json` proposes only M96 when M108 is not considered, because M99-M107 are done.
 - `inspect-dispatch-artifacts --format json` currently reports zero artifacts and warning-only missing known artifact folders under `artifacts/`.

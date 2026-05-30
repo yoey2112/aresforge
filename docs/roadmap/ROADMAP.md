@@ -2,9 +2,11 @@
 
 ## M108 Sprint Closeout and Next-Stage Automation Plan
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m105-post-batch-documentation-reconciliation-m108-sprint-closeout-and-next-stage-automation-plan`.
+
+Implementation commit: `549c5fc`.
 
 Purpose:
 
@@ -29,7 +31,7 @@ Current sprint achievements:
 Current report posture:
 
 - M99-M107 are complete.
-- M108 is active during this closeout pass.
+- M108 is complete.
 - M96 remains proposed as older manual planning context.
 - No queue blockers are reported.
 - The artifact index currently has zero entries and warns that known artifact folders are missing.
