@@ -1,5 +1,27 @@
 # AresForge Roadmap
 
+## M92 Documentation Reconciliation Plan Generator
+
+Status: In progress locally on `main`.
+
+Purpose:
+
+- generate a local-only documentation reconciliation plan from source-of-truth docs and queue state
+- make stale documentation sections and recommended updates visible without rewriting docs automatically
+
+Delivered scope:
+
+- expanded `plan-doc-reconciliation`
+- deterministic plan payload with source docs, changed source docs, queue items, recent local commits, stale section signals, recommended updates, and safety boundaries
+- explicit local artifact write only through `--output`
+
+Constraints preserved:
+
+- no local LLM or Codex invocation
+- no automatic documentation mutation
+- no automatic queue completion or next-item execution
+- no GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, external workflow execution, or GitHub mutation
+
 ## M91 Documentation Agent v1 Contract
 
 Status: Completed locally on `main`.

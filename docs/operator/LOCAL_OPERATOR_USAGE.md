@@ -1,5 +1,34 @@
 # Local Operator Usage
 
+## M92 Documentation Reconciliation Plan Generator
+
+Generate a read-only documentation reconciliation plan:
+
+    python -m aresforge plan-doc-reconciliation --format json
+
+Optionally write the plan to a local artifact path:
+
+    python -m aresforge plan-doc-reconciliation --format json --output artifacts/doc-reconciliation/m92-plan.json --force
+
+Payload highlights:
+
+- `source_docs`
+- `changed_source_docs`
+- `queue_items`
+- `recent_commits`
+- `stale_or_missing_sections`
+- `recommended_doc_updates`
+- `safety_boundary`
+- `next_safe_action`
+
+Operator rules:
+
+- use the generated plan as manual documentation guidance only
+- do not treat the plan as permission to rewrite documentation automatically
+- do not invoke local LLMs or Codex from this command
+- do not complete queue items or start another item from plan output
+- do not use GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, or external workflow behavior
+
 ## M91 Documentation Agent v1 Contract
 
 Inspect the documentation agent contract:

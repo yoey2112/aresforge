@@ -89,3 +89,43 @@ def test_doc_reconciliation_recommends_docs_review_when_sync_plan_exists(tmp_pat
     assert payload["ok"] is True
     plan = payload["payload"]
     assert any("sync plan" in item.lower() for item in plan["recommended_doc_updates"])
+
+
+def test_doc_reconciliation_includes_m92_queue_and_safety_contract(tmp_path: Path) -> None:
+    _write_minimum_docs(tmp_path)
+    queue_dir = tmp_path / ".aresforge" / "queue"
+    queue_dir.mkdir(parents=True, exist_ok=True)
+    (queue_dir / "work_items.json").write_text(
+        json.dumps(
+            {
+                "schema_version": "1.0",
+                "work_items": [
+                    {
+                        "item_id": "m92-documentation-reconciliation-plan-generator",
+                        "title": "M92 Documentation Reconciliation Plan Generator",
+                        "status": "proposed",
+                        "priority": "normal",
+                        "item_type": "feature",
+                        "dependencies": ["m91-documentation-agent-v1-contract"],
+                        "updated_at": "2026-05-30T00:00:00+00:00",
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    payload = generate_doc_reconciliation_plan(_config(tmp_path), output_format="json")
+    assert payload["ok"] is True
+    plan = payload["payload"]
+    assert plan["read_only_by_default"] is True
+    assert plan["queue_items"]["total"] == 1
+    assert plan["queue_items"]["active_items"][0]["item_id"] == "m92-documentation-reconciliation-plan-generator"
+    assert plan["recent_commits"]["command"] == "git log -n 10 --oneline"
+    assert plan["safety_boundary"]["writes_docs"] is False
+    assert plan["safety_boundary"]["writes_queue"] is False
+    assert plan["safety_boundary"]["invokes_local_llm"] is False
+    assert plan["safety_boundary"]["invokes_codex"] is False
+    assert plan["safety_boundary"]["uses_github_api"] is False
+    assert plan["safety_boundary"]["uses_gh"] is False
+    assert any("M92" in item for item in plan["recommended_doc_updates"])

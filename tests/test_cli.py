@@ -192,6 +192,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-human-gated-patch-application-contract",
         "inspect-model-usage-report",
         "inspect-documentation-agent-contract",
+        "plan-doc-reconciliation",
         "prepare-codex-handoff",
     ):
         assert command in help_text
@@ -5399,6 +5400,75 @@ def test_inspect_documentation_agent_contract_dispatch_json(
     assert parsed["safety_boundary"]["automatic_next_item_execution_allowed"] is False
     assert parsed["safety_boundary"]["github_api_allowed"] is False
     assert parsed["safety_boundary"]["gh_allowed"] is False
+
+
+def test_plan_doc_reconciliation_dispatch_preserves_m92_boundaries(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], tmp_path: Path
+) -> None:
+    config = AppConfig(
+        repo_root=tmp_path,
+        db_host="127.0.0.1",
+        db_port=5433,
+        db_name="aresforge",
+        db_user="aresforge",
+        db_password="aresforge",
+        ollama_base_url="http://127.0.0.1:11434",
+        ollama_model="qwen2.5:32b",
+        artifact_root=tmp_path / "artifacts",
+        prompts_dir=tmp_path / "artifacts" / "prompts",
+        evidence_dir=tmp_path / "artifacts" / "evidence",
+        codex_handoffs_dir=tmp_path / "artifacts" / "codex_handoffs",
+        github_owner="local",
+        github_repo="aresforge",
+    )
+    monkeypatch.setattr(cli.AppConfig, "from_env", lambda: config)
+    seen: dict[str, object] = {}
+
+    def fake_generate(_config, **kwargs):
+        seen.update(kwargs)
+        return {
+            "ok": True,
+            "wrote_output_file": False,
+            "stdout": json.dumps(
+                {
+                    "ok": True,
+                    "local_only": True,
+                    "plan_only": True,
+                    "read_only_by_default": True,
+                    "source_docs": [],
+                    "queue_items": {"detected": True, "total": 1},
+                    "recent_commits": {"items": ["abc123 M92 add docs plan"]},
+                    "changed_source_docs": {"changed_paths": []},
+                    "safety_boundary": {
+                        "writes_docs": False,
+                        "writes_queue": False,
+                        "invokes_local_llm": False,
+                        "invokes_codex": False,
+                        "auto_starts_next_item": False,
+                        "uses_github_api": False,
+                        "uses_gh": False,
+                    },
+                }
+            ),
+        }
+
+    monkeypatch.setattr(cli, "generate_doc_reconciliation_plan", fake_generate)
+    exit_code = cli.main(["plan-doc-reconciliation", "--format", "json"])
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert seen["output_format"] == "json"
+    assert seen["include_git_state"] is False
+    assert parsed["local_only"] is True
+    assert parsed["plan_only"] is True
+    assert parsed["read_only_by_default"] is True
+    assert parsed["safety_boundary"]["writes_docs"] is False
+    assert parsed["safety_boundary"]["writes_queue"] is False
+    assert parsed["safety_boundary"]["invokes_local_llm"] is False
+    assert parsed["safety_boundary"]["invokes_codex"] is False
+    assert parsed["safety_boundary"]["auto_starts_next_item"] is False
+    assert parsed["safety_boundary"]["uses_github_api"] is False
+    assert parsed["safety_boundary"]["uses_gh"] is False
 
 
 def test_test_ollama_uses_health_inspection_without_generation(

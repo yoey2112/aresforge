@@ -1,5 +1,23 @@
 # AresForge Agent Context
 
+## M92 Documentation Reconciliation Plan Generator Context
+
+Status: In progress locally on `main`.
+
+Current documentation reconciliation scope:
+
+- `plan-doc-reconciliation` produces a deterministic local documentation reconciliation plan.
+- The plan reads source-of-truth docs, local queue state, changed source docs, and recent local commits.
+- The plan reports stale/missing sections and recommended documentation updates for manual review.
+- The default path writes nothing; `--output` is the only local artifact write path.
+
+Boundaries preserved:
+
+- no documentation mutation or automatic rewrite
+- no local LLM invocation, Codex invocation, prompt execution, or generated-doc apply mode
+- no queue mutation, queue completion, or automatic next-item execution
+- no GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, external workflow execution, or GitHub mutation
+
 ## M91 Documentation Agent v1 Contract Context
 
 Status: Completed locally on `main`.

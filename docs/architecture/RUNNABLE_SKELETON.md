@@ -1,5 +1,30 @@
 # Runnable Skeleton
 
+## M92 Documentation Reconciliation Plan Generator
+
+M92 expands the existing plan-only documentation reconciliation command:
+
+- `python -m aresforge plan-doc-reconciliation --format json`
+- `python -m aresforge plan-doc-reconciliation --format json --output artifacts/doc-reconciliation/m92-plan.json --force`
+
+Runnable behavior:
+
+- reads local source-of-truth docs
+- reads local queue state
+- reads changed source-doc status and recent local commits through local `git`
+- reports stale or missing sections when detectable
+- recommends manual documentation updates
+- writes a local plan artifact only when `--output` is explicitly supplied
+
+Still absent by design:
+
+- automatic documentation rewrites
+- local LLM invocation
+- Codex invocation
+- prompt execution
+- queue mutation, queue completion, or automatic next-item execution
+- GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, or external workflow execution
+
 ## M91 Documentation Agent v1 Contract
 
 M91 adds a read-only documentation agent contract:

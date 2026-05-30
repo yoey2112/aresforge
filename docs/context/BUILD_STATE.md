@@ -1,5 +1,24 @@
 # AresForge Build State
 
+## M92 Documentation Reconciliation Plan Generator
+
+Status: In progress locally on `main`.
+
+Delivered in this pass:
+
+- expands `plan-doc-reconciliation` into the M92 local-only documentation reconciliation plan generator
+- includes source docs, changed source-of-truth docs, queue items, recent local commits, stale/missing sections, recommended doc updates, and safety boundaries in the plan payload
+- keeps the default behavior read-only and non-mutating; only an explicit `--output` path writes a local plan artifact
+- omits runtime timestamps from the payload so the same local inputs produce stable plan output
+
+M92 safety posture:
+
+- no local LLM invocation
+- no Codex invocation
+- no automatic documentation rewrite
+- no queue mutation, queue completion, or automatic next-item execution
+- no GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, or external workflow behavior
+
 ## M91 Documentation Agent v1 Contract
 
 Status: Completed locally on `main`.

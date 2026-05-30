@@ -4,7 +4,6 @@ import json
 import re
 import subprocess
 from dataclasses import dataclass
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -22,9 +21,11 @@ SOURCE_DOCS: tuple[str, ...] = (
     "docs/context/AGENT_CONTEXT.md",
     "docs/roadmap/ROADMAP.md",
     "docs/architecture/RUNNABLE_SKELETON.md",
+    "docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md",
     "docs/operator/LOCAL_OPERATOR_USAGE.md",
 )
 PROJECT_STATE_PATH = Path(".aresforge") / "state" / "project_state.json"
+QUEUE_PATH = Path(".aresforge") / "queue" / "work_items.json"
 
 
 @dataclass(frozen=True)
@@ -48,12 +49,18 @@ def generate_doc_reconciliation_plan(
 
     docs = _load_docs(config.repo_root)
     project_state = _load_project_state(config.repo_root)
+    queue_state = _load_queue_state(config.repo_root)
+    recent_commits = _collect_recent_commits(config.repo_root)
+    changed_source_docs = _collect_changed_source_docs(config.repo_root)
     git_state = _collect_git_state(config.repo_root) if include_git_state else None
     cli_command_names = _detect_cli_command_names(config.repo_root)
     payload = _build_payload(
         repo_root=config.repo_root,
         docs=docs,
         project_state=project_state,
+        queue_state=queue_state,
+        recent_commits=recent_commits,
+        changed_source_docs=changed_source_docs,
         cli_command_names=cli_command_names,
         git_state=git_state,
     )
@@ -101,14 +108,10 @@ def generate_doc_reconciliation_plan(
         "force": force,
         "wrote_output_file": True,
         "warnings": payload["risks"],
-        "boundary_confirmations": [
-            "Plan-only documentation reconciliation.",
-            "Local-only inspection.",
-            "No gh command was executed.",
-            "No GitHub API calls were executed.",
-            "No LLM calls were executed.",
-            "No external network access was required.",
-        ],
+        "plan_path": str(output_path),
+        "safety_boundary": payload["safety_boundary"],
+        "boundary_confirmations": payload["boundary_confirmations"],
+        "next_safe_action": payload["next_safe_action"],
     }
 
 
@@ -140,29 +143,95 @@ def _load_project_state(repo_root: Path) -> dict[str, Any] | None:
     return raw
 
 
+def _load_queue_state(repo_root: Path) -> dict[str, Any] | None:
+    path = repo_root / QUEUE_PATH
+    if not path.exists():
+        return None
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {"path": str(path), "error": "queue_state_invalid_json"}
+    if not isinstance(raw, dict):
+        return {"path": str(path), "error": "queue_state_not_object"}
+    raw["path"] = str(path)
+    return raw
+
+
+def _run_local_git(repo_root: Path, command: tuple[str, ...]) -> tuple[int, str, str]:
+    try:
+        completed = subprocess.run(
+            list(command),
+            cwd=repo_root,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except OSError as exc:
+        return 127, "", str(exc)
+    return completed.returncode, completed.stdout or "", completed.stderr or ""
+
+
+def _collect_recent_commits(repo_root: Path) -> dict[str, Any]:
+    command = ("git", "log", "-n", "10", "--oneline")
+    returncode, stdout, stderr = _run_local_git(repo_root, command)
+    if returncode != 0:
+        return {
+            "available": False,
+            "command": " ".join(command),
+            "items": [],
+            "error_summary": stderr.strip() or f"exit {returncode}",
+        }
+    return {
+        "available": True,
+        "command": " ".join(command),
+        "items": [line for line in stdout.splitlines() if line.strip()],
+        "error_summary": "",
+    }
+
+
+def _collect_changed_source_docs(repo_root: Path) -> dict[str, Any]:
+    docs = list(SOURCE_DOCS)
+    diff_command = ("git", "diff", "--name-only", "--", *docs)
+    status_command = ("git", "status", "--short", "--", *docs)
+    diff_code, diff_stdout, diff_stderr = _run_local_git(repo_root, diff_command)
+    status_code, status_stdout, status_stderr = _run_local_git(repo_root, status_command)
+    errors = []
+    if diff_code != 0:
+        errors.append(diff_stderr.strip() or f"git diff exited {diff_code}")
+    if status_code != 0:
+        errors.append(status_stderr.strip() or f"git status exited {status_code}")
+
+    status_rows = [line for line in status_stdout.splitlines() if line.strip()] if status_code == 0 else []
+    changed_paths = set(line.strip() for line in diff_stdout.splitlines() if line.strip()) if diff_code == 0 else set()
+    for row in status_rows:
+        path = row[3:].strip() if len(row) > 3 else row.strip()
+        if path:
+            changed_paths.add(path)
+
+    return {
+        "available": not errors,
+        "source_docs": docs,
+        "changed_paths": sorted(changed_paths),
+        "status_rows": status_rows,
+        "error_summary": "; ".join(errors),
+    }
+
+
 def _collect_git_state(repo_root: Path) -> dict[str, Any]:
     results: dict[str, str] = {}
     failures: list[str] = []
     for command in ALLOWED_GIT_COMMANDS:
         command_text = " ".join(command)
-        try:
-            completed = subprocess.run(
-                list(command),
-                cwd=repo_root,
-                check=False,
-                capture_output=True,
-                text=True,
-            )
-        except OSError as exc:
+        returncode, stdout, stderr = _run_local_git(repo_root, command)
+        if returncode == 127:
             results[command_text] = ""
-            failures.append(f"{command_text}: {exc}")
+            failures.append(f"{command_text}: {stderr}")
             continue
-        if completed.returncode != 0:
+        if returncode != 0:
             results[command_text] = ""
-            stderr = (completed.stderr or "").strip()
-            failures.append(f"{command_text}: {stderr or f'exit {completed.returncode}'}")
+            failures.append(f"{command_text}: {stderr.strip() or f'exit {returncode}'}")
             continue
-        results[command_text] = (completed.stdout or "").strip()
+        results[command_text] = stdout.strip()
 
     return {
         "current_branch": results.get("git branch --show-current", "") or "unknown",
@@ -189,14 +258,14 @@ def _detect_cli_command_names(repo_root: Path) -> list[str]:
 
 
 def _extract_milestones(text: str) -> list[str]:
-    return sorted(set(re.findall(r"\\bM\\d+\\b", text)))
+    return sorted(set(re.findall(r"\bM\d+\b", text)))
 
 
 def _extract_commands(text: str) -> list[str]:
     return sorted(
         set(
             match.strip()
-            for match in re.findall(r"python -m aresforge [^`\\n]+", text)
+            for match in re.findall(r"python -m aresforge [^`\n]+", text)
             if match.strip()
         )
     )
@@ -207,6 +276,9 @@ def _build_payload(
     repo_root: Path,
     docs: list[DocSnapshot],
     project_state: dict[str, Any] | None,
+    queue_state: dict[str, Any] | None,
+    recent_commits: dict[str, Any],
+    changed_source_docs: dict[str, Any],
     cli_command_names: list[str],
     git_state: dict[str, Any] | None,
 ) -> dict[str, Any]:
@@ -281,12 +353,19 @@ def _build_payload(
             )
 
     if agent_context.exists:
-        required_constraints = ["plan-only", "local-only", "No LLM", "No gh", "No GitHub API", "No network"]
+        required_constraints: tuple[tuple[str, tuple[str, ...]], ...] = (
+            ("plan-only", ("plan-only", "plan mode")),
+            ("local-only", ("local-only", "local only")),
+            ("No LLM", ("no llm", "no local llm")),
+            ("No gh", ("no gh", "no `gh`", "`gh`")),
+            ("No GitHub API", ("no github api",)),
+            ("No network", ("no network", "external workflow")),
+        )
         normalized = agent_context.text.lower()
         missing_constraints = []
-        for constraint in required_constraints:
-            if constraint.lower() not in normalized:
-                missing_constraints.append(constraint)
+        for label, candidates in required_constraints:
+            if not any(candidate.lower() in normalized for candidate in candidates):
+                missing_constraints.append(label)
         if missing_constraints:
             stale_or_missing_sections.append(
                 "AGENT_CONTEXT.md does not capture recent local documentation-agent operating constraints."
@@ -316,6 +395,20 @@ def _build_payload(
         risks.append("Missing source-of-truth docs reduce confidence in reconciliation findings.")
     if git_state is not None and git_state.get("warnings"):
         risks.append("Some local git-state signals could not be collected from the approved command set.")
+    if not recent_commits.get("available"):
+        risks.append("Recent local commit history could not be collected.")
+    if not changed_source_docs.get("available"):
+        risks.append("Changed source-of-truth doc state could not be collected.")
+    if isinstance(queue_state, dict) and "error" in queue_state:
+        risks.append("Local queue file exists but could not be parsed; queue reconciliation may be incomplete.")
+    if queue_state is None:
+        risks.append("Local queue file is missing; reconciliation cannot compare docs against queue state.")
+
+    queue_summary = _queue_state_summary(queue_state)
+    queue_recommendations = _queue_doc_recommendations(docs, queue_summary)
+    if queue_recommendations:
+        stale_or_missing_sections.append("One or more recent or active queue milestones are not documented everywhere expected.")
+        recommended_doc_updates.extend(queue_recommendations)
 
     next_actions.extend(
         [
@@ -327,12 +420,18 @@ def _build_payload(
 
     return {
         "title": "AresForge Documentation Reconciliation Plan",
-        "generated_at": datetime.now(UTC).isoformat(),
+        "generated_at": "deterministic-local-plan",
+        "generated_at_policy": "Runtime timestamps are omitted so the same local inputs produce stable plan output.",
         "repo_path": str(repo_root),
         "plan_only": True,
         "local_only": True,
+        "read_only_by_default": True,
+        "source_docs": _source_doc_summary(docs),
         "docs_inspected": [doc.path for doc in docs],
         "missing_docs": missing_docs,
+        "changed_source_docs": changed_source_docs,
+        "queue_items": queue_summary,
+        "recent_commits": recent_commits,
         "detected_milestone_references": sorted(milestone_set),
         "detected_command_references": sorted(command_set),
         "stale_or_missing_sections": stale_or_missing_sections,
@@ -345,15 +444,47 @@ def _build_payload(
         "project_state_summary": _project_state_summary(project_state),
         "include_git_state": git_state is not None,
         "git_state": git_state,
+        "safety_boundary": {
+            "local_only": True,
+            "read_only_by_default": True,
+            "writes_docs": False,
+            "writes_queue": False,
+            "invokes_local_llm": False,
+            "invokes_codex": False,
+            "executes_prompts": False,
+            "auto_applies_changes": False,
+            "auto_completes_queue_items": False,
+            "auto_starts_next_item": False,
+            "uses_github_api": False,
+            "uses_gh": False,
+            "uses_external_workflows": False,
+            "write_path": "Only an explicit --output path writes the local plan artifact.",
+        },
         "boundary_confirmations": [
             "Plan-only documentation reconciliation.",
             "Local-only inspection.",
+            "Read-only by default; docs are not rewritten.",
             "No gh commands executed.",
             "No GitHub API calls executed.",
             "No LLM calls executed.",
+            "No Codex calls executed.",
+            "No queue mutation or automatic next-item execution.",
             "No external network access used.",
         ],
+        "next_safe_action": "Review recommended_doc_updates manually; docs are not changed unless a future explicit gated apply path exists.",
     }
+
+
+def _source_doc_summary(docs: list[DocSnapshot]) -> list[dict[str, Any]]:
+    return [
+        {
+            "path": doc.path,
+            "exists": doc.exists,
+            "detected_milestones": _extract_milestones(doc.text) if doc.exists else [],
+            "detected_command_count": len(_extract_commands(doc.text)) if doc.exists else 0,
+        }
+        for doc in docs
+    ]
 
 
 def _project_state_summary(project_state: dict[str, Any] | None) -> dict[str, Any] | None:
@@ -371,14 +502,107 @@ def _project_state_summary(project_state: dict[str, Any] | None) -> dict[str, An
     }
 
 
+def _queue_state_summary(queue_state: dict[str, Any] | None) -> dict[str, Any]:
+    if queue_state is None:
+        return {
+            "path": str(QUEUE_PATH),
+            "detected": False,
+            "total": 0,
+            "by_status": {},
+            "active_items": [],
+            "recent_done_items": [],
+            "recent_items": [],
+        }
+    if "error" in queue_state:
+        return {"path": queue_state.get("path"), "detected": True, "error": queue_state["error"]}
+
+    raw_items = queue_state.get("work_items", [])
+    if not isinstance(raw_items, list):
+        return {"path": queue_state.get("path"), "detected": True, "error": "queue_work_items_not_list"}
+
+    items = [item for item in raw_items if isinstance(item, dict)]
+    by_status: dict[str, int] = {}
+    for item in items:
+        status = str(item.get("status") or "unknown")
+        by_status[status] = by_status.get(status, 0) + 1
+
+    def row(item: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "item_id": item.get("item_id"),
+            "title": item.get("title"),
+            "status": item.get("status"),
+            "priority": item.get("priority"),
+            "item_type": item.get("item_type") or item.get("type"),
+            "dependencies": item.get("dependencies") if isinstance(item.get("dependencies"), list) else [],
+            "updated_at": item.get("updated_at"),
+            "completed_at": item.get("completed_at"),
+            "completion_commit": item.get("completion_commit"),
+        }
+
+    sorted_items = sorted(items, key=lambda item: str(item.get("updated_at") or item.get("created_at") or ""), reverse=True)
+    active_items = [
+        row(item)
+        for item in sorted_items
+        if str(item.get("status") or "").lower() in {"proposed", "ready", "in_progress", "blocked"}
+    ][:12]
+    recent_done_items = [row(item) for item in sorted_items if str(item.get("status") or "").lower() == "done"][:12]
+
+    return {
+        "path": queue_state.get("path"),
+        "detected": True,
+        "total": len(items),
+        "by_status": dict(sorted(by_status.items())),
+        "active_items": active_items,
+        "recent_done_items": recent_done_items,
+        "recent_items": [row(item) for item in sorted_items[:20]],
+    }
+
+
+def _queue_doc_recommendations(docs: list[DocSnapshot], queue_summary: dict[str, Any]) -> list[str]:
+    if not queue_summary.get("detected") or queue_summary.get("error"):
+        return []
+    searchable_docs = {doc.path: doc.text for doc in docs if doc.exists}
+    required_docs = [
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+    ]
+    recommendations: list[str] = []
+    queue_items = list(queue_summary.get("active_items", [])) + list(queue_summary.get("recent_done_items", []))[:8]
+    for item in queue_items:
+        item_id = str(item.get("item_id") or "")
+        milestone = _milestone_from_item_id(item_id)
+        if not milestone:
+            continue
+        missing_in = [
+            path
+            for path in required_docs
+            if path in searchable_docs and milestone not in searchable_docs[path] and item_id not in searchable_docs[path]
+        ]
+        if missing_in:
+            recommendations.append(
+                f"Review {milestone} ({item_id}) documentation coverage in: " + ", ".join(missing_in)
+            )
+    return sorted(set(recommendations))
+
+
+def _milestone_from_item_id(item_id: str) -> str:
+    match = re.match(r"m(\d+)-", item_id.lower())
+    if not match:
+        return ""
+    return f"M{int(match.group(1))}"
+
+
 def _render_markdown(payload: dict[str, Any]) -> str:
     lines: list[str] = [
         f"# {payload['title']}",
         "",
         f"- generated_at: {payload['generated_at']}",
+        f"- generated_at_policy: {payload.get('generated_at_policy')}",
         f"- repo_path: {payload['repo_path']}",
         f"- plan_only: {payload['plan_only']}",
         f"- local_only: {payload['local_only']}",
+        f"- read_only_by_default: {payload['read_only_by_default']}",
         "",
         "## Docs Inspected",
     ]
@@ -389,6 +613,43 @@ def _render_markdown(payload: dict[str, Any]) -> str:
     lines.extend(f"- {item}" for item in missing_docs)
     if not missing_docs:
         lines.append("- None")
+
+    changed_docs = payload.get("changed_source_docs", {})
+    lines.extend(["", "## Changed Source Docs"])
+    if isinstance(changed_docs, dict):
+        changed_paths = changed_docs.get("changed_paths", [])
+        lines.extend(f"- {item}" for item in changed_paths)
+        if not changed_paths:
+            lines.append("- None detected")
+
+    queue_items = payload.get("queue_items", {})
+    lines.extend(["", "## Queue Items"])
+    if isinstance(queue_items, dict) and queue_items.get("detected"):
+        lines.append(f"- total: {queue_items.get('total')}")
+        lines.append(f"- by_status: {queue_items.get('by_status')}")
+        lines.append("- active_items:")
+        active_items = queue_items.get("active_items", [])
+        if active_items:
+            for item in active_items:
+                lines.append(f"  - {item.get('item_id')} ({item.get('status')}): {item.get('title')}")
+        else:
+            lines.append("  - None")
+        lines.append("- recent_done_items:")
+        recent_done = queue_items.get("recent_done_items", [])
+        if recent_done:
+            for item in recent_done[:8]:
+                lines.append(f"  - {item.get('item_id')} ({item.get('completion_commit')}): {item.get('title')}")
+        else:
+            lines.append("  - None")
+    else:
+        lines.append("- Queue state unavailable")
+
+    recent_commits = payload.get("recent_commits", {})
+    lines.extend(["", "## Recent Local Commits"])
+    if isinstance(recent_commits, dict) and recent_commits.get("items"):
+        lines.extend(f"- {item}" for item in recent_commits.get("items", []))
+    else:
+        lines.append("- None available")
 
     lines.extend(["", "## Detected Milestone References"])
     milestones = payload.get("detected_milestone_references", [])
@@ -425,6 +686,11 @@ def _render_markdown(payload: dict[str, Any]) -> str:
 
     lines.extend(["", "## Next Actions"])
     lines.extend(f"- {item}" for item in payload.get("next_actions", []))
+
+    lines.extend(["", "## Safety Boundary"])
+    safety = payload.get("safety_boundary", {})
+    if isinstance(safety, dict):
+        lines.extend(f"- {key}: {value}" for key, value in safety.items())
 
     if payload.get("include_git_state") and isinstance(payload.get("git_state"), dict):
         git_state = payload["git_state"]

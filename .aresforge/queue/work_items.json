@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T06:42:04.505426+00:00",
+  "updated_at": "2026-05-30T06:47:33.249078+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -1615,6 +1615,61 @@
       "closeout_history": [],
       "created_at": "2026-05-30T06:38:07.925656+00:00",
       "updated_at": "2026-05-30T06:42:04.505426+00:00"
+    },
+    {
+      "item_id": "m92-documentation-reconciliation-plan-generator",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M92 Documentation Reconciliation Plan Generator",
+      "description": "Add a local-only documentation reconciliation plan generator that inspects changed source-of-truth docs and queue state, then outputs a plan artifact without automatically rewriting docs.",
+      "status": "proposed",
+      "priority": "normal",
+      "item_type": "feature",
+      "tags": [
+        "milestone:m92",
+        "documentation-agent",
+        "doc-reconciliation",
+        "plan-generator"
+      ],
+      "dependencies": [
+        "m91-documentation-agent-v1-contract"
+      ],
+      "blocked_by": [],
+      "assigned_agent": "",
+      "source": "local_operator",
+      "notes": "Acceptance criteria: local-only; read-only by default; generate deterministic reconciliation plan; include source docs, queue items, recent commits, stale sections if detectable, and recommended doc updates; no local LLM invocation; no Codex invocation; no documentation mutation unless future explicit apply gate exists; no automatic next-item execution; no GitHub API, gh, issues, PRs, workflows, daemon, watcher, scheduler, or external workflow behavior.",
+      "started_at": "",
+      "started_via": "",
+      "previous_status": "",
+      "completed_at": "",
+      "completed_by": "",
+      "completion_commit": "",
+      "validation_summary": "",
+      "evidence_note": "",
+      "tests_run": [],
+      "changed_files": [],
+      "artifact_paths": [],
+      "completion_evidence": {},
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-30T06:47:33.249078+00:00",
+      "updated_at": "2026-05-30T06:47:33.249078+00:00"
     }
   ]
 }
