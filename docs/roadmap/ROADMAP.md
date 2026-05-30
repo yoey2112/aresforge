@@ -2,7 +2,7 @@
 
 ## M91 Documentation Agent v1 Contract
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main`.
 
 Purpose:
 
