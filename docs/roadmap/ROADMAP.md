@@ -1,5 +1,52 @@
 # AresForge Roadmap
 
+## M112 Dispatch Result Evidence Parser
+
+Status: Implemented locally on `main`; validation pending commit.
+
+Queue item: `m112-dispatch-result-evidence-parser`.
+
+Implementation commit: pending.
+
+Purpose:
+
+- parse a local human-pasted Codex result text or markdown file
+- extract structured evidence for files changed, change summary, tests, smoke checks, warnings/blockers, and commit hash
+- warn on missing evidence sections without crashing
+- preserve human review before queue completion
+
+Runnable operator surface:
+
+- `python -m aresforge parse-dispatch-result-evidence --item-id <item_id> --result-path <path>`
+- `python -m aresforge parse-dispatch-result-evidence --item-id <item_id> --result-path <path> --format json`
+- `python -m aresforge parse-dispatch-result-evidence --item-id <item_id> --result-path <path> --output <path> --force`
+
+Ready behavior:
+
+- queue item must exist
+- result file must exist locally
+- parser emits stable `dispatch_result_evidence`
+- missing sections become warnings
+- completion recommendation remains advisory
+
+Blocked behavior:
+
+- missing queue item blocks
+- missing result file blocks
+- explicit output path overwrite blocks unless `--force` is provided
+
+Constraints preserved:
+
+- no Codex execution or Codex CLI shell-out
+- no local LLM, Ollama, documentation-agent, external-agent, GitHub API, `gh`, network, issue, PR, workflow, or patch application behavior
+- no repository mutation from parsed output
+- no automatic queue completion, approval mutation, handoff, or next-item execution
+
+Relationship:
+
+- M112 consumes manual dispatch result evidence after an operator-run Codex session.
+- M112 does not complete the queue item; it prepares structured evidence for human review and later completion recommendation workflows.
+
 ## M111 Approval-Gated Patch Intake Contract
 
 Status: Completed locally on `main` after validation.

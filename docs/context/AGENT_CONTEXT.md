@@ -1,5 +1,31 @@
 # AresForge Agent Context
 
+## M112 Dispatch Result Evidence Parser Context
+
+Status: Implemented locally on `main`; validation pending commit.
+
+Queue item: `m112-dispatch-result-evidence-parser`.
+
+Implementation commit: pending.
+
+M112 adds a local-only evidence parser:
+
+- `python -m aresforge parse-dispatch-result-evidence --item-id <item_id> --result-path <path>`
+- `python -m aresforge parse-dispatch-result-evidence --item-id <item_id> --result-path <path> --format json`
+- optional `--output`, `--force`, and `--queue-path`
+
+The command reads a human-pasted Codex result text or markdown file and emits structured `dispatch_result_evidence`. It extracts common completion sections for files changed, change summary, tests, smoke checks, warnings/blockers, and commit hash. Missing sections become warning entries rather than crashes.
+
+M112 boundaries:
+
+- no Codex execution
+- no Codex CLI shell-out
+- no local LLM, Ollama, documentation-agent, GitHub API, `gh`, network service, external-agent, workflow, issue, PR, or patch application behavior
+- no repository mutation from parsed result content
+- no queue completion, approval mutation, automatic handoff, or next-item execution
+
+M112 evidence is advisory and always requires human review before any queue completion decision.
+
 ## M111 Approval-Gated Patch Intake Contract Context
 
 Status: Completed locally on `main` after validation.

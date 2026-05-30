@@ -1,5 +1,62 @@
 # Runnable Skeleton
 
+## M112 Dispatch Result Evidence Parser
+
+M112 adds a local-only evidence parsing command:
+
+- `python -m aresforge parse-dispatch-result-evidence --item-id <item_id> --result-path <path>`
+- `python -m aresforge parse-dispatch-result-evidence --item-id <item_id> --result-path <path> --format json`
+- optional `--output`, `--force`, and `--queue-path`
+
+Runnable behavior:
+
+- reads local queue state
+- reads a local result text or markdown file
+- parses common Codex completion sections
+- infers file paths, validation lines, smoke lines, and commit hashes when sections are absent
+- treats missing sections as warnings
+- emits stable readable or JSON CLI output
+- refuses to overwrite output files unless `--force` is explicit
+- preserves `human_review_required=true`, `local_only=true`, and `execution_allowed=false`
+
+Stable evidence fields:
+
+- `evidence_record_type`
+- `parsed`
+- `blocked`
+- `blocked_reasons`
+- `item_id`
+- `title`
+- `project_id`
+- `milestone`
+- `result_path`
+- `result_exists`
+- `files_changed`
+- `what_changed`
+- `tests_reported`
+- `smoke_checks_reported`
+- `warnings_or_blockers`
+- `commit_hash`
+- `validation_confidence`
+- `completion_recommendation`
+- `human_review_required`
+- `local_only`
+- `execution_allowed`
+- `next_safe_action`
+
+Still absent by design:
+
+- Codex execution or Codex CLI shell-out
+- local LLM or Ollama invocation
+- documentation-agent execution or apply mode
+- GitHub API, `gh`, issues, PRs, workflows, network calls, or external services
+- external agent execution
+- patch application
+- repository mutation from parsed result content
+- queue mutation, approval mutation, automatic handoff, automatic completion, or next-item execution
+
+M112 prepares evidence for human review only. It does not complete queue work automatically.
+
 ## M111 Approval-Gated Patch Intake Contract
 
 M111 adds a local-only patch proposal intake command:

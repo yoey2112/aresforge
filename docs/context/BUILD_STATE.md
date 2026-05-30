@@ -2,11 +2,53 @@
 
 ## Current Phase
 
-M111 implements the Approval-Gated Patch Intake Contract after M110. It records proposed patch artifacts for human review while keeping patch application blocked.
+M112 implements the Dispatch Result Evidence Parser after M111. It parses a human-pasted local Codex result file into structured evidence without executing Codex or making network calls.
 
 ## Current Goal
 
-M111 adds `intake-patch-proposal` for local-only patch proposal intake. It validates the queue item, patch artifact path, approval gate id/status, and output overwrite behavior before recording review metadata. It accepts a patch only for review when an M101 approval gate is `approved_for_manual_handoff`; it never applies patches and always preserves `patch_application_allowed=false`, `patch_application_performed=false`, and `execution_allowed=false`.
+M112 adds `parse-dispatch-result-evidence` for local-only evidence parsing. It reads a local text or markdown result file, extracts common Codex completion sections, warns on missing sections, and preserves `human_review_required=true`, `local_only=true`, and `execution_allowed=false`. It does not mark queue items complete automatically.
+
+## M112 Dispatch Result Evidence Parser
+
+Status: Implemented locally on `main`; validation pending commit.
+
+Queue item: `m112-dispatch-result-evidence-parser`.
+
+Implementation commit: pending.
+
+M112 adds:
+
+- `parse-dispatch-result-evidence --item-id <item_id> --result-path <path>`
+- `parse-dispatch-result-evidence --item-id <item_id> --result-path <path> --format json`
+- optional `--output`, `--force`, and `--queue-path`
+
+The evidence record includes:
+
+- `evidence_record_type=dispatch_result_evidence`
+- parsed/blocked status and blocked reasons
+- queue identity fields: `item_id`, `title`, `project_id`, and `milestone`
+- local result path and existence
+- parsed `files_changed`, `what_changed`, `tests_reported`, `smoke_checks_reported`, `warnings_or_blockers`, and `commit_hash`
+- `validation_confidence`
+- `completion_recommendation`
+- `human_review_required=true`
+- `local_only=true`
+- `execution_allowed=false`
+- next safe action
+
+Parser behavior:
+
+- recognizes common markdown sections such as Files Changed, What Changed, Tests Run, Smoke Checks, Warnings Or Blockers, and Commit Hash
+- infers file paths, validation lines, smoke lines, and commit hashes when sections are absent
+- treats missing sections as warnings instead of crashes
+- refuses to overwrite output files unless `--force` is provided
+
+Safety boundaries:
+
+- no Codex execution or Codex CLI shell-out
+- no local LLM, Ollama, documentation-agent, external-agent, GitHub API, `gh`, network, issue, PR, or workflow behavior
+- no patch application or repository mutation from parsed output
+- no automatic queue completion, approval mutation, handoff, or next-item execution
 
 ## M111 Approval-Gated Patch Intake Contract
 

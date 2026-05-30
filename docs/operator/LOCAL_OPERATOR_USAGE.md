@@ -1,5 +1,58 @@
 # Local Operator Usage
 
+## M112 Dispatch Result Evidence Parser
+
+M112 parses a local text or markdown file containing human-pasted Codex result output. It does not execute Codex, invoke models, call GitHub, call `gh`, call network services, apply patches, mutate repository files from the parsed result, complete queue items, or start follow-on work.
+
+Readable evidence parsing:
+
+    python -m aresforge parse-dispatch-result-evidence --item-id <item_id> --result-path <path>
+
+JSON evidence parsing:
+
+    python -m aresforge parse-dispatch-result-evidence --item-id <item_id> --result-path <path> --format json
+
+Write a local evidence record:
+
+    python -m aresforge parse-dispatch-result-evidence --item-id <item_id> --result-path <path> --output artifacts/dispatch_result_evidence/<item_id>.json --format json
+
+Overwrite only with explicit force:
+
+    python -m aresforge parse-dispatch-result-evidence --item-id <item_id> --result-path <path> --output artifacts/dispatch_result_evidence/<item_id>.json --format json --force
+
+The evidence record includes:
+
+- `evidence_record_type=dispatch_result_evidence`
+- parsed/blocked status and blocked reasons
+- queue identity
+- result file path and existence
+- files changed
+- change summary
+- tests reported
+- smoke checks reported
+- warnings or blockers
+- commit hash
+- validation confidence
+- completion recommendation
+- `human_review_required=true`
+- `local_only=true`
+- `execution_allowed=false`
+
+Parser behavior:
+
+- recognizes common Codex completion sections
+- infers file paths, validation lines, smoke lines, and commit hashes when possible
+- treats missing sections as warnings
+- blocks missing queue item, missing result file, and output overwrite without `--force`
+
+Operator workflow:
+
+- save the manual Codex result transcript or final summary to a local `.md` or `.txt` file
+- run `parse-dispatch-result-evidence`
+- review missing-section warnings and validation confidence
+- use the evidence record as input for human review or later recommendation tooling
+- complete the queue item only through the explicit queue lifecycle command with validation evidence
+
 ## M111 Approval-Gated Patch Intake Contract
 
 M111 records a proposed patch artifact for human review. It does not apply patches, mutate repository files, execute Codex, invoke local LLMs, execute documentation agents, call GitHub, call `gh`, call network services, mutate approval state, complete queue items, or start follow-on work.

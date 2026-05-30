@@ -67,6 +67,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-dispatch-artifacts",
         "prepare-manual-codex-dispatch",
         "intake-patch-proposal",
+        "parse-dispatch-result-evidence",
         "inspect-llm-decision-matrix",
         "inspect-local-llm-provider-contract",
         "run-single-ready-codex-queue-item",
@@ -6434,6 +6435,129 @@ def test_intake_patch_proposal_dispatch_markdown(
     assert exit_code == 0
     assert "accepted_for_review: True" in output
     assert "patch_application_allowed: False" in output
+
+
+def test_parse_dispatch_result_evidence_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "evidence_record_type": "dispatch_result_evidence",
+                "parsed": True,
+                "blocked": False,
+                "item_id": "m112",
+                "result_path": "artifacts/manual/sample-codex-result.md",
+                "result_exists": True,
+                "files_changed": ["src/aresforge/cli.py"],
+                "tests_reported": ["python -m pytest tests/test_cli.py -> passed"],
+                "smoke_checks_reported": ["smoke -> passed"],
+                "commit_hash": "abc1234",
+                "validation_confidence": "high",
+                "completion_recommendation": "ready_for_human_completion_review",
+                "human_review_required": True,
+                "local_only": True,
+                "execution_allowed": False,
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_parse(
+        _config,
+        item_id,
+        result_path,
+        queue_path=None,
+        output=None,
+        force=False,
+        output_format="markdown",
+    ):
+        seen["item_id"] = item_id
+        seen["result_path"] = result_path
+        seen["queue_path"] = queue_path
+        seen["output"] = output
+        seen["force"] = force
+        seen["output_format"] = output_format
+        return payload
+
+    monkeypatch.setattr(cli, "parse_dispatch_result_evidence", fake_parse)
+    exit_code = cli.main(
+        [
+            "parse-dispatch-result-evidence",
+            "--item-id",
+            "m112",
+            "--result-path",
+            "artifacts/manual/sample-codex-result.md",
+            "--queue-path",
+            "queue.json",
+            "--output",
+            "artifacts/dispatch_result_evidence/m112.json",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["evidence_record_type"] == "dispatch_result_evidence"
+    assert parsed["human_review_required"] is True
+    assert parsed["execution_allowed"] is False
+    assert seen == {
+        "item_id": "m112",
+        "result_path": "artifacts/manual/sample-codex-result.md",
+        "queue_path": "queue.json",
+        "output": "artifacts/dispatch_result_evidence/m112.json",
+        "force": True,
+        "output_format": "json",
+    }
+
+
+def test_parse_dispatch_result_evidence_dispatch_markdown(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "markdown",
+        "wrote_output_file": False,
+        "stdout": "# Dispatch Result Evidence\n\n- parsed: True\n- validation_confidence: high\n",
+        "payload": {},
+    }
+    monkeypatch.setattr(
+        cli,
+        "parse_dispatch_result_evidence",
+        lambda _config,
+        item_id,
+        result_path,
+        queue_path=None,
+        output=None,
+        force=False,
+        output_format="markdown": payload,
+    )
+
+    exit_code = cli.main(
+        [
+            "parse-dispatch-result-evidence",
+            "--item-id",
+            "m112",
+            "--result-path",
+            "artifacts/manual/sample-codex-result.md",
+        ]
+    )
+    output = capsys.readouterr().out
+
+    assert exit_code == 0
+    assert "parsed: True" in output
+    assert "validation_confidence: high" in output
+
+
+
 
 
 def test_validate_documentation_agent_dry_run_dispatch_json(

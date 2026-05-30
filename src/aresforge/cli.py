@@ -235,6 +235,7 @@ from aresforge.operator.local_llm_advisory_dry_run import validate_local_llm_adv
 from aresforge.operator.local_llm_advisory_artifact import generate_local_llm_advisory_artifact
 from aresforge.operator.documentation_agent_dry_run import validate_documentation_agent_dry_run
 from aresforge.operator.approval_gated_patch_intake import intake_patch_proposal
+from aresforge.operator.dispatch_result_evidence_parser import parse_dispatch_result_evidence
 from aresforge.operator.dispatch_approval_gate import (
     APPROVAL_GATE_STATUSES,
     create_dispatch_approval_gate,
@@ -1780,6 +1781,20 @@ def build_parser() -> argparse.ArgumentParser:
     intake_patch_proposal_parser.add_argument("--output")
     intake_patch_proposal_parser.add_argument("--force", action="store_true")
     intake_patch_proposal_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="markdown",
+    )
+    parse_dispatch_result_evidence_parser = subparsers.add_parser(
+        "parse-dispatch-result-evidence",
+        help="Parse a local human-pasted Codex result file into structured evidence without execution.",
+    )
+    parse_dispatch_result_evidence_parser.add_argument("--item-id", required=True)
+    parse_dispatch_result_evidence_parser.add_argument("--result-path", required=True)
+    parse_dispatch_result_evidence_parser.add_argument("--queue-path")
+    parse_dispatch_result_evidence_parser.add_argument("--output")
+    parse_dispatch_result_evidence_parser.add_argument("--force", action="store_true")
+    parse_dispatch_result_evidence_parser.add_argument(
         "--format",
         choices=["json", "markdown"],
         default="markdown",
@@ -4379,6 +4394,22 @@ def main(argv: list[str] | None = None) -> int:
             approval_id=args.approval_id,
             queue_path=args.queue_path,
             approval_path=args.approval_path,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "parse-dispatch-result-evidence":
+        payload = parse_dispatch_result_evidence(
+            config,
+            item_id=args.item_id,
+            result_path=args.result_path,
+            queue_path=args.queue_path,
             output=args.output,
             force=bool(args.force),
             output_format=args.format,
