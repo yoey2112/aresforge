@@ -11,6 +11,7 @@ from aresforge.operator.codex_dispatch_runner import (
     run_operator_gated_codex_dispatch,
 )
 from aresforge.operator.local_project_queue import add_queue_item, init_project_queue, inspect_queue_item
+from aresforge.operator.single_ready_codex_queue_item import run_single_ready_codex_queue_item
 from aresforge.operator.managed_project_registry_local import (
     init_managed_project_registry,
     register_managed_project,
@@ -69,6 +70,66 @@ def _seed_project_and_item(config: AppConfig, tmp_path: Path, *, item_id: str = 
         priority="high",
         item_type="feature",
     )["ok"] is True
+
+
+def _seed_ready_item(config: AppConfig, tmp_path: Path, *, item_id: str = "ready-codex-item", status: str = "ready") -> None:
+    assert init_managed_project_registry(config)["ok"] is True
+    assert register_managed_project(
+        config,
+        project_id="aresforge",
+        name="AresForge",
+        root_path=tmp_path,
+        status="active",
+        primary_repo_id="aresforge-main",
+    )["ok"] is True
+    assert register_managed_repo(
+        config,
+        project_id="aresforge",
+        repo_id="aresforge-main",
+        name="AresForge Main",
+        path=tmp_path,
+        role="primary",
+        status="active",
+    )["ok"] is True
+    assert init_project_queue(config)["ok"] is True
+    assert add_queue_item(
+        config,
+        item_id=item_id,
+        project_id="aresforge",
+        repo_id="aresforge-main",
+        title=f"{item_id} title",
+        description="Ready item with enough execution context.",
+        status=status,
+        priority="high",
+        item_type="feature",
+    )["ok"] is True
+
+
+def _ok_runner(*args, **kwargs):
+    return subprocess.CompletedProcess(args=args[0], returncode=0, stdout=b"codex ok\n", stderr=b"")
+
+
+def _validation_runner(*args, **kwargs):
+    return subprocess.CompletedProcess(args=args[0], returncode=0, stdout="validation ok\n", stderr="")
+
+
+def _git_runner_factory(*, fail_on: str | None = None):
+    calls: list[list[str]] = []
+
+    def runner(*args, **kwargs):
+        command = list(args[0])
+        calls.append(command)
+        joined = " ".join(command)
+        if fail_on and fail_on in joined:
+            return subprocess.CompletedProcess(args=command, returncode=1, stdout="", stderr=f"{joined} failed")
+        if command[:2] == ["git", "status"]:
+            return subprocess.CompletedProcess(args=command, returncode=0, stdout=" M src/example.py\n", stderr="")
+        if command[:2] == ["git", "rev-parse"]:
+            return subprocess.CompletedProcess(args=command, returncode=0, stdout=f"commit-{len(calls)}\n", stderr="")
+        return subprocess.CompletedProcess(args=command, returncode=0, stdout="ok\n", stderr="")
+
+    runner.calls = calls
+    return runner
 
 
 def test_dispatch_requires_operator_approval_before_run(tmp_path: Path) -> None:
@@ -328,3 +389,173 @@ def test_run_state_json_reading_accepts_utf8_bom(tmp_path: Path) -> None:
 
     assert inspected["ok"] is True
     assert inspected["payload"]["run_id"] == "run-one"
+
+
+def test_single_ready_codex_workflow_zero_ready_items_fails_safely(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_ready_item(config, tmp_path, status="proposed")
+
+    result = run_single_ready_codex_queue_item(
+        config,
+        approval_phrase=APPROVAL_PHRASE,
+        command=["codex", "--fake"],
+        validation_commands=["git diff --check"],
+    )
+
+    assert result["ok"] is False
+    assert result["payload"]["workflow_state"] == "selection_failed"
+    assert result["payload"]["next_item_started"] is False
+    assert any("No ready/startable" in blocker for blocker in result["payload"]["blockers"])
+
+
+def test_single_ready_codex_workflow_multiple_ready_items_requires_explicit_item_id(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_ready_item(config, tmp_path, item_id="ready-one")
+    assert add_queue_item(
+        config,
+        item_id="ready-two",
+        project_id="aresforge",
+        repo_id="aresforge-main",
+        title="Ready two",
+        description="Second ready item.",
+        status="ready",
+    )["ok"] is True
+
+    result = run_single_ready_codex_queue_item(
+        config,
+        approval_phrase=APPROVAL_PHRASE,
+        command=["codex", "--fake"],
+        validation_commands=["git diff --check"],
+    )
+
+    assert result["ok"] is False
+    assert result["payload"]["workflow_state"] == "selection_failed"
+    assert result["payload"]["selection"]["ready_item_ids"] == ["ready-one", "ready-two"]
+
+
+def test_single_ready_codex_workflow_explicit_item_processes_only_that_item(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_ready_item(config, tmp_path, item_id="target-ready")
+    assert add_queue_item(
+        config,
+        item_id="other-ready",
+        project_id="aresforge",
+        repo_id="aresforge-main",
+        title="Other ready",
+        description="Should remain ready.",
+        status="ready",
+    )["ok"] is True
+    git_runner = _git_runner_factory()
+
+    result = run_single_ready_codex_queue_item(
+        config,
+        item_id="target-ready",
+        approval_phrase=APPROVAL_PHRASE,
+        run_id="single-run",
+        command=["codex", "--fake"],
+        validation_commands=["git diff --check"],
+        command_runner=_ok_runner,
+        validation_runner=_validation_runner,
+        git_runner=git_runner,
+    )
+    target = inspect_queue_item(config, item_id="target-ready")["payload"]["item"]
+    other = inspect_queue_item(config, item_id="other-ready")["payload"]["item"]
+
+    assert result["ok"] is True
+    assert result["payload"]["workflow_state"] == "completed"
+    assert result["payload"]["next_item_started"] is False
+    assert result["payload"]["queue_item_status"] == "done"
+    assert target["status"] == "done"
+    assert other["status"] == "ready"
+    assert sum(1 for call in git_runner.calls if call[:2] == ["git", "push"]) == 2
+
+
+def test_single_ready_codex_workflow_selected_not_ready_fails_safely(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_ready_item(config, tmp_path, item_id="not-ready", status="in_progress")
+
+    result = run_single_ready_codex_queue_item(
+        config,
+        item_id="not-ready",
+        approval_phrase=APPROVAL_PHRASE,
+        command=["codex", "--fake"],
+        validation_commands=["git diff --check"],
+    )
+
+    assert result["ok"] is False
+    assert result["payload"]["workflow_state"] == "selection_failed"
+    assert any("ready and startable" in blocker for blocker in result["payload"]["selection"]["blockers"])
+
+
+def test_single_ready_codex_workflow_failed_codex_does_not_complete_item(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_ready_item(config, tmp_path)
+
+    def failed_codex(*args, **kwargs):
+        return subprocess.CompletedProcess(args=args[0], returncode=9, stdout=b"", stderr=b"codex failed")
+
+    result = run_single_ready_codex_queue_item(
+        config,
+        item_id="ready-codex-item",
+        approval_phrase=APPROVAL_PHRASE,
+        run_id="failed-codex",
+        command=["codex", "--fake"],
+        validation_commands=["git diff --check"],
+        command_runner=failed_codex,
+    )
+    item = inspect_queue_item(config, item_id="ready-codex-item")["payload"]["item"]
+
+    assert result["ok"] is False
+    assert result["payload"]["workflow_state"] == "codex_failed"
+    assert item["status"] == "in_progress"
+    assert item["completion_evidence"]["push_result"] == "recovery_required"
+
+
+def test_single_ready_codex_workflow_failed_validation_does_not_complete_item(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_ready_item(config, tmp_path)
+
+    def failed_validation(*args, **kwargs):
+        return subprocess.CompletedProcess(args=args[0], returncode=1, stdout="", stderr="tests failed")
+
+    result = run_single_ready_codex_queue_item(
+        config,
+        item_id="ready-codex-item",
+        approval_phrase=APPROVAL_PHRASE,
+        run_id="failed-validation",
+        command=["codex", "--fake"],
+        validation_commands=["python -m pytest tests/test_codex_dispatch_runner.py"],
+        command_runner=_ok_runner,
+        validation_runner=failed_validation,
+    )
+    item = inspect_queue_item(config, item_id="ready-codex-item")["payload"]["item"]
+
+    assert result["ok"] is False
+    assert result["payload"]["workflow_state"] == "validation_failed"
+    assert item["status"] == "in_progress"
+    assert item["closed_at"] == ""
+
+
+def test_single_ready_codex_workflow_commit_push_failure_records_recovery_required(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_ready_item(config, tmp_path)
+    git_runner = _git_runner_factory(fail_on="git commit")
+
+    result = run_single_ready_codex_queue_item(
+        config,
+        item_id="ready-codex-item",
+        approval_phrase=APPROVAL_PHRASE,
+        run_id="commit-fail",
+        command=["codex", "--fake"],
+        validation_commands=["git diff --check"],
+        command_runner=_ok_runner,
+        validation_runner=_validation_runner,
+        git_runner=git_runner,
+    )
+    item = inspect_queue_item(config, item_id="ready-codex-item")["payload"]["item"]
+
+    assert result["ok"] is False
+    assert result["payload"]["workflow_state"] == "implementation_commit_push_failed"
+    assert result["payload"]["recovery_required"] is True
+    assert item["status"] == "in_progress"
+    assert item["completion_evidence"]["push_result"].startswith("recovery_required")

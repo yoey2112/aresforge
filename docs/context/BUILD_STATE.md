@@ -1,5 +1,31 @@
 # AresForge Build State
 
+## M79.2 Single-Item Ready-to-Codex Automation
+
+Status: In progress locally on `main`.
+
+Delivered in this pass:
+
+- added `run-single-ready-codex-queue-item` for one explicit local operator-controlled ready queue item
+- selection fails safely when no ready/startable item exists or when multiple ready/startable items exist without `--item-id`
+- explicit item selection processes only that item and requires it to be ready/startable
+- workflow composes prompt preparation, M78 approval, hardened Codex dispatch, validation commands, implementation commit/push, queue evidence capture, queue closeout, and queue evidence commit/push
+- failed Codex dispatch, failed validation, and failed implementation commit/push leave the queue item in progress and record recovery evidence where possible
+- no next queue item is started automatically
+
+M79.2 safety posture:
+
+- local-only and explicit-command only
+- no watcher, daemon, scheduler, polling loop, file-change trigger, or unattended queue worker
+- Codex dispatch still requires the exact M78 approval phrase
+- Prompt Builder remains artifact-only and does not execute prompts, call Codex, invoke local LLMs, mutate files, or advance queue items
+- no GitHub API, `gh`, issues, PRs, workflows, or external workflow execution
+- git commit/push attempts are local git CLI operations after validation gates pass
+
+Recommended next milestone:
+
+- After M79.2 review/evidence capture, continue to M79.3 only by explicit operator action.
+
 ## M79.1 Codex CLI Windows Runner Hardening
 
 Status: In progress locally on `main`.

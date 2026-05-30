@@ -217,6 +217,7 @@ from aresforge.operator.codex_dispatch_runner import (
     run_operator_gated_codex_dispatch,
 )
 from aresforge.operator.queue_dispatch_preparation import prepare_queue_item_dispatch
+from aresforge.operator.single_ready_codex_queue_item import run_single_ready_codex_queue_item
 from aresforge.operator.local_agent_profiles import (
     AGENT_PROFILE_STATUSES,
     AGENT_ROLES,
@@ -1556,6 +1557,36 @@ def build_parser() -> argparse.ArgumentParser:
     prepare_queue_item_dispatch_parser.add_argument("--start-if-ready", action="store_true")
     prepare_queue_item_dispatch_parser.add_argument("--force", action="store_true")
     prepare_queue_item_dispatch_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="json",
+    )
+    run_single_ready_codex_queue_item_parser = subparsers.add_parser(
+        "run-single-ready-codex-queue-item",
+        help="Run one manually ready queue item through operator-approved Codex dispatch, validation, git, and queue evidence.",
+    )
+    run_single_ready_codex_queue_item_parser.add_argument("--item-id")
+    run_single_ready_codex_queue_item_parser.add_argument("--queue-path")
+    run_single_ready_codex_queue_item_parser.add_argument("--registry-path")
+    run_single_ready_codex_queue_item_parser.add_argument("--prompt-output")
+    run_single_ready_codex_queue_item_parser.add_argument("--force-prompt", action="store_true")
+    run_single_ready_codex_queue_item_parser.add_argument("--approved-by", default="local_operator")
+    run_single_ready_codex_queue_item_parser.add_argument("--approval-phrase", required=True)
+    run_single_ready_codex_queue_item_parser.add_argument("--run-id")
+    run_single_ready_codex_queue_item_parser.add_argument("--command", dest="codex_command")
+    run_single_ready_codex_queue_item_parser.add_argument("--command-arg", action="append", default=[])
+    run_single_ready_codex_queue_item_parser.add_argument("--timeout-seconds", type=int, default=300)
+    run_single_ready_codex_queue_item_parser.add_argument("--validation-command", action="append", default=[])
+    run_single_ready_codex_queue_item_parser.add_argument(
+        "--implementation-commit-message",
+        default="M79.2 add single-item ready Codex automation",
+    )
+    run_single_ready_codex_queue_item_parser.add_argument(
+        "--queue-evidence-commit-message",
+        default="Record M79.2 queue evidence",
+    )
+    run_single_ready_codex_queue_item_parser.add_argument("--closed-by", default="local_operator")
+    run_single_ready_codex_queue_item_parser.add_argument(
         "--format",
         choices=["json", "markdown"],
         default="json",
@@ -3756,6 +3787,31 @@ def main(argv: list[str] | None = None) -> int:
             output=args.output,
             start_if_ready=bool(args.start_if_ready),
             force=bool(args.force),
+            output_format=args.format,
+        )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "run-single-ready-codex-queue-item":
+        payload = run_single_ready_codex_queue_item(
+            config,
+            item_id=args.item_id,
+            queue_path=args.queue_path,
+            registry_path=args.registry_path,
+            prompt_output=args.prompt_output,
+            force_prompt=bool(args.force_prompt),
+            approved_by=args.approved_by,
+            approval_phrase=args.approval_phrase,
+            run_id=args.run_id,
+            command=args.command_arg or args.codex_command,
+            timeout_seconds=args.timeout_seconds,
+            validation_commands=list(args.validation_command),
+            implementation_commit_message=args.implementation_commit_message,
+            queue_evidence_commit_message=args.queue_evidence_commit_message,
+            closed_by=args.closed_by,
             output_format=args.format,
         )
         if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):

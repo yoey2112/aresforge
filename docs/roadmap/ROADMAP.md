@@ -1,5 +1,35 @@
 # AresForge Roadmap
 
+## M79.2 Single-Item Ready-to-Codex Automation
+
+Status: In progress locally on `main`.
+
+Purpose:
+
+- add one explicit local operator command that can process exactly one manually ready queue item through prompt preparation, approved Codex dispatch, validation, commit/push, queue evidence capture, and queue evidence commit/push
+- preserve the one-item boundary and avoid any automatic next-item execution
+
+Delivered scope:
+
+- `run-single-ready-codex-queue-item`
+- fail-safe ready-item selection for zero, multiple, explicit not-ready, Codex failure, validation failure, and commit/push failure states
+- local recovery evidence capture when the workflow starts but cannot complete
+- targeted tests for selection, dispatch, validation, git failure, CLI wiring, and next-item non-execution
+
+Constraints preserved:
+
+- explicit command only; no background watcher or daemon
+- no prompt dispatch from Prompt Builder itself
+- Codex dispatch requires the M78 approval phrase
+- no local LLM execution expansion
+- no GitHub API, `gh`, issues, PRs, workflows, external workflow execution, or GitHub mutation
+- no automatic queue completion outside this explicit workflow
+- no automatic next-item execution
+
+Next recommended milestone:
+
+- M79.3 only after explicit operator review and queue action.
+
 ## M79.1 Codex CLI Windows Runner Hardening
 
 Status: In progress locally on `main`.

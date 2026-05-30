@@ -57,6 +57,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-codex-dispatch-contract",
         "prepare-codex-dispatch-dry-run",
         "prepare-queue-item-dispatch",
+        "run-single-ready-codex-queue-item",
         "approve-codex-dispatch",
         "run-codex-dispatch",
         "inspect-codex-dispatch-run",
@@ -4932,6 +4933,82 @@ def test_prepare_queue_item_dispatch_dispatch_json(
     assert seen["target"] == "codex"
     assert seen["start_if_ready"] is True
     assert seen["force"] is True
+
+
+def test_run_single_ready_codex_queue_item_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "ok": True,
+                "workflow_state": "completed",
+                "item_id": "m79-2",
+                "automatic_next_item_execution_allowed": False,
+                "next_item_started": False,
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_run(
+        _config,
+        item_id=None,
+        queue_path=None,
+        registry_path=None,
+        prompt_output=None,
+        force_prompt=False,
+        approved_by="local_operator",
+        approval_phrase="",
+        run_id=None,
+        command=None,
+        timeout_seconds=300,
+        validation_commands=None,
+        implementation_commit_message="M79.2 add single-item ready Codex automation",
+        queue_evidence_commit_message="Record M79.2 queue evidence",
+        closed_by="local_operator",
+        output_format="json",
+    ):
+        seen["item_id"] = item_id
+        seen["command"] = command
+        seen["validation_commands"] = validation_commands
+        seen["approval_phrase"] = approval_phrase
+        seen["implementation_commit_message"] = implementation_commit_message
+        return payload
+
+    monkeypatch.setattr(cli, "run_single_ready_codex_queue_item", fake_run)
+    exit_code = cli.main(
+        [
+            "run-single-ready-codex-queue-item",
+            "--item-id",
+            "m79-2",
+            "--approval-phrase",
+            "APPROVE CODEX DISPATCH",
+            "--command-arg",
+            "codex",
+            "--validation-command",
+            "git diff --check",
+            "--implementation-commit-message",
+            "M79.2 add single-item ready Codex automation",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["workflow_state"] == "completed"
+    assert parsed["automatic_next_item_execution_allowed"] is False
+    assert parsed["next_item_started"] is False
+    assert seen["item_id"] == "m79-2"
+    assert seen["command"] == ["codex"]
+    assert seen["validation_commands"] == ["git diff --check"]
+    assert seen["approval_phrase"] == "APPROVE CODEX DISPATCH"
 
 
 def test_approve_codex_dispatch_dispatch_json(

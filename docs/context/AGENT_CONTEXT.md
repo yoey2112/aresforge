@@ -1,5 +1,31 @@
 # AresForge Agent Context
 
+## M79.2 Single-Item Ready-to-Codex Automation Context
+
+Status: In progress locally on `main`.
+
+Current automation scope:
+
+- `run-single-ready-codex-queue-item` processes exactly one manually ready/startable queue item.
+- If `--item-id` is omitted, zero ready items and multiple ready items both fail safely.
+- If `--item-id` is supplied, only that item is considered and it must be ready/startable.
+- The workflow composes existing prompt preparation, M78 approval, M79.1 hardened stdin dispatch, validation commands, implementation commit/push, queue evidence capture, queue closeout, and queue evidence commit/push.
+- Codex failure, validation failure, or implementation commit/push failure does not complete the item and records recovery state where possible.
+- No next queue item is started automatically.
+
+Boundaries preserved:
+
+- explicit local command only; no watcher, daemon, scheduler, polling, file-change trigger, or unattended worker
+- Prompt Builder output remains artifact-only and non-executing
+- Codex dispatch still requires the exact M78 approval phrase
+- no automatic next-item execution
+- no local LLM execution expansion
+- no GitHub API, `gh`, GitHub issues, PRs, workflows, external workflow execution, or GitHub mutation
+
+Recommended next milestone:
+
+- Complete M79.2 validation and evidence capture; do not start M79.3 or later items automatically.
+
 ## M79.1 Codex CLI Windows Runner Hardening Context
 
 Status: In progress locally on `main`.

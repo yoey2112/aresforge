@@ -1,5 +1,32 @@
 # Runnable Skeleton
 
+## M79.2 Single-Item Ready-to-Codex Automation
+
+M79.2 adds an explicit one-item local automation command:
+
+- `python -m aresforge run-single-ready-codex-queue-item --item-id <item_id> --approved-by local_operator --approval-phrase "APPROVE CODEX DISPATCH" --command-arg codex --validation-command "git diff --check" --format json`
+
+Runnable behavior:
+
+- selects exactly one ready/startable queue item, or fails safely
+- prepares the prompt artifact without letting Prompt Builder execute anything
+- captures the M78 approval gate using the exact approval phrase
+- dispatches the operator-provided command through the hardened stdin prompt workflow
+- runs explicit validation commands
+- attempts implementation commit/push only after validation passes
+- captures queue evidence and closes only the selected item after required gates pass
+- attempts queue evidence commit/push separately
+- reports recovery-required state if Codex, validation, or commit/push fails
+- never starts a next queue item
+
+Still absent by design:
+
+- watcher, daemon, scheduler, or file-change trigger
+- unattended multi-item queue execution
+- automatic next-item execution
+- GitHub API, `gh`, issues, PRs, workflows, or external workflow execution
+- local LLM execution expansion
+
 ## M79.1 Codex CLI Windows Runner Hardening
 
 M79.1 hardens the M78 runner without changing dispatch gates:

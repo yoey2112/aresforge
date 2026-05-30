@@ -1,5 +1,32 @@
 # Local Operator Usage
 
+## M79.2 Single-Item Ready-to-Codex Automation
+
+Run exactly one manually ready queue item through the local Codex workflow:
+
+    python -m aresforge run-single-ready-codex-queue-item --item-id <item_id> --approved-by local_operator --approval-phrase "APPROVE CODEX DISPATCH" --command-arg codex --validation-command "python -m pytest tests/test_codex_dispatch_runner.py tests/test_local_project_queue.py tests/test_cli.py" --validation-command "git diff --check" --format json
+
+When `--item-id` is omitted, the command selects only if exactly one queue item is `ready` and startable. If zero or multiple ready/startable items exist, it fails safely. If `--item-id` is supplied, only that item is considered, and it must be ready/startable.
+
+Workflow behavior:
+
+- prepares or reuses the prompt artifact through `prepare-queue-item-dispatch`
+- requires the M78 approval phrase before Codex dispatch
+- runs the operator-provided Codex command with the hardened stdin prompt handoff
+- runs explicit validation commands
+- attempts an implementation `git add`, `git commit`, and `git push`
+- records queue completion evidence and closes only the selected item after validation and implementation commit/push pass
+- attempts a second git commit/push for queue evidence
+- never starts a next queue item
+
+Failure behavior:
+
+- Codex failure leaves the item in progress and records recovery evidence.
+- Validation failure leaves the item in progress and records recovery evidence.
+- Implementation commit/push failure leaves the item in progress and records recovery-required evidence.
+- Queue evidence commit/push failure reports recovery required; inspect local git status and push/commit manually if needed.
+- The command does not use GitHub API, `gh`, issues, PRs, workflows, or external workflow execution.
+
 ## M79.1 Codex CLI Windows Runner Hardening
 
 For Windows Codex dispatch runs, prefer the reviewed prompt artifact workflow:
