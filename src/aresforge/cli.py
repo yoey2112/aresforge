@@ -228,6 +228,7 @@ from aresforge.operator.local_llm_provider import (
     inspect_ollama_health_and_models,
 )
 from aresforge.operator.queue_dispatch_preparation import prepare_queue_item_dispatch
+from aresforge.operator.queue_agent_dispatch_plan import inspect_queue_agent_dispatch_plan
 from aresforge.operator.single_ready_codex_queue_item import run_single_ready_codex_queue_item
 from aresforge.operator.local_agent_profiles import (
     AGENT_PROFILE_STATUSES,
@@ -1573,6 +1574,18 @@ def build_parser() -> argparse.ArgumentParser:
         "--format",
         choices=["json", "markdown"],
         default="json",
+    )
+    inspect_queue_dispatch_plan_parser = subparsers.add_parser(
+        "inspect-queue-dispatch-plan",
+        help="Inspect the M97 local-only queue-to-agent advisory dispatch plan for one queue item.",
+    )
+    inspect_queue_dispatch_plan_parser.add_argument("--item-id", required=True)
+    inspect_queue_dispatch_plan_parser.add_argument("--queue-path")
+    inspect_queue_dispatch_plan_parser.add_argument("--registry-path")
+    inspect_queue_dispatch_plan_parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="markdown",
     )
     inspect_llm_decision_matrix_parser = subparsers.add_parser(
         "inspect-llm-decision-matrix",
@@ -3931,6 +3944,20 @@ def main(argv: list[str] | None = None) -> int:
             output=args.output,
             start_if_ready=bool(args.start_if_ready),
             force=bool(args.force),
+            output_format=args.format,
+        )
+        if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
+            print(payload["stdout"])
+            return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-queue-dispatch-plan":
+        payload = inspect_queue_agent_dispatch_plan(
+            config,
+            item_id=args.item_id,
+            queue_path=args.queue_path,
+            registry_path=args.registry_path,
             output_format=args.format,
         )
         if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):

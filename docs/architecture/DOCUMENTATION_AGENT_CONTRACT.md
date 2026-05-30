@@ -74,7 +74,9 @@ Apply mode must also require validation evidence, selected source docs, worktree
 
 M92 plan generation and M95 reconciliation are manual documentation workflows. They may identify stale sections and recommended updates, but they do not authorize automatic documentation rewrites or model-generated apply behavior.
 
-M96 is post-sprint planning and prioritization. It may update source-of-truth docs directly as an operator-authored reconciliation step, but it does not add Documentation Agent apply mode and does not permit model-generated documentation rewrites. The next documentation-agent work should be a dry-run review workflow before any future apply gate is designed.
+M96 is post-sprint planning and prioritization. It may update source-of-truth docs directly as an operator-authored reconciliation step, but it does not add Documentation Agent apply mode and does not permit model-generated documentation rewrites.
+
+M97 may select `documentation_agent_dry_run` for documentation or reconciliation queue items. This is only a dispatch plan lane and planned artifact intent. It does not execute a documentation agent, generate documentation patches, apply documentation changes, complete queue items, or create an apply mode. M100 remains the planned milestone for a documentation-agent dry-run review workflow.
 
 ## Safety Boundaries
 

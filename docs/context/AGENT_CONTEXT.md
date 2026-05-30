@@ -1,8 +1,44 @@
 # AresForge Agent Context
 
+## M97 Queue-to-Agent Dispatch Plan Contract Context
+
+Status: Current local implementation milestone on `main`.
+
+Queue item: `m97-queue-to-agent-dispatch-plan-contract`.
+
+M96 queue status: `m96-post-sprint-planning-and-prioritization` remains `proposed`; M97 was seeded separately for this implementation pass.
+
+Current M97 scope:
+
+- inspect exactly one local queue item
+- produce a structured advisory dispatch plan
+- select one dispatch lane with confidence and reason
+- include item identity, planned artifact intent, approval gates, blocked reasons, and next safe action
+- keep `local_only: true` and `execution_allowed: false`
+
+Supported M97 lanes:
+
+- `codex_prompt_artifact`
+- `local_llm_advisory`
+- `local_llm_coding_draft`
+- `documentation_agent_dry_run`
+- `human_only_manual`
+
+M97 operator boundaries:
+
+- do not execute Codex, Ollama, local LLMs, documentation agents, external agents, GitHub CLI, GitHub API, issues, PRs, workflows, daemons, watchers, schedulers, or network calls
+- do not generate the full Codex prompt in M97; M98 owns that artifact generation
+- do not apply generated patches or documentation output
+- do not mutate queue state from dispatch-plan inspection
+- require operator review and approval before any future dispatch or model/provider run
+
+Primary command:
+
+- `python -m aresforge inspect-queue-dispatch-plan --item-id <item_id> [--format json|markdown]`
+
 ## M96 Post-Sprint Planning and Prioritization Context
 
-Status: Current local planning milestone on `main`.
+Status: Proposed in the local queue; retained as planning context.
 
 Queue item: `m96-post-sprint-planning-and-prioritization`.
 

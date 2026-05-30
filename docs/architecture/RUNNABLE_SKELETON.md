@@ -1,5 +1,37 @@
 # Runnable Skeleton
 
+## M97 Queue-to-Agent Dispatch Plan Contract
+
+M97 adds a local-only inspection command:
+
+- `python -m aresforge inspect-queue-dispatch-plan --item-id <item_id>`
+- `python -m aresforge inspect-queue-dispatch-plan --item-id <item_id> --format json`
+
+Runnable behavior:
+
+- reads the local queue item
+- composes readiness and M80/M86 routing confidence metadata
+- selects one advisory dispatch lane
+- reports planned artifact intent, approval gates, blocked reasons, safety flags, and next safe action
+- keeps output JSON-serializable
+
+Supported lanes:
+
+- `codex_prompt_artifact`
+- `local_llm_advisory`
+- `local_llm_coding_draft`
+- `documentation_agent_dry_run`
+- `human_only_manual`
+
+Still absent by design:
+
+- full Codex prompt generation; M98 owns that next artifact step
+- Codex execution or prompt dispatch
+- Ollama or local LLM invocation
+- documentation-agent execution or apply mode
+- GitHub API, `gh`, issues, PRs, workflows, network calls, or external agents
+- repo mutation, queue mutation, queue completion, or automatic next-item execution from dispatch-plan inspection
+
 ## M96 Post-Sprint Planning and Prioritization
 
 M96 adds no runtime command. It uses existing local inspection/report commands to reconcile the completed M81-M95 sprint and plan the next operator-gated batch.

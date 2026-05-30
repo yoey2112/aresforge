@@ -1,8 +1,36 @@
 # AresForge Roadmap
 
+## M97 Queue-to-Agent Dispatch Plan Contract
+
+Status: Current local implementation milestone on `main`.
+
+Queue item: `m97-queue-to-agent-dispatch-plan-contract`.
+
+Purpose:
+
+- inspect one local queue item and produce a safe advisory dispatch plan
+- select a future handling lane with routing confidence and a short reason
+- describe planned artifact intent without generating the full Codex prompt
+- list approval gates and blocked reasons before any future dispatch can occur
+
+Supported lanes:
+
+- `codex_prompt_artifact`
+- `local_llm_advisory`
+- `local_llm_coding_draft`
+- `documentation_agent_dry_run`
+- `human_only_manual`
+
+Constraints preserved:
+
+- M97 is plan/contract/inspection only
+- `local_only` is true and `execution_allowed` is false
+- no Codex, Ollama, local LLM, documentation-agent, external-agent, GitHub API, `gh`, network, workflow, patch-apply, queue-completion, or next-item execution occurs
+- M98 is the next artifact milestone for generating local Codex prompt dispatch artifacts from reviewed M97 plans
+
 ## M96 Post-Sprint Planning and Prioritization
 
-Status: Current local planning milestone on `main`.
+Status: Proposed in the local queue; retained as planning context.
 
 Queue item: `m96-post-sprint-planning-and-prioritization`.
 
@@ -31,13 +59,13 @@ Constraints preserved:
 
 ### M96 Post-Sprint Planning and Prioritization
 
-Status: Active.
+Status: Proposed.
 
 Current local planning and reconciliation milestone. M96 should close only after the source-of-truth docs, queue state, smoke checks, and next planned batch are reviewed.
 
 ### M97 Queue-to-Agent Dispatch Plan Contract
 
-Status: Planned.
+Status: Active.
 
 Define a queue-to-agent dispatch plan payload that maps a selected queue item to advisory lane, required operator gates, artifact expectations, validation burden, and blocked execution states. This should be a contract and inspection surface only.
 

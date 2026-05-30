@@ -57,6 +57,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-codex-dispatch-contract",
         "prepare-codex-dispatch-dry-run",
         "prepare-queue-item-dispatch",
+        "inspect-queue-dispatch-plan",
         "inspect-llm-decision-matrix",
         "inspect-local-llm-provider-contract",
         "run-single-ready-codex-queue-item",
@@ -5698,6 +5699,88 @@ def test_run_single_ready_codex_queue_item_dispatch_json(
     assert seen["command"] == ["codex"]
     assert seen["validation_commands"] == ["git diff --check"]
     assert seen["approval_phrase"] == "APPROVE CODEX DISPATCH"
+
+
+def test_inspect_queue_dispatch_plan_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "ok": True,
+                "local_only": True,
+                "item_id": "m97",
+                "selected_lane": "codex_prompt_artifact",
+                "execution_allowed": False,
+                "next_safe_action": "Review this plan, then use the future M98 artifact generator.",
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_inspect(_config, item_id, queue_path=None, registry_path=None, output_format="markdown"):
+        seen["item_id"] = item_id
+        seen["queue_path"] = queue_path
+        seen["registry_path"] = registry_path
+        seen["output_format"] = output_format
+        return payload
+
+    monkeypatch.setattr(cli, "inspect_queue_agent_dispatch_plan", fake_inspect)
+    exit_code = cli.main(
+        [
+            "inspect-queue-dispatch-plan",
+            "--item-id",
+            "m97",
+            "--queue-path",
+            "queue.json",
+            "--registry-path",
+            "projects.json",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["selected_lane"] == "codex_prompt_artifact"
+    assert parsed["execution_allowed"] is False
+    assert parsed["local_only"] is True
+    assert seen == {
+        "item_id": "m97",
+        "queue_path": "queue.json",
+        "registry_path": "projects.json",
+        "output_format": "json",
+    }
+
+
+def test_inspect_queue_dispatch_plan_dispatch_markdown(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "markdown",
+        "wrote_output_file": False,
+        "stdout": "# Queue-to-Agent Dispatch Plan\n\n- selected_lane: documentation_agent_dry_run\n- next_safe_action: Review this plan.\n",
+        "payload": {},
+    }
+    monkeypatch.setattr(
+        cli,
+        "inspect_queue_agent_dispatch_plan",
+        lambda _config, item_id, queue_path=None, registry_path=None, output_format="markdown": payload,
+    )
+
+    exit_code = cli.main(["inspect-queue-dispatch-plan", "--item-id", "m100"])
+    output = capsys.readouterr().out
+
+    assert exit_code == 0
+    assert "selected_lane: documentation_agent_dry_run" in output
+    assert "next_safe_action: Review this plan." in output
 
 
 def test_approve_codex_dispatch_dispatch_json(

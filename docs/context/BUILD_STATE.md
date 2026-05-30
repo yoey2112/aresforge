@@ -2,15 +2,47 @@
 
 ## Current Phase
 
-Post-sprint planning and prioritization after the completed M81-M95 local sprint.
+M97 local-only queue-to-agent dispatch plan contract implementation after the M96 planning pass.
 
 ## Current Goal
 
-M96 reviews the final local reports, queue state, handoff package, and source-of-truth docs; records any mismatches or non-blocking warnings; and defines the next operator-gated milestone batch without starting new implementation features.
+M97 adds a safe inspection contract that can read one local queue item and produce an advisory dispatch plan with a selected lane, routing confidence, planned artifact intent, blocked reasons, next safe action, and required operator approval gates. It does not execute Codex, Ollama, local LLMs, documentation agents, GitHub, external agents, or network calls.
+
+## M97 Queue-to-Agent Dispatch Plan Contract
+
+Status: Current local implementation milestone on `main`.
+
+Queue status: seeded locally as `m97-queue-to-agent-dispatch-plan-contract`; M96 remains `proposed` because no existing completion evidence was recorded for it in this pass.
+
+Delivered in this pass:
+
+- adds `inspect-queue-dispatch-plan` for local-only dispatch plan inspection
+- adds a JSON-serializable M97 dispatch plan contract for one queue item
+- supports `codex_prompt_artifact`, `local_llm_advisory`, `local_llm_coding_draft`, `documentation_agent_dry_run`, and `human_only_manual`
+- maps implementation/coding items toward a future M98 Codex prompt artifact intent without generating the full prompt
+- maps documentation/reconciliation items toward a documentation-agent dry-run plan
+- falls back to `human_only_manual` when the item is missing, blocked, unclear, or below the confidence threshold
+- reports `local_only: true` and `execution_allowed: false` on every plan
+
+M97 safety posture:
+
+- advisory plan/data/inspection only
+- no Codex execution or Codex prompt dispatch
+- no Ollama or local LLM invocation
+- no documentation-agent execution or apply mode
+- no GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, network call, or external agent execution
+- no queue mutation from the inspection command
+- any future execution remains outside M97 and requires explicit operator approval
+
+M97 to M98 relationship:
+
+- M97 identifies the intended artifact and gates.
+- M98 may generate a local Codex prompt dispatch artifact from a reviewed M97 plan.
+- M98 still must remain non-executing unless a later explicit dispatch gate applies.
 
 ## M96 Post-Sprint Planning and Prioritization
 
-Status: Current local planning milestone on `main`.
+Status: Proposed in the local queue; planning docs from the prior pass remain authoritative context.
 
 Queue status: seeded locally as `m96-post-sprint-planning-and-prioritization`.
 

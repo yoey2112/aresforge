@@ -18,7 +18,9 @@ M88 adds a human-gated patch application contract. `inspect-human-gated-patch-ap
 
 M95 reconciles the completed overnight sprint documentation through M94. No routing runtime is added. Routing confidence, provider/model metadata, local advisory artifacts, local coding draft artifacts, and patch application contracts remain advisory/manual-review inputs only.
 
-M96 is post-sprint planning and prioritization. It does not add routing runtime, dispatch execution, model invocation, or patch application. The next routing-adjacent work should progress through non-executing dispatch plan contracts, artifact generation, dry-run validation, and human approval data contracts before any unsupervised automation is considered.
+M96 is post-sprint planning and prioritization. It does not add routing runtime, dispatch execution, model invocation, or patch application.
+
+M97 adds the first queue-to-agent dispatch plan contract. It wraps queue readiness and M80/M86 routing confidence into a local-only advisory payload with one selected lane, planned artifact intent, approval gates, blocked reasons, and `execution_allowed: false`. Its lanes are `codex_prompt_artifact`, `local_llm_advisory`, `local_llm_coding_draft`, `documentation_agent_dry_run`, and `human_only_manual`. Low-confidence, blocked, missing, or unclear items fall back to `human_only_manual`. M97 does not dispatch prompts, call Codex, invoke local LLMs, execute agents, or mutate queue/source state.
 
 Current prompt-pack and Codex high-value lane behavior are advisory prompt generation/manual handoff only. Runtime routing execution, Codex dispatch, Codex CLI invocation, real agent execution, external workflow execution, and GitHub integration remain unimplemented. Local LLM execution exists only as the M62 operator-gated local prototype and remains local-only, advisory-only, prototype-scoped, and non-mutating.
 

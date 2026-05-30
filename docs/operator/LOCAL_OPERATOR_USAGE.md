@@ -1,8 +1,53 @@
 # Local Operator Usage
 
+## M97 Queue-to-Agent Dispatch Plan Contract
+
+Inspect one local queue item and build an advisory dispatch plan:
+
+    python -m aresforge inspect-queue-dispatch-plan --item-id m97-queue-to-agent-dispatch-plan-contract
+
+Inspect the same plan as JSON:
+
+    python -m aresforge inspect-queue-dispatch-plan --item-id m97-queue-to-agent-dispatch-plan-contract --format json
+
+The M97 plan payload includes:
+
+- `item_id`, `title`, `status`, `project_id`, `repo_id`, and `milestone`
+- `selected_lane`, `routing_confidence`, and `lane_selection_reason`
+- `planned_artifact_intent`
+- `approval_gates`
+- `blocked_reasons`
+- `next_safe_action`
+- `local_only: true`
+- `execution_allowed: false`
+
+Supported lanes:
+
+- `codex_prompt_artifact`
+- `local_llm_advisory`
+- `local_llm_coding_draft`
+- `documentation_agent_dry_run`
+- `human_only_manual`
+
+Operator gates before any future dispatch:
+
+- select and review the queue item explicitly
+- review the dispatch plan and confirm the lane
+- review the planned artifact intent
+- confirm local-only boundaries
+- run required local validation when implementation occurs
+- record review evidence before queue completion
+- use a later explicit approval gate before Codex, local LLM, documentation-agent apply mode, or any other execution path
+
+M97 warnings:
+
+- M97 does not generate the full Codex prompt; M98 owns that future artifact.
+- M97 does not execute Codex, Ollama, local LLMs, documentation agents, external agents, GitHub API, `gh`, network calls, workflows, patches, queue completion, or next-item execution.
+- If confidence is low, the item is missing, or requirements are unclear, the safe lane is `human_only_manual`.
+
 ## M96 Post-Sprint Planning and Prioritization
 
-M96 is local planning and reconciliation only. It does not add a runtime command.
+M96 is local planning and reconciliation only. It remains `proposed` in the local queue after M97 seeding.
 
 Required review commands for this milestone:
 
