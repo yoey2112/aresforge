@@ -52,6 +52,16 @@ M98 adds Codex prompt artifact generation only for the M97 `codex_prompt_artifac
 
 M99 adds a Local LLM Advisory Execution Dry-Run Validator for the M97 `local_llm_advisory` lane only. It validates readiness metadata and operator gates while preserving `execution_allowed=false`. It does not call Ollama, does not invoke provider health or inference endpoints, does not send prompts, does not generate model responses, does not authorize advisory execution, and blocks non-advisory lanes safely. Any actual advisory artifact or provider run remains a later explicit operator-approved milestone.
 
+M100 adds a Documentation Agent dry-run review for `documentation_agent_dry_run`; it does not call local LLMs or affect provider behavior.
+
+M101 adds local human approval gate records for dispatch artifacts and dry-runs. Approval status does not authorize local LLM execution and keeps `execution_allowed=false`.
+
+M102 hardens queue dependency and completion locks. These locks do not invoke providers and must remain separate from any future local LLM artifact or execution approval.
+
+M103 adds read-only self-managed project review, and M104 adds read-only operator batch planning. Both may report local LLM-related safety classifications or warnings, but neither calls Ollama, sends prompts, runs inference, or authorizes local LLM execution.
+
+M105 reconciles source-of-truth docs after M99-M104. It does not add local LLM provider behavior. Any future local LLM advisory artifact generator remains a later explicit milestone such as M110.
+
 ## Storage
 
 The contract is stored locally at:
@@ -86,6 +96,7 @@ Reading defaults does not write this file. Updating the contract writes the file
 - CLI: `python -m aresforge prepare-local-coding-draft --item-id <item_id> --format json`
 - CLI: `python -m aresforge inspect-human-gated-patch-application-contract --format json`
 - CLI: `python -m aresforge validate-local-llm-advisory-dry-run --item-id <item_id> --format json`
+- CLI: `python -m aresforge plan-operator-batch --project-id aresforge --limit 10 --format json`
 
 ## Fields
 

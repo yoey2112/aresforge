@@ -1,5 +1,38 @@
 # Runnable Skeleton
 
+## M105 Post-Batch Documentation Reconciliation
+
+M105 does not add a new runtime command. It is a docs/data reconciliation workflow that uses existing local inspection commands:
+
+- `python -m aresforge inspect-local-project-report`
+- `python -m aresforge inspect-local-queue-agent-summary`
+- `python -m aresforge inspect-project-queue --project-id aresforge`
+- `python -m aresforge plan-operator-batch --project-id aresforge --limit 10 --format json`
+- `python -m aresforge generate-handoff-package`
+
+Runnable behavior:
+
+- reads current project, queue, batch-planner, and handoff state through existing commands
+- updates source-of-truth docs and local project state only
+- records that M99-M104 are implemented and completed
+- records that M96 remains proposed planning context
+- records local warnings from untracked pytest cache and old temp permission errors
+- prepares the next recommended manual milestone sequence
+
+Still absent by design:
+
+- new runtime feature implementation
+- automatic queue seeding
+- Codex execution
+- Ollama or local LLM invocation
+- documentation-agent execution or apply mode
+- GitHub API, `gh`, issues, PRs, workflows, network calls, or external services
+- external agent execution
+- patch application
+- automatic batch execution or next-item execution
+
+M105 prepares docs and queue evidence for M106+ planning. It does not itself create a dispatch artifact index, safe dispatch handoff package, runner contract, advisory artifact generator, or patch intake workflow.
+
 ## M104 Operator Batch Planner v1
 
 M104 adds a local-only read-only planning command:
@@ -33,7 +66,7 @@ Still absent by design:
 - patch application
 - automatic batch execution or next-item execution
 
-M105 should reconcile planned batches against completed queue evidence and documentation/project drift after an operator-run sprint.
+M105 reconciles planned batches against completed queue evidence and documentation/project drift after an operator-run sprint.
 
 ## M103 AresForge Self-Managed Project Seed Review
 
@@ -64,7 +97,7 @@ Still absent by design:
 - patch application
 - automatic batch planning or next-item execution
 
-M104 should consume the M103 review posture before proposing self-managed batches.
+M104 consumes the M103 review posture before proposing self-managed batches.
 
 ## M102 Queue Dependency and Completion Locking Hardening
 

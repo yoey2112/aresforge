@@ -1,5 +1,44 @@
 # Local Operator Usage
 
+## M105 Post-Batch Documentation Reconciliation
+
+M105 is a docs/data-only reconciliation pass after M99-M104. It updates source-of-truth documentation and local project state; it does not add new runtime features or execute any agent/model/dispatch workflow.
+
+Recommended inspection commands:
+
+    python -m aresforge inspect-local-project-report
+    python -m aresforge inspect-local-queue-agent-summary
+    python -m aresforge inspect-project-queue --project-id aresforge
+    python -m aresforge plan-operator-batch --project-id aresforge --limit 10 --format json
+    python -m aresforge generate-handoff-package
+
+Current reconciliation findings:
+
+- M99-M104 are complete in the local queue.
+- M96 remains proposed as older planning context.
+- The M104 batch planner currently proposes M96 as the only non-done plannable item.
+- Handoff generation remains local-only/read-only by default.
+- Local warning noise remains from untracked `.codex-pytest-cache/` and inaccessible old pytest temp directories.
+
+Operator workflow:
+
+- inspect the local reports above
+- update source-of-truth docs only
+- keep implemented commands distinct from future automation
+- record queue completion evidence after validation
+- select any next milestone manually
+
+M105 boundaries:
+
+- no Codex execution
+- no Ollama or local model invocation
+- no documentation-agent execution
+- no automatic documentation mutation
+- no GitHub API, `gh`, issues, PRs, workflows, or network calls
+- no external agents
+- no patch application
+- no automatic queue start, completion, dispatch, handoff, or next-item execution
+
 ## M104 Operator Batch Planner
 
 M104 proposes a safe local sprint batch from queue state. It is read-only and does not seed, start, complete, execute, dispatch, or hand off work.
@@ -43,7 +82,7 @@ Operator workflow before an overnight sprint:
 - inspect blocked and excluded items before choosing work
 - start only one approved queue item at a time through normal lifecycle commands
 - generate dispatch artifacts or dry-runs only through the existing local-only M97-M101 workflows
-- leave post-batch evidence and drift reconciliation to M105 or later workflow support
+- reconcile post-batch evidence and documentation drift through M105 or later workflow support
 
 M104 boundaries:
 

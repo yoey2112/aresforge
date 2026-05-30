@@ -30,7 +30,15 @@ M100 adds the Documentation Agent Dry-Run Review Workflow for the `documentation
 
 M101 adds the Human Approval Gate UI/Data Contract. It records local approval status for M98 Codex prompt artifacts, M99 local LLM advisory dry-runs, M100 documentation dry-runs, local coding draft artifacts, and future patch gates. Supported statuses are `pending_review`, `approved_for_manual_handoff`, `rejected`, and `needs_revision`. Approval records preserve `local_only: true` and `execution_allowed: false`; approval does not invoke Codex, Ollama/local models, documentation agents, GitHub/`gh`, external services, patch application, queue completion, or automatic next-item execution.
 
-Current prompt-pack and Codex high-value lane behavior are advisory prompt generation/manual handoff only. Runtime routing execution, Codex dispatch, Codex CLI invocation, real agent execution, external workflow execution, and GitHub integration remain unimplemented. Local LLM execution exists only as the M62 operator-gated local prototype and remains local-only, advisory-only, prototype-scoped, and non-mutating.
+M102 hardens local queue dependency and completion locking. It does not add routing execution, but it gives future dispatch workflows a required local dependency/evidence gate before start, completion, or handoff state can be trusted.
+
+M103 adds a read-only self-managed project review for `aresforge`. It confirms project identity, repo path, branch, queue counts, docs, warnings, and gaps before batch planning; it does not route or execute work.
+
+M104 adds the Operator Batch Planner v1. It reads local queue state, excludes done items, respects dependency and blocked status constraints, and classifies proposed items as `manual_only`, `codex_artifact_possible`, `local_llm_dry_run_possible`, `documentation_dry_run_possible`, or `blocked`. Classification is advisory only and keeps `execution_allowed: false`.
+
+M105 reconciles source-of-truth documentation and local project state after M99-M104. It does not add routing runtime, dispatch execution, model invocation, documentation-agent apply mode, or patch application.
+
+Current prompt-pack, dispatch-plan, dry-run, approval, queue-locking, self-review, and batch-planning behavior is advisory/manual-gated only. Runtime routing execution, automated Codex dispatch, automated Codex CLI invocation, real documentation-agent execution, external workflow execution, GitHub integration, automatic patch intake, and automatic next-item execution remain unimplemented. Local LLM execution exists only as the M62 operator-gated local prototype and remains local-only, advisory-only, prototype-scoped, and non-mutating.
 
 ## M75 Source-of-Truth and Next Decision Matrix Direction
 
@@ -50,6 +58,8 @@ The next decision-matrix direction is:
 - M87 adds local coding draft artifacts while preserving no automatic patch application or file mutation
 - M88 defines the human-gated patch application contract while preserving dry-run-only behavior
 - M95 reconciles the overnight sprint documentation and keeps the next phase manual/operator-selected
+- M99-M104 add dispatch-plan dry-runs, approval gates, queue locks, self-managed review, and batch planning without widening execution
+- M105 reconciles docs/data before the next manual sequence
 
 Next phase safety gates before any Codex dispatch implementation:
 
@@ -62,6 +72,15 @@ Next phase safety gates before any Codex dispatch implementation:
 - review evidence required before marking complete
 - queue/dependency blocking enforced
 - local validation required before commit/push
+
+Next recommended milestones remain manual/operator-selected:
+
+- M106 Dispatch Artifact Index/Report
+- M107 Safe Dispatch Handoff Package
+- M108 Sprint Closeout and Next-Stage Automation Plan
+- M109 Manual Codex Dispatch Runner Contract
+- M110 Local LLM Advisory Artifact Generator
+- M111 Approval-Gated Patch Intake Contract
 
 ## M73 Prompt Pack Quality and Routing Improvements
 

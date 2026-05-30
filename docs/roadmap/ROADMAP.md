@@ -1,5 +1,44 @@
 # AresForge Roadmap
 
+## M105 Post-Batch Documentation Reconciliation
+
+Status: In progress locally on `main`.
+
+Queue item: `m96-post-sprint-planning-and-prioritization-m105-post-batch-documentation-reconciliation`.
+
+Implementation commit: pending.
+
+Purpose:
+
+- reconcile source-of-truth docs after the completed M99-M104 local-only operator workflow batch
+- distinguish implemented local-only commands/contracts from future automation
+- update roadmap, build state, agent context, operator usage, and architecture docs
+- document current queue/report/handoff warnings
+- keep the next sequence manual/operator-selected
+
+Constraints preserved:
+
+- documentation/data reconciliation only
+- no new runtime features
+- no Codex, Ollama, local LLM, documentation-agent, external-agent, GitHub API, `gh`, network, workflow, issue creation, PR creation, patch application, or automatic next-item execution occurs
+- documentation changes are operator-authored source-of-truth edits, not model-generated apply-mode output
+
+Current report posture:
+
+- M99-M104 are completed in the local queue.
+- M96 remains `proposed` as older planning context.
+- `plan-operator-batch --project-id aresforge --limit 10 --format json` proposes M96 as the only current plannable item.
+- `generate-handoff-package` reports untracked `.codex-pytest-cache/` and older local pytest temp permission warnings.
+
+Next recommended sequence:
+
+- M106 Dispatch Artifact Index/Report
+- M107 Safe Dispatch Handoff Package
+- M108 Sprint Closeout and Next-Stage Automation Plan
+- M109 Manual Codex Dispatch Runner Contract
+- M110 Local LLM Advisory Artifact Generator
+- M111 Approval-Gated Patch Intake Contract
+
 ## M104 Operator Batch Planner v1
 
 Status: Completed locally on `main` after validation.
@@ -33,7 +72,7 @@ Constraints preserved:
 M105 relationship:
 
 - M104 is the pre-sprint batch planning view.
-- M105 is expected to reconcile batch results, evidence, queue state, and documentation drift after operator-run work.
+- M105 reconciles batch results, evidence, queue state, and documentation drift after operator-run work.
 
 ## M103 AresForge Self-Managed Project Seed Review
 
@@ -143,7 +182,7 @@ Operator workflow:
 M102 relationship:
 
 - M101 records human approval state.
-- M102 is planned to harden queue dependency and completion locks so approval state cannot bypass readiness, active-item, evidence, or completion constraints.
+- M102 hardens queue dependency and completion locks so approval state cannot bypass readiness, active-item, evidence, or completion constraints.
 
 ## M100 Documentation Agent Dry-Run Review Workflow
 

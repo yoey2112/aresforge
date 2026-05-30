@@ -86,6 +86,14 @@ M100 adds `validate-documentation-agent-dry-run` for `documentation_agent_dry_ru
 
 M101 adds local human approval gate records for documentation-agent dry-run outputs and other dispatch artifacts. A documentation gate may move through `pending_review`, `approved_for_manual_handoff`, `rejected`, or `needs_revision`, but every status preserves `execution_allowed=false`. `approved_for_manual_handoff` means the operator may manually review or hand off the artifact; it does not authorize documentation-agent execution, documentation mutation, or apply mode. M102 remains the planned dependency/completion locking hardening milestone for future workflows that consume approval records.
 
+M102 hardens dependency and completion locking for the local queue. Documentation-agent dry-run approval cannot bypass dependency, evidence, start, or completion locks.
+
+M103 adds read-only self-managed project review. It may report stale documentation or source-of-truth gaps, but it does not execute a documentation agent or mutate docs automatically.
+
+M104 adds read-only operator batch planning. It may classify documentation items as `documentation_dry_run_possible`, but that classification is advisory only and preserves `execution_allowed=false`.
+
+M105 is an operator-authored docs/data reconciliation pass after M99-M104. It updates source-of-truth docs directly under operator control, records queue/report/handoff warnings, and does not add documentation-agent apply mode, model-generated documentation rewrites, patch generation, or automatic queue completion.
+
 ## Safety Boundaries
 
 - local-only
@@ -96,3 +104,4 @@ M101 adds local human approval gate records for documentation-agent dry-run outp
 - no automatic next-item execution
 - no GitHub API or `gh`
 - no issues, PRs, workflows, daemons, watchers, schedulers, or external workflow behavior
+- documentation-agent dry-run and approval records remain advisory until a later explicit apply milestone exists

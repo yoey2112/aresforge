@@ -1,5 +1,57 @@
 # AresForge Agent Context
 
+## M105 Post-Batch Documentation Reconciliation Context
+
+Status: In progress locally on `main`.
+
+Queue item: `m96-post-sprint-planning-and-prioritization-m105-post-batch-documentation-reconciliation`.
+
+Implementation commit: pending.
+
+M105 is a docs/data reconciliation pass for the completed M99-M104 operator workflow batch. It does not add runtime features.
+
+Current post-batch state:
+
+- M99 through M104 are completed in the local queue.
+- M96 remains `proposed` as older planning context.
+- The operator batch planner currently proposes M96 as the only non-done plannable item.
+- Local project report and queue summary are ready with no queue blockers.
+- `generate-handoff-package` is safe/read-only and shows the latest M104 commits plus persistent local warning noise.
+
+M105 reconciliation targets:
+
+- `docs/context/BUILD_STATE.md`
+- `docs/context/AGENT_CONTEXT.md`
+- `docs/roadmap/ROADMAP.md`
+- `docs/operator/LOCAL_OPERATOR_USAGE.md`
+- `docs/architecture/RUNNABLE_SKELETON.md`
+- `docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md`
+- `docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md`
+- `docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md`
+
+M105 boundaries:
+
+- docs/data-only reconciliation
+- no new operator runtime feature implementation
+- no Codex, local LLM, Ollama, documentation-agent, GitHub API, `gh`, network service, external-agent, patch, or automatic dispatch execution
+- no automatic documentation mutation from model output
+- no automatic queue start, completion, or next-item execution
+
+Warnings to keep visible:
+
+- `.codex-pytest-cache/` remains untracked after local pytest runs.
+- `git status` still reports permission warnings for old local pytest temp directories under `.codex-tmp` and `.tmp*`.
+- Recovered M80 dispatch runs remain audited as non-blocking warnings.
+
+Next recommended sequence after M105:
+
+- M106 Dispatch Artifact Index/Report
+- M107 Safe Dispatch Handoff Package
+- M108 Sprint Closeout and Next-Stage Automation Plan
+- M109 Manual Codex Dispatch Runner Contract
+- M110 Local LLM Advisory Artifact Generator
+- M111 Approval-Gated Patch Intake Contract
+
 ## M104 Operator Batch Planner v1 Context
 
 Status: Completed locally on `main` after validation.
@@ -31,7 +83,7 @@ M104 boundaries:
 - no Codex, local LLM, Ollama, documentation-agent, GitHub API, `gh`, network service, external-agent, patch, or automatic dispatch execution
 - `execution_allowed` remains false at the batch and item level
 
-M105 remains the future post-batch reconciliation milestone. It should consume planned batch output and queue evidence after an operator sprint rather than treating M104 as an execution workflow.
+M105 consumes planned batch output, completed queue evidence, and report warnings as a documentation/data reconciliation workflow rather than treating M104 as an execution workflow.
 
 ## M103 AresForge Self-Managed Project Seed Review Context
 
@@ -64,7 +116,7 @@ M103 boundaries:
 - no registry mutation
 - no Codex, local LLM, Ollama, documentation-agent, GitHub API, `gh`, network service, external-agent, patch, or automatic dispatch execution
 
-M104 remains the future batch planner milestone. It should use the M103 self-managed review as readiness input before proposing batches.
+M104 is now complete and uses the M103 self-managed review posture before proposing batches.
 
 ## M102 Queue Dependency and Completion Locking Context
 

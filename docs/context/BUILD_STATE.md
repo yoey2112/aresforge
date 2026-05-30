@@ -2,11 +2,56 @@
 
 ## Current Phase
 
-M104 adds the Operator Batch Planner v1 so AresForge can propose a safe, sequential local sprint batch from the queue without executing or mutating work.
+M105 performs post-batch documentation reconciliation for the completed M99-M104 local-only operator workflow milestones.
 
 ## Current Goal
 
-M104 reads local queue state, excludes completed work, respects dependency and blocked status constraints, classifies each planned item by safe dispatch posture, and reports the next local operator action before M105 post-batch reconciliation.
+M105 aligns source-of-truth docs, roadmap state, local project state, queue evidence, and handoff warnings after M99-M104. It is docs/data-only and does not add runtime features, model execution, agent execution, dispatch execution, or patch application.
+
+## M105 Post-Batch Documentation Reconciliation
+
+Status: In progress locally on `main`.
+
+Queue item: `m96-post-sprint-planning-and-prioritization-m105-post-batch-documentation-reconciliation`.
+
+Implementation commit: pending.
+
+M105 reconciliation scope:
+
+- reviewed completed M99-M104 work and queue evidence
+- reconciled source-of-truth docs with implemented local-only commands and data contracts
+- corrected stale future-tense claims for M100-M104 where implementation is now complete
+- updated roadmap guidance for the next recommended sequence
+- updated local project state to reflect M105 documentation reconciliation
+- documented persistent local warning noise from `.codex-pytest-cache/` and inaccessible old pytest temp directories
+
+Current implemented M99-M104 surface:
+
+- M99: `validate-local-llm-advisory-dry-run`
+- M100: `validate-documentation-agent-dry-run`
+- M101: dispatch approval gate records and read-only Hub panel
+- M102: queue dependency/completion locking plus `inspect-queue-consistency`
+- M103: `inspect-self-managed-project`
+- M104: `plan-operator-batch`
+
+M105 safety boundaries:
+
+- documentation and local data reconciliation only
+- no new runtime feature implementation
+- no Codex execution
+- no Ollama or local model invocation
+- no documentation-agent execution or automatic documentation mutation
+- no GitHub API, `gh`, network service, workflow, issue, PR, external-agent, or patch application
+- no automatic next-item execution
+
+Recommended next sequence after M105:
+
+- M106 Dispatch Artifact Index/Report
+- M107 Safe Dispatch Handoff Package
+- M108 Sprint Closeout and Next-Stage Automation Plan
+- M109 Manual Codex Dispatch Runner Contract
+- M110 Local LLM Advisory Artifact Generator
+- M111 Approval-Gated Patch Intake Contract
 
 ## M104 Operator Batch Planner v1
 
@@ -56,7 +101,7 @@ Safety boundaries:
 M104 to M105 relationship:
 
 - M104 proposes the safe ordered batch before an operator sprint.
-- M105 remains the future post-batch reconciliation milestone that should compare planned work, completed work, evidence, and queue/doc drift after a batch.
+- M105 reconciles planned work, completed M99-M104 work, evidence, queue state, and source-of-truth docs after the batch.
 
 ## M103 AresForge Self-Managed Project Seed Review
 
