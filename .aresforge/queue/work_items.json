@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T06:00:18.122857+00:00",
+  "updated_at": "2026-05-30T06:06:04.023540+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -1197,6 +1197,76 @@
       "closeout_history": [],
       "created_at": "2026-05-30T05:53:00.116469+00:00",
       "updated_at": "2026-05-30T06:00:18.122857+00:00"
+    },
+    {
+      "item_id": "m86-routing-confidence-scoring",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M86 Routing Confidence Scoring",
+      "description": "Add deterministic routing confidence scoring to the M80 decision matrix for Codex, local LLM advisory, local coding draft, or manual-only routing.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "feature",
+      "tags": [
+        "milestone:m86",
+        "routing",
+        "llm-decision-matrix",
+        "confidence"
+      ],
+      "dependencies": [
+        "m85-local-llm-advisory-run-artifact"
+      ],
+      "blocked_by": [],
+      "assigned_agent": "",
+      "source": "local_operator",
+      "notes": "Acceptance criteria: deterministic scoring; include risk, task size, work mode, item type, dependencies, validation burden, provider availability, model profile availability, recovery history; output score, rationale, warnings, and recommended lane; advisory only; no execution; no automatic queue mutation; no automatic next item; no GitHub API, gh, issues, PRs, workflows, daemon, watcher, scheduler, or external workflow behavior.",
+      "started_at": "2026-05-30T06:05:53.259937+00:00",
+      "started_via": "local_operator",
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-30T06:06:04.023540+00:00",
+      "completed_by": "codex",
+      "completion_commit": "ec95acc8a2caf1fc25da9e42753c2199428b0dd1",
+      "validation_summary": "Passed: python -m pytest tests/test_prompt_builder_agent.py tests/test_cli.py; broader M86 bundle; smoke checks for inspect-llm-decision-matrix and inspect-local-project-report; git diff --check.",
+      "evidence_note": "M86 adds deterministic advisory-only routing confidence scoring to the M80 decision matrix with lane scores for Codex, local LLM advisory, local coding draft, and manual-only routing. Scoring does not execute, mutate queue state, or start next items.",
+      "tests_run": [
+        "python -m pytest tests/test_prompt_builder_agent.py tests/test_cli.py",
+        "python -m pytest tests/test_prompt_builder_agent.py tests/test_queue_dispatch_preparation.py tests/test_codex_dispatch_contract.py tests/test_codex_dispatch_runner.py tests/test_cli.py tests/test_local_project_queue.py tests/test_local_project_factory.py tests/test_hub_local_queue_lifecycle_api.py tests/test_hub_project_factory_api.py tests/test_hub_ui_foundation.py",
+        "python -m aresforge inspect-llm-decision-matrix --item-id m81-local-llm-advisory-coding-lane-prototype --format json",
+        "python -m aresforge inspect-local-project-report",
+        "git diff --check"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/llm_decision_matrix.py",
+        "tests/test_prompt_builder_agent.py",
+        "tests/test_cli.py",
+        "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md"
+      ],
+      "artifact_paths": [],
+      "completion_evidence": {},
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-30T06:01:36.775882+00:00",
+      "updated_at": "2026-05-30T06:06:04.023540+00:00"
     }
   ]
 }

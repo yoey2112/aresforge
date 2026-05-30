@@ -2,7 +2,7 @@
 
 ## M86 Routing Confidence Scoring Context
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main`.
 
 Current confidence scoring scope:
 
