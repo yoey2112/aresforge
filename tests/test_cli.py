@@ -191,6 +191,7 @@ def test_cli_has_expected_commands() -> None:
         "prepare-local-coding-draft",
         "inspect-human-gated-patch-application-contract",
         "inspect-model-usage-report",
+        "inspect-documentation-agent-contract",
         "prepare-codex-handoff",
     ):
         assert command in help_text
@@ -5333,6 +5334,67 @@ def test_inspect_model_usage_report_dispatch_json(
     assert parsed["safety_boundary"]["network_calls_allowed"] is False
     assert parsed["safety_boundary"]["provider_invocation_allowed"] is False
     assert parsed["safety_boundary"]["repo_mutation_allowed"] is False
+    assert parsed["safety_boundary"]["queue_completion_allowed"] is False
+    assert parsed["safety_boundary"]["automatic_next_item_execution_allowed"] is False
+    assert parsed["safety_boundary"]["github_api_allowed"] is False
+    assert parsed["safety_boundary"]["gh_allowed"] is False
+
+
+def test_inspect_documentation_agent_contract_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "ok": True,
+                "local_only": True,
+                "read_only": True,
+                "contract_name": "documentation_agent_v1_contract",
+                "source_docs_to_update": [
+                    "docs/context/BUILD_STATE.md",
+                    "docs/context/AGENT_CONTEXT.md",
+                    "docs/roadmap/ROADMAP.md",
+                ],
+                "plan_mode": {"available_now": True, "mutates_files": False},
+                "future_gated_apply_mode": {
+                    "available_now": False,
+                    "explicit_operator_approval_required": True,
+                },
+                "safety_boundary": {
+                    "automatic_doc_updates_allowed": False,
+                    "model_output_can_mutate_docs": False,
+                    "queue_completion_allowed": False,
+                    "automatic_next_item_execution_allowed": False,
+                    "github_api_allowed": False,
+                    "gh_allowed": False,
+                },
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_inspect(_config, output_format="json"):
+        seen["output_format"] = output_format
+        return payload
+
+    monkeypatch.setattr(cli, "inspect_documentation_agent_contract", fake_inspect)
+    exit_code = cli.main(["inspect-documentation-agent-contract", "--format", "json"])
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert seen["output_format"] == "json"
+    assert parsed["contract_name"] == "documentation_agent_v1_contract"
+    assert "docs/context/BUILD_STATE.md" in parsed["source_docs_to_update"]
+    assert parsed["plan_mode"]["mutates_files"] is False
+    assert parsed["future_gated_apply_mode"]["available_now"] is False
+    assert parsed["future_gated_apply_mode"]["explicit_operator_approval_required"] is True
+    assert parsed["safety_boundary"]["automatic_doc_updates_allowed"] is False
+    assert parsed["safety_boundary"]["model_output_can_mutate_docs"] is False
     assert parsed["safety_boundary"]["queue_completion_allowed"] is False
     assert parsed["safety_boundary"]["automatic_next_item_execution_allowed"] is False
     assert parsed["safety_boundary"]["github_api_allowed"] is False

@@ -1,5 +1,27 @@
 # AresForge Roadmap
 
+## M91 Documentation Agent v1 Contract
+
+Status: In progress locally on `main`.
+
+Purpose:
+
+- define Documentation Agent v1 as a local-only source-of-truth documentation reconciliation contract
+- prepare future gated automation for documentation updates after validated changes
+
+Delivered scope:
+
+- `inspect-documentation-agent-contract`
+- `docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md`
+- source docs, evidence requirements, non-mutating plan mode, and future gated apply mode
+
+Constraints preserved:
+
+- no automatic documentation updates from model output
+- no apply mode until a future explicit operator gate exists
+- no automatic queue completion or next-item execution
+- no GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, external workflow execution, or GitHub mutation
+
 ## M90 Hub Routing Dashboard Data Contract
 
 Status: Completed locally on `main`.

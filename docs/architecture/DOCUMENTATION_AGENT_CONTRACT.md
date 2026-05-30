@@ -1,0 +1,78 @@
+# Documentation Agent Contract
+
+## M91 Documentation Agent v1
+
+Documentation Agent v1 is a local-only, source-of-truth documentation reconciliation contract.
+
+The agent exists to prepare future automation that can update documentation after validated local changes. M91 is contract-first: the implemented surface is read-only contract inspection, not documentation mutation.
+
+## Scope
+
+Allowed work:
+
+- inspect changed files, queue evidence, validation results, and smoke checks
+- prepare a documentation reconciliation plan
+- identify source-of-truth docs that need updates
+- list evidence gaps before documentation is updated
+- prepare future operator-reviewed documentation patch proposals
+
+Forbidden work:
+
+- automatic documentation updates from model output
+- automatic queue completion
+- automatic next-item execution
+- GitHub API calls
+- `gh` calls
+- issues, PRs, workflows, daemon, watcher, scheduler, or external workflow behavior
+
+## Source Docs
+
+Documentation Agent v1 treats these as source-of-truth docs:
+
+- `docs/context/BUILD_STATE.md`
+- `docs/context/AGENT_CONTEXT.md`
+- `docs/roadmap/ROADMAP.md`
+- `docs/architecture/RUNNABLE_SKELETON.md`
+- `docs/operator/LOCAL_OPERATOR_USAGE.md`
+
+Future milestones may expand this list only through an explicit contract update.
+
+## Evidence Required
+
+Before documentation is updated, the operator must have:
+
+- implementation commit hash or local diff summary
+- queue item id and milestone identifier
+- validation commands and results
+- smoke checks and results
+- `git diff --check` result
+- files changed summary
+- operator statement that documentation reconciliation is required
+- explicit source docs selected for update
+
+## Modes
+
+Plan mode is available now and is non-mutating. It may produce:
+
+- docs to review
+- evidence gaps
+- recommended documentation updates
+- blocked reasons
+- next safe action
+
+Future gated apply mode is not available in M91. It requires a later milestone and explicit operator approval phrase:
+
+    APPROVE DOCUMENTATION AGENT APPLY
+
+Apply mode must also require validation evidence, selected source docs, worktree review, and post-apply validation. Queue completion remains a separate explicit evidence command.
+
+## Safety Boundaries
+
+- local-only
+- read-only from contract inspection
+- no automatic documentation updates
+- no documentation mutation from model output
+- no queue mutation or queue completion
+- no automatic next-item execution
+- no GitHub API or `gh`
+- no issues, PRs, workflows, daemons, watchers, schedulers, or external workflow behavior

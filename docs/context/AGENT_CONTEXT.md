@@ -1,5 +1,22 @@
 # AresForge Agent Context
 
+## M91 Documentation Agent v1 Contract Context
+
+Status: In progress locally on `main`.
+
+Current documentation agent scope:
+
+- `inspect-documentation-agent-contract` reports the local Documentation Agent v1 contract.
+- `docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md` defines source-of-truth reconciliation boundaries.
+- Plan mode is available as non-mutating documentation reconciliation metadata.
+- Apply mode is future work and requires a separate explicit operator gate.
+
+Boundaries preserved:
+
+- no automatic documentation updates from model output
+- no queue mutation, queue completion, or automatic next-item execution
+- no GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, external workflow execution, or GitHub mutation
+
 ## M90 Hub Routing Dashboard Data Contract Context
 
 Status: Completed locally on `main`.

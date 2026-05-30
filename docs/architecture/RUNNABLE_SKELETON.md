@@ -1,5 +1,28 @@
 # Runnable Skeleton
 
+## M91 Documentation Agent v1 Contract
+
+M91 adds a read-only documentation agent contract:
+
+- `python -m aresforge inspect-documentation-agent-contract --format json`
+- `docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md`
+
+Runnable behavior:
+
+- reports Documentation Agent v1 scope
+- lists source-of-truth docs
+- lists evidence required before documentation updates
+- defines non-mutating plan mode
+- reserves future gated apply mode behind explicit operator approval
+
+Still absent by design:
+
+- automatic documentation updates from model output
+- documentation apply mode
+- queue mutation or queue completion from documentation agent output
+- automatic next-item execution
+- GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, or external workflow execution
+
 ## M90 Hub Routing Dashboard Data Contract
 
 M90 adds a read-only Hub routing dashboard data endpoint:

@@ -1,5 +1,33 @@
 # Local Operator Usage
 
+## M91 Documentation Agent v1 Contract
+
+Inspect the documentation agent contract:
+
+    python -m aresforge inspect-documentation-agent-contract --format json
+
+Contract reference:
+
+    docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md
+
+Payload highlights:
+
+- `agent_scope`
+- `source_docs_to_update`
+- `evidence_required_before_docs_are_updated`
+- `plan_mode`
+- `future_gated_apply_mode`
+- `safety_boundary`
+
+Operator rules:
+
+- use plan mode for documentation reconciliation guidance only
+- update source-of-truth docs manually unless a future explicit apply gate exists
+- require validation evidence before documentation is updated
+- do not apply model output to docs automatically
+- do not complete queue items or start another item from documentation agent output
+- do not use GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, or external workflow behavior
+
 ## M90 Hub Routing Dashboard Data Contract
 
 Inspect routing dashboard data through the local Hub API:

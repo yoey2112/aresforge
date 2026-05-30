@@ -1,5 +1,23 @@
 # AresForge Build State
 
+## M91 Documentation Agent v1 Contract
+
+Status: In progress locally on `main`.
+
+Delivered in this pass:
+
+- adds `inspect-documentation-agent-contract` for read-only Documentation Agent v1 contract inspection
+- adds `docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md`
+- defines documentation agent scope, source-of-truth docs, required evidence, plan mode, and future gated apply mode
+- confirms model output cannot automatically update documentation
+
+M91 safety posture:
+
+- contract-first and local-only
+- plan mode is non-mutating
+- future apply mode is unavailable until a separate explicit gate exists
+- no automatic documentation updates, queue completion, next-item execution, GitHub API, `gh`, issues, PRs, workflows, daemon, watcher, scheduler, or external workflow behavior
+
 ## M90 Hub Routing Dashboard Data Contract
 
 Status: Completed locally on `main`.
