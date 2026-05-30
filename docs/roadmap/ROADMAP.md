@@ -2,7 +2,7 @@
 
 ## M87 Local Coding Draft Artifact Mode
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main`.
 
 Purpose:
 
