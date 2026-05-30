@@ -10,6 +10,12 @@ M125 defines the general Agent Runtime Boundary Contract that future documentati
 
 For documentation-agent work, M125 preserves the existing documentation contract boundaries: no documentation-agent execution, no automatic documentation mutation, no model-generated apply mode, no GitHub API/`gh`, no network services, no patch application, no queue completion, and no automatic next-item execution. Future documentation-agent patch proposal or apply milestones must enforce both this M125 runtime boundary and the documentation-agent-specific contract.
 
+## M126 Agent Registry
+
+M126 registers `documentation-agent` as a declarative local agent record. The record allows source-doc reads and documentation reconciliation/review artifact generation, but forbids documentation-agent execution, model execution, Codex execution, GitHub API/`gh`, external network calls, patch application, automatic queue mutation, and automatic next-item execution.
+
+The M126 documentation-agent registry record uses `mutation_scope=source_patch_prohibited`, `network_scope=none`, `model_scope=none`, `safety_class=external_mutation_prohibited`, `autonomy_level=recommendation_only`, and `can_run_real=false`. It is a registry declaration only and does not add apply mode or documentation mutation behavior.
+
 ## M91 Documentation Agent v1
 
 Documentation Agent v1 is a local-only, source-of-truth documentation reconciliation contract.

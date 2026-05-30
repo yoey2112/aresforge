@@ -1,5 +1,51 @@
 # Runnable Skeleton
 
+## M126 Agent Registry
+
+M126 adds a local-only declarative registry inspection command:
+
+- `python -m aresforge inspect-agent-registry --format json`
+- `python -m aresforge inspect-agent-registry --agent-id <agent_id> --format json`
+- optional `--safety-class`, `--autonomy-level`, `--output`, and `--force`
+
+Runnable behavior:
+
+- builds a deterministic in-memory registry of known AresForge agents
+- filters by agent id, safety class, or autonomy level
+- emits stable JSON CLI output or writes a local JSON snapshot
+- refuses to overwrite output files unless `--force` is explicit
+- preserves `local_only=true`, `read_only=true`, `execution_allowed=false`, and `execution_performed=false`
+
+Stable registry fields:
+
+- `registry_type`
+- `generated`
+- `agent_count`
+- `agents`
+- `agents_by_type`
+- `agents_by_safety_class`
+- `agents_by_autonomy_level`
+- `blocked_agents`
+- `executable_agents`
+- `dry_run_only_agents`
+- `local_only`
+- `execution_performed`
+- `next_safe_action`
+
+Still absent by design:
+
+- real agent execution
+- autonomous workflows
+- Codex execution or Codex CLI shell-out
+- Ollama/local LLM prompt execution
+- documentation-agent execution or apply mode
+- GitHub API, `gh`, issues, PRs, workflows, network calls, or external services
+- external agent execution
+- patch application
+- queue mutation, approval mutation, automatic handoff, automatic completion, or next-item execution
+
+M126 declares known agents and their boundaries only. Future runners must be separate explicit milestones and must validate against this registry and the M125 runtime boundary before any execution path can start.
+
 ## M113 Queue Item Auto-Completion Recommendation Engine
 
 M113 adds a local-only recommendation command:

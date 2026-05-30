@@ -1,5 +1,54 @@
 # AresForge Roadmap
 
+## M126 Agent Registry
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m126-agent-registry`.
+
+Implementation commit: pending final commit.
+
+Purpose:
+
+- create a local-only registry of supported AresForge agents
+- declare what each agent may read, produce, and request
+- declare allowed and forbidden capabilities, mutation/network/model scopes, safety classes, and autonomy levels
+- keep the registry inspectable without executing agents or creating workflows
+
+Runnable operator surface:
+
+- `python -m aresforge inspect-agent-registry --format json`
+- `python -m aresforge inspect-agent-registry --agent-id <agent_id> --format json`
+- `python -m aresforge inspect-agent-registry --safety-class <safety_class> --format json`
+- `python -m aresforge inspect-agent-registry --autonomy-level <level> --format json`
+- optional `--output <path>` and `--force`
+
+Registered agents:
+
+- `queue-planner-agent`
+- `codex-dispatch-agent`
+- `local-llm-advisory-agent`
+- `documentation-agent`
+- `evidence-parser-agent`
+- `completion-recommendation-agent`
+- `validation-agent`
+- `github-sync-agent`
+- `sprint-summary-agent`
+- `artifact-registry-agent`
+- `approval-ledger-agent`
+- `transaction-log-agent`
+
+Constraints preserved:
+
+- no agent execution
+- no Codex, local LLM, Ollama, documentation-agent runtime, external-agent, GitHub API, `gh`, network, workflow, issue, PR, patch application, automatic queue mutation, automatic handoff, or next-item execution
+- all registered agents are dry-run/inspection metadata only and have `can_run_real=false`
+
+Relationship:
+
+- M126 consumes the M125 boundary terms and applies them to named initial agents.
+- Future runners must validate agent records against this registry before any separate operator-approved execution milestone can run.
+
 ## M113 Queue Item Auto-Completion Recommendation Engine
 
 Status: Completed locally on `main` after validation.

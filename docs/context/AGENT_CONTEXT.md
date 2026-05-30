@@ -1,5 +1,31 @@
 # AresForge Agent Context
 
+## M126 Agent Registry Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m126-agent-registry`.
+
+Implementation commit: pending final commit.
+
+M126 adds a local-only declarative registry inspector:
+
+- `python -m aresforge inspect-agent-registry --format json`
+- `python -m aresforge inspect-agent-registry --agent-id documentation-agent --format json`
+- optional `--safety-class`, `--autonomy-level`, `--output`, and `--force`
+
+The registry defines the initial known AresForge agents: queue planner, Codex dispatch, local LLM advisory, documentation, evidence parser, completion recommendation, validation, GitHub sync, sprint summary, artifact registry, approval ledger, and transaction log.
+
+Each agent record declares identity, type, supported item types, inputs, outputs, allowed and forbidden capabilities, mutation/network/model scopes, safety class, autonomy level, default execution mode, dry-run/real-run eligibility, machine gate requirement, evidence requirements, and source docs.
+
+M126 boundaries:
+
+- local-only registry inspection
+- `execution_performed=false`
+- no agents are executed
+- `can_run_real=false` for every registered agent until a future explicit operator-approved runner exists
+- no Codex, Ollama, local LLM, documentation-agent apply mode, GitHub API, `gh`, network service, patch application, autonomous workflow, or next-item execution is introduced
+
 ## M113 Queue Item Auto-Completion Recommendation Context
 
 Status: Completed locally on `main` after validation.

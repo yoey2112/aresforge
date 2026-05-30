@@ -1,5 +1,34 @@
 # Local Operator Usage
 
+## M126 Agent Registry
+
+M126 inspects the local declarative registry of known AresForge agents. It does not execute agents, invoke Codex, invoke Ollama or local LLMs, run documentation agents, call GitHub, call `gh`, call network services, apply patches, mutate queue state, create autonomous workflows, or start follow-on work.
+
+JSON inspection:
+
+    python -m aresforge inspect-agent-registry --format json
+
+Filter to one agent:
+
+    python -m aresforge inspect-agent-registry --agent-id documentation-agent --format json
+
+Filter by safety class or autonomy level:
+
+    python -m aresforge inspect-agent-registry --safety-class external_mutation_prohibited --format json
+    python -m aresforge inspect-agent-registry --autonomy-level recommendation_only --format json
+
+Write a local registry snapshot:
+
+    python -m aresforge inspect-agent-registry --format json --output artifacts/agent-registry/registry.json
+
+Overwrite only with explicit force:
+
+    python -m aresforge inspect-agent-registry --format json --output artifacts/agent-registry/registry.json --force
+
+The registry output includes `registry_type=agent_registry`, `agent_count`, filtered agent records, grouping by type/safety/autonomy, blocked agents, executable agents, dry-run-only agents, `local_only=true`, and `execution_performed=false`.
+
+Registered agents are declarative metadata only. `can_run_real=false` for every M126 agent until a later explicit operator-approved runner exists.
+
 ## M113 Queue Item Auto-Completion Recommendation Engine
 
 M113 recommends whether a human operator may safely complete a queue item from local dispatch evidence. It does not complete queue items, mutate queue state, execute Codex, invoke models, call GitHub, call `gh`, call network services, apply patches, mutate approvals, hand off work, or start follow-on work.

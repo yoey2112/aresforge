@@ -2,13 +2,83 @@
 
 ## Current Phase
 
-M113 implements the Queue Item Auto-Completion Recommendation Engine. It evaluates local dispatch evidence and known completion requirements, then recommends whether an operator may safely complete a queue item without mutating queue state.
+M126 implements the Agent Registry as a local-only declarative catalog of known AresForge agents. It lists supported agents, capabilities, inputs, outputs, scopes, safety classes, and autonomy levels without creating an execution workflow.
 
 ## Current Goal
 
-M113 adds `recommend-queue-completion` for local-only recommendation records. The command consumes an M112 dispatch evidence JSON file, verifies required evidence, tests, smoke checks, warnings/blockers, and commit hash presence, and preserves `queue_mutation_performed=false`.
+M126 adds `inspect-agent-registry` for local-only inspection of registered AresForge agents. The registry builds on the M125 runtime boundary and keeps `local_only=true`, `execution_allowed=false`, and `execution_performed=false`.
+
+## M126 Agent Registry
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m126-agent-registry`.
+
+Implementation commit: pending final commit.
+
+M126 adds:
+
+- `inspect-agent-registry --format json`
+- `inspect-agent-registry --agent-id <agent_id> --format json`
+- `inspect-agent-registry --safety-class <safety_class> --format json`
+- `inspect-agent-registry --autonomy-level <level> --format json`
+- optional `--output` and `--force`
+
+Initial registered agents:
+
+- `queue-planner-agent`
+- `codex-dispatch-agent`
+- `local-llm-advisory-agent`
+- `documentation-agent`
+- `evidence-parser-agent`
+- `completion-recommendation-agent`
+- `validation-agent`
+- `github-sync-agent`
+- `sprint-summary-agent`
+- `artifact-registry-agent`
+- `approval-ledger-agent`
+- `transaction-log-agent`
+
+Each registry record includes:
+
+- `agent_id`, `display_name`, `description`, `agent_type`
+- supported item types, required inputs, optional inputs, and produced artifacts
+- allowed and forbidden capabilities
+- mutation, network, and model scopes
+- safety class and autonomy level
+- default execution mode and dry-run/real-run flags
+- machine gate and evidence requirements
+- source documentation references
+
+Registry output includes:
+
+- `registry_type=agent_registry`
+- `generated=true`
+- `agent_count`
+- filtered `agents`
+- `agents_by_type`, `agents_by_safety_class`, and `agents_by_autonomy_level`
+- `blocked_agents`, `executable_agents`, and `dry_run_only_agents`
+- `local_only=true`
+- `execution_performed=false`
+- next safe action
+
+Safety boundaries:
+
+- declarative registry only
+- no agent execution
+- no Codex, Ollama, local LLM, documentation-agent, GitHub API, `gh`, network service, patch application, workflow, daemon, watcher, scheduler, or external-agent execution
+- no autonomous workflow creation
+- all registered agents have `can_run_real=false` until a later explicit operator-approved runner exists
 
 ## M113 Queue Item Auto-Completion Recommendation Engine
+
+M113 implements the Queue Item Auto-Completion Recommendation Engine. It evaluates local dispatch evidence and known completion requirements, then recommends whether an operator may safely complete a queue item without mutating queue state.
+
+## M113 Goal
+
+M113 adds `recommend-queue-completion` for local-only recommendation records. The command consumes an M112 dispatch evidence JSON file, verifies required evidence, tests, smoke checks, warnings/blockers, and commit hash presence, and preserves `queue_mutation_performed=false`.
+
+## M113 Status
 
 Status: Completed locally on `main` after validation.
 

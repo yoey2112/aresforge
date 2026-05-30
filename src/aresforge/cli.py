@@ -247,6 +247,7 @@ from aresforge.operator.dispatch_artifact_report import inspect_dispatch_artifac
 from aresforge.operator.safe_dispatch_handoff import generate_safe_dispatch_handoff
 from aresforge.operator.manual_codex_dispatch_runner import prepare_manual_codex_dispatch
 from aresforge.operator.agent_runtime_boundary import inspect_agent_runtime_boundary
+from aresforge.operator.agent_registry import inspect_agent_registry
 from aresforge.operator.single_ready_codex_queue_item import run_single_ready_codex_queue_item
 from aresforge.operator.local_agent_profiles import (
     AGENT_PROFILE_STATUSES,
@@ -1822,6 +1823,20 @@ def build_parser() -> argparse.ArgumentParser:
     inspect_agent_runtime_boundary_parser.add_argument(
         "--format",
         choices=["json", "markdown"],
+        default="json",
+    )
+    inspect_agent_registry_parser = subparsers.add_parser(
+        "inspect-agent-registry",
+        help="Inspect the M126 local-only declarative agent registry without executing agents.",
+    )
+    inspect_agent_registry_parser.add_argument("--agent-id")
+    inspect_agent_registry_parser.add_argument("--safety-class")
+    inspect_agent_registry_parser.add_argument("--autonomy-level")
+    inspect_agent_registry_parser.add_argument("--output")
+    inspect_agent_registry_parser.add_argument("--force", action="store_true")
+    inspect_agent_registry_parser.add_argument(
+        "--format",
+        choices=["json"],
         default="json",
     )
     inspect_llm_decision_matrix_parser = subparsers.add_parser(
@@ -4451,6 +4466,22 @@ def main(argv: list[str] | None = None) -> int:
             item_id=args.item_id,
             evidence_path=args.evidence_path,
             queue_path=args.queue_path,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-agent-registry":
+        payload = inspect_agent_registry(
+            config,
+            agent_id=args.agent_id,
+            safety_class=args.safety_class,
+            autonomy_level=args.autonomy_level,
             output=args.output,
             force=bool(args.force),
             output_format=args.format,

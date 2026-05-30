@@ -70,6 +70,7 @@ def test_cli_has_expected_commands() -> None:
         "parse-dispatch-result-evidence",
         "recommend-queue-completion",
         "inspect-agent-runtime-boundary",
+        "inspect-agent-registry",
         "inspect-llm-decision-matrix",
         "inspect-local-llm-provider-contract",
         "run-single-ready-codex-queue-item",
@@ -5610,6 +5611,83 @@ def test_inspect_agent_runtime_boundary_dispatch_json(
     assert parsed["contract_type"] == "agent_runtime_boundary"
     assert parsed["generated"] is True
     assert parsed["agent_boundary_version"] == "m125.1"
+    assert parsed["execution_performed"] is False
+
+
+def test_inspect_agent_registry_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "registry_type": "agent_registry",
+                "generated": True,
+                "agent_count": 1,
+                "agents": [{"agent_id": "documentation-agent"}],
+                "agents_by_type": {"documentation": ["documentation-agent"]},
+                "agents_by_safety_class": {"external_mutation_prohibited": ["documentation-agent"]},
+                "agents_by_autonomy_level": {"recommendation_only": ["documentation-agent"]},
+                "blocked_agents": ["documentation-agent"],
+                "executable_agents": [],
+                "dry_run_only_agents": ["documentation-agent"],
+                "local_only": True,
+                "execution_performed": False,
+                "next_safe_action": "Review only.",
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_inspect(
+        _config,
+        *,
+        agent_id=None,
+        safety_class=None,
+        autonomy_level=None,
+        output=None,
+        force=False,
+        output_format="json",
+    ):
+        seen["agent_id"] = agent_id
+        seen["safety_class"] = safety_class
+        seen["autonomy_level"] = autonomy_level
+        seen["output"] = output
+        seen["force"] = force
+        seen["output_format"] = output_format
+        return payload
+
+    monkeypatch.setattr(cli, "inspect_agent_registry", fake_inspect)
+    exit_code = cli.main(
+        [
+            "inspect-agent-registry",
+            "--agent-id",
+            "documentation-agent",
+            "--safety-class",
+            "external_mutation_prohibited",
+            "--autonomy-level",
+            "recommendation_only",
+            "--output",
+            "artifacts/agent-registry.json",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert seen == {
+        "agent_id": "documentation-agent",
+        "safety_class": "external_mutation_prohibited",
+        "autonomy_level": "recommendation_only",
+        "output": "artifacts/agent-registry.json",
+        "force": True,
+        "output_format": "json",
+    }
+    assert parsed["registry_type"] == "agent_registry"
     assert parsed["execution_performed"] is False
 
 
