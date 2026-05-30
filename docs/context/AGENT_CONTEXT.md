@@ -2,11 +2,11 @@
 
 ## M106 Dispatch Artifact Index/Report Context
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m105-post-batch-documentation-reconciliation-m106-dispatch-artifact-index-report`.
 
-Implementation commit: pending.
+Implementation commit: `fc77cd2`.
 
 M106 adds a read-only local report for dispatch artifacts and dry-run outputs:
 

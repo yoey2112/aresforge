@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T17:01:09.965293+00:00",
+  "updated_at": "2026-05-30T17:05:32.443062+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -2538,7 +2538,7 @@
       "repo_id": "aresforge-main",
       "title": "M106 Dispatch Artifact Index Report",
       "description": "Create a local-only dispatch artifact index/report for Codex dispatch artifacts, dry-run outputs, and approval gate status without execution.",
-      "status": "in_progress",
+      "status": "done",
       "priority": "high",
       "item_type": "dashboard",
       "tags": [
@@ -2556,14 +2556,18 @@
       "notes": "",
       "started_at": "2026-05-30T17:01:09.965293+00:00",
       "started_via": "local_operator",
-      "previous_status": "proposed",
-      "completed_at": "",
-      "completed_by": "",
-      "completion_commit": "",
-      "validation_summary": "",
-      "evidence_note": "",
-      "tests_run": [],
-      "changed_files": [],
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-30T17:05:32.443062+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "fc77cd2",
+      "validation_summary": "M106 Dispatch Artifact Index/Report implemented and validated locally. Added read-only local dispatch artifact scanning, approval gate status joining, CLI readable/json output, focused tests, source-of-truth docs, and queue lifecycle evidence. No external execution was performed.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_dispatch_artifact_report.py; python -m pytest tests/test_cli.py; python -m pytest tests/test_codex_prompt_dispatch_artifact.py; python -m pytest tests/test_local_project_queue.py tests/test_local_queue_agent_summary.py tests/test_local_project_report.py; git diff --check passed with CRLF warnings only; smoke checks passed for inspect-dispatch-artifacts readable/json, inspect-local-project-report, inspect-local-queue-agent-summary, and inspect-project-queue --project-id aresforge.",
+      "tests_run": [
+        "tests/test_dispatch_artifact_report.py -> 5 passed; tests/test_cli.py -> 179 passed; tests/test_codex_prompt_dispatch_artifact.py -> 8 passed; tests/test_local_project_queue.py tests/test_local_queue_agent_summary.py tests/test_local_project_report.py -> 123 passed; git diff --check -> passed with CRLF warnings only"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/dispatch_artifact_report.py; src/aresforge/cli.py; tests/test_dispatch_artifact_report.py; tests/test_cli.py; docs/context/BUILD_STATE.md; docs/context/AGENT_CONTEXT.md; docs/roadmap/ROADMAP.md; docs/operator/LOCAL_OPERATOR_USAGE.md; docs/architecture/RUNNABLE_SKELETON.md; .aresforge/queue/work_items.json"
+      ],
       "artifact_paths": [],
       "completion_evidence": {},
       "routing_metadata": {
@@ -2585,7 +2589,7 @@
       "closeout_summary": "",
       "closeout_history": [],
       "created_at": "2026-05-30T17:01:06.157236+00:00",
-      "updated_at": "2026-05-30T17:01:09.965293+00:00"
+      "updated_at": "2026-05-30T17:05:32.443062+00:00"
     }
   ]
 }

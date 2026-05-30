@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-M106 implements the local-only Dispatch Artifact Index/Report for generated dispatch artifacts, dry-run outputs, and approval gate status.
+M106 completed the local-only Dispatch Artifact Index/Report for generated dispatch artifacts, dry-run outputs, and approval gate status.
 
 ## Current Goal
 
@@ -10,11 +10,11 @@ M106 gives operators one read-only report for known local dispatch artifact loca
 
 ## M106 Dispatch Artifact Index/Report
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m105-post-batch-documentation-reconciliation-m106-dispatch-artifact-index-report`.
 
-Implementation commit: pending.
+Implementation commit: `fc77cd2`.
 
 M106 adds:
 
