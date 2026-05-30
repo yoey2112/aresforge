@@ -19,6 +19,7 @@ from aresforge.hub.api import (
     get_agent,
     get_agent_engine_registry,
     get_agents,
+    get_ai_action_review,
     get_ai_artifacts,
     get_docs_status,
     get_escalation_plan,
@@ -243,6 +244,19 @@ def _build_handler(config: AppConfig, static_root: Path) -> type[BaseHTTPRequest
                 return True
             if method == "GET" and path == "/api/operator-run-history":
                 payload = get_operator_run_history(
+                    config,
+                    {
+                        "project_id": query_values.get("project_id", [None])[0],
+                        "item_id": query_values.get("item_id", [None])[0],
+                        "action_type": query_values.get("action_type", [None])[0],
+                        "artifact_type": query_values.get("artifact_type", [None])[0],
+                        "limit": query_values.get("limit", [None])[0],
+                    },
+                )
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+            if method == "GET" and path == "/api/ai-action-review":
+                payload = get_ai_action_review(
                     config,
                     {
                         "project_id": query_values.get("project_id", [None])[0],

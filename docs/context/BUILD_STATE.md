@@ -1,5 +1,29 @@
 # AresForge Build State
 
+## M71 Operator-Facing AI Action Review Panel
+
+Status: Completed locally on `main`.
+
+Delivered:
+
+- added a read-only Hub AI Action Review Panel for operator review of AI-adjacent local actions
+- added local-only review API `GET /api/ai-action-review`
+- composed existing AI action safety, execution audit log, AI artifact registry, Operator Run History, and local queue routing metadata into one review payload
+- surfaced operator-friendly labels for action name, safety status, gate status, blocked action, blocked reason category, blocked reason, no automatic execution, no repo mutation, artifact references, audit references, run-history timeline entries, and next safe operator action
+- added useful empty states for no recent AI actions, no artifacts found, no blocked actions found, and no audit entries found
+
+Safety posture:
+
+- the panel is read-only and review-focused
+- no execution controls were added
+- no agents, Codex, Codex CLI, local LLMs, GitHub actions, `gh`, issues, PRs, workflows, external services, or repository mutations are executed from the panel
+- local LLM output remains local-only, advisory-only, operator-gated, and never automatically mutates repo files
+- Codex high-value lane remains prompt-generation/operator-handoff only
+
+Recommended next milestone:
+
+- M72 - Local LLM Provider Configuration Hardening.
+
 ## M70 Local AI Operations Verification Sweep
 
 Status: Completed locally on `main`.

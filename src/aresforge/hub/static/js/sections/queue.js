@@ -551,6 +551,16 @@ function buildOperatorRunHistoryQuery() {
   });
 }
 
+function buildAiActionReviewQuery() {
+  return toQuery({
+    project_id: byId("queue-ai-action-review-project-id") && byId("queue-ai-action-review-project-id").value.trim(),
+    item_id: byId("queue-ai-action-review-item-id") && byId("queue-ai-action-review-item-id").value.trim(),
+    action_type: byId("queue-ai-action-review-action-type") && byId("queue-ai-action-review-action-type").value.trim(),
+    artifact_type: byId("queue-ai-action-review-artifact-type") && byId("queue-ai-action-review-artifact-type").value.trim(),
+    limit: byId("queue-ai-action-review-limit") && byId("queue-ai-action-review-limit").value.trim(),
+  });
+}
+
 function buildLocalQueueCompletePayload({ parseLineList }) {
   return prunePayload({
     commit_hash: byId("queue-lifecycle-complete-commit-hash").value.trim(),
@@ -742,6 +752,45 @@ function renderOperatorRunHistory(payload) {
     "queue-operator-run-history-timeline",
     "queue-operator-run-history-timeline-empty",
     ((payload && payload.timeline) || []).map((entry) => `${entry.timestamp || "-"} | ${entry.kind || "-"} | item=${entry.item_id || "-"} | action=${entry.action_type || "-"} | artifact=${entry.artifact_type || "-"} | outcome=${entry.outcome || "-"} | safety=${entry.safety_status || "-"} | gate=${entry.gate_status || "-"} | executed=${Boolean(entry.executed)} | allowed=${Boolean(entry.execution_allowed)} | repo_mutation=${Boolean(entry.repo_mutation_allowed)} | external_mutation=${Boolean(entry.external_mutation_allowed)} | automatic_execution=${Boolean(entry.automatic_execution_allowed)} | path=${entry.artifact_path || "-"}`),
+  );
+}
+
+function renderAiActionReview(payload) {
+  const counts = (payload && payload.counts) || {};
+  setList("queue-ai-action-review-summary", "queue-ai-action-review-summary-empty", [
+    `action_review_count: ${typeof counts.action_review_count === "number" ? counts.action_review_count : 0}`,
+    `blocked_action_count: ${typeof counts.blocked_action_count === "number" ? counts.blocked_action_count : 0}`,
+    `artifact_reference_count: ${typeof counts.artifact_reference_count === "number" ? counts.artifact_reference_count : 0}`,
+    `audit_reference_count: ${typeof counts.audit_reference_count === "number" ? counts.audit_reference_count : 0}`,
+    `queue_ai_action_count: ${typeof counts.queue_ai_action_count === "number" ? counts.queue_ai_action_count : 0}`,
+    `read_only: ${Boolean(payload && payload.read_only)}`,
+    `review_only: ${Boolean(payload && payload.review_only)}`,
+    `next_safe_action: ${payload && payload.next_safe_action ? payload.next_safe_action : "-"}`,
+  ].concat((payload && payload.warnings ? payload.warnings : []).map((warning) => `warning: ${warning}`)));
+  setList(
+    "queue-ai-action-review-actions",
+    "queue-ai-action-review-actions-empty",
+    ((payload && payload.action_reviews) || []).map((entry) => `${entry.timestamp || "-"} | action=${entry.action_name || "-"} | item=${entry.item_id || "-"} | safety status=${entry.safety_status || "-"} | gate status=${entry.gate_status || "-"} | no automatic execution=${Boolean(entry.no_automatic_execution_flag)} | no repo mutation=${Boolean(entry.no_repo_mutation_flag)} | next safe action=${entry.next_safe_operator_action || "-"}`),
+  );
+  setList(
+    "queue-ai-action-review-blocked",
+    "queue-ai-action-review-blocked-empty",
+    ((payload && payload.blocked_actions) || []).map((entry) => `blocked action=${entry.blocked_action || entry.action_name || "-"} | category=${entry.blocked_reason_category || "-"} | reason=${entry.blocked_reason || "-"} | safety status=${entry.safety_status || "-"}`),
+  );
+  setList(
+    "queue-ai-action-review-artifacts",
+    "queue-ai-action-review-artifacts-empty",
+    ((payload && payload.artifact_references) || []).map((artifact) => `${artifact.artifact_type || "-"} | action=${artifact.source_action || "-"} | item=${artifact.item_id || "-"} | path=${artifact.artifact_path || "-"}`),
+  );
+  setList(
+    "queue-ai-action-review-audit",
+    "queue-ai-action-review-audit-empty",
+    ((payload && payload.audit_references) || []).map((entry) => `${entry.audit_id || "-"} | action=${entry.action_type || "-"} | item=${entry.item_id || "-"} | outcome=${entry.outcome || "-"}`),
+  );
+  setList(
+    "queue-ai-action-review-queue",
+    "queue-ai-action-review-queue-empty",
+    ((payload && payload.queue_ai_actions) || []).map((entry) => `${entry.item_id || "-"} | ${entry.title || "-"} | action=${entry.action_name || "-"} | safety status=${entry.safety_status || "-"} | gate status=${entry.gate_status || "-"} | no automatic execution=${Boolean(entry.no_automatic_execution_flag)} | no repo mutation=${Boolean(entry.no_repo_mutation_flag)} | next safe action=${entry.next_safe_operator_action || "-"}`),
   );
 }
 
@@ -1136,6 +1185,30 @@ export function bindQueueLifecycleActions({
       setMessage("queue-lifecycle-message", "Operator run history loaded. No execution performed.", "success");
     } catch (error) {
       renderOperatorRunHistory((error && error.payload) || null);
+      setMessage("queue-lifecycle-message", String(error.message || error), "error");
+    } finally {
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = originalLabel;
+      }
+    }
+  });
+
+  on("queue-ai-action-review-form", "submit", async (event) => {
+    event.preventDefault();
+    const submitButton = byId("queue-ai-action-review-submit");
+    const originalLabel = submitButton ? submitButton.textContent : "";
+    try {
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = "Loading...";
+      }
+      setMessage("queue-lifecycle-message", "Loading AI action review metadata...", "loading");
+      const payload = await fetchJson(`/api/ai-action-review${buildAiActionReviewQuery()}`, { method: "GET" });
+      renderAiActionReview(payload);
+      setMessage("queue-lifecycle-message", "AI action review loaded. No execution performed.", "success");
+    } catch (error) {
+      renderAiActionReview((error && error.payload) || null);
       setMessage("queue-lifecycle-message", String(error.message || error), "error");
     } finally {
       if (submitButton) {

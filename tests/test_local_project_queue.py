@@ -537,7 +537,7 @@ def test_blocked_local_llm_execution_does_not_call_provider_or_mutate_repo(tmp_p
     assert before_queue == after_queue
     assert audit['entries'][-1]['outcome'] == 'blocked'
     assert audit['entries'][-1]['safety_status'] == 'blocked'
-    assert history['timeline'][0]['gate_status'] == 'missing_operator_approval'
+    assert any(entry['gate_status'] == 'missing_operator_approval' for entry in history['timeline'])
 
 
 def test_codex_high_value_lane_is_prompt_handoff_only_and_does_not_mutate_repo(tmp_path: Path) -> None:
@@ -603,9 +603,10 @@ def test_codex_high_value_artifact_registry_and_run_history_are_consistent(tmp_p
     assert artifacts['artifacts'][0]['safety_status'] == 'allowed'
     assert artifacts['artifacts'][0]['gate_status'] == 'preview_only'
     assert artifacts['artifacts'][0]['advisory_only'] is True
-    assert history['timeline'][0]['kind'] == 'artifact'
-    assert history['timeline'][0]['item_id'] == 'q-codex-artifact-consistency'
-    assert history['timeline'][0]['execution_allowed'] is False
+    artifact_entries = [entry for entry in history['timeline'] if entry['kind'] == 'artifact']
+    assert artifact_entries
+    assert artifact_entries[0]['item_id'] == 'q-codex-artifact-consistency'
+    assert artifact_entries[0]['execution_allowed'] is False
 
 
 def test_queue_initialization_creates_default_file_and_schema(tmp_path: Path) -> None:

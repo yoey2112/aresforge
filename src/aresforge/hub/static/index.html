@@ -1176,6 +1176,28 @@
                 <p id="queue-operator-run-history-summary-empty" class="empty">No operator run history loaded yet.</p>
                 <ul id="queue-operator-run-history-timeline" class="list"></ul>
                 <p id="queue-operator-run-history-timeline-empty" class="empty">No run history timeline entries to show.</p>
+                <h4>AI Action Review Panel</h4>
+                <p class="message-note">Read-only local-only review of AI safety, gate, audit, artifact, run-history, and queue routing metadata. It does not execute agents, Codex, local LLMs, GitHub actions, workflows, or repo mutations.</p>
+                <form id="queue-ai-action-review-form" class="form-grid">
+                  <label>Project ID<input id="queue-ai-action-review-project-id" name="project_id" placeholder="optional project filter" /></label>
+                  <label>Item ID<input id="queue-ai-action-review-item-id" name="item_id" placeholder="optional item filter" /></label>
+                  <label>Action Type<input id="queue-ai-action-review-action-type" name="action_type" placeholder="optional action_type" /></label>
+                  <label>Artifact Type<input id="queue-ai-action-review-artifact-type" name="artifact_type" placeholder="optional artifact_type" /></label>
+                  <label>Limit<input id="queue-ai-action-review-limit" name="limit" placeholder="25" /></label>
+                  <button id="queue-ai-action-review-submit" type="submit">Load AI Action Review</button>
+                </form>
+                <ul id="queue-ai-action-review-summary" class="list"></ul>
+                <p id="queue-ai-action-review-summary-empty" class="empty">No recent AI actions found.</p>
+                <ul id="queue-ai-action-review-actions" class="list"></ul>
+                <p id="queue-ai-action-review-actions-empty" class="empty">No recent AI actions found.</p>
+                <ul id="queue-ai-action-review-blocked" class="list"></ul>
+                <p id="queue-ai-action-review-blocked-empty" class="empty">No blocked actions found.</p>
+                <ul id="queue-ai-action-review-artifacts" class="list"></ul>
+                <p id="queue-ai-action-review-artifacts-empty" class="empty">No artifacts found.</p>
+                <ul id="queue-ai-action-review-audit" class="list"></ul>
+                <p id="queue-ai-action-review-audit-empty" class="empty">No audit entries found.</p>
+                <ul id="queue-ai-action-review-queue" class="list"></ul>
+                <p id="queue-ai-action-review-queue-empty" class="empty">No AI-adjacent queue actions found.</p>
               </section>
               <section>
                 <h4>Capture Completion Evidence</h4>

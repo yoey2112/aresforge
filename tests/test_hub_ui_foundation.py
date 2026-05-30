@@ -458,6 +458,18 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "queue-operator-run-history-form" in index_text
     assert "queue-operator-run-history-timeline" in index_text
     assert "Read-only timeline combining execution audit entries and AI artifact registry records" in index_text
+    assert "AI Action Review Panel" in index_text
+    assert "queue-ai-action-review-form" in index_text
+    assert "queue-ai-action-review-actions" in index_text
+    assert "queue-ai-action-review-blocked" in index_text
+    assert "queue-ai-action-review-artifacts" in index_text
+    assert "queue-ai-action-review-audit" in index_text
+    assert "queue-ai-action-review-queue" in index_text
+    assert "No recent AI actions found" in index_text
+    assert "No artifacts found" in index_text
+    assert "No blocked actions found" in index_text
+    assert "No audit entries found" in index_text
+    assert "It does not execute agents, Codex, local LLMs, GitHub actions, workflows, or repo mutations" in index_text
     assert "No execution controls" in index_text
     assert "buildCodexHighValuePromptPayload" in queue_js
     assert "renderCodexHighValuePromptResult" in queue_js
@@ -467,6 +479,13 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "renderAiArtifactRegistry" in queue_js
     assert "buildOperatorRunHistoryQuery" in queue_js
     assert "renderOperatorRunHistory" in queue_js
+    assert "buildAiActionReviewQuery" in queue_js
+    assert "renderAiActionReview" in queue_js
+    assert "safety status=${entry.safety_status" in queue_js
+    assert "gate status=${entry.gate_status" in queue_js
+    assert "no automatic execution=${Boolean(entry.no_automatic_execution_flag)}" in queue_js
+    assert "no repo mutation=${Boolean(entry.no_repo_mutation_flag)}" in queue_js
+    assert "next safe action=${entry.next_safe_operator_action" in queue_js
     assert "safety=${entry.safety_status" in queue_js
     assert "gate=${entry.gate_status" in queue_js
     assert "repo_mutation=${Boolean(entry.repo_mutation_allowed)}" in queue_js
@@ -476,6 +495,10 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "/api/execution-audit-log" in queue_js
     assert "/api/ai-artifacts" in queue_js
     assert "/api/operator-run-history" in queue_js
+    assert "/api/ai-action-review" in queue_js
+    assert "method: \"GET\" });" in queue_js
+    assert "/api/ai-action-review${buildAiActionReviewQuery()}`" in queue_js
+    assert "/api/ai-action-review\", {\n        method: \"POST\"" not in queue_js
     assert "Generates local copy/paste prompt pack only with advisory routing metadata" in index_text
     assert "queue-prompt-pack-include-routing" in index_text
     assert "queue-prompt-pack-group-by-routing" in index_text

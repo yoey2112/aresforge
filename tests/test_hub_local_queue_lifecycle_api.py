@@ -1152,6 +1152,100 @@ def test_post_local_queue_prompt_pack_route_returns_local_copy_paste_payload(tmp
         thread.join(timeout=2)
 
 
+def test_get_ai_action_review_route_returns_read_only_operator_review(tmp_path: Path) -> None:
+    config = _config(tmp_path)
+    _seed_active_project(config, tmp_path)
+    _seed_queue_item(
+        config,
+        item_id="review-ai-action-api",
+        status="ready",
+        title="Review AI action metadata",
+        description="Review existing local AI action metadata without executing anything.",
+    )
+    artifact_path = tmp_path / "artifacts" / "review" / "prompt.txt"
+    artifact_path.parent.mkdir(parents=True)
+    artifact_path.write_text("local advisory artifact", encoding="utf-8")
+    append_execution_audit_entry(
+        config,
+        action_type="local_llm_execute",
+        outcome="blocked",
+        summary="Local LLM execution requires confirm_operator_gate=true for real execution.",
+        source_function="test_get_ai_action_review_route_returns_read_only_operator_review",
+        project_id="aresforge",
+        item_id="review-ai-action-api",
+        engine="local_coding_llm",
+        model="local-code",
+        agent_lane="coding",
+        blockers=["Local LLM execution requires confirm_operator_gate=true for real execution."],
+        safety_status="blocked",
+        gate_status="missing_operator_approval",
+        blocked_reason_category="missing_operator_approval",
+    )
+    register_ai_artifact(
+        config,
+        artifact_type="local_llm_prompt_preview",
+        artifact_path=artifact_path,
+        source_action="local_llm_prompt_preview",
+        summary="Prompt preview artifact for review.",
+        project_id="aresforge",
+        item_id="review-ai-action-api",
+        engine="local_coding_llm",
+        model="local-code",
+        agent_lane="coding",
+    )
+    server, thread = _start_server(config)
+
+    try:
+        port = int(server.server_address[1])
+        metadata_status, metadata_payload = _request_json(
+            port,
+            "POST",
+            "/api/local-queue/items/review-ai-action-api/routing-metadata",
+            {
+                "recommended_agent_lane": "coding",
+                "recommended_engine": "local_coding_llm",
+                "recommended_model": "local-code",
+                "routing_policy_source": "operator_review",
+                "routing_reason": "AI-adjacent local review metadata.",
+                "risk_level": "low",
+                "complexity_level": "low",
+                "project_ai_mode": "balanced",
+            },
+        )
+        assert metadata_status == 200
+        assert metadata_payload["ok"] is True
+
+        status, payload = _request_json(
+            port,
+            "GET",
+            "/api/ai-action-review?item_id=review-ai-action-api&limit=10",
+        )
+        assert status == 200
+        assert payload["ok"] is True
+        assert payload["local_only"] is True
+        assert payload["read_only"] is True
+        assert payload["review_only"] is True
+        assert payload["counts"]["action_review_count"] >= 2
+        assert payload["counts"]["blocked_action_count"] == 1
+        assert payload["counts"]["artifact_reference_count"] == 1
+        assert payload["counts"]["audit_reference_count"] >= 1
+        assert payload["counts"]["queue_ai_action_count"] == 1
+        blocked = payload["blocked_actions"][0]
+        assert blocked["action_name"] == "local_llm_execute"
+        assert blocked["safety_status"] == "blocked"
+        assert blocked["gate_status"] == "missing_operator_approval"
+        assert blocked["blocked_action"] == "local_llm_execute"
+        assert blocked["blocked_reason_category"] == "missing_operator_approval"
+        assert blocked["no_automatic_execution_flag"] is True
+        assert blocked["no_repo_mutation_flag"] is True
+        assert any("No execution controls are exposed" in entry for entry in payload["boundary_confirmations"])
+        assert any("does not execute Codex, local LLMs, agents" in entry for entry in payload["boundary_confirmations"])
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
+
+
 def test_post_local_llm_prompt_preview_route_returns_preview_without_execution(tmp_path: Path) -> None:
     config = _config(tmp_path)
     _seed_active_project(config, tmp_path)

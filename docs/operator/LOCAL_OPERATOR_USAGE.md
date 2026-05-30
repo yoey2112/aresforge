@@ -1,5 +1,29 @@
 # Local Operator Usage
 
+## M71 Operator-Facing AI Action Review Panel
+
+Status: Completed locally on `main`.
+
+Operator workflow:
+
+1. Open Queue in the Hub.
+2. Use the AI Action Review Panel.
+3. Optionally filter by project id, item id, action type, artifact type, or limit.
+4. Review safety status, gate status, blocked action details, artifact references, audit references, run-history timeline entries, queue AI-adjacent metadata, and next safe operator action.
+5. Treat the panel as local review evidence only.
+
+Operator safety notes:
+
+- the panel is read-only and review-focused
+- it does not execute agents, Codex, Codex CLI, local LLMs, GitHub actions, `gh`, issues, PRs, workflows, external services, or repo mutations
+- it does not apply local LLM or Codex output to repo files
+- local LLM output remains local-only, advisory-only, operator-gated, and prototype-scoped
+- Codex high-value lane remains prompt-generation/operator-handoff only
+
+Recommended next milestone:
+
+- M72 - Local LLM Provider Configuration Hardening.
+
 ## M70 Local AI Operations Verification Sweep
 
 Status: Completed locally on `main`.

@@ -1,5 +1,34 @@
 # Runnable Skeleton
 
+## M71 Operator-Facing AI Action Review Panel
+
+Status: Completed locally on `main`.
+
+Implemented runnable path:
+
+- Hub route: `GET /api/ai-action-review`
+- Queue UI panel: AI Action Review Panel
+- operator helper: `read_ai_action_review_panel(...)`
+
+Behavior contract:
+
+- composes local AI action safety metadata, execution audit entries, AI artifact records, Operator Run History timeline entries, and local queue AI routing metadata
+- displays action name, safety status, gate status, blocked action, blocked reason category, blocked reason, non-automatic execution flag, non-repo-mutation flag, artifact references, audit references, run-history timeline entries, and next safe operator action
+- uses useful read-only empty states when no recent AI actions, artifacts, blocked actions, or audit entries are found
+
+Still absent by design:
+
+- execution controls
+- Codex execution or Codex CLI invocation
+- local LLM execution from the panel
+- automatic agent execution
+- GitHub API, `gh`, issues, PRs, workflows, or GitHub mutation
+- repository mutation from AI output
+
+Next skeleton focus:
+
+- M72 should harden local LLM provider configuration.
+
 ## M70 Local AI Operations Verification Sweep
 
 Status: Completed locally on `main`.
