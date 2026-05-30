@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T04:56:26.830547+00:00",
+  "updated_at": "2026-05-30T05:22:50.178929+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -706,7 +706,7 @@
       "repo_id": "aresforge-main",
       "title": "M81 Local LLM Advisory/Coding Lane Prototype",
       "description": "Expand local LLM usage carefully, starting with local-only advisory/reasoning before any coding-output path is allowed.",
-      "status": "proposed",
+      "status": "done",
       "priority": "normal",
       "item_type": "feature",
       "tags": [
@@ -723,16 +723,36 @@
       "assigned_agent": "",
       "source": "m76_self_seed",
       "notes": "Acceptance criteria:\n- Local-only provider use.\n- Advisory/reasoning comes before coding-output behavior.\n- No automatic repo mutation from local LLM output.\n- Coding-output paths remain gated and prototype-scoped.\n\nM76 safety notes:\n- Seeded for review only.\n- Not started automatically.\n- No prompt, agent, Codex, local LLM, GitHub, gh, issue, PR, workflow, commit, or push action was invoked.",
-      "started_at": "",
-      "started_via": "",
-      "previous_status": "",
-      "completed_at": "",
-      "completed_by": "",
-      "completion_commit": "",
-      "validation_summary": "",
-      "evidence_note": "",
-      "tests_run": [],
-      "changed_files": [],
+      "started_at": "2026-05-30T05:22:35.861612+00:00",
+      "started_via": "local_operator",
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-30T05:22:50.178929+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "d68c4c5",
+      "validation_summary": "Focused suite: python -m pytest tests/test_cli.py tests/test_local_project_queue.py -> 254 passed. Broader bundle: python -m pytest tests/test_prompt_builder_agent.py tests/test_queue_dispatch_preparation.py tests/test_codex_dispatch_contract.py tests/test_codex_dispatch_runner.py tests/test_cli.py tests/test_local_project_queue.py tests/test_local_project_factory.py tests/test_hub_local_queue_lifecycle_api.py tests/test_hub_project_factory_api.py tests/test_hub_ui_foundation.py -> 500 passed. Smoke checks passed; M81 advisory readiness inspection reports advisory_lane_ready false because local provider is not configured, with execution and mutation disabled. git diff --check passed.",
+      "evidence_note": "M81 implemented read-only local LLM advisory/coding lane readiness; no provider invocation, repo mutation, queue completion from model output, or automatic next-item execution.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py tests/test_local_project_queue.py",
+        "python -m pytest tests/test_prompt_builder_agent.py tests/test_queue_dispatch_preparation.py tests/test_codex_dispatch_contract.py tests/test_codex_dispatch_runner.py tests/test_cli.py tests/test_local_project_queue.py tests/test_local_project_factory.py tests/test_hub_local_queue_lifecycle_api.py tests/test_hub_project_factory_api.py tests/test_hub_ui_foundation.py",
+        "git diff --check",
+        "python -m aresforge inspect-local-queue-item-readiness --item-id m81-local-llm-advisory-coding-lane-prototype",
+        "python -m aresforge inspect-llm-decision-matrix --item-id m81-local-llm-advisory-coding-lane-prototype --format json",
+        "python -m aresforge inspect-local-project-report",
+        "python -m aresforge inspect-local-llm-advisory-lane-readiness --item-id m81-local-llm-advisory-coding-lane-prototype --format json"
+      ],
+      "changed_files": [
+        "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
+        "docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/context/BUILD_STATE.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/roadmap/ROADMAP.md",
+        "src/aresforge/cli.py",
+        "src/aresforge/operator/local_llm_advisory_lane.py",
+        "tests/test_cli.py",
+        "tests/test_local_project_queue.py"
+      ],
       "artifact_paths": [],
       "completion_evidence": {},
       "routing_metadata": {
@@ -754,7 +774,7 @@
       "closeout_summary": "",
       "closeout_history": [],
       "created_at": "2026-05-30T01:07:03.033858+00:00",
-      "updated_at": "2026-05-30T01:08:04.015366+00:00"
+      "updated_at": "2026-05-30T05:22:50.178929+00:00"
     },
     {
       "item_id": "m82-self-managed-aresforge-test-run",
