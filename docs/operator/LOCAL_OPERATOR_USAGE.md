@@ -1,5 +1,28 @@
 # Local Operator Usage
 
+## M137 GitHub PR/Issue Sync Agent
+
+M137 can plan and perform a narrow GitHub issue/PR sync. It is dry-run-first, and live GitHub comments or metadata fetches require explicit `--github-enabled` plus passing `github_sync` machine gates. It does not merge PRs, enable auto-merge, delete branches, force push, approve PRs, request changes, create releases, update protected branches, write repository files, close issues automatically, mutate queue status, or start another item.
+
+Dry-run plan:
+
+    python -m aresforge run-github-sync-agent --item-id m137-github-pr-issue-sync-agent --dry-run --sync-mode issue-comment --repo yoey2112/aresforge --issue-number 1 --format json
+
+Post one issue comment only after explicit enablement:
+
+    python -m aresforge run-github-sync-agent --item-id <item_id> --sync-mode issue-comment --github-enabled --repo <owner/repo> --issue-number <number> --artifact-path <comment-artifact.json> --format json
+
+Post one PR comment only after explicit enablement:
+
+    python -m aresforge run-github-sync-agent --item-id <item_id> --sync-mode pr-comment --github-enabled --repo <owner/repo> --pr-number <number> --artifact-path <comment-artifact.json> --format json
+
+Write local metadata summary artifacts:
+
+    python -m aresforge run-github-sync-agent --item-id <item_id> --sync-mode issue-update --repo <owner/repo> --issue-number <number> --format json
+    python -m aresforge run-github-sync-agent --item-id <item_id> --sync-mode pr-summary --repo <owner/repo> --pr-number <number> --format json
+
+Add `--github-enabled` to the summary modes only when the operator wants the agent to fetch live issue/PR metadata before writing the local summary artifact.
+
 ## M136 Codex Result Ingestion and Validation Runner
 
 M136 validates the local result of a Codex execution record after M135 dispatch. It parses captured stdout/stderr/result artifacts, detects changed files, runs one allowlisted local validation profile unless dry-run is supplied, writes dispatch evidence, writes a completion recommendation, and writes a machine-gate result. It does not complete queue items, push, call GitHub or `gh`, call remote services, execute Codex, or start another item.

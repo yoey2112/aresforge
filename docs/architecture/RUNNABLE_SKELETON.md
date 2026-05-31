@@ -1,5 +1,34 @@
 # Runnable Skeleton
 
+## M137 GitHub PR/Issue Sync Agent
+
+M137 adds a dry-run-first GitHub sync command:
+
+- `python -m aresforge run-github-sync-agent --item-id <item_id> --format json`
+- optional `--dry-run`, `--sync-mode issue-comment|issue-update|pr-comment|pr-summary`, `--github-enabled`, `--repo`, `--issue-number`, `--pr-number`, `--artifact-path`, `--output`, and `--force`
+
+Runnable behavior:
+
+- emits stable `github_sync_agent_v1` JSON
+- plans issue and PR comments without live GitHub calls in dry-run mode
+- posts one issue comment or one PR comment only when `--github-enabled` is explicit and `github_sync` machine gates pass
+- writes local issue metadata and PR metadata summary artifacts
+- may fetch live issue/PR metadata for summary artifacts only when `--github-enabled` is explicit and gates pass
+- uses a mockable GitHub client boundary so tests do not require live GitHub access
+
+Still absent by design:
+
+- PR merge
+- auto-merge enablement
+- branch deletion
+- force push
+- PR approval or request-changes review
+- release creation
+- protected branch update
+- repository file write
+- automatic issue closure
+- queue completion or automatic next-item execution
+
 ## M136 Codex Result Ingestion and Validation Runner
 
 M136 adds the local validation handoff after Codex execution:

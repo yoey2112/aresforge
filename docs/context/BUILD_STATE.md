@@ -1,5 +1,31 @@
 # AresForge Build State
 
+## M137 GitHub PR/Issue Sync Agent
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m137-github-pr-issue-sync-agent`.
+
+M137 adds a dry-run-first GitHub issue/PR sync agent:
+
+- `python -m aresforge run-github-sync-agent --item-id <item_id> --format json`
+- optional `--dry-run`, `--sync-mode issue-comment|issue-update|pr-comment|pr-summary`, `--github-enabled`, `--repo`, `--issue-number`, `--pr-number`, `--artifact-path`, `--output`, and `--force`
+
+Allowed scope:
+
+- dry-run planning without GitHub calls
+- issue comments only when `--github-enabled` is explicit and `github_sync` machine gates pass
+- PR comments only when `--github-enabled` is explicit and `github_sync` machine gates pass
+- local issue metadata summary artifacts
+- local PR metadata summary artifacts
+- optional live issue/PR metadata fetch for summary artifacts when `--github-enabled` and gates pass
+
+Blocked in M137:
+
+- PR merge, auto-merge enablement, branch deletion, force push, PR approval, request changes, release creation, protected branch update, repository file writes, and automatic issue closure
+
+The agent uses a mockable GitHub client boundary. Tests do not require live GitHub access.
+
 ## M136 Codex Result Ingestion and Validation Runner
 
 Status: Completed locally on `main` after validation.

@@ -91,6 +91,7 @@ def test_cli_has_expected_commands() -> None:
         "approve-codex-dispatch",
         "run-codex-dispatch",
         "ingest-codex-result-and-validate",
+        "run-github-sync-agent",
         "inspect-codex-dispatch-run",
         "list-codex-dispatch-runs",
         "cancel-codex-dispatch-run",
@@ -8777,6 +8778,97 @@ def test_ingest_codex_result_and_validate_dispatch_json(
         "dry_run": True,
         "queue_path": "queue.json",
         "output": "artifacts/codex_result_ingestion/m136.json",
+        "force": True,
+        "output_format": "json",
+    }
+
+
+def test_run_github_sync_agent_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "execution_record_type": "github_sync_agent_v1",
+                "item_id": "m137",
+                "dry_run": True,
+                "github_enabled": False,
+                "sync_mode": "issue-comment",
+                "repo": "yoey2112/aresforge",
+                "issue_number": 1,
+                "blocked": False,
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_run(
+        _config,
+        item_id,
+        sync_mode="issue-comment",
+        dry_run=False,
+        github_enabled=False,
+        repo=None,
+        issue_number=None,
+        pr_number=None,
+        artifact_path=None,
+        queue_path=None,
+        output=None,
+        force=False,
+        output_format="json",
+    ):
+        seen["item_id"] = item_id
+        seen["sync_mode"] = sync_mode
+        seen["dry_run"] = dry_run
+        seen["github_enabled"] = github_enabled
+        seen["repo"] = repo
+        seen["issue_number"] = issue_number
+        seen["artifact_path"] = artifact_path
+        seen["output"] = output
+        seen["force"] = force
+        seen["output_format"] = output_format
+        return payload
+
+    monkeypatch.setattr(cli, "run_github_sync_agent", fake_run)
+    exit_code = cli.main(
+        [
+            "run-github-sync-agent",
+            "--item-id",
+            "m137",
+            "--dry-run",
+            "--sync-mode",
+            "issue-comment",
+            "--repo",
+            "yoey2112/aresforge",
+            "--issue-number",
+            "1",
+            "--artifact-path",
+            "artifacts/manual/github-sync-comment.json",
+            "--output",
+            "artifacts/github_sync_agent/m137.json",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["execution_record_type"] == "github_sync_agent_v1"
+    assert seen == {
+        "item_id": "m137",
+        "sync_mode": "issue-comment",
+        "dry_run": True,
+        "github_enabled": False,
+        "repo": "yoey2112/aresforge",
+        "issue_number": 1,
+        "artifact_path": "artifacts/manual/github-sync-comment.json",
+        "output": "artifacts/github_sync_agent/m137.json",
         "force": True,
         "output_format": "json",
     }

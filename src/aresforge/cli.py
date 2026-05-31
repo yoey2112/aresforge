@@ -223,6 +223,7 @@ from aresforge.operator.codex_result_ingestion_validation import (
     VALIDATION_PROFILES as CODEX_RESULT_VALIDATION_PROFILES,
     ingest_codex_result_and_validate,
 )
+from aresforge.operator.github_sync_agent import run_github_sync_agent
 from aresforge.operator.llm_decision_matrix import inspect_llm_decision_matrix
 from aresforge.operator.local_coding_draft import prepare_local_coding_draft_artifact
 from aresforge.operator.documentation_agent_contract import inspect_documentation_agent_contract
@@ -2307,6 +2308,30 @@ def build_parser() -> argparse.ArgumentParser:
     ingest_codex_result_parser.add_argument("--output")
     ingest_codex_result_parser.add_argument("--force", action="store_true")
     ingest_codex_result_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+    )
+    github_sync_agent_parser = subparsers.add_parser(
+        "run-github-sync-agent",
+        help="Run a dry-run-first GitHub issue/PR sync agent with narrow explicit GitHub gates.",
+    )
+    github_sync_agent_parser.add_argument("--item-id", required=True)
+    github_sync_agent_parser.add_argument("--dry-run", action="store_true")
+    github_sync_agent_parser.add_argument(
+        "--sync-mode",
+        choices=["issue-comment", "issue-update", "pr-comment", "pr-summary"],
+        default="issue-comment",
+    )
+    github_sync_agent_parser.add_argument("--github-enabled", action="store_true")
+    github_sync_agent_parser.add_argument("--repo")
+    github_sync_agent_parser.add_argument("--issue-number", type=int)
+    github_sync_agent_parser.add_argument("--pr-number", type=int)
+    github_sync_agent_parser.add_argument("--artifact-path")
+    github_sync_agent_parser.add_argument("--queue-path")
+    github_sync_agent_parser.add_argument("--output")
+    github_sync_agent_parser.add_argument("--force", action="store_true")
+    github_sync_agent_parser.add_argument(
         "--format",
         choices=["json"],
         default="json",
@@ -5288,6 +5313,28 @@ def main(argv: list[str] | None = None) -> int:
             execution_record=args.execution_record,
             validation_profile=args.validation_profile,
             dry_run=bool(args.dry_run),
+            queue_path=args.queue_path,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "run-github-sync-agent":
+        payload = run_github_sync_agent(
+            config,
+            item_id=args.item_id,
+            sync_mode=args.sync_mode,
+            dry_run=bool(args.dry_run),
+            github_enabled=bool(args.github_enabled),
+            repo=args.repo,
+            issue_number=args.issue_number,
+            pr_number=args.pr_number,
+            artifact_path=args.artifact_path,
             queue_path=args.queue_path,
             output=args.output,
             force=bool(args.force),
