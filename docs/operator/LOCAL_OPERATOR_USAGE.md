@@ -1,5 +1,28 @@
 # Local Operator Usage
 
+## M157 Run Replay and Audit Trail
+
+M157 reconstructs local orchestration run evidence without re-running the original work.
+
+Replay a run in dry-run metadata mode:
+
+    python -m aresforge replay-orchestration-run --run-id sample-run --dry-run --format json
+
+Write a local replay audit artifact:
+
+    python -m aresforge replay-orchestration-run --run-id <run_id> --dry-run --output .aresforge/orchestrator/replay/<run_id>.json --force --format json
+
+Interpretation:
+
+- `record_type=orchestration_run_replay_audit_trail_v1` identifies the M157 payload.
+- `source_records` summarizes durable store, history, and monitor evidence for the run.
+- `source_artifacts` lists referenced artifacts with hashes and status metadata.
+- `step_records`, `decision_timeline`, and `audit_trail` reconstruct prior decisions, gates, artifacts, and outcomes.
+- `reconstructed_machine_gates_checked` reports observed source/inspection gates; it is audit evidence only.
+- `status=no_replay_record` means no local evidence matched the run id.
+
+M157 requires `--dry-run` and performs no agent execution, Codex execution, local LLM/model execution, GitHub call, validation command execution, source patch application, queue mutation, artifact cleanup, retry, resume, PR merge, force push, workflow mutation, release, or automatic next-item execution.
+
 ## M156 Orchestration Artifact Retention Policy
 
 M156 inspects local orchestration artifacts and produces retention/indexing metadata without deleting anything.

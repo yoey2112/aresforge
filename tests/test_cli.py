@@ -100,6 +100,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-orchestration-run-store",
         "inspect-orchestration-resume-plan",
         "inspect-orchestration-artifact-retention",
+        "replay-orchestration-run",
         "inspect-codex-execution-enablements",
         "inspect-codex-worktree-guard",
         "inspect-codex-validation-profiles",
@@ -9635,6 +9636,98 @@ def test_inspect_orchestration_artifact_retention_dispatch_json(
         "history_path": ".aresforge/orchestrator/run_history.json",
         "queue_path": ".aresforge/queue/work_items.json",
         "output": ".aresforge/orchestrator/artifact-retention.json",
+        "force": True,
+        "output_format": "json",
+    }
+
+
+def test_replay_orchestration_run_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "record_type": "orchestration_run_replay_audit_trail_v1",
+                "project_id": "aresforge",
+                "run_id": "sample-run",
+                "status": "replay_reconstructed",
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_replay(
+        _config,
+        *,
+        run_id,
+        project_id="aresforge",
+        item_id=None,
+        dry_run=False,
+        history_path=None,
+        artifacts_root=None,
+        queue_path=None,
+        output=None,
+        force=False,
+        output_format="json",
+    ):
+        seen.update(
+            {
+                "run_id": run_id,
+                "project_id": project_id,
+                "item_id": item_id,
+                "dry_run": dry_run,
+                "history_path": history_path,
+                "artifacts_root": artifacts_root,
+                "queue_path": queue_path,
+                "output": output,
+                "force": force,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "replay_orchestration_run", fake_replay)
+    exit_code = cli.main(
+        [
+            "replay-orchestration-run",
+            "--run-id",
+            "sample-run",
+            "--project-id",
+            "aresforge",
+            "--item-id",
+            "m157",
+            "--dry-run",
+            "--history-path",
+            ".aresforge/orchestrator/run_history.json",
+            "--artifacts-root",
+            "artifacts/multi-agent-orchestration",
+            "--queue-path",
+            ".aresforge/queue/work_items.json",
+            "--output",
+            ".aresforge/orchestrator/replay/sample-run.json",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["record_type"] == "orchestration_run_replay_audit_trail_v1"
+    assert seen == {
+        "run_id": "sample-run",
+        "project_id": "aresforge",
+        "item_id": "m157",
+        "dry_run": True,
+        "history_path": ".aresforge/orchestrator/run_history.json",
+        "artifacts_root": "artifacts/multi-agent-orchestration",
+        "queue_path": ".aresforge/queue/work_items.json",
+        "output": ".aresforge/orchestrator/replay/sample-run.json",
         "force": True,
         "output_format": "json",
     }

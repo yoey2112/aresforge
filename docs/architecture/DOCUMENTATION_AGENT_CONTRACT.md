@@ -1,5 +1,11 @@
 # Documentation Agent Contract
 
+## M157 Run Replay and Audit Trail Boundary
+
+M157 replay/audit inspection does not add documentation-agent mutation. It may read artifacts that mention documentation-agent steps or documentation evidence, but it does not edit documentation, generate patches, apply patches, execute documentation agents, call models, call Codex, call GitHub/`gh`, mutate queue state, run validation commands, delete artifacts, retry failures, resume orchestration, or start follow-on work.
+
+Documentation mutation remains limited to separate docs-only Markdown patch commands that pass `docs_only_patch_apply` gates. M157 output is reconstructed audit evidence only.
+
 ## M156 Orchestration Artifact Retention Policy Boundary
 
 M156 artifact retention inspection does not add documentation-agent mutation. It may index documentation-agent evidence folders and report stale or orphan-like local artifacts, but it does not edit documentation, generate patches, apply patches, execute documentation agents, call models, call Codex, call GitHub/`gh`, mutate queue state, run validation commands, delete artifacts, retry failures, resume orchestration, or start follow-on work.

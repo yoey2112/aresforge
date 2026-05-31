@@ -1,5 +1,20 @@
 # Runnable Skeleton
 
+## M157 Run Replay and Audit Trail
+
+M157 adds a local replay/audit command:
+
+- `python -m aresforge replay-orchestration-run --run-id sample-run --dry-run --format json`
+
+The command returns `orchestration_run_replay_audit_trail_v1` JSON. It reconstructs a run from the durable run store, run history, monitor evidence, retention index metadata, source artifacts, step records, evidence bundles, and referenced artifacts. It reports source records, artifact hashes, reconstructed machine gates, a decision timeline, audit events, source execution flags, and the next safe action.
+
+Runnable boundary:
+
+- `--dry-run` is required
+- metadata reconstruction only; source run work is never re-executed
+- optional `--output` writes one local replay audit artifact
+- no agent, Codex, local LLM/model, GitHub, validation command, source patch, queue mutation, artifact cleanup, retry, resume, PR merge, force push, protected-branch update, workflow mutation, release, or next-item execution is performed
+
 ## M156 Orchestration Artifact Retention Policy
 
 M156 adds a local orchestration artifact retention command:

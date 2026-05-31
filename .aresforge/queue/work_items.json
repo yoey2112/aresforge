@@ -6585,6 +6585,103 @@
       "closeout_history": [],
       "created_at": "2026-05-31T23:02:00Z",
       "updated_at": "2026-05-31T23:02:00Z"
+    },
+    {
+      "item_id": "m157-run-replay-and-audit-trail",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M157 Run Replay and Audit Trail",
+      "description": "Implement run replay and audit trail inspection for orchestration runs so prior decisions, gates, artifacts, and outcomes can be reconstructed without re-execution.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "orchestration",
+      "tags": [
+        "milestone:m157",
+        "run-replay",
+        "audit-trail",
+        "machine-gated"
+      ],
+      "dependencies": [
+        "m156-orchestration-artifact-retention-policy"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [],
+      "evidence_required": [],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: add replay-orchestration-run; deterministic orchestration_run_replay_audit_trail_v1 JSON; reconstruct prior decisions, gates, step records, artifacts, evidence bundles, and outcomes from durable run store, run history, monitor evidence, retention index, and source artifacts; require --dry-run; no agent/Codex/local LLM/model/GitHub/validation command/source patch/queue mutation/artifact cleanup/retry/resume/next-item execution from replay.",
+      "started_at": "2026-05-31T23:29:00Z",
+      "started_via": "local_operator",
+      "previous_status": "ready",
+      "completed_at": "2026-05-31T23:29:00Z",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M157 Run Replay and Audit Trail implemented and validated locally. Added replay-orchestration-run with stable orchestration_run_replay_audit_trail_v1 JSON, dry-run metadata reconstruction, durable store/history/monitor/retention evidence composition, source artifact hashing, step record reconstruction, reconstructed machine gates, decision timeline, audit trail events, source execution flags, source-of-truth docs, CLI coverage, targeted tests, and queue evidence. Replay requires --dry-run and performs no agent, Codex, local LLM/model, GitHub, validation command, source patch, queue mutation from replay, artifact cleanup, retry, resume, or next-item execution.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 230 passed; python -m pytest tests/test_run_replay_audit_trail.py -> 4 passed; python -m pytest tests/test_durable_orchestration_run_store.py -> 4 passed; git diff --check -> passed with CRLF warnings only; inspect-local-project-report passed; inspect-local-queue-agent-summary passed; inspect-project-queue --project-id aresforge passed; replay-orchestration-run --run-id sample-run --dry-run --format json passed with status=no_replay_record, blocked=false, machine_gates_passed=true, mutation_performed=false, queue_mutation_performed=false, codex_execution_performed=false, model_execution_performed=false, github_execution_performed=false, patch_application_performed=false, local_only=true.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 230 passed",
+        "python -m pytest tests/test_run_replay_audit_trail.py -> 4 passed",
+        "python -m pytest tests/test_durable_orchestration_run_store.py -> 4 passed",
+        "git diff --check -> passed with CRLF warnings only",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed",
+        "python -m aresforge inspect-project-queue --project-id aresforge -> passed",
+        "python -m aresforge replay-orchestration-run --run-id sample-run --dry-run --format json -> passed"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/orchestration_run_replay_audit.py",
+        "src/aresforge/cli.py",
+        "tests/test_run_replay_audit_trail.py",
+        "tests/test_cli.py",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
+        "docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
+        "docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md",
+        ".aresforge/queue/work_items.json"
+      ],
+      "artifact_paths": [
+        ".aresforge/orchestrator/replay/<run_id>.json (optional output path; default command writes no artifact)"
+      ],
+      "completion_evidence": {
+        "command": "replay-orchestration-run",
+        "record_type": "orchestration_run_replay_audit_trail_v1",
+        "status": "no_replay_record",
+        "machine_gates_passed": true,
+        "mutation_performed": false,
+        "queue_mutation_performed": false,
+        "external_execution_performed": false,
+        "codex_execution_performed": false,
+        "model_execution_performed": false,
+        "github_execution_performed": false,
+        "patch_application_performed": false,
+        "local_only": true,
+        "commit_hash": "pending-final-commit"
+      },
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-31T23:29:00Z",
+      "updated_at": "2026-05-31T23:29:00Z"
     }
   ]
 }

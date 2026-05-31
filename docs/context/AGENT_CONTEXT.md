@@ -1,5 +1,25 @@
 # AresForge Agent Context
 
+## M157 Run Replay and Audit Trail Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m157-run-replay-and-audit-trail`.
+
+M157 adds `replay-orchestration-run`, a local-only dry-run inspector that reconstructs what happened in a prior orchestration run from stored records and artifacts.
+
+Command:
+
+- `python -m aresforge replay-orchestration-run --run-id sample-run --dry-run --format json`
+
+Agent-facing guidance:
+
+- Treat `orchestration_run_replay_audit_trail_v1` output as audit evidence only.
+- `source_records`, `source_artifacts`, `step_records`, `decision_timeline`, and `audit_trail` reconstruct prior decisions, gates, artifacts, and outcomes from local evidence.
+- `reconstructed_machine_gates_checked` describes observed prior/source gates; it does not authorize retry or resume.
+- Missing run evidence is a non-mutating inspection result and should be followed by history/store inspection, not execution.
+- Do not run agents, Codex, models, GitHub, validation commands, source patches, queue mutation, artifact cleanup, retries, resumes, PR merges, force pushes, workflow mutation, releases, or later sprint items from replay output.
+
 ## M156 Orchestration Artifact Retention Policy Context
 
 Status: Completed locally on `main` after validation.

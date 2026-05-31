@@ -1,5 +1,11 @@
 # Local LLM Environment Contract
 
+## M157 Run Replay and Audit Trail Boundary
+
+M157 replay/audit inspection does not change local LLM permissions. Replay may report that a source orchestration run performed or avoided model execution, but the replay command itself does not call Ollama, send prompts, run inference, select fallback models, mutate repository files, mutate queue state, call Codex, call GitHub/`gh`, apply patches, run validation commands, delete artifacts, retry failures, resume orchestration, or start follow-on work.
+
+Local LLM advisory execution remains limited to separate explicit local-provider commands and their machine gates. M157 records reconstructed run evidence only.
+
 ## M156 Orchestration Artifact Retention Policy Boundary
 
 M156 artifact retention inspection does not change local LLM permissions. The retention index may include local artifacts that mention model execution, advisory output, or validation evidence, but the command itself does not call Ollama, send prompts, run inference, select fallback models, mutate repository files, mutate queue state, call Codex, call GitHub/`gh`, apply patches, run validation commands, delete artifacts, retry failures, resume orchestration, or start follow-on work.

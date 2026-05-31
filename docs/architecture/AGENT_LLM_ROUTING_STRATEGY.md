@@ -1,5 +1,16 @@
 # Agent LLM Routing Strategy
 
+## M157 Run Replay and Audit Trail
+
+M157 does not add a new agent, Codex, local LLM, or GitHub execution route. It routes prior orchestration evidence into a dry-run replay/audit record so operators can reconstruct what happened before considering any separate recovery, cleanup, or completion command.
+
+Routing implications:
+
+- replay input routes through local durable history, monitor, retention, and artifact evidence
+- missing run evidence routes to local history/store inspection, not execution
+- reconstructed source gates and execution flags route to operator audit review only
+- M157 reports no agent execution, no model execution, no Codex execution, no GitHub execution, no patch application, no artifact cleanup, and no queue mutation by the replay command itself
+
 ## M156 Orchestration Artifact Retention Policy
 
 M156 does not add a new agent, Codex, local LLM, or GitHub execution route. It indexes local orchestration artifacts so routing, recovery, and audit work can distinguish retained evidence, stale artifacts, and orphan candidates before any future cleanup or recovery action is considered.

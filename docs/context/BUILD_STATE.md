@@ -1,5 +1,24 @@
 # AresForge Build State
 
+## M157 Run Replay and Audit Trail
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m157-run-replay-and-audit-trail`.
+
+M157 adds a local orchestration replay/audit inspector:
+
+- `python -m aresforge replay-orchestration-run --run-id sample-run --dry-run --format json`
+- stable `orchestration_run_replay_audit_trail_v1` JSON with dry-run metadata reconstruction, source record summaries, source artifact hashes, reconstructed step records, reconstructed machine gates, decision timeline, audit events, and safety flags
+- reads durable run-store records, M141 history/recovery evidence, M153 monitor evidence, M156 retention index metadata, source run artifacts, step results, evidence bundles, and referenced artifacts when present
+- missing run evidence reports `status=no_replay_record` with warnings rather than executing anything
+
+Safety posture:
+
+- replay requires `--dry-run` and performs metadata reconstruction only
+- replay performs no agent, Codex, local LLM/model, GitHub, validation command, source patch, queue mutation, artifact cleanup, retry, resume, protected-branch update, workflow mutation, PR merge, force push, release creation, or automatic next-item execution
+- source execution flags and reconstructed source gates are reported as audit evidence; the replay command's own execution flags remain false
+
 ## M156 Orchestration Artifact Retention Policy
 
 Status: Completed locally on `main` after validation.
