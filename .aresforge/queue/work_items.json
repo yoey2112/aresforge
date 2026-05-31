@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-31T19:45:24Z",
+  "updated_at": "2026-05-31T20:04:24Z",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -5376,6 +5376,104 @@
       "closeout_history": [],
       "created_at": "2026-05-31T19:45:24Z",
       "updated_at": "2026-05-31T19:45:24Z"
+    },
+    {
+      "item_id": "m144-codex-validation-profile-expansion",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M144 Codex Validation Profile Expansion",
+      "description": "Expand Codex validation profiles so Codex outputs can be validated by task type, changed paths, and risk class.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "orchestration",
+      "tags": [
+        "milestone:m144",
+        "codex-execution",
+        "validation-profiles",
+        "machine-gated"
+      ],
+      "dependencies": [
+        "m143-codex-execution-sandbox-and-worktree-guard"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [],
+      "evidence_required": [],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: add inspect-codex-validation-profiles; deterministic JSON fields; validation profile selection by task type, changed paths, and risk class; reuse M136 validation profile allowlists, agent registry, LLM decision policy, machine safety gate, queue, and orchestration boundaries; no Codex/local LLM/GitHub/patch/queue completion/validation command execution/next-item execution from the inspector.",
+      "started_at": "",
+      "started_via": "",
+      "previous_status": "ready",
+      "completed_at": "2026-05-31T20:04:24Z",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M144 Codex Validation Profile Expansion implemented and validated locally. Added inspect-codex-validation-profiles with stable codex_validation_profile_expansion_v1 JSON, profile selection by task type, changed path class, and risk class, expanded M136 allowlisted validation profiles, validation-agent and LLM decision-policy summaries, read-only machine-gate evidence, CLI coverage, targeted tests, source-of-truth docs, and queue evidence. No Codex, local LLM, GitHub, patch application, validation command execution from the inspector, queue mutation from the inspector, or next-item execution was performed.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 218 passed; python -m pytest tests/test_codex_validation_profiles.py -> 4 passed; git diff --check -> passed with CRLF warnings only; inspect-local-project-report passed; inspect-local-queue-agent-summary passed; inspect-project-queue --project-id aresforge passed; inspect-codex-validation-profiles --format json passed with status=ready, blocked=false, machine_gates_passed=true, selected_profile=full_local_safe, and all external/model/Codex/GitHub/patch/validation execution flags false.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 218 passed",
+        "python -m pytest tests/test_codex_validation_profiles.py -> 4 passed",
+        "git diff --check -> passed with CRLF warnings only",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed",
+        "python -m aresforge inspect-project-queue --project-id aresforge -> passed",
+        "python -m aresforge inspect-codex-validation-profiles --format json -> passed"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/codex_validation_profiles.py",
+        "src/aresforge/operator/codex_result_ingestion_validation.py",
+        "src/aresforge/cli.py",
+        "tests/test_codex_validation_profiles.py",
+        "tests/test_cli.py",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
+        "docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
+        "docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md",
+        ".aresforge/queue/work_items.json",
+        ".aresforge/queue/transaction_log.json"
+      ],
+      "artifact_paths": [
+        ".aresforge/codex_execution/validation_profiles/m144-profiles.json (optional output path; default inspect command is read-only)"
+      ],
+      "completion_evidence": {
+        "command": "inspect-codex-validation-profiles",
+        "record_type": "codex_validation_profile_expansion_v1",
+        "selected_profile": "full_local_safe",
+        "machine_gates_passed": true,
+        "mutation_performed": false,
+        "external_execution_performed": false,
+        "model_execution_performed": false,
+        "codex_execution_performed": false,
+        "github_execution_performed": false,
+        "patch_application_performed": false,
+        "validation_command_execution_performed": false,
+        "local_only": true,
+        "commit_hash": "pending-final-commit"
+      },
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-31T20:02:37.963698+00:00",
+      "updated_at": "2026-05-31T20:04:24Z"
     }
   ]
 }

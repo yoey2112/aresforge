@@ -98,6 +98,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-orchestration-run-history",
         "inspect-codex-execution-enablements",
         "inspect-codex-worktree-guard",
+        "inspect-codex-validation-profiles",
         "inspect-codex-dispatch-run",
         "list-codex-dispatch-runs",
         "cancel-codex-dispatch-run",
@@ -9348,6 +9349,98 @@ def test_inspect_codex_worktree_guard_dispatch_json(
         "project_id": "aresforge",
         "queue_path": ".aresforge/queue/work_items.json",
         "output": ".aresforge/codex_execution/worktree_guard/m143-guard.json",
+        "force": True,
+        "output_format": "json",
+    }
+
+
+def test_inspect_codex_validation_profiles_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "record_type": "codex_validation_profile_expansion_v1",
+                "project_id": "aresforge",
+                "selected_profile": "codex_orchestration",
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_inspect(
+        _config,
+        *,
+        item_id="m144-codex-validation-profile-expansion",
+        project_id="aresforge",
+        queue_path=None,
+        task_type=None,
+        risk_class=None,
+        changed_paths=None,
+        output=None,
+        force=False,
+        output_format="json",
+    ):
+        seen.update(
+            {
+                "item_id": item_id,
+                "project_id": project_id,
+                "queue_path": queue_path,
+                "task_type": task_type,
+                "risk_class": risk_class,
+                "changed_paths": changed_paths,
+                "output": output,
+                "force": force,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "inspect_codex_validation_profiles", fake_inspect)
+    exit_code = cli.main(
+        [
+            "inspect-codex-validation-profiles",
+            "--item-id",
+            "m144",
+            "--project-id",
+            "aresforge",
+            "--queue-path",
+            ".aresforge/queue/work_items.json",
+            "--task-type",
+            "orchestration",
+            "--risk-class",
+            "medium",
+            "--changed-path",
+            "src/aresforge/operator/codex_validation_profiles.py",
+            "--changed-path",
+            "tests/test_codex_validation_profiles.py",
+            "--output",
+            ".aresforge/codex_execution/validation_profiles/m144-profiles.json",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["record_type"] == "codex_validation_profile_expansion_v1"
+    assert seen == {
+        "item_id": "m144",
+        "project_id": "aresforge",
+        "queue_path": ".aresforge/queue/work_items.json",
+        "task_type": "orchestration",
+        "risk_class": "medium",
+        "changed_paths": [
+            "src/aresforge/operator/codex_validation_profiles.py",
+            "tests/test_codex_validation_profiles.py",
+        ],
+        "output": ".aresforge/codex_execution/validation_profiles/m144-profiles.json",
         "force": True,
         "output_format": "json",
     }

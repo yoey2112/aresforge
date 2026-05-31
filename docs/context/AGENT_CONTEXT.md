@@ -1,5 +1,24 @@
 # AresForge Agent Context
 
+## M144 Codex Validation Profile Expansion Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m144-codex-validation-profile-expansion`.
+
+M144 adds `inspect-codex-validation-profiles`, a local-only inspector for choosing Codex result validation profiles by task type, changed path class, and risk class.
+
+Command:
+
+- `python -m aresforge inspect-codex-validation-profiles --format json`
+
+Agent-facing guidance:
+
+- Treat M144 output as validation planning evidence, not permission to run validation commands.
+- Use the selected profile only with a separate explicit M136 command after Codex output has been captured locally.
+- High/critical/unknown risk, protected paths, workflow paths, mixed source/control-plane changes, Codex runtime changes, and orchestration changes require expanded validation.
+- Do not run Codex, call models, call GitHub, apply generated patches, mutate queue state, merge PRs, force push, mutate workflows, or start follow-on work from this inspector.
+
 ## M143 Codex Execution Sandbox and Worktree Guard Context
 
 Status: Completed locally on `main` after validation.

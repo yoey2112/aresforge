@@ -1,5 +1,20 @@
 # Runnable Skeleton
 
+## M144 Codex Validation Profile Expansion
+
+M144 adds a read-only validation profile inspection command:
+
+- `python -m aresforge inspect-codex-validation-profiles --format json`
+
+The command returns `codex_validation_profile_expansion_v1` JSON. It classifies changed paths, resolves task type and risk class, selects a recommended M136 validation profile, lists allowlisted local validation commands, checks the read-only machine gate, and confirms all execution/mutation flags remain false.
+
+Runnable boundary:
+
+- M144 is inspection and profile selection only
+- validation commands are not run by the inspector
+- Codex, models, GitHub, patch application, queue mutation, and next-item execution remain separate explicit gated paths
+- downstream result validation still goes through `ingest-codex-result-and-validate --validation-profile <profile>`
+
 ## M143 Codex Execution Sandbox and Worktree Guard
 
 M143 adds a read-only Codex sandbox/worktree guard inspection command:

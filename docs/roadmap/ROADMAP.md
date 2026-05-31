@@ -1,5 +1,23 @@
 # AresForge Roadmap
 
+## M144 Codex Validation Profile Expansion
+
+Status: Completed locally on `main` after validation.
+
+M144 expands the real Codex loop validation layer with:
+
+- `python -m aresforge inspect-codex-validation-profiles --format json`
+- deterministic `codex_validation_profile_expansion_v1` output
+- validation profile selection by queue task type, changed path class, and risk class
+- reusable M136 allowlisted profile commands, including Codex orchestration and full local-safe profiles
+- read-only machine-gate evidence, validation-agent summary, LLM decision summary, and explicit execution flags
+
+Boundary:
+
+- no validation command execution
+- no Codex, model, GitHub, patch, queue mutation, protected-branch update, workflow mutation, PR merge, force push, release creation, or automatic next-item execution
+- selected profiles are consumed only by separate explicit M136 ingestion before any completion decision
+
 ## M143 Codex Execution Sandbox and Worktree Guard
 
 Status: Completed locally on `main` after validation.

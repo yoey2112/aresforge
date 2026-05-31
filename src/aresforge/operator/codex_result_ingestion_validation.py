@@ -7,6 +7,7 @@ import subprocess
 from typing import Any, Callable
 
 from aresforge.config import AppConfig
+from aresforge.operator.codex_validation_profiles import VALIDATION_PROFILE_COMMANDS
 from aresforge.operator.dispatch_result_evidence_parser import parse_dispatch_result_evidence
 from aresforge.operator.machine_safety_gate_engine import evaluate_machine_safety_gates
 from aresforge.operator.queue_completion_recommendation import recommend_queue_completion
@@ -19,33 +20,7 @@ DEFAULT_TIMEOUT_SECONDS = 600
 
 CommandRunner = Callable[[str, Path, int], subprocess.CompletedProcess[Any]]
 
-VALIDATION_PROFILES: dict[str, tuple[str, ...]] = {
-    "docs_only": ("git diff --check",),
-    "code_unit_tests": (
-        "python -m pytest tests/test_cli.py",
-        "python -m pytest tests/test_dispatch_result_evidence_parser.py",
-        "python -m pytest tests/test_queue_completion_recommendation.py",
-        "python -m pytest tests/test_machine_safety_gate_engine.py",
-    ),
-    "hub_ui": (
-        "git diff --check",
-        "python -m pytest tests/test_hub_ui_foundation.py",
-        "python -m pytest tests/test_hub_project_factory_api.py",
-    ),
-    "queue_system": (
-        "python -m pytest tests/test_local_project_queue.py",
-        "python -m pytest tests/test_queue_completion_recommendation.py",
-        "python -m pytest tests/test_machine_safety_gate_engine.py",
-    ),
-    "full_local_safe": (
-        "git diff --check",
-        "python -m pytest tests/test_cli.py",
-        "python -m pytest tests/test_codex_result_ingestion_validation.py",
-        "python -m pytest tests/test_dispatch_result_evidence_parser.py",
-        "python -m pytest tests/test_queue_completion_recommendation.py",
-        "python -m pytest tests/test_machine_safety_gate_engine.py",
-    ),
-}
+VALIDATION_PROFILES: dict[str, tuple[str, ...]] = dict(VALIDATION_PROFILE_COMMANDS)
 
 _BOUNDARY_CONFIRMATIONS = (
     "M136 Codex result ingestion is local-only.",

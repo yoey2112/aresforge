@@ -1,5 +1,27 @@
 # Local Operator Usage
 
+## M144 Codex Validation Profile Expansion
+
+M144 inspects the validation profile contract for Codex outputs. It chooses a recommended profile from task type, changed paths, and risk class, but it does not run validation commands.
+
+Inspect the default M144 profile:
+
+    python -m aresforge inspect-codex-validation-profiles --format json
+
+Inspect with explicit selection inputs:
+
+    python -m aresforge inspect-codex-validation-profiles --task-type orchestration --risk-class medium --changed-path src/aresforge/operator/codex_validation_profiles.py --format json
+
+Write the inspection artifact:
+
+    python -m aresforge inspect-codex-validation-profiles --output .aresforge/codex_execution/validation_profiles/m144-profiles.json --force --format json
+
+Use the selected profile only with a separate M136 command after Codex output exists locally:
+
+    python -m aresforge ingest-codex-result-and-validate --item-id <item_id> --execution-record <path> --validation-profile <selected_profile> --format json
+
+M144 itself performs no Codex execution, local LLM execution, GitHub call, validation command execution, patch application, queue mutation, PR merge, force push, workflow mutation, or automatic next-item execution.
+
 ## M143 Codex Execution Sandbox and Worktree Guard
 
 M143 inspects the Codex sandbox/worktree guard for a queue item. It captures dirty-tree state, preflight checks, sandbox policy, output capture boundaries, and machine-gate evidence, but it does not invoke Codex or mutate state.
@@ -183,9 +205,11 @@ Write a local ingestion record:
 Validation profiles:
 
 - `docs_only`: whitespace/diff validation only.
+- `tests_only`: test-file-only validation.
 - `code_unit_tests`: CLI, dispatch evidence, recommendation, and machine-gate tests.
 - `hub_ui`: Hub UI/API-focused smoke suites.
 - `queue_system`: queue, recommendation, and machine-gate tests.
+- `codex_orchestration`: Codex loop and orchestration boundary tests.
 - `full_local_safe`: broader local-safe M136 handoff validation.
 
 After M136 passes, review the generated evidence, completion recommendation, and machine-gate result. Queue completion still requires an explicit M132 auto-completion command or human queue lifecycle action.

@@ -228,6 +228,7 @@ from aresforge.operator.orchestrator_execution_state_machine import inspect_orch
 from aresforge.operator.orchestration_run_history import inspect_orchestration_run_history
 from aresforge.operator.codex_execution_enablement_profile import inspect_codex_execution_enablements
 from aresforge.operator.codex_execution_sandbox_worktree_guard import inspect_codex_worktree_guard
+from aresforge.operator.codex_validation_profiles import inspect_codex_validation_profiles
 from aresforge.operator.github_sync_agent import run_github_sync_agent
 from aresforge.operator.multi_agent_orchestrator import run_multi_agent_orchestration
 from aresforge.operator.llm_decision_matrix import inspect_llm_decision_matrix
@@ -2443,6 +2444,26 @@ def build_parser() -> argparse.ArgumentParser:
     inspect_codex_worktree_guard_parser.add_argument("--output")
     inspect_codex_worktree_guard_parser.add_argument("--force", action="store_true")
     inspect_codex_worktree_guard_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+    )
+    inspect_codex_validation_profiles_parser = subparsers.add_parser(
+        "inspect-codex-validation-profiles",
+        help="Inspect M144 Codex validation profiles by task type, changed paths, and risk without running validation.",
+    )
+    inspect_codex_validation_profiles_parser.add_argument(
+        "--item-id",
+        default="m144-codex-validation-profile-expansion",
+    )
+    inspect_codex_validation_profiles_parser.add_argument("--project-id", default="aresforge")
+    inspect_codex_validation_profiles_parser.add_argument("--queue-path")
+    inspect_codex_validation_profiles_parser.add_argument("--task-type")
+    inspect_codex_validation_profiles_parser.add_argument("--risk-class")
+    inspect_codex_validation_profiles_parser.add_argument("--changed-path", action="append", default=[])
+    inspect_codex_validation_profiles_parser.add_argument("--output")
+    inspect_codex_validation_profiles_parser.add_argument("--force", action="store_true")
+    inspect_codex_validation_profiles_parser.add_argument(
         "--format",
         choices=["json"],
         default="json",
@@ -5555,6 +5576,25 @@ def main(argv: list[str] | None = None) -> int:
             item_id=args.item_id,
             project_id=args.project_id,
             queue_path=args.queue_path,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-codex-validation-profiles":
+        payload = inspect_codex_validation_profiles(
+            config,
+            item_id=args.item_id,
+            project_id=args.project_id,
+            queue_path=args.queue_path,
+            task_type=args.task_type,
+            risk_class=args.risk_class,
+            changed_paths=args.changed_path,
             output=args.output,
             force=bool(args.force),
             output_format=args.format,

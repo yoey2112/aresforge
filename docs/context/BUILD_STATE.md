@@ -1,5 +1,25 @@
 # AresForge Build State
 
+## M144 Codex Validation Profile Expansion
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m144-codex-validation-profile-expansion`.
+
+M144 adds a local, machine-gated Codex validation profile inspector:
+
+- `python -m aresforge inspect-codex-validation-profiles --format json`
+- optional `--item-id`, `--project-id`, `--queue-path`, `--task-type`, `--risk-class`, repeated `--changed-path`, `--output`, and `--force`
+
+The inspector emits stable `codex_validation_profile_expansion_v1` JSON with validation profile metadata, task-type resolution, changed-path classification, risk-class resolution, recommended M136 validation profile selection, read-only machine-gate evidence, validation-agent summary, LLM decision policy summary, prohibited operations, execution flags, and the next safe action.
+
+Safety posture:
+
+- this command performs no Codex execution, local LLM/model execution, GitHub execution, validation command execution, patch application, queue mutation, or next-item execution
+- validation profiles remain allowlisted command plans for separate explicit M136 ingestion through `ingest-codex-result-and-validate --validation-profile <profile>`
+- high, critical, unknown, protected, workflow, and mixed-risk changes expand toward broader local-safe validation
+- real Codex execution remains default-deny and completion still requires downstream evidence plus machine-gated queue mutation or human review
+
 ## M143 Codex Execution Sandbox and Worktree Guard
 
 Status: Completed locally on `main` after validation.
@@ -204,9 +224,11 @@ M136 adds a local-only ingestion and validation runner for Codex execution recor
 Validation profiles:
 
 - `docs_only`
+- `tests_only`
 - `code_unit_tests`
 - `hub_ui`
 - `queue_system`
+- `codex_orchestration`
 - `full_local_safe`
 
 The runner reads one local Codex execution record, extracts stdout/stderr/result artifact text, detects changed files, selects allowlisted local validation commands, writes dispatch evidence, writes a completion recommendation, evaluates queue completion machine gates, and emits a stable `codex_result_ingestion_validation` record.

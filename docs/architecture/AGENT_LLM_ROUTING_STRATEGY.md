@@ -1,5 +1,16 @@
 # Agent LLM Routing Strategy
 
+## M144 Codex Validation Profile Expansion
+
+M144 adds `inspect-codex-validation-profiles` as the validation planning bridge after Codex routing and execution capture. It does not execute Codex or models. It maps task type, changed path class, and risk class to an allowlisted M136 validation profile.
+
+Routing implications:
+
+- documentation-only and tests-only outputs can use narrow local profiles when risk is low
+- Hub UI, queue-system, Codex runtime, and orchestration changes route to matching targeted profiles
+- high, critical, unknown, protected, workflow, and mixed-risk outputs expand to broader local-safe validation
+- M144 reports `model_execution_performed=false`, `codex_execution_performed=false`, `github_execution_performed=false`, `patch_application_performed=false`, `validation_command_execution_performed=false`, and `mutation_performed=false`
+
 ## M143 Codex Sandbox/Worktree Guard
 
 M143 adds `inspect-codex-worktree-guard` as the local guard evidence layer between routing recommendations and real Codex execution. It does not execute Codex. It records whether the worktree is dirty, what sandbox rules future Codex execution must obey, and where stdout, stderr, and execution metadata must be captured.

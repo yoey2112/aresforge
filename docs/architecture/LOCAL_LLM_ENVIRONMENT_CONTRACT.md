@@ -1,5 +1,11 @@
 # Local LLM Environment Contract
 
+## M144 Codex Validation Profile Boundary
+
+M144 validation profile inspection does not change local LLM permissions. The command may report LLM decision-policy metadata as context for Codex validation planning, but it does not call Ollama, send prompts, run inference, choose fallback models, mutate repository files, mutate queue state, call Codex, call GitHub/`gh`, apply patches, run validation commands, or start follow-on work.
+
+Local LLM advisory execution remains limited to separate explicit local-provider commands and their machine gates. M144 only selects local validation profile metadata for downstream M136 ingestion.
+
 ## M143 Codex Worktree Guard Boundary
 
 M143 Codex sandbox/worktree guard inspection does not change local LLM permissions. The command may report routing and execution guard boundaries, but it does not call Ollama, send prompts, run inference, select fallback models, mutate repository files, mutate queue state, call Codex, call GitHub/`gh`, apply patches, run validation commands, or start follow-on work.
