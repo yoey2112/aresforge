@@ -225,6 +225,7 @@ from aresforge.operator.codex_result_ingestion_validation import (
 )
 from aresforge.operator.autonomous_sprint_closeout import generate_autonomous_sprint_closeout
 from aresforge.operator.orchestrator_execution_state_machine import inspect_orchestrator_state_machine
+from aresforge.operator.orchestration_run_history import inspect_orchestration_run_history
 from aresforge.operator.github_sync_agent import run_github_sync_agent
 from aresforge.operator.multi_agent_orchestrator import run_multi_agent_orchestration
 from aresforge.operator.llm_decision_matrix import inspect_llm_decision_matrix
@@ -2389,6 +2390,23 @@ def build_parser() -> argparse.ArgumentParser:
     inspect_orchestrator_state_machine_parser.add_argument("--output")
     inspect_orchestrator_state_machine_parser.add_argument("--force", action="store_true")
     inspect_orchestrator_state_machine_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+    )
+    inspect_orchestration_run_history_parser = subparsers.add_parser(
+        "inspect-orchestration-run-history",
+        help="Inspect persisted M141 orchestration run history and recovery records without execution.",
+    )
+    inspect_orchestration_run_history_parser.add_argument("--project-id", required=True)
+    inspect_orchestration_run_history_parser.add_argument("--item-id")
+    inspect_orchestration_run_history_parser.add_argument("--run-id")
+    inspect_orchestration_run_history_parser.add_argument("--queue-path")
+    inspect_orchestration_run_history_parser.add_argument("--history-path")
+    inspect_orchestration_run_history_parser.add_argument("--artifacts-root")
+    inspect_orchestration_run_history_parser.add_argument("--output")
+    inspect_orchestration_run_history_parser.add_argument("--force", action="store_true")
+    inspect_orchestration_run_history_parser.add_argument(
         "--format",
         choices=["json"],
         default="json",
@@ -5450,6 +5468,25 @@ def main(argv: list[str] | None = None) -> int:
             item_id=args.item_id,
             project_id=args.project_id,
             queue_path=args.queue_path,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-orchestration-run-history":
+        payload = inspect_orchestration_run_history(
+            config,
+            project_id=args.project_id,
+            item_id=args.item_id,
+            run_id=args.run_id,
+            queue_path=args.queue_path,
+            history_path=args.history_path,
+            artifacts_root=args.artifacts_root,
             output=args.output,
             force=bool(args.force),
             output_format=args.format,

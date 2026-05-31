@@ -1,5 +1,24 @@
 # AresForge Agent Context
 
+## M141 Orchestration Run History and Recovery Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m141-orchestration-run-history-and-recovery`.
+
+M141 adds `inspect-orchestration-run-history`, a local-only inspector for persisted orchestration run history and recovery records.
+
+Command:
+
+- `python -m aresforge inspect-orchestration-run-history --project-id aresforge --format json`
+
+Agent-facing guidance:
+
+- Treat `.aresforge/orchestrator/run_history.json` as the durable index for new explicit M138 orchestration runs.
+- Treat legacy `artifacts/multi-agent-orchestration/**.json` files as read-only fallback history.
+- Recovery records identify blocked, failed, interrupted, running, and max-step-limited runs; they do not authorize automatic retry, rollback, resume, queue mutation, or next-item execution.
+- Real Codex, local LLM, GitHub, patch application, and queue mutation paths remain separate explicit gated commands.
+
 ## M140 Orchestrator Execution State Machine Context
 
 Status: Completed locally on `main` after validation.

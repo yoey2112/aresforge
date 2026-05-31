@@ -95,6 +95,7 @@ def test_cli_has_expected_commands() -> None:
         "run-agent-orchestration",
         "generate-autonomous-sprint-closeout",
         "inspect-orchestrator-state-machine",
+        "inspect-orchestration-run-history",
         "inspect-codex-dispatch-run",
         "list-codex-dispatch-runs",
         "cancel-codex-dispatch-run",
@@ -9114,6 +9115,93 @@ def test_inspect_orchestrator_state_machine_dispatch_json(
         "project_id": "aresforge",
         "queue_path": ".aresforge/queue/work_items.json",
         "output": ".aresforge/orchestrator/state-machine.json",
+        "force": True,
+        "output_format": "json",
+    }
+
+
+def test_inspect_orchestration_run_history_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "record_type": "orchestration_run_history_recovery_v1",
+                "project_id": "aresforge",
+                "history_record_count": 1,
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_inspect(
+        _config,
+        *,
+        project_id,
+        item_id=None,
+        run_id=None,
+        queue_path=None,
+        history_path=None,
+        artifacts_root=None,
+        output=None,
+        force=False,
+        output_format="json",
+    ):
+        seen.update(
+            {
+                "project_id": project_id,
+                "item_id": item_id,
+                "run_id": run_id,
+                "queue_path": queue_path,
+                "history_path": history_path,
+                "artifacts_root": artifacts_root,
+                "output": output,
+                "force": force,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "inspect_orchestration_run_history", fake_inspect)
+    exit_code = cli.main(
+        [
+            "inspect-orchestration-run-history",
+            "--project-id",
+            "aresforge",
+            "--item-id",
+            "m141",
+            "--run-id",
+            "run-one",
+            "--queue-path",
+            ".aresforge/queue/work_items.json",
+            "--history-path",
+            ".aresforge/orchestrator/run_history.json",
+            "--artifacts-root",
+            "artifacts/multi-agent-orchestration",
+            "--output",
+            ".aresforge/orchestrator/history-inspection.json",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["record_type"] == "orchestration_run_history_recovery_v1"
+    assert seen == {
+        "project_id": "aresforge",
+        "item_id": "m141",
+        "run_id": "run-one",
+        "queue_path": ".aresforge/queue/work_items.json",
+        "history_path": ".aresforge/orchestrator/run_history.json",
+        "artifacts_root": "artifacts/multi-agent-orchestration",
+        "output": ".aresforge/orchestrator/history-inspection.json",
         "force": True,
         "output_format": "json",
     }

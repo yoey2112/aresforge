@@ -1,5 +1,24 @@
 # Local Operator Usage
 
+## M141 Orchestration Run History and Recovery
+
+M141 inspects persisted orchestration run history and advisory recovery records. New explicit `run-agent-orchestration` runs append local metadata to `.aresforge/orchestrator/run_history.json`; older `artifacts/multi-agent-orchestration/**.json` files are discovered as fallback history.
+
+Inspect run history:
+
+    python -m aresforge inspect-orchestration-run-history --project-id aresforge --format json
+
+Filter one item or run:
+
+    python -m aresforge inspect-orchestration-run-history --project-id aresforge --item-id <item_id> --format json
+    python -m aresforge inspect-orchestration-run-history --project-id aresforge --run-id <run_id> --format json
+
+Write an inspection artifact:
+
+    python -m aresforge inspect-orchestration-run-history --project-id aresforge --output .aresforge/orchestrator/history-inspection.json --force --format json
+
+The output includes `orchestration_run_history_recovery_v1` records, recovery records for blocked/failed/interrupted/running/max-step-limited runs, machine-gate summaries, artifact references, execution flags, and `next_safe_action`. The command is read-only and does not retry, resume, rollback, mutate queue state, apply patches, call GitHub, execute Codex, invoke local LLMs, or start another item.
+
 ## M140 Orchestrator Execution State Machine v1
 
 M140 inspects the durable orchestration run state machine. It returns explicit states, transitions, terminal statuses, checkpoints, validation boundaries, read-only machine-gate status, and execution safety flags. It does not execute agents, Codex, local LLMs, GitHub, validation commands, patches, queue mutation, or follow-on work.

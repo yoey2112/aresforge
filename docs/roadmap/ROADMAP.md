@@ -1,5 +1,29 @@
 # AresForge Roadmap
 
+## M141 Orchestration Run History and Recovery
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m141-orchestration-run-history-and-recovery`.
+
+Purpose:
+
+- persist local run-history metadata for new explicit multi-agent orchestration runs
+- make existing `artifacts/multi-agent-orchestration` records inspectable through a single recovery view
+- identify blocked, failed, interrupted, running, and max-step-limited runs that need operator recovery review
+- keep execution default-deny while future resume/retry/recovery work gets durable local evidence
+
+Runnable operator surface:
+
+- `python -m aresforge inspect-orchestration-run-history --project-id aresforge --format json`
+- optional `--item-id`, `--run-id`, `--queue-path`, `--history-path`, `--artifacts-root`, `--output <path>`, and `--force`
+
+Constraints preserved:
+
+- read-only inspection
+- run-history persistence is local metadata only after explicit orchestration execution
+- recovery records are advisory and do not retry, rollback, resume, mutate queue state, apply patches, call GitHub, run Codex, invoke models, or start next work
+
 ## M140 Orchestrator Execution State Machine v1
 
 Status: Completed locally on `main` after validation.

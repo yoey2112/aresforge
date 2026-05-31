@@ -1,5 +1,11 @@
 # Local LLM Environment Contract
 
+## M141 Orchestration History Boundary
+
+M141 run-history and recovery records may show that an orchestration plan included or blocked local LLM advisory steps. These records are inspection evidence only. They do not authorize local model invocation, remote model calls, prompt execution, retry, resume, patch application, queue mutation, or next-item execution.
+
+Local LLM execution still requires the dedicated explicit local advisory path and a passing `local_llm_execution` machine gate.
+
 ## M140 Orchestrator Execution State Machine
 
 M140 defines the orchestration state boundary that future local LLM steps must obey. A local LLM step may appear in a plan, but transition into model execution remains blocked unless a separate explicit command supplies the local LLM allow path and the `local_llm_execution` machine gate passes.

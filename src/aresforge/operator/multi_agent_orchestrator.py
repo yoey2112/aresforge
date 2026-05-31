@@ -11,7 +11,9 @@ from aresforge.operator.codex_dispatch_executor import run_codex_dispatch_execut
 from aresforge.operator.docs_only_patch_apply import apply_docs_only_patch
 from aresforge.operator.github_sync_agent import run_github_sync_agent
 from aresforge.operator.local_llm_advisory_execution import run_local_llm_advisory_execution
+from aresforge.operator.local_project_queue import resolve_project_queue_path
 from aresforge.operator.machine_safety_gate_engine import evaluate_machine_safety_gates
+from aresforge.operator.orchestration_run_history import append_orchestration_run_history
 from aresforge.operator.single_agent_dry_run_executor import SUPPORTED_DRY_RUN_AGENTS, run_single_agent_dry_run
 from aresforge.operator.single_agent_real_executor import SUPPORTED_REAL_AGENTS, run_single_agent_real_execution
 
@@ -78,7 +80,10 @@ def run_multi_agent_orchestration(
         return _error("invalid_format", {"format": output_format, "supported_formats": ["json"]})
 
     normalized_item_id = str(item_id or "").strip()
-    started_at = _now_iso()
+    started_stamp = datetime.now(UTC)
+    started_at = _format_iso(started_stamp)
+    run_id = f"{_safe_id(normalized_item_id or 'unknown-item')}-{started_stamp.strftime('%Y%m%dT%H%M%S%fZ')}"
+    project_id = _project_id_from_queue(config, item_id=normalized_item_id, queue_path=queue_path)
     effective_dry_run = bool(dry_run) or not any(
         (allow_low_risk_real, allow_local_llm, allow_codex, allow_github_sync)
     )
@@ -156,7 +161,9 @@ def run_multi_agent_orchestration(
     payload = {
         "execution_record_type": "multi_agent_orchestration_v1",
         "execution_record_version": EXECUTION_RECORD_VERSION,
+        "run_id": run_id,
         "item_id": normalized_item_id,
+        "project_id": project_id,
         "plan_path": str(resolved_plan_path) if resolved_plan_path else "",
         "dry_run": bool(effective_dry_run),
         "started_at": started_at,
@@ -196,7 +203,14 @@ def run_multi_agent_orchestration(
         "model_execution_performed": bool(performed["local_llm"]),
         "boundary_confirmations": list(_BOUNDARY_CONFIRMATIONS),
     }
-    return _emit_or_write(config=config, payload=payload, output=output, force=force)
+    result = _emit_or_write(config=config, payload=payload, output=output, force=force)
+    if result.get("wrote_output_file") and isinstance(result.get("payload"), dict):
+        append_orchestration_run_history(
+            config,
+            run_payload=result["payload"],
+            artifact_path=result.get("output"),
+        )
+    return result
 
 
 def _run_step(
@@ -661,6 +675,23 @@ def _default_output_path(config: AppConfig, payload: dict[str, Any]) -> Path:
     return (config.artifact_root / "multi-agent-orchestration" / _safe_id(item_id) / f"{stamp}.json").resolve()
 
 
+def _project_id_from_queue(config: AppConfig, *, item_id: str, queue_path: str | Path | None) -> str:
+    path = resolve_project_queue_path(config.repo_root, queue_path)
+    if not path.exists():
+        return "aresforge"
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8-sig"))
+    except (OSError, json.JSONDecodeError):
+        return "aresforge"
+    items = raw.get("work_items", []) if isinstance(raw, dict) else []
+    if not isinstance(items, list):
+        return "aresforge"
+    for item in items:
+        if isinstance(item, dict) and str(item.get("item_id", "")).strip() == item_id:
+            return str(item.get("project_id", "") or "aresforge").strip() or "aresforge"
+    return "aresforge"
+
+
 def _resolve(repo_root: Path, value: str | Path | None) -> Path:
     path = Path(str(value or ""))
     if path.is_absolute():
@@ -710,7 +741,11 @@ def _dedupe(values: list[Any] | tuple[Any, ...] | Any) -> list[str]:
 
 
 def _now_iso() -> str:
-    return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    return _format_iso(datetime.now(UTC))
+
+
+def _format_iso(value: datetime) -> str:
+    return value.replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
 def _error(error: str, details: dict[str, Any]) -> dict[str, Any]:

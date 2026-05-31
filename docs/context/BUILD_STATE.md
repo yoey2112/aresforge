@@ -1,5 +1,25 @@
 # AresForge Build State
 
+## M141 Orchestration Run History and Recovery
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m141-orchestration-run-history-and-recovery`.
+
+M141 adds a durable local orchestration run history and recovery inspector:
+
+- `python -m aresforge inspect-orchestration-run-history --project-id aresforge --format json`
+- optional `--item-id`, `--run-id`, `--queue-path`, `--history-path`, `--artifacts-root`, `--output`, and `--force`
+
+The inspector emits stable `orchestration_run_history_recovery_v1` JSON with run records, recovery records for blocked, failed, interrupted, running, and max-step-limited runs, machine-gate summaries, local artifact references, execution flags, and the next safe action. New `run-agent-orchestration` executions append local metadata to `.aresforge/orchestrator/run_history.json`; the inspector also discovers older `artifacts/multi-agent-orchestration/**.json` records so existing M138 artifacts remain inspectable.
+
+Safety posture:
+
+- the history inspector is read-only
+- run-history persistence is local metadata only after an explicit gated orchestration command
+- recovery records are advisory inspection records, not retries or resumes
+- no Codex, local LLM, GitHub, validation command, patch application, queue completion, or next-item execution is performed by M141
+
 ## M140 Orchestrator Execution State Machine v1
 
 Status: Completed locally on `main` after validation.

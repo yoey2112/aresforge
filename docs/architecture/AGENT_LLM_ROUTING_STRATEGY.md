@@ -1,5 +1,11 @@
 # Agent LLM Routing Strategy
 
+## M141 Orchestration Run History and Recovery
+
+M141 adds `inspect-orchestration-run-history` as the local recovery evidence view for orchestrated agent runs. Routing decisions may reference run history and recovery records, but those records remain advisory: they do not authorize retry, resume, patch application, queue mutation, Codex execution, local LLM execution, GitHub sync, or automatic next-item work.
+
+New explicit `run-agent-orchestration` runs append local metadata to `.aresforge/orchestrator/run_history.json`; older `artifacts/multi-agent-orchestration/**.json` records remain discoverable for continuity.
+
 ## M140 Orchestrator Execution State Machine
 
 M140 adds `inspect-orchestrator-state-machine` as a read-only contract for future orchestration hardening. The state machine makes queue inspection, plan loading, gate checks, checkpoints, step dispatch, validation, recovery, and terminal states explicit before the real Codex loop is expanded.

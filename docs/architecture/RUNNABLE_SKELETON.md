@@ -1,5 +1,24 @@
 # Runnable Skeleton
 
+## M141 Orchestration Run History and Recovery
+
+M141 adds local orchestration run-history persistence and inspection:
+
+- `python -m aresforge inspect-orchestration-run-history --project-id aresforge --format json`
+- optional `--item-id`, `--run-id`, `--queue-path`, `--history-path`, `--artifacts-root`, `--output`, and `--force`
+
+Runnable behavior:
+
+- emits `orchestration_run_history_recovery_v1` JSON
+- reads `.aresforge/orchestrator/run_history.json`
+- discovers legacy `artifacts/multi-agent-orchestration/**.json` records
+- records stable run fields, machine-gate summaries, execution flags, artifact paths, and next safe actions
+- produces advisory recovery records for blocked, failed, interrupted, running, and max-step-limited orchestration runs
+
+Still absent by design:
+
+- no automatic retry, resume, rollback, queue mutation, patch application, GitHub operation, Codex execution, model execution, validation command execution, or next-item execution
+
 ## M140 Orchestrator Execution State Machine v1
 
 M140 adds a read-only state-machine inspection command:

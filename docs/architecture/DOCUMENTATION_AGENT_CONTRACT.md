@@ -1,5 +1,11 @@
 # Documentation Agent Contract
 
+## M141 Orchestration History Boundary
+
+M141 can report documentation-agent orchestration runs and recovery records from local history. Those records are inspection evidence only. They do not apply documentation changes, retry documentation steps, resume runs, mutate queue state, call Codex, call GitHub/`gh`, invoke models, or start follow-on work.
+
+Documentation mutation remains limited to separate docs-only Markdown patch commands that pass `docs_only_patch_apply` gates.
+
 ## M140 Orchestrator Execution State Machine
 
 M140 records documentation-agent orchestration as a state-machine boundary. Documentation steps may be planned, checkpointed, and validated, but documentation mutation remains limited to separate docs-only patch commands that pass `docs_only_patch_apply` gates.

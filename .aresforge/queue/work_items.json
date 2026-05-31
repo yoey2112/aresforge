@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-31T17:59:47.914815+00:00",
+  "updated_at": "2026-05-31T18:58:27Z",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -5100,6 +5100,104 @@
       "closeout_history": [],
       "created_at": "2026-05-31T17:58:42.654508+00:00",
       "updated_at": "2026-05-31T17:59:47.914815+00:00"
+    },
+    {
+      "item_id": "m141-orchestration-run-history-and-recovery",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M141 Orchestration Run History and Recovery",
+      "description": "Persist orchestration run history and provide inspection/recovery records for interrupted or failed runs.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "orchestration",
+      "tags": [
+        "milestone:m141",
+        "orchestration-run-history",
+        "recovery",
+        "machine-gated"
+      ],
+      "dependencies": [
+        "m140-orchestrator-execution-state-machine-v1"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [],
+      "evidence_required": [],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: add inspect-orchestration-run-history; persist new orchestration run metadata under .aresforge/orchestrator/run_history.json; inspect legacy artifacts/multi-agent-orchestration records; produce recovery records for blocked, failed, interrupted, running, and max-step-limited runs; preserve local-only machine-gated boundaries; no Codex/local LLM/GitHub/patch/queue completion/next-item execution from the inspector.",
+      "started_at": "",
+      "started_via": "",
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-31T18:58:27Z",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M141 Orchestration Run History and Recovery implemented and validated locally. Added inspect-orchestration-run-history, durable local history append support for explicit M138 orchestration runs, legacy artifact discovery, recovery records for blocked/failed/interrupted/running/max-step-limited runs, deterministic JSON fields, CLI coverage, targeted tests, source-of-truth docs, and queue evidence. No Codex, local LLM, GitHub, patch application, queue mutation from the inspector, or next-item execution was performed.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 215 passed; python -m pytest tests/test_orchestration_run_history_recovery.py -> 3 passed; git diff --check -> passed with CRLF warnings only; inspect-local-project-report passed; inspect-local-queue-agent-summary passed; inspect-project-queue --project-id aresforge passed; inspect-orchestration-run-history --project-id aresforge --format json passed with blocked=false, machine_gates_passed=true, mutation_performed=false, and all external/model/Codex/GitHub/patch execution flags false.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 215 passed",
+        "python -m pytest tests/test_orchestration_run_history_recovery.py -> 3 passed",
+        "git diff --check -> passed with CRLF warnings only",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed",
+        "python -m aresforge inspect-project-queue --project-id aresforge -> passed",
+        "python -m aresforge inspect-orchestration-run-history --project-id aresforge --format json -> passed"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/orchestration_run_history.py",
+        "src/aresforge/operator/multi_agent_orchestrator.py",
+        "src/aresforge/cli.py",
+        "tests/test_orchestration_run_history_recovery.py",
+        "tests/test_cli.py",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
+        "docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
+        "docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md",
+        ".aresforge/queue/work_items.json"
+      ],
+      "artifact_paths": [
+        ".aresforge/orchestrator/run_history.json",
+        "artifacts/multi-agent-orchestration"
+      ],
+      "completion_evidence": {
+        "command": "inspect-orchestration-run-history",
+        "record_type": "orchestration_run_history_recovery_v1",
+        "history_path": ".aresforge/orchestrator/run_history.json",
+        "legacy_artifact_discovery": "artifacts/multi-agent-orchestration/**/*.json",
+        "machine_gates_passed": true,
+        "mutation_performed": false,
+        "external_execution_performed": false,
+        "model_execution_performed": false,
+        "codex_execution_performed": false,
+        "github_execution_performed": false,
+        "patch_application_performed": false,
+        "local_only": true,
+        "commit_hash": "pending-final-commit"
+      },
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-31T18:58:27Z",
+      "updated_at": "2026-05-31T18:58:27Z"
     }
   ]
 }
