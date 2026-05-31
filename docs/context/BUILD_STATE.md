@@ -1,5 +1,26 @@
 # AresForge Build State
 
+## M142 Real Codex Execution Enablement Profile
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m142-real-codex-execution-enablement-profile`.
+
+M142 adds a local, machine-gated real Codex execution enablement profile inspector:
+
+- `python -m aresforge inspect-codex-execution-enablements --format json`
+- optional `--item-id`, `--project-id`, `--queue-path`, `--output`, and `--force`
+
+The inspector emits stable `codex_execution_enablement_profile_v1` JSON with default-deny status, explicit enablement profiles, read-only machine-gate evidence, Codex dispatch gate requirements, LLM decision policy summary, Codex agent registry summary, prohibited operations, execution flags, artifact references, and the next safe action.
+
+Safety posture:
+
+- real Codex execution is denied by default
+- this command performs no Codex, local LLM, GitHub, patch, validation-command, queue, or external execution
+- real Codex execution remains available only through separate explicit gated commands such as `run-codex-dispatch --execution-enabled` or `run-agent-orchestration --allow-codex`
+- every real Codex path requires a prepared local artifact, explicit allow flag, machine gate, captured local artifacts, and M136 validation before any completion decision
+- PR merge, force push, protected branch updates, releases, workflow mutation, source patch application from generated output, gate bypass, and automatic next-item execution remain blocked
+
 ## M141 Orchestration Run History and Recovery
 
 Status: Completed locally on `main` after validation.

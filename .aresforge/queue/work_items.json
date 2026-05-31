@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-31T18:58:27Z",
+  "updated_at": "2026-05-31T19:35:15.853192+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -5198,6 +5198,88 @@
       "closeout_history": [],
       "created_at": "2026-05-31T18:58:27Z",
       "updated_at": "2026-05-31T18:58:27Z"
+    },
+    {
+      "item_id": "m142-real-codex-execution-enablement-profile",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M142 Real Codex Execution Enablement Profile",
+      "description": "Add explicit machine-gated enablement profiles for real Codex execution with default-deny behavior.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "orchestration",
+      "tags": [
+        "milestone:m142",
+        "codex-execution",
+        "machine-gated"
+      ],
+      "dependencies": [
+        "m141-orchestration-run-history-and-recovery"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [],
+      "evidence_required": [],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: add inspect-codex-execution-enablements; deterministic JSON fields; default-deny real Codex execution; reuse agent registry, LLM decision policy, machine safety gate, queue, and orchestration boundaries; no Codex/local LLM/GitHub/patch/queue completion/next-item execution from the inspector.",
+      "started_at": "",
+      "started_via": "",
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-31T19:35:15.853192+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M142 Real Codex Execution Enablement Profile implemented and validated locally. Added inspect-codex-execution-enablements with stable codex_execution_enablement_profile_v1 JSON, default-deny real Codex execution posture, explicit enablement profiles, read-only machine gate reuse, Codex agent registry summary, LLM decision policy summary, CLI coverage, targeted tests, source-of-truth docs, and queue evidence. No Codex, local LLM, GitHub, patch application, validation command execution from the inspector, queue mutation from the inspector, or next-item execution was performed.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 216 passed; python -m pytest tests/test_codex_execution_enablement_profile.py -> 3 passed; git diff --check -> passed with CRLF warnings only; inspect-local-project-report passed; inspect-local-queue-agent-summary passed; inspect-project-queue --project-id aresforge passed; inspect-codex-execution-enablements --format json passed with status=default_denied, blocked=false, machine_gates_passed=true, real_codex_execution_enabled=false, and all external/model/Codex/GitHub/patch execution flags false.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 216 passed",
+        "python -m pytest tests/test_codex_execution_enablement_profile.py -> 3 passed",
+        "git diff --check -> passed with CRLF warnings only",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed",
+        "python -m aresforge inspect-project-queue --project-id aresforge -> passed",
+        "python -m aresforge inspect-codex-execution-enablements --format json -> passed"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/codex_execution_enablement_profile.py",
+        "src/aresforge/cli.py",
+        "tests/test_codex_execution_enablement_profile.py",
+        "tests/test_cli.py",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
+        "docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
+        "docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md",
+        ".aresforge/queue/work_items.json",
+        ".aresforge/queue/transaction_log.json"
+      ],
+      "artifact_paths": [
+        ".aresforge/codex_execution/enablements/m142-profile.json (optional output path; default inspect command is read-only)"
+      ],
+      "completion_evidence": {},
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-31T19:34:23.302505+00:00",
+      "updated_at": "2026-05-31T19:35:15.853192+00:00"
     }
   ]
 }

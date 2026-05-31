@@ -1,5 +1,25 @@
 # Local Operator Usage
 
+## M142 Real Codex Execution Enablement Profile
+
+M142 inspects the current real Codex execution enablement profiles. The default profile is deny-only: it documents what would be required for real execution and checks the read-only machine gate, but it does not invoke Codex or mutate state.
+
+Inspect default enablements:
+
+    python -m aresforge inspect-codex-execution-enablements --format json
+
+Inspect a specific queue item:
+
+    python -m aresforge inspect-codex-execution-enablements --item-id <item_id> --project-id aresforge --format json
+
+Write a local profile artifact:
+
+    python -m aresforge inspect-codex-execution-enablements --output .aresforge/codex_execution/enablements/m142-profile.json --force --format json
+
+Real Codex execution is still separate and explicit. Use `run-codex-dispatch --execution-enabled` only with a prepared dispatch artifact and passing `codex_dispatch` gates, or `run-agent-orchestration --allow-codex` only with a reviewed orchestration plan and passing step gates. M136 validation must follow before any completion decision.
+
+M142 itself performs no Codex execution, local LLM execution, GitHub call, patch application, validation command execution, queue mutation, PR merge, force push, workflow mutation, or automatic next-item execution.
+
 ## M141 Orchestration Run History and Recovery
 
 M141 inspects persisted orchestration run history and advisory recovery records. New explicit `run-agent-orchestration` runs append local metadata to `.aresforge/orchestrator/run_history.json`; older `artifacts/multi-agent-orchestration/**.json` files are discovered as fallback history.

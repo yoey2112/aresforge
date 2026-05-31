@@ -1,5 +1,28 @@
 # Runnable Skeleton
 
+## M142 Real Codex Execution Enablement Profile
+
+M142 adds a read-only Codex execution enablement profile inspection command:
+
+- `python -m aresforge inspect-codex-execution-enablements --format json`
+- optional `--item-id`, `--project-id`, `--queue-path`, `--output`, and `--force`
+
+Runnable behavior:
+
+- emits `codex_execution_enablement_profile_v1` JSON
+- reports default-deny real Codex execution posture
+- lists explicit profiles for default-deny inspection, dry-run dispatch, gated single Codex dispatch, and gated orchestrated Codex steps
+- checks the read-only machine safety gate for the target queue item
+- references the Codex dispatch agent registry record and LLM decision policy summary
+- documents required explicit flags, required artifacts, post-execution validation handoff, prohibited operations, and next safe action
+
+Still absent by design:
+
+- Codex invocation from this inspector
+- local LLM/model execution
+- GitHub API, `gh`, PR merge, force push, release creation, or workflow mutation
+- patch application, validation command execution, queue mutation, automatic completion, next-item execution, daemon behavior, or background scheduling
+
 ## M141 Orchestration Run History and Recovery
 
 M141 adds local orchestration run-history persistence and inspection:

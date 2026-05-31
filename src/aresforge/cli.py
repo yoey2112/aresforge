@@ -226,6 +226,7 @@ from aresforge.operator.codex_result_ingestion_validation import (
 from aresforge.operator.autonomous_sprint_closeout import generate_autonomous_sprint_closeout
 from aresforge.operator.orchestrator_execution_state_machine import inspect_orchestrator_state_machine
 from aresforge.operator.orchestration_run_history import inspect_orchestration_run_history
+from aresforge.operator.codex_execution_enablement_profile import inspect_codex_execution_enablements
 from aresforge.operator.github_sync_agent import run_github_sync_agent
 from aresforge.operator.multi_agent_orchestrator import run_multi_agent_orchestration
 from aresforge.operator.llm_decision_matrix import inspect_llm_decision_matrix
@@ -2407,6 +2408,23 @@ def build_parser() -> argparse.ArgumentParser:
     inspect_orchestration_run_history_parser.add_argument("--output")
     inspect_orchestration_run_history_parser.add_argument("--force", action="store_true")
     inspect_orchestration_run_history_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+    )
+    inspect_codex_execution_enablements_parser = subparsers.add_parser(
+        "inspect-codex-execution-enablements",
+        help="Inspect M142 machine-gated real Codex execution enablement profiles without executing Codex.",
+    )
+    inspect_codex_execution_enablements_parser.add_argument(
+        "--item-id",
+        default="m142-real-codex-execution-enablement-profile",
+    )
+    inspect_codex_execution_enablements_parser.add_argument("--project-id", default="aresforge")
+    inspect_codex_execution_enablements_parser.add_argument("--queue-path")
+    inspect_codex_execution_enablements_parser.add_argument("--output")
+    inspect_codex_execution_enablements_parser.add_argument("--force", action="store_true")
+    inspect_codex_execution_enablements_parser.add_argument(
         "--format",
         choices=["json"],
         default="json",
@@ -5487,6 +5505,22 @@ def main(argv: list[str] | None = None) -> int:
             queue_path=args.queue_path,
             history_path=args.history_path,
             artifacts_root=args.artifacts_root,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-codex-execution-enablements":
+        payload = inspect_codex_execution_enablements(
+            config,
+            item_id=args.item_id,
+            project_id=args.project_id,
+            queue_path=args.queue_path,
             output=args.output,
             force=bool(args.force),
             output_format=args.format,

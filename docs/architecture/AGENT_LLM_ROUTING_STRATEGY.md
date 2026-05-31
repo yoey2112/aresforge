@@ -1,5 +1,18 @@
 # Agent LLM Routing Strategy
 
+## M142 Real Codex Execution Enablement Profile
+
+M142 adds `inspect-codex-execution-enablements` as the policy bridge between routing recommendations and real Codex execution. It does not execute Codex. It records that Codex lanes may become executable only through separate explicit commands with allow flags and passing machine gates.
+
+Routing impact:
+
+- Codex recommendations from M127 or routed queue metadata remain advisory until a prepared dispatch artifact and explicit runner command are selected.
+- The default enablement profile is `real_codex_default_deny`.
+- Single Codex dispatch requires `run-codex-dispatch --execution-enabled` and the `codex_dispatch` gate.
+- Orchestrated Codex steps require `run-agent-orchestration --allow-codex` and per-step machine gates.
+- M136 validation remains the required handoff before completion evidence can be trusted.
+- M142 reports `model_execution_performed=false`, `codex_execution_performed=false`, `github_execution_performed=false`, `patch_application_performed=false`, and `mutation_performed=false`.
+
 ## M141 Orchestration Run History and Recovery
 
 M141 adds `inspect-orchestration-run-history` as the local recovery evidence view for orchestrated agent runs. Routing decisions may reference run history and recovery records, but those records remain advisory: they do not authorize retry, resume, patch application, queue mutation, Codex execution, local LLM execution, GitHub sync, or automatic next-item work.

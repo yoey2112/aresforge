@@ -1,5 +1,11 @@
 # Documentation Agent Contract
 
+## M142 Codex Enablement Boundary
+
+M142 real Codex execution enablement profiles do not add documentation-agent mutation. The profile inspector may document that Codex-generated work must be validated before completion, but it does not apply documentation changes, generate or apply patches, execute documentation agents, call models, call GitHub/`gh`, mutate queue state, or start follow-on work.
+
+Documentation mutation remains limited to separate docs-only Markdown patch commands that pass `docs_only_patch_apply` gates. Source-code patches or Codex-generated patch application remain outside the M142 boundary.
+
 ## M141 Orchestration History Boundary
 
 M141 can report documentation-agent orchestration runs and recovery records from local history. Those records are inspection evidence only. They do not apply documentation changes, retry documentation steps, resume runs, mutate queue state, call Codex, call GitHub/`gh`, invoke models, or start follow-on work.

@@ -1,5 +1,11 @@
 # Local LLM Environment Contract
 
+## M142 Codex Enablement Boundary
+
+M142 real Codex execution enablement profiles do not change local LLM permissions. The command may reference the LLM decision policy summary as routing evidence, but it does not call Ollama, send prompts, run inference, select fallback models, mutate repository files, mutate queue state, call Codex, call GitHub/`gh`, apply patches, or start follow-on work.
+
+Local LLM execution still requires the dedicated explicit advisory path and a passing `local_llm_execution` machine gate. Codex execution profiles must not be used as a shortcut around local LLM provider gates.
+
 ## M141 Orchestration History Boundary
 
 M141 run-history and recovery records may show that an orchestration plan included or blocked local LLM advisory steps. These records are inspection evidence only. They do not authorize local model invocation, remote model calls, prompt execution, retry, resume, patch application, queue mutation, or next-item execution.

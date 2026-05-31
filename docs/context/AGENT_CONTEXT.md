@@ -1,5 +1,25 @@
 # AresForge Agent Context
 
+## M142 Real Codex Execution Enablement Profile Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m142-real-codex-execution-enablement-profile`.
+
+M142 adds `inspect-codex-execution-enablements`, a local-only profile inspector for real Codex execution readiness and default-deny behavior.
+
+Command:
+
+- `python -m aresforge inspect-codex-execution-enablements --format json`
+
+Agent-facing guidance:
+
+- Treat the M142 output as capability policy evidence, not execution permission.
+- Real Codex execution remains disabled unless a separate existing runner receives an explicit allow flag and its machine gate passes.
+- The default profile is `real_codex_default_deny`; it may inspect gates and policy but never invokes Codex.
+- The only real Codex paths described are single prepared dispatch through `run-codex-dispatch --execution-enabled` and orchestrated Codex steps through `run-agent-orchestration --allow-codex`.
+- Do not apply Codex-generated patches through M142, call GitHub, merge PRs, force push, mutate workflows, complete queue items, or start follow-on work.
+
 ## M141 Orchestration Run History and Recovery Context
 
 Status: Completed locally on `main` after validation.
