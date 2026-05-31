@@ -1,5 +1,31 @@
 # Local Operator Usage
 
+## M153 Hub Orchestration Run Monitor
+
+M153 exposes local orchestration run state, history, gates, step results, recovery status, and next safe action for Hub/operator review.
+
+Inspect the monitor:
+
+    python -m aresforge inspect-orchestration-run-monitor --project-id aresforge --format json
+
+Filter to one run or write a local monitor artifact:
+
+    python -m aresforge inspect-orchestration-run-monitor --project-id aresforge --run-id <run_id> --format json
+    python -m aresforge inspect-orchestration-run-monitor --project-id aresforge --output .aresforge/orchestrator/run_monitor/m153-monitor.json --force --format json
+
+Hub API:
+
+    GET /api/orchestration/run-monitor?project_id=aresforge
+
+Interpretation:
+
+- `record_type=hub_orchestration_run_monitor_v1` identifies the monitor payload.
+- `latest_run`, `step_results`, `recovery_summary`, and `resume_plan_summary` show the current run state without executing recovery.
+- `machine_gates_checked` includes monitor, source-run, and resume-plan gate evidence.
+- `next_safe_action` is advisory and never starts a retry, resume, queue mutation, or next item.
+
+M153 performs no agent execution, Codex execution, local LLM/model execution, GitHub call, validation command execution, patch application, queue mutation, PR merge, force push, workflow mutation, retry, resume, or automatic next-item execution.
+
 ## M152 End-to-End Codex Loop Real Run for Low-Risk Code
 
 M152 adds a default-deny real Codex loop profile for low-risk code only. Use the dry-run first to verify dispatch, ingestion, validation selection, completion recommendation, and safety output without invoking Codex.

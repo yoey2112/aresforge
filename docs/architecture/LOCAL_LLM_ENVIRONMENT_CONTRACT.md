@@ -1,5 +1,11 @@
 # Local LLM Environment Contract
 
+## M153 Hub Orchestration Run Monitor Boundary
+
+M153 orchestration run monitoring does not change local LLM permissions. The monitor may read run history and source artifacts that report model execution, but it does not call Ollama, send prompts, run inference, select fallback models, mutate repository files, mutate queue state, call Codex, call GitHub/`gh`, apply patches, run validation commands, retry failures, resume orchestration, or start follow-on work.
+
+Local LLM advisory execution remains limited to separate explicit local-provider commands and their machine gates. M153 only records local run-state and recovery guidance in a stable Hub-readable schema.
+
 ## M152 End-to-End Codex Loop Real Run Boundary
 
 M152 real low-risk Codex loop execution does not change local LLM permissions. The command may invoke the configured Codex CLI command only after explicit `--execution-enabled`, `--allow-low-risk-code`, declared low-risk changed paths, and machine gates pass, but it does not call Ollama, select fallback local models, send prompts to local LLM providers, call GitHub/`gh`, apply patches through AresForge, mutate queue state, push, merge, retry failures, or start follow-on work.

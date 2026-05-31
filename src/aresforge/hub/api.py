@@ -62,6 +62,7 @@ from aresforge.operator.local_agent_profiles import (
 from aresforge.operator.local_handoff_package import generate_handoff_package
 from aresforge.operator.local_project_handoff import generate_local_project_handoff
 from aresforge.operator.local_agent_orchestration import generate_agent_orchestration_plan
+from aresforge.operator.orchestration_run_monitor import inspect_orchestration_run_monitor
 from aresforge.operator.local_llm_escalation import generate_llm_escalation_plan
 from aresforge.operator.local_bootstrap_wizard import (
     apply_bootstrap,
@@ -4085,6 +4086,33 @@ def get_orchestration_plan(config: AppConfig) -> dict[str, Any]:
             details=details,
         )
     return _plan_payload(result.get("payload", {}))
+
+
+def get_orchestration_run_monitor(config: AppConfig, params: dict[str, str | None]) -> dict[str, Any]:
+    result = inspect_orchestration_run_monitor(
+        config,
+        project_id=_normalize_optional_str(params.get("project_id")) or "aresforge",
+        item_id=_normalize_optional_str(params.get("item_id")),
+        run_id=_normalize_optional_str(params.get("run_id")),
+        history_path=_normalize_optional_str(params.get("history_path")),
+        artifacts_root=_normalize_optional_str(params.get("artifacts_root")),
+        output_format="json",
+    )
+    payload = result.get("payload", {}) if isinstance(result.get("payload"), dict) else {}
+    if not result.get("ok", False):
+        if payload:
+            wrapped = dict(payload)
+            wrapped["ok"] = False
+            return wrapped
+        details = result.get("details", {}) if isinstance(result.get("details"), dict) else {}
+        return _api_error(
+            str(result.get("error", "orchestration_run_monitor_failed")),
+            "Failed to inspect local orchestration run monitor.",
+            details=details,
+        )
+    wrapped = dict(payload)
+    wrapped["ok"] = True
+    return wrapped
 
 
 def post_escalation_plan(config: AppConfig, body: dict[str, Any]) -> dict[str, Any]:

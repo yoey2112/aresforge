@@ -1,5 +1,24 @@
 # AresForge Roadmap
 
+## M153 Hub Orchestration Run Monitor
+
+Status: Completed locally on `main` after validation.
+
+M153 hardens Hub orchestration visibility with:
+
+- `python -m aresforge inspect-orchestration-run-monitor --project-id aresforge --format json`
+- deterministic `hub_orchestration_run_monitor_v1` output
+- a Hub API route at `GET /api/orchestration/run-monitor`
+- composed run state from M141 history and M147 resume planning
+- latest run summary, normalized step results, recovery/resume status, gate rollups, artifact references, and `next_safe_action`
+- optional local artifact writes under `.aresforge/orchestrator/run_monitor/`
+
+Boundary:
+
+- monitor-only by default
+- no agent execution, Codex execution, local LLM/model execution, GitHub operation, validation command execution, patch application, queue mutation, retry, resume, protected-branch update, workflow mutation, PR merge, force push, release creation, or automatic next-item execution
+- resume availability remains advisory and must be acted on only through separate explicit machine-gated commands
+
 ## M152 End-to-End Codex Loop Real Run for Low-Risk Code
 
 Status: Completed locally on `main` after validation.

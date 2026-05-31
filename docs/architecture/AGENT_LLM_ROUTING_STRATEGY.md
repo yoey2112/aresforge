@@ -1,5 +1,16 @@
 # Agent LLM Routing Strategy
 
+## M153 Hub Orchestration Run Monitor
+
+M153 does not add any new agent, Codex, local LLM, or GitHub execution route. It routes existing local orchestration run evidence into a Hub-readable status record by composing M141 run history and M147 resume-plan output.
+
+Routing implications:
+
+- completed runs route to artifact review and separate gated follow-on commands
+- blocked, failed, interrupted, running, and max-step-limited runs route to operator recovery review
+- resume-eligible runs remain advisory and route only to a future explicit machine-gated resume command
+- M153 reports no agent execution, no model execution, no Codex execution, no GitHub execution, no patch application, and no queue mutation by the monitor itself
+
 ## M152 End-to-End Codex Loop Real Run for Low-Risk Code
 
 M152 routes one queue item through a real Codex dispatch path only when the operator supplies explicit real-execution and low-risk-code flags. It still does not route through local LLM providers or GitHub automation. The Codex process is captured through M135, then evidence is routed through M136 validation and completion recommendation.

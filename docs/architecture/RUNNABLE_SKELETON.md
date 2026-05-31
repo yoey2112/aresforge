@@ -1,5 +1,20 @@
 # Runnable Skeleton
 
+## M153 Hub Orchestration Run Monitor
+
+M153 adds a read-only orchestration run monitor command:
+
+- `python -m aresforge inspect-orchestration-run-monitor --project-id aresforge --format json`
+
+The command returns `hub_orchestration_run_monitor_v1` JSON. It reads local M141 orchestration history, loads the latest or selected source run artifact when available, composes M147 resume-plan evidence, and reports run status, gates, step results, recovery, artifact references, and next safe action. Hub exposes the same local view at `GET /api/orchestration/run-monitor`.
+
+Runnable boundary:
+
+- inspection-only by default
+- optional `--output` writes a local monitor artifact under an operator-chosen path such as `.aresforge/orchestrator/run_monitor/`
+- no agent, Codex, local LLM/model, GitHub, validation command, patch, queue, retry, resume, PR merge, force push, protected-branch update, workflow mutation, release, or next-item execution is performed
+- resume availability is advisory evidence for a separate explicit future machine-gated command
+
 ## M152 End-to-End Codex Loop Real Run for Low-Risk Code
 
 M152 extends the Codex loop command with a real low-risk profile:

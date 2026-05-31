@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-31T21:58:07.291612+00:00",
+  "updated_at": "2026-05-31T22:15:30Z",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -6194,6 +6194,103 @@
       "closeout_history": [],
       "created_at": "2026-05-31T21:55:56.220645+00:00",
       "updated_at": "2026-05-31T21:58:07.291612+00:00"
+    },
+    {
+      "item_id": "m153-hub-orchestration-run-monitor",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M153 Hub Orchestration Run Monitor",
+      "description": "Add Hub visibility for orchestration run state, history, gates, step results, recovery, and next safe action.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "orchestration",
+      "tags": [
+        "milestone:m153",
+        "hub",
+        "orchestration-monitor",
+        "machine-gated"
+      ],
+      "dependencies": [
+        "m152-end-to-end-codex-loop-real-run-for-low-risk-code"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [],
+      "evidence_required": [],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: add inspect-orchestration-run-monitor; deterministic hub_orchestration_run_monitor_v1 JSON; expose Hub API visibility for local orchestration run state, history, gates, step results, recovery, artifacts, and next safe action; reuse M141 history, M147 resume planning, queue, and machine gates; no agent/Codex/local LLM/model/GitHub/validation command/patch/queue/retry/resume/next-item execution.",
+      "started_at": "2026-05-31T22:13:30Z",
+      "started_via": "local_operator",
+      "previous_status": "ready",
+      "completed_at": "2026-05-31T22:13:30Z",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M153 Hub Orchestration Run Monitor implemented and validated locally. Added inspect-orchestration-run-monitor with stable hub_orchestration_run_monitor_v1 JSON, Hub API route /api/orchestration/run-monitor, M141 history reuse, M147 resume-plan reuse, gate and step-result rollups, source-of-truth docs, CLI coverage, targeted tests, and queue evidence. No agent, Codex, local LLM/model, GitHub, validation command, patch, queue mutation from the monitor, retry, resume, or next-item execution was performed.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 226 passed; python -m pytest tests/test_hub_orchestration_run_monitor.py -> 3 passed; git diff --check -> passed with CRLF warnings only; inspect-local-project-report passed; inspect-local-queue-agent-summary passed; inspect-project-queue --project-id aresforge passed; inspect-orchestration-run-monitor --project-id aresforge --format json passed with status=recovery_required, blocked=false, machine_gates_passed=true, mutation_performed=false, external_execution_performed=false, model_execution_performed=false, codex_execution_performed=false, github_execution_performed=false, patch_application_performed=false, local_only=true.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 226 passed",
+        "python -m pytest tests/test_hub_orchestration_run_monitor.py -> 3 passed",
+        "git diff --check -> passed with CRLF warnings only",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed",
+        "python -m aresforge inspect-project-queue --project-id aresforge -> passed",
+        "python -m aresforge inspect-orchestration-run-monitor --project-id aresforge --format json -> passed with status=recovery_required"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/orchestration_run_monitor.py",
+        "src/aresforge/cli.py",
+        "src/aresforge/hub/api.py",
+        "src/aresforge/hub/server.py",
+        "tests/test_hub_orchestration_run_monitor.py",
+        "tests/test_cli.py",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
+        "docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
+        "docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md",
+        ".aresforge/queue/work_items.json"
+      ],
+      "artifact_paths": [
+        ".aresforge/orchestrator/run_monitor (optional output path; default command writes no artifact)"
+      ],
+      "completion_evidence": {
+        "command": "inspect-orchestration-run-monitor",
+        "record_type": "hub_orchestration_run_monitor_v1",
+        "status": "recovery_required",
+        "machine_gates_passed": true,
+        "mutation_performed": false,
+        "external_execution_performed": false,
+        "model_execution_performed": false,
+        "codex_execution_performed": false,
+        "github_execution_performed": false,
+        "patch_application_performed": false,
+        "local_only": true,
+        "commit_hash": "pending-final-commit"
+      },
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-31T22:13:30Z",
+      "updated_at": "2026-05-31T22:15:30Z"
     }
   ]
 }

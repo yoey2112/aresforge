@@ -1,5 +1,24 @@
 # AresForge Agent Context
 
+## M153 Hub Orchestration Run Monitor Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m153-hub-orchestration-run-monitor`.
+
+M153 adds `inspect-orchestration-run-monitor`, a read-only monitor that composes M141 history and M147 resume-plan evidence into Hub-visible run state.
+
+Command:
+
+- `python -m aresforge inspect-orchestration-run-monitor --project-id aresforge --format json`
+
+Agent-facing guidance:
+
+- Treat `hub_orchestration_run_monitor_v1` output as local status and recovery evidence only.
+- `status=recovery_required` means the latest or selected run needs explicit operator review or a separate gated recovery/resume command.
+- `resume_plan_summary.resume_eligible=true` is not permission to resume automatically.
+- Do not run agents, Codex, models, GitHub, validation commands, apply patches, mutate queue state, retry automatically, merge PRs, force push, mutate workflows, or start follow-on work from this monitor record.
+
 ## M152 End-to-End Codex Loop Real Run for Low-Risk Code Context
 
 Status: Completed locally on `main` after validation.
