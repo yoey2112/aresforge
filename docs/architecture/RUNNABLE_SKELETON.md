@@ -1,5 +1,20 @@
 # Runnable Skeleton
 
+## M154 Sprint Closeout and Autonomy Readiness Report
+
+M154 adds a local readiness report command:
+
+- `python -m aresforge generate-autonomy-readiness-report --project-id aresforge --sprint-start M140 --sprint-end M154 --format json`
+
+The command returns `autonomy_readiness_report_v1` JSON. It reads the local queue, source-of-truth docs, local artifact roots, agent registry, LLM decision-policy recommendation, read-only machine safety gate, and orchestration run monitor output to summarize the M140-M154 sprint and recommend the next hardening sprint.
+
+Runnable boundary:
+
+- report-only by default
+- optional `--output` writes one local report artifact
+- no agent, Codex, local LLM/model, GitHub, validation command, source patch, queue, retry, resume, PR merge, force push, protected-branch update, workflow mutation, release, or next-item execution is performed
+- real Codex execution remains default-deny and source patch application remains classification/planning/dry-run only until a separate explicit gated command exists
+
 ## M153 Hub Orchestration Run Monitor
 
 M153 adds a read-only orchestration run monitor command:

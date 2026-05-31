@@ -94,6 +94,7 @@ def test_cli_has_expected_commands() -> None:
         "run-github-sync-agent",
         "run-agent-orchestration",
         "generate-autonomous-sprint-closeout",
+        "generate-autonomy-readiness-report",
         "inspect-orchestrator-state-machine",
         "inspect-orchestration-run-history",
         "inspect-orchestration-resume-plan",
@@ -9215,6 +9216,88 @@ def test_inspect_orchestrator_state_machine_dispatch_json(
         "project_id": "aresforge",
         "queue_path": ".aresforge/queue/work_items.json",
         "output": ".aresforge/orchestrator/state-machine.json",
+        "force": True,
+        "output_format": "json",
+    }
+
+
+def test_generate_autonomy_readiness_report_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "record_type": "autonomy_readiness_report_v1",
+                "project_id": "aresforge",
+                "status": "ready",
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_generate(
+        _config,
+        *,
+        project_id="aresforge",
+        sprint_start="M140",
+        sprint_end="M154",
+        item_id="m154-sprint-closeout-and-autonomy-readiness-report",
+        queue_path=None,
+        output=None,
+        force=False,
+        output_format="json",
+    ):
+        seen.update(
+            {
+                "project_id": project_id,
+                "sprint_start": sprint_start,
+                "sprint_end": sprint_end,
+                "item_id": item_id,
+                "queue_path": queue_path,
+                "output": output,
+                "force": force,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "generate_autonomy_readiness_report", fake_generate)
+    exit_code = cli.main(
+        [
+            "generate-autonomy-readiness-report",
+            "--project-id",
+            "aresforge",
+            "--sprint-start",
+            "M140",
+            "--sprint-end",
+            "M154",
+            "--item-id",
+            "m154",
+            "--queue-path",
+            ".aresforge/queue/work_items.json",
+            "--output",
+            ".aresforge/autonomy_readiness_reports/m154.json",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["record_type"] == "autonomy_readiness_report_v1"
+    assert seen == {
+        "project_id": "aresforge",
+        "sprint_start": "M140",
+        "sprint_end": "M154",
+        "item_id": "m154",
+        "queue_path": ".aresforge/queue/work_items.json",
+        "output": ".aresforge/autonomy_readiness_reports/m154.json",
         "force": True,
         "output_format": "json",
     }

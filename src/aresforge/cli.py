@@ -224,6 +224,7 @@ from aresforge.operator.codex_result_ingestion_validation import (
     ingest_codex_result_and_validate,
 )
 from aresforge.operator.autonomous_sprint_closeout import generate_autonomous_sprint_closeout
+from aresforge.operator.sprint_autonomy_readiness_report import generate_autonomy_readiness_report
 from aresforge.operator.orchestrator_execution_state_machine import inspect_orchestrator_state_machine
 from aresforge.operator.orchestration_run_history import inspect_orchestration_run_history
 from aresforge.operator.orchestrator_resume_from_failure import inspect_orchestration_resume_plan
@@ -2384,6 +2385,25 @@ def build_parser() -> argparse.ArgumentParser:
     autonomous_sprint_closeout_parser.add_argument("--output")
     autonomous_sprint_closeout_parser.add_argument("--force", action="store_true")
     autonomous_sprint_closeout_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+    )
+    autonomy_readiness_report_parser = subparsers.add_parser(
+        "generate-autonomy-readiness-report",
+        help="Generate the M154 sprint closeout and autonomy readiness report without executing agents, models, Codex, or GitHub.",
+    )
+    autonomy_readiness_report_parser.add_argument("--project-id", default="aresforge")
+    autonomy_readiness_report_parser.add_argument("--sprint-start", default="M140")
+    autonomy_readiness_report_parser.add_argument("--sprint-end", default="M154")
+    autonomy_readiness_report_parser.add_argument(
+        "--item-id",
+        default="m154-sprint-closeout-and-autonomy-readiness-report",
+    )
+    autonomy_readiness_report_parser.add_argument("--queue-path")
+    autonomy_readiness_report_parser.add_argument("--output")
+    autonomy_readiness_report_parser.add_argument("--force", action="store_true")
+    autonomy_readiness_report_parser.add_argument(
         "--format",
         choices=["json"],
         default="json",
@@ -5671,6 +5691,24 @@ def main(argv: list[str] | None = None) -> int:
             sprint_end=args.sprint_end,
             dry_run=bool(args.dry_run),
             apply_docs_only=bool(args.apply_docs_only),
+            queue_path=args.queue_path,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "generate-autonomy-readiness-report":
+        payload = generate_autonomy_readiness_report(
+            config,
+            project_id=args.project_id,
+            sprint_start=args.sprint_start,
+            sprint_end=args.sprint_end,
+            item_id=args.item_id,
             queue_path=args.queue_path,
             output=args.output,
             force=bool(args.force),

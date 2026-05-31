@@ -1,5 +1,11 @@
 # Local LLM Environment Contract
 
+## M154 Sprint Closeout and Autonomy Readiness Report Boundary
+
+M154 readiness reporting does not change local LLM permissions. The report may call the deterministic LLM decision policy to summarize the recommended lane for the M154 closeout item, but it does not call Ollama, send prompts, run inference, select fallback models, mutate repository files, mutate queue state, call Codex, call GitHub/`gh`, apply patches, run validation commands, retry failures, resume orchestration, or start follow-on work.
+
+Local LLM advisory execution remains limited to separate explicit local-provider commands and their machine gates. M154 records readiness and blocker guidance only.
+
 ## M153 Hub Orchestration Run Monitor Boundary
 
 M153 orchestration run monitoring does not change local LLM permissions. The monitor may read run history and source artifacts that report model execution, but it does not call Ollama, send prompts, run inference, select fallback models, mutate repository files, mutate queue state, call Codex, call GitHub/`gh`, apply patches, run validation commands, retry failures, resume orchestration, or start follow-on work.

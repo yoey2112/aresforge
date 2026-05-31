@@ -1,5 +1,27 @@
 # Local Operator Usage
 
+## M154 Sprint Closeout and Autonomy Readiness Report
+
+M154 generates the closeout and autonomy readiness report for the M140-M154 orchestrator hardening sprint.
+
+Generate the readiness report:
+
+    python -m aresforge generate-autonomy-readiness-report --project-id aresforge --sprint-start M140 --sprint-end M154 --format json
+
+Write a local report artifact:
+
+    python -m aresforge generate-autonomy-readiness-report --project-id aresforge --sprint-start M140 --sprint-end M154 --output .aresforge/autonomy_readiness_reports/m154.json --force --format json
+
+Interpretation:
+
+- `record_type=autonomy_readiness_report_v1` identifies the M154 payload.
+- `sprint_closeout_summary`, `capability_summary`, `queue_summary`, and `docs_sync` show whether M140-M154 closeout evidence is locally aligned.
+- `machine_gates_checked` reports the read-only closeout gate for the report item.
+- `remaining_blockers` lists safety boundaries that still require future explicit machine-gated milestones.
+- `next_safe_action` is planning guidance only and does not start another sprint item.
+
+M154 performs no agent execution, Codex execution, local LLM/model execution, GitHub call, validation command execution, source patch application, queue mutation, PR merge, force push, workflow mutation, retry, resume, or automatic next-item execution.
+
 ## M153 Hub Orchestration Run Monitor
 
 M153 exposes local orchestration run state, history, gates, step results, recovery status, and next safe action for Hub/operator review.

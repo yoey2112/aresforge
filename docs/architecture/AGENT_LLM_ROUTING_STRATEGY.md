@@ -1,5 +1,17 @@
 # Agent LLM Routing Strategy
 
+## M154 Sprint Closeout and Autonomy Readiness Report
+
+M154 does not add a new execution route. It routes local sprint evidence into a readiness report by reading queue records, machine gate output, the agent registry, the LLM decision policy, and the orchestration monitor.
+
+Routing implications:
+
+- completed M140-M154 evidence routes to next-sprint planning, not automatic execution
+- missing queue/doc/gate evidence routes to local remediation and rerun of the report
+- real Codex remains routed only through explicit low-risk execution commands with machine gates and validation
+- local LLM output remains advisory and never routes to automatic patch application
+- M154 reports no agent execution, no model execution, no Codex execution, no GitHub execution, no patch application, and no queue mutation by the report itself
+
 ## M153 Hub Orchestration Run Monitor
 
 M153 does not add any new agent, Codex, local LLM, or GitHub execution route. It routes existing local orchestration run evidence into a Hub-readable status record by composing M141 run history and M147 resume-plan output.

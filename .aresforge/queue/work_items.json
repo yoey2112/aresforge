@@ -6291,6 +6291,101 @@
       "closeout_history": [],
       "created_at": "2026-05-31T22:13:30Z",
       "updated_at": "2026-05-31T22:15:30Z"
+    },
+    {
+      "item_id": "m154-sprint-closeout-and-autonomy-readiness-report",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M154 Sprint Closeout and Autonomy Readiness Report",
+      "description": "Close out M140-M154 with docs sync, capability summary, readiness report, remaining blockers, and next sprint recommendation.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "documentation",
+      "tags": [
+        "milestone:m154",
+        "sprint-closeout",
+        "autonomy-readiness",
+        "machine-gated"
+      ],
+      "dependencies": [
+        "m153-hub-orchestration-run-monitor"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [],
+      "evidence_required": [],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: add generate-autonomy-readiness-report; deterministic autonomy_readiness_report_v1 JSON; summarize M140-M154 capability/readiness/blockers/next-sprint recommendations; reuse queue, agent registry, LLM decision policy, machine gates, and orchestration monitor evidence; sync source-of-truth docs; no agent/Codex/local LLM/model/GitHub/validation command/source patch/queue/retry/resume/next-item execution.",
+      "started_at": "2026-05-31T22:34:00Z",
+      "started_via": "local_operator",
+      "previous_status": "ready",
+      "completed_at": "2026-05-31T22:34:00Z",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M154 Sprint Closeout and Autonomy Readiness Report implemented and validated locally. Added generate-autonomy-readiness-report with stable autonomy_readiness_report_v1 JSON, source-of-truth docs sync, queue/doc/artifact evidence, machine-gate summary, LLM decision-policy summary, orchestration monitor summary, capability summary, remaining blockers, next sprint recommendations, CLI coverage, targeted tests, and queue evidence. No agent, Codex, local LLM/model, GitHub, validation command, source patch, queue mutation from the report, retry, resume, or next-item execution was performed.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 227 passed; python -m pytest tests/test_sprint_autonomy_readiness_report.py -> 3 passed; git diff --check -> passed with CRLF warnings only; inspect-local-project-report passed; inspect-local-queue-agent-summary passed; inspect-project-queue --project-id aresforge passed; generate-autonomy-readiness-report passed with status=ready_with_warnings, blocked=false, machine_gates_passed=true, mutation_performed=false, external_execution_performed=false, model_execution_performed=false, codex_execution_performed=false, github_execution_performed=false, patch_application_performed=false, local_only=true. Warnings were local evidence warnings for dirty implementation tree and missing durable orchestration history file.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 227 passed",
+        "python -m pytest tests/test_sprint_autonomy_readiness_report.py -> 3 passed",
+        "git diff --check -> passed with CRLF warnings only",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed",
+        "python -m aresforge inspect-project-queue --project-id aresforge -> passed",
+        "python -m aresforge generate-autonomy-readiness-report --project-id aresforge --sprint-start M140 --sprint-end M154 --format json -> passed with status=ready_with_warnings"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/sprint_autonomy_readiness_report.py",
+        "src/aresforge/cli.py",
+        "tests/test_sprint_autonomy_readiness_report.py",
+        "tests/test_cli.py",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
+        "docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
+        "docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md",
+        ".aresforge/queue/work_items.json"
+      ],
+      "artifact_paths": [
+        ".aresforge/autonomy_readiness_reports (optional output path; default command writes no artifact)"
+      ],
+      "completion_evidence": {
+        "command": "generate-autonomy-readiness-report",
+        "record_type": "autonomy_readiness_report_v1",
+        "status": "ready_with_warnings",
+        "machine_gates_passed": true,
+        "mutation_performed": false,
+        "external_execution_performed": false,
+        "model_execution_performed": false,
+        "codex_execution_performed": false,
+        "github_execution_performed": false,
+        "patch_application_performed": false,
+        "local_only": true,
+        "commit_hash": "pending-final-commit"
+      },
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-31T22:34:00Z",
+      "updated_at": "2026-05-31T22:34:00Z"
     }
   ]
 }

@@ -1,5 +1,11 @@
 # Documentation Agent Contract
 
+## M154 Sprint Closeout and Autonomy Readiness Report Boundary
+
+M154 readiness reporting does not add documentation-agent mutation. It synchronizes source-of-truth documentation context for the M140-M154 closeout and can report documentation consistency, but it does not execute documentation agents, generate documentation patches, apply patches, call models, call Codex, call GitHub/`gh`, mutate queue state, run validation commands, retry failures, resume orchestration, or start follow-on work.
+
+Documentation mutation remains limited to separate docs-only Markdown patch commands that pass `docs_only_patch_apply` gates. M154 output is closeout and readiness evidence only.
+
 ## M153 Hub Orchestration Run Monitor Boundary
 
 M153 orchestration run monitoring does not add documentation-agent mutation. It may read run history, step results, and artifacts involving documentation agents, but it does not edit documentation, generate patches, apply patches, execute documentation agents, call models, call Codex, call GitHub/`gh`, mutate queue state, run validation commands, retry failures, resume orchestration, or start follow-on work.

@@ -1,5 +1,24 @@
 # AresForge Agent Context
 
+## M154 Sprint Closeout and Autonomy Readiness Report Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m154-sprint-closeout-and-autonomy-readiness-report`.
+
+M154 adds `generate-autonomy-readiness-report`, a local closeout/readiness report for the M140-M154 orchestrator hardening and real Codex loop sprint.
+
+Command:
+
+- `python -m aresforge generate-autonomy-readiness-report --project-id aresforge --sprint-start M140 --sprint-end M154 --format json`
+
+Agent-facing guidance:
+
+- Treat `autonomy_readiness_report_v1` output as closeout evidence and next-sprint planning input, not execution permission.
+- `status=ready` or `status=ready_with_warnings` means M140-M154 queue/doc/gate evidence is locally inspectable; it does not start M155 or any follow-on item.
+- `remaining_blockers` lists future safety boundaries that still require separate milestones and machine gates.
+- Do not run agents, Codex, models, GitHub, validation commands, apply patches, mutate queue state, retry automatically, resume orchestration, merge PRs, force push, mutate workflows, create releases, or start follow-on work from this report.
+
 ## M153 Hub Orchestration Run Monitor Context
 
 Status: Completed locally on `main` after validation.

@@ -1,5 +1,25 @@
 # AresForge Build State
 
+## M154 Sprint Closeout and Autonomy Readiness Report
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m154-sprint-closeout-and-autonomy-readiness-report`.
+
+M154 closes the M140-M154 orchestrator hardening sprint with a local readiness report:
+
+- `python -m aresforge generate-autonomy-readiness-report --project-id aresforge --sprint-start M140 --sprint-end M154 --format json`
+- optional `--item-id`, `--queue-path`, `--output`, and `--force`
+- stable `autonomy_readiness_report_v1` JSON with sprint closeout summary, capability summary, queue/doc/artifact evidence, machine gate status, LLM decision-policy summary, orchestration monitor summary, remaining blockers, next sprint recommendations, and next safe action
+- optional local artifact output under `.aresforge/autonomy_readiness_reports/`
+
+Safety posture:
+
+- the report is local-first and read-only unless an explicit `--output` artifact path is supplied
+- it reuses queue, agent registry, LLM decision policy, machine safety gate, and orchestration monitor evidence
+- it performs no agent, Codex, local LLM/model, GitHub, validation command, source patch, queue mutation, retry, resume, protected-branch update, workflow mutation, PR merge, force push, release creation, or automatic next-item execution
+- real Codex execution, source patch application, GitHub mutation, local LLM output application, and automatic next-item execution remain separate default-deny machine-gated paths
+
 ## M153 Hub Orchestration Run Monitor
 
 Status: Completed locally on `main` after validation.
