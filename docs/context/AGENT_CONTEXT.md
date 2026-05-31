@@ -1,5 +1,26 @@
 # AresForge Agent Context
 
+## M140 Orchestrator Execution State Machine Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m140-orchestrator-execution-state-machine-v1`.
+
+M140 adds `inspect-orchestrator-state-machine`, a read-only local inspector for the durable orchestration run state machine.
+
+Command:
+
+- `python -m aresforge inspect-orchestrator-state-machine --format json`
+
+The command returns `orchestrator_execution_state_machine_v1` JSON with explicit states from `created` through `completed`, `blocked`, `failed`, and `cancelled`; allowed transitions; required checkpoints; validation boundaries; read-only machine-gate status; all execution/mutation flags set to false; and a next safe action.
+
+Agent-facing guidance:
+
+- Treat the M140 state machine as the contract for future resume, recovery, validation, and reporting.
+- Do not treat M140 as permission to execute agents, Codex, local LLMs, GitHub, validation commands, patches, queue mutation, or automatic next-item work.
+- Future executable transitions must pass their declared M131 machine gate before entering any execution state.
+- Real Codex execution remains default-deny unless a separate explicit command supplies allow flags and passes gates.
+
 ## M139 Autonomous Sprint Closeout Context
 
 Status: Completed locally on `main` after validation.

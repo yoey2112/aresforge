@@ -1,5 +1,30 @@
 # AresForge Roadmap
 
+## M140 Orchestrator Execution State Machine v1
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m140-orchestrator-execution-state-machine-v1`.
+
+Purpose:
+
+- define a durable orchestration run state machine for future hardening
+- make states, transitions, terminal statuses, checkpoints, and validation boundaries explicit
+- expose a deterministic local JSON inspection command
+- keep execution default-deny while future resume/retry/recovery work gets a stable contract
+
+Runnable operator surface:
+
+- `python -m aresforge inspect-orchestrator-state-machine --format json`
+- optional `--item-id`, `--project-id`, `--queue-path`, `--output <path>`, and `--force`
+
+Constraints preserved:
+
+- read-only inspection by default
+- no agent execution, Codex execution, local LLM execution, GitHub operation, validation command execution, patch application, queue mutation, or next-item execution
+- no PR merge, force push, protected branch update, release creation, workflow mutation, or source-code patch application from generated output
+- every future executable transition must pass a declared machine safety gate
+
 ## M139 Autonomous Sprint Closeout v1
 
 Status: Completed locally on `main` after validation.

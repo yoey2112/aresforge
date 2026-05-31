@@ -1,5 +1,25 @@
 # AresForge Build State
 
+## M140 Orchestrator Execution State Machine v1
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m140-orchestrator-execution-state-machine-v1`.
+
+M140 adds the durable orchestrator execution state machine inspector:
+
+- `python -m aresforge inspect-orchestrator-state-machine --format json`
+- optional `--item-id`, `--project-id`, `--queue-path`, `--output`, and `--force`
+
+The inspector emits stable `orchestrator_execution_state_machine_v1` JSON with explicit run states, allowed transitions, terminal statuses, checkpoints, validation boundaries, machine-gate summaries, execution flags, and the next safe action. It reuses the M126 agent registry and M131 read-only machine safety gate. It does not execute agents, Codex, local LLMs, GitHub, validation commands, patches, queue mutation, or follow-on work.
+
+Safety posture:
+
+- future executable transitions must pass their declared machine gate before an execution state is entered
+- checkpoint-first resume/recovery is defined, but no automatic retry/rollback worker is added
+- real Codex, local LLM, GitHub, patch application, and queue mutation paths remain separate explicit gated commands
+- PR merge, force push, protected branch updates, releases, workflow mutation, source-code patch application from generated output, and automatic next-item execution remain blocked
+
 ## M139 Autonomous Sprint Closeout v1
 
 Status: Completed locally on `main` after validation.

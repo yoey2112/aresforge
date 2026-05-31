@@ -1,5 +1,11 @@
 # Documentation Agent Contract
 
+## M140 Orchestrator Execution State Machine
+
+M140 records documentation-agent orchestration as a state-machine boundary. Documentation steps may be planned, checkpointed, and validated, but documentation mutation remains limited to separate docs-only patch commands that pass `docs_only_patch_apply` gates.
+
+The M140 inspector does not execute a documentation agent, call models, apply generated documentation changes, call Codex, call GitHub/`gh`, mutate queue state, or start follow-on work. It reports `patch_application_performed=false` and treats docs-only patch application as an explicit validation boundary for later gated commands.
+
 ## M139 Autonomous Sprint Closeout
 
 M139 reconciles documentation-agent behavior after the completed M125-M139 agent foundation sprint. The sprint span is M125, M126, M127, M128, M129, M130, M131, M132, M133, M134, M135, M136, M137, M138, and M139.

@@ -1,5 +1,23 @@
 # Local Operator Usage
 
+## M140 Orchestrator Execution State Machine v1
+
+M140 inspects the durable orchestration run state machine. It returns explicit states, transitions, terminal statuses, checkpoints, validation boundaries, read-only machine-gate status, and execution safety flags. It does not execute agents, Codex, local LLMs, GitHub, validation commands, patches, queue mutation, or follow-on work.
+
+Inspect the default M140 state machine:
+
+    python -m aresforge inspect-orchestrator-state-machine --format json
+
+Inspect a specific queue item:
+
+    python -m aresforge inspect-orchestrator-state-machine --item-id <item_id> --project-id aresforge --format json
+
+Write the contract to a stable local state artifact:
+
+    python -m aresforge inspect-orchestrator-state-machine --output .aresforge/orchestrator/execution_state_machine_v1.json --force --format json
+
+Use the output as the contract for future orchestrator resume/retry/recovery work. Execution remains available only through separate explicit gated commands such as `run-agent-orchestration`, `run-codex-dispatch`, `run-local-llm-advisory`, `run-github-sync-agent`, `apply-docs-only-patch`, and `auto-complete-safe-queue-item`.
+
 ## M139 Autonomous Sprint Closeout v1
 
 M139 generates the final closeout artifact for the M125-M139 agent foundation sprint. It reads local state only: queue items, agent registry metadata, machine gate availability, orchestration capability, local artifacts, the transaction log, and source-of-truth documentation consistency. It does not run Codex, invoke local LLMs, call GitHub, merge PRs, apply code patches, complete queue items, or start the next item.

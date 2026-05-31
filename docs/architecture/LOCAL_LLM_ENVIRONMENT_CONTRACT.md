@@ -1,5 +1,11 @@
 # Local LLM Environment Contract
 
+## M140 Orchestrator Execution State Machine
+
+M140 defines the orchestration state boundary that future local LLM steps must obey. A local LLM step may appear in a plan, but transition into model execution remains blocked unless a separate explicit command supplies the local LLM allow path and the `local_llm_execution` machine gate passes.
+
+The M140 inspector does not call Ollama, send prompts, run inference, inspect live models, mutate repository files, mutate queue state, call Codex, call GitHub/`gh`, apply patches, or start follow-on work. It reports `model_execution_performed=false` and records model execution as a validation boundary, not as an enabled action.
+
 ## M139 Autonomous Sprint Closeout
 
 M139 reconciles local LLM behavior within the completed M125-M139 agent foundation sprint. The relevant sprint milestones are M125, M126, M127, M128, M129, M130, M131, M132, M133, M134, M135, M136, M137, M138, and M139.

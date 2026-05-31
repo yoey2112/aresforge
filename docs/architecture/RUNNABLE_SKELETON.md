@@ -1,5 +1,27 @@
 # Runnable Skeleton
 
+## M140 Orchestrator Execution State Machine v1
+
+M140 adds a read-only state-machine inspection command:
+
+- `python -m aresforge inspect-orchestrator-state-machine --format json`
+- optional `--item-id`, `--project-id`, `--queue-path`, `--output`, and `--force`
+
+Runnable behavior:
+
+- emits `orchestrator_execution_state_machine_v1` JSON
+- defines durable run states: `created`, `queued`, `planning`, `gate_check`, `checkpoint`, `step_dispatch`, `step_running`, `validation`, `recovery`, `completed`, `blocked`, `failed`, and `cancelled`
+- defines terminal statuses: `completed`, `blocked`, `failed`, and `cancelled`
+- defines checkpoint records for queue snapshots, plan snapshots, pre-step gates, post-step validation, and terminal status
+- defines validation boundaries for queue dependencies, plan integrity, machine gates, external execution, model execution, patch application, and terminal reporting
+- checks the `read_only_agent` machine gate for the target queue item
+
+Still absent by design:
+
+- agent execution from the inspector
+- Codex, local LLM, GitHub, validation command, or patch execution
+- queue mutation, automatic retry, automatic rollback, automatic completion, next-item execution, daemon behavior, or background scheduling
+
 ## M139 Autonomous Sprint Closeout v1
 
 M139 adds a local-only sprint closeout generator:

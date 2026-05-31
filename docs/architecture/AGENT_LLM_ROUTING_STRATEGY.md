@@ -1,5 +1,16 @@
 # Agent LLM Routing Strategy
 
+## M140 Orchestrator Execution State Machine
+
+M140 adds `inspect-orchestrator-state-machine` as a read-only contract for future orchestration hardening. The state machine makes queue inspection, plan loading, gate checks, checkpoints, step dispatch, validation, recovery, and terminal states explicit before the real Codex loop is expanded.
+
+Routing impact:
+
+- LLM and Codex lanes remain recommendations or separately gated execution paths.
+- Any future executable transition must declare and pass the relevant machine gate, such as `local_llm_execution`, `codex_dispatch`, `github_sync`, `docs_only_patch_apply`, or `local_artifact_write`.
+- The inspector itself reports `model_execution_performed=false`, `codex_execution_performed=false`, `github_execution_performed=false`, `patch_application_performed=false`, and `mutation_performed=false`.
+- Real Codex execution remains default-deny unless a dedicated command and explicit flags allow it.
+
 ## M139 Autonomous Sprint Closeout
 
 M139 closes the M125-M139 agent foundation sprint and records the routing/autonomy transition. The sprint now has a declared runtime boundary, agent registry, LLM decision policy, orchestration plan builder, dry-run executor, low-risk real local-agent executor, machine gate engine, safe queue auto-completion, docs-only autonomous apply, local LLM advisory execution, Codex dispatch, Codex result ingestion/validation, GitHub sync, and multi-agent orchestration.

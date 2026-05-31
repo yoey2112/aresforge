@@ -224,6 +224,7 @@ from aresforge.operator.codex_result_ingestion_validation import (
     ingest_codex_result_and_validate,
 )
 from aresforge.operator.autonomous_sprint_closeout import generate_autonomous_sprint_closeout
+from aresforge.operator.orchestrator_execution_state_machine import inspect_orchestrator_state_machine
 from aresforge.operator.github_sync_agent import run_github_sync_agent
 from aresforge.operator.multi_agent_orchestrator import run_multi_agent_orchestration
 from aresforge.operator.llm_decision_matrix import inspect_llm_decision_matrix
@@ -2371,6 +2372,23 @@ def build_parser() -> argparse.ArgumentParser:
     autonomous_sprint_closeout_parser.add_argument("--output")
     autonomous_sprint_closeout_parser.add_argument("--force", action="store_true")
     autonomous_sprint_closeout_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+    )
+    inspect_orchestrator_state_machine_parser = subparsers.add_parser(
+        "inspect-orchestrator-state-machine",
+        help="Inspect the M140 durable orchestrator execution state machine without executing agents.",
+    )
+    inspect_orchestrator_state_machine_parser.add_argument(
+        "--item-id",
+        default="m140-orchestrator-execution-state-machine-v1",
+    )
+    inspect_orchestrator_state_machine_parser.add_argument("--project-id", default="aresforge")
+    inspect_orchestrator_state_machine_parser.add_argument("--queue-path")
+    inspect_orchestrator_state_machine_parser.add_argument("--output")
+    inspect_orchestrator_state_machine_parser.add_argument("--force", action="store_true")
+    inspect_orchestrator_state_machine_parser.add_argument(
         "--format",
         choices=["json"],
         default="json",
@@ -5415,6 +5433,22 @@ def main(argv: list[str] | None = None) -> int:
             sprint_end=args.sprint_end,
             dry_run=bool(args.dry_run),
             apply_docs_only=bool(args.apply_docs_only),
+            queue_path=args.queue_path,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-orchestrator-state-machine":
+        payload = inspect_orchestrator_state_machine(
+            config,
+            item_id=args.item_id,
+            project_id=args.project_id,
             queue_path=args.queue_path,
             output=args.output,
             force=bool(args.force),

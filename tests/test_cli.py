@@ -94,6 +94,7 @@ def test_cli_has_expected_commands() -> None:
         "run-github-sync-agent",
         "run-agent-orchestration",
         "generate-autonomous-sprint-closeout",
+        "inspect-orchestrator-state-machine",
         "inspect-codex-dispatch-run",
         "list-codex-dispatch-runs",
         "cancel-codex-dispatch-run",
@@ -9041,6 +9042,78 @@ def test_generate_autonomous_sprint_closeout_dispatch_json(
         "apply_docs_only": True,
         "queue_path": ".aresforge/queue/work_items.json",
         "output": "artifacts/autonomous-sprint-closeout/m139.json",
+        "force": True,
+        "output_format": "json",
+    }
+
+
+def test_inspect_orchestrator_state_machine_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "record_type": "orchestrator_execution_state_machine_v1",
+                "item_id": "m140",
+                "project_id": "aresforge",
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_inspect(
+        _config,
+        *,
+        item_id="m140-orchestrator-execution-state-machine-v1",
+        project_id="aresforge",
+        queue_path=None,
+        output=None,
+        force=False,
+        output_format="json",
+    ):
+        seen.update(
+            {
+                "item_id": item_id,
+                "project_id": project_id,
+                "queue_path": queue_path,
+                "output": output,
+                "force": force,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "inspect_orchestrator_state_machine", fake_inspect)
+    exit_code = cli.main(
+        [
+            "inspect-orchestrator-state-machine",
+            "--item-id",
+            "m140",
+            "--project-id",
+            "aresforge",
+            "--queue-path",
+            ".aresforge/queue/work_items.json",
+            "--output",
+            ".aresforge/orchestrator/state-machine.json",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["record_type"] == "orchestrator_execution_state_machine_v1"
+    assert seen == {
+        "item_id": "m140",
+        "project_id": "aresforge",
+        "queue_path": ".aresforge/queue/work_items.json",
+        "output": ".aresforge/orchestrator/state-machine.json",
         "force": True,
         "output_format": "json",
     }

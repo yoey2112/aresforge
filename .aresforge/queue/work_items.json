@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-31T04:24:49.285962+00:00",
+  "updated_at": "2026-05-31T17:59:47.914815+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -5023,6 +5023,83 @@
       "closeout_history": [],
       "created_at": "2026-05-31T04:22:13.425215+00:00",
       "updated_at": "2026-05-31T04:24:49.285962+00:00"
+    },
+    {
+      "item_id": "m140-orchestrator-execution-state-machine-v1",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M140 Orchestrator Execution State Machine v1",
+      "description": "Create a durable orchestration run state machine with explicit states, transitions, terminal statuses, checkpoints, and validation boundaries.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "orchestration",
+      "tags": [
+        "milestone:m140",
+        "orchestrator-state-machine",
+        "machine-gated"
+      ],
+      "dependencies": [
+        "m139-autonomous-sprint-closeout-v1"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [],
+      "evidence_required": [],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: add inspect-orchestrator-state-machine; define explicit states, transitions, terminal statuses, checkpoints, validation boundaries, machine gate behavior, deterministic JSON fields, local-only artifact output path, tests, docs, queue evidence; no Codex/local LLM/GitHub/patch/queue completion/next-item execution from the inspector.",
+      "started_at": "",
+      "started_via": "",
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-31T17:59:47.914815+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M140 Orchestrator Execution State Machine v1 implemented and validated locally. Added inspect-orchestrator-state-machine with explicit states, transitions, terminal statuses, checkpoints, validation boundaries, read-only machine gate reuse, deterministic JSON fields, CLI coverage, targeted tests, source-of-truth docs, and queue evidence. No Codex, local LLM, GitHub, patch application, queue mutation from the inspector, or next-item execution was performed.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 214 passed; python -m pytest tests/test_orchestrator_execution_state_machine.py -> 3 passed; git diff --check -> passed with CRLF warnings only; inspect-local-project-report passed; inspect-local-queue-agent-summary passed; inspect-project-queue --project-id aresforge passed; inspect-orchestrator-state-machine --format json passed with blocked=false, machine_gates_passed=true, all execution flags false.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 214 passed",
+        "python -m pytest tests/test_orchestrator_execution_state_machine.py -> 3 passed",
+        "git diff --check -> passed with CRLF warnings only"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/orchestrator_execution_state_machine.py",
+        "src/aresforge/cli.py",
+        "tests/test_orchestrator_execution_state_machine.py",
+        "tests/test_cli.py",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
+        "docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
+        "docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md",
+        ".aresforge/queue/work_items.json"
+      ],
+      "artifact_paths": [
+        ".aresforge/orchestrator/execution_state_machine_v1.json (optional output path; default inspect command is read-only)"
+      ],
+      "completion_evidence": {},
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-31T17:58:42.654508+00:00",
+      "updated_at": "2026-05-31T17:59:47.914815+00:00"
     }
   ]
 }
