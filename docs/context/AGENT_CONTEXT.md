@@ -1,5 +1,26 @@
 # AresForge Agent Context
 
+## M138 Multi-Agent Orchestrator Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m138-multi-agent-orchestrator-v1`.
+
+M138 introduces `run-agent-orchestration`, the first multi-agent runner. It consumes an explicit M128-style plan or builds one for a queue item, evaluates machine gates one step at a time, executes dry-run steps by default, records a timeline, stops on the first blocking failure, and writes a local orchestration result artifact.
+
+Command:
+
+- `python -m aresforge run-agent-orchestration --item-id <item_id> --format json`
+
+M138 boundaries:
+
+- default execution is dry-run
+- real low-risk local-agent execution requires `--allow-low-risk-real`
+- local LLM, Codex, and GitHub execution require `--allow-local-llm`, `--allow-codex`, or `--allow-github-sync`
+- every attempted step must pass its machine safety gate before any step executor is called
+- high-risk real steps remain blocked unless their explicit allow flag and gate evidence are present
+- the orchestrator does not merge PRs, force push, bypass gates, complete queue items, start the next item, or continue after a failed required gate
+
 ## M137 GitHub Sync Agent Context
 
 Status: Completed locally on `main` after validation.

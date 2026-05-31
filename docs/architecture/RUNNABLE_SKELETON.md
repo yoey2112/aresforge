@@ -1,5 +1,37 @@
 # Runnable Skeleton
 
+## M138 Multi-Agent Orchestrator v1
+
+M138 adds a machine-gated multi-agent orchestration command:
+
+- `python -m aresforge run-agent-orchestration --item-id <item_id> --format json`
+- optional `--plan-path`, `--dry-run`, `--max-steps`, `--allow-low-risk-real`, `--allow-local-llm`, `--allow-codex`, `--allow-github-sync`, `--output`, and `--force`
+
+Runnable behavior:
+
+- loads an M128-style plan from `--plan-path` or builds one for the queue item
+- dry-run is the default when no allow flags are supplied
+- evaluates a machine safety gate before each attempted step
+- records `multi_agent_orchestration_v1` timelines with total, attempted, completed, and blocked step counts
+- stops on the first blocking gate or failed step
+- writes a local orchestration result artifact
+- supports max-step bounded runs for partial safe timelines
+
+Supported initial patterns:
+
+- read-only planning chain
+- docs-only reconciliation chain
+- Codex dispatch dry-run chain
+- low-risk validation chain
+- sprint summary dry-run chain
+
+Still absent by design:
+
+- high-risk real execution by default
+- machine gate bypass
+- continuation after a failed required gate
+- PR merge, force push, automatic queue completion, automatic next-item execution, daemon behavior, or background scheduling
+
 ## M137 GitHub PR/Issue Sync Agent
 
 M137 adds a dry-run-first GitHub sync command:

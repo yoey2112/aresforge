@@ -1,5 +1,33 @@
 # Local Operator Usage
 
+## M138 Multi-Agent Orchestrator v1
+
+M138 runs one orchestration plan step-by-step with machine safety gates. It is dry-run by default, records a timeline, writes a local `multi_agent_orchestration_v1` result artifact, and stops on the first blocking gate or failed step. It does not merge PRs, force push, bypass gates, complete queue items, or start another item.
+
+Default dry-run:
+
+    python -m aresforge run-agent-orchestration --item-id m138-multi-agent-orchestrator-v1 --format json
+
+Run only the first two steps:
+
+    python -m aresforge run-agent-orchestration --item-id <item_id> --dry-run --max-steps 2 --format json
+
+Use an explicit plan artifact:
+
+    python -m aresforge run-agent-orchestration --item-id <item_id> --plan-path artifacts/orchestration/plan.json --dry-run --format json
+
+Allow deterministic low-risk local real steps:
+
+    python -m aresforge run-agent-orchestration --item-id <item_id> --allow-low-risk-real --format json
+
+High-risk real steps remain blocked unless their dedicated allow flag is supplied and their machine gates pass:
+
+    python -m aresforge run-agent-orchestration --item-id <item_id> --allow-local-llm --format json
+    python -m aresforge run-agent-orchestration --item-id <item_id> --allow-codex --format json
+    python -m aresforge run-agent-orchestration --item-id <item_id> --allow-github-sync --format json
+
+Supported initial chains are read-only planning, docs-only reconciliation, Codex dispatch dry-run, low-risk validation, and sprint summary dry-run.
+
 ## M137 GitHub PR/Issue Sync Agent
 
 M137 can plan and perform a narrow GitHub issue/PR sync. It is dry-run-first, and live GitHub comments or metadata fetches require explicit `--github-enabled` plus passing `github_sync` machine gates. It does not merge PRs, enable auto-merge, delete branches, force push, approve PRs, request changes, create releases, update protected branches, write repository files, close issues automatically, mutate queue status, or start another item.

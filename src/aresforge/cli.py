@@ -224,6 +224,7 @@ from aresforge.operator.codex_result_ingestion_validation import (
     ingest_codex_result_and_validate,
 )
 from aresforge.operator.github_sync_agent import run_github_sync_agent
+from aresforge.operator.multi_agent_orchestrator import run_multi_agent_orchestration
 from aresforge.operator.llm_decision_matrix import inspect_llm_decision_matrix
 from aresforge.operator.local_coding_draft import prepare_local_coding_draft_artifact
 from aresforge.operator.documentation_agent_contract import inspect_documentation_agent_contract
@@ -2332,6 +2333,26 @@ def build_parser() -> argparse.ArgumentParser:
     github_sync_agent_parser.add_argument("--output")
     github_sync_agent_parser.add_argument("--force", action="store_true")
     github_sync_agent_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+    )
+    run_agent_orchestration_parser = subparsers.add_parser(
+        "run-agent-orchestration",
+        help="Run an M138 multi-agent orchestration plan step-by-step with machine gates.",
+    )
+    run_agent_orchestration_parser.add_argument("--item-id", required=True)
+    run_agent_orchestration_parser.add_argument("--plan-path")
+    run_agent_orchestration_parser.add_argument("--dry-run", action="store_true")
+    run_agent_orchestration_parser.add_argument("--max-steps", type=int)
+    run_agent_orchestration_parser.add_argument("--allow-low-risk-real", action="store_true")
+    run_agent_orchestration_parser.add_argument("--allow-local-llm", action="store_true")
+    run_agent_orchestration_parser.add_argument("--allow-codex", action="store_true")
+    run_agent_orchestration_parser.add_argument("--allow-github-sync", action="store_true")
+    run_agent_orchestration_parser.add_argument("--queue-path")
+    run_agent_orchestration_parser.add_argument("--output")
+    run_agent_orchestration_parser.add_argument("--force", action="store_true")
+    run_agent_orchestration_parser.add_argument(
         "--format",
         choices=["json"],
         default="json",
@@ -5335,6 +5356,28 @@ def main(argv: list[str] | None = None) -> int:
             issue_number=args.issue_number,
             pr_number=args.pr_number,
             artifact_path=args.artifact_path,
+            queue_path=args.queue_path,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "run-agent-orchestration":
+        payload = run_multi_agent_orchestration(
+            config,
+            item_id=args.item_id,
+            plan_path=args.plan_path,
+            dry_run=bool(args.dry_run),
+            max_steps=args.max_steps,
+            allow_low_risk_real=bool(args.allow_low_risk_real),
+            allow_local_llm=bool(args.allow_local_llm),
+            allow_codex=bool(args.allow_codex),
+            allow_github_sync=bool(args.allow_github_sync),
             queue_path=args.queue_path,
             output=args.output,
             force=bool(args.force),

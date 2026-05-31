@@ -92,6 +92,7 @@ def test_cli_has_expected_commands() -> None:
         "run-codex-dispatch",
         "ingest-codex-result-and-validate",
         "run-github-sync-agent",
+        "run-agent-orchestration",
         "inspect-codex-dispatch-run",
         "list-codex-dispatch-runs",
         "cancel-codex-dispatch-run",
@@ -8869,6 +8870,97 @@ def test_run_github_sync_agent_dispatch_json(
         "issue_number": 1,
         "artifact_path": "artifacts/manual/github-sync-comment.json",
         "output": "artifacts/github_sync_agent/m137.json",
+        "force": True,
+        "output_format": "json",
+    }
+
+
+def test_run_agent_orchestration_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": True,
+        "stdout": json.dumps({"execution_record_type": "multi_agent_orchestration_v1", "item_id": "m138"}),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_run(
+        _config,
+        *,
+        item_id,
+        plan_path=None,
+        dry_run=False,
+        max_steps=None,
+        allow_low_risk_real=False,
+        allow_local_llm=False,
+        allow_codex=False,
+        allow_github_sync=False,
+        queue_path=None,
+        output=None,
+        force=False,
+        output_format="json",
+    ):
+        seen.update(
+            {
+                "item_id": item_id,
+                "plan_path": plan_path,
+                "dry_run": dry_run,
+                "max_steps": max_steps,
+                "allow_low_risk_real": allow_low_risk_real,
+                "allow_local_llm": allow_local_llm,
+                "allow_codex": allow_codex,
+                "allow_github_sync": allow_github_sync,
+                "queue_path": queue_path,
+                "output": output,
+                "force": force,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "run_multi_agent_orchestration", fake_run)
+    exit_code = cli.main(
+        [
+            "run-agent-orchestration",
+            "--item-id",
+            "m138",
+            "--plan-path",
+            "artifacts/orchestration/plan.json",
+            "--dry-run",
+            "--max-steps",
+            "2",
+            "--allow-low-risk-real",
+            "--allow-local-llm",
+            "--allow-codex",
+            "--allow-github-sync",
+            "--queue-path",
+            ".aresforge/queue/work_items.json",
+            "--output",
+            "artifacts/multi-agent-orchestration/m138.json",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["execution_record_type"] == "multi_agent_orchestration_v1"
+    assert seen == {
+        "item_id": "m138",
+        "plan_path": "artifacts/orchestration/plan.json",
+        "dry_run": True,
+        "max_steps": 2,
+        "allow_low_risk_real": True,
+        "allow_local_llm": True,
+        "allow_codex": True,
+        "allow_github_sync": True,
+        "queue_path": ".aresforge/queue/work_items.json",
+        "output": "artifacts/multi-agent-orchestration/m138.json",
         "force": True,
         "output_format": "json",
     }
