@@ -1,5 +1,20 @@
 # Runnable Skeleton
 
+## M145 Codex Failure Classification and Retry Policy
+
+M145 adds a read-only failure classification command:
+
+- `python -m aresforge classify-codex-failure --failure-artifact artifacts/manual/sample-codex-failure.json --format json`
+
+The command returns `codex_failure_classification_retry_policy_v1` JSON. It reads one local failure artifact, detects failure classes, chooses a deterministic retry or stop policy, checks the read-only machine gate, and confirms all command execution/mutation flags remain false.
+
+Runnable boundary:
+
+- M145 is inspection and policy selection only
+- automatic retry loops are prohibited
+- retry-capable classes require separate explicit operator action and machine gates
+- Codex, models, GitHub, validation commands, patch application, queue mutation, and next-item execution remain separate explicit gated paths
+
 ## M144 Codex Validation Profile Expansion
 
 M144 adds a read-only validation profile inspection command:

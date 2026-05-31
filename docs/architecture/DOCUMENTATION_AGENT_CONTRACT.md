@@ -1,5 +1,11 @@
 # Documentation Agent Contract
 
+## M145 Codex Failure Classification Boundary
+
+M145 failure classification does not add documentation-agent mutation. It may classify a failure involving documentation output or validation evidence, but it does not edit documentation, generate patches, apply patches, execute documentation agents, call models, call Codex, call GitHub/`gh`, mutate queue state, run validation commands, retry failures, or start follow-on work.
+
+Documentation mutation remains limited to separate docs-only Markdown patch commands that pass `docs_only_patch_apply` gates. Codex failure policy output is recovery guidance only.
+
 ## M144 Codex Validation Profile Boundary
 
 M144 validation profile inspection does not add documentation-agent mutation. It may classify documentation paths and recommend the `docs_only` validation profile for low-risk docs-only Codex output, but it does not edit documentation, generate patches, apply patches, execute documentation agents, call models, call Codex, call GitHub/`gh`, mutate queue state, run validation commands, or start follow-on work.

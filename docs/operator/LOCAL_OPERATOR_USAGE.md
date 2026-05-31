@@ -1,5 +1,26 @@
 # Local Operator Usage
 
+## M145 Codex Failure Classification and Retry Policy
+
+M145 classifies one local Codex failure artifact and reports a deterministic retry or stop policy. It does not retry Codex, run validation commands, or mutate queue state.
+
+Classify the sample failure artifact:
+
+    python -m aresforge classify-codex-failure --failure-artifact artifacts/manual/sample-codex-failure.json --format json
+
+Classify and write a local policy artifact:
+
+    python -m aresforge classify-codex-failure --failure-artifact artifacts/manual/sample-codex-failure.json --output .aresforge/codex_execution/failure_policy/m145-classification.json --force --format json
+
+Interpretation:
+
+- `primary_failure_class` is the deterministic class used for policy selection.
+- `retry_policy.automatic_retry_allowed` is always false.
+- `process_timeout` and `process_nonzero` may allow at most one future manual retry after triage, explicit operator action, and machine gates.
+- machine-gate, execution-denied, dirty-worktree, validation, evidence, interruption, artifact, and unknown failures stop until the reported recovery command is completed.
+
+M145 itself performs no Codex execution, local LLM execution, GitHub call, validation command execution, patch application, queue mutation, PR merge, force push, workflow mutation, or automatic next-item execution.
+
 ## M144 Codex Validation Profile Expansion
 
 M144 inspects the validation profile contract for Codex outputs. It chooses a recommended profile from task type, changed paths, and risk class, but it does not run validation commands.

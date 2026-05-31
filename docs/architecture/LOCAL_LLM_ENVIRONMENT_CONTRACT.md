@@ -1,5 +1,11 @@
 # Local LLM Environment Contract
 
+## M145 Codex Failure Classification Boundary
+
+M145 failure classification does not change local LLM permissions. The command may report LLM decision-policy metadata as context for Codex recovery planning, but it does not call Ollama, send prompts, run inference, choose fallback models, mutate repository files, mutate queue state, call Codex, call GitHub/`gh`, apply patches, run validation commands, retry failures, or start follow-on work.
+
+Local LLM advisory execution remains limited to separate explicit local-provider commands and their machine gates. M145 only classifies local failure artifacts and reports retry/stop policy metadata.
+
 ## M144 Codex Validation Profile Boundary
 
 M144 validation profile inspection does not change local LLM permissions. The command may report LLM decision-policy metadata as context for Codex validation planning, but it does not call Ollama, send prompts, run inference, choose fallback models, mutate repository files, mutate queue state, call Codex, call GitHub/`gh`, apply patches, run validation commands, or start follow-on work.

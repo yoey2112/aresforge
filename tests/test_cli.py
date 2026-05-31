@@ -99,6 +99,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-codex-execution-enablements",
         "inspect-codex-worktree-guard",
         "inspect-codex-validation-profiles",
+        "classify-codex-failure",
         "inspect-codex-dispatch-run",
         "list-codex-dispatch-runs",
         "cancel-codex-dispatch-run",
@@ -9441,6 +9442,83 @@ def test_inspect_codex_validation_profiles_dispatch_json(
             "tests/test_codex_validation_profiles.py",
         ],
         "output": ".aresforge/codex_execution/validation_profiles/m144-profiles.json",
+        "force": True,
+        "output_format": "json",
+    }
+
+
+def test_classify_codex_failure_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "record_type": "codex_failure_classification_retry_policy_v1",
+                "project_id": "aresforge",
+                "primary_failure_class": "process_nonzero",
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_classify(
+        _config,
+        *,
+        failure_artifact,
+        item_id="m145-codex-failure-classification-and-retry-policy",
+        project_id="aresforge",
+        queue_path=None,
+        output=None,
+        force=False,
+        output_format="json",
+    ):
+        seen.update(
+            {
+                "failure_artifact": failure_artifact,
+                "item_id": item_id,
+                "project_id": project_id,
+                "queue_path": queue_path,
+                "output": output,
+                "force": force,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "classify_codex_failure", fake_classify)
+    exit_code = cli.main(
+        [
+            "classify-codex-failure",
+            "--failure-artifact",
+            "artifacts/manual/sample-codex-failure.json",
+            "--item-id",
+            "m145",
+            "--project-id",
+            "aresforge",
+            "--queue-path",
+            ".aresforge/queue/work_items.json",
+            "--output",
+            ".aresforge/codex_execution/failure_policy/m145-classification.json",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["record_type"] == "codex_failure_classification_retry_policy_v1"
+    assert seen == {
+        "failure_artifact": "artifacts/manual/sample-codex-failure.json",
+        "item_id": "m145",
+        "project_id": "aresforge",
+        "queue_path": ".aresforge/queue/work_items.json",
+        "output": ".aresforge/codex_execution/failure_policy/m145-classification.json",
         "force": True,
         "output_format": "json",
     }

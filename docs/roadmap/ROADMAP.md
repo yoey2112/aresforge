@@ -1,5 +1,24 @@
 # AresForge Roadmap
 
+## M145 Codex Failure Classification and Retry Policy
+
+Status: Completed locally on `main` after validation.
+
+M145 hardens the real Codex loop recovery layer with:
+
+- `python -m aresforge classify-codex-failure --failure-artifact artifacts/manual/sample-codex-failure.json --format json`
+- deterministic `codex_failure_classification_retry_policy_v1` output
+- primary and detected failure classes for local Codex failure artifacts
+- retry/stop policy metadata that disables automatic retry loops
+- read-only machine-gate evidence, Codex agent summary, LLM decision summary, observed execution flags, and explicit safety flags
+
+Boundary:
+
+- no retry execution from the classifier
+- no validation command execution
+- no Codex, model, GitHub, patch, queue mutation, protected-branch update, workflow mutation, PR merge, force push, release creation, or automatic next-item execution
+- retry-capable classes require a separate explicit operator command and machine gates before any future Codex attempt
+
 ## M144 Codex Validation Profile Expansion
 
 Status: Completed locally on `main` after validation.

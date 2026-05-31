@@ -1,0 +1,23 @@
+{
+  "artifact_type": "sample_codex_failure_artifact_v1",
+  "item_id": "m145-codex-failure-classification-and-retry-policy",
+  "project_id": "aresforge",
+  "run_id": "sample-codex-failure-m145",
+  "status": "failed",
+  "failure_type": "process_nonzero",
+  "exit_code": 1,
+  "stdout": "Codex dispatch started and captured a local failure sample.",
+  "stderr": "Codex process exited with code 1 before producing completion evidence.",
+  "blocked": false,
+  "blocked_reasons": [],
+  "warnings": [
+    "Sample artifact for local classifier smoke checks only."
+  ],
+  "local_only": true,
+  "external_execution_performed": false,
+  "model_execution_performed": false,
+  "codex_execution_performed": true,
+  "github_execution_performed": false,
+  "patch_application_performed": false,
+  "mutation_performed": false
+}

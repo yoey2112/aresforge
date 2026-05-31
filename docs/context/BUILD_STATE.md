@@ -1,5 +1,26 @@
 # AresForge Build State
 
+## M145 Codex Failure Classification and Retry Policy
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m145-codex-failure-classification-and-retry-policy`.
+
+M145 adds a local, machine-gated Codex failure classifier:
+
+- `python -m aresforge classify-codex-failure --failure-artifact artifacts/manual/sample-codex-failure.json --format json`
+- optional `--item-id`, `--project-id`, `--queue-path`, `--output`, and `--force`
+
+The classifier emits stable `codex_failure_classification_retry_policy_v1` JSON with a primary failure class, detected classes, deterministic retry policy, policy matrix, read-only machine-gate evidence, Codex agent summary, LLM decision-policy summary, observed failure-artifact execution flags, prohibited operations, and next safe action.
+
+Safety posture:
+
+- automatic retry loops are disabled
+- retry-capable classes allow at most one future explicit operator-triggered retry after triage and machine gates
+- missing or invalid failure artifacts stop classification and report blockers
+- machine-gate, execution-denied, dirty-worktree, validation, evidence, interruption, and unknown failures stop until the reported recovery action is completed
+- this command performs no Codex execution, local LLM/model execution, GitHub execution, validation command execution, patch application, queue mutation, or next-item execution
+
 ## M144 Codex Validation Profile Expansion
 
 Status: Completed locally on `main` after validation.

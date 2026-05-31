@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-31T20:04:24Z",
+  "updated_at": "2026-05-31T20:17:01.329396+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -5474,6 +5474,90 @@
       "closeout_history": [],
       "created_at": "2026-05-31T20:02:37.963698+00:00",
       "updated_at": "2026-05-31T20:04:24Z"
+    },
+    {
+      "item_id": "m145-codex-failure-classification-and-retry-policy",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M145 Codex Failure Classification and Retry Policy",
+      "description": "Classify Codex failures and define deterministic retry or stop policies without unsafe automatic looping.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "orchestration",
+      "tags": [
+        "milestone:m145",
+        "codex-execution",
+        "failure-classification",
+        "machine-gated"
+      ],
+      "dependencies": [
+        "m144-codex-validation-profile-expansion"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [],
+      "evidence_required": [],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: add classify-codex-failure; deterministic JSON fields; classify local failure artifacts into retry/stop policies; automatic retry loops disabled; reuse agent registry, LLM decision policy, machine safety gate, queue, validation profile, and orchestration boundaries; no Codex/local LLM/GitHub/patch/queue completion/validation command execution/next-item execution from the classifier.",
+      "started_at": "2026-05-31T20:16:45.135596+00:00",
+      "started_via": "local_operator",
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-31T20:17:01.329396+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M145 Codex Failure Classification and Retry Policy implemented and validated locally. Added classify-codex-failure with stable codex_failure_classification_retry_policy_v1 JSON, local failure artifact parsing, deterministic failure classes, retry/stop policy matrix, automatic retry loop denial, read-only machine-gate evidence, Codex agent and LLM decision-policy summaries, CLI coverage, targeted tests, source-of-truth docs, sample failure artifact, and queue evidence. No Codex, local LLM, GitHub, patch application, validation command execution from the classifier, queue mutation from the classifier, automatic retry, or next-item execution was performed.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 219 passed; python -m pytest tests/test_codex_failure_classification_retry_policy.py -> 4 passed; git diff --check -> passed with CRLF warnings only; inspect-local-project-report passed; inspect-local-queue-agent-summary passed; inspect-project-queue --project-id aresforge passed; classify-codex-failure --failure-artifact artifacts/manual/sample-codex-failure.json --format json passed with status=classified, primary_failure_class=process_nonzero, machine_gates_passed=true, automatic_retry_allowed=false, max_retry_attempts=1 for manual retry capability only, and all command execution/mutation flags false.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 219 passed",
+        "python -m pytest tests/test_codex_failure_classification_retry_policy.py -> 4 passed",
+        "git diff --check -> passed with CRLF warnings only",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed",
+        "python -m aresforge inspect-project-queue --project-id aresforge -> passed",
+        "python -m aresforge classify-codex-failure --failure-artifact artifacts/manual/sample-codex-failure.json --format json -> passed"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/codex_failure_classification_retry_policy.py",
+        "src/aresforge/cli.py",
+        "tests/test_codex_failure_classification_retry_policy.py",
+        "tests/test_cli.py",
+        "artifacts/manual/sample-codex-failure.json",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
+        "docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
+        "docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md",
+        ".aresforge/queue/work_items.json"
+      ],
+      "artifact_paths": [
+        "artifacts/manual/sample-codex-failure.json",
+        ".aresforge/codex_execution/failure_policy/m145-classification.json (optional output path; default command is read-only)"
+      ],
+      "completion_evidence": {},
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-31T20:13:31.004292+00:00",
+      "updated_at": "2026-05-31T20:17:01.329396+00:00"
     }
   ]
 }

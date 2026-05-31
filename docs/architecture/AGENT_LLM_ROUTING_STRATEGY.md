@@ -1,5 +1,17 @@
 # Agent LLM Routing Strategy
 
+## M145 Codex Failure Classification and Retry Policy
+
+M145 adds `classify-codex-failure` as the recovery policy bridge after a Codex dispatch, orchestration step, or ingestion handoff reports failure. It does not execute Codex or models. It maps a local failure artifact to a primary failure class and deterministic retry/stop policy.
+
+Routing implications:
+
+- failure classification is advisory evidence for recovery planning, not permission to retry
+- automatic retry loops are prohibited
+- timeout and nonzero-process failures may be manual-retry-capable, but only through a separate explicit operator command with machine gates
+- gate, execution-denied, dirty-worktree, validation, evidence, interruption, artifact, and unknown failures stop until recovery evidence exists
+- M145 reports `model_execution_performed=false`, `codex_execution_performed=false`, `github_execution_performed=false`, `patch_application_performed=false`, `validation_command_execution_performed=false`, and `mutation_performed=false`
+
 ## M144 Codex Validation Profile Expansion
 
 M144 adds `inspect-codex-validation-profiles` as the validation planning bridge after Codex routing and execution capture. It does not execute Codex or models. It maps task type, changed path class, and risk class to an allowlisted M136 validation profile.

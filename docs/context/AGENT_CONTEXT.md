@@ -1,5 +1,25 @@
 # AresForge Agent Context
 
+## M145 Codex Failure Classification and Retry Policy Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m145-codex-failure-classification-and-retry-policy`.
+
+M145 adds `classify-codex-failure`, a local-only inspector that reads one failure artifact and returns deterministic failure classification plus retry/stop policy metadata.
+
+Command:
+
+- `python -m aresforge classify-codex-failure --failure-artifact artifacts/manual/sample-codex-failure.json --format json`
+
+Agent-facing guidance:
+
+- Treat M145 output as recovery policy evidence, not permission to retry.
+- Automatic retry loops are prohibited.
+- `process_timeout` and `process_nonzero` may report `manual_retry_capable`, but still require explicit operator action and the appropriate future machine-gated Codex command.
+- Machine-gate, execution-denied, dirty-worktree, validation, evidence, interruption, artifact, and unknown failures stop until the reported recovery action is completed.
+- Do not run Codex, call models, call GitHub, apply patches, mutate queue state, run validation commands, merge PRs, force push, mutate workflows, or start follow-on work from this classifier.
+
 ## M144 Codex Validation Profile Expansion Context
 
 Status: Completed locally on `main` after validation.
