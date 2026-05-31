@@ -1,5 +1,20 @@
 # Runnable Skeleton
 
+## M156 Orchestration Artifact Retention Policy
+
+M156 adds a local orchestration artifact retention command:
+
+- `python -m aresforge inspect-orchestration-artifact-retention --project-id aresforge --format json`
+
+The command returns `orchestration_artifact_retention_policy_v1` JSON. It indexes expected local artifact folders, summarizes artifact counts by category, detects durable-store orphan candidates for index-required artifact folders, reports stale artifact warnings, and emits retention recommendations plus a dry-run cleanup plan.
+
+Runnable boundary:
+
+- local artifact inspection only by default
+- optional `--output` writes one local JSON report artifact
+- cleanup planning is dry-run only and never deletes, moves, archives, truncates, or rewrites artifacts
+- no agent, Codex, local LLM/model, GitHub, validation command, source patch, queue progression, retry, resume, PR merge, force push, protected-branch update, workflow mutation, release, or next-item execution is performed
+
 ## M155 Durable Orchestration Run Store
 
 M155 adds a durable orchestration run store command:

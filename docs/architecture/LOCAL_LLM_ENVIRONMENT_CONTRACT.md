@@ -1,5 +1,11 @@
 # Local LLM Environment Contract
 
+## M156 Orchestration Artifact Retention Policy Boundary
+
+M156 artifact retention inspection does not change local LLM permissions. The retention index may include local artifacts that mention model execution, advisory output, or validation evidence, but the command itself does not call Ollama, send prompts, run inference, select fallback models, mutate repository files, mutate queue state, call Codex, call GitHub/`gh`, apply patches, run validation commands, delete artifacts, retry failures, resume orchestration, or start follow-on work.
+
+Local LLM advisory execution remains limited to separate explicit local-provider commands and their machine gates. M156 records local artifact retention and cleanup-planning metadata only.
+
 ## M155 Durable Orchestration Run Store Boundary
 
 M155 durable run-store inspection does not change local LLM permissions. The store may persist records that report whether a source orchestration run performed model execution, but the store command itself does not call Ollama, send prompts, run inference, select fallback models, mutate repository files from model output, mutate queue state, call Codex, call GitHub/`gh`, apply patches, run validation commands, retry failures, resume orchestration, or start follow-on work.

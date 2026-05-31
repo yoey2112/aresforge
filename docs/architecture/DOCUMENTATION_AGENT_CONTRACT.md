@@ -1,5 +1,11 @@
 # Documentation Agent Contract
 
+## M156 Orchestration Artifact Retention Policy Boundary
+
+M156 artifact retention inspection does not add documentation-agent mutation. It may index documentation-agent evidence folders and report stale or orphan-like local artifacts, but it does not edit documentation, generate patches, apply patches, execute documentation agents, call models, call Codex, call GitHub/`gh`, mutate queue state, run validation commands, delete artifacts, retry failures, resume orchestration, or start follow-on work.
+
+Documentation mutation remains limited to separate docs-only Markdown patch commands that pass `docs_only_patch_apply` gates. M156 output is retention and cleanup-planning evidence only.
+
 ## M155 Durable Orchestration Run Store Boundary
 
 M155 durable run-store work does not add documentation-agent mutation. It may persist and inspect orchestration run metadata, including runs that reference documentation-agent steps, but it does not edit documentation, generate patches, apply patches, execute documentation agents, call models, call Codex, call GitHub/`gh`, mutate queue state, run validation commands, retry failures, resume orchestration, or start follow-on work.

@@ -1,5 +1,27 @@
 # Local Operator Usage
 
+## M156 Orchestration Artifact Retention Policy
+
+M156 inspects local orchestration artifacts and produces retention/indexing metadata without deleting anything.
+
+Inspect retention state:
+
+    python -m aresforge inspect-orchestration-artifact-retention --project-id aresforge --format json
+
+Write a local retention report artifact:
+
+    python -m aresforge inspect-orchestration-artifact-retention --project-id aresforge --output .aresforge/orchestrator/artifact-retention.json --force --format json
+
+Interpretation:
+
+- `record_type=orchestration_artifact_retention_policy_v1` identifies the M156 payload.
+- `category_summaries` lists artifact categories, expected folders, counts, stale counts, orphan counts, and retention status.
+- `orphan_detection` compares durable run-store references with index-required artifact folders.
+- `stale_artifact_warnings` lists artifacts older than the category warning threshold.
+- `dry_run_cleanup_plan` is a non-mutating review plan only.
+
+M156 performs no artifact deletion, move, archive, truncation, rewrite, agent execution, Codex execution, local LLM/model execution, GitHub call, validation command execution, source patch application, queue progression, retry, resume, PR merge, force push, workflow mutation, release, or automatic next-item execution.
+
 ## M155 Durable Orchestration Run Store
 
 M155 provides the durable local run store for orchestration run metadata.

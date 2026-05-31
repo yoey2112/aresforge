@@ -1,5 +1,25 @@
 # AresForge Agent Context
 
+## M156 Orchestration Artifact Retention Policy Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m156-orchestration-artifact-retention-policy`.
+
+M156 adds `inspect-orchestration-artifact-retention`, a local-only artifact retention/indexing inspector for orchestration runs, evidence, validation outputs, and reports.
+
+Command:
+
+- `python -m aresforge inspect-orchestration-artifact-retention --project-id aresforge --format json`
+
+Agent-facing guidance:
+
+- Treat `orchestration_artifact_retention_policy_v1` output as audit and cleanup-planning evidence only.
+- `dry_run_cleanup_plan` is advisory; it does not authorize deletion, moving, truncation, archiving, or rewrite of artifacts.
+- `orphan_detection.orphan_artifacts` means artifacts need operator review against durable run history before any future cleanup.
+- `stale_artifact_warnings` are retention warnings, not blockers for normal local inspection.
+- Do not run agents, Codex, models, GitHub, validation commands, source patches, queue mutation, retries, resumes, PR merges, force pushes, workflow mutation, releases, or later sprint items from this output.
+
 ## M155 Durable Orchestration Run Store Context
 
 Status: Completed locally on `main` after validation.

@@ -1,5 +1,16 @@
 # Agent LLM Routing Strategy
 
+## M156 Orchestration Artifact Retention Policy
+
+M156 does not add a new agent, Codex, local LLM, or GitHub execution route. It indexes local orchestration artifacts so routing, recovery, and audit work can distinguish retained evidence, stale artifacts, and orphan candidates before any future cleanup or recovery action is considered.
+
+Routing implications:
+
+- artifact evidence routes through a local retention index before cleanup planning
+- orphan artifacts route to operator review against durable run history, not automatic deletion
+- stale artifacts route to advisory cleanup planning, not execution
+- M156 reports no agent execution, no model execution, no Codex execution, no GitHub execution, no patch application, and no queue progression by the retention inspector itself
+
 ## M155 Durable Orchestration Run Store
 
 M155 does not add a new agent, Codex, local LLM, or GitHub execution route. It adds durable local persistence for orchestration run records so routing and recovery decisions can reference stable run evidence instead of ephemeral artifacts or missing-history warnings.

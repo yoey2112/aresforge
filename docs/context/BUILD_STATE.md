@@ -1,5 +1,25 @@
 # AresForge Build State
 
+## M156 Orchestration Artifact Retention Policy
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m156-orchestration-artifact-retention-policy`.
+
+M156 adds a local orchestration artifact retention/indexing inspector:
+
+- `python -m aresforge inspect-orchestration-artifact-retention --project-id aresforge --format json`
+- stable `orchestration_artifact_retention_policy_v1` JSON with artifact categories, expected folders, retention status, artifact count summaries, orphan detection, stale artifact warnings, retention recommendations, and dry-run cleanup planning
+- coverage for durable run store metadata, orchestration run artifacts, run monitor reports, resume plans, normalized step results, Codex loop evidence, validation evidence, documentation-agent evidence, and autonomy reports
+- orphan detection compares durable run-store artifact references against index-required artifact categories
+- stale warnings are advisory and based on category-specific policy thresholds
+
+Safety posture:
+
+- retention inspection is local-only and read-only unless an explicit output path is supplied
+- cleanup output is a dry-run plan only; M156 never deletes, moves, truncates, archives, or rewrites artifacts automatically
+- it performs no agent, Codex, local LLM/model, GitHub, validation command, source patch, queue progression, retry, resume, protected-branch update, workflow mutation, PR merge, force push, release creation, or automatic next-item execution
+
 ## M155 Durable Orchestration Run Store
 
 Status: Completed locally on `main` after validation.
