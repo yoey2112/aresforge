@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-31T20:41:30Z",
+  "updated_at": "2026-05-31T20:58:06.666860+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -4996,8 +4996,7 @@
         "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
         "docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
         "docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md",
-        ".aresforge/queue/work_items.json",
-        ".aresforge/queue/transaction_log.json"
+        ".aresforge/queue/work_items.json"
       ],
       "artifact_paths": [
         "artifacts/autonomous-sprint-closeout/aresforge/m139-final.json"
@@ -5737,6 +5736,90 @@
       "closeout_history": [],
       "created_at": "2026-05-31T20:35:00Z",
       "updated_at": "2026-05-31T20:41:30Z"
+    },
+    {
+      "item_id": "m148-safe-source-patch-detection-and-risk-classifier",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M148 Safe Source Patch Detection and Risk Classifier",
+      "description": "Classify source/code patches by touched files, risk level, mutation type, test requirements, and blocked operations.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "orchestration",
+      "tags": [
+        "milestone:m148",
+        "source-patch-risk",
+        "machine-gated"
+      ],
+      "dependencies": [
+        "m147-orchestrator-resume-from-failure"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [],
+      "evidence_required": [],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: add classify-source-patch-risk; deterministic JSON fields; parse local source patch touched files, mutation types, risk, blocked operations, and test requirements; reuse agent registry, LLM decision policy, machine safety gate, queue, and validation profile boundaries; no source patch application, validation command execution from the classifier, agent/Codex/local LLM/GitHub/queue mutation/retry/next-item execution.",
+      "started_at": "2026-05-31T20:57:50.205324+00:00",
+      "started_via": "local_operator",
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-31T20:58:06.666860+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M148 Safe Source Patch Detection and Risk Classifier implemented and validated locally. Added classify-source-patch-risk with stable source_patch_risk_classification_v1 JSON, local unified patch parsing, touched file/path class and mutation type detection, risk classification, blocked-operation reporting, recommended validation profile/test requirements, read-only machine-gate evidence, validation-agent and LLM decision-policy summaries, CLI coverage, targeted tests, source-of-truth docs, sample source patch artifact, and queue evidence. No source patch application, validation command execution from the classifier, agent, Codex, local LLM, GitHub, queue mutation from the classifier, retry, or next-item execution was performed.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 222 passed; python -m pytest tests/test_source_patch_risk_classifier.py -> 4 passed; git diff --check -> passed with CRLF warnings only; inspect-local-project-report passed; inspect-local-queue-agent-summary passed; inspect-project-queue --project-id aresforge passed; classify-source-patch-risk --patch-path artifacts/manual/sample-source.patch --format json passed with status=classified, risk_level=high, mutation_type=mixed_change, machine_gates_passed=true, blocked=false, patch_application_allowed_by_classifier=false, patch_application_performed=false, and all execution/mutation flags false.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 222 passed",
+        "python -m pytest tests/test_source_patch_risk_classifier.py -> 4 passed",
+        "git diff --check -> passed with CRLF warnings only",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed",
+        "python -m aresforge inspect-project-queue --project-id aresforge -> passed",
+        "python -m aresforge classify-source-patch-risk --patch-path artifacts/manual/sample-source.patch --format json -> passed"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/source_patch_risk_classifier.py",
+        "src/aresforge/cli.py",
+        "tests/test_source_patch_risk_classifier.py",
+        "tests/test_cli.py",
+        "artifacts/manual/sample-source.patch",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
+        "docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
+        "docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md",
+        ".aresforge/queue/work_items.json",
+        ".aresforge/queue/transaction_log.json"
+      ],
+      "artifact_paths": [
+        "artifacts/manual/sample-source.patch",
+        ".aresforge/source_patch_risk/m148-classification.json (optional output path; default command is read-only)"
+      ],
+      "completion_evidence": {},
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-31T20:57:00Z",
+      "updated_at": "2026-05-31T20:58:06.666860+00:00"
     }
   ]
 }

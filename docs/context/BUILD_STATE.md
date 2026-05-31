@@ -1,5 +1,25 @@
 # AresForge Build State
 
+## M148 Safe Source Patch Detection and Risk Classifier
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m148-safe-source-patch-detection-and-risk-classifier`.
+
+M148 adds a local, machine-gated source patch risk classifier:
+
+- `python -m aresforge classify-source-patch-risk --patch-path artifacts/manual/sample-source.patch --format json`
+- optional `--item-id`, `--project-id`, `--queue-path`, `--output`, and `--force`
+
+The classifier emits stable `source_patch_risk_classification_v1` JSON with touched files, per-file path classes, mutation types, overall risk level, blocked operations, recommended validation profile/test requirements, read-only machine-gate evidence, validation-agent and LLM decision-policy summaries, and explicit execution flags.
+
+Safety posture:
+
+- this command reads and classifies a local patch but never applies it
+- source patch application remains blocked until a separate explicit human-gated or future machine-gated apply path exists
+- workflow, protected config, queue-state, binary, executable-mode, and outside-repo patch operations are detected as blocked automatic-apply operations
+- this command performs no agent, Codex, local LLM/model, GitHub, validation command, patch, queue, retry, or next-item execution
+
 ## M147 Orchestrator Resume-from-Failure
 
 Status: Completed locally on `main` after validation.

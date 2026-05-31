@@ -1,5 +1,24 @@
 # AresForge Agent Context
 
+## M148 Safe Source Patch Detection Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m148-safe-source-patch-detection-and-risk-classifier`.
+
+M148 adds `classify-source-patch-risk`, a local-only classifier for unified source patches. It reports touched files, path classes, mutation types, risk level, blocked operations, and validation requirements without applying the patch.
+
+Command:
+
+- `python -m aresforge classify-source-patch-risk --patch-path artifacts/manual/sample-source.patch --format json`
+
+Agent-facing guidance:
+
+- Treat M148 output as planning and safety evidence, not permission to apply a patch.
+- Source/code patches remain blocked from automatic application; use only separate explicit apply boundaries if a future milestone defines them.
+- Workflow, protected config, queue-state, binary, executable-mode, and outside-repo patch operations require operator review and expanded validation.
+- Do not run agents, Codex, local LLMs, GitHub, validation commands, apply patches, mutate queue state, retry automatically, merge PRs, force push, mutate workflows, or start follow-on work from this classifier.
+
 ## M147 Orchestrator Resume-from-Failure Context
 
 Status: Completed locally on `main` after validation.

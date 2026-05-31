@@ -102,6 +102,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-codex-validation-profiles",
         "classify-codex-failure",
         "normalize-agent-step-result",
+        "classify-source-patch-risk",
         "inspect-codex-dispatch-run",
         "list-codex-dispatch-runs",
         "cancel-codex-dispatch-run",
@@ -9687,6 +9688,83 @@ def test_normalize_agent_step_result_dispatch_json(
         "project_id": "aresforge",
         "queue_path": ".aresforge/queue/work_items.json",
         "output": ".aresforge/orchestrator/step_results/m146-normalized-step-result.json",
+        "force": True,
+        "output_format": "json",
+    }
+
+
+def test_classify_source_patch_risk_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "record_type": "source_patch_risk_classification_v1",
+                "project_id": "aresforge",
+                "risk_level": "high",
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_classify(
+        _config,
+        *,
+        patch_path,
+        item_id="m148-safe-source-patch-detection-and-risk-classifier",
+        project_id="aresforge",
+        queue_path=None,
+        output=None,
+        force=False,
+        output_format="json",
+    ):
+        seen.update(
+            {
+                "patch_path": patch_path,
+                "item_id": item_id,
+                "project_id": project_id,
+                "queue_path": queue_path,
+                "output": output,
+                "force": force,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "classify_source_patch_risk", fake_classify)
+    exit_code = cli.main(
+        [
+            "classify-source-patch-risk",
+            "--patch-path",
+            "artifacts/manual/sample-source.patch",
+            "--item-id",
+            "m148",
+            "--project-id",
+            "aresforge",
+            "--queue-path",
+            ".aresforge/queue/work_items.json",
+            "--output",
+            ".aresforge/source_patch_risk/m148-classification.json",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["record_type"] == "source_patch_risk_classification_v1"
+    assert seen == {
+        "patch_path": "artifacts/manual/sample-source.patch",
+        "item_id": "m148",
+        "project_id": "aresforge",
+        "queue_path": ".aresforge/queue/work_items.json",
+        "output": ".aresforge/source_patch_risk/m148-classification.json",
         "force": True,
         "output_format": "json",
     }

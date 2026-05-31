@@ -1,5 +1,16 @@
 # Agent LLM Routing Strategy
 
+## M148 Source Patch Risk Classification
+
+M148 adds `classify-source-patch-risk` as a non-executing safety layer between generated source patches and any future explicit apply path. It does not execute agents or models. It maps a local unified patch to touched files, path classes, mutation types, risk level, blocked operations, and recommended validation profile metadata.
+
+Routing implications:
+
+- source/code patch output can be routed toward review and validation planning without being applied
+- workflow, protected config, queue-state, binary, executable-mode, and outside-repo patch operations route to operator review and expanded validation
+- lower-risk source/test patches still require a separate explicit apply boundary and validation evidence before completion
+- M148 reports no agent execution, no model execution, no Codex execution, no GitHub execution, no patch application, no validation command execution, and no queue mutation
+
 ## M147 Orchestrator Resume-from-Failure
 
 M147 adds `inspect-orchestration-resume-plan` as the recovery bridge between orchestration run history and any future explicit resume command. It does not execute agents or models. It maps one local run id to checkpoint validity, resume eligibility, source execution flags, and pre-resume checks.

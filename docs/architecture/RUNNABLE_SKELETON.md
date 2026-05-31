@@ -1,5 +1,20 @@
 # Runnable Skeleton
 
+## M148 Safe Source Patch Detection and Risk Classifier
+
+M148 adds a read-only source patch classifier:
+
+- `python -m aresforge classify-source-patch-risk --patch-path artifacts/manual/sample-source.patch --format json`
+
+The command returns `source_patch_risk_classification_v1` JSON. It reads one local unified patch, parses touched files, classifies path classes and mutation types, assigns a risk level, lists blocked operations, chooses recommended validation requirements, and checks the read-only machine gate.
+
+Runnable boundary:
+
+- M148 is classification and safety planning only
+- no patch application, validation command execution, Codex, model, GitHub, agent, queue mutation, retry, or next-item execution is performed
+- source patch application remains default-blocked and requires a separate explicit future boundary
+- workflow, protected config, queue-state, binary, executable-mode, and outside-repo patch operations are detected as automatic-apply blockers
+
 ## M147 Orchestrator Resume-from-Failure
 
 M147 adds a read-only orchestration resume-plan command:

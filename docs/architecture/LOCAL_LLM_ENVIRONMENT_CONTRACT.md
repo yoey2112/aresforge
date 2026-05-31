@@ -1,5 +1,11 @@
 # Local LLM Environment Contract
 
+## M148 Source Patch Risk Classifier Boundary
+
+M148 source patch classification does not change local LLM permissions. The command may classify a patch that was produced by a model or intended for source code, but it does not call Ollama, send prompts, run inference, select fallback models, mutate repository files, mutate queue state, call Codex, call GitHub/`gh`, apply patches, run validation commands, retry failures, or start follow-on work.
+
+Local LLM advisory and coding outputs remain non-applied review artifacts unless a separate explicit apply boundary exists. M148 only records patch risk, blocked operations, and validation requirements in a stable local schema.
+
 ## M147 Orchestrator Resume-from-Failure Boundary
 
 M147 resume-plan inspection does not change local LLM permissions. The command may inspect a source orchestration run that reports model execution, but it does not call Ollama, send prompts, run inference, select fallback models, mutate repository files, mutate queue state, call Codex, call GitHub/`gh`, apply patches, run validation commands, retry failures, resume orchestration, or start follow-on work.

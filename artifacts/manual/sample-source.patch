@@ -1,0 +1,16 @@
+diff --git a/src/aresforge/operator/example_source_patch.py b/src/aresforge/operator/example_source_patch.py
+--- a/src/aresforge/operator/example_source_patch.py
++++ b/src/aresforge/operator/example_source_patch.py
+@@ -1,3 +1,4 @@
+ def classify_example():
+     return {
++        "m148_source_patch_detected": True,
+         "local_only": True,
+     }
+diff --git a/tests/test_example_source_patch.py b/tests/test_example_source_patch.py
+--- a/tests/test_example_source_patch.py
++++ b/tests/test_example_source_patch.py
+@@ -1,2 +1,3 @@
+ def test_classify_example():
++    assert True
+     assert "local_only"

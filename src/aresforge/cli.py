@@ -232,6 +232,7 @@ from aresforge.operator.codex_execution_sandbox_worktree_guard import inspect_co
 from aresforge.operator.codex_validation_profiles import inspect_codex_validation_profiles
 from aresforge.operator.codex_failure_classification_retry_policy import classify_codex_failure
 from aresforge.operator.agent_step_result_normalization import normalize_agent_step_result
+from aresforge.operator.source_patch_risk_classifier import classify_source_patch_risk
 from aresforge.operator.github_sync_agent import run_github_sync_agent
 from aresforge.operator.multi_agent_orchestrator import run_multi_agent_orchestration
 from aresforge.operator.llm_decision_matrix import inspect_llm_decision_matrix
@@ -2523,6 +2524,24 @@ def build_parser() -> argparse.ArgumentParser:
     normalize_agent_step_result_parser.add_argument("--output")
     normalize_agent_step_result_parser.add_argument("--force", action="store_true")
     normalize_agent_step_result_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+    )
+    classify_source_patch_risk_parser = subparsers.add_parser(
+        "classify-source-patch-risk",
+        help="Classify a local source patch by touched files, risk, mutation type, blocked operations, and validation needs.",
+    )
+    classify_source_patch_risk_parser.add_argument("--patch-path", required=True)
+    classify_source_patch_risk_parser.add_argument(
+        "--item-id",
+        default="m148-safe-source-patch-detection-and-risk-classifier",
+    )
+    classify_source_patch_risk_parser.add_argument("--project-id", default="aresforge")
+    classify_source_patch_risk_parser.add_argument("--queue-path")
+    classify_source_patch_risk_parser.add_argument("--output")
+    classify_source_patch_risk_parser.add_argument("--force", action="store_true")
+    classify_source_patch_risk_parser.add_argument(
         "--format",
         choices=["json"],
         default="json",
@@ -5704,6 +5723,23 @@ def main(argv: list[str] | None = None) -> int:
         payload = normalize_agent_step_result(
             config,
             result_path=args.result_path,
+            item_id=args.item_id,
+            project_id=args.project_id,
+            queue_path=args.queue_path,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "classify-source-patch-risk":
+        payload = classify_source_patch_risk(
+            config,
+            patch_path=args.patch_path,
             item_id=args.item_id,
             project_id=args.project_id,
             queue_path=args.queue_path,

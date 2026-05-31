@@ -1,5 +1,26 @@
 # Local Operator Usage
 
+## M148 Safe Source Patch Detection and Risk Classifier
+
+M148 classifies a local unified patch without applying it. Use it to understand whether a patch touches source, tests, workflows, protected config, queue state, binaries, or executable modes, and what validation profile would be required before any separate apply/completion decision.
+
+Classify the sample source patch:
+
+    python -m aresforge classify-source-patch-risk --patch-path artifacts/manual/sample-source.patch --format json
+
+Write a local classification artifact:
+
+    python -m aresforge classify-source-patch-risk --patch-path artifacts/manual/sample-source.patch --output .aresforge/source_patch_risk/m148-classification.json --force --format json
+
+Interpretation:
+
+- `touched_files`, `touched_file_details`, and `path_classes` explain what the patch changes.
+- `risk_level`, `mutation_type`, and `mutation_types` summarize risk and mutation shape.
+- `blocked_operations` reports operations that block automatic apply, including source patch application, workflow mutation, protected config mutation, queue-state mutation, binary patches, executable/mode changes, and outside-repo paths.
+- `test_requirements` reports recommended local validation, but M148 itself does not run validation.
+
+M148 itself performs no agent execution, Codex execution, local LLM execution, GitHub call, validation command execution, patch application, queue mutation, PR merge, force push, workflow mutation, or automatic next-item execution.
+
 ## M147 Orchestrator Resume-from-Failure
 
 M147 inspects one local orchestration run and builds a resume-from-failure plan from the last valid checkpoint. It does not resume execution, retry failed steps, execute agents, call Codex, call models, call GitHub, run validation commands, apply patches, or mutate queue state.

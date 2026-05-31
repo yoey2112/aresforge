@@ -1,5 +1,25 @@
 # AresForge Roadmap
 
+## M148 Safe Source Patch Detection and Risk Classifier
+
+Status: Completed locally on `main` after validation.
+
+M148 hardens source patch handling with:
+
+- `python -m aresforge classify-source-patch-risk --patch-path artifacts/manual/sample-source.patch --format json`
+- deterministic `source_patch_risk_classification_v1` output
+- touched-file and path-class detection for source, tests, docs, Hub, orchestration, Codex runtime, queue state, scripts, config, workflows, artifacts, protected paths, and outside-repo paths
+- mutation-type detection for modified, added, deleted, renamed, binary, and file-mode changes
+- blocked-operation reporting and recommended validation profile/test requirements
+- read-only machine-gate evidence plus validation-agent and LLM decision-policy summaries
+
+Boundary:
+
+- no patch application from the classifier
+- no validation command execution
+- no agent, Codex, model, GitHub, queue mutation, protected-branch update, workflow mutation, PR merge, force push, release creation, or automatic next-item execution
+- source patch application remains separate, explicit, and default-blocked unless a future milestone safely enables it
+
 ## M147 Orchestrator Resume-from-Failure
 
 Status: Completed locally on `main` after validation.
