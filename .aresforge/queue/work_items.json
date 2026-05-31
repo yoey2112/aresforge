@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-31T20:26:54.380584+00:00",
+  "updated_at": "2026-05-31T20:41:30Z",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -5642,6 +5642,101 @@
       "closeout_history": [],
       "created_at": "2026-05-31T20:25:55.055947+00:00",
       "updated_at": "2026-05-31T20:26:54.380584+00:00"
+    },
+    {
+      "item_id": "m147-orchestrator-resume-from-failure",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M147 Orchestrator Resume-from-Failure",
+      "description": "Allow interrupted or failed orchestration runs to resume safely from the last valid checkpoint.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "orchestration",
+      "tags": [
+        "milestone:m147",
+        "orchestrator-recovery",
+        "machine-gated"
+      ],
+      "dependencies": [
+        "m146-agent-step-result-normalization"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [],
+      "evidence_required": [],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: add inspect-orchestration-resume-plan; deterministic JSON fields; inspect local run history and source artifacts; identify last valid checkpoint, resume eligibility, validation requirements, source execution flags, and next safe action; reuse agent registry, LLM decision policy, machine safety gate, queue, and orchestration history; no resume/retry/agent/Codex/local LLM/GitHub/patch/queue completion/validation command execution/next-item execution from the inspector.",
+      "started_at": "2026-05-31T20:35:00Z",
+      "started_via": "local_operator",
+      "previous_status": "ready",
+      "completed_at": "2026-05-31T20:41:30Z",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M147 Orchestrator Resume-from-Failure implemented and validated locally. Added inspect-orchestration-resume-plan with stable orchestrator_resume_from_failure_plan_v1 JSON, local orchestration history/source artifact inspection, last-valid-checkpoint selection, resume eligibility and pre-resume checks, source execution flag handling, read-only machine-gate evidence, agent registry and LLM decision-policy summaries, CLI coverage, targeted tests, source-of-truth docs, and queue evidence. No resume, retry, agent, Codex, local LLM, GitHub, patch application, validation command execution from the inspector, queue mutation from the inspector, or next-item execution was performed.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 221 passed; python -m pytest tests/test_orchestrator_resume_from_failure.py -> 4 passed; git diff --check -> passed with CRLF warnings only; inspect-local-project-report passed; inspect-local-queue-agent-summary passed; inspect-project-queue --project-id aresforge passed; inspect-orchestration-resume-plan --run-id sample-run --format json passed with status=no_resume_record, blocked=false, machine_gates_passed=true, resume_eligible=false, all inspector execution flags false, and local_only=true.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 221 passed",
+        "python -m pytest tests/test_orchestrator_resume_from_failure.py -> 4 passed",
+        "git diff --check -> passed with CRLF warnings only",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed",
+        "python -m aresforge inspect-project-queue --project-id aresforge -> passed",
+        "python -m aresforge inspect-orchestration-resume-plan --run-id sample-run --format json -> passed"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/orchestrator_resume_from_failure.py",
+        "src/aresforge/cli.py",
+        "tests/test_orchestrator_resume_from_failure.py",
+        "tests/test_cli.py",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
+        "docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
+        "docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md",
+        ".aresforge/queue/work_items.json"
+      ],
+      "artifact_paths": [
+        ".aresforge/orchestrator/resume_plans/m147-resume-plan.json (optional output path; default command is read-only)"
+      ],
+      "completion_evidence": {
+        "command": "inspect-orchestration-resume-plan",
+        "record_type": "orchestrator_resume_from_failure_plan_v1",
+        "sample_run_status": "no_resume_record",
+        "machine_gates_passed": true,
+        "resume_eligible": false,
+        "mutation_performed": false,
+        "external_execution_performed": false,
+        "model_execution_performed": false,
+        "codex_execution_performed": false,
+        "github_execution_performed": false,
+        "patch_application_performed": false,
+        "local_only": true,
+        "commit_hash": "pending-final-commit"
+      },
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-31T20:35:00Z",
+      "updated_at": "2026-05-31T20:41:30Z"
     }
   ]
 }

@@ -96,6 +96,7 @@ def test_cli_has_expected_commands() -> None:
         "generate-autonomous-sprint-closeout",
         "inspect-orchestrator-state-machine",
         "inspect-orchestration-run-history",
+        "inspect-orchestration-resume-plan",
         "inspect-codex-execution-enablements",
         "inspect-codex-worktree-guard",
         "inspect-codex-validation-profiles",
@@ -9207,6 +9208,95 @@ def test_inspect_orchestration_run_history_dispatch_json(
         "history_path": ".aresforge/orchestrator/run_history.json",
         "artifacts_root": "artifacts/multi-agent-orchestration",
         "output": ".aresforge/orchestrator/history-inspection.json",
+        "force": True,
+        "output_format": "json",
+    }
+
+
+def test_inspect_orchestration_resume_plan_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "record_type": "orchestrator_resume_from_failure_plan_v1",
+                "project_id": "aresforge",
+                "run_id": "sample-run",
+                "status": "resume_available",
+                "blocked": False,
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_inspect(
+        _config,
+        *,
+        run_id,
+        item_id="m147-orchestrator-resume-from-failure",
+        project_id="aresforge",
+        queue_path=None,
+        history_path=None,
+        artifacts_root=None,
+        output=None,
+        force=False,
+        output_format="json",
+    ):
+        seen.update(
+            {
+                "run_id": run_id,
+                "item_id": item_id,
+                "project_id": project_id,
+                "queue_path": queue_path,
+                "history_path": history_path,
+                "artifacts_root": artifacts_root,
+                "output": output,
+                "force": force,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "inspect_orchestration_resume_plan", fake_inspect)
+    exit_code = cli.main(
+        [
+            "inspect-orchestration-resume-plan",
+            "--run-id",
+            "sample-run",
+            "--item-id",
+            "m147",
+            "--project-id",
+            "aresforge",
+            "--queue-path",
+            ".aresforge/queue/work_items.json",
+            "--history-path",
+            ".aresforge/orchestrator/run_history.json",
+            "--artifacts-root",
+            "artifacts/multi-agent-orchestration",
+            "--output",
+            ".aresforge/orchestrator/resume_plans/m147-resume-plan.json",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["record_type"] == "orchestrator_resume_from_failure_plan_v1"
+    assert seen == {
+        "run_id": "sample-run",
+        "item_id": "m147",
+        "project_id": "aresforge",
+        "queue_path": ".aresforge/queue/work_items.json",
+        "history_path": ".aresforge/orchestrator/run_history.json",
+        "artifacts_root": "artifacts/multi-agent-orchestration",
+        "output": ".aresforge/orchestrator/resume_plans/m147-resume-plan.json",
         "force": True,
         "output_format": "json",
     }

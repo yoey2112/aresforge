@@ -1,5 +1,26 @@
 # AresForge Build State
 
+## M147 Orchestrator Resume-from-Failure
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m147-orchestrator-resume-from-failure`.
+
+M147 adds a local, machine-gated orchestration resume-plan inspector:
+
+- `python -m aresforge inspect-orchestration-resume-plan --run-id sample-run --format json`
+- optional `--item-id`, `--project-id`, `--queue-path`, `--history-path`, `--artifacts-root`, `--output`, and `--force`
+
+The inspector emits stable `orchestrator_resume_from_failure_plan_v1` JSON with run/checkpoint status, resume eligibility, last valid checkpoint metadata, source run execution flags, read-only machine-gate evidence, pre-resume checks, agent registry and LLM decision-policy summaries, and a recommended next safe action.
+
+Safety posture:
+
+- this command performs no resume, retry, agent, Codex, local LLM/model, GitHub, validation command, patch, queue, or next-item execution
+- missing run records are advisory and do not trigger execution
+- interrupted and max-step-limited runs may report `resume_available` only when checkpoint evidence and read-only gates pass and no validation-required effects are present
+- failed, blocked, mutating, Codex, GitHub, patch, queue-mutating, or failed-gate runs require explicit validation, classification, or operator review before any future resume
+- PR merge, force push, protected branch updates, releases, workflow mutation, gate bypass, source patch application from generated output, automatic retry loops, and automatic next-item execution remain blocked
+
 ## M146 Agent Step Result Normalization
 
 Status: Completed locally on `main` after validation.

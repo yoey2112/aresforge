@@ -1,5 +1,24 @@
 # AresForge Agent Context
 
+## M147 Orchestrator Resume-from-Failure Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m147-orchestrator-resume-from-failure`.
+
+M147 adds `inspect-orchestration-resume-plan`, a local-only inspector that reads orchestration history and source run artifacts to build a deterministic resume-from-failure plan from the last valid checkpoint.
+
+Command:
+
+- `python -m aresforge inspect-orchestration-resume-plan --run-id sample-run --format json`
+
+Agent-facing guidance:
+
+- Treat M147 output as resume planning evidence, not permission to resume automatically.
+- `resume_eligible=true` only means a future explicit machine-gated orchestration command may resume from the reported checkpoint.
+- Failed, blocked, mutating, Codex, GitHub, patch, queue-mutating, external-execution, or failed-gate runs require validation, classification, or operator review before any future resume.
+- Do not run agents, Codex, local LLMs, GitHub, validation commands, apply patches, mutate queue state, retry automatically, merge PRs, force push, mutate workflows, or start follow-on work from this resume plan.
+
 ## M146 Agent Step Result Normalization Context
 
 Status: Completed locally on `main` after validation.

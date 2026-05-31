@@ -1,5 +1,24 @@
 # AresForge Roadmap
 
+## M147 Orchestrator Resume-from-Failure
+
+Status: Completed locally on `main` after validation.
+
+M147 hardens orchestrator recovery with:
+
+- `python -m aresforge inspect-orchestration-resume-plan --run-id sample-run --format json`
+- deterministic `orchestrator_resume_from_failure_plan_v1` output
+- last-valid-checkpoint inspection for interrupted, failed, blocked, running, and max-step-limited orchestration runs
+- resume eligibility, pre-resume checks, source run execution flags, machine-gate summaries, agent registry summary, and LLM decision summary
+- optional local artifact output under `.aresforge/orchestrator/resume_plans/`
+
+Boundary:
+
+- no resume execution from the inspector
+- no automatic retry loops
+- no agent, Codex, model, GitHub, validation command, patch, queue mutation, protected-branch update, workflow mutation, PR merge, force push, release creation, or automatic next-item execution
+- validation-required or failed/blocked source runs must go through separate explicit recovery, validation, or operator-review commands before continuation
+
 ## M146 Agent Step Result Normalization
 
 Status: Completed locally on `main` after validation.

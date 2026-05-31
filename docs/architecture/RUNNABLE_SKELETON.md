@@ -1,5 +1,20 @@
 # Runnable Skeleton
 
+## M147 Orchestrator Resume-from-Failure
+
+M147 adds a read-only orchestration resume-plan command:
+
+- `python -m aresforge inspect-orchestration-resume-plan --run-id sample-run --format json`
+
+The command returns `orchestrator_resume_from_failure_plan_v1` JSON. It reads local orchestration history, discovers source run artifacts, validates checkpoint evidence, checks the read-only machine gate, and reports whether a future explicit gated resume can safely start from the last valid checkpoint.
+
+Runnable boundary:
+
+- M147 is inspection and recovery planning only
+- no resume, retry, agent, Codex, model, GitHub, validation command, patch, queue mutation, or next-item execution is performed
+- failed, blocked, mutating, Codex, GitHub, patch, queue-mutating, external-execution, or failed-gate runs require explicit recovery or validation before continuation
+- downstream resume remains a future explicit machine-gated orchestration command
+
 ## M146 Agent Step Result Normalization
 
 M146 adds a read-only agent step result normalization command:

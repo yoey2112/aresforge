@@ -1,5 +1,11 @@
 # Local LLM Environment Contract
 
+## M147 Orchestrator Resume-from-Failure Boundary
+
+M147 resume-plan inspection does not change local LLM permissions. The command may inspect a source orchestration run that reports model execution, but it does not call Ollama, send prompts, run inference, select fallback models, mutate repository files, mutate queue state, call Codex, call GitHub/`gh`, apply patches, run validation commands, retry failures, resume orchestration, or start follow-on work.
+
+Local LLM advisory execution remains limited to separate explicit local-provider commands and their machine gates. M147 only records source execution flags, checkpoint validity, and recovery guidance in a stable local schema.
+
 ## M146 Agent Step Result Normalization Boundary
 
 M146 step result normalization does not change local LLM permissions. The command may normalize a source step result that reports model execution, but it does not call Ollama, send prompts, run inference, select fallback models, mutate repository files, mutate queue state, call Codex, call GitHub/`gh`, apply patches, run validation commands, retry failures, or start follow-on work.

@@ -1,5 +1,27 @@
 # Local Operator Usage
 
+## M147 Orchestrator Resume-from-Failure
+
+M147 inspects one local orchestration run and builds a resume-from-failure plan from the last valid checkpoint. It does not resume execution, retry failed steps, execute agents, call Codex, call models, call GitHub, run validation commands, apply patches, or mutate queue state.
+
+Inspect a run:
+
+    python -m aresforge inspect-orchestration-resume-plan --run-id sample-run --format json
+
+Inspect and write a local resume-plan artifact:
+
+    python -m aresforge inspect-orchestration-resume-plan --run-id sample-run --output .aresforge/orchestrator/resume_plans/m147-resume-plan.json --force --format json
+
+Interpretation:
+
+- `status` reports whether resume is available, not required, review-required, blocked, or missing a run record.
+- `last_valid_checkpoint` identifies the checkpoint and next step index that a future explicit resume command may use.
+- `resume_eligible` is advisory and never performs resume by itself.
+- `resume_requires_validation` blocks future resume until explicit validation/recovery evidence exists.
+- top-level execution flags remain false because the inspector performs no execution or mutation.
+
+M147 itself performs no agent execution, Codex execution, local LLM execution, GitHub call, validation command execution, patch application, queue mutation, retry loop, PR merge, force push, workflow mutation, or automatic next-item execution.
+
 ## M146 Agent Step Result Normalization
 
 M146 normalizes one local agent step result artifact into a stable schema for orchestrator evaluation and recovery. It does not execute agents, Codex, models, GitHub, validation commands, patches, retries, or queue mutations.

@@ -1,5 +1,11 @@
 # Documentation Agent Contract
 
+## M147 Orchestrator Resume-from-Failure Boundary
+
+M147 resume-plan inspection does not add documentation-agent mutation. It may inspect a source orchestration run involving documentation steps or docs-only patch boundaries, but it does not edit documentation, generate patches, apply patches, execute documentation agents, call models, call Codex, call GitHub/`gh`, mutate queue state, run validation commands, retry failures, resume orchestration, or start follow-on work.
+
+Documentation mutation remains limited to separate docs-only Markdown patch commands that pass `docs_only_patch_apply` gates. M147 output is checkpoint and resume-planning evidence only.
+
 ## M146 Agent Step Result Normalization Boundary
 
 M146 step result normalization does not add documentation-agent mutation. It may normalize a source step result from a documentation agent or docs-only patch boundary, but it does not edit documentation, generate patches, apply patches, execute documentation agents, call models, call Codex, call GitHub/`gh`, mutate queue state, run validation commands, retry failures, or start follow-on work.

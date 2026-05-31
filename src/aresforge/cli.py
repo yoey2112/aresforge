@@ -226,6 +226,7 @@ from aresforge.operator.codex_result_ingestion_validation import (
 from aresforge.operator.autonomous_sprint_closeout import generate_autonomous_sprint_closeout
 from aresforge.operator.orchestrator_execution_state_machine import inspect_orchestrator_state_machine
 from aresforge.operator.orchestration_run_history import inspect_orchestration_run_history
+from aresforge.operator.orchestrator_resume_from_failure import inspect_orchestration_resume_plan
 from aresforge.operator.codex_execution_enablement_profile import inspect_codex_execution_enablements
 from aresforge.operator.codex_execution_sandbox_worktree_guard import inspect_codex_worktree_guard
 from aresforge.operator.codex_validation_profiles import inspect_codex_validation_profiles
@@ -2412,6 +2413,26 @@ def build_parser() -> argparse.ArgumentParser:
     inspect_orchestration_run_history_parser.add_argument("--output")
     inspect_orchestration_run_history_parser.add_argument("--force", action="store_true")
     inspect_orchestration_run_history_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+    )
+    inspect_orchestration_resume_plan_parser = subparsers.add_parser(
+        "inspect-orchestration-resume-plan",
+        help="Inspect the M147 resume-from-failure plan for one local orchestration run without resuming execution.",
+    )
+    inspect_orchestration_resume_plan_parser.add_argument("--run-id", required=True)
+    inspect_orchestration_resume_plan_parser.add_argument(
+        "--item-id",
+        default="m147-orchestrator-resume-from-failure",
+    )
+    inspect_orchestration_resume_plan_parser.add_argument("--project-id", default="aresforge")
+    inspect_orchestration_resume_plan_parser.add_argument("--queue-path")
+    inspect_orchestration_resume_plan_parser.add_argument("--history-path")
+    inspect_orchestration_resume_plan_parser.add_argument("--artifacts-root")
+    inspect_orchestration_resume_plan_parser.add_argument("--output")
+    inspect_orchestration_resume_plan_parser.add_argument("--force", action="store_true")
+    inspect_orchestration_resume_plan_parser.add_argument(
         "--format",
         choices=["json"],
         default="json",
@@ -5579,6 +5600,25 @@ def main(argv: list[str] | None = None) -> int:
             project_id=args.project_id,
             item_id=args.item_id,
             run_id=args.run_id,
+            queue_path=args.queue_path,
+            history_path=args.history_path,
+            artifacts_root=args.artifacts_root,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-orchestration-resume-plan":
+        payload = inspect_orchestration_resume_plan(
+            config,
+            run_id=args.run_id,
+            item_id=args.item_id,
+            project_id=args.project_id,
             queue_path=args.queue_path,
             history_path=args.history_path,
             artifacts_root=args.artifacts_root,

@@ -1,5 +1,15 @@
 # Agent LLM Routing Strategy
 
+## M147 Orchestrator Resume-from-Failure
+
+M147 adds `inspect-orchestration-resume-plan` as the recovery bridge between orchestration run history and any future explicit resume command. It does not execute agents or models. It maps one local run id to checkpoint validity, resume eligibility, source execution flags, and pre-resume checks.
+
+Routing implications:
+
+- interrupted and max-step-limited orchestration runs can be routed toward future resume only when checkpoint evidence and read-only gates pass
+- failed, blocked, mutating, Codex, GitHub, patch, external-execution, queue-mutating, or failed-gate runs route first to validation, classification, or operator review
+- M147 reports no agent execution, no model execution, no Codex execution, no GitHub execution, no patch application, no validation command execution, and no queue mutation
+
 ## M146 Agent Step Result Normalization
 
 M146 adds `normalize-agent-step-result` as the schema bridge between heterogeneous agent step outputs and orchestrator recovery logic. It does not execute agents or models. It maps one local result artifact to stable status, blocker, gate, artifact, and execution-flag fields.
