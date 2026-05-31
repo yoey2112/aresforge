@@ -104,6 +104,7 @@ def test_cli_has_expected_commands() -> None:
         "normalize-agent-step-result",
         "classify-source-patch-risk",
         "plan-source-patch-apply",
+        "dry-run-source-patch-apply",
         "inspect-codex-dispatch-run",
         "list-codex-dispatch-runs",
         "cancel-codex-dispatch-run",
@@ -9843,6 +9844,83 @@ def test_plan_source_patch_apply_dispatch_json(
         "project_id": "aresforge",
         "queue_path": ".aresforge/queue/work_items.json",
         "output": ".aresforge/source_patch_apply_plans/m149-apply-plan.json",
+        "force": True,
+        "output_format": "json",
+    }
+
+
+def test_dry_run_source_patch_apply_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "record_type": "source_patch_apply_dry_run_v1",
+                "project_id": "aresforge",
+                "status": "dry_run_passed",
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_dry_run(
+        _config,
+        *,
+        patch_path,
+        item_id="m150-machine-gated-source-patch-apply-dry-run",
+        project_id="aresforge",
+        queue_path=None,
+        output=None,
+        force=False,
+        output_format="json",
+    ):
+        seen.update(
+            {
+                "patch_path": patch_path,
+                "item_id": item_id,
+                "project_id": project_id,
+                "queue_path": queue_path,
+                "output": output,
+                "force": force,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "dry_run_source_patch_apply", fake_dry_run)
+    exit_code = cli.main(
+        [
+            "dry-run-source-patch-apply",
+            "--patch-path",
+            "artifacts/manual/sample-source.patch",
+            "--item-id",
+            "m150",
+            "--project-id",
+            "aresforge",
+            "--queue-path",
+            ".aresforge/queue/work_items.json",
+            "--output",
+            ".aresforge/source_patch_apply_dry_runs/m150-dry-run.json",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["record_type"] == "source_patch_apply_dry_run_v1"
+    assert seen == {
+        "patch_path": "artifacts/manual/sample-source.patch",
+        "item_id": "m150",
+        "project_id": "aresforge",
+        "queue_path": ".aresforge/queue/work_items.json",
+        "output": ".aresforge/source_patch_apply_dry_runs/m150-dry-run.json",
         "force": True,
         "output_format": "json",
     }

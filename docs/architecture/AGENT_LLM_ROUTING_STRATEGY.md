@@ -1,5 +1,16 @@
 # Agent LLM Routing Strategy
 
+## M150 Machine-Gated Source Patch Apply Dry Run
+
+M150 adds `dry-run-source-patch-apply` as the first machine-gated source patch applicability proof. It does not execute agents or models. It maps an M149 apply plan to a dedicated dry-run machine gate and a `git apply --check` result without applying the patch.
+
+Routing implications:
+
+- source/code patch output can be routed from classification to planning to dry-run applicability evidence
+- failed M149 planning, hard apply blockers, failed machine gates, or failed `git apply --check` route back to patch refresh or operator review
+- passing dry-run evidence still routes to a future explicit apply command, machine gate, validation profile, and completion evidence path
+- M150 reports no agent execution, no model execution, no Codex execution, no GitHub execution, no real patch application, no validation command execution, and no queue mutation
+
 ## M149 Controlled Source Patch Apply Planning
 
 M149 adds `plan-source-patch-apply` as a non-executing planning layer after M148 source patch risk classification. It does not execute agents or models. It maps a local patch classification to hard apply blockers, future apply steps, validation requirements, rollback guidance, and explicit non-execution flags.

@@ -1,5 +1,24 @@
 # AresForge Agent Context
 
+## M150 Machine-Gated Source Patch Apply Dry Run Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m150-machine-gated-source-patch-apply-dry-run`.
+
+M150 adds `dry-run-source-patch-apply`, a local-only checker that proves whether a source patch currently passes `git apply --check` without applying it.
+
+Command:
+
+- `python -m aresforge dry-run-source-patch-apply --item-id m150-machine-gated-source-patch-apply-dry-run --patch-path artifacts/manual/sample-source.patch --format json`
+
+Agent-facing guidance:
+
+- Treat M150 output as applicability evidence, not permission to apply the patch.
+- `status=dry_run_passed` means M149 apply planning, the source patch dry-run machine gate, and `git apply --check` passed.
+- `patch_application_dry_run_performed=true` means only the clean apply check ran; `patch_application_performed=false` must remain true for M150.
+- Do not run agents, Codex, local LLMs, GitHub, validation commands, real patch apply, queue completion, retries, PR merges, force pushes, workflow mutation, or next-item work from this dry-run record.
+
 ## M149 Controlled Source Patch Apply Plan Context
 
 Status: Completed locally on `main` after validation.

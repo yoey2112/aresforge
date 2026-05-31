@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-31T21:13:01.611662+00:00",
+  "updated_at": "2026-05-31T21:27:04.678606+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -5901,6 +5901,110 @@
       "closeout_history": [],
       "created_at": "2026-05-31T21:11:30.087713+00:00",
       "updated_at": "2026-05-31T21:13:01.611662+00:00"
+    },
+    {
+      "item_id": "m150-machine-gated-source-patch-apply-dry-run",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M150 Machine-Gated Source Patch Apply Dry Run",
+      "description": "Dry-run source patch application under machine gates, proving patch applicability without committing changes.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "orchestration",
+      "tags": [
+        "milestone:m150",
+        "source-patch-apply-dry-run",
+        "machine-gated"
+      ],
+      "dependencies": [
+        "m149-controlled-source-patch-apply-plan"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [],
+      "evidence_required": [],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: add dry-run-source-patch-apply; deterministic source_patch_apply_dry_run_v1 JSON; reuse M149 apply plan, M148 risk classifier, source_patch_apply_dry_run machine gate, queue, and local git apply check boundaries; run git apply --check only after gates pass; no source patch application, validation command execution from the dry run, agent/Codex/local LLM/GitHub/queue completion/retry/next-item execution.",
+      "started_at": "",
+      "started_via": "",
+      "previous_status": "ready",
+      "completed_at": "2026-05-31T21:27:04.678606+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M150 Machine-Gated Source Patch Apply Dry Run implemented and validated locally. Added dry-run-source-patch-apply with stable source_patch_apply_dry_run_v1 JSON, M149 apply-plan reuse, source_patch_apply_dry_run machine gate, git apply --check applicability proof, CLI coverage, targeted tests, sample source patch preimage files, source-of-truth docs, and queue evidence. No source patch application, validation command execution from the dry run, agent, Codex, local LLM, GitHub, queue mutation from the dry run, retry, or next-item execution was performed.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 224 passed; python -m pytest tests/test_source_patch_apply_dry_run.py -> 4 passed; python -m pytest tests/test_machine_safety_gate_engine.py -> 8 passed; python -m pytest tests/test_example_source_patch.py -> 1 passed; git diff --check passed with CRLF warnings only; inspect-local-project-report passed; inspect-local-queue-agent-summary passed; inspect-project-queue --project-id aresforge passed; dry-run-source-patch-apply sample command passed with status=dry_run_passed, machine_gates_passed=true, patch_application_dry_run_performed=true, patch_application_performed=false, and all execution/mutation flags false.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 224 passed",
+        "python -m pytest tests/test_source_patch_apply_dry_run.py -> 4 passed",
+        "python -m pytest tests/test_machine_safety_gate_engine.py -> 8 passed",
+        "python -m pytest tests/test_example_source_patch.py -> 1 passed",
+        "git diff --check -> passed with CRLF warnings only after sample patch whitespace fix",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed",
+        "python -m aresforge inspect-project-queue --project-id aresforge -> passed",
+        "python -m aresforge dry-run-source-patch-apply --item-id m150-machine-gated-source-patch-apply-dry-run --patch-path artifacts/manual/sample-source.patch --format json -> passed with status=dry_run_passed"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/source_patch_apply_dry_run.py",
+        "src/aresforge/operator/machine_safety_gate_engine.py",
+        "src/aresforge/operator/example_source_patch.py",
+        "src/aresforge/cli.py",
+        "tests/test_source_patch_apply_dry_run.py",
+        "tests/test_example_source_patch.py",
+        "tests/test_machine_safety_gate_engine.py",
+        "tests/test_cli.py",
+        "artifacts/manual/sample-source.patch",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
+        "docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
+        "docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md",
+        ".aresforge/queue/work_items.json"
+      ],
+      "artifact_paths": [
+        "artifacts/manual/sample-source.patch",
+        ".aresforge/source_patch_apply_dry_runs/m150-dry-run.json (optional output path; default command writes no artifact)"
+      ],
+      "completion_evidence": {
+        "command": "dry-run-source-patch-apply",
+        "record_type": "source_patch_apply_dry_run_v1",
+        "status": "dry_run_passed",
+        "machine_gates_passed": true,
+        "patch_application_dry_run_performed": true,
+        "patch_application_performed": false,
+        "mutation_performed": false,
+        "external_execution_performed": false,
+        "model_execution_performed": false,
+        "codex_execution_performed": false,
+        "github_execution_performed": false,
+        "validation_command_execution_performed": false,
+        "local_only": true,
+        "commit_hash": "pending-final-commit"
+      },
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-31T21:23:45.781386+00:00",
+      "updated_at": "2026-05-31T21:27:04.678606+00:00"
     }
   ]
 }

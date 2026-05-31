@@ -234,6 +234,7 @@ from aresforge.operator.codex_failure_classification_retry_policy import classif
 from aresforge.operator.agent_step_result_normalization import normalize_agent_step_result
 from aresforge.operator.source_patch_risk_classifier import classify_source_patch_risk
 from aresforge.operator.source_patch_apply_plan import plan_source_patch_apply
+from aresforge.operator.source_patch_apply_dry_run import dry_run_source_patch_apply
 from aresforge.operator.github_sync_agent import run_github_sync_agent
 from aresforge.operator.multi_agent_orchestrator import run_multi_agent_orchestration
 from aresforge.operator.llm_decision_matrix import inspect_llm_decision_matrix
@@ -2561,6 +2562,24 @@ def build_parser() -> argparse.ArgumentParser:
     plan_source_patch_apply_parser.add_argument("--output")
     plan_source_patch_apply_parser.add_argument("--force", action="store_true")
     plan_source_patch_apply_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+    )
+    dry_run_source_patch_apply_parser = subparsers.add_parser(
+        "dry-run-source-patch-apply",
+        help="Prove source patch applicability with git apply --check under machine gates without applying the patch.",
+    )
+    dry_run_source_patch_apply_parser.add_argument("--patch-path", required=True)
+    dry_run_source_patch_apply_parser.add_argument(
+        "--item-id",
+        default="m150-machine-gated-source-patch-apply-dry-run",
+    )
+    dry_run_source_patch_apply_parser.add_argument("--project-id", default="aresforge")
+    dry_run_source_patch_apply_parser.add_argument("--queue-path")
+    dry_run_source_patch_apply_parser.add_argument("--output")
+    dry_run_source_patch_apply_parser.add_argument("--force", action="store_true")
+    dry_run_source_patch_apply_parser.add_argument(
         "--format",
         choices=["json"],
         default="json",
@@ -5774,6 +5793,23 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "plan-source-patch-apply":
         payload = plan_source_patch_apply(
+            config,
+            patch_path=args.patch_path,
+            item_id=args.item_id,
+            project_id=args.project_id,
+            queue_path=args.queue_path,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "dry-run-source-patch-apply":
+        payload = dry_run_source_patch_apply(
             config,
             patch_path=args.patch_path,
             item_id=args.item_id,

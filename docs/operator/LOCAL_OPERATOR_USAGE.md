@@ -1,5 +1,27 @@
 # Local Operator Usage
 
+## M150 Machine-Gated Source Patch Apply Dry Run
+
+M150 proves whether a local source patch can apply cleanly without applying it. Use it after M149 planning when an operator needs machine-readable applicability evidence before any future explicit source patch apply path exists.
+
+Dry-run the sample source patch:
+
+    python -m aresforge dry-run-source-patch-apply --item-id m150-machine-gated-source-patch-apply-dry-run --patch-path artifacts/manual/sample-source.patch --format json
+
+Write a local dry-run artifact:
+
+    python -m aresforge dry-run-source-patch-apply --item-id m150-machine-gated-source-patch-apply-dry-run --patch-path artifacts/manual/sample-source.patch --output .aresforge/source_patch_apply_dry_runs/m150-dry-run.json --force --format json
+
+Interpretation:
+
+- `source_apply_plan` summarizes the M149 plan used before any dry-run check.
+- `machine_gates_checked` reports the `source_patch_apply_dry_run` gate.
+- `dry_run_apply_check` reports the `git apply --check` result.
+- `patch_application_dry_run_performed=true` means only the clean apply check ran.
+- `patch_application_performed=false` confirms no patch was applied.
+
+M150 itself performs no agent execution, Codex execution, local LLM execution, GitHub call, validation command execution, patch application, queue mutation, PR merge, force push, workflow mutation, retry, or automatic next-item execution.
+
 ## M149 Controlled Source Patch Apply Plan
 
 M149 generates a controlled apply plan for a local source patch without applying it. Use it after M148 classification when an operator needs machine-readable next steps, validation expectations, hard apply blockers, and rollback planning before any future explicit apply path.

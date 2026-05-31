@@ -22,6 +22,7 @@ GATE_PROFILES: tuple[str, ...] = (
     "local_artifact_write",
     "queue_status_mutation",
     "docs_only_patch_apply",
+    "source_patch_apply_dry_run",
     "local_llm_execution",
     "codex_dispatch",
     "github_sync",
@@ -84,6 +85,11 @@ _PROFILES: dict[str, GateProfile] = {
         allowed_paths=(*_DOCS_ONLY_PATHS, "artifacts/"),
         require_patch=True,
         require_tests=True,
+    ),
+    "source_patch_apply_dry_run": GateProfile(
+        profile="source_patch_apply_dry_run",
+        allowed_paths=("artifacts/", "src/", "tests/", "docs/"),
+        require_patch=True,
     ),
     "local_llm_execution": GateProfile(
         profile="local_llm_execution",
@@ -190,7 +196,8 @@ def evaluate_machine_safety_gates(
                 "working_tree_acceptable",
                 _working_tree_acceptable(active_profile, git_status),
                 "Working tree must be acceptable for the requested profile.",
-                warning_only=active_profile.profile in {"read_only_agent", "local_artifact_write", "codex_dispatch"},
+                warning_only=active_profile.profile
+                in {"read_only_agent", "local_artifact_write", "codex_dispatch", "source_patch_apply_dry_run"},
             ),
             _check(
                 "file_path_allowlist_respected",
@@ -400,6 +407,7 @@ def _working_tree_acceptable(profile: GateProfile, git_status: dict[str, Any]) -
         "read_only_agent",
         "local_artifact_write",
         "docs_only_patch_apply",
+        "source_patch_apply_dry_run",
         "local_llm_execution",
         "codex_dispatch",
     }

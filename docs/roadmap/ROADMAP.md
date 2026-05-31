@@ -1,5 +1,25 @@
 # AresForge Roadmap
 
+## M150 Machine-Gated Source Patch Apply Dry Run
+
+Status: Completed locally on `main` after validation.
+
+M150 hardens the source patch loop with:
+
+- `python -m aresforge dry-run-source-patch-apply --item-id m150-machine-gated-source-patch-apply-dry-run --patch-path artifacts/manual/sample-source.patch --format json`
+- deterministic `source_patch_apply_dry_run_v1` output
+- reuse of M149 controlled apply planning, M148 source patch classification, queue state, and machine safety gates
+- a dedicated `source_patch_apply_dry_run` machine-gate profile
+- `git apply --check` execution only as a clean applicability proof
+- explicit non-mutation, non-validation, non-Codex, non-model, non-GitHub, and non-queue-completion flags
+
+Boundary:
+
+- no source patch application
+- no validation command execution
+- no agent, Codex, model, GitHub, queue mutation, protected-branch update, workflow mutation, PR merge, force push, release creation, retry, or automatic next-item execution
+- passing dry-run records remain local evidence only until a separate explicit source patch apply boundary is implemented and validated
+
 ## M149 Controlled Source Patch Apply Plan
 
 Status: Completed locally on `main` after validation.

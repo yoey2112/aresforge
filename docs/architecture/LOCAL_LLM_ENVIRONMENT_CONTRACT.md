@@ -1,5 +1,11 @@
 # Local LLM Environment Contract
 
+## M150 Source Patch Apply Dry Run Boundary
+
+M150 source patch apply dry-run does not change local LLM permissions. The command may inspect a patch that was produced by a model or intended for source code, but it does not call Ollama, send prompts, run inference, select fallback models, mutate repository files, mutate queue state, call Codex, call GitHub/`gh`, apply patches, run validation commands, retry failures, or start follow-on work.
+
+Local LLM advisory and coding outputs remain non-applied review artifacts unless a separate explicit apply boundary exists. M150 only records M149 plan evidence, machine-gate evidence, and `git apply --check` applicability proof in a stable local schema.
+
 ## M149 Controlled Source Patch Apply Plan Boundary
 
 M149 source patch apply planning does not change local LLM permissions. The command may plan around a patch that was produced by a model or intended for source code, but it does not call Ollama, send prompts, run inference, select fallback models, mutate repository files, mutate queue state, call Codex, call GitHub/`gh`, apply patches, run validation commands, retry failures, or start follow-on work.

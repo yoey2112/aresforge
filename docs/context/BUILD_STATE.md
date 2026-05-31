@@ -1,5 +1,25 @@
 # AresForge Build State
 
+## M150 Machine-Gated Source Patch Apply Dry Run
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m150-machine-gated-source-patch-apply-dry-run`.
+
+M150 adds a local, machine-gated source patch apply dry-run checker:
+
+- `python -m aresforge dry-run-source-patch-apply --item-id m150-machine-gated-source-patch-apply-dry-run --patch-path artifacts/manual/sample-source.patch --format json`
+- optional `--project-id`, `--queue-path`, `--output`, and `--force`
+
+The dry-run emits stable `source_patch_apply_dry_run_v1` JSON with M149 apply-plan evidence, M148 classification summary, source-patch dry-run machine-gate evidence, `git apply --check` applicability proof, explicit non-mutation flags, and the next safe action.
+
+Safety posture:
+
+- this command may run `git apply --check` only after M149 apply-plan eligibility and the `source_patch_apply_dry_run` machine gate pass
+- it never applies a patch, stages files, commits files, runs validation commands, mutates queue status, calls Codex, calls models, calls GitHub, retries, or starts follow-on work
+- workflow, protected config, queue-state, binary, executable-mode, outside-repo, failed gate, and failed clean-apply checks block the dry run or future apply eligibility
+- a passing dry run is applicability evidence only; actual source patch application remains a separate future explicit gated command with validation evidence
+
 ## M149 Controlled Source Patch Apply Plan
 
 Status: Completed locally on `main` after validation.

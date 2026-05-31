@@ -1,5 +1,20 @@
 # Runnable Skeleton
 
+## M150 Machine-Gated Source Patch Apply Dry Run
+
+M150 adds a source patch apply dry-run command:
+
+- `python -m aresforge dry-run-source-patch-apply --item-id m150-machine-gated-source-patch-apply-dry-run --patch-path artifacts/manual/sample-source.patch --format json`
+
+The command returns `source_patch_apply_dry_run_v1` JSON. It reuses M149 planning and the M148 classifier, evaluates the `source_patch_apply_dry_run` machine gate, then runs `git apply --check` only when gates and hard-blocker checks pass.
+
+Runnable boundary:
+
+- M150 proves applicability only
+- no source patch application, validation command execution, Codex, model, GitHub, agent, queue mutation, retry, or next-item execution is performed
+- workflow, protected config, queue-state, binary, executable-mode, outside-repo, machine-gate, and failed apply-check blockers prevent dry-run success
+- actual source patch application remains a separate future explicit command with machine gates and validation evidence
+
 ## M149 Controlled Source Patch Apply Plan
 
 M149 adds a read-only source patch apply planner:

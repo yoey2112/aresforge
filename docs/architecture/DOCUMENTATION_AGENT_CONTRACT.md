@@ -1,5 +1,11 @@
 # Documentation Agent Contract
 
+## M150 Source Patch Apply Dry Run Boundary
+
+M150 source patch apply dry-run does not add documentation-agent or source-code mutation. It may dry-run documentation, source, and test patch applicability with `git apply --check` after M149 planning and machine gates pass, but it does not edit documentation, mutate source, generate patches, apply patches, execute documentation agents, call models, call Codex, call GitHub/`gh`, mutate queue state, run validation commands, retry failures, or start follow-on work.
+
+Documentation mutation remains limited to separate docs-only Markdown patch commands that pass `docs_only_patch_apply` gates. Source/code patch application remains blocked unless a later explicit milestone defines and validates a safe apply boundary.
+
 ## M149 Controlled Source Patch Apply Plan Boundary
 
 M149 source patch apply planning does not add documentation-agent or source-code mutation. It may plan around documentation, source, test, workflow, protected config, queue-state, binary, executable-mode, and outside-repo patch targets, but it does not edit documentation, mutate source, generate patches, apply patches, execute documentation agents, call models, call Codex, call GitHub/`gh`, mutate queue state, run validation commands, retry failures, or start follow-on work.

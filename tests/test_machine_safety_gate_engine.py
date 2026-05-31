@@ -134,6 +134,29 @@ def _docs_patch(config: AppConfig, target: str = "docs/operator/LOCAL_OPERATOR_U
     return path
 
 
+def _source_patch(config: AppConfig) -> Path:
+    source = config.repo_root / "src" / "aresforge" / "operator" / "example.py"
+    source.parent.mkdir(parents=True, exist_ok=True)
+    source.write_text('VALUE = "old"\n', encoding="utf-8")
+    path = config.repo_root / "artifacts" / "patches" / "source.patch"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        "\n".join(
+            [
+                "diff --git a/src/aresforge/operator/example.py b/src/aresforge/operator/example.py",
+                "--- a/src/aresforge/operator/example.py",
+                "+++ b/src/aresforge/operator/example.py",
+                "@@ -1 +1,2 @@",
+                ' VALUE = "old"',
+                "+DRY_RUN_CHECK = True",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    return path
+
+
 def _transaction_log(config: AppConfig) -> Path:
     return _write_json(
         config.repo_root / ".aresforge" / "queue" / "transaction_log.json",
@@ -153,6 +176,8 @@ def test_all_gate_profiles_can_pass_with_required_local_evidence(tmp_path: Path)
             kwargs["execution_record"] = _safe_execution_record(config, profile)
         if profile == "docs_only_patch_apply":
             kwargs["patch_path"] = _docs_patch(config)
+        if profile == "source_patch_apply_dry_run":
+            kwargs["patch_path"] = _source_patch(config)
         if profile in {"codex_dispatch", "github_sync", "multi_agent_orchestration"}:
             kwargs["force"] = True
 
