@@ -190,7 +190,7 @@ def evaluate_machine_safety_gates(
                 "working_tree_acceptable",
                 _working_tree_acceptable(active_profile, git_status),
                 "Working tree must be acceptable for the requested profile.",
-                warning_only=active_profile.profile in {"read_only_agent", "local_artifact_write"},
+                warning_only=active_profile.profile in {"read_only_agent", "local_artifact_write", "codex_dispatch"},
             ),
             _check(
                 "file_path_allowlist_respected",
@@ -396,7 +396,13 @@ def _working_tree_acceptable(profile: GateProfile, git_status: dict[str, Any]) -
     dirty = bool(git_status.get("dirty"))
     if not dirty:
         return True
-    return profile.profile in {"read_only_agent", "local_artifact_write", "docs_only_patch_apply", "local_llm_execution"}
+    return profile.profile in {
+        "read_only_agent",
+        "local_artifact_write",
+        "docs_only_patch_apply",
+        "local_llm_execution",
+        "codex_dispatch",
+    }
 
 
 def _path_allowlist_respected(
@@ -468,9 +474,14 @@ def _collect_warnings(
     patch_read_errors: list[str],
 ) -> list[str]:
     warnings: list[str] = []
-    if git_status.get("dirty") and profile.profile in {"read_only_agent", "local_artifact_write", "local_llm_execution"}:
+    if git_status.get("dirty") and profile.profile in {
+        "read_only_agent",
+        "local_artifact_write",
+        "local_llm_execution",
+        "codex_dispatch",
+    }:
         warnings.append(
-            "Working tree has local changes; read-only, artifact-write, and advisory local LLM gates treat this as warning-only."
+            "Working tree has local changes; this profile treats dirty state as warning-only unless the caller requires a clean tree."
         )
     warnings.extend(_list(artifact.get("warnings")))
     warnings.extend(_list(record.get("warnings")))

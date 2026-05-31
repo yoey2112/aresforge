@@ -1,5 +1,26 @@
 # AresForge Agent Context
 
+## M135 Codex Dispatch Executor v1 Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m135-codex-dispatch-executor-v1`.
+
+M135 introduces `run-codex-dispatch` as an artifact-driven Codex dispatch executor. It consumes one prepared Codex dispatch artifact, evaluates the `codex_dispatch` machine gate profile, checks that the queue item is `ready`, verifies dependencies and required safety flags, then records stdout, stderr, and result metadata as local artifacts.
+
+Command:
+
+- `python -m aresforge run-codex-dispatch --item-id <item_id> --artifact-path <artifact_path> --format json`
+
+M135 boundaries:
+
+- default non-dry-run execution is blocked
+- `--dry-run` performs no Codex invocation
+- real execution requires `--execution-enabled` plus passing machine gates
+- `--require-clean-worktree` adds an explicit clean-tree preflight
+- the command may capture Codex output, but AresForge itself performs no patch application, GitHub execution, queue completion, push, or next-item execution
+- any files Codex changes must be validated by M136 before completion evidence is accepted
+
 ## M134 Local LLM Advisory Execution Context
 
 Status: In progress locally on `main`.

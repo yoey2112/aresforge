@@ -8623,6 +8623,80 @@ def test_run_codex_dispatch_dispatch_json(
     assert seen["timeout_seconds"] == 12
 
 
+def test_run_codex_dispatch_executor_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": True,
+        "stdout": json.dumps(
+            {
+                "execution_record_type": "codex_dispatch_execution_v1",
+                "item_id": "m135",
+                "dry_run": True,
+                "blocked": False,
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_run(
+        _config,
+        item_id,
+        artifact_path,
+        dry_run=False,
+        force=False,
+        output=None,
+        timeout_seconds=300,
+        require_clean_worktree=False,
+        execution_enabled=False,
+        queue_path=None,
+        output_format="json",
+    ):
+        seen["item_id"] = item_id
+        seen["artifact_path"] = artifact_path
+        seen["dry_run"] = dry_run
+        seen["execution_enabled"] = execution_enabled
+        seen["require_clean_worktree"] = require_clean_worktree
+        seen["timeout_seconds"] = timeout_seconds
+        seen["output"] = output
+        return payload
+
+    monkeypatch.setattr(cli, "run_codex_dispatch_executor", fake_run)
+    exit_code = cli.main(
+        [
+            "run-codex-dispatch",
+            "--item-id",
+            "m135",
+            "--artifact-path",
+            "artifacts/manual/sample-codex-dispatch.json",
+            "--dry-run",
+            "--execution-enabled",
+            "--require-clean-worktree",
+            "--timeout-seconds",
+            "15",
+            "--output",
+            "artifacts/codex_dispatch/executions/m135.json",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["execution_record_type"] == "codex_dispatch_execution_v1"
+    assert seen["item_id"] == "m135"
+    assert seen["artifact_path"] == "artifacts/manual/sample-codex-dispatch.json"
+    assert seen["dry_run"] is True
+    assert seen["execution_enabled"] is True
+    assert seen["require_clean_worktree"] is True
+    assert seen["timeout_seconds"] == 15
+    assert seen["output"] == "artifacts/codex_dispatch/executions/m135.json"
+
+
 def test_inspect_and_list_codex_dispatch_run_dispatch_json(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:

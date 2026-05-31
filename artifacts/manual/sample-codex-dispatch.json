@@ -1,0 +1,30 @@
+{
+  "artifact_type": "codex_dispatch_artifact",
+  "item_id": "m135-codex-dispatch-executor-v1",
+  "title": "M135 Codex Dispatch Executor v1",
+  "local_only": true,
+  "execution_allowed": false,
+  "execution_performed": false,
+  "codex_execution_performed": false,
+  "patch_application_performed": false,
+  "github_execution_performed": false,
+  "queue_mutation_performed": false,
+  "codex_command": [
+    "codex",
+    "exec",
+    "--stdin"
+  ],
+  "prompt_text": "Run only M135 Codex Dispatch Executor v1. Preserve local operator gates, capture execution artifacts, and leave validation handoff to M136.",
+  "validation_commands": [
+    "python -m pytest tests/test_codex_dispatch_executor.py",
+    "python -m pytest tests/test_machine_safety_gate_engine.py"
+  ],
+  "tests_reported": [
+    "M135 sample dispatch artifact includes runnable validation commands for codex_dispatch gate evaluation."
+  ],
+  "operator_review_checklist": [
+    "Run dry-run first.",
+    "Pass --execution-enabled only when the local operator intends Codex execution.",
+    "Review stdout, stderr, and the result artifact before M136 validation."
+  ]
+}

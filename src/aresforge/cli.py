@@ -218,6 +218,7 @@ from aresforge.operator.codex_dispatch_runner import (
     recover_codex_dispatch_run,
     run_operator_gated_codex_dispatch,
 )
+from aresforge.operator.codex_dispatch_executor import run_codex_dispatch_executor
 from aresforge.operator.llm_decision_matrix import inspect_llm_decision_matrix
 from aresforge.operator.local_coding_draft import prepare_local_coding_draft_artifact
 from aresforge.operator.documentation_agent_contract import inspect_documentation_agent_contract
@@ -2267,13 +2268,20 @@ def build_parser() -> argparse.ArgumentParser:
     )
     run_codex_dispatch_parser = subparsers.add_parser(
         "run-codex-dispatch",
-        help="Run one previously approved M78 Codex dispatch using an explicit operator-provided command.",
+        help="Run one prepared Codex dispatch artifact when M135 gates and explicit execution controls pass.",
     )
     run_codex_dispatch_parser.add_argument("--item-id", required=True)
-    run_codex_dispatch_parser.add_argument("--run-id", required=True)
+    run_codex_dispatch_parser.add_argument("--artifact-path")
+    run_codex_dispatch_parser.add_argument("--run-id")
     run_codex_dispatch_parser.add_argument("--command", dest="codex_command")
     run_codex_dispatch_parser.add_argument("--command-arg", action="append", default=[])
     run_codex_dispatch_parser.add_argument("--timeout-seconds", type=int, default=300)
+    run_codex_dispatch_parser.add_argument("--dry-run", action="store_true")
+    run_codex_dispatch_parser.add_argument("--force", action="store_true")
+    run_codex_dispatch_parser.add_argument("--output")
+    run_codex_dispatch_parser.add_argument("--queue-path")
+    run_codex_dispatch_parser.add_argument("--require-clean-worktree", action="store_true")
+    run_codex_dispatch_parser.add_argument("--execution-enabled", action="store_true")
     run_codex_dispatch_parser.add_argument(
         "--format",
         choices=["json", "markdown"],
@@ -5207,14 +5215,42 @@ def main(argv: list[str] | None = None) -> int:
         return 0 if bool(payload.get("ok")) else 1
 
     if args.command == "run-codex-dispatch":
-        payload = run_operator_gated_codex_dispatch(
-            config,
-            item_id=args.item_id,
-            run_id=args.run_id,
-            command=args.command_arg or args.codex_command,
-            timeout_seconds=args.timeout_seconds,
-            output_format=args.format,
-        )
+        if args.artifact_path:
+            payload = run_codex_dispatch_executor(
+                config,
+                item_id=args.item_id,
+                artifact_path=args.artifact_path,
+                dry_run=bool(args.dry_run),
+                force=bool(args.force),
+                output=args.output,
+                timeout_seconds=args.timeout_seconds,
+                require_clean_worktree=bool(args.require_clean_worktree),
+                execution_enabled=bool(args.execution_enabled),
+                queue_path=args.queue_path,
+                output_format=args.format,
+            )
+        elif args.run_id:
+            payload = run_operator_gated_codex_dispatch(
+                config,
+                item_id=args.item_id,
+                run_id=args.run_id,
+                command=args.command_arg or args.codex_command,
+                timeout_seconds=args.timeout_seconds,
+                output_format=args.format,
+            )
+        else:
+            payload = {
+                "command": "run-codex-dispatch",
+                "ok": False,
+                "local_only": True,
+                "error": "codex_dispatch_target_required",
+                "details": {
+                    "message": "Provide --artifact-path for M135 dispatch execution or --run-id for the legacy M78 run path."
+                },
+            }
+        if args.artifact_path and "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
         if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
             print(payload["stdout"])
             return 0

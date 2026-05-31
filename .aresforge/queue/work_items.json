@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-31T02:41:06.864230+00:00",
+  "updated_at": "2026-05-31T02:59:44Z",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -4547,6 +4547,123 @@
       "closeout_history": [],
       "created_at": "2026-05-31T02:39:51.332627+00:00",
       "updated_at": "2026-05-31T02:41:06.864230+00:00"
+    },
+    {
+      "item_id": "m135-codex-dispatch-executor-v1",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M135 Codex Dispatch Executor v1",
+      "description": "Run a prepared Codex dispatch artifact only when codex_dispatch machine gates pass and execution is explicitly enabled.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "feature",
+      "tags": [
+        "milestone:m135",
+        "codex-dispatch",
+        "machine-gated",
+        "local-operator-controlled"
+      ],
+      "dependencies": [
+        "m134-local-llm-advisory-execution"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [
+        "tests_run",
+        "smoke_checks",
+        "commit_hash"
+      ],
+      "evidence_required": [
+        "codex_dispatch_execution_v1"
+      ],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: add run-codex-dispatch artifact executor; default non-dry-run blocks unless --execution-enabled is supplied; require codex_dispatch machine gates, schema-valid artifact, ready queue item, satisfied dependencies, required safety flags, local execution record, stdout/stderr/result artifacts; no patch application, GitHub execution, queue completion, or automatic next-item execution.",
+      "started_at": "2026-05-31T00:00:00Z",
+      "started_via": "local_operator",
+      "previous_status": "ready",
+      "completed_at": "2026-05-31T02:59:44Z",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M135 Codex Dispatch Executor v1 implemented and validated locally. Added an artifact-driven run-codex-dispatch executor with dry-run recording, blocked-by-default non-dry-run behavior, explicit --execution-enabled opt-in, codex_dispatch machine gate checks, ready queue/dependency/safety-flag validation, stdout/stderr/result artifact capture, CLI coverage, tests, docs, and a sample dispatch artifact. AresForge performs no patch application, GitHub execution, queue completion from dispatch, automatic push, or next-item execution; M136 remains responsible for validating any Codex-produced file changes.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 209 passed; python -m pytest tests/test_codex_dispatch_executor.py -> 5 passed; python -m pytest tests/test_machine_safety_gate_engine.py -> 8 passed; python -m pytest tests/test_agent_orchestration_plan_builder.py -> 6 passed; git diff --check -> passed with CRLF warnings only; run-codex-dispatch dry-run smoke passed with blocked=false, machine_gates_passed=true, executed=false, codex_execution_performed=false; inspect-local-project-report passed; inspect-local-queue-agent-summary passed.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 209 passed",
+        "python -m pytest tests/test_codex_dispatch_executor.py -> 5 passed",
+        "python -m pytest tests/test_machine_safety_gate_engine.py -> 8 passed",
+        "python -m pytest tests/test_agent_orchestration_plan_builder.py -> 6 passed",
+        "git diff --check -> passed with CRLF warnings only",
+        "python -m aresforge run-codex-dispatch --item-id m135-codex-dispatch-executor-v1 --artifact-path artifacts/manual/sample-codex-dispatch.json --dry-run --format json -> passed, blocked=false, machine_gates_passed=true, executed=false, codex_execution_performed=false",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/codex_dispatch_executor.py",
+        "src/aresforge/operator/machine_safety_gate_engine.py",
+        "src/aresforge/cli.py",
+        "tests/test_codex_dispatch_executor.py",
+        "tests/test_cli.py",
+        "artifacts/manual/sample-codex-dispatch.json",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        ".aresforge/queue/work_items.json"
+      ],
+      "artifact_paths": [
+        "artifacts/manual/sample-codex-dispatch.json"
+      ],
+      "completion_evidence": {
+        "evidence_summary": "M135 Codex dispatch executor validation passed with dry-run smoke and codex_dispatch machine gates.",
+        "validation_commands": [
+          "python -m pytest tests/test_cli.py",
+          "python -m pytest tests/test_codex_dispatch_executor.py",
+          "python -m pytest tests/test_machine_safety_gate_engine.py",
+          "python -m pytest tests/test_agent_orchestration_plan_builder.py",
+          "git diff --check"
+        ],
+        "smoke_checks": [
+          "python -m aresforge run-codex-dispatch --item-id m135-codex-dispatch-executor-v1 --artifact-path artifacts/manual/sample-codex-dispatch.json --dry-run --format json -> passed, blocked=false, machine_gates_passed=true",
+          "python -m aresforge inspect-local-project-report -> passed",
+          "python -m aresforge inspect-local-queue-agent-summary -> passed"
+        ],
+        "execution_enabling_rules": [
+          "dry_run=true never invokes Codex",
+          "non-dry-run requires --execution-enabled",
+          "codex_dispatch machine gates must pass",
+          "queue item must be ready with dependencies satisfied",
+          "artifact must include required local-only safety flags"
+        ],
+        "executor_constraints": [
+          "patch_application_performed=false",
+          "github_execution_performed=false",
+          "queue_mutation_performed=false",
+          "automatic_next_item_execution=false",
+          "M136 validates Codex-produced changes"
+        ],
+        "commit_hash": "pending-final-commit"
+      },
+      "routing_metadata": {
+        "recommended_agent_lane": "high_value_codex",
+        "recommended_engine": "codex_cli",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "delegated-batch",
+        "routing_reason": "M135 is the explicit Codex dispatch execution milestone.",
+        "risk_level": "high",
+        "complexity_level": "high",
+        "escalation_reason": "Codex execution requires explicit local operator control and machine gates.",
+        "project_ai_mode": "manual_only",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-31T00:00:00Z",
+      "updated_at": "2026-05-31T02:59:44Z"
     }
   ]
 }

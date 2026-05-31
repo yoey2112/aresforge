@@ -1,5 +1,27 @@
 # Local Operator Usage
 
+## M135 Codex Dispatch Executor v1
+
+M135 can run one prepared Codex dispatch artifact when the `codex_dispatch` machine gate passes and the operator explicitly enables execution. It records local stdout, stderr, and result artifacts. It does not apply patches, call GitHub or `gh`, mutate queue status, complete work, push automatically, or start another item.
+
+Dry-run first:
+
+    python -m aresforge run-codex-dispatch --item-id m135-codex-dispatch-executor-v1 --artifact-path artifacts/manual/sample-codex-dispatch.json --dry-run --format json
+
+Execute only after local operator intent is explicit:
+
+    python -m aresforge run-codex-dispatch --item-id <item_id> --artifact-path <artifact_path> --execution-enabled --format json
+
+Write a chosen result artifact:
+
+    python -m aresforge run-codex-dispatch --item-id <item_id> --artifact-path <artifact_path> --dry-run --output artifacts/codex_dispatch/executions/<item_id>.json --format json
+
+Add a clean-tree preflight when desired:
+
+    python -m aresforge run-codex-dispatch --item-id <item_id> --artifact-path <artifact_path> --dry-run --require-clean-worktree --format json
+
+The command blocks missing artifacts, schema-invalid artifacts, missing required safety flags, non-ready queue items, unsatisfied dependencies, failed machine gates, output overwrite attempts without `--force`, and non-dry-run execution without `--execution-enabled`. M136 should validate any Codex-produced file changes before a queue completion decision.
+
 ## M134 Local LLM Advisory Execution
 
 M134 can execute one local LLM advisory request when the `local_llm_execution` machine gate passes. It is advisory-only: response artifacts are never applied to files, never mutate queue state, never complete work, never call Codex, and never call GitHub or `gh`.

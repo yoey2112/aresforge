@@ -1,5 +1,32 @@
 # Runnable Skeleton
 
+## M135 Codex Dispatch Executor v1
+
+M135 adds a machine-gated Codex dispatch execution command:
+
+- `python -m aresforge run-codex-dispatch --item-id <item_id> --artifact-path <artifact_path> --format json`
+- optional `--dry-run`, `--execution-enabled`, `--output`, `--force`, `--timeout-seconds`, and `--require-clean-worktree`
+
+Runnable behavior:
+
+- reads one local queue item and one prepared Codex dispatch artifact
+- requires the queue item to be `ready`
+- requires dependencies to be satisfied and `blocked_by` to be empty
+- evaluates the M131 `codex_dispatch` machine gate
+- validates required artifact safety flags before execution
+- dry-run writes stdout/stderr/result artifacts without invoking Codex
+- non-dry-run requires `--execution-enabled`
+- captures command, timestamps, exit code, stdout artifact path, stderr artifact path, and result artifact path
+
+Still absent by design:
+
+- patch application by AresForge
+- GitHub API, `gh`, issues, PRs, workflows, or GitHub mutation
+- queue completion or automatic status transition
+- automatic push
+- automatic next-item execution, daemon behavior, or background scheduling
+- validation of Codex-produced file changes before M136
+
 ## M133 Documentation Agent Autonomous Apply for Docs-Only Patches
 
 M133 adds a local-only docs patch apply command:
