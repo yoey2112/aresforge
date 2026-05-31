@@ -1,5 +1,20 @@
 # Runnable Skeleton
 
+## M155 Durable Orchestration Run Store
+
+M155 adds a durable orchestration run store command:
+
+- `python -m aresforge inspect-orchestration-run-store --project-id aresforge --format json`
+
+The command returns `durable_orchestration_run_store_v1` JSON. It validates and inspects `.aresforge/orchestrator/run_history.json`, bootstraps that file when missing, reports store capabilities, and exposes corruption-safe blocked errors for invalid JSON or schema state. M141 history/recovery now writes and reads through the same durable store while continuing to discover legacy `artifacts/multi-agent-orchestration` records.
+
+Runnable boundary:
+
+- local store inspection/bootstrap only
+- append/read/update-by-run-id are local file operations for orchestration run metadata
+- no agent, Codex, local LLM/model, GitHub, validation command, source patch, queue progression, retry, resume, PR merge, force push, protected-branch update, workflow mutation, release, or next-item execution is performed
+- recovery and resume remain advisory until separate explicit machine-gated commands exist
+
 ## M154 Sprint Closeout and Autonomy Readiness Report
 
 M154 adds a local readiness report command:

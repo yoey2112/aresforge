@@ -1,5 +1,11 @@
 # Documentation Agent Contract
 
+## M155 Durable Orchestration Run Store Boundary
+
+M155 durable run-store work does not add documentation-agent mutation. It may persist and inspect orchestration run metadata, including runs that reference documentation-agent steps, but it does not edit documentation, generate patches, apply patches, execute documentation agents, call models, call Codex, call GitHub/`gh`, mutate queue state, run validation commands, retry failures, resume orchestration, or start follow-on work.
+
+Documentation mutation remains limited to separate docs-only Markdown patch commands that pass `docs_only_patch_apply` gates. M155 output is durable local history evidence only.
+
 ## M154 Sprint Closeout and Autonomy Readiness Report Boundary
 
 M154 readiness reporting does not add documentation-agent mutation. It synchronizes source-of-truth documentation context for the M140-M154 closeout and can report documentation consistency, but it does not execute documentation agents, generate documentation patches, apply patches, call models, call Codex, call GitHub/`gh`, mutate queue state, run validation commands, retry failures, resume orchestration, or start follow-on work.

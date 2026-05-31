@@ -1,0 +1,10 @@
+{
+  "record_type": "durable_orchestration_run_store_v1",
+  "artifact_type": "durable_orchestration_run_store_v1",
+  "schema_version": "m155.1",
+  "generated": true,
+  "project_id": "aresforge",
+  "created_at": "2026-05-31T00:00:00Z",
+  "updated_at": "2026-05-31T00:00:00Z",
+  "records": []
+}

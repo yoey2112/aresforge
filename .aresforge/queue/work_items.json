@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-31T22:15:30Z",
+  "updated_at": "2026-05-31T22:42:00Z",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -6386,6 +6386,106 @@
       "closeout_history": [],
       "created_at": "2026-05-31T22:34:00Z",
       "updated_at": "2026-05-31T22:34:00Z"
+    },
+    {
+      "item_id": "m155-durable-orchestration-run-store",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M155 Durable Orchestration Run Store",
+      "description": "Create a durable local run store for orchestration runs with stable append, read, update-by-run-id, validation, bootstrap, corruption-safe errors, deterministic ordering, and CLI inspection.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "orchestration",
+      "tags": [
+        "milestone:m155",
+        "durable-run-store",
+        "orchestration",
+        "machine-gated"
+      ],
+      "dependencies": [
+        "m154-sprint-closeout-and-autonomy-readiness-report"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [],
+      "evidence_required": [],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: implement durable local orchestration run store under .aresforge/orchestrator/run_history.json; support append/read/update-by-run-id, schema validation, deterministic ordering, missing-file bootstrap, corruption-safe errors, and inspect-orchestration-run-store CLI; eliminate the prior missing durable run_history warning; no agent/Codex/local LLM/model/GitHub/validation command/source patch/queue/retry/resume/next-item execution from the store inspector.",
+      "started_at": "2026-05-31T22:42:00Z",
+      "started_via": "local_operator",
+      "previous_status": "ready",
+      "completed_at": "2026-05-31T22:42:00Z",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M155 Durable Orchestration Run Store implemented and validated locally. Added durable_orchestration_run_store with stable durable_orchestration_run_store_v1 JSON, tracked bootstrap store file at .aresforge/orchestrator/run_history.json, append/read/update-by-run-id helpers, schema validation, deterministic ordering, missing-file bootstrap, corruption-safe structured errors, CLI inspection, source-of-truth docs, queue evidence, and compatibility with M141 history/recovery. Store inspection performs no agent, Codex, local LLM/model, GitHub, validation command, source patch, queue progression, retry, resume, or next-item execution.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 228 passed; python -m pytest tests/test_durable_orchestration_run_store.py -> 4 passed; python -m pytest tests/test_orchestration_run_history_recovery.py -> 3 passed; git diff --check -> passed with CRLF warnings only; inspect-local-project-report passed; inspect-local-queue-agent-summary passed; inspect-project-queue --project-id aresforge passed; inspect-orchestration-run-store passed with status=empty, blocked=false, machine_gates_passed=true, bootstrap_performed=false, mutation_performed=false, queue_mutation_performed=false, external_execution_performed=false, model_execution_performed=false, codex_execution_performed=false, github_execution_performed=false, patch_application_performed=false, local_only=true.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 228 passed",
+        "python -m pytest tests/test_durable_orchestration_run_store.py -> 4 passed",
+        "python -m pytest tests/test_orchestration_run_history_recovery.py -> 3 passed",
+        "git diff --check -> passed with CRLF warnings only",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed",
+        "python -m aresforge inspect-project-queue --project-id aresforge -> passed",
+        "python -m aresforge inspect-orchestration-run-store --project-id aresforge --format json -> passed with status=empty"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/durable_orchestration_run_store.py",
+        "src/aresforge/operator/orchestration_run_history.py",
+        "src/aresforge/cli.py",
+        "tests/test_durable_orchestration_run_store.py",
+        "tests/test_orchestration_run_history_recovery.py",
+        "tests/test_cli.py",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
+        "docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
+        "docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md",
+        ".aresforge/orchestrator/run_history.json",
+        ".aresforge/queue/work_items.json"
+      ],
+      "artifact_paths": [
+        ".aresforge/orchestrator/run_history.json"
+      ],
+      "completion_evidence": {
+        "command": "inspect-orchestration-run-store",
+        "record_type": "durable_orchestration_run_store_v1",
+        "status": "empty",
+        "machine_gates_passed": true,
+        "mutation_performed": false,
+        "queue_mutation_performed": false,
+        "external_execution_performed": false,
+        "model_execution_performed": false,
+        "codex_execution_performed": false,
+        "github_execution_performed": false,
+        "patch_application_performed": false,
+        "local_only": true,
+        "commit_hash": "pending-final-commit"
+      },
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-31T22:42:00Z",
+      "updated_at": "2026-05-31T22:42:00Z"
     }
   ]
 }

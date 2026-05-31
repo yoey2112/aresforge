@@ -1,5 +1,24 @@
 # AresForge Agent Context
 
+## M155 Durable Orchestration Run Store Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m155-durable-orchestration-run-store`.
+
+M155 adds `inspect-orchestration-run-store`, a durable local store inspector and bootstrap path for orchestration run metadata.
+
+Command:
+
+- `python -m aresforge inspect-orchestration-run-store --project-id aresforge --format json`
+
+Agent-facing guidance:
+
+- Treat `.aresforge/orchestrator/run_history.json` as the stable local run store for orchestration run records.
+- Append/read/update-by-run-id support is local persistence only; it does not authorize retry, resume, queue completion, or follow-on execution.
+- `status=blocked` from store inspection means the store should be repaired or restored before relying on run recovery state.
+- Do not run agents, Codex, models, GitHub, validation commands, patches, queue mutation, retries, resumes, PR merges, force pushes, workflow mutation, releases, or later sprint items from this store output.
+
 ## M154 Sprint Closeout and Autonomy Readiness Report Context
 
 Status: Completed locally on `main` after validation.

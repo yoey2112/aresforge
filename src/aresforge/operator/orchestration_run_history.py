@@ -7,12 +7,18 @@ from pathlib import Path
 from typing import Any
 
 from aresforge.config import AppConfig
+from aresforge.operator.durable_orchestration_run_store import (
+    RUN_STORE_SCHEMA_VERSION,
+    append_orchestration_run_record,
+    resolve_orchestration_run_store_path,
+    validate_run_store_payload,
+)
 from aresforge.operator.machine_safety_gate_engine import evaluate_machine_safety_gates
 from aresforge.operator.orchestrator_execution_state_machine import DEFAULT_ITEM_ID as STATE_MACHINE_ITEM_ID
 
 COMMAND_NAME = "inspect-orchestration-run-history"
 HISTORY_TYPE = "orchestration_run_history_recovery_v1"
-HISTORY_SCHEMA_VERSION = "m141.1"
+HISTORY_SCHEMA_VERSION = RUN_STORE_SCHEMA_VERSION
 HISTORY_PATH_RELATIVE = Path(".aresforge") / "orchestrator" / "run_history.json"
 
 _RECOVERY_STATUSES = frozenset({"blocked", "failed", "max_steps_reached", "interrupted", "running"})
@@ -34,17 +40,15 @@ def append_orchestration_run_history(
 ) -> dict[str, Any]:
     resolved_history_path = resolve_orchestration_history_path(config.repo_root, history_path)
     try:
-        loaded = _load_history_file(resolved_history_path)
-        records = loaded["records"]
         record = _record_from_run_payload(run_payload, artifact_path=artifact_path)
         record["history_recorded_at"] = _now_iso()
-        records = _replace_record(records, record)
-        _write_history_file(resolved_history_path, records, updated_at=_now_iso())
+        result = append_orchestration_run_record(config, record=record, store_path=resolved_history_path)
         return {
-            "ok": True,
+            "ok": bool(result.get("ok")),
             "history_path": str(resolved_history_path),
-            "record": record,
-            "warnings": list(loaded["warnings"]),
+            "record": result.get("record") or record,
+            "warnings": _list(result.get("warnings")),
+            "errors": _list(result.get("errors")),
         }
     except Exception as exc:  # pragma: no cover - history persistence must not break an explicit run.
         return {
@@ -143,12 +147,7 @@ def inspect_orchestration_run_history(
 
 
 def resolve_orchestration_history_path(repo_root: Path, path: str | Path | None = None) -> Path:
-    if path is None:
-        return (repo_root / HISTORY_PATH_RELATIVE).resolve()
-    candidate = Path(path)
-    if not candidate.is_absolute():
-        candidate = repo_root / candidate
-    return candidate.resolve()
+    return resolve_orchestration_run_store_path(repo_root, path)
 
 
 def _record_from_run_payload(run_payload: dict[str, Any], *, artifact_path: str | Path | None) -> dict[str, Any]:
@@ -159,6 +158,7 @@ def _record_from_run_payload(run_payload: dict[str, Any], *, artifact_path: str 
     blocked_reasons = _list(run_payload.get("blocked_reasons"))
     return {
         "record_type": "orchestration_run_history_record",
+        "generated": True,
         "run_id": run_id,
         "item_id": item_id,
         "project_id": project_id,
@@ -174,9 +174,11 @@ def _record_from_run_payload(run_payload: dict[str, Any], *, artifact_path: str 
         "steps_blocked": _int(run_payload.get("steps_blocked")),
         "machine_gates_checked": _list_or_dicts(run_payload.get("machine_gates_checked")),
         "machine_gates_passed": _machine_gates_passed(run_payload),
+        "autonomy_profile": str(run_payload.get("autonomy_profile", "")).strip() or "orchestration_run_history",
         "artifacts_created": _list(run_payload.get("artifacts_created")),
         "artifact_path": str(artifact_path or "").strip(),
         "mutation_performed": bool(run_payload.get("queue_mutation_performed")),
+        "queue_mutation_performed": bool(run_payload.get("queue_mutation_performed")),
         "external_execution_performed": bool(run_payload.get("external_execution_performed")),
         "model_execution_performed": bool(run_payload.get("model_execution_performed")),
         "codex_execution_performed": bool(run_payload.get("codex_execution_performed")),
@@ -222,20 +224,22 @@ def _recovery_record(record: dict[str, Any]) -> dict[str, Any]:
 
 
 def _load_history_file(path: Path) -> dict[str, Any]:
-    warnings: list[str] = []
     if not path.exists():
-        return {"records": [], "warnings": ["Orchestration run history file does not exist yet."]}
+        return {"records": [], "warnings": []}
     try:
         raw = json.loads(path.read_text(encoding="utf-8-sig"))
     except (OSError, json.JSONDecodeError) as exc:
-        return {"records": [], "warnings": [f"Orchestration run history could not be read: {exc}"]}
+        return {"records": [], "warnings": [f"Orchestration run store could not be read: {exc}"]}
     if not isinstance(raw, dict):
-        return {"records": [], "warnings": ["Orchestration run history JSON root must be an object."]}
+        return {"records": [], "warnings": ["Orchestration run store JSON root must be an object."]}
+    validation = validate_run_store_payload(raw)
+    if not validation["schema_valid"]:
+        return {
+            "records": [],
+            "warnings": [*_list(validation.get("warnings")), *_list(validation.get("errors"))],
+        }
     records = raw.get("records", [])
-    if not isinstance(records, list):
-        warnings.append("Orchestration run history records field is not a list.")
-        records = []
-    return {"records": [record for record in records if isinstance(record, dict)], "warnings": warnings}
+    return {"records": [record for record in records if isinstance(record, dict)], "warnings": _list(validation.get("warnings"))}
 
 
 def _write_history_file(path: Path, records: list[dict[str, Any]], *, updated_at: str) -> None:

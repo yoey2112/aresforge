@@ -162,7 +162,7 @@ def test_history_inspector_discovers_legacy_orchestration_artifacts(tmp_path: Pa
     assert payload["recovery_record_count"] == 1
     assert payload["records"][0]["artifact_path"] == str(artifact)
     assert payload["recovery_records"][0]["status"] == "failed"
-    assert any("history file does not exist" in warning for warning in payload["warnings"])
+    assert not any("history file does not exist" in warning for warning in payload["warnings"])
 
 
 def test_history_inspector_output_path_writes_artifact(tmp_path: Path) -> None:

@@ -1,5 +1,16 @@
 # Agent LLM Routing Strategy
 
+## M155 Durable Orchestration Run Store
+
+M155 does not add a new agent, Codex, local LLM, or GitHub execution route. It adds durable local persistence for orchestration run records so routing and recovery decisions can reference stable run evidence instead of ephemeral artifacts or missing-history warnings.
+
+Routing implications:
+
+- orchestration run evidence routes through `.aresforge/orchestrator/run_history.json`
+- failed, blocked, interrupted, running, or max-step-limited runs can be inspected reliably before any future recovery command is considered
+- corrupt or invalid store state routes to local repair/restoration, not execution
+- M155 reports no agent execution, no model execution, no Codex execution, no GitHub execution, no patch application, and no queue progression by the store inspector itself
+
 ## M154 Sprint Closeout and Autonomy Readiness Report
 
 M154 does not add a new execution route. It routes local sprint evidence into a readiness report by reading queue records, machine gate output, the agent registry, the LLM decision policy, and the orchestration monitor.

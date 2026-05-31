@@ -1,5 +1,27 @@
 # AresForge Roadmap
 
+## M155 Durable Orchestration Run Store
+
+Status: Completed locally on `main` after validation.
+
+M155 hardens orchestration durability with:
+
+- `python -m aresforge inspect-orchestration-run-store --project-id aresforge --format json`
+- durable store file `.aresforge/orchestrator/run_history.json`
+- deterministic `durable_orchestration_run_store_v1` output
+- append/read/update-by-run-id helpers for orchestration run records
+- schema validation for the store and records
+- deterministic ordering by run timestamp and `run_id`
+- missing-file bootstrap and tracked empty-store baseline
+- corruption-safe blocked errors when JSON or schema state is invalid
+- compatibility with M141 history/recovery and M153 monitor consumers
+
+Boundary:
+
+- local persistence and inspection only
+- no agent execution, Codex execution, local LLM/model execution, GitHub operation, validation command execution, source patch application, queue progression, retry, resume, protected-branch update, workflow mutation, PR merge, force push, release creation, or automatic next-item execution
+- store evidence can inform future recovery planning, but recovery execution remains a separate explicit machine-gated milestone
+
 ## M154 Sprint Closeout and Autonomy Readiness Report
 
 Status: Completed locally on `main` after validation.

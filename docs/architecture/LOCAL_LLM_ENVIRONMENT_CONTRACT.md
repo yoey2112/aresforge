@@ -1,5 +1,11 @@
 # Local LLM Environment Contract
 
+## M155 Durable Orchestration Run Store Boundary
+
+M155 durable run-store inspection does not change local LLM permissions. The store may persist records that report whether a source orchestration run performed model execution, but the store command itself does not call Ollama, send prompts, run inference, select fallback models, mutate repository files from model output, mutate queue state, call Codex, call GitHub/`gh`, apply patches, run validation commands, retry failures, resume orchestration, or start follow-on work.
+
+Local LLM advisory execution remains limited to separate explicit local-provider commands and their machine gates. M155 records local orchestration history durability only.
+
 ## M154 Sprint Closeout and Autonomy Readiness Report Boundary
 
 M154 readiness reporting does not change local LLM permissions. The report may call the deterministic LLM decision policy to summarize the recommended lane for the M154 closeout item, but it does not call Ollama, send prompts, run inference, select fallback models, mutate repository files, mutate queue state, call Codex, call GitHub/`gh`, apply patches, run validation commands, retry failures, resume orchestration, or start follow-on work.

@@ -1,5 +1,28 @@
 # Local Operator Usage
 
+## M155 Durable Orchestration Run Store
+
+M155 provides the durable local run store for orchestration run metadata.
+
+Inspect the run store:
+
+    python -m aresforge inspect-orchestration-run-store --project-id aresforge --format json
+
+Inspect a specific run or write an inspection artifact:
+
+    python -m aresforge inspect-orchestration-run-store --project-id aresforge --run-id <run_id> --format json
+    python -m aresforge inspect-orchestration-run-store --project-id aresforge --output .aresforge/orchestrator/store-inspection.json --force --format json
+
+Interpretation:
+
+- `record_type=durable_orchestration_run_store_v1` identifies the M155 payload.
+- `store_path` and `history_path` point to `.aresforge/orchestrator/run_history.json` by default.
+- `capabilities` confirms append, read, update-by-run-id, deterministic ordering, missing-file bootstrap, and corruption-safe errors.
+- `bootstrap_performed=true` means the missing local store file was created; normal fresh-checkout inspection should report `bootstrap_performed=false` because the empty store is tracked.
+- `status=blocked` means the store is corrupt or a read-only gate blocked inspection.
+
+M155 performs no agent execution, Codex execution, local LLM/model execution, GitHub call, validation command execution, source patch application, queue progression, retry, resume, PR merge, force push, workflow mutation, release, or automatic next-item execution.
+
 ## M154 Sprint Closeout and Autonomy Readiness Report
 
 M154 generates the closeout and autonomy readiness report for the M140-M154 orchestrator hardening sprint.

@@ -1,5 +1,25 @@
 # AresForge Build State
 
+## M155 Durable Orchestration Run Store
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m155-durable-orchestration-run-store`.
+
+M155 adds a durable local orchestration run store:
+
+- `python -m aresforge inspect-orchestration-run-store --project-id aresforge --format json`
+- durable store path `.aresforge/orchestrator/run_history.json`
+- stable `durable_orchestration_run_store_v1` JSON with append/read/update-by-run-id support, schema validation, deterministic ordering, missing-file bootstrap, corruption-safe structured errors, and store capability metadata
+- M141 history/recovery append and read paths now use the durable store schema while preserving legacy artifact discovery
+- the tracked empty store removes the prior missing durable `run_history.json` warning on fresh checkout
+
+Safety posture:
+
+- store inspection is local-only and never executes agents, Codex, local LLM/model calls, GitHub operations, validation commands, source patches, queue progression, retry, resume, or next-item work
+- missing-file bootstrap is bounded local persistence only and is reported with `mutation_performed=true`; the tracked repository store means normal inspection reports no mutation
+- corrupt store files fail closed with blocked structured output instead of falling back to execution or unsafe recovery assumptions
+
 ## M154 Sprint Closeout and Autonomy Readiness Report
 
 Status: Completed locally on `main` after validation.
