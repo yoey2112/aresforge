@@ -1,5 +1,30 @@
 # AresForge Roadmap
 
+## M143 Codex Execution Sandbox and Worktree Guard
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m143-codex-execution-sandbox-and-worktree-guard`.
+
+Purpose:
+
+- protect future Codex execution with an explicit sandbox/worktree guard
+- make dirty-tree detection, preflight checks, and output capture boundaries inspectable through stable local JSON
+- preserve default-deny real Codex behavior while the real Codex loop is hardened
+- keep protected-branch, GitHub, patch-application, and next-item safety constraints machine-visible
+
+Runnable operator surface:
+
+- `python -m aresforge inspect-codex-worktree-guard --item-id m143-codex-execution-sandbox-and-worktree-guard --format json`
+- optional `--project-id`, `--queue-path`, `--output <path>`, and `--force`
+
+Constraints preserved:
+
+- the inspector is read-only unless an explicit local output artifact is requested
+- no Codex execution, model execution, GitHub operation, patch application, validation command execution, queue mutation, or next-item execution
+- dirty worktree evidence prevents future real Codex execution from being treated as safe until reviewed or clean
+- PR merge, force push, protected branch updates, releases, workflow mutation, gate bypass, and source patch application from generated output remain blocked
+
 ## M142 Real Codex Execution Enablement Profile
 
 Status: Completed locally on `main` after validation.

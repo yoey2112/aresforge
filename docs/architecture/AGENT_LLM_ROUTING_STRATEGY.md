@@ -1,5 +1,17 @@
 # Agent LLM Routing Strategy
 
+## M143 Codex Sandbox/Worktree Guard
+
+M143 adds `inspect-codex-worktree-guard` as the local guard evidence layer between routing recommendations and real Codex execution. It does not execute Codex. It records whether the worktree is dirty, what sandbox rules future Codex execution must obey, and where stdout, stderr, and execution metadata must be captured.
+
+Routing impact:
+
+- Codex recommendations remain advisory when the worktree is dirty or guard evidence has not been reviewed.
+- Real Codex dispatch still requires `run-codex-dispatch --execution-enabled` and the `codex_dispatch` gate.
+- Orchestrated Codex steps still require `run-agent-orchestration --allow-codex` and per-step gates.
+- M136 validation remains the required handoff before completion evidence can be trusted.
+- M143 reports `model_execution_performed=false`, `codex_execution_performed=false`, `github_execution_performed=false`, `patch_application_performed=false`, and `mutation_performed=false`.
+
 ## M142 Real Codex Execution Enablement Profile
 
 M142 adds `inspect-codex-execution-enablements` as the policy bridge between routing recommendations and real Codex execution. It does not execute Codex. It records that Codex lanes may become executable only through separate explicit commands with allow flags and passing machine gates.

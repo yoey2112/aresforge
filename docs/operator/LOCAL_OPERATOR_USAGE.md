@@ -1,5 +1,25 @@
 # Local Operator Usage
 
+## M143 Codex Execution Sandbox and Worktree Guard
+
+M143 inspects the Codex sandbox/worktree guard for a queue item. It captures dirty-tree state, preflight checks, sandbox policy, output capture boundaries, and machine-gate evidence, but it does not invoke Codex or mutate state.
+
+Inspect the default guard:
+
+    python -m aresforge inspect-codex-worktree-guard --item-id m143-codex-execution-sandbox-and-worktree-guard --format json
+
+Inspect a specific queue item:
+
+    python -m aresforge inspect-codex-worktree-guard --item-id <item_id> --project-id aresforge --format json
+
+Write a local guard artifact:
+
+    python -m aresforge inspect-codex-worktree-guard --item-id <item_id> --output .aresforge/codex_execution/worktree_guard/m143-guard.json --force --format json
+
+If the output reports `dirty_tree_detected=true`, do not treat real Codex execution as safe until the worktree is reviewed or clean. Real execution remains separate and explicit through `run-codex-dispatch --execution-enabled` or `run-agent-orchestration --allow-codex`, followed by M136 validation.
+
+M143 itself performs no Codex execution, local LLM execution, GitHub call, patch application, validation command execution, queue mutation, PR merge, force push, workflow mutation, or automatic next-item execution.
+
 ## M142 Real Codex Execution Enablement Profile
 
 M142 inspects the current real Codex execution enablement profiles. The default profile is deny-only: it documents what would be required for real execution and checks the read-only machine gate, but it does not invoke Codex or mutate state.

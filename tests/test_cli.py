@@ -97,6 +97,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-orchestrator-state-machine",
         "inspect-orchestration-run-history",
         "inspect-codex-execution-enablements",
+        "inspect-codex-worktree-guard",
         "inspect-codex-dispatch-run",
         "list-codex-dispatch-runs",
         "cancel-codex-dispatch-run",
@@ -9275,6 +9276,78 @@ def test_inspect_codex_execution_enablements_dispatch_json(
         "project_id": "aresforge",
         "queue_path": ".aresforge/queue/work_items.json",
         "output": ".aresforge/codex_execution/enablements/m142-profile.json",
+        "force": True,
+        "output_format": "json",
+    }
+
+
+def test_inspect_codex_worktree_guard_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "record_type": "codex_execution_sandbox_worktree_guard_v1",
+                "project_id": "aresforge",
+                "status": "ready",
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_inspect(
+        _config,
+        *,
+        item_id="m143-codex-execution-sandbox-and-worktree-guard",
+        project_id="aresforge",
+        queue_path=None,
+        output=None,
+        force=False,
+        output_format="json",
+    ):
+        seen.update(
+            {
+                "item_id": item_id,
+                "project_id": project_id,
+                "queue_path": queue_path,
+                "output": output,
+                "force": force,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "inspect_codex_worktree_guard", fake_inspect)
+    exit_code = cli.main(
+        [
+            "inspect-codex-worktree-guard",
+            "--item-id",
+            "m143",
+            "--project-id",
+            "aresforge",
+            "--queue-path",
+            ".aresforge/queue/work_items.json",
+            "--output",
+            ".aresforge/codex_execution/worktree_guard/m143-guard.json",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["record_type"] == "codex_execution_sandbox_worktree_guard_v1"
+    assert seen == {
+        "item_id": "m143",
+        "project_id": "aresforge",
+        "queue_path": ".aresforge/queue/work_items.json",
+        "output": ".aresforge/codex_execution/worktree_guard/m143-guard.json",
         "force": True,
         "output_format": "json",
     }

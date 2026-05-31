@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-31T19:35:15.853192+00:00",
+  "updated_at": "2026-05-31T19:45:24Z",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -5280,6 +5280,102 @@
       "closeout_history": [],
       "created_at": "2026-05-31T19:34:23.302505+00:00",
       "updated_at": "2026-05-31T19:35:15.853192+00:00"
+    },
+    {
+      "item_id": "m143-codex-execution-sandbox-and-worktree-guard",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M143 Codex Execution Sandbox and Worktree Guard",
+      "description": "Protect Codex execution with sandbox/worktree guards, preflight checks, dirty-tree detection, and output capture boundaries.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "orchestration",
+      "tags": [
+        "milestone:m143",
+        "codex-execution",
+        "worktree-guard",
+        "machine-gated"
+      ],
+      "dependencies": [
+        "m142-real-codex-execution-enablement-profile"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [],
+      "evidence_required": [],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: add inspect-codex-worktree-guard; deterministic JSON fields; local-first sandbox/worktree guard evidence; dirty-tree detection; preflight checks; bounded output capture policy; reuse machine safety gate, queue, transaction log, and orchestration boundaries; no Codex/local LLM/GitHub/patch/queue completion/next-item execution from the inspector.",
+      "started_at": "",
+      "started_via": "",
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-31T19:45:24Z",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M143 Codex Execution Sandbox and Worktree Guard implemented and validated locally. Added inspect-codex-worktree-guard with stable codex_execution_sandbox_worktree_guard_v1 JSON, dirty-worktree detection, sandbox policy, preflight checks, output capture boundaries, transaction-log summary, CLI coverage, targeted tests, source-of-truth docs, and queue evidence. No Codex, local LLM, GitHub, patch application, validation command execution from the inspector, queue mutation from the inspector, or next-item execution was performed.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 217 passed; python -m pytest tests/test_codex_execution_sandbox_worktree_guard.py -> 4 passed; git diff --check -> passed with CRLF warnings only; inspect-local-project-report passed; inspect-local-queue-agent-summary passed; inspect-project-queue --project-id aresforge passed; inspect-codex-worktree-guard --item-id m143-codex-execution-sandbox-and-worktree-guard --format json passed with status=dirty_worktree_guarded, blocked=false, machine_gates_passed=true, dirty_tree_detected=true, and all external/model/Codex/GitHub/patch execution flags false.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 217 passed",
+        "python -m pytest tests/test_codex_execution_sandbox_worktree_guard.py -> 4 passed",
+        "git diff --check -> passed with CRLF warnings only",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed",
+        "python -m aresforge inspect-project-queue --project-id aresforge -> passed",
+        "python -m aresforge inspect-codex-worktree-guard --item-id m143-codex-execution-sandbox-and-worktree-guard --format json -> passed"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/codex_execution_sandbox_worktree_guard.py",
+        "src/aresforge/cli.py",
+        "tests/test_codex_execution_sandbox_worktree_guard.py",
+        "tests/test_cli.py",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
+        "docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
+        "docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md",
+        ".aresforge/queue/work_items.json",
+        ".aresforge/queue/transaction_log.json"
+      ],
+      "artifact_paths": [
+        ".aresforge/codex_execution/worktree_guard/m143-guard.json (optional output path; default inspect command is read-only)"
+      ],
+      "completion_evidence": {
+        "command": "inspect-codex-worktree-guard",
+        "record_type": "codex_execution_sandbox_worktree_guard_v1",
+        "dirty_tree_detection": true,
+        "machine_gates_passed": true,
+        "mutation_performed": false,
+        "external_execution_performed": false,
+        "model_execution_performed": false,
+        "codex_execution_performed": false,
+        "github_execution_performed": false,
+        "patch_application_performed": false,
+        "local_only": true,
+        "commit_hash": "pending-final-commit"
+      },
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-31T19:45:24Z",
+      "updated_at": "2026-05-31T19:45:24Z"
     }
   ]
 }

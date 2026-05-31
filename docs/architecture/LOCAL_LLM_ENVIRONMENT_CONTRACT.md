@@ -1,5 +1,11 @@
 # Local LLM Environment Contract
 
+## M143 Codex Worktree Guard Boundary
+
+M143 Codex sandbox/worktree guard inspection does not change local LLM permissions. The command may report routing and execution guard boundaries, but it does not call Ollama, send prompts, run inference, select fallback models, mutate repository files, mutate queue state, call Codex, call GitHub/`gh`, apply patches, run validation commands, or start follow-on work.
+
+Local LLM execution still requires the dedicated explicit advisory path and a passing `local_llm_execution` machine gate. Dirty-worktree guard evidence for Codex must not be used as a shortcut around local LLM provider gates.
+
 ## M142 Codex Enablement Boundary
 
 M142 real Codex execution enablement profiles do not change local LLM permissions. The command may reference the LLM decision policy summary as routing evidence, but it does not call Ollama, send prompts, run inference, select fallback models, mutate repository files, mutate queue state, call Codex, call GitHub/`gh`, apply patches, or start follow-on work.

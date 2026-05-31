@@ -1,5 +1,27 @@
 # Runnable Skeleton
 
+## M143 Codex Execution Sandbox and Worktree Guard
+
+M143 adds a read-only Codex sandbox/worktree guard inspection command:
+
+- `python -m aresforge inspect-codex-worktree-guard --item-id m143-codex-execution-sandbox-and-worktree-guard --format json`
+- optional `--project-id`, `--queue-path`, `--output`, and `--force`
+
+Runnable behavior:
+
+- emits `codex_execution_sandbox_worktree_guard_v1` JSON
+- checks the read-only machine safety gate for the target queue item
+- captures git branch, HEAD, dirty state, status-line counts, and bounded status-line samples
+- reports preflight checks for queue existence, gate evidence, clean-tree expectations, repo-root cwd, shell-disabled execution, bounded output capture, patch disablement, GitHub disablement, and protected-branch update blocking
+- documents sandbox policy, allowed local artifact roots, output capture boundaries, transaction-log summary, prohibited operations, and next safe action
+
+Still absent by design:
+
+- Codex invocation from this inspector
+- local LLM/model execution
+- GitHub API, `gh`, PR merge, force push, release creation, or workflow mutation
+- patch application, validation command execution, queue mutation, automatic completion, next-item execution, daemon behavior, or background scheduling
+
 ## M142 Real Codex Execution Enablement Profile
 
 M142 adds a read-only Codex execution enablement profile inspection command:

@@ -1,5 +1,25 @@
 # AresForge Agent Context
 
+## M143 Codex Execution Sandbox and Worktree Guard Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m143-codex-execution-sandbox-and-worktree-guard`.
+
+M143 adds `inspect-codex-worktree-guard`, a local-only inspector for Codex execution sandbox policy, dirty-worktree state, preflight checks, and bounded output capture requirements.
+
+Command:
+
+- `python -m aresforge inspect-codex-worktree-guard --item-id m143-codex-execution-sandbox-and-worktree-guard --format json`
+
+Agent-facing guidance:
+
+- Treat M143 output as guard evidence, not execution permission.
+- Real Codex execution remains disabled unless a separate explicit runner receives an allow flag and its machine gate passes.
+- Dirty worktree state should block real Codex execution from being considered safe until reviewed or clean.
+- Codex stdout, stderr, and result metadata must be captured to local artifacts before any M136 validation.
+- Do not apply Codex-generated patches, call GitHub, merge PRs, force push, mutate workflows, complete queue items, or start follow-on work from this inspector.
+
 ## M142 Real Codex Execution Enablement Profile Context
 
 Status: Completed locally on `main` after validation.

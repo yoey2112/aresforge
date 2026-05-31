@@ -1,5 +1,11 @@
 # Documentation Agent Contract
 
+## M143 Codex Worktree Guard Boundary
+
+M143 Codex sandbox/worktree guard inspection does not add documentation-agent mutation. The guard may report documentation or queue files in dirty-tree evidence, but it does not apply documentation changes, generate or apply patches, execute documentation agents, call models, call Codex, call GitHub/`gh`, mutate queue state, run validation commands, or start follow-on work.
+
+Documentation mutation remains limited to separate docs-only Markdown patch commands that pass `docs_only_patch_apply` gates. Source-code patches or Codex-generated patch application remain outside the M143 boundary.
+
 ## M142 Codex Enablement Boundary
 
 M142 real Codex execution enablement profiles do not add documentation-agent mutation. The profile inspector may document that Codex-generated work must be validated before completion, but it does not apply documentation changes, generate or apply patches, execute documentation agents, call models, call GitHub/`gh`, mutate queue state, or start follow-on work.
