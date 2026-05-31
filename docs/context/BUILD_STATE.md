@@ -1,5 +1,24 @@
 # AresForge Build State
 
+## M134 Local LLM Advisory Execution
+
+Status: In progress locally on `main`.
+
+Queue item: `m134-local-llm-advisory-execution`.
+
+M134 adds a machine-gated local LLM advisory execution path:
+
+- `python -m aresforge run-local-llm-advisory --item-id <item_id> --artifact-path <artifact_path> --format json`
+- optional `--provider`, `--model`, `--dry-run`, `--output`, `--force`, and `--timeout-seconds`
+
+Safety boundaries:
+
+- reads one local advisory artifact and checks `local_llm_execution` machine gates before provider execution
+- supports only local Ollama provider execution through a mockable provider boundary
+- dry-run performs no provider call
+- response output is captured only as a local advisory artifact
+- no patch application, source mutation, queue mutation, GitHub/`gh`, Codex execution, remote provider calls, automatic completion, or next-item execution
+
 ## M133 Documentation Agent Autonomous Apply for Docs-Only Patches
 
 Status: In progress locally on `main`.

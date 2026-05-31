@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-30T22:06:09.365421+00:00",
+  "updated_at": "2026-05-31T02:41:06.864230+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -4441,6 +4441,112 @@
       "closeout_history": [],
       "created_at": "2026-05-30T22:01:42+00:00",
       "updated_at": "2026-05-30T22:06:09.365421+00:00"
+    },
+    {
+      "item_id": "m134-local-llm-advisory-execution",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M134 Local LLM Advisory Execution",
+      "description": "Execute local LLM advisory requests when machine gates pass through a local-only provider boundary.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "feature",
+      "tags": [
+        "milestone:m134",
+        "local-llm-advisory",
+        "machine-gated",
+        "local-only"
+      ],
+      "dependencies": [
+        "m133-documentation-agent-autonomous-apply-for-docs-only-patches"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [],
+      "evidence_required": [],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: add run-local-llm-advisory; read advisory artifact; check local_llm_execution gates; support local Ollama only; write advisory response artifact and execution metadata; no patch application, source mutation, queue completion, GitHub, gh, Codex, remote provider, or next-item execution.",
+      "started_at": "",
+      "started_via": "",
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-31T02:41:06.864230+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M134 Local LLM Advisory Execution implemented and validated locally. Added run-local-llm-advisory with local_llm_execution machine gates, mockable Ollama provider boundary, dry-run behavior, blocked remote provider handling, advisory response artifact capture, CLI coverage, tests, docs, and sample advisory artifact. No patch application, source mutation, queue mutation from advisory execution, GitHub, gh, Codex, remote provider, automatic completion, or next-item execution was performed.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 208 passed; python -m pytest tests/test_local_llm_advisory_execution.py -> 5 passed; python -m pytest tests/test_machine_safety_gate_engine.py -> 8 passed; python -m pytest tests/test_llm_decision_policy.py -> 7 passed; git diff --check -> passed with CRLF warnings only; run-local-llm-advisory dry-run smoke passed with blocked=false and machine_gates_passed=true; inspect-local-project-report passed; inspect-local-queue-agent-summary passed. complete-local-queue-item was attempted but blocked by pre-existing M133 dependency evidence shape, so M134 evidence was updated directly without modifying M133.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 208 passed",
+        "python -m pytest tests/test_local_llm_advisory_execution.py -> 5 passed",
+        "python -m pytest tests/test_machine_safety_gate_engine.py -> 8 passed",
+        "python -m pytest tests/test_llm_decision_policy.py -> 7 passed",
+        "git diff --check -> passed with CRLF warnings only",
+        "python -m aresforge run-local-llm-advisory --item-id m134-local-llm-advisory-execution --artifact-path artifacts/manual/sample-local-llm-advisory.json --dry-run --format json -> passed, blocked=false, machine_gates_passed=true",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/local_llm_advisory_execution.py",
+        "src/aresforge/cli.py",
+        "src/aresforge/operator/machine_safety_gate_engine.py",
+        "tests/test_local_llm_advisory_execution.py",
+        "tests/test_cli.py",
+        "artifacts/manual/sample-local-llm-advisory.json",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
+        "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
+        ".aresforge/queue/work_items.json"
+      ],
+      "artifact_paths": [
+        "artifacts/manual/sample-local-llm-advisory.json"
+      ],
+      "completion_evidence": {
+        "evidence_summary": "M134 local LLM advisory execution validation passed with machine gates and dry-run smoke.",
+        "validation_commands": [
+          "python -m pytest tests/test_cli.py",
+          "python -m pytest tests/test_local_llm_advisory_execution.py",
+          "python -m pytest tests/test_machine_safety_gate_engine.py",
+          "python -m pytest tests/test_llm_decision_policy.py",
+          "git diff --check"
+        ],
+        "smoke_checks": [
+          "python -m aresforge run-local-llm-advisory --item-id m134-local-llm-advisory-execution --artifact-path artifacts/manual/sample-local-llm-advisory.json --dry-run --format json -> passed, blocked=false, machine_gates_passed=true",
+          "python -m aresforge inspect-local-project-report -> passed",
+          "python -m aresforge inspect-local-queue-agent-summary -> passed"
+        ],
+        "provider_boundary": "Only local Ollama is supported; remote providers and non-local URLs are blocked; tests use a mock provider.",
+        "advisory_only_constraints": [
+          "patch_application_performed=false",
+          "queue_mutation_performed=false",
+          "github_execution_performed=false",
+          "codex_execution_performed=false",
+          "local_only=true"
+        ],
+        "commit_hash": "pending-final-commit"
+      },
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "medium",
+        "complexity_level": "medium",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-31T02:39:51.332627+00:00",
+      "updated_at": "2026-05-31T02:41:06.864230+00:00"
     }
   ]
 }

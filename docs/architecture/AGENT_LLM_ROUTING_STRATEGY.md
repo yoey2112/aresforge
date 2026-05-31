@@ -1,5 +1,11 @@
 # Agent LLM Routing Strategy
 
+## M134 Local LLM Advisory Execution
+
+M134 introduces the first current-batch local LLM advisory execution surface: `run-local-llm-advisory`. It consumes a local advisory request artifact and requires the `local_llm_execution` machine gate profile before provider invocation. This narrows routing execution to a single explicit operator command and does not turn route recommendations, orchestration plans, approval records, or queue metadata into automatic dispatch.
+
+Provider routing remains local-only. Ollama is the only supported provider, remote providers are blocked, and output is stored as advisory evidence rather than applied code. The command preserves `advisory_only=true`, `patch_application_performed=false`, `queue_mutation_performed=false`, `github_execution_performed=false`, and `codex_execution_performed=false`.
+
 ## M124 Sprint Closeout Note
 
 M124 closes the M110-M124 controlled automation sprint and confirms that routing remains advisory. M117 route recommendations, M119 artifact registry results, M120 batch sequences, M121 approval ledger records, and M122 transaction log entries may guide operator decisions, but they do not dispatch agents, execute Codex, invoke local or remote LLMs, call GitHub/`gh`, apply patches, mutate queue state from recommendations, or start follow-on work.

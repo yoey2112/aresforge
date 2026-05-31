@@ -1,5 +1,23 @@
 # Local Operator Usage
 
+## M134 Local LLM Advisory Execution
+
+M134 can execute one local LLM advisory request when the `local_llm_execution` machine gate passes. It is advisory-only: response artifacts are never applied to files, never mutate queue state, never complete work, never call Codex, and never call GitHub or `gh`.
+
+Dry-run first:
+
+    python -m aresforge run-local-llm-advisory --item-id m134-local-llm-advisory-execution --artifact-path artifacts/manual/sample-local-llm-advisory.json --dry-run --format json
+
+Run against local Ollama only when the operator wants an advisory response:
+
+    python -m aresforge run-local-llm-advisory --item-id <item_id> --artifact-path <artifact_path> --provider ollama --model <model_name> --format json
+
+Write an execution record:
+
+    python -m aresforge run-local-llm-advisory --item-id <item_id> --artifact-path <artifact_path> --dry-run --output artifacts/local_llm_advisory/executions/<item_id>.json --format json
+
+The command blocks missing or mismatched artifacts, failed machine gates, missing prompts, unsupported providers, remote provider URLs, missing model configuration, and output overwrite attempts without `--force`.
+
 ## M133 Documentation Agent Autonomous Apply for Docs-Only Patches
 
 M133 can apply one docs-only Markdown patch when deterministic machine gates pass. It does not execute Codex, invoke Ollama or local LLMs, call remote LLMs, call GitHub, call `gh`, make network calls, run validation commands, mutate source code, mutate tests, complete queue items, or start follow-on work.

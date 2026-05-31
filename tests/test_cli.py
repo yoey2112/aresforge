@@ -60,6 +60,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-queue-dispatch-plan",
         "generate-codex-dispatch-artifact",
         "generate-local-llm-advisory-artifact",
+        "run-local-llm-advisory",
         "validate-documentation-agent-dry-run",
         "generate-doc-agent-patch-proposal",
         "recommend-agent-route",
@@ -5859,6 +5860,104 @@ def test_apply_docs_only_patch_dispatch_json(
         "dry_run": True,
         "force": True,
         "output": "docs-apply.json",
+        "output_format": "json",
+    }
+
+
+def test_run_local_llm_advisory_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "execution_record_type": "local_llm_advisory_execution",
+                "item_id": "m134",
+                "artifact_path": "artifacts/manual/sample-local-llm-advisory.json",
+                "provider": "ollama",
+                "dry_run": True,
+                "executed": False,
+                "blocked": False,
+                "advisory_only": True,
+                "patch_application_performed": False,
+                "queue_mutation_performed": False,
+                "github_execution_performed": False,
+                "codex_execution_performed": False,
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_run(
+        _config,
+        *,
+        item_id,
+        artifact_path,
+        provider="ollama",
+        model=None,
+        queue_path=None,
+        dry_run=False,
+        output=None,
+        force=False,
+        timeout_seconds=None,
+        output_format="json",
+    ):
+        seen["item_id"] = item_id
+        seen["artifact_path"] = artifact_path
+        seen["provider"] = provider
+        seen["model"] = model
+        seen["queue_path"] = queue_path
+        seen["dry_run"] = dry_run
+        seen["output"] = output
+        seen["force"] = force
+        seen["timeout_seconds"] = timeout_seconds
+        seen["output_format"] = output_format
+        return payload
+
+    monkeypatch.setattr(cli, "run_local_llm_advisory_execution", fake_run)
+    exit_code = cli.main(
+        [
+            "run-local-llm-advisory",
+            "--item-id",
+            "m134",
+            "--artifact-path",
+            "artifacts/manual/sample-local-llm-advisory.json",
+            "--provider",
+            "ollama",
+            "--model",
+            "qwen2.5:32b",
+            "--queue-path",
+            "queue.json",
+            "--dry-run",
+            "--output",
+            "local-llm-execution.json",
+            "--force",
+            "--timeout-seconds",
+            "45",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["execution_record_type"] == "local_llm_advisory_execution"
+    assert parsed["advisory_only"] is True
+    assert parsed["patch_application_performed"] is False
+    assert seen == {
+        "item_id": "m134",
+        "artifact_path": "artifacts/manual/sample-local-llm-advisory.json",
+        "provider": "ollama",
+        "model": "qwen2.5:32b",
+        "queue_path": "queue.json",
+        "dry_run": True,
+        "output": "local-llm-execution.json",
+        "force": True,
+        "timeout_seconds": 45,
         "output_format": "json",
     }
 

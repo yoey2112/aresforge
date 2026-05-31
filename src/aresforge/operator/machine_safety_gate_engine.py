@@ -396,7 +396,7 @@ def _working_tree_acceptable(profile: GateProfile, git_status: dict[str, Any]) -
     dirty = bool(git_status.get("dirty"))
     if not dirty:
         return True
-    return profile.profile in {"read_only_agent", "local_artifact_write", "docs_only_patch_apply"}
+    return profile.profile in {"read_only_agent", "local_artifact_write", "docs_only_patch_apply", "local_llm_execution"}
 
 
 def _path_allowlist_respected(
@@ -468,8 +468,10 @@ def _collect_warnings(
     patch_read_errors: list[str],
 ) -> list[str]:
     warnings: list[str] = []
-    if git_status.get("dirty") and profile.profile in {"read_only_agent", "local_artifact_write"}:
-        warnings.append("Working tree has local changes; read-only/artifact-write gate treats this as warning-only.")
+    if git_status.get("dirty") and profile.profile in {"read_only_agent", "local_artifact_write", "local_llm_execution"}:
+        warnings.append(
+            "Working tree has local changes; read-only, artifact-write, and advisory local LLM gates treat this as warning-only."
+        )
     warnings.extend(_list(artifact.get("warnings")))
     warnings.extend(_list(record.get("warnings")))
     warnings.extend(patch_read_errors)

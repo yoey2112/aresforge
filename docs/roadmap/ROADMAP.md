@@ -1,5 +1,29 @@
 # AresForge Roadmap
 
+## M134 Local LLM Advisory Execution
+
+Status: In progress locally on `main`.
+
+Queue item: `m134-local-llm-advisory-execution`.
+
+Purpose:
+
+- execute a reviewed local LLM advisory request only after deterministic machine gates pass
+- keep provider execution behind a narrow local-only abstraction with Ollama as the only supported provider
+- capture model output as a local advisory artifact without applying it or advancing queue state
+
+Runnable operator surface:
+
+- `python -m aresforge run-local-llm-advisory --item-id <item_id> --artifact-path <artifact_path> --format json`
+- optional `--provider ollama`, `--model`, `--dry-run`, `--output`, `--force`, and `--timeout-seconds`
+
+Constraints preserved:
+
+- dry-run performs no provider call
+- remote providers and non-local provider URLs block
+- output is advisory-only and non-authoritative
+- no patches are applied, no source files are mutated, no queue items are completed, and no Codex, GitHub, `gh`, remote network service, or next-item execution is performed
+
 ## M133 Documentation Agent Autonomous Apply for Docs-Only Patches
 
 Status: In progress locally on `main`.

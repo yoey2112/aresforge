@@ -1,5 +1,13 @@
 # Local LLM Environment Contract
 
+## M134 Local LLM Advisory Execution
+
+M134 adds `run-local-llm-advisory` as the controlled successor to advisory request artifact generation. The command may read one local advisory artifact, evaluate the `local_llm_execution` machine gate profile, and submit the artifact prompt only to a local Ollama provider when all gates pass. Dry-run mode performs the same artifact and gate checks without invoking a provider.
+
+The provider boundary is intentionally narrow: `ollama` is the only supported provider, provider URLs must resolve to `localhost`, `127.0.0.1`, or `::1`, and tests use a mock provider rather than requiring Ollama to be installed. Remote providers, non-local Ollama URLs, missing prompts, failed gates, and missing model configuration block execution.
+
+M134 output is advisory-only. The response is captured as a local artifact and execution metadata reports `patch_application_performed=false`, `queue_mutation_performed=false`, `github_execution_performed=false`, `codex_execution_performed=false`, and `local_only=true`. The command must not apply patches, mutate repository files, complete queue items, execute Codex, call GitHub/`gh`, call remote network services, or start follow-on work.
+
 ## M124 Sprint Closeout Note
 
 M124 closes the M110-M124 controlled automation sprint without changing local LLM execution permissions. M110 may generate local LLM advisory request artifacts and M115 may probe only configuration or loopback `/api/tags` metadata, but the sprint does not authorize Ollama prompt execution, local inference, model-generated code, model-generated patch application, queue mutation, or automatic completion.

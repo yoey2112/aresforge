@@ -234,6 +234,7 @@ from aresforge.operator.queue_agent_dispatch_plan import inspect_queue_agent_dis
 from aresforge.operator.codex_prompt_dispatch_artifact import generate_codex_prompt_dispatch_artifact
 from aresforge.operator.local_llm_advisory_dry_run import validate_local_llm_advisory_dry_run
 from aresforge.operator.local_llm_advisory_artifact import generate_local_llm_advisory_artifact
+from aresforge.operator.local_llm_advisory_execution import run_local_llm_advisory_execution
 from aresforge.operator.documentation_agent_dry_run import validate_documentation_agent_dry_run
 from aresforge.operator.documentation_agent_patch_proposal import generate_documentation_agent_patch_proposal
 from aresforge.operator.approval_gated_patch_intake import intake_patch_proposal
@@ -1694,6 +1695,24 @@ def build_parser() -> argparse.ArgumentParser:
         "--format",
         choices=["json", "markdown"],
         default="markdown",
+    )
+    run_local_llm_advisory_parser = subparsers.add_parser(
+        "run-local-llm-advisory",
+        help="Run one machine-gated local LLM advisory request against a local provider without applying output.",
+    )
+    run_local_llm_advisory_parser.add_argument("--item-id", required=True)
+    run_local_llm_advisory_parser.add_argument("--artifact-path", required=True)
+    run_local_llm_advisory_parser.add_argument("--provider", default="ollama")
+    run_local_llm_advisory_parser.add_argument("--model")
+    run_local_llm_advisory_parser.add_argument("--queue-path")
+    run_local_llm_advisory_parser.add_argument("--dry-run", action="store_true")
+    run_local_llm_advisory_parser.add_argument("--output")
+    run_local_llm_advisory_parser.add_argument("--force", action="store_true")
+    run_local_llm_advisory_parser.add_argument("--timeout-seconds", type=int)
+    run_local_llm_advisory_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
     )
     validate_documentation_agent_dry_run_parser = subparsers.add_parser(
         "validate-documentation-agent-dry-run",
@@ -4560,6 +4579,26 @@ def main(argv: list[str] | None = None) -> int:
             output_format=args.format,
             model_profile=args.model_profile,
             reasoning_scope=args.reasoning_scope,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "run-local-llm-advisory":
+        payload = run_local_llm_advisory_execution(
+            config,
+            item_id=args.item_id,
+            artifact_path=args.artifact_path,
+            provider=args.provider,
+            model=args.model,
+            queue_path=args.queue_path,
+            dry_run=bool(args.dry_run),
+            output=args.output,
+            force=bool(args.force),
+            timeout_seconds=args.timeout_seconds,
+            output_format=args.format,
         )
         if "stdout" in payload:
             print(payload["stdout"])

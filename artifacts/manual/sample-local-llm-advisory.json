@@ -1,0 +1,37 @@
+{
+  "artifact_type": "local_llm_advisory_request",
+  "item_id": "m134-local-llm-advisory-execution",
+  "title": "M134 Local LLM Advisory Execution",
+  "local_only": true,
+  "execution_allowed": false,
+  "execution_performed": false,
+  "local_llm_execution_performed": false,
+  "patch_application_allowed": false,
+  "advisory_prompt": "Review the M134 local LLM advisory execution implementation boundary. Return advisory risks, validation suggestions, and operator review notes only. Do not apply patches, mutate files, complete queue items, call GitHub, execute Codex, or start follow-on work.",
+  "requested_model_profile": "qwen2.5:32b",
+  "validation_commands": [
+    "python -m pytest tests/test_local_llm_advisory_execution.py",
+    "python -m pytest tests/test_machine_safety_gate_engine.py"
+  ],
+  "tests_reported": [
+    "M134 sample artifact includes runnable validation commands for local_llm_execution gate evaluation."
+  ],
+  "expected_response_shape": {
+    "summary": "string",
+    "risks": [
+      "string"
+    ],
+    "validation_suggestions": [
+      "string"
+    ],
+    "manual_review_required": true,
+    "mutation_allowed": false,
+    "patch_application_allowed": false,
+    "queue_mutation_allowed": false
+  },
+  "operator_review_checklist": [
+    "Confirm the item id matches the intended queue item.",
+    "Confirm the command is dry-run unless a local Ollama advisory response is explicitly desired.",
+    "Review any model output manually and do not apply it automatically."
+  ]
+}

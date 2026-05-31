@@ -1,5 +1,24 @@
 # AresForge Agent Context
 
+## M134 Local LLM Advisory Execution Context
+
+Status: In progress locally on `main`.
+
+Queue item: `m134-local-llm-advisory-execution`.
+
+M134 introduces `run-local-llm-advisory` as an advisory-only local provider execution path. It consumes an existing local LLM advisory request artifact, evaluates the `local_llm_execution` machine gate profile, and may submit the prompt only to a configured local Ollama provider when gates and provider boundaries pass.
+
+Command:
+
+- `python -m aresforge run-local-llm-advisory --item-id <item_id> --artifact-path <artifact_path> --format json`
+
+M134 boundaries:
+
+- dry-run checks gates but does not call Ollama
+- real execution writes a local response artifact and execution metadata only
+- model output is advisory/manual-review-only and is never applied
+- no source mutation, patch application, queue mutation, automatic completion, Codex execution, GitHub/`gh`, remote provider call, or next-item execution
+
 ## M133 Documentation Agent Autonomous Apply Context
 
 Status: In progress locally on `main`.
