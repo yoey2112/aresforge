@@ -1,5 +1,20 @@
 # Runnable Skeleton
 
+## M146 Agent Step Result Normalization
+
+M146 adds a read-only agent step result normalization command:
+
+- `python -m aresforge normalize-agent-step-result --result-path artifacts/manual/sample-agent-step-result.json --format json`
+
+The command returns `agent_step_result_normalization_v1` JSON. It reads one local step result artifact, unwraps command payloads where present, normalizes status/blocker/warning/artifact/execution fields, checks the read-only machine gate, and reports orchestrator evaluation guidance.
+
+Runnable boundary:
+
+- M146 is normalization and recovery evidence only
+- top-level execution flags describe the source step; `normalizer_execution_flags` remain false for this command
+- no agent, Codex, model, GitHub, validation command, patch, queue mutation, retry, or next-item execution is performed
+- downstream recovery remains explicit through existing machine-gated commands such as failure classification, run-history inspection, validation ingestion, or queue completion
+
 ## M145 Codex Failure Classification and Retry Policy
 
 M145 adds a read-only failure classification command:

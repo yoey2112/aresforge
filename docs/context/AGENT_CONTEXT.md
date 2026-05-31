@@ -1,5 +1,25 @@
 # AresForge Agent Context
 
+## M146 Agent Step Result Normalization Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m146-agent-step-result-normalization`.
+
+M146 adds `normalize-agent-step-result`, a local-only normalizer that reads one agent step result artifact and returns a deterministic `agent_step_result_normalization_v1` record for orchestrator evaluation and recovery.
+
+Command:
+
+- `python -m aresforge normalize-agent-step-result --result-path artifacts/manual/sample-agent-step-result.json --format json`
+
+Agent-facing guidance:
+
+- Treat M146 output as normalized evidence, not permission to continue execution automatically.
+- Top-level execution flags describe what the source step reported; `normalizer_execution_flags` describes the normalizer command and remains false for mutation, Codex, model, GitHub, validation, and patch execution.
+- Completed non-mutating steps can inform the next explicit gated orchestration step.
+- Failed, blocked, invalid, interrupted, mutation, Codex, GitHub, patch, or failed-gate results require separate recovery, validation, or operator review before completion or continuation.
+- Do not run agents, Codex, local LLMs, GitHub, validation commands, apply patches, mutate queue state, retry automatically, merge PRs, force push, mutate workflows, or start follow-on work from this normalizer.
+
 ## M145 Codex Failure Classification and Retry Policy Context
 
 Status: Completed locally on `main` after validation.

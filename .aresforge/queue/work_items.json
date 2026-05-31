@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-31T20:17:01.329396+00:00",
+  "updated_at": "2026-05-31T20:26:54.380584+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -5558,6 +5558,90 @@
       "closeout_history": [],
       "created_at": "2026-05-31T20:13:31.004292+00:00",
       "updated_at": "2026-05-31T20:17:01.329396+00:00"
+    },
+    {
+      "item_id": "m146-agent-step-result-normalization",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M146 Agent Step Result Normalization",
+      "description": "Normalize all agent step outputs into a consistent schema for orchestrator evaluation and recovery.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "orchestration",
+      "tags": [
+        "milestone:m146",
+        "agent-step-results",
+        "machine-gated"
+      ],
+      "dependencies": [
+        "m145-codex-failure-classification-and-retry-policy"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [],
+      "evidence_required": [],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: add normalize-agent-step-result; deterministic JSON fields; stable local artifact support; normalize status, blockers, machine gates, artifacts, source execution flags, and next safe action; reuse agent registry, LLM decision policy, machine safety gate, queue, and orchestration boundaries; no agent/Codex/local LLM/GitHub/patch/queue completion/validation command execution/retry/next-item execution from the normalizer.",
+      "started_at": "2026-05-31T20:26:02.790132+00:00",
+      "started_via": "local_operator",
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-31T20:26:54.380584+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M146 Agent Step Result Normalization implemented and validated locally. Added normalize-agent-step-result with stable agent_step_result_normalization_v1 JSON, source step status/blocker/warning/artifact/execution flag normalization, read-only machine-gate evidence, agent registry and LLM decision-policy summaries, normalizer execution flags, orchestrator recovery guidance, CLI coverage, targeted tests, source-of-truth docs, sample step result artifact, and queue evidence. No agent, Codex, local LLM, GitHub, patch application, validation command execution from the normalizer, queue mutation from the normalizer, retry, or next-item execution was performed.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 220 passed; python -m pytest tests/test_agent_step_result_normalization.py -> 4 passed; git diff --check -> passed with CRLF warnings only; inspect-local-project-report passed; inspect-local-queue-agent-summary passed; inspect-project-queue --project-id aresforge passed; normalize-agent-step-result --result-path artifacts/manual/sample-agent-step-result.json --format json passed with status=completed, blocked=false, machine_gates_passed=true, source execution flags false, normalizer execution flags false, and local_only=true.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 220 passed",
+        "python -m pytest tests/test_agent_step_result_normalization.py -> 4 passed",
+        "git diff --check -> passed with CRLF warnings only",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed",
+        "python -m aresforge inspect-project-queue --project-id aresforge -> passed",
+        "python -m aresforge normalize-agent-step-result --result-path artifacts/manual/sample-agent-step-result.json --format json -> passed"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/agent_step_result_normalization.py",
+        "src/aresforge/cli.py",
+        "tests/test_agent_step_result_normalization.py",
+        "tests/test_cli.py",
+        "artifacts/manual/sample-agent-step-result.json",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
+        "docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
+        "docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md",
+        ".aresforge/queue/work_items.json",
+        ".aresforge/queue/transaction_log.json"
+      ],
+      "artifact_paths": [
+        "artifacts/manual/sample-agent-step-result.json",
+        ".aresforge/orchestrator/step_results/m146-normalized-step-result.json (optional output path; default command is read-only)"
+      ],
+      "completion_evidence": {},
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-31T20:25:55.055947+00:00",
+      "updated_at": "2026-05-31T20:26:54.380584+00:00"
     }
   ]
 }

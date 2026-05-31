@@ -100,6 +100,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-codex-worktree-guard",
         "inspect-codex-validation-profiles",
         "classify-codex-failure",
+        "normalize-agent-step-result",
         "inspect-codex-dispatch-run",
         "list-codex-dispatch-runs",
         "cancel-codex-dispatch-run",
@@ -9519,6 +9520,83 @@ def test_classify_codex_failure_dispatch_json(
         "project_id": "aresforge",
         "queue_path": ".aresforge/queue/work_items.json",
         "output": ".aresforge/codex_execution/failure_policy/m145-classification.json",
+        "force": True,
+        "output_format": "json",
+    }
+
+
+def test_normalize_agent_step_result_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "record_type": "agent_step_result_normalization_v1",
+                "project_id": "aresforge",
+                "status": "completed",
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_normalize(
+        _config,
+        *,
+        result_path,
+        item_id="m146-agent-step-result-normalization",
+        project_id="aresforge",
+        queue_path=None,
+        output=None,
+        force=False,
+        output_format="json",
+    ):
+        seen.update(
+            {
+                "result_path": result_path,
+                "item_id": item_id,
+                "project_id": project_id,
+                "queue_path": queue_path,
+                "output": output,
+                "force": force,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "normalize_agent_step_result", fake_normalize)
+    exit_code = cli.main(
+        [
+            "normalize-agent-step-result",
+            "--result-path",
+            "artifacts/manual/sample-agent-step-result.json",
+            "--item-id",
+            "m146",
+            "--project-id",
+            "aresforge",
+            "--queue-path",
+            ".aresforge/queue/work_items.json",
+            "--output",
+            ".aresforge/orchestrator/step_results/m146-normalized-step-result.json",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["record_type"] == "agent_step_result_normalization_v1"
+    assert seen == {
+        "result_path": "artifacts/manual/sample-agent-step-result.json",
+        "item_id": "m146",
+        "project_id": "aresforge",
+        "queue_path": ".aresforge/queue/work_items.json",
+        "output": ".aresforge/orchestrator/step_results/m146-normalized-step-result.json",
         "force": True,
         "output_format": "json",
     }

@@ -1,0 +1,33 @@
+{
+  "artifact_type": "sample_agent_step_result_v1",
+  "step_id": "step-01-validation-agent",
+  "sequence": 1,
+  "agent_id": "validation-agent",
+  "item_id": "m146-agent-step-result-normalization",
+  "project_id": "aresforge",
+  "run_id": "sample-agent-step-result-m146",
+  "status": "completed",
+  "blocked": false,
+  "blocked_reasons": [],
+  "warnings": [
+    "Sample artifact for local M146 normalizer smoke checks only."
+  ],
+  "machine_gates_checked": [
+    {
+      "gate_profile": "read_only_agent",
+      "passed": true,
+      "blocked": false,
+      "blocked_reasons": [],
+      "checks_failed": []
+    }
+  ],
+  "artifacts_created": [],
+  "mutation_performed": false,
+  "external_execution_performed": false,
+  "model_execution_performed": false,
+  "codex_execution_performed": false,
+  "github_execution_performed": false,
+  "patch_application_performed": false,
+  "local_only": true,
+  "result_summary": "Sample validation-agent step result completed without mutation or external execution."
+}

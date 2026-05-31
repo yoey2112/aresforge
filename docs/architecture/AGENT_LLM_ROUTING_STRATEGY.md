@@ -1,5 +1,16 @@
 # Agent LLM Routing Strategy
 
+## M146 Agent Step Result Normalization
+
+M146 adds `normalize-agent-step-result` as the schema bridge between heterogeneous agent step outputs and orchestrator recovery logic. It does not execute agents or models. It maps one local result artifact to stable status, blocker, gate, artifact, and execution-flag fields.
+
+Routing implications:
+
+- routing and orchestration can evaluate one canonical step result schema instead of agent-specific output shapes
+- source execution flags are preserved for recovery and validation decisions, while normalizer execution flags remain false
+- mutating, Codex, GitHub, model, patch, failed, blocked, invalid, interrupted, or failed-gate results require separate explicit recovery or validation commands
+- M146 itself reports no agent execution, no model execution, no Codex execution, no GitHub execution, no patch application, no validation command execution, and no queue mutation
+
 ## M145 Codex Failure Classification and Retry Policy
 
 M145 adds `classify-codex-failure` as the recovery policy bridge after a Codex dispatch, orchestration step, or ingestion handoff reports failure. It does not execute Codex or models. It maps a local failure artifact to a primary failure class and deterministic retry/stop policy.

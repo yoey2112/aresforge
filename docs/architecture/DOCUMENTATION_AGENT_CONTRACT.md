@@ -1,5 +1,11 @@
 # Documentation Agent Contract
 
+## M146 Agent Step Result Normalization Boundary
+
+M146 step result normalization does not add documentation-agent mutation. It may normalize a source step result from a documentation agent or docs-only patch boundary, but it does not edit documentation, generate patches, apply patches, execute documentation agents, call models, call Codex, call GitHub/`gh`, mutate queue state, run validation commands, retry failures, or start follow-on work.
+
+Documentation mutation remains limited to separate docs-only Markdown patch commands that pass `docs_only_patch_apply` gates. M146 output is schema-normalized evidence only.
+
 ## M145 Codex Failure Classification Boundary
 
 M145 failure classification does not add documentation-agent mutation. It may classify a failure involving documentation output or validation evidence, but it does not edit documentation, generate patches, apply patches, execute documentation agents, call models, call Codex, call GitHub/`gh`, mutate queue state, run validation commands, retry failures, or start follow-on work.

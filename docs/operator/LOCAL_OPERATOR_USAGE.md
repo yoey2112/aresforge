@@ -1,5 +1,26 @@
 # Local Operator Usage
 
+## M146 Agent Step Result Normalization
+
+M146 normalizes one local agent step result artifact into a stable schema for orchestrator evaluation and recovery. It does not execute agents, Codex, models, GitHub, validation commands, patches, retries, or queue mutations.
+
+Normalize the sample step result:
+
+    python -m aresforge normalize-agent-step-result --result-path artifacts/manual/sample-agent-step-result.json --format json
+
+Normalize and write a local artifact:
+
+    python -m aresforge normalize-agent-step-result --result-path artifacts/manual/sample-agent-step-result.json --output .aresforge/orchestrator/step_results/m146-normalized-step-result.json --force --format json
+
+Interpretation:
+
+- `status`, `blocked`, `blocked_reasons`, and `machine_gates_passed` are the normalized fields the orchestrator can evaluate.
+- top-level execution flags describe the source step result.
+- `normalizer_execution_flags` confirms the normalizer command itself performed no mutation, Codex, model, GitHub, validation, or patch execution.
+- `orchestrator_evaluation` reports whether recovery, validation, or operator review is required before continuation.
+
+M146 itself performs no agent execution, Codex execution, local LLM execution, GitHub call, validation command execution, patch application, queue mutation, retry loop, PR merge, force push, workflow mutation, or automatic next-item execution.
+
 ## M145 Codex Failure Classification and Retry Policy
 
 M145 classifies one local Codex failure artifact and reports a deterministic retry or stop policy. It does not retry Codex, run validation commands, or mutate queue state.

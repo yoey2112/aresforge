@@ -1,5 +1,25 @@
 # AresForge Build State
 
+## M146 Agent Step Result Normalization
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m146-agent-step-result-normalization`.
+
+M146 adds a local, machine-gated agent step result normalizer:
+
+- `python -m aresforge normalize-agent-step-result --result-path artifacts/manual/sample-agent-step-result.json --format json`
+- optional `--item-id`, `--project-id`, `--queue-path`, `--output`, and `--force`
+
+The normalizer emits stable `agent_step_result_normalization_v1` JSON with canonical item/run/status fields, blocked state, warnings, machine-gate summaries, artifact references, source execution flags, normalizer execution flags, agent registry and LLM decision-policy summaries, and orchestrator evaluation/recovery guidance.
+
+Safety posture:
+
+- this command performs no agent, Codex, local LLM/model, GitHub, validation command, patch, queue, retry, or next-item execution
+- top-level execution flags describe the source step result; `normalizer_execution_flags` confirms the normalizer itself performed no mutation or external execution
+- failed, blocked, invalid, interrupted, machine-gate-failed, mutation, Codex, GitHub, and patch results require explicit downstream recovery, validation, or review commands before completion or continuation
+- PR merge, force push, protected branch updates, releases, workflow mutation, gate bypass, source patch application from generated output, automatic retry loops, and automatic next-item execution remain blocked
+
 ## M145 Codex Failure Classification and Retry Policy
 
 Status: Completed locally on `main` after validation.

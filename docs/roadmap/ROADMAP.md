@@ -1,5 +1,23 @@
 # AresForge Roadmap
 
+## M146 Agent Step Result Normalization
+
+Status: Completed locally on `main` after validation.
+
+M146 hardens orchestrator evaluation with:
+
+- `python -m aresforge normalize-agent-step-result --result-path artifacts/manual/sample-agent-step-result.json --format json`
+- deterministic `agent_step_result_normalization_v1` output
+- canonical step/run/status fields for heterogeneous agent results
+- source execution flags separated from normalizer execution flags
+- machine-gate summaries, agent registry summary, LLM decision summary, and orchestrator recovery guidance
+
+Boundary:
+
+- no agent, Codex, model, GitHub, validation command, patch, retry, queue mutation, protected-branch update, workflow mutation, PR merge, force push, release creation, or automatic next-item execution
+- failed, blocked, invalid, interrupted, mutating, Codex, GitHub, patch, and failed-gate source results require explicit downstream recovery or validation before continuation
+- optional `--output` writes only a local normalization artifact under operator control
+
 ## M145 Codex Failure Classification and Retry Policy
 
 Status: Completed locally on `main` after validation.
