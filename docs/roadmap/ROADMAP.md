@@ -1,5 +1,25 @@
 # AresForge Roadmap
 
+## M151 End-to-End Codex Loop Dry Run
+
+Status: Completed locally on `main` after validation.
+
+M151 hardens the real Codex loop with:
+
+- `python -m aresforge run-end-to-end-codex-loop --item-id m151-end-to-end-codex-loop-dry-run --dry-run --format json`
+- deterministic `end_to_end_codex_loop_dry_run_v1` output
+- bounded local run artifacts under `.aresforge/codex_loop_dry_runs/`
+- M135 Codex dispatch dry-run and machine-gate reuse
+- M136 ingestion, validation-profile selection, dispatch evidence parsing, and completion recommendation reuse
+- explicit non-mutation, non-real-Codex, non-model, non-GitHub, non-patch, and non-queue-completion flags
+
+Boundary:
+
+- dry-run only; non-dry-run requests block
+- validation commands are selected but not executed
+- completion recommendation remains operator-review evidence and does not mutate queue state
+- no real Codex, local LLM/model, GitHub, patch application, protected-branch update, workflow mutation, PR merge, force push, release creation, retry, or automatic next-item execution
+
 ## M150 Machine-Gated Source Patch Apply Dry Run
 
 Status: Completed locally on `main` after validation.

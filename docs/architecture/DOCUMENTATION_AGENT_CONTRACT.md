@@ -1,5 +1,11 @@
 # Documentation Agent Contract
 
+## M151 End-to-End Codex Loop Dry Run Boundary
+
+M151 end-to-end Codex loop dry-run does not add documentation-agent or source-code mutation. It may create local dry-run loop artifacts and M136 evidence/recommendation records, but it does not edit documentation, generate patches, apply patches, execute documentation agents, call models, call real Codex, call GitHub/`gh`, mutate queue state, run validation commands, retry failures, or start follow-on work.
+
+Documentation mutation remains limited to separate docs-only Markdown patch commands that pass `docs_only_patch_apply` gates. Source/code patch application remains blocked unless a later explicit milestone defines and validates a safe apply boundary.
+
 ## M150 Source Patch Apply Dry Run Boundary
 
 M150 source patch apply dry-run does not add documentation-agent or source-code mutation. It may dry-run documentation, source, and test patch applicability with `git apply --check` after M149 planning and machine gates pass, but it does not edit documentation, mutate source, generate patches, apply patches, execute documentation agents, call models, call Codex, call GitHub/`gh`, mutate queue state, run validation commands, retry failures, or start follow-on work.

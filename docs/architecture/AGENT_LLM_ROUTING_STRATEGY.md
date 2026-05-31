@@ -1,5 +1,16 @@
 # Agent LLM Routing Strategy
 
+## M151 End-to-End Codex Loop Dry Run
+
+M151 adds `run-end-to-end-codex-loop` as the first dry-run coordinator across the Codex dispatch, ingestion, validation-selection, and completion-recommendation path. It does not execute agents or models. It routes one local queue item through M135 dry-run dispatch evidence and M136 dry-run ingestion evidence while preserving default-deny real Codex behavior.
+
+Routing implications:
+
+- Codex-routed queue work can now be tested through a full local dry-run loop before any real execution is enabled
+- passing M151 evidence still routes to separate explicit commands for real Codex execution, validation, source patch handling, and queue completion
+- dirty worktree or downstream completion-gate blockers remain visible as advisory handoff evidence
+- M151 reports no agent execution, no model execution, no real Codex execution, no GitHub execution, no patch application, no validation command execution, and no queue mutation
+
 ## M150 Machine-Gated Source Patch Apply Dry Run
 
 M150 adds `dry-run-source-patch-apply` as the first machine-gated source patch applicability proof. It does not execute agents or models. It maps an M149 apply plan to a dedicated dry-run machine gate and a `git apply --check` result without applying the patch.

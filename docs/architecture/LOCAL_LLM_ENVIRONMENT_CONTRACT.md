@@ -1,5 +1,11 @@
 # Local LLM Environment Contract
 
+## M151 End-to-End Codex Loop Dry Run Boundary
+
+M151 end-to-end Codex loop dry-run does not change local LLM permissions. The command may route a local queue item through Codex dry-run dispatch metadata, validation-profile selection, and completion recommendation, but it does not call Ollama, send prompts, run inference, select fallback models, mutate repository files, mutate queue state, call real Codex, call GitHub/`gh`, apply patches, run validation commands, retry failures, or start follow-on work.
+
+Local LLM advisory and coding outputs remain non-applied review artifacts unless a separate explicit local-provider path and machine gate allow them. M151 only records local dry-run loop evidence in a stable schema.
+
 ## M150 Source Patch Apply Dry Run Boundary
 
 M150 source patch apply dry-run does not change local LLM permissions. The command may inspect a patch that was produced by a model or intended for source code, but it does not call Ollama, send prompts, run inference, select fallback models, mutate repository files, mutate queue state, call Codex, call GitHub/`gh`, apply patches, run validation commands, retry failures, or start follow-on work.

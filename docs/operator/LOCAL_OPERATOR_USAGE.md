@@ -1,5 +1,27 @@
 # Local Operator Usage
 
+## M151 End-to-End Codex Loop Dry Run
+
+M151 runs the Codex-backed orchestration loop in dry-run mode from a local queue item through dispatch gating, result ingestion, validation-profile selection, and completion recommendation.
+
+Run the M151 dry-run loop:
+
+    python -m aresforge run-end-to-end-codex-loop --item-id m151-end-to-end-codex-loop-dry-run --dry-run --format json
+
+Write the final loop record to a chosen path:
+
+    python -m aresforge run-end-to-end-codex-loop --item-id m151-end-to-end-codex-loop-dry-run --dry-run --output .aresforge/codex_loop_dry_runs/m151-loop.json --force --format json
+
+Interpretation:
+
+- `machine_gates_checked` reports the required dry-run Codex dispatch gate.
+- `completion_queue_gate_result` reports the downstream queue completion gate as advisory evidence.
+- `validation_run` lists selected validation commands with `skipped=true` in dry-run mode.
+- `completion_recommendation` is local evidence only and does not complete the queue item.
+- all execution and mutation flags remain false.
+
+M151 itself performs no real Codex execution, local LLM/model execution, GitHub call, validation command execution, patch application, queue mutation, PR merge, force push, workflow mutation, retry, or automatic next-item execution.
+
 ## M150 Machine-Gated Source Patch Apply Dry Run
 
 M150 proves whether a local source patch can apply cleanly without applying it. Use it after M149 planning when an operator needs machine-readable applicability evidence before any future explicit source patch apply path exists.

@@ -1,5 +1,25 @@
 # AresForge Agent Context
 
+## M151 End-to-End Codex Loop Dry Run Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m151-end-to-end-codex-loop-dry-run`.
+
+M151 adds `run-end-to-end-codex-loop`, a dry-run-only coordinator that exercises the Codex loop from a local queue item through dispatch gating, synthetic dry-run Codex result capture, M136 validation-profile selection, dispatch evidence parsing, and queue completion recommendation.
+
+Command:
+
+- `python -m aresforge run-end-to-end-codex-loop --item-id m151-end-to-end-codex-loop-dry-run --dry-run --format json`
+
+Agent-facing guidance:
+
+- Treat M151 output as end-to-end dry-run evidence, not permission to run Codex or complete the queue.
+- `status=dry_run_completed` means the required Codex dispatch dry-run gate passed and a local completion recommendation was generated.
+- `completion_queue_gate_result` is advisory handoff evidence for future queue completion; dirty worktree state may block that downstream gate while M151 itself remains successful.
+- M151 writes local artifacts only and reports `mutation_performed=false`, `external_execution_performed=false`, `model_execution_performed=false`, `codex_execution_performed=false`, `github_execution_performed=false`, and `patch_application_performed=false`.
+- Do not run real Codex, call models, call GitHub, apply patches, mutate queue state, retry automatically, merge PRs, force push, mutate workflows, create releases, or start follow-on work from this dry-run record.
+
 ## M150 Machine-Gated Source Patch Apply Dry Run Context
 
 Status: Completed locally on `main` after validation.

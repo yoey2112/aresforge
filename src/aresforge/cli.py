@@ -235,6 +235,7 @@ from aresforge.operator.agent_step_result_normalization import normalize_agent_s
 from aresforge.operator.source_patch_risk_classifier import classify_source_patch_risk
 from aresforge.operator.source_patch_apply_plan import plan_source_patch_apply
 from aresforge.operator.source_patch_apply_dry_run import dry_run_source_patch_apply
+from aresforge.operator.end_to_end_codex_loop_dry_run import run_end_to_end_codex_loop_dry_run
 from aresforge.operator.github_sync_agent import run_github_sync_agent
 from aresforge.operator.multi_agent_orchestrator import run_multi_agent_orchestration
 from aresforge.operator.llm_decision_matrix import inspect_llm_decision_matrix
@@ -2580,6 +2581,29 @@ def build_parser() -> argparse.ArgumentParser:
     dry_run_source_patch_apply_parser.add_argument("--output")
     dry_run_source_patch_apply_parser.add_argument("--force", action="store_true")
     dry_run_source_patch_apply_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+    )
+    end_to_end_codex_loop_parser = subparsers.add_parser(
+        "run-end-to-end-codex-loop",
+        help="Run the M151 Codex-backed orchestration loop in dry-run mode through validation and completion recommendation.",
+    )
+    end_to_end_codex_loop_parser.add_argument(
+        "--item-id",
+        default="m151-end-to-end-codex-loop-dry-run",
+    )
+    end_to_end_codex_loop_parser.add_argument("--project-id", default="aresforge")
+    end_to_end_codex_loop_parser.add_argument("--dry-run", action="store_true")
+    end_to_end_codex_loop_parser.add_argument(
+        "--validation-profile",
+        choices=sorted(CODEX_RESULT_VALIDATION_PROFILES),
+        default="queue_system",
+    )
+    end_to_end_codex_loop_parser.add_argument("--queue-path")
+    end_to_end_codex_loop_parser.add_argument("--output")
+    end_to_end_codex_loop_parser.add_argument("--force", action="store_true")
+    end_to_end_codex_loop_parser.add_argument(
         "--format",
         choices=["json"],
         default="json",
@@ -5814,6 +5838,24 @@ def main(argv: list[str] | None = None) -> int:
             patch_path=args.patch_path,
             item_id=args.item_id,
             project_id=args.project_id,
+            queue_path=args.queue_path,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "run-end-to-end-codex-loop":
+        payload = run_end_to_end_codex_loop_dry_run(
+            config,
+            item_id=args.item_id,
+            project_id=args.project_id,
+            dry_run=bool(args.dry_run),
+            validation_profile=args.validation_profile,
             queue_path=args.queue_path,
             output=args.output,
             force=bool(args.force),

@@ -1,5 +1,21 @@
 # Runnable Skeleton
 
+## M151 End-to-End Codex Loop Dry Run
+
+M151 adds a dry-run end-to-end Codex loop command:
+
+- `python -m aresforge run-end-to-end-codex-loop --item-id m151-end-to-end-codex-loop-dry-run --dry-run --format json`
+
+The command returns `end_to_end_codex_loop_dry_run_v1` JSON. It reads the local queue item, writes a bounded queue snapshot and dry-run Codex artifacts, runs M135 dispatch in dry-run mode, then runs M136 ingestion in dry-run mode to select validation commands, parse local evidence, and generate a completion recommendation.
+
+Runnable boundary:
+
+- M151 is dry-run only and blocks non-dry-run requests
+- the required dry-run Codex dispatch gate must pass before ingestion proceeds
+- validation commands are recorded but not executed
+- queue completion remains a separate explicit gated path
+- no real Codex execution, model execution, GitHub operation, patch application, queue mutation, retry, PR merge, force push, protected branch update, workflow mutation, release creation, or next-item execution is performed
+
 ## M150 Machine-Gated Source Patch Apply Dry Run
 
 M150 adds a source patch apply dry-run command:

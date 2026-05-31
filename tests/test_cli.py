@@ -105,6 +105,7 @@ def test_cli_has_expected_commands() -> None:
         "classify-source-patch-risk",
         "plan-source-patch-apply",
         "dry-run-source-patch-apply",
+        "run-end-to-end-codex-loop",
         "inspect-codex-dispatch-run",
         "list-codex-dispatch-runs",
         "cancel-codex-dispatch-run",
@@ -8973,6 +8974,81 @@ def test_run_agent_orchestration_dispatch_json(
         "allow_github_sync": True,
         "queue_path": ".aresforge/queue/work_items.json",
         "output": "artifacts/multi-agent-orchestration/m138.json",
+        "force": True,
+        "output_format": "json",
+    }
+
+
+def test_run_end_to_end_codex_loop_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": True,
+        "stdout": json.dumps({"record_type": "end_to_end_codex_loop_dry_run_v1", "item_id": "m151"}),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_run(
+        _config,
+        *,
+        item_id,
+        project_id="aresforge",
+        dry_run=False,
+        validation_profile="queue_system",
+        queue_path=None,
+        output=None,
+        force=False,
+        output_format="json",
+    ):
+        seen.update(
+            {
+                "item_id": item_id,
+                "project_id": project_id,
+                "dry_run": dry_run,
+                "validation_profile": validation_profile,
+                "queue_path": queue_path,
+                "output": output,
+                "force": force,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "run_end_to_end_codex_loop_dry_run", fake_run)
+    exit_code = cli.main(
+        [
+            "run-end-to-end-codex-loop",
+            "--item-id",
+            "m151",
+            "--project-id",
+            "aresforge",
+            "--dry-run",
+            "--validation-profile",
+            "queue_system",
+            "--queue-path",
+            ".aresforge/queue/work_items.json",
+            "--output",
+            ".aresforge/codex_loop_dry_runs/m151.json",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["record_type"] == "end_to_end_codex_loop_dry_run_v1"
+    assert seen == {
+        "item_id": "m151",
+        "project_id": "aresforge",
+        "dry_run": True,
+        "validation_profile": "queue_system",
+        "queue_path": ".aresforge/queue/work_items.json",
+        "output": ".aresforge/codex_loop_dry_runs/m151.json",
         "force": True,
         "output_format": "json",
     }
