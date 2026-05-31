@@ -1,5 +1,31 @@
 # Local Operator Usage
 
+## M152 End-to-End Codex Loop Real Run for Low-Risk Code
+
+M152 adds a default-deny real Codex loop profile for low-risk code only. Use the dry-run first to verify dispatch, ingestion, validation selection, completion recommendation, and safety output without invoking Codex.
+
+Dry-run the M152 loop:
+
+    python -m aresforge run-end-to-end-codex-loop --item-id m152-end-to-end-codex-loop-real-run-for-low-risk-code --dry-run --format json
+
+Real execution requires explicit flags and declared scope:
+
+    python -m aresforge run-end-to-end-codex-loop --item-id <item> --execution-enabled --allow-low-risk-code --changed-path src/example.py --validation-profile queue_system --format json
+
+Optional command override:
+
+    python -m aresforge run-end-to-end-codex-loop --item-id <item> --execution-enabled --allow-low-risk-code --changed-path src/example.py --codex-command-arg codex --codex-command-arg exec --format json
+
+Interpretation:
+
+- `record_type=end_to_end_codex_loop_real_low_risk_v1` identifies the M152 profile.
+- `low_risk_code_gate` reports whether the declared changed paths are inside the allowed low-risk scope.
+- `real_execution_allowed=true` appears only when non-dry-run flags and scope gates pass.
+- `codex_execution_performed=true` means the M135 dispatch executor invoked the configured command.
+- `validation_command_execution_performed=true` means M136 ran the selected allowlisted validation profile.
+
+M152 never pushes to GitHub, merges PRs, mutates workflows, updates protected branches, creates releases, applies source patches through AresForge, completes queue items, retries automatically, or starts another item.
+
 ## M151 End-to-End Codex Loop Dry Run
 
 M151 runs the Codex-backed orchestration loop in dry-run mode from a local queue item through dispatch gating, result ingestion, validation-profile selection, and completion recommendation.

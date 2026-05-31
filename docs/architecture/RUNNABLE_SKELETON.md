@@ -1,5 +1,20 @@
 # Runnable Skeleton
 
+## M152 End-to-End Codex Loop Real Run for Low-Risk Code
+
+M152 extends the Codex loop command with a real low-risk profile:
+
+- `python -m aresforge run-end-to-end-codex-loop --item-id m152-end-to-end-codex-loop-real-run-for-low-risk-code --dry-run --format json`
+
+The command returns `end_to_end_codex_loop_real_low_risk_v1` JSON for the M152 item. Dry-run mode writes local evidence but performs no Codex invocation. Non-dry-run mode requires `--execution-enabled`, `--allow-low-risk-code`, declared `--changed-path` scope, M135 dispatch gates, and M136 validation.
+
+Runnable boundary:
+
+- real execution is default-deny
+- low-risk code scope allows declared source/test paths and blocks workflows, protected config, queue state, orchestration/Codex runtime, Hub, scripts, migrations, and unscoped paths
+- non-dry-run execution captures local Codex stdout/stderr and validation evidence before any completion recommendation
+- no GitHub push, PR merge, protected-branch update, workflow mutation, release creation, source patch application by AresForge, queue completion, retry loop, or next-item execution is performed
+
 ## M151 End-to-End Codex Loop Dry Run
 
 M151 adds a dry-run end-to-end Codex loop command:

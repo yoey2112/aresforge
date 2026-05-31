@@ -1,5 +1,34 @@
 # AresForge Agent Context
 
+## M152 End-to-End Codex Loop Real Run for Low-Risk Code Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m152-end-to-end-codex-loop-real-run-for-low-risk-code`.
+
+M152 extends `run-end-to-end-codex-loop` from M151 dry-run evidence into a real, local-first Codex loop for low-risk code only.
+
+Dry-run command:
+
+- `python -m aresforge run-end-to-end-codex-loop --item-id m152-end-to-end-codex-loop-real-run-for-low-risk-code --dry-run --format json`
+
+Real execution requirements:
+
+- `--execution-enabled`
+- `--allow-low-risk-code`
+- one or more `--changed-path` values limited to low-risk source/test scope
+- passing M135 `codex_dispatch` machine gate
+- clean worktree enforcement from the dispatch executor for non-dry-run execution
+- M136 ingestion and allowlisted local validation before any completion decision
+
+Agent-facing guidance:
+
+- Treat `end_to_end_codex_loop_real_low_risk_v1` output as local execution/validation evidence only.
+- `status=dry_run_completed` means no real Codex process ran.
+- `status=real_run_validated` means a real dispatch and local validation completed through explicit flags and machine gates; queue completion and GitHub sync remain separate gated actions.
+- Do not run real Codex without the explicit M152 flags and low-risk changed-path declarations.
+- Do not apply source patches through AresForge from Codex output, call GitHub, push, merge, mutate workflows, complete queue items, retry automatically, or start follow-on work from this record.
+
 ## M151 End-to-End Codex Loop Dry Run Context
 
 Status: Completed locally on `main` after validation.

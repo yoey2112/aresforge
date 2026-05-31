@@ -1,5 +1,11 @@
 # Documentation Agent Contract
 
+## M152 End-to-End Codex Loop Real Run Boundary
+
+M152 real low-risk Codex loop execution does not add documentation-agent mutation. It may create local Codex loop artifacts, dispatch records, ingestion evidence, validation output, and completion recommendations, but it does not edit documentation through a documentation agent, generate documentation patches, apply patches, call local LLMs, call GitHub/`gh`, push, merge, mutate queue state, retry failures, or start follow-on work.
+
+Documentation mutation remains limited to separate docs-only Markdown patch commands that pass `docs_only_patch_apply` gates. Source/code changes from a Codex run remain bounded by M152 low-risk scope and must be validated before any separate completion action.
+
 ## M151 End-to-End Codex Loop Dry Run Boundary
 
 M151 end-to-end Codex loop dry-run does not add documentation-agent or source-code mutation. It may create local dry-run loop artifacts and M136 evidence/recommendation records, but it does not edit documentation, generate patches, apply patches, execute documentation agents, call models, call real Codex, call GitHub/`gh`, mutate queue state, run validation commands, retry failures, or start follow-on work.

@@ -1,5 +1,26 @@
 # AresForge Build State
 
+## M152 End-to-End Codex Loop Real Run for Low-Risk Code
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m152-end-to-end-codex-loop-real-run-for-low-risk-code`.
+
+M152 extends `run-end-to-end-codex-loop` with a default-deny real execution profile for low-risk code:
+
+- dry-run smoke: `python -m aresforge run-end-to-end-codex-loop --item-id m152-end-to-end-codex-loop-real-run-for-low-risk-code --dry-run --format json`
+- real path requires `--execution-enabled`, `--allow-low-risk-code`, and one or more `--changed-path` values inside the low-risk source/test scope
+- optional `--codex-command-arg` supplies the command array used by the existing M135 dispatch executor
+- output is stable `end_to_end_codex_loop_real_low_risk_v1` JSON with local artifacts under `.aresforge/codex_loop_real_runs/` and dispatch artifacts under `.aresforge/codex_dispatch/loop_real_runs/`
+- the loop reuses M135 Codex dispatch gates, M136 ingestion/validation/completion recommendation, queue snapshots, and the M152 `low_risk_code_scope` gate
+
+Safety posture:
+
+- dry-run remains non-executing and reports real execution as not allowed
+- real Codex execution is blocked unless explicit real-execution and low-risk-code flags are present and the declared changed paths avoid workflows, protected config, queue state, orchestration/Codex runtime, Hub, scripts, migrations, and outside-scope paths
+- non-dry-run dispatch requires the existing `codex_dispatch` machine gate and clean-worktree guard from M135
+- M152 may run allowlisted M136 validation commands after real Codex dispatch, but it does not apply source patches through AresForge, push to GitHub, merge PRs, mutate protected branches, enable auto-merge, create releases, complete queue items, or start another item
+
 ## M151 End-to-End Codex Loop Dry Run
 
 Status: Completed locally on `main` after validation.

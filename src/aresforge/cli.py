@@ -2587,7 +2587,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     end_to_end_codex_loop_parser = subparsers.add_parser(
         "run-end-to-end-codex-loop",
-        help="Run the M151 Codex-backed orchestration loop in dry-run mode through validation and completion recommendation.",
+        help="Run the Codex-backed orchestration loop through dispatch, validation, and completion recommendation gates.",
     )
     end_to_end_codex_loop_parser.add_argument(
         "--item-id",
@@ -2595,6 +2595,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     end_to_end_codex_loop_parser.add_argument("--project-id", default="aresforge")
     end_to_end_codex_loop_parser.add_argument("--dry-run", action="store_true")
+    end_to_end_codex_loop_parser.add_argument("--execution-enabled", action="store_true")
+    end_to_end_codex_loop_parser.add_argument("--allow-low-risk-code", action="store_true")
+    end_to_end_codex_loop_parser.add_argument("--changed-path", action="append", default=[])
+    end_to_end_codex_loop_parser.add_argument("--codex-command-arg", action="append", default=[])
+    end_to_end_codex_loop_parser.add_argument("--timeout-seconds", type=int)
     end_to_end_codex_loop_parser.add_argument(
         "--validation-profile",
         choices=sorted(CODEX_RESULT_VALIDATION_PROFILES),
@@ -5855,6 +5860,11 @@ def main(argv: list[str] | None = None) -> int:
             item_id=args.item_id,
             project_id=args.project_id,
             dry_run=bool(args.dry_run),
+            execution_enabled=bool(args.execution_enabled),
+            allow_low_risk_code=bool(args.allow_low_risk_code),
+            codex_command=args.codex_command_arg or None,
+            changed_paths=args.changed_path,
+            timeout_seconds=args.timeout_seconds,
             validation_profile=args.validation_profile,
             queue_path=args.queue_path,
             output=args.output,

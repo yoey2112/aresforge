@@ -1,5 +1,16 @@
 # Agent LLM Routing Strategy
 
+## M152 End-to-End Codex Loop Real Run for Low-Risk Code
+
+M152 routes one queue item through a real Codex dispatch path only when the operator supplies explicit real-execution and low-risk-code flags. It still does not route through local LLM providers or GitHub automation. The Codex process is captured through M135, then evidence is routed through M136 validation and completion recommendation.
+
+Routing implications:
+
+- Codex-routed low-risk code can move from M151 dry-run evidence to a real local dispatch only through `--execution-enabled`, `--allow-low-risk-code`, and declared low-risk changed paths
+- workflow, protected config, queue-state, Hub, orchestration, Codex runtime, script, migration, and undeclared path scopes route to blocked/operator review
+- successful real dispatch routes to M136 allowlisted validation before any queue completion consideration
+- M152 reports Codex execution separately from GitHub, patch application, queue mutation, and next-item execution, all of which remain false
+
 ## M151 End-to-End Codex Loop Dry Run
 
 M151 adds `run-end-to-end-codex-loop` as the first dry-run coordinator across the Codex dispatch, ingestion, validation-selection, and completion-recommendation path. It does not execute agents or models. It routes one local queue item through M135 dry-run dispatch evidence and M136 dry-run ingestion evidence while preserving default-deny real Codex behavior.

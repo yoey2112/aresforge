@@ -1,5 +1,11 @@
 # Local LLM Environment Contract
 
+## M152 End-to-End Codex Loop Real Run Boundary
+
+M152 real low-risk Codex loop execution does not change local LLM permissions. The command may invoke the configured Codex CLI command only after explicit `--execution-enabled`, `--allow-low-risk-code`, declared low-risk changed paths, and machine gates pass, but it does not call Ollama, select fallback local models, send prompts to local LLM providers, call GitHub/`gh`, apply patches through AresForge, mutate queue state, push, merge, retry failures, or start follow-on work.
+
+Any local LLM advisory or coding output remains governed by separate local-provider contracts and gates. M152 records Codex loop evidence, not local LLM provider execution evidence.
+
 ## M151 End-to-End Codex Loop Dry Run Boundary
 
 M151 end-to-end Codex loop dry-run does not change local LLM permissions. The command may route a local queue item through Codex dry-run dispatch metadata, validation-profile selection, and completion recommendation, but it does not call Ollama, send prompts, run inference, select fallback models, mutate repository files, mutate queue state, call real Codex, call GitHub/`gh`, apply patches, run validation commands, retry failures, or start follow-on work.

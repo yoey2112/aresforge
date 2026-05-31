@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-31T21:44:59Z",
+  "updated_at": "2026-05-31T21:58:07.291612+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -6109,6 +6109,91 @@
       "closeout_history": [],
       "created_at": "2026-05-31T21:41:18Z",
       "updated_at": "2026-05-31T21:44:59Z"
+    },
+    {
+      "item_id": "m152-end-to-end-codex-loop-real-run-for-low-risk-code",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M152 End-to-End Codex Loop Real Run for Low-Risk Code",
+      "description": "Enable the machine-gated real Codex loop for low-risk code only while preserving local-first safety and no GitHub push/merge automation.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "orchestration",
+      "tags": [
+        "milestone:m152",
+        "codex-loop",
+        "real-codex",
+        "low-risk-code",
+        "risk:low"
+      ],
+      "dependencies": [
+        "m151-end-to-end-codex-loop-dry-run"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [],
+      "evidence_required": [],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: extend run-end-to-end-codex-loop for end-to-end real Codex execution only when explicit real-execution and low-risk-code flags are supplied; deterministic end_to_end_codex_loop_real_low_risk_v1 JSON; reuse M135 dispatch gates, M136 ingestion/validation, queue, and machine gates; write bounded local artifacts; dry-run remains non-executing; no GitHub push/merge automation, protected branch update, workflow mutation, release, queue completion, or next-item execution.",
+      "started_at": "2026-05-31T21:57:50.497095+00:00",
+      "started_via": "local_operator",
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-31T21:58:07.291612+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M152 End-to-End Codex Loop Real Run for Low-Risk Code implemented and validated locally. Extended run-end-to-end-codex-loop with stable end_to_end_codex_loop_real_low_risk_v1 JSON, default-deny real execution flags, low-risk changed-path scope gate, M135 dispatch reuse, M136 ingestion/validation reuse, CLI coverage, targeted tests, source-of-truth docs, queue evidence, and bounded local artifacts. Dry-run smoke passed without real Codex, model, GitHub, patch application, queue mutation from the loop, or next-item execution.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 225 passed; python -m pytest tests/test_end_to_end_codex_loop_real_low_risk.py -> 4 passed; git diff --check -> passed with CRLF warnings only; inspect-local-project-report passed; inspect-local-queue-agent-summary passed; inspect-project-queue --project-id aresforge passed; run-end-to-end-codex-loop M152 dry-run passed with status=dry_run_completed, blocked=false, machine_gates_passed=true, real_execution_allowed=false, mutation_performed=false, external_execution_performed=false, codex_execution_performed=false, github_execution_performed=false, patch_application_performed=false, local_only=true.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 225 passed",
+        "python -m pytest tests/test_end_to_end_codex_loop_real_low_risk.py -> 4 passed",
+        "git diff --check -> passed with CRLF warnings only",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed",
+        "python -m aresforge inspect-project-queue --project-id aresforge -> passed",
+        "python -m aresforge run-end-to-end-codex-loop --item-id m152-end-to-end-codex-loop-real-run-for-low-risk-code --dry-run --format json -> passed with status=dry_run_completed"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/end_to_end_codex_loop_dry_run.py",
+        "src/aresforge/cli.py",
+        "tests/test_end_to_end_codex_loop_real_low_risk.py",
+        "tests/test_cli.py",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
+        "docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
+        "docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md",
+        ".aresforge/queue/work_items.json"
+      ],
+      "artifact_paths": [
+        ".aresforge/codex_loop_real_runs/m152-end-to-end-codex-loop-real-run-for-low-risk-code",
+        ".aresforge/codex_dispatch/loop_real_runs/m152-end-to-end-codex-loop-real-run-for-low-risk-code",
+        "artifacts/codex_result_ingestion/m152-end-to-end-codex-loop-real-run-for-low-risk-code"
+      ],
+      "completion_evidence": {},
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-31T21:55:56.220645+00:00",
+      "updated_at": "2026-05-31T21:58:07.291612+00:00"
     }
   ]
 }
