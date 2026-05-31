@@ -1,5 +1,24 @@
 # AresForge Roadmap
 
+## M149 Controlled Source Patch Apply Plan
+
+Status: Completed locally on `main` after validation.
+
+M149 hardens the real Codex loop handoff with:
+
+- `python -m aresforge plan-source-patch-apply --item-id m149-controlled-source-patch-apply-plan --patch-path artifacts/manual/sample-source.patch --format json`
+- deterministic `source_patch_apply_plan_v1` output
+- reuse of M148 source patch risk classification and read-only machine gate evidence
+- hard apply blocker reporting for workflows, protected config, queue state, binaries, executable/mode changes, and outside-repo paths
+- ordered future apply steps, pre-apply checks, validation plan, rollback plan, and explicit non-execution flags
+
+Boundary:
+
+- no source patch application from the planner
+- no validation command execution
+- no agent, Codex, model, GitHub, queue mutation, protected-branch update, workflow mutation, PR merge, force push, release creation, or automatic next-item execution
+- generated plans remain local evidence only until a separate explicit source patch apply boundary is implemented
+
 ## M148 Safe Source Patch Detection and Risk Classifier
 
 Status: Completed locally on `main` after validation.

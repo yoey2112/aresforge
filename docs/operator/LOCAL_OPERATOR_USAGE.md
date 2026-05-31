@@ -1,5 +1,26 @@
 # Local Operator Usage
 
+## M149 Controlled Source Patch Apply Plan
+
+M149 generates a controlled apply plan for a local source patch without applying it. Use it after M148 classification when an operator needs machine-readable next steps, validation expectations, hard apply blockers, and rollback planning before any future explicit apply path.
+
+Plan around the sample source patch:
+
+    python -m aresforge plan-source-patch-apply --item-id m149-controlled-source-patch-apply-plan --patch-path artifacts/manual/sample-source.patch --format json
+
+Write a local apply-plan artifact:
+
+    python -m aresforge plan-source-patch-apply --item-id m149-controlled-source-patch-apply-plan --patch-path artifacts/manual/sample-source.patch --output .aresforge/source_patch_apply_plans/m149-apply-plan.json --force --format json
+
+Interpretation:
+
+- `source_classification`, `touched_files`, `risk_level`, and `mutation_type` summarize the M148 classification used by the plan.
+- `hard_apply_blockers` reports workflow, protected config, queue-state, binary, executable/mode, and outside-repo blockers.
+- `apply_plan_steps` is ordered future work only; every step reports `executed=false`.
+- `validation_plan` and `rollback_plan` describe what a future explicit apply path must require.
+
+M149 itself performs no agent execution, Codex execution, local LLM execution, GitHub call, validation command execution, patch application, queue mutation, PR merge, force push, workflow mutation, or automatic next-item execution.
+
 ## M148 Safe Source Patch Detection and Risk Classifier
 
 M148 classifies a local unified patch without applying it. Use it to understand whether a patch touches source, tests, workflows, protected config, queue state, binaries, or executable modes, and what validation profile would be required before any separate apply/completion decision.

@@ -1,5 +1,16 @@
 # Agent LLM Routing Strategy
 
+## M149 Controlled Source Patch Apply Planning
+
+M149 adds `plan-source-patch-apply` as a non-executing planning layer after M148 source patch risk classification. It does not execute agents or models. It maps a local patch classification to hard apply blockers, future apply steps, validation requirements, rollback guidance, and explicit non-execution flags.
+
+Routing implications:
+
+- source/code patch output can be routed toward controlled apply planning without being applied
+- hard blockers route workflow, protected config, queue-state, binary, executable-mode, and outside-repo patches back to operator review or redesign
+- lower-risk source/test patches can produce a future controlled apply plan, but still require a separate explicit apply command, machine gate, clean apply check, operator review, and validation evidence
+- M149 reports no agent execution, no model execution, no Codex execution, no GitHub execution, no patch application, no validation command execution, and no queue mutation
+
 ## M148 Source Patch Risk Classification
 
 M148 adds `classify-source-patch-risk` as a non-executing safety layer between generated source patches and any future explicit apply path. It does not execute agents or models. It maps a local unified patch to touched files, path classes, mutation types, risk level, blocked operations, and recommended validation profile metadata.

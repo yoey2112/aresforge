@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-31T20:58:06.666860+00:00",
+  "updated_at": "2026-05-31T21:13:01.611662+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -5820,6 +5820,87 @@
       "closeout_history": [],
       "created_at": "2026-05-31T20:57:00Z",
       "updated_at": "2026-05-31T20:58:06.666860+00:00"
+    },
+    {
+      "item_id": "m149-controlled-source-patch-apply-plan",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M149 Controlled Source Patch Apply Plan",
+      "description": "Generate a machine-readable controlled source patch apply plan without applying source-code changes.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "orchestration",
+      "tags": [
+        "milestone:m149",
+        "source-patch-apply-plan",
+        "machine-gated"
+      ],
+      "dependencies": [
+        "m148-safe-source-patch-detection-and-risk-classifier"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [],
+      "evidence_required": [],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: add plan-source-patch-apply; deterministic source_patch_apply_plan_v1 JSON; reuse source patch risk classifier, read-only machine gates, queue, LLM decision policy, and validation profile boundaries; generate future apply steps, hard blockers, validation plan, and rollback plan; no source patch application, validation command execution from the planner, agent/Codex/local LLM/GitHub/queue mutation/retry/next-item execution.",
+      "started_at": "",
+      "started_via": "",
+      "previous_status": "in_progress",
+      "completed_at": "2026-05-31T21:13:01.611662+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M149 Controlled Source Patch Apply Plan implemented and validated locally. Added plan-source-patch-apply with stable source_patch_apply_plan_v1 JSON, M148 classification reuse, hard apply blocker reporting, ordered future apply steps, validation and rollback plans, CLI coverage, targeted tests, source-of-truth docs, and queue evidence. No source patch application, validation command execution from the planner, agent, Codex, local LLM, GitHub, queue mutation from the planner, retry, or next-item execution was performed.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 223 passed; python -m pytest tests/test_controlled_source_patch_apply_plan.py -> 4 passed; git diff --check -> passed with CRLF warnings only; inspect-local-project-report passed; inspect-local-queue-agent-summary passed; inspect-project-queue --project-id aresforge passed; plan-source-patch-apply --item-id m149-controlled-source-patch-apply-plan --patch-path artifacts/manual/sample-source.patch --format json passed with status=planned, machine_gates_passed=true, controlled_apply_plan_available=true, patch_application_performed=false, and all execution/mutation flags false.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 223 passed",
+        "python -m pytest tests/test_controlled_source_patch_apply_plan.py -> 4 passed",
+        "git diff --check -> passed with CRLF warnings only",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed",
+        "python -m aresforge inspect-project-queue --project-id aresforge -> passed",
+        "python -m aresforge plan-source-patch-apply --item-id m149-controlled-source-patch-apply-plan --patch-path artifacts/manual/sample-source.patch --format json -> passed"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/source_patch_apply_plan.py",
+        "src/aresforge/cli.py",
+        "tests/test_controlled_source_patch_apply_plan.py",
+        "tests/test_cli.py",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
+        "docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
+        "docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md",
+        ".aresforge/queue/work_items.json"
+      ],
+      "artifact_paths": [
+        ".aresforge/source_patch_apply_plans/m149-apply-plan.json (optional output path; default command is read-only)"
+      ],
+      "completion_evidence": {},
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-31T21:11:30.087713+00:00",
+      "updated_at": "2026-05-31T21:13:01.611662+00:00"
     }
   ]
 }

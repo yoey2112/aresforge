@@ -1,5 +1,25 @@
 # AresForge Build State
 
+## M149 Controlled Source Patch Apply Plan
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m149-controlled-source-patch-apply-plan`.
+
+M149 adds a local, machine-gated source patch apply planner:
+
+- `python -m aresforge plan-source-patch-apply --item-id m149-controlled-source-patch-apply-plan --patch-path artifacts/manual/sample-source.patch --format json`
+- optional `--project-id`, `--queue-path`, `--output`, and `--force`
+
+The planner emits stable `source_patch_apply_plan_v1` JSON with the M148 risk classification summary, touched files, hard apply blockers, pre-apply checks, ordered future apply steps, validation plan, rollback plan, read-only machine-gate evidence, explicit execution flags, and next safe action.
+
+Safety posture:
+
+- this command reads and plans around a local patch but never applies it
+- source patch application remains unavailable from M149 and requires a separate future explicit apply command, machine gate, clean apply check, operator review, and validation evidence
+- workflow, protected config, queue-state, binary, executable-mode, and outside-repo patch operations are hard blockers for future controlled apply planning
+- this command performs no agent, Codex, local LLM/model, GitHub, validation command, patch, queue, retry, or next-item execution
+
 ## M148 Safe Source Patch Detection and Risk Classifier
 
 Status: Completed locally on `main` after validation.

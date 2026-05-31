@@ -1,5 +1,20 @@
 # Runnable Skeleton
 
+## M149 Controlled Source Patch Apply Plan
+
+M149 adds a read-only source patch apply planner:
+
+- `python -m aresforge plan-source-patch-apply --item-id m149-controlled-source-patch-apply-plan --patch-path artifacts/manual/sample-source.patch --format json`
+
+The command returns `source_patch_apply_plan_v1` JSON. It reuses M148 classification, reports hard apply blockers, generates ordered future apply steps, and records validation and rollback requirements without mutating repository files.
+
+Runnable boundary:
+
+- M149 is planning and safety evidence only
+- no source patch application, validation command execution, Codex, model, GitHub, agent, queue mutation, retry, or next-item execution is performed
+- source patch application remains a separate future explicit command with machine gates and validation evidence
+- workflow, protected config, queue-state, binary, executable-mode, and outside-repo patch operations block future controlled apply eligibility
+
 ## M148 Safe Source Patch Detection and Risk Classifier
 
 M148 adds a read-only source patch classifier:

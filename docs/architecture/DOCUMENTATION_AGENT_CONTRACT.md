@@ -1,5 +1,11 @@
 # Documentation Agent Contract
 
+## M149 Controlled Source Patch Apply Plan Boundary
+
+M149 source patch apply planning does not add documentation-agent or source-code mutation. It may plan around documentation, source, test, workflow, protected config, queue-state, binary, executable-mode, and outside-repo patch targets, but it does not edit documentation, mutate source, generate patches, apply patches, execute documentation agents, call models, call Codex, call GitHub/`gh`, mutate queue state, run validation commands, retry failures, or start follow-on work.
+
+Documentation mutation remains limited to separate docs-only Markdown patch commands that pass `docs_only_patch_apply` gates. Source/code patch application remains blocked unless a later explicit milestone defines and validates a safe apply boundary.
+
 ## M148 Source Patch Risk Classifier Boundary
 
 M148 source patch classification does not add documentation-agent or source-code mutation. It may classify documentation, source, test, workflow, protected config, queue-state, binary, executable-mode, and outside-repo patch targets, but it does not edit documentation, mutate source, generate patches, apply patches, execute documentation agents, call models, call Codex, call GitHub/`gh`, mutate queue state, run validation commands, retry failures, or start follow-on work.

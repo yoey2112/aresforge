@@ -233,6 +233,7 @@ from aresforge.operator.codex_validation_profiles import inspect_codex_validatio
 from aresforge.operator.codex_failure_classification_retry_policy import classify_codex_failure
 from aresforge.operator.agent_step_result_normalization import normalize_agent_step_result
 from aresforge.operator.source_patch_risk_classifier import classify_source_patch_risk
+from aresforge.operator.source_patch_apply_plan import plan_source_patch_apply
 from aresforge.operator.github_sync_agent import run_github_sync_agent
 from aresforge.operator.multi_agent_orchestrator import run_multi_agent_orchestration
 from aresforge.operator.llm_decision_matrix import inspect_llm_decision_matrix
@@ -2542,6 +2543,24 @@ def build_parser() -> argparse.ArgumentParser:
     classify_source_patch_risk_parser.add_argument("--output")
     classify_source_patch_risk_parser.add_argument("--force", action="store_true")
     classify_source_patch_risk_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+    )
+    plan_source_patch_apply_parser = subparsers.add_parser(
+        "plan-source-patch-apply",
+        help="Generate a controlled source patch apply plan without applying source-code changes.",
+    )
+    plan_source_patch_apply_parser.add_argument("--patch-path", required=True)
+    plan_source_patch_apply_parser.add_argument(
+        "--item-id",
+        default="m149-controlled-source-patch-apply-plan",
+    )
+    plan_source_patch_apply_parser.add_argument("--project-id", default="aresforge")
+    plan_source_patch_apply_parser.add_argument("--queue-path")
+    plan_source_patch_apply_parser.add_argument("--output")
+    plan_source_patch_apply_parser.add_argument("--force", action="store_true")
+    plan_source_patch_apply_parser.add_argument(
         "--format",
         choices=["json"],
         default="json",
@@ -5738,6 +5757,23 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "classify-source-patch-risk":
         payload = classify_source_patch_risk(
+            config,
+            patch_path=args.patch_path,
+            item_id=args.item_id,
+            project_id=args.project_id,
+            queue_path=args.queue_path,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "plan-source-patch-apply":
+        payload = plan_source_patch_apply(
             config,
             patch_path=args.patch_path,
             item_id=args.item_id,
