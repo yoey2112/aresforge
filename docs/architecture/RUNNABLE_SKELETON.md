@@ -1,5 +1,31 @@
 # Runnable Skeleton
 
+## M139 Autonomous Sprint Closeout v1
+
+M139 adds a local-only sprint closeout generator:
+
+- `python -m aresforge generate-autonomous-sprint-closeout --project-id aresforge --format json`
+- optional `--sprint-start`, `--sprint-end`, `--dry-run`, `--apply-docs-only`, `--output`, and `--force`
+
+Runnable behavior:
+
+- inspects `.aresforge/queue/work_items.json` for M125-M139 status
+- inspects the M126 agent registry and M125 runtime boundary
+- inspects M131 machine gate availability and the M139 read-only closeout gate
+- inspects M138 orchestration availability
+- inventories local sprint artifacts and the queue transaction log
+- checks source-of-truth docs for M125, M126, M127, M128, M129, M130, M131, M132, M133, M134, M135, M136, M137, M138, and M139 mentions
+- emits a stable `autonomous_sprint_closeout_v1` artifact
+
+Still absent by design:
+
+- Codex execution from closeout
+- local LLM execution from closeout
+- GitHub API/`gh` from closeout
+- PR merge, force push, protected branch update, release creation, workflow mutation, or automatic issue closure
+- source-code patch application
+- automatic queue completion, automatic next-item execution, daemon behavior, or background scheduling
+
 ## M138 Multi-Agent Orchestrator v1
 
 M138 adds a machine-gated multi-agent orchestration command:

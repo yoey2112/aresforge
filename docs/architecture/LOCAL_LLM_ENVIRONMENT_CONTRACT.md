@@ -1,5 +1,21 @@
 # Local LLM Environment Contract
 
+## M139 Autonomous Sprint Closeout
+
+M139 reconciles local LLM behavior within the completed M125-M139 agent foundation sprint. The relevant sprint milestones are M125, M126, M127, M128, M129, M130, M131, M132, M133, M134, M135, M136, M137, M138, and M139.
+
+Current local LLM posture:
+
+- M125 defines model scope in the runtime boundary.
+- M126 registers `local-llm-advisory-agent` with local provider health/advisory boundaries.
+- M127 may recommend local LLM reasoning or coding-review lanes without invoking a model.
+- M128/M138 may include local LLM advisory steps, but real execution requires explicit allow flags and gates.
+- M131 provides the `local_llm_execution` gate.
+- M134 adds `run-local-llm-advisory` for local Ollama advisory output only.
+- M139 confirms that local LLM output remains advisory evidence and is never applied automatically.
+
+The closeout command itself does not call Ollama, inspect live models, send prompts, run inference, mutate repository files, mutate queue state, call Codex, call GitHub/`gh`, apply patches, or start follow-on work.
+
 ## M134 Local LLM Advisory Execution
 
 M134 adds `run-local-llm-advisory` as the controlled successor to advisory request artifact generation. The command may read one local advisory artifact, evaluate the `local_llm_execution` machine gate profile, and submit the artifact prompt only to a local Ollama provider when all gates pass. Dry-run mode performs the same artifact and gate checks without invoking a provider.
@@ -99,161 +115,6 @@ M117 adds an Agent Routing Decision Dashboard that may mark local LLM advisory a
 M118 reconciles the post-automation planning documentation after M110-M117. It does not change the local LLM environment contract, does not call Ollama, does not inspect models, does not send prompts, does not run inference, and does not authorize local provider execution. The local LLM posture remains artifact-first, advisory-only, local-only, and operator-gated.
 
 M128 adds the Agent Orchestration Plan Builder. It may place `local-llm-advisory-agent` in an ordered plan when M127 recommends local reasoning or coding review, but the step is metadata only. M128 does not call Ollama, list models, send prompts, run inference, execute agents, execute Codex, call GitHub/`gh`, make network calls, apply patches, mutate queue state, or authorize provider execution. Real execution target requests are blocked and reduced to a dry-run recommendation until a later explicit runner exists.
-
-## Storage
-
-The contract is stored locally at:
-
-- `.aresforge/local_llm_environment.json`
-
-Reading defaults does not write this file. Updating the contract writes the file only after validation passes.
-
-## Operator Helpers
-
-- `read_local_llm_environment_contract(...)`
-- `update_local_llm_environment_contract(...)`
-- `validate_local_llm_environment_contract(...)`
-
-## Hub Routes
-
-- `GET /api/local-llm/environment`
-- `POST /api/local-llm/environment`
-- `POST /api/local-llm/health-check`
-- `POST /api/local-queue/items/{item_id}/local-llm-prompt-preview`
-- `POST /api/local-queue/items/{item_id}/local-llm-execute`
-- `GET /api/execution-audit-log`
-- `POST /api/ai-action-safety-gate`
-- `GET /api/ai-artifacts`
-- `GET /api/operator-run-history`
-- `GET /api/ai-action-review`
-- CLI: `python -m aresforge inspect-local-llm-advisory-lane-readiness --item-id <item_id> --format json`
-- CLI: `python -m aresforge inspect-local-llm-provider-contract --format json`
-- CLI: `python -m aresforge inspect-ollama-health --format json`
-- CLI: `python -m aresforge probe-local-ollama-provider --format json`
-- CLI: `python -m aresforge test-ollama`
-- CLI: `python -m aresforge prepare-local-llm-advisory-run --item-id <item_id> --format json`
-- CLI: `python -m aresforge prepare-local-coding-draft --item-id <item_id> --format json`
-- CLI: `python -m aresforge inspect-human-gated-patch-application-contract --format json`
-- CLI: `python -m aresforge validate-local-llm-advisory-dry-run --item-id <item_id> --format json`
-- CLI: `python -m aresforge plan-operator-batch --project-id aresforge --limit 10 --format json`
-
-## Fields
-
-- `local_llm_provider`
-- `provider_base_url`
-- `reasoning_model`
-- `coding_model`
-- `fallback_model`
-- `max_context_tokens`
-- `request_timeout_seconds`
-- `health_check_enabled`
-- `execution_enabled`
-- `operator_gate_required`
-- `notes`
-- `updated_at`
-
-Derived read-only metadata:
-
-- `provider_availability_status`
-- `provider_configuration_status`
-- `provider_execution_mode`
-- `provider_state`
-- `local_model_profiles`
-- `fallback_behavior`
-
-## Supported Providers
-
-- `ollama`
-- `none`
-- `unknown`
-
-Model fields are placeholders/configuration only. A non-empty model name does not mean the model is installed.
-
-## Status
-
-M58 adds a local-only Local LLM Environment Contract.
-
-This contract represents future local LLM provider and model configuration. It does not call Ollama, perform health checks, call model APIs, send prompts, execute routing, execute Codex, run agents, or call GitHub.
-
-M59 adds an explicitly invoked Local LLM Health Check. The health check reads this contract and may check local provider availability only. It does not send prompts, run inference, generate text, execute routing, execute Codex, run agents, or call GitHub.
-
-M61 adds Local LLM Prompt Preview. The preview reads this contract to resolve configured local provider/model fields for routed queue items, but it does not call Ollama, send prompts, run inference, generate text, execute routing, execute Codex, run agents, or call GitHub.
-
-M62 adds an operator-gated local LLM execution prototype. Execution is allowed only when this contract explicitly has `execution_enabled: true`, `operator_gate_required: true`, a supported local provider, and the request passes prompt preview, health check, routing, risk, and operator confirmation gates.
-
-M64 adds a local Execution Audit Log. Health checks, prompt previews, dry runs, blocked attempts, and advisory local LLM execution outputs are summarized in `.aresforge/execution_audit_log.json`. The audit log does not add execution behavior, does not store full prompt/response text, and does not execute anything.
-
-M65 adds a centralized AI Action Safety Gate. Local LLM prompt preview and execution paths may consult the gate for consistent decision reporting, but the gate does not execute anything and does not expand M62 local LLM behavior.
-
-M66 adds a local AI Artifact Registry. Local LLM prompt preview artifacts and advisory local LLM result artifacts are registered when explicitly written, but registry writes do not execute providers or expand M62 behavior.
-
-M67 adds an Operator Run History panel that can display local LLM audit and artifact records in a read-only timeline. It does not execute providers or expand M62 behavior.
-
-M68 reconciles local AI operations documentation and confirms that local LLM execution remains prototype-only, local-only, advisory-only, and operator-gated.
-
-M69 hardens local AI operations around this contract. Local LLM execution payloads, audit entries, artifacts, and run-history records now make advisory-only, non-mutation, safety-status, gate-status, and blocked-reason state explicit. Local LLM output still never mutates repository files, queue state, project state, GitHub, `gh`, Codex, agents, commits, pushes, or workflows automatically.
-
-M70 verifies the full M58-M69 local AI operations chain. It reconciles documentation and payload wording, confirms the local-first/file-backed/operator-gated/advisory-only boundaries, and does not add local LLM execution behavior beyond the M62 prototype.
-
-M72 hardens provider and model configuration metadata. Environment reads, updates, and health-check responses now expose explicit provider availability status, provider configuration status, provider execution mode, advisory model profile metadata, fallback behavior, and next safe operator action. M72 does not add provider execution, automatic local LLM execution, or repository mutation behavior.
-
-M75 reconciles source-of-truth documentation after M74. It does not add local LLM execution behavior. The local LLM contract remains local-only, advisory-only, operator-gated, prototype-scoped, and non-mutating. Local LLM output must never automatically mutate repository files, queue state, project state, GitHub, `gh`, Codex, agents, commits, pushes, or workflows.
-
-M81 adds a read-only local LLM advisory/coding lane readiness inspection path. It reads this environment contract and M80 decision metadata to produce structured advisory planning output, but it does not invoke a provider, send prompts, run inference, mutate repository files, mutate queue state, complete queue items, or start another queue item.
-
-M83 adds a read-only local LLM provider contract inspection path. It formalizes Ollama as the initial provider target and reports provider URL, health-check endpoint limits, timeout expectations, model identifiers, role/capability metadata, and safety boundaries. It does not call Ollama, send prompts, run inference, execute routing, mutate repository files, mutate queue state, complete queue items, or start another queue item.
-
-M84 adds an explicitly invoked Ollama health/model inspection path. It may call only the local `/api/tags` endpoint to report provider reachability and visible models. Ollama offline states are warning metadata and must not block normal project readiness. M84 does not call generation, chat, completion, or prompt endpoints, and it does not mutate repository files, mutate queue state, complete queue items, or start another queue item.
-
-M85 adds a local LLM advisory run artifact flow. It generates advisory prompt artifacts by default without invoking a provider. If the operator supplies an explicit run flag, it may call local Ollama for advisory output and store response/metadata artifacts locally. Advisory output is never applied to repository files, never mutates queue state, never completes queue items, and never starts another item.
-
-M87 adds local coding draft artifact mode. It generates coding draft prompt artifacts by default without invoking a provider. If the operator supplies an explicit run flag, it may call local Ollama for draft patch/instruction output and store draft/metadata artifacts locally. Draft output is non-applied, non-authoritative, manual-review-only, and never mutates repository files, applies patches, mutates queue state, completes queue items, or starts another item automatically.
-
-M88 adds a human-gated patch application contract. It defines the patch artifact structure, explicit operator approval record requirements, pre-apply safety gates, and post-apply validation requirements for any future patch application path. The contract inspector is read-only, contract-first, and dry-run only; it does not apply patches, mutate files, mutate queue state, complete queue items, or start another item.
-
-M95 reconciles the overnight sprint documentation after M81-M94. It does not add local LLM provider behavior. The local LLM model remains local-only, explicit-operator-gated for any advisory/draft run, advisory/manual-review-only, and non-mutating. Provider output still never automatically mutates repository files, applies patches, mutates queue state, completes queue items, starts another item, calls GitHub, calls `gh`, or triggers workflows, daemons, watchers, schedulers, or external workflow systems.
-
-M96 is post-sprint planning and prioritization. It does not add local LLM provider behavior, does not call Ollama, does not invoke advisory or coding draft runs, and does not validate provider inference.
-
-M97 adds a queue-to-agent dispatch plan contract that may select `local_llm_advisory` or `local_llm_coding_draft` as advisory future lanes. That selection is metadata only. M97 does not call Ollama, check model inference, send prompts, invoke local advisory or coding draft runs, apply patches, mutate queue state, or complete work. Any future local LLM dry-run validation remains M99 or later and requires explicit operator approval.
-
-M98 adds Codex prompt artifact generation only for the M97 `codex_prompt_artifact` lane. It explicitly blocks `local_llm_advisory` and `local_llm_coding_draft`, does not call Ollama, does not invoke provider health or inference endpoints, and does not authorize local LLM advisory or coding draft execution. M99 remains the planned local LLM dry-run validation milestone.
-
-M99 adds a Local LLM Advisory Execution Dry-Run Validator for the M97 `local_llm_advisory` lane only. It validates readiness metadata and operator gates while preserving `execution_allowed=false`. It does not call Ollama, does not invoke provider health or inference endpoints, does not send prompts, does not generate model responses, does not authorize advisory execution, and blocks non-advisory lanes safely. Any actual advisory artifact or provider run remains a later explicit operator-approved milestone.
-
-M100 adds a Documentation Agent dry-run review for `documentation_agent_dry_run`; it does not call local LLMs or affect provider behavior.
-
-M101 adds local human approval gate records for dispatch artifacts and dry-runs. Approval status does not authorize local LLM execution and keeps `execution_allowed=false`.
-
-M102 hardens queue dependency and completion locks. These locks do not invoke providers and must remain separate from any future local LLM artifact or execution approval.
-
-M103 adds read-only self-managed project review, and M104 adds read-only operator batch planning. Both may report local LLM-related safety classifications or warnings, but neither calls Ollama, sends prompts, runs inference, or authorizes local LLM execution.
-
-M105 reconciles source-of-truth docs after M99-M104. It does not add local LLM provider behavior. Any future local LLM advisory artifact generator remains a later explicit milestone such as M110.
-
-M106 indexes local dispatch artifacts and dry-run outputs, including local LLM advisory dry-run files if they exist, but it does not call Ollama, inspect models, send prompts, or run inference.
-
-M107 includes local LLM-related dispatch summaries and artifact index summaries in a safe handoff package, but it remains read-only context and does not authorize provider execution.
-
-M108 closes the M99-M107 sprint and recommends M110 and M115 as future controlled local LLM milestones. M110 should generate advisory artifacts without broadening execution by default. M115 should be provider probing only unless a later explicit milestone authorizes inference. M108 itself does not call Ollama, list models, send prompts, run inference, or mutate repository/queue state.
-
-M109 adds manual Codex dispatch preparation only. It may read local dispatch and approval records that sit beside local LLM dry-run artifacts, but it does not invoke Ollama, list models, send prompts to a local provider, run inference, produce local LLM advice, or authorize local LLM execution.
-
-M110 adds local LLM advisory request artifact generation for the M97 `local_llm_advisory` lane. It prepares a structured local JSON package with queue context, source documents, advisory prompt, expected response shape, and operator checklist. It does not call Ollama, list models, send prompts, run inference, execute Codex, call GitHub/`gh`, make network calls, apply patches, mutate queue state, or authorize provider execution. Generated artifacts preserve `local_only=true`, `execution_allowed=false`, `local_llm_execution_performed=false`, and `patch_application_allowed=false`.
-
-M115 adds a local Ollama provider probe for environment discovery only. The probe reads the local LLM environment contract or an explicit local config file, supports `--no-network` configuration-only inspection, and otherwise may call only a loopback `/api/tags` endpoint to list visible local model metadata. It never sends prompts, never calls generation/chat/completion endpoints, never asks a model to reason or code, and never authorizes advisory execution, coding execution, repository mutation, queue mutation, Codex execution, GitHub/`gh`, agents, workflows, or patch application.
-
-M125 adds an Agent Runtime Boundary Contract. The boundary contract may describe model scope values such as `none`, `metadata_only`, `local_health_probe_only`, `operator_gated_local_advisory`, and `codex_handoff_only`, but inspection is metadata-only and does not call Ollama, list models, send prompts, run inference, execute agents, execute Codex, call GitHub/`gh`, make network calls, apply patches, mutate queue state, or authorize provider execution. Any future agent runtime that uses local models must satisfy the M125 boundary and the local LLM environment/provider contracts before a separate explicit operator-approved execution milestone may run.
-
-M126 adds the local Agent Registry. The `local-llm-advisory-agent` record declares local provider health probing and advisory request artifact generation as allowed metadata capabilities, while explicitly forbidding Ollama prompt execution and local LLM inference. Its `network_scope` is `localhost_health_only`, `model_scope` is `local_health_probe_only`, `safety_class` is `local_provider_probe`, and `can_run_real=false`. Registry inspection does not call Ollama, list models, send prompts, run inference, execute agents, execute Codex, call GitHub/`gh`, make network calls beyond no-op metadata inspection, apply patches, mutate queue state, or authorize provider execution.
-
-M127 adds LLM Decision Policy v1. The policy may recommend local reasoning or local coding review lanes from queue and agent metadata, but it does not read visible model lists, call Ollama, list models, send prompts, run inference, execute routing, execute agents, execute Codex, call GitHub/`gh`, make network calls, apply patches, mutate queue state, or authorize provider execution. Local LLM-related recommendations remain advisory inputs for later explicit artifacts or operator-approved runners only.
-
-M128 adds the Agent Orchestration Plan Builder. It may place `local-llm-advisory-agent` in an ordered plan when M127 recommends local reasoning or coding review, but the step is metadata only. M128 does not call Ollama, list models, send prompts, run inference, execute agents, execute Codex, call GitHub/`gh`, make network calls, apply patches, mutate queue state, or authorize provider execution. Real execution target requests are blocked and reduced to a dry-run recommendation until a later explicit runner exists.
-
-M117 may mark a queue item as suitable for a local LLM advisory artifact, but it does not probe Ollama, submit prompts, invoke local models, or produce model output. The `agent_route_recommendation` record is advisory queue metadata only and keeps `dispatch_performed=false`, `execution_allowed=false`, and `local_only=true`; any local LLM advisory artifact remains a separate operator-gated local artifact workflow.
-
-M118 reconciles the post-automation planning documentation after M110-M117. It does not change the local LLM environment contract, does not call Ollama, does not inspect models, does not send prompts, does not run inference, and does not authorize local provider execution. The local LLM posture remains artifact-first, advisory-only, local-only, and operator-gated.
 
 ## Storage
 

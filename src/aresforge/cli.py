@@ -223,6 +223,7 @@ from aresforge.operator.codex_result_ingestion_validation import (
     VALIDATION_PROFILES as CODEX_RESULT_VALIDATION_PROFILES,
     ingest_codex_result_and_validate,
 )
+from aresforge.operator.autonomous_sprint_closeout import generate_autonomous_sprint_closeout
 from aresforge.operator.github_sync_agent import run_github_sync_agent
 from aresforge.operator.multi_agent_orchestrator import run_multi_agent_orchestration
 from aresforge.operator.llm_decision_matrix import inspect_llm_decision_matrix
@@ -2353,6 +2354,23 @@ def build_parser() -> argparse.ArgumentParser:
     run_agent_orchestration_parser.add_argument("--output")
     run_agent_orchestration_parser.add_argument("--force", action="store_true")
     run_agent_orchestration_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+    )
+    autonomous_sprint_closeout_parser = subparsers.add_parser(
+        "generate-autonomous-sprint-closeout",
+        help="Generate the M139 autonomous sprint closeout artifact without running Codex, LLMs, or GitHub.",
+    )
+    autonomous_sprint_closeout_parser.add_argument("--project-id", required=True)
+    autonomous_sprint_closeout_parser.add_argument("--sprint-start", default="M125")
+    autonomous_sprint_closeout_parser.add_argument("--sprint-end", default="M139")
+    autonomous_sprint_closeout_parser.add_argument("--dry-run", action="store_true")
+    autonomous_sprint_closeout_parser.add_argument("--apply-docs-only", action="store_true")
+    autonomous_sprint_closeout_parser.add_argument("--queue-path")
+    autonomous_sprint_closeout_parser.add_argument("--output")
+    autonomous_sprint_closeout_parser.add_argument("--force", action="store_true")
+    autonomous_sprint_closeout_parser.add_argument(
         "--format",
         choices=["json"],
         default="json",
@@ -5378,6 +5396,25 @@ def main(argv: list[str] | None = None) -> int:
             allow_local_llm=bool(args.allow_local_llm),
             allow_codex=bool(args.allow_codex),
             allow_github_sync=bool(args.allow_github_sync),
+            queue_path=args.queue_path,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "generate-autonomous-sprint-closeout":
+        payload = generate_autonomous_sprint_closeout(
+            config,
+            project_id=args.project_id,
+            sprint_start=args.sprint_start,
+            sprint_end=args.sprint_end,
+            dry_run=bool(args.dry_run),
+            apply_docs_only=bool(args.apply_docs_only),
             queue_path=args.queue_path,
             output=args.output,
             force=bool(args.force),

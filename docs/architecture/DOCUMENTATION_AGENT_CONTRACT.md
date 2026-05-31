@@ -1,5 +1,21 @@
 # Documentation Agent Contract
 
+## M139 Autonomous Sprint Closeout
+
+M139 reconciles documentation-agent behavior after the completed M125-M139 agent foundation sprint. The sprint span is M125, M126, M127, M128, M129, M130, M131, M132, M133, M134, M135, M136, M137, M138, and M139.
+
+Current documentation-agent posture:
+
+- M125 defines the runtime boundary that documentation agents must obey.
+- M126 registers `documentation-agent` as a declarative source-doc planning/review agent.
+- M128 can place documentation steps in a plan without executing them.
+- M129 can dry-run deterministic documentation-related planning.
+- M131 provides the `docs_only_patch_apply` machine gate.
+- M133 permits autonomous application only for docs-only Markdown patches that pass gates, clean apply checks, path allowlists, dirty-target protection, and transaction logging.
+- M139 records this as the first documentation-agent path where machine gates can replace human review for a narrow docs-only patch.
+
+Still blocked: model-generated documentation mutation without a docs-only patch boundary, source-code patch application, test/config/workflow changes, Codex execution from documentation-agent flows, local or remote LLM execution from documentation-agent flows, GitHub/`gh`, queue completion, PR merge, and automatic next-item execution.
+
 ## M133 Docs-Only Autonomous Apply
 
 M133 creates the first documentation-agent apply path, but only for docs-only Markdown patches that pass deterministic machine gates. The supported command is:
@@ -21,6 +37,7 @@ Documentation-agent apply mode, model-generated documentation mutation, patch ap
 M118 reconciles documentation-agent-related source-of-truth after M110-M117. It records that M116 can generate documentation patch proposal artifacts for review and that M111 can intake approved patch proposals as metadata, but no generated documentation patch is applied automatically.
 
 M118 does not execute a documentation-agent runtime, does not call models, does not mutate documentation from generated output, does not call GitHub/`gh`, does not make network calls, does not apply patches, does not complete queue items, and does not start follow-on work. Any future documentation-agent apply path must remain a separate explicit milestone with operator approval, validation evidence, and a patch application boundary.
+
 ## M116 Patch Proposal Generator
 
 M116 adds a local-only documentation-agent patch proposal generator. It reads the local queue item and selected source-of-truth documentation, detects missing milestone/item/command coverage, and writes a structured `documentation_agent_patch_proposal` artifact plus a local proposed patch text file for operator review.

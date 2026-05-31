@@ -1,5 +1,61 @@
 # AresForge Roadmap
 
+## M139 Autonomous Sprint Closeout v1
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m139-autonomous-sprint-closeout-v1`.
+
+Purpose:
+
+- reconcile the completed M125-M139 agent foundation sprint
+- generate a stable local closeout artifact from queue, registry, gate, artifact, transaction-log, orchestration, and docs state
+- document the transition from human-gated review to machine-gated autonomy
+- preserve explicit enablement for Codex, local LLM, GitHub, docs apply, queue mutation, and orchestration paths
+
+Runnable operator surface:
+
+- `python -m aresforge generate-autonomous-sprint-closeout --project-id aresforge --format json`
+- optional `--sprint-start M125`, `--sprint-end M139`, `--dry-run`, `--apply-docs-only`, `--output <path>`, and `--force`
+
+Sprint delivered:
+
+- M125 Agent Runtime Boundary Contract
+- M126 Agent Registry
+- M127 LLM Decision Policy v1
+- M128 Agent Orchestration Plan Builder
+- M129 Single-Agent Dry-Run Executor
+- M130 Single-Agent Real Executor for Low-Risk Agents
+- M131 Machine Safety Gate Engine
+- M132 Auto-Completion for Safe Queue Items
+- M133 Documentation Agent Autonomous Apply for Docs-Only Patches
+- M134 Local LLM Advisory Execution
+- M135 Codex Dispatch Executor v1
+- M136 Codex Result Ingestion and Validation Runner
+- M137 GitHub PR/Issue Sync Agent
+- M138 Multi-Agent Orchestrator v1
+- M139 Autonomous Sprint Closeout v1
+
+Constraints preserved:
+
+- no Codex run from closeout
+- no local LLM run from closeout
+- no GitHub call from closeout
+- no PR merge, force push, protected branch update, release creation, or automatic issue closure
+- no code patch application
+- no automatic queue completion or next-item execution from closeout
+
+Recommended next sprint:
+
+- orchestrator production hardening and recovery
+- real Codex loop reliability and validation handoff polish
+- local LLM model quality comparison
+- GitHub PR automation expansion behind explicit gates
+- Hub agent control center
+- rollback/recovery model
+- agent metrics and telemetry
+- self-managed project issue automation
+
 ## M138 Multi-Agent Orchestrator v1
 
 Status: Completed locally on `main` after validation.
@@ -116,7 +172,7 @@ Constraints preserved:
 
 ## M134 Local LLM Advisory Execution
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m134-local-llm-advisory-execution`.
 
@@ -140,7 +196,7 @@ Constraints preserved:
 
 ## M133 Documentation Agent Autonomous Apply for Docs-Only Patches
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m133-documentation-agent-autonomous-apply-for-docs-only-patches`.
 
@@ -165,7 +221,7 @@ Constraints preserved:
 
 ## M132 Auto-Completion for Safe Queue Items
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m132-auto-completion-for-safe-queue-items`.
 
@@ -311,7 +367,7 @@ Constraints preserved:
 
 ## M130 Single-Agent Real Executor for Low-Risk Agents
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m130-single-agent-real-executor-for-low-risk-agents`.
 
@@ -429,7 +485,7 @@ Constraints preserved:
 
 ## M129 Single-Agent Dry-Run Executor
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m129-single-agent-dry-run-executor`.
 

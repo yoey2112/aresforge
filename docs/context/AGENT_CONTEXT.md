@@ -1,5 +1,45 @@
 # AresForge Agent Context
 
+## M139 Autonomous Sprint Closeout Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m139-autonomous-sprint-closeout-v1`.
+
+M139 adds `generate-autonomous-sprint-closeout`, a local closeout generator for the M125-M139 agent foundation sprint.
+
+Command:
+
+- `python -m aresforge generate-autonomous-sprint-closeout --project-id aresforge --format json`
+
+The command inspects queue state, agent registry metadata, machine gate status, orchestration availability, artifacts, transaction log entries, and source-of-truth doc consistency. It emits `autonomous_sprint_closeout_v1` JSON with completed/incomplete/blocked items, implemented capabilities, autonomy capabilities, remaining human gates, next sprint recommendations, warnings, blockers, and next safe action.
+
+M125-M139 sprint summary:
+
+- M125 defined the runtime boundary contract.
+- M126 registered local agents.
+- M127 added LLM decision policy records.
+- M128 built non-executing orchestration plans.
+- M129 added single-agent dry-run records.
+- M130 allowed deterministic low-risk real local-agent records.
+- M131 added machine safety gates.
+- M132 allowed safe queue auto-completion from evidence and gates.
+- M133 allowed docs-only Markdown patch apply behind machine gates.
+- M134 allowed local Ollama advisory execution as non-applied evidence.
+- M135 allowed explicit machine-gated Codex dispatch.
+- M136 ingests Codex results and runs validation profiles.
+- M137 performs dry-run-first narrow GitHub issue/PR sync.
+- M138 runs gated multi-agent orchestration timelines.
+- M139 reconciles the sprint and records the autonomy transition.
+
+Agent-facing guidance:
+
+- Treat machine gates as the replacement for human review only when every deterministic check passes.
+- Low-risk local agents may run real local artifact/record execution through M130/M138 boundaries.
+- Codex, local LLM, GitHub, docs patch apply, queue mutation, and orchestration remain explicit command paths with profile-specific gates.
+- Do not infer permission to merge PRs, force push, mutate source from generated output, close issues automatically, run background workers, or start the next queue item.
+- The recommended next sprint is hardening: orchestrator recovery, Codex loop reliability, model-quality comparison, GitHub automation expansion, Hub control center, rollback/recovery, telemetry, and self-managed issue automation.
+
 ## M138 Multi-Agent Orchestrator Context
 
 Status: Completed locally on `main` after validation.
@@ -87,7 +127,7 @@ M135 boundaries:
 
 ## M134 Local LLM Advisory Execution Context
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m134-local-llm-advisory-execution`.
 
@@ -106,7 +146,7 @@ M134 boundaries:
 
 ## M133 Documentation Agent Autonomous Apply Context
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m133-documentation-agent-autonomous-apply-for-docs-only-patches`.
 
@@ -135,7 +175,7 @@ M133 boundaries:
 
 ## M132 Auto-Completion for Safe Queue Items Context
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m132-auto-completion-for-safe-queue-items`.
 
@@ -240,7 +280,7 @@ M122 boundaries:
 
 ## M130 Single-Agent Real Executor Context
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m130-single-agent-real-executor-for-low-risk-agents`.
 
@@ -316,7 +356,7 @@ M119 boundaries:
 
 ## M129 Single-Agent Dry-Run Executor Context
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m129-single-agent-dry-run-executor`.
 

@@ -1,5 +1,41 @@
 # Local Operator Usage
 
+## M139 Autonomous Sprint Closeout v1
+
+M139 generates the final closeout artifact for the M125-M139 agent foundation sprint. It reads local state only: queue items, agent registry metadata, machine gate availability, orchestration capability, local artifacts, the transaction log, and source-of-truth documentation consistency. It does not run Codex, invoke local LLMs, call GitHub, merge PRs, apply code patches, complete queue items, or start the next item.
+
+Generate a closeout artifact:
+
+    python -m aresforge generate-autonomous-sprint-closeout --project-id aresforge --format json
+
+Use the explicit sprint range:
+
+    python -m aresforge generate-autonomous-sprint-closeout --project-id aresforge --sprint-start M125 --sprint-end M139 --dry-run --format json
+
+Write to a chosen artifact path:
+
+    python -m aresforge generate-autonomous-sprint-closeout --project-id aresforge --output artifacts/autonomous-sprint-closeout/m139.json --force --format json
+
+The closeout reviews M125, M126, M127, M128, M129, M130, M131, M132, M133, M134, M135, M136, M137, M138, and M139. Use its output as the sprint handoff and next-sprint planning input.
+
+Machine gates now replace human review only for deterministic safe paths:
+
+- read-only agent inspection
+- local artifact writes
+- low-risk queue status mutation
+- docs-only Markdown patch application
+- local LLM advisory execution
+- Codex dispatch
+- GitHub issue/PR sync
+- multi-agent orchestration
+
+Still require explicit enablement or human control:
+
+- Codex execution via `--execution-enabled`
+- local LLM advisory execution against a local provider
+- GitHub live sync via `--github-enabled`
+- any PR merge, force push, protected branch change, release, workflow mutation, source-code patch application, automatic issue closure, background worker, or automatic next-item execution
+
 ## M138 Multi-Agent Orchestrator v1
 
 M138 runs one orchestration plan step-by-step with machine safety gates. It is dry-run by default, records a timeline, writes a local `multi_agent_orchestration_v1` result artifact, and stops on the first blocking gate or failed step. It does not merge PRs, force push, bypass gates, complete queue items, or start another item.

@@ -1,5 +1,52 @@
 # AresForge Build State
 
+## M139 Autonomous Sprint Closeout v1
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m139-autonomous-sprint-closeout-v1`.
+
+M139 closes the M125-M139 agent foundation sprint and adds the sprint closeout generator:
+
+- `python -m aresforge generate-autonomous-sprint-closeout --project-id aresforge --format json`
+- optional `--sprint-start`, `--sprint-end`, `--dry-run`, `--apply-docs-only`, `--output`, and `--force`
+
+The closeout inspects local queue state, the M126 agent registry, M131 machine gate availability, M138 orchestration capability, local artifacts, the queue transaction log, and source-of-truth documentation consistency. It writes a local `autonomous_sprint_closeout_v1` artifact and never runs Codex, local LLMs, GitHub, PR merges, code patch application, or automatic next-item execution.
+
+Milestone status for this sprint:
+
+- M125 Agent Runtime Boundary Contract: done.
+- M126 Agent Registry: done.
+- M127 LLM Decision Policy v1: done.
+- M128 Agent Orchestration Plan Builder: done.
+- M129 Single-Agent Dry-Run Executor: done.
+- M130 Single-Agent Real Executor for Low-Risk Agents: done.
+- M131 Machine Safety Gate Engine: done.
+- M132 Auto-Completion for Safe Queue Items: done.
+- M133 Documentation Agent Autonomous Apply for Docs-Only Patches: done.
+- M134 Local LLM Advisory Execution: done.
+- M135 Codex Dispatch Executor v1: done.
+- M136 Codex Result Ingestion and Validation Runner: done.
+- M137 GitHub PR/Issue Sync Agent: done.
+- M138 Multi-Agent Orchestrator v1: done.
+- M139 Autonomous Sprint Closeout v1: done.
+
+Current autonomy posture:
+
+- human review can now be replaced by machine gates for deterministic read-only inspection, local artifact writes, low-risk queue completion, docs-only Markdown patch apply, local LLM advisory execution, Codex dispatch, GitHub sync, and multi-agent orchestration when every required gate passes
+- low-risk local agents can run real local execution records; high-risk agents remain explicit and gated
+- Codex, local LLM, GitHub, and orchestration real paths require dedicated enablement flags and passing machine gates
+- PR merge, force push, protected branch updates, releases, source-code patch application from generated output, background daemons, and automatic next-item execution remain blocked
+
+Recommended next sprint:
+
+- production hardening for orchestrator resume/retry/rollback
+- real Codex loop reliability across dispatch, ingestion, validation, and clean-tree handling
+- local LLM model quality comparison under advisory-only boundaries
+- GitHub PR automation expansion behind new gates
+- Hub agent control center for gates, timelines, artifacts, and next safe actions
+- rollback/recovery model, agent metrics/telemetry, and self-managed project issue automation
+
 ## M138 Multi-Agent Orchestrator v1
 
 Status: Completed locally on `main` after validation.
@@ -113,7 +160,7 @@ Safety boundaries:
 
 ## M134 Local LLM Advisory Execution
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m134-local-llm-advisory-execution`.
 
@@ -132,7 +179,7 @@ Safety boundaries:
 
 ## M133 Documentation Agent Autonomous Apply for Docs-Only Patches
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m133-documentation-agent-autonomous-apply-for-docs-only-patches`.
 
@@ -165,7 +212,7 @@ Safety boundaries:
 
 ## M132 Auto-Completion for Safe Queue Items
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m132-auto-completion-for-safe-queue-items`.
 
@@ -312,7 +359,7 @@ Safety boundaries:
 
 ## M130 Single-Agent Real Executor for Low-Risk Agents
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m130-single-agent-real-executor-for-low-risk-agents`.
 
@@ -389,7 +436,7 @@ Safety boundaries:
 
 ## M129 Single-Agent Dry-Run Executor
 
-Status: In progress locally on `main`.
+Status: Completed locally on `main` after validation.
 
 Queue item: `m129-single-agent-dry-run-executor`.
 

@@ -93,6 +93,7 @@ def test_cli_has_expected_commands() -> None:
         "ingest-codex-result-and-validate",
         "run-github-sync-agent",
         "run-agent-orchestration",
+        "generate-autonomous-sprint-closeout",
         "inspect-codex-dispatch-run",
         "list-codex-dispatch-runs",
         "cancel-codex-dispatch-run",
@@ -8961,6 +8962,85 @@ def test_run_agent_orchestration_dispatch_json(
         "allow_github_sync": True,
         "queue_path": ".aresforge/queue/work_items.json",
         "output": "artifacts/multi-agent-orchestration/m138.json",
+        "force": True,
+        "output_format": "json",
+    }
+
+
+def test_generate_autonomous_sprint_closeout_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": True,
+        "stdout": json.dumps({"closeout_type": "autonomous_sprint_closeout_v1", "project_id": "aresforge"}),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_generate(
+        _config,
+        *,
+        project_id,
+        sprint_start="M125",
+        sprint_end="M139",
+        dry_run=False,
+        apply_docs_only=False,
+        queue_path=None,
+        output=None,
+        force=False,
+        output_format="json",
+    ):
+        seen.update(
+            {
+                "project_id": project_id,
+                "sprint_start": sprint_start,
+                "sprint_end": sprint_end,
+                "dry_run": dry_run,
+                "apply_docs_only": apply_docs_only,
+                "queue_path": queue_path,
+                "output": output,
+                "force": force,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "generate_autonomous_sprint_closeout", fake_generate)
+    exit_code = cli.main(
+        [
+            "generate-autonomous-sprint-closeout",
+            "--project-id",
+            "aresforge",
+            "--sprint-start",
+            "M125",
+            "--sprint-end",
+            "M139",
+            "--dry-run",
+            "--apply-docs-only",
+            "--queue-path",
+            ".aresforge/queue/work_items.json",
+            "--output",
+            "artifacts/autonomous-sprint-closeout/m139.json",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["closeout_type"] == "autonomous_sprint_closeout_v1"
+    assert seen == {
+        "project_id": "aresforge",
+        "sprint_start": "M125",
+        "sprint_end": "M139",
+        "dry_run": True,
+        "apply_docs_only": True,
+        "queue_path": ".aresforge/queue/work_items.json",
+        "output": "artifacts/autonomous-sprint-closeout/m139.json",
         "force": True,
         "output_format": "json",
     }
