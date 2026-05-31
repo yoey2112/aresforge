@@ -90,6 +90,7 @@ def test_cli_has_expected_commands() -> None:
         "run-single-ready-codex-queue-item",
         "approve-codex-dispatch",
         "run-codex-dispatch",
+        "ingest-codex-result-and-validate",
         "inspect-codex-dispatch-run",
         "list-codex-dispatch-runs",
         "cancel-codex-dispatch-run",
@@ -8695,6 +8696,90 @@ def test_run_codex_dispatch_executor_dispatch_json(
     assert seen["require_clean_worktree"] is True
     assert seen["timeout_seconds"] == 15
     assert seen["output"] == "artifacts/codex_dispatch/executions/m135.json"
+
+
+def test_ingest_codex_result_and_validate_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "ingestion_record_type": "codex_result_ingestion_validation",
+                "item_id": "m136",
+                "execution_record_path": "artifacts/manual/sample-codex-execution-record.json",
+                "dry_run": True,
+                "validation_profile": "queue_system",
+                "blocked": False,
+                "queue_mutation_performed": False,
+                "github_execution_performed": False,
+                "local_only": True,
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_ingest(
+        _config,
+        item_id,
+        execution_record,
+        validation_profile="code_unit_tests",
+        dry_run=False,
+        queue_path=None,
+        output=None,
+        force=False,
+        output_format="json",
+    ):
+        seen["item_id"] = item_id
+        seen["execution_record"] = execution_record
+        seen["validation_profile"] = validation_profile
+        seen["dry_run"] = dry_run
+        seen["queue_path"] = queue_path
+        seen["output"] = output
+        seen["force"] = force
+        seen["output_format"] = output_format
+        return payload
+
+    monkeypatch.setattr(cli, "ingest_codex_result_and_validate", fake_ingest)
+    exit_code = cli.main(
+        [
+            "ingest-codex-result-and-validate",
+            "--item-id",
+            "m136",
+            "--execution-record",
+            "artifacts/manual/sample-codex-execution-record.json",
+            "--validation-profile",
+            "queue_system",
+            "--dry-run",
+            "--queue-path",
+            "queue.json",
+            "--output",
+            "artifacts/codex_result_ingestion/m136.json",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["ingestion_record_type"] == "codex_result_ingestion_validation"
+    assert parsed["queue_mutation_performed"] is False
+    assert parsed["github_execution_performed"] is False
+    assert seen == {
+        "item_id": "m136",
+        "execution_record": "artifacts/manual/sample-codex-execution-record.json",
+        "validation_profile": "queue_system",
+        "dry_run": True,
+        "queue_path": "queue.json",
+        "output": "artifacts/codex_result_ingestion/m136.json",
+        "force": True,
+        "output_format": "json",
+    }
 
 
 def test_inspect_and_list_codex_dispatch_run_dispatch_json(

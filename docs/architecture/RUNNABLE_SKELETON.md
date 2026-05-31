@@ -1,5 +1,31 @@
 # Runnable Skeleton
 
+## M136 Codex Result Ingestion and Validation Runner
+
+M136 adds the local validation handoff after Codex execution:
+
+- `python -m aresforge ingest-codex-result-and-validate --item-id <item_id> --execution-record <path> --format json`
+- optional `--dry-run`, `--validation-profile`, `--output`, and `--force`
+
+Runnable behavior:
+
+- reads one local Codex execution record
+- reads stdout, stderr, and result artifact paths from that record when present
+- detects changed files from the execution record, captured output, and local git status
+- writes a local normalized result source artifact
+- writes a `dispatch_result_evidence` artifact
+- writes a `queue_completion_recommendation` artifact
+- writes a `machine_safety_gate_evaluation` artifact for queue completion handoff
+- runs local validation commands only from `docs_only`, `code_unit_tests`, `hub_ui`, `queue_system`, or `full_local_safe` unless `--dry-run` is supplied
+
+Still absent by design:
+
+- Codex execution
+- GitHub API, `gh`, remote service calls, or automatic push
+- queue status mutation, automatic completion, or automatic M132 delegation
+- patch application by the ingestion runner
+- automatic next-item execution, daemon behavior, or background scheduling
+
 ## M135 Codex Dispatch Executor v1
 
 M135 adds a machine-gated Codex dispatch execution command:

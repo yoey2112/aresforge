@@ -4664,6 +4664,134 @@
       "closeout_history": [],
       "created_at": "2026-05-31T00:00:00Z",
       "updated_at": "2026-05-31T02:59:44Z"
+    },
+    {
+      "item_id": "m136-codex-result-ingestion-and-validation-runner",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M136 Codex Result Ingestion and Validation Runner",
+      "description": "Ingest Codex execution records, parse captured results, run local validation profiles, and prepare evidence for machine-gated completion.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "feature",
+      "tags": [
+        "milestone:m136",
+        "codex-result-ingestion",
+        "validation-runner",
+        "machine-gated",
+        "local-only"
+      ],
+      "dependencies": [
+        "m135-codex-dispatch-executor-v1"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [
+        "tests_run",
+        "smoke_checks",
+        "commit_hash"
+      ],
+      "evidence_required": [
+        "dispatch_result_evidence",
+        "validation_results"
+      ],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: add ingest-codex-result-and-validate; read Codex execution record; parse stdout/stderr/result artifacts; detect changed files; run allowlisted local validation profile unless dry-run; capture validation output; generate dispatch evidence, completion recommendation, and machine-gate result; no auto-completion, GitHub, gh, remote services, push, queue mutation, or next-item execution.",
+      "started_at": "2026-05-31T03:00:00Z",
+      "started_via": "local_operator",
+      "previous_status": "ready",
+      "completed_at": "2026-05-31T03:20:31Z",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M136 Codex Result Ingestion and Validation Runner implemented and validated locally. Added ingest-codex-result-and-validate with execution-record ingestion, stdout/stderr/result artifact parsing, changed-file detection, allowlisted validation profiles, captured validation output, dispatch evidence generation, queue completion recommendation generation, machine-gate result generation, CLI coverage, tests, docs, and sample Codex execution/result fixtures. No queue completion, GitHub, gh, remote services, push, Codex execution from ingestion, or next-item execution was performed.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 210 passed; python -m pytest tests/test_codex_result_ingestion_validation.py -> 5 passed; python -m pytest tests/test_dispatch_result_evidence_parser.py -> 6 passed; python -m pytest tests/test_queue_completion_recommendation.py -> 5 passed; python -m pytest tests/test_machine_safety_gate_engine.py -> 8 passed; git diff --check -> passed with CRLF warnings only; ingest-codex-result-and-validate dry-run smoke passed with blocked=false, queue_mutation_performed=false, github_execution_performed=false, completion recommendation generated, and machine gate result generated; inspect-local-project-report passed; inspect-local-queue-agent-summary passed.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 210 passed",
+        "python -m pytest tests/test_codex_result_ingestion_validation.py -> 5 passed",
+        "python -m pytest tests/test_dispatch_result_evidence_parser.py -> 6 passed",
+        "python -m pytest tests/test_queue_completion_recommendation.py -> 5 passed",
+        "python -m pytest tests/test_machine_safety_gate_engine.py -> 8 passed",
+        "git diff --check -> passed with CRLF warnings only",
+        "python -m aresforge ingest-codex-result-and-validate --item-id m136-codex-result-ingestion-and-validation-runner --execution-record artifacts/manual/sample-codex-execution-record.json --dry-run --format json -> passed, blocked=false, queue_mutation_performed=false, github_execution_performed=false",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/codex_result_ingestion_validation.py",
+        "src/aresforge/cli.py",
+        "tests/test_codex_result_ingestion_validation.py",
+        "tests/test_cli.py",
+        "artifacts/manual/sample-codex-execution-record.json",
+        "artifacts/manual/sample-codex-ingestion-result.md",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        ".aresforge/queue/work_items.json"
+      ],
+      "artifact_paths": [
+        "artifacts/manual/sample-codex-execution-record.json",
+        "artifacts/manual/sample-codex-ingestion-result.md",
+        "artifacts/codex_result_ingestion/<item_id>/<timestamp>/{dispatch-evidence.json,completion-recommendation.json,machine-gate-result.json}"
+      ],
+      "completion_evidence": {
+        "evidence_summary": "M136 Codex result ingestion and validation runner passed targeted validation and dry-run smoke.",
+        "validation_commands": [
+          "python -m pytest tests/test_cli.py",
+          "python -m pytest tests/test_codex_result_ingestion_validation.py",
+          "python -m pytest tests/test_dispatch_result_evidence_parser.py",
+          "python -m pytest tests/test_queue_completion_recommendation.py",
+          "python -m pytest tests/test_machine_safety_gate_engine.py",
+          "git diff --check"
+        ],
+        "smoke_checks": [
+          "python -m aresforge ingest-codex-result-and-validate --item-id m136-codex-result-ingestion-and-validation-runner --execution-record artifacts/manual/sample-codex-execution-record.json --dry-run --format json -> passed",
+          "python -m aresforge inspect-local-project-report -> passed",
+          "python -m aresforge inspect-local-queue-agent-summary -> passed"
+        ],
+        "validation_profiles": [
+          "docs_only",
+          "code_unit_tests",
+          "hub_ui",
+          "queue_system",
+          "full_local_safe"
+        ],
+        "runner_constraints": [
+          "queue_mutation_performed=false",
+          "github_execution_performed=false",
+          "remote_services_called=false",
+          "codex_execution_performed=false",
+          "local_only=true"
+        ],
+        "evidence_artifacts": [
+          "dispatch evidence artifact",
+          "completion recommendation artifact",
+          "machine gate result artifact"
+        ],
+        "commit_hash": "pending-final-commit"
+      },
+      "routing_metadata": {
+        "recommended_agent_lane": "validation_agent",
+        "recommended_engine": "local_deterministic_runner",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "delegated-batch",
+        "routing_reason": "M136 validates captured Codex execution results before any completion decision.",
+        "risk_level": "medium",
+        "complexity_level": "medium",
+        "escalation_reason": "",
+        "project_ai_mode": "manual_only",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-05-31T03:00:00Z",
+      "updated_at": "2026-05-31T03:20:31Z"
     }
   ]
 }

@@ -1,0 +1,25 @@
+{
+  "execution_record_type": "codex_dispatch_execution_v1",
+  "item_id": "m136-codex-result-ingestion-and-validation-runner",
+  "dry_run": false,
+  "executed": true,
+  "blocked": false,
+  "exit_code": 0,
+  "stdout_artifact_path": "artifacts/manual/sample-codex-ingestion-result.md",
+  "stderr_artifact_path": "",
+  "result_artifact_path": "",
+  "changed_files": [
+    "src/aresforge/operator/codex_result_ingestion_validation.py",
+    "src/aresforge/cli.py",
+    "tests/test_codex_result_ingestion_validation.py",
+    "tests/test_cli.py"
+  ],
+  "commit_hash": "abc1234",
+  "local_only": true,
+  "external_execution_performed": true,
+  "model_execution_performed": false,
+  "github_execution_performed": false,
+  "queue_mutation_performed": false,
+  "patch_application_performed": false,
+  "next_safe_action": "Run M136 ingestion and validation before any completion decision."
+}

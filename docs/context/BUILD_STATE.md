@@ -1,5 +1,33 @@
 # AresForge Build State
 
+## M136 Codex Result Ingestion and Validation Runner
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m136-codex-result-ingestion-and-validation-runner`.
+
+M136 adds a local-only ingestion and validation runner for Codex execution records:
+
+- `python -m aresforge ingest-codex-result-and-validate --item-id <item_id> --execution-record <path> --format json`
+- optional `--dry-run`, `--validation-profile`, `--output`, and `--force`
+
+Validation profiles:
+
+- `docs_only`
+- `code_unit_tests`
+- `hub_ui`
+- `queue_system`
+- `full_local_safe`
+
+The runner reads one local Codex execution record, extracts stdout/stderr/result artifact text, detects changed files, selects allowlisted local validation commands, writes dispatch evidence, writes a completion recommendation, evaluates queue completion machine gates, and emits a stable `codex_result_ingestion_validation` record.
+
+Safety boundaries:
+
+- dry-run selects validation commands but does not run them
+- validation execution is limited to local allowlisted commands for the selected profile
+- generated evidence is local-only and advisory until a separate M132 auto-completion or human queue lifecycle action is invoked
+- no Codex execution, GitHub API, `gh`, network service call, push, queue status mutation, automatic completion, or next-item execution
+
 ## M135 Codex Dispatch Executor v1
 
 Status: Completed locally on `main` after validation.

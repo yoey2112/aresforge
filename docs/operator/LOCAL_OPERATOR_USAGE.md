@@ -1,5 +1,31 @@
 # Local Operator Usage
 
+## M136 Codex Result Ingestion and Validation Runner
+
+M136 validates the local result of a Codex execution record after M135 dispatch. It parses captured stdout/stderr/result artifacts, detects changed files, runs one allowlisted local validation profile unless dry-run is supplied, writes dispatch evidence, writes a completion recommendation, and writes a machine-gate result. It does not complete queue items, push, call GitHub or `gh`, call remote services, execute Codex, or start another item.
+
+Dry-run first:
+
+    python -m aresforge ingest-codex-result-and-validate --item-id m136-codex-result-ingestion-and-validation-runner --execution-record artifacts/manual/sample-codex-execution-record.json --dry-run --format json
+
+Run a chosen validation profile:
+
+    python -m aresforge ingest-codex-result-and-validate --item-id <item_id> --execution-record <path> --validation-profile queue_system --format json
+
+Write a local ingestion record:
+
+    python -m aresforge ingest-codex-result-and-validate --item-id <item_id> --execution-record <path> --output artifacts/codex_result_ingestion/<item_id>.json --format json
+
+Validation profiles:
+
+- `docs_only`: whitespace/diff validation only.
+- `code_unit_tests`: CLI, dispatch evidence, recommendation, and machine-gate tests.
+- `hub_ui`: Hub UI/API-focused smoke suites.
+- `queue_system`: queue, recommendation, and machine-gate tests.
+- `full_local_safe`: broader local-safe M136 handoff validation.
+
+After M136 passes, review the generated evidence, completion recommendation, and machine-gate result. Queue completion still requires an explicit M132 auto-completion command or human queue lifecycle action.
+
 ## M135 Codex Dispatch Executor v1
 
 M135 can run one prepared Codex dispatch artifact when the `codex_dispatch` machine gate passes and the operator explicitly enables execution. It records local stdout, stderr, and result artifacts. It does not apply patches, call GitHub or `gh`, mutate queue status, complete work, push automatically, or start another item.

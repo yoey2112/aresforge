@@ -219,6 +219,10 @@ from aresforge.operator.codex_dispatch_runner import (
     run_operator_gated_codex_dispatch,
 )
 from aresforge.operator.codex_dispatch_executor import run_codex_dispatch_executor
+from aresforge.operator.codex_result_ingestion_validation import (
+    VALIDATION_PROFILES as CODEX_RESULT_VALIDATION_PROFILES,
+    ingest_codex_result_and_validate,
+)
 from aresforge.operator.llm_decision_matrix import inspect_llm_decision_matrix
 from aresforge.operator.local_coding_draft import prepare_local_coding_draft_artifact
 from aresforge.operator.documentation_agent_contract import inspect_documentation_agent_contract
@@ -2285,6 +2289,26 @@ def build_parser() -> argparse.ArgumentParser:
     run_codex_dispatch_parser.add_argument(
         "--format",
         choices=["json", "markdown"],
+        default="json",
+    )
+    ingest_codex_result_parser = subparsers.add_parser(
+        "ingest-codex-result-and-validate",
+        help="Ingest a Codex execution record, run local validation, and generate completion handoff evidence.",
+    )
+    ingest_codex_result_parser.add_argument("--item-id", required=True)
+    ingest_codex_result_parser.add_argument("--execution-record", required=True)
+    ingest_codex_result_parser.add_argument("--dry-run", action="store_true")
+    ingest_codex_result_parser.add_argument(
+        "--validation-profile",
+        choices=sorted(CODEX_RESULT_VALIDATION_PROFILES),
+        default="code_unit_tests",
+    )
+    ingest_codex_result_parser.add_argument("--queue-path")
+    ingest_codex_result_parser.add_argument("--output")
+    ingest_codex_result_parser.add_argument("--force", action="store_true")
+    ingest_codex_result_parser.add_argument(
+        "--format",
+        choices=["json"],
         default="json",
     )
     inspect_codex_dispatch_run_parser = subparsers.add_parser(
@@ -5254,6 +5278,24 @@ def main(argv: list[str] | None = None) -> int:
         if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
             print(payload["stdout"])
             return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "ingest-codex-result-and-validate":
+        payload = ingest_codex_result_and_validate(
+            config,
+            item_id=args.item_id,
+            execution_record=args.execution_record,
+            validation_profile=args.validation_profile,
+            dry_run=bool(args.dry_run),
+            queue_path=args.queue_path,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 
