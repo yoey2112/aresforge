@@ -1,5 +1,24 @@
 # AresForge Roadmap
 
+## M158 Operator Autonomy Configuration Profile
+
+Status: Completed locally on `main` after validation.
+
+M158 hardens autonomy policy selection with:
+
+- `python -m aresforge inspect-autonomy-profile --project-id aresforge --format json`
+- deterministic `operator_autonomy_configuration_profile_v1` output
+- explicit profiles: `locked_down`, `advisory_only`, `low_risk_local`, `codex_dry_run`, `codex_low_risk_enabled`, `github_sync_dry_run`, `github_issue_sync_enabled`, and `experimental_full_local`
+- default safe-deny behavior through `locked_down`
+- machine-readable capability controls for local inspection, local artifacts, planning, queue mutation, validation, local model advisory execution, Codex dry-run, low-risk Codex execution, GitHub dry-run, GitHub issue sync, patch dry-run, docs-only patch application, resume/retry, and automatic next-item execution
+- read-only `operator_autonomy_profile` machine safety gate
+
+Boundary:
+
+- profile inspection does not execute anything
+- capability statuses are policy declarations only; actual execution remains separate, explicit, and machine-gated
+- no agent execution, Codex execution, local LLM/model execution, GitHub operation, validation command execution, source patch application, queue mutation, retry, resume, protected-branch update, workflow mutation, PR merge, force push, release creation, or automatic next-item execution
+
 ## M157 Run Replay and Audit Trail
 
 Status: Completed locally on `main` after validation.

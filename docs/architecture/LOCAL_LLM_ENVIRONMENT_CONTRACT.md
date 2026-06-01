@@ -1,5 +1,11 @@
 # Local LLM Environment Contract
 
+## M158 Operator Autonomy Configuration Profile Boundary
+
+M158 autonomy profile inspection does not change local LLM permissions. Profiles may mark `local_model_advisory_execution` as `enabled`, `dry_run_only`, or `blocked`, but those labels are policy metadata only. Any real local model execution still requires the separate local LLM advisory/coding command path, explicit operator intent, local provider constraints, and a passing `local_llm_execution` machine gate.
+
+The `inspect-autonomy-profile` command does not call Ollama, send prompts, run inference, select fallback models, mutate repository files, mutate queue state, call Codex, call GitHub/`gh`, apply patches, run validation commands, retry failures, resume orchestration, or start follow-on work.
+
 ## M157 Run Replay and Audit Trail Boundary
 
 M157 replay/audit inspection does not change local LLM permissions. Replay may report that a source orchestration run performed or avoided model execution, but the replay command itself does not call Ollama, send prompts, run inference, select fallback models, mutate repository files, mutate queue state, call Codex, call GitHub/`gh`, apply patches, run validation commands, delete artifacts, retry failures, resume orchestration, or start follow-on work.

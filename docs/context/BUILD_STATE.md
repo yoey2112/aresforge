@@ -1,5 +1,25 @@
 # AresForge Build State
 
+## M158 Operator Autonomy Configuration Profile
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m158-operator-autonomy-configuration-profile`.
+
+M158 adds explicit operator autonomy configuration profile inspection:
+
+- `python -m aresforge inspect-autonomy-profile --project-id aresforge --format json`
+- stable `operator_autonomy_configuration_profile_v1` JSON with `locked_down`, `advisory_only`, `low_risk_local`, `codex_dry_run`, `codex_low_risk_enabled`, `github_sync_dry_run`, `github_issue_sync_enabled`, and `experimental_full_local`
+- default profile is `locked_down` with safe-deny behavior for every non-read capability
+- each profile exposes capability controls as `enabled`, `dry_run_only`, or `blocked`, required machine-gate profiles, required explicit flags, status counts, blocked operations, and next safe action
+- adds the read-only `operator_autonomy_profile` machine safety gate for profile inspection
+
+Safety posture:
+
+- profile inspection is local-only and does not execute the capabilities it describes
+- "enabled" profile entries still require separate explicit commands, operator intent, and passing machine gates before any future action
+- the inspector performs no agent, Codex, local LLM/model, GitHub, validation command, source patch, queue mutation, retry, resume, PR merge, force push, protected-branch update, workflow mutation, release, or automatic next-item execution
+
 ## M157 Run Replay and Audit Trail
 
 Status: Completed locally on `main` after validation.

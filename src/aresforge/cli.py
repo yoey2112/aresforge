@@ -232,6 +232,7 @@ from aresforge.operator.orchestrator_resume_from_failure import inspect_orchestr
 from aresforge.operator.orchestration_run_monitor import inspect_orchestration_run_monitor
 from aresforge.operator.orchestration_artifact_retention_policy import inspect_orchestration_artifact_retention
 from aresforge.operator.orchestration_run_replay_audit import replay_orchestration_run
+from aresforge.operator.operator_autonomy_configuration_profile import inspect_autonomy_profile
 from aresforge.operator.codex_execution_enablement_profile import inspect_codex_execution_enablements
 from aresforge.operator.codex_execution_sandbox_worktree_guard import inspect_codex_worktree_guard
 from aresforge.operator.codex_validation_profiles import inspect_codex_validation_profiles
@@ -2533,6 +2534,24 @@ def build_parser() -> argparse.ArgumentParser:
     replay_orchestration_run_parser.add_argument("--output")
     replay_orchestration_run_parser.add_argument("--force", action="store_true")
     replay_orchestration_run_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+    )
+    inspect_autonomy_profile_parser = subparsers.add_parser(
+        "inspect-autonomy-profile",
+        help="Inspect M158 operator autonomy configuration profiles without executing autonomous capabilities.",
+    )
+    inspect_autonomy_profile_parser.add_argument("--project-id", default="aresforge")
+    inspect_autonomy_profile_parser.add_argument(
+        "--item-id",
+        default="m158-operator-autonomy-configuration-profile",
+    )
+    inspect_autonomy_profile_parser.add_argument("--autonomy-profile")
+    inspect_autonomy_profile_parser.add_argument("--queue-path")
+    inspect_autonomy_profile_parser.add_argument("--output")
+    inspect_autonomy_profile_parser.add_argument("--force", action="store_true")
+    inspect_autonomy_profile_parser.add_argument(
         "--format",
         choices=["json"],
         default="json",
@@ -5895,6 +5914,23 @@ def main(argv: list[str] | None = None) -> int:
             dry_run=bool(args.dry_run),
             history_path=args.history_path,
             artifacts_root=args.artifacts_root,
+            queue_path=args.queue_path,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-autonomy-profile":
+        payload = inspect_autonomy_profile(
+            config,
+            project_id=args.project_id,
+            item_id=args.item_id,
+            autonomy_profile=args.autonomy_profile,
             queue_path=args.queue_path,
             output=args.output,
             force=bool(args.force),

@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-31T23:02:00Z",
+  "updated_at": "2026-06-01T23:50:00Z",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -6682,6 +6682,105 @@
       "closeout_history": [],
       "created_at": "2026-05-31T23:29:00Z",
       "updated_at": "2026-05-31T23:29:00Z"
+    },
+    {
+      "item_id": "m158-operator-autonomy-configuration-profile",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M158 Operator Autonomy Configuration Profile",
+      "description": "Create explicit operator autonomy profiles controlling which autonomous capabilities are enabled, blocked, or dry-run only.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "orchestration",
+      "tags": [
+        "milestone:m158",
+        "operator-autonomy",
+        "configuration-profile",
+        "machine-gated"
+      ],
+      "dependencies": [
+        "m157-run-replay-and-audit-trail"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [],
+      "evidence_required": [],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: add inspect-autonomy-profile; deterministic operator_autonomy_configuration_profile_v1 JSON; include locked_down, advisory_only, low_risk_local, codex_dry_run, codex_low_risk_enabled, github_sync_dry_run, github_issue_sync_enabled, and experimental_full_local profiles; profile controls must be explicit, inspectable, and default to safe/deny; no agent/Codex/local LLM/model/GitHub/validation command/source patch/queue mutation/retry/resume/next-item execution from profile inspection.",
+      "started_at": "2026-06-01T00:00:00Z",
+      "started_via": "local_operator",
+      "previous_status": "ready",
+      "completed_at": "2026-06-01T00:00:00Z",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M158 Operator Autonomy Configuration Profile implemented and validated locally. Added inspect-autonomy-profile with stable operator_autonomy_configuration_profile_v1 JSON, default locked_down safe-deny behavior, explicit enabled/dry_run_only/blocked capability controls, operator_autonomy_profile machine gate inspection, source-of-truth docs, CLI coverage, targeted tests, and queue evidence. The inspector performs no agent, Codex, local LLM/model, GitHub, validation command, source patch, queue mutation from inspection, retry, resume, or next-item execution.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 231 passed; python -m pytest tests/test_operator_autonomy_configuration_profile.py -> 4 passed; python -m pytest tests/test_machine_safety_gate_engine.py -> 8 passed; git diff --check -> passed with CRLF warnings only; inspect-local-project-report passed; inspect-local-queue-agent-summary passed; inspect-project-queue --project-id aresforge passed; inspect-autonomy-profile --project-id aresforge --format json passed with status=safe_default_ready, blocked=false, machine_gates_passed=true, autonomy_profile=locked_down, mutation_performed=false, queue_mutation_performed=false, codex_execution_performed=false, model_execution_performed=false, github_execution_performed=false, patch_application_performed=false, local_only=true.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 231 passed",
+        "python -m pytest tests/test_operator_autonomy_configuration_profile.py -> 4 passed",
+        "python -m pytest tests/test_machine_safety_gate_engine.py -> 8 passed",
+        "git diff --check -> passed with CRLF warnings only",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed",
+        "python -m aresforge inspect-project-queue --project-id aresforge -> passed",
+        "python -m aresforge inspect-autonomy-profile --project-id aresforge --format json -> passed"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/operator_autonomy_configuration_profile.py",
+        "src/aresforge/operator/machine_safety_gate_engine.py",
+        "src/aresforge/cli.py",
+        "tests/test_operator_autonomy_configuration_profile.py",
+        "tests/test_machine_safety_gate_engine.py",
+        "tests/test_cli.py",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
+        "docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
+        "docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md",
+        ".aresforge/queue/work_items.json"
+      ],
+      "artifact_paths": [
+        ".aresforge/autonomy_profiles/<profile>.json (optional output path; default command writes no artifact)"
+      ],
+      "completion_evidence": {
+        "command": "inspect-autonomy-profile",
+        "record_type": "operator_autonomy_configuration_profile_v1",
+        "status": "safe_default_ready",
+        "machine_gates_passed": true,
+        "mutation_performed": false,
+        "queue_mutation_performed": false,
+        "external_execution_performed": false,
+        "codex_execution_performed": false,
+        "model_execution_performed": false,
+        "github_execution_performed": false,
+        "patch_application_performed": false,
+        "local_only": true,
+        "commit_hash": "pending-final-commit"
+      },
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-06-01T00:00:00Z",
+      "updated_at": "2026-06-01T00:00:00Z"
     }
   ]
 }

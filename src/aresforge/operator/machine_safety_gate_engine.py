@@ -27,6 +27,7 @@ GATE_PROFILES: tuple[str, ...] = (
     "codex_dispatch",
     "github_sync",
     "multi_agent_orchestration",
+    "operator_autonomy_profile",
 )
 
 _FORBIDDEN_CAPABILITIES: tuple[str, ...] = (
@@ -123,6 +124,10 @@ _PROFILES: dict[str, GateProfile] = {
         require_tests=True,
         require_transaction_log=True,
     ),
+    "operator_autonomy_profile": GateProfile(
+        profile="operator_autonomy_profile",
+        allowed_paths=("docs/", "src/", "tests/", ".aresforge/", "artifacts/"),
+    ),
 }
 
 
@@ -197,7 +202,13 @@ def evaluate_machine_safety_gates(
                 _working_tree_acceptable(active_profile, git_status),
                 "Working tree must be acceptable for the requested profile.",
                 warning_only=active_profile.profile
-                in {"read_only_agent", "local_artifact_write", "codex_dispatch", "source_patch_apply_dry_run"},
+                in {
+                    "read_only_agent",
+                    "local_artifact_write",
+                    "codex_dispatch",
+                    "source_patch_apply_dry_run",
+                    "operator_autonomy_profile",
+                },
             ),
             _check(
                 "file_path_allowlist_respected",
@@ -410,6 +421,7 @@ def _working_tree_acceptable(profile: GateProfile, git_status: dict[str, Any]) -
         "source_patch_apply_dry_run",
         "local_llm_execution",
         "codex_dispatch",
+        "operator_autonomy_profile",
     }
 
 
@@ -487,6 +499,7 @@ def _collect_warnings(
         "local_artifact_write",
         "local_llm_execution",
         "codex_dispatch",
+        "operator_autonomy_profile",
     }:
         warnings.append(
             "Working tree has local changes; this profile treats dirty state as warning-only unless the caller requires a clean tree."

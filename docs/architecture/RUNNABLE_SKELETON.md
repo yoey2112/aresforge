@@ -1,5 +1,21 @@
 # Runnable Skeleton
 
+## M158 Operator Autonomy Configuration Profile
+
+M158 adds a local autonomy profile inspection command:
+
+- `python -m aresforge inspect-autonomy-profile --project-id aresforge --format json`
+
+The command returns `operator_autonomy_configuration_profile_v1` JSON. It lists explicit operator profiles, selects `locked_down` by default, and reports every controlled capability as `enabled`, `dry_run_only`, or `blocked`. Profiles include `locked_down`, `advisory_only`, `low_risk_local`, `codex_dry_run`, `codex_low_risk_enabled`, `github_sync_dry_run`, `github_issue_sync_enabled`, and `experimental_full_local`.
+
+Runnable boundary:
+
+- local profile inspection only
+- optional `--output` writes one local profile artifact
+- profile metadata does not execute the capabilities it describes
+- enabled capabilities still require separate explicit commands, operator intent, required flags, and passing machine gates
+- no agent, Codex, local LLM/model, GitHub, validation command, source patch, queue mutation, retry, resume, PR merge, force push, protected-branch update, workflow mutation, release, or next-item execution is performed
+
 ## M157 Run Replay and Audit Trail
 
 M157 adds a local replay/audit command:

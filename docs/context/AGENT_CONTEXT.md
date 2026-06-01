@@ -1,5 +1,25 @@
 # AresForge Agent Context
 
+## M158 Operator Autonomy Configuration Profile Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m158-operator-autonomy-configuration-profile`.
+
+M158 adds `inspect-autonomy-profile`, a local-only inspector for operator autonomy profiles.
+
+Command:
+
+- `python -m aresforge inspect-autonomy-profile --project-id aresforge --format json`
+
+Agent-facing guidance:
+
+- Treat `operator_autonomy_configuration_profile_v1` output as policy metadata only, not permission to execute.
+- The default `locked_down` profile is the safe-deny baseline.
+- Available profiles are `locked_down`, `advisory_only`, `low_risk_local`, `codex_dry_run`, `codex_low_risk_enabled`, `github_sync_dry_run`, `github_issue_sync_enabled`, and `experimental_full_local`.
+- Capability controls use `enabled`, `dry_run_only`, and `blocked`; an `enabled` capability still needs a separate explicit command and passing machine gate.
+- Do not run agents, Codex, models, GitHub, validation commands, source patches, queue mutation, retries, resumes, PR merges, force pushes, workflow mutation, releases, or later sprint items from profile inspection output.
+
 ## M157 Run Replay and Audit Trail Context
 
 Status: Completed locally on `main` after validation.

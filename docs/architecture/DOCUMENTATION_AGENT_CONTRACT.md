@@ -1,5 +1,11 @@
 # Documentation Agent Contract
 
+## M158 Operator Autonomy Configuration Profile Boundary
+
+M158 autonomy profile inspection does not add documentation-agent mutation. Profiles may mark docs-only patch application or documentation-adjacent local planning as enabled, dry-run-only, or blocked, but those labels are inspectable policy metadata only. Documentation mutation remains limited to separate docs-only Markdown patch commands that pass `docs_only_patch_apply` gates.
+
+The `inspect-autonomy-profile` command does not edit documentation, generate patches, apply patches, execute documentation agents, call models, call Codex, call GitHub/`gh`, mutate queue state, run validation commands, retry failures, resume orchestration, or start follow-on work.
+
 ## M157 Run Replay and Audit Trail Boundary
 
 M157 replay/audit inspection does not add documentation-agent mutation. It may read artifacts that mention documentation-agent steps or documentation evidence, but it does not edit documentation, generate patches, apply patches, execute documentation agents, call models, call Codex, call GitHub/`gh`, mutate queue state, run validation commands, delete artifacts, retry failures, resume orchestration, or start follow-on work.

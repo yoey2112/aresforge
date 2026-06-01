@@ -101,6 +101,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-orchestration-resume-plan",
         "inspect-orchestration-artifact-retention",
         "replay-orchestration-run",
+        "inspect-autonomy-profile",
         "inspect-codex-execution-enablements",
         "inspect-codex-worktree-guard",
         "inspect-codex-validation-profiles",
@@ -9888,6 +9889,83 @@ def test_inspect_codex_execution_enablements_dispatch_json(
         "project_id": "aresforge",
         "queue_path": ".aresforge/queue/work_items.json",
         "output": ".aresforge/codex_execution/enablements/m142-profile.json",
+        "force": True,
+        "output_format": "json",
+    }
+
+
+def test_inspect_autonomy_profile_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "record_type": "operator_autonomy_configuration_profile_v1",
+                "project_id": "aresforge",
+                "autonomy_profile": "codex_dry_run",
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_inspect(
+        _config,
+        *,
+        project_id="aresforge",
+        item_id="m158-operator-autonomy-configuration-profile",
+        autonomy_profile=None,
+        queue_path=None,
+        output=None,
+        force=False,
+        output_format="json",
+    ):
+        seen.update(
+            {
+                "project_id": project_id,
+                "item_id": item_id,
+                "autonomy_profile": autonomy_profile,
+                "queue_path": queue_path,
+                "output": output,
+                "force": force,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "inspect_autonomy_profile", fake_inspect)
+    exit_code = cli.main(
+        [
+            "inspect-autonomy-profile",
+            "--project-id",
+            "aresforge",
+            "--item-id",
+            "m158",
+            "--autonomy-profile",
+            "codex_dry_run",
+            "--queue-path",
+            ".aresforge/queue/work_items.json",
+            "--output",
+            ".aresforge/autonomy_profiles/m158-profile.json",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["record_type"] == "operator_autonomy_configuration_profile_v1"
+    assert seen == {
+        "project_id": "aresforge",
+        "item_id": "m158",
+        "autonomy_profile": "codex_dry_run",
+        "queue_path": ".aresforge/queue/work_items.json",
+        "output": ".aresforge/autonomy_profiles/m158-profile.json",
         "force": True,
         "output_format": "json",
     }

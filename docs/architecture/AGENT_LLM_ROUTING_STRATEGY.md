@@ -1,5 +1,17 @@
 # Agent LLM Routing Strategy
 
+## M158 Operator Autonomy Configuration Profile
+
+M158 does not add a new agent, Codex, local LLM, or GitHub execution route. It adds an explicit profile layer that lets operators and future orchestration code inspect whether a capability is currently `enabled`, `dry_run_only`, or `blocked`.
+
+Routing implications:
+
+- the default route is `locked_down`, which permits local inspection only
+- `codex_dry_run` and `codex_low_risk_enabled` describe Codex routing boundaries but do not invoke Codex from the inspector
+- `github_sync_dry_run` and `github_issue_sync_enabled` describe GitHub sync boundaries but do not call GitHub or `gh` from the inspector
+- `experimental_full_local` remains explicit-selection metadata and does not bypass per-command machine gates
+- M158 reports no agent execution, no model execution, no Codex execution, no GitHub execution, no patch application, and no queue mutation by the profile inspector itself
+
 ## M157 Run Replay and Audit Trail
 
 M157 does not add a new agent, Codex, local LLM, or GitHub execution route. It routes prior orchestration evidence into a dry-run replay/audit record so operators can reconstruct what happened before considering any separate recovery, cleanup, or completion command.

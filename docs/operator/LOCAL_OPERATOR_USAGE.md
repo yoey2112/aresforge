@@ -1,5 +1,27 @@
 # Local Operator Usage
 
+## M158 Operator Autonomy Configuration Profile
+
+M158 inspects named autonomy profiles that describe which autonomous capabilities are enabled, blocked, or dry-run only.
+
+Inspect the default safe profile:
+
+    python -m aresforge inspect-autonomy-profile --project-id aresforge --format json
+
+Inspect a specific profile:
+
+    python -m aresforge inspect-autonomy-profile --project-id aresforge --autonomy-profile codex_dry_run --format json
+
+Interpretation:
+
+- `record_type=operator_autonomy_configuration_profile_v1` identifies the M158 payload.
+- `autonomy_profile=locked_down` is the default safe-deny profile.
+- `profiles` lists all named profiles: `locked_down`, `advisory_only`, `low_risk_local`, `codex_dry_run`, `codex_low_risk_enabled`, `github_sync_dry_run`, `github_issue_sync_enabled`, and `experimental_full_local`.
+- Each `capability_controls` entry reports `enabled`, `dry_run_only`, or `blocked`.
+- `machine_gates_checked` reports the read-only `operator_autonomy_profile` gate for the inspection itself.
+
+M158 does not execute the capabilities it describes. An enabled profile entry still requires a separate explicit command, explicit operator intent, required flags, and passing machine gates. The inspector performs no Codex execution, local LLM/model execution, GitHub mutation, validation command execution, source patch application, queue mutation, retry, resume, PR merge, force push, workflow mutation, release, or automatic next-item execution.
+
 ## M157 Run Replay and Audit Trail
 
 M157 reconstructs local orchestration run evidence without re-running the original work.
