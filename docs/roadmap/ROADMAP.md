@@ -1,5 +1,25 @@
 # AresForge Roadmap
 
+## M171 GitHub Issue Creation Real-Run Gate
+
+Status: Completed locally on `main` after validation.
+
+M171 hardens the live self-managed GitHub loop with:
+
+- `python -m aresforge create-github-issue-real-run-gate --item-id m171-github-issue-creation-real-run-gate --dry-run --format json`
+- deterministic `github_issue_creation_real_run_gate_v1` output
+- registry-aware idempotency and duplicate prevention before any live issue create
+- stable issue/repository/sync/idempotency/recovery fields for dry-run and live outputs
+- mocked GitHub issue creation coverage without network access
+- optional single-issue real creation only after explicit GitHub enablement, `github_issue_sync_enabled` autonomy profile, safe queue status, no local duplicate link, and passing `github_sync` machine gate
+- local GitHub link registry recording after successful real issue creation
+
+Boundary:
+
+- dry-run or blocked by default
+- no queue status mutation after issue creation; the local registry is the only local state written on the successful real-create path
+- no PR merge, auto-merge, force push, protected branch update, release creation, workflow mutation, issue closure, Codex execution, local LLM/model execution, source patch application, validation command execution, retry, resume, or automatic next-item execution
+
 ## M170 GitHub Link Registry for Queue Items
 
 Status: Completed locally on `main` after validation.

@@ -1,5 +1,20 @@
 # Runnable Skeleton
 
+## M171 GitHub Issue Creation Real-Run Gate
+
+- `python -m aresforge create-github-issue-real-run-gate --item-id m171-github-issue-creation-real-run-gate --dry-run --format json`
+- emits `github_issue_creation_real_run_gate_v1`
+- checks one local queue item, M162 issue draft planning, M170 link registry state, M158 autonomy profile policy, and M131 machine gates
+- defaults to dry-run unless `--github-enabled` is supplied
+- live creation additionally requires non-dry-run behavior, `github_issue_sync_enabled`, safe queue status, no queue/registry duplicate issue link, and passing `github_sync`
+- successful real issue creation records a local registry link for idempotency and future duplicate prevention
+
+Runnable boundary:
+
+- dry-run or blocked by default
+- one issue create maximum per invocation
+- no queue status mutation, PR merge, auto-merge, force push, protected branch update, release creation, workflow mutation, issue closure, Codex execution, local LLM/model execution, source patch application, validation command execution, retry, resume, or automatic next-item execution
+
 ## M170 GitHub Link Registry for Queue Items
 
 - `python -m aresforge inspect-github-link-registry --project-id aresforge --format json`

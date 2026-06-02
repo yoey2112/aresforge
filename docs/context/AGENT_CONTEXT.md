@@ -1,5 +1,25 @@
 # AresForge Agent Context
 
+## M171 GitHub Issue Creation Real-Run Gate Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m171-github-issue-creation-real-run-gate`.
+
+M171 adds `create-github-issue-real-run-gate`, a dry-run-default command that can create exactly one GitHub issue only after explicit enablement, autonomy profile allowance, machine gates, safe queue status, and local duplicate-link checks pass.
+
+Command:
+
+- `python -m aresforge create-github-issue-real-run-gate --item-id m171-github-issue-creation-real-run-gate --dry-run --format json`
+
+Agent-facing guidance:
+
+- Treat `github_issue_creation_real_run_gate_v1` dry-run output as review evidence only.
+- The command checks local queue metadata, M162 issue draft planning, M170 link registry state, M158 autonomy profile policy, and the M131 `github_sync` machine gate.
+- Real issue creation requires `--github-enabled`, non-dry-run behavior, `autonomy_profile=github_issue_sync_enabled`, safe queue status, no linked issue metadata, no registry issue link, and a passing `github_sync` gate.
+- A successful real issue create records a local registry link; it does not complete or otherwise mutate the queue item.
+- Do not merge PRs, force push, update protected branches, enable auto-merge, create releases, mutate workflows, close issues, apply source patches, mutate queue status, run Codex/models, run validation commands, retry, resume, or start later sprint items from this output.
+
 ## M170 GitHub Link Registry for Queue Items Context
 
 Status: Completed locally on `main` after validation.

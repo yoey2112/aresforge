@@ -1,5 +1,27 @@
 # AresForge Build State
 
+## M171 GitHub Issue Creation Real-Run Gate
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m171-github-issue-creation-real-run-gate`.
+
+M171 adds a stricter real-run gate for creating one GitHub issue from one safe queue item:
+
+- `python -m aresforge create-github-issue-real-run-gate --item-id m171-github-issue-creation-real-run-gate --dry-run --format json`
+- stable `github_issue_creation_real_run_gate_v1` JSON
+- dry-run default with top-level issue/repository/sync/idempotency fields
+- registry-aware duplicate prevention using `.aresforge/github_link_registry/links.json`
+- mocked GitHub client support for deterministic tests without live GitHub access
+- optional real issue creation only when explicitly enabled, the `github_issue_sync_enabled` autonomy profile allows it, the `github_sync` machine gate passes, the queue item is safe, and no queue or registry duplicate link exists
+- successful real issue creation records an idempotent local GitHub link registry entry and does not mutate queue item state
+
+Safety posture:
+
+- dry-run or blocked by default
+- live GitHub mutation requires `--github-enabled`, non-dry-run invocation, `autonomy_profile=github_issue_sync_enabled`, safe queue status, no duplicate link, and passing machine gates
+- the command performs no PR merge, auto-merge, force push, protected branch update, release creation, workflow mutation, issue closure, source-code patch application, queue status mutation, Codex execution, local LLM/model execution, validation command execution, retry, resume, or automatic next-item execution
+
 ## M170 GitHub Link Registry for Queue Items
 
 Status: Completed locally on `main` after validation.

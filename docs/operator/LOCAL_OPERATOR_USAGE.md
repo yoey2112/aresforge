@@ -1,5 +1,25 @@
 # Local Operator Usage
 
+## M171 GitHub Issue Creation Real-Run Gate
+
+Dry-run the real-run gate for one queue item:
+
+- `python -m aresforge create-github-issue-real-run-gate --item-id m171-github-issue-creation-real-run-gate --dry-run --format json`
+
+Explicit live path, only when an operator intends a real issue create:
+
+- `python -m aresforge create-github-issue-real-run-gate --item-id <item_id> --github-enabled --autonomy-profile github_issue_sync_enabled --repo <owner/repo> --format json`
+
+Interpretation:
+
+- `record_type=github_issue_creation_real_run_gate_v1` identifies the M171 payload.
+- `dry_run=true` or `blocked=true` means no GitHub issue was created.
+- `github_execution_performed=true` can appear only on the non-dry-run, explicitly enabled, gated path.
+- `registry_duplicate_link_blocked=true` means `.aresforge/github_link_registry/links.json` already has an issue link for the item/repository.
+- `issue_created=true` means exactly one issue create was attempted and a local registry link was recorded; queue item status is not changed.
+
+M171 performs no PR merge, auto-merge, force push, protected branch update, release creation, workflow mutation, issue closure, source-code patch application, queue status mutation, Codex execution, model execution, validation command execution, retry, resume, or automatic next-item execution.
+
 ## M170 GitHub Link Registry for Queue Items
 
 Inspect the local queue-item GitHub link registry:
