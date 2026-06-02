@@ -196,6 +196,7 @@ def test_cli_has_expected_commands() -> None:
         "sync-github-status-comment-durable",
         "reconcile-github-issue-state",
         "recommend-github-issue-closure",
+        "gate-github-issue-closure",
         "inspect-github-link-registry",
         "record-github-link",
         "generate-pr-draft-summary",
@@ -9718,6 +9719,120 @@ def test_recommend_github_issue_closure_dispatch_json(
         "run_id": "run-165",
         "autonomy_profile": "github_sync_dry_run",
         "linked_issue_state": "open",
+        "output": None,
+        "force": False,
+        "output_format": "json",
+    }
+
+
+def test_gate_github_issue_closure_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "record_type": "github_issue_closure_safe_execution_gate_v1",
+                "item_id": "m175-github-issue-closure-safe-execution-gate",
+                "status": "dry_run_ready",
+                "dry_run": True,
+                "github_execution_performed": False,
+                "mutation_performed": False,
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_gate(
+        _config,
+        *,
+        item_id,
+        project_id="aresforge",
+        queue_path=None,
+        registry_path=None,
+        run_id=None,
+        dry_run=True,
+        github_enabled=False,
+        autonomy_profile="github_sync_dry_run",
+        repo=None,
+        issue_number=None,
+        linked_issue_state=None,
+        close_reason="completed",
+        output=None,
+        force=False,
+        output_format="json",
+    ):
+        seen.update(
+            {
+                "item_id": item_id,
+                "project_id": project_id,
+                "queue_path": queue_path,
+                "registry_path": registry_path,
+                "run_id": run_id,
+                "dry_run": dry_run,
+                "github_enabled": github_enabled,
+                "autonomy_profile": autonomy_profile,
+                "repo": repo,
+                "issue_number": issue_number,
+                "linked_issue_state": linked_issue_state,
+                "close_reason": close_reason,
+                "output": output,
+                "force": force,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "gate_github_issue_closure", fake_gate)
+    exit_code = cli.main(
+        [
+            "gate-github-issue-closure",
+            "--item-id",
+            "m175-github-issue-closure-safe-execution-gate",
+            "--project-id",
+            "aresforge",
+            "--queue-path",
+            "queue.json",
+            "--registry-path",
+            "links.json",
+            "--run-id",
+            "run-175",
+            "--dry-run",
+            "--repo",
+            "local/aresforge",
+            "--issue-number",
+            "175",
+            "--linked-issue-state",
+            "open",
+            "--close-reason",
+            "completed",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["record_type"] == "github_issue_closure_safe_execution_gate_v1"
+    assert parsed["github_execution_performed"] is False
+    assert parsed["mutation_performed"] is False
+    assert seen == {
+        "item_id": "m175-github-issue-closure-safe-execution-gate",
+        "project_id": "aresforge",
+        "queue_path": "queue.json",
+        "registry_path": "links.json",
+        "run_id": "run-175",
+        "dry_run": True,
+        "github_enabled": False,
+        "autonomy_profile": "github_sync_dry_run",
+        "repo": "local/aresforge",
+        "issue_number": 175,
+        "linked_issue_state": "open",
+        "close_reason": "completed",
         "output": None,
         "force": False,
         "output_format": "json",

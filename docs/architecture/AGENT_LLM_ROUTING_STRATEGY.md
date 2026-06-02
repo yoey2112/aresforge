@@ -1,5 +1,17 @@
 # Agent LLM Routing Strategy
 
+## M175 GitHub Issue Closure Safe Execution Gate Routing Boundary
+
+M175 adds no live agent, local LLM, or Codex route. It adds a narrow GitHub issue closure route that remains dry-run by default and becomes live only after explicit GitHub enablement, autonomy profile allowance, complete local evidence, no blockers, an open linked issue, and machine gates pass.
+
+Routing rules:
+
+- dry-run routes to local queue, M165 recommendation, M174 reconciliation, registry, autonomy, and gate inspection only
+- incomplete validation evidence, missing artifact bundle evidence, missing linked issue metadata, unresolved blockers, already-closed issue state, wrong autonomy profile, or failed gates route to `blocked`
+- successful mocked/live issue closure routes to local GitHub link registry sync metadata recording only, not queue completion
+
+M175 reports no agent execution, no model execution, no Codex execution, no source patch application, no validation command execution, and no queue status mutation. Live GitHub execution can be true only on the explicitly enabled single-issue close path.
+
 ## M174 GitHub Issue State Reconciliation Routing Boundary
 
 M174 adds no live agent, local LLM, or Codex route. It adds a recommendation-only GitHub issue-state reconciliation route that remains dry-run by default and may read mocked GitHub issue state from a local file or live issue state only after explicit GitHub enablement, autonomy profile allowance, and machine gates pass.

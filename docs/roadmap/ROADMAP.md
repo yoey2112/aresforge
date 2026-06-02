@@ -1,5 +1,24 @@
 # AresForge Roadmap
 
+## M175 GitHub Issue Closure Safe Execution Gate
+
+Status: Completed locally on `main` after validation.
+
+M175 advances the live self-managed GitHub loop with:
+
+- `python -m aresforge gate-github-issue-closure --item-id m175-github-issue-closure-safe-execution-gate --dry-run --format json`
+- deterministic `github_issue_closure_safe_execution_gate_v1` output
+- evidence-driven safe closure gating from queue done status, validation evidence, artifact bundle evidence, linked issue metadata/state, M165 recommendation, M174 reconciliation, local registry lookup, autonomy profile, and machine gates
+- dry-run status proving whether closure would be allowed without calling GitHub
+- mocked real-close coverage without network access
+- optional single-issue live closure only after explicit GitHub enablement, `github_issue_sync_enabled`, no blockers, and passing `github_sync`
+
+Boundary:
+
+- dry-run or blocked by default
+- live closure is one linked issue only and may update only local registry sync metadata after success
+- no PR merge, auto-merge, force push, protected branch update, release creation, workflow mutation, issue creation/update/reopen, Codex execution, local LLM/model execution, source patch application, validation command execution, queue status mutation, retry, resume, or automatic next-item execution
+
 ## M174 GitHub Issue State Reconciliation
 
 Status: Completed locally on `main` after validation.

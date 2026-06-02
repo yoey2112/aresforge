@@ -1,5 +1,11 @@
 # Local LLM Environment Contract
 
+## M175 GitHub Issue Closure Safe Execution Gate Boundary
+
+M175 does not change local LLM permissions. It may inspect queue metadata, closure recommendation evidence, issue-state reconciliation evidence, autonomy profile policy, machine gates, local GitHub link registry records, and linked issue metadata/state, and it may close one GitHub issue only on the explicit gated live path, but it does not call Ollama, send prompts, run inference, select fallback local models, mutate repository files from model output, mutate queue status, call Codex, apply patches, run validation commands, retry failures, resume orchestration, or start follow-on work.
+
+Local LLM advisory execution remains limited to separate explicit local-provider commands and their machine gates. M175 records issue-closure gate evidence and, on successful live closure, local registry sync metadata only.
+
 ## M174 GitHub Issue State Reconciliation Boundary
 
 M174 does not change local LLM permissions. It may inspect queue metadata, issue sync plans, autonomy profile policy, machine gates, local GitHub link registry records, and mocked or explicitly enabled GitHub issue-state snapshots, but it does not call Ollama, send prompts, run inference, select fallback local models, mutate repository files from model output, mutate queue status, call Codex, apply patches, run validation commands, retry failures, resume orchestration, or start follow-on work.

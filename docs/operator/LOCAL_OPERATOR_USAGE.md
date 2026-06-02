@@ -1,5 +1,25 @@
 # Local Operator Usage
 
+## M175 GitHub Issue Closure Safe Execution Gate
+
+Dry-run the closure gate for one completed queue item:
+
+- `python -m aresforge gate-github-issue-closure --item-id m175-github-issue-closure-safe-execution-gate --dry-run --format json`
+
+Explicit live path, only when an operator intends gated issue closure:
+
+- `python -m aresforge gate-github-issue-closure --item-id <item_id> --github-enabled --autonomy-profile github_issue_sync_enabled --repo <owner/repo> --format json`
+
+Interpretation:
+
+- `record_type=github_issue_closure_safe_execution_gate_v1` identifies the M175 payload.
+- `dry_run=true` or `blocked=true` means no GitHub issue was closed.
+- `issue_closure_allowed=true` can appear only on the explicitly enabled non-dry-run path after queue, evidence, autonomy, and machine gates pass.
+- `issue_closed=true` means exactly one issue closure was attempted and GitHub reported success.
+- `registry_mutation_performed=true` means only `.aresforge/github_link_registry/links.json` was updated with closure sync metadata.
+
+M175 performs no PR merge, auto-merge, force push, protected branch update, release creation, workflow mutation, issue create/update/reopen operation, source-code patch application, queue status mutation, Codex execution, model execution, validation command execution, retry, resume, or automatic next-item execution.
+
 ## M174 GitHub Issue State Reconciliation
 
 Dry-run local reconciliation:

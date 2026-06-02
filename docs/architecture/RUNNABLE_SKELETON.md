@@ -1,5 +1,15 @@
 # Runnable Skeleton
 
+## M175 GitHub Issue Closure Safe Execution Gate
+
+- `python -m aresforge gate-github-issue-closure --item-id m175-github-issue-closure-safe-execution-gate --dry-run --format json`
+- emits `github_issue_closure_safe_execution_gate_v1`
+- checks queue done status, validation evidence, artifact/evidence bundle presence, linked issue state, local registry state, M165 recommendation, M174 reconciliation, autonomy profile, and machine gates
+- defaults to dry-run and performs no GitHub mutation
+- live closure requires explicit GitHub enablement, `github_issue_sync_enabled`, an open linked issue, no blockers, and passing `github_sync`
+
+M175 adds no PR merge, auto-merge, force push, protected branch update, release, workflow mutation, issue create/update/reopen, source patch application, queue status mutation, Codex/model execution, validation command execution, retry, resume, or automatic next-item execution.
+
 ## M174 GitHub Issue State Reconciliation
 
 - `python -m aresforge reconcile-github-issue-state --project-id aresforge --dry-run --format json`

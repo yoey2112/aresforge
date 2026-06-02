@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-06-02T11:30:00Z",
+  "updated_at": "2026-06-02T12:30:00Z",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -8663,6 +8663,145 @@
       "closeout_history": [],
       "created_at": "2026-06-02T11:00:00Z",
       "updated_at": "2026-06-02T11:30:00Z"
+    },
+    {
+      "item_id": "m175-github-issue-closure-safe-execution-gate",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M175 GitHub Issue Closure Safe Execution Gate",
+      "description": "Gate safe GitHub issue closure for completed queue items with complete evidence and passed machine gates.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "sync",
+      "tags": [
+        "milestone:m175",
+        "github-issue-sync",
+        "github-loop",
+        "issue-closure",
+        "machine-gated"
+      ],
+      "dependencies": [
+        "m174-github-issue-state-reconciliation"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [
+        "tests_run",
+        "smoke_checks",
+        "github_issue_closure_safe_execution_gate_payload",
+        "machine_gate_results",
+        "mocked_github_operations",
+        "complete_evidence_bundle"
+      ],
+      "evidence_required": [
+        "dry_run_default",
+        "explicit_github_enablement",
+        "autonomy_profile_allowance",
+        "machine_gate_pass",
+        "queue_item_done",
+        "validation_passed",
+        "artifact_bundle_present",
+        "no_blockers_remaining",
+        "open_linked_issue_required",
+        "non_mutation_flags"
+      ],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: add gate-github-issue-closure; deterministic github_issue_closure_safe_execution_gate_v1 JSON; dry-run default; real closure requires explicit GitHub enablement, github_issue_sync_enabled autonomy profile, queue done status, validation evidence, artifact/evidence bundle, no blockers, open linked issue metadata, and passing github_sync machine gate; tests use mocked GitHub operations and no live GitHub access; no PR merge, auto-merge, force push, protected branch update, release, workflow mutation, issue creation/update/reopen, source patch application, Codex execution, model execution, validation command execution, retry, resume, or next-item execution.",
+      "started_at": "2026-06-02T12:00:00Z",
+      "started_via": "local_operator",
+      "previous_status": "ready",
+      "completed_at": "2026-06-02T12:30:00Z",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M175 GitHub Issue Closure Safe Execution Gate implemented and validated locally. Added gate-github-issue-closure with stable github_issue_closure_safe_execution_gate_v1 JSON, dry-run default, evidence-driven closure gating, M165 recommendation and M174 reconciliation composition, local registry lookup, explicit live closure enablement, mocked GitHub close support, local registry sync metadata recording after successful mocked/live closure, source-of-truth docs, CLI coverage, and queue evidence.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 248 passed; python -m pytest tests/test_github_issue_closure_safe_execution_gate.py -> 5 passed; python -m pytest tests/test_github_issue_state_reconciliation.py -> 4 passed; git diff --check -> passed with CRLF warnings only; inspect-local-project-report passed with item_count=109 and active_milestone=M175 GitHub Issue Closure Safe Execution Gate; inspect-local-queue-agent-summary passed with item_count=109; inspect-project-queue --project-id aresforge passed with item_count=109; gate-github-issue-closure dry-run smoke passed with status=dry_run_ready, sync_status=dry_run_ready, blocked=false, machine_gates_passed=true, dry_run=true, github_enabled=false, github_execution_performed=false, mutation_performed=false, github_issue_mutation_performed=false, registry_mutation_performed=false, queue_mutation_performed=false, recovery_available=true, local_only=true, issue_closure_allowed=false, issue_closed=false.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 248 passed",
+        "python -m pytest tests/test_github_issue_closure_safe_execution_gate.py -> 5 passed",
+        "python -m pytest tests/test_github_issue_state_reconciliation.py -> 4 passed",
+        "git diff --check -> passed with CRLF warnings only",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed",
+        "python -m aresforge inspect-project-queue --project-id aresforge -> passed",
+        "python -m aresforge gate-github-issue-closure --item-id m175-github-issue-closure-safe-execution-gate --dry-run --format json -> passed with status=dry_run_ready"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/github_issue_closure_safe_execution_gate.py",
+        "src/aresforge/cli.py",
+        "tests/test_github_issue_closure_safe_execution_gate.py",
+        "tests/test_cli.py",
+        ".aresforge/queue/work_items.json",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
+        "docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
+        "docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md"
+      ],
+      "artifact_paths": [
+        ".aresforge/codex_loop_validation_evidence/m175-github-issue-closure-safe-execution-gate/bundle.json"
+      ],
+      "github_issue": {
+        "number": 175,
+        "url": "https://github.com/local/aresforge/issues/175",
+        "state": "open"
+      },
+      "completion_evidence": {
+        "command": "gate-github-issue-closure",
+        "record_type": "github_issue_closure_safe_execution_gate_v1",
+        "status": "dry_run_ready",
+        "sync_status": "dry_run_ready",
+        "blocked": false,
+        "blocked_reasons": [],
+        "warnings": [
+          "Working tree has local changes; this profile treats dirty state as warning-only unless the caller requires a clean tree.",
+          "Queue item is already done; autonomy profile inspection remains valid as a capability contract.",
+          "Profile entries are policy metadata only and do not execute the capabilities they describe.",
+          "Local registry metadata only; no live GitHub issue or PR lookup was performed.",
+          "PR link is intentionally empty until a separate gated PR path records it.",
+          "No GitHub issue-state snapshot supplied; reconciliation is based on local queue and registry state only."
+        ],
+        "machine_gates_passed": true,
+        "dry_run": true,
+        "github_enabled": false,
+        "mutation_performed": false,
+        "github_issue_mutation_performed": false,
+        "registry_mutation_performed": false,
+        "queue_mutation_performed": false,
+        "codex_execution_performed": false,
+        "model_execution_performed": false,
+        "github_execution_performed": false,
+        "patch_application_performed": false,
+        "recovery_available": true,
+        "local_only": true,
+        "commit_hash": "pending-final-commit",
+        "artifacts_created": [
+          ".aresforge/codex_loop_validation_evidence/m175-github-issue-closure-safe-execution-gate/bundle.json"
+        ]
+      },
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-06-02T12:00:00Z",
+      "updated_at": "2026-06-02T12:30:00Z"
     }
   ]
 }

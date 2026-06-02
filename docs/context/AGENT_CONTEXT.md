@@ -1,5 +1,25 @@
 # AresForge Agent Context
 
+## M175 GitHub Issue Closure Safe Execution Gate Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m175-github-issue-closure-safe-execution-gate`.
+
+M175 adds `gate-github-issue-closure`, a dry-run-default command that may close exactly one linked GitHub issue only after queue completion, evidence, autonomy, and machine gates pass.
+
+Command:
+
+- `python -m aresforge gate-github-issue-closure --item-id m175-github-issue-closure-safe-execution-gate --dry-run --format json`
+
+Agent-facing guidance:
+
+- Treat `github_issue_closure_safe_execution_gate_v1` dry-run output as review evidence only.
+- The command composes M165 closure recommendation evidence, M174 issue-state reconciliation, local queue completion state, validation evidence, artifact/evidence bundle paths, linked issue metadata, the local GitHub link registry, autonomy profile policy, and machine gates.
+- Live closure requires `--github-enabled`, non-dry-run behavior, `autonomy_profile=github_issue_sync_enabled`, an open linked issue, complete evidence, no blockers, and passing `github_sync` machine gates.
+- A successful live closure may update only local registry sync metadata after GitHub reports success; it does not mutate queue status.
+- Do not merge PRs, force push, update protected branches, enable auto-merge, create releases, mutate workflows, create/update/reopen issues, apply source patches, mutate queue status, run Codex/models, run validation commands, retry, resume, or start later sprint items from this output.
+
 ## M174 GitHub Issue State Reconciliation Context
 
 Status: Completed locally on `main` after validation.

@@ -175,6 +175,7 @@ from aresforge.operator.github_issue_status_comment_sync import sync_github_issu
 from aresforge.operator.github_status_comment_durable_sync import sync_github_status_comment_durable
 from aresforge.operator.github_issue_state_reconciliation import reconcile_github_issue_state
 from aresforge.operator.github_issue_closure_recommendation_gate import recommend_github_issue_closure
+from aresforge.operator.github_issue_closure_safe_execution_gate import gate_github_issue_closure
 from aresforge.operator.github_link_registry import inspect_github_link_registry, record_github_link
 from aresforge.operator.pull_request_draft_summary_generator import generate_pr_draft_summary
 from aresforge.operator.hub_autonomy_control_center import inspect_hub_autonomy_control_center_data
@@ -1451,6 +1452,34 @@ def build_parser() -> argparse.ArgumentParser:
     github_issue_closure_recommendation_parser.add_argument("--output")
     github_issue_closure_recommendation_parser.add_argument("--force", action="store_true")
     github_issue_closure_recommendation_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+        help="Output format for file writes or stdout rendering.",
+    )
+    github_issue_closure_gate_parser = subparsers.add_parser(
+        "gate-github-issue-closure",
+        help="Close one linked GitHub issue only when explicit GitHub, evidence, autonomy, and machine gates pass; dry-run by default.",
+    )
+    github_issue_closure_gate_parser.add_argument("--item-id", required=True)
+    github_issue_closure_gate_parser.add_argument("--project-id", default="aresforge")
+    github_issue_closure_gate_parser.add_argument("--queue-path")
+    github_issue_closure_gate_parser.add_argument("--registry-path")
+    github_issue_closure_gate_parser.add_argument("--run-id")
+    github_issue_closure_gate_parser.add_argument("--dry-run", action="store_true")
+    github_issue_closure_gate_parser.add_argument("--github-enabled", action="store_true")
+    github_issue_closure_gate_parser.add_argument("--autonomy-profile", default="github_sync_dry_run")
+    github_issue_closure_gate_parser.add_argument("--repo")
+    github_issue_closure_gate_parser.add_argument("--issue-number", type=int)
+    github_issue_closure_gate_parser.add_argument("--linked-issue-state")
+    github_issue_closure_gate_parser.add_argument(
+        "--close-reason",
+        choices=["completed", "not_planned"],
+        default="completed",
+    )
+    github_issue_closure_gate_parser.add_argument("--output")
+    github_issue_closure_gate_parser.add_argument("--force", action="store_true")
+    github_issue_closure_gate_parser.add_argument(
         "--format",
         choices=["json"],
         default="json",
@@ -5074,6 +5103,31 @@ def main(argv: list[str] | None = None) -> int:
             run_id=args.run_id,
             autonomy_profile=args.autonomy_profile,
             linked_issue_state=args.linked_issue_state,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "gate-github-issue-closure":
+        payload = gate_github_issue_closure(
+            config,
+            item_id=args.item_id,
+            project_id=args.project_id,
+            queue_path=args.queue_path,
+            registry_path=args.registry_path,
+            run_id=args.run_id,
+            dry_run=bool(args.dry_run) or not bool(args.github_enabled),
+            github_enabled=bool(args.github_enabled),
+            autonomy_profile=args.autonomy_profile,
+            repo=args.repo,
+            issue_number=args.issue_number,
+            linked_issue_state=args.linked_issue_state,
+            close_reason=args.close_reason,
             output=args.output,
             force=bool(args.force),
             output_format=args.format,
