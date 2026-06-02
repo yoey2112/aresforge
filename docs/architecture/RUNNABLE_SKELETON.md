@@ -1,5 +1,16 @@
 # Runnable Skeleton
 
+## M177 PR Draft Creation Gate
+
+- `python -m aresforge create-pr-draft-gate --item-id m177-pr-draft-creation-gate --dry-run --format json`
+- emits `pr_draft_creation_gate_v1`
+- reads the M176 branch planning contract, local queue data, linked issue context, local GitHub link registry metadata, autonomy profile policy, and machine gates
+- defaults to dry-run and performs no GitHub mutation
+- live draft PR creation requires explicit GitHub enablement, `github_issue_sync_enabled`, `github_pr_draft_creation`, an approved branch plan, an existing branch or explicit safe branch creation enablement, and passing `github_sync`
+- successful live draft PR creation records the PR link in the local GitHub link registry
+
+M177 adds no PR merge, auto-merge, force push, protected branch update, release, workflow mutation, issue closure, queue mutation, source patch application, Codex/model execution, validation command execution, retry, resume, or next-item execution.
+
 ## M176 PR Draft Branch Planning Contract
 
 - `python -m aresforge plan-pr-draft-branch --item-id m176-pr-draft-branch-planning-contract --format json`

@@ -1,5 +1,11 @@
 # Local LLM Environment Contract
 
+## M177 PR Draft Creation Gate Boundary
+
+M177 does not change local LLM permissions. It may inspect queue metadata, an M176 branch plan, autonomy profile policy, machine gates, local GitHub link registry records, linked issue metadata, and branch existence, and it may create one draft pull request only on the explicit gated live path, but it does not call Ollama, send prompts, run inference, select fallback local models, mutate repository files from model output, mutate queue status, call Codex, apply patches, run validation commands, retry failures, resume orchestration, merge PRs, enable auto-merge, force push, update protected branches, create releases, mutate workflows, close issues, or start follow-on work.
+
+Local LLM advisory execution remains limited to separate explicit local-provider commands and their machine gates. M177 records PR draft creation gate evidence and, on successful live draft PR creation, local registry PR metadata only.
+
 ## M176 PR Draft Branch Planning Contract Boundary
 
 M176 does not change local LLM permissions. It may inspect queue metadata, issue sync plans, PR draft summary evidence, autonomy profile policy, machine gates, local GitHub link registry records, and changed-file evidence, but it does not call Ollama, send prompts, run inference, select fallback local models, mutate repository files from model output, mutate queue status, call Codex, apply patches, run validation commands, retry failures, resume orchestration, start follow-on work, create branches, push branches, or create/update/merge PRs.

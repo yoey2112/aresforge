@@ -1,5 +1,25 @@
 # Local Operator Usage
 
+## M177 PR Draft Creation Gate
+
+Dry-run the draft PR creation gate:
+
+- `python -m aresforge create-pr-draft-gate --item-id m177-pr-draft-creation-gate --dry-run --format json`
+
+Explicit live path, only when an operator intends gated draft PR creation:
+
+- `python -m aresforge create-pr-draft-gate --item-id <item_id> --github-enabled --autonomy-profile github_issue_sync_enabled --approved-branch-plan --safe-branch-creation-enabled --repo <owner/repo> --format json`
+
+Interpretation:
+
+- `record_type=pr_draft_creation_gate_v1` identifies the M177 payload.
+- `dry_run=true` or `blocked=true` means no GitHub PR was created.
+- `draft_pr_creation_allowed=true` can appear only on the explicitly enabled non-dry-run path after branch-plan, branch, registry, autonomy, and machine gates pass.
+- `pull_request_created=true` means exactly one draft PR creation was attempted and GitHub reported success.
+- `registry_mutation_performed=true` means only `.aresforge/github_link_registry/links.json` was updated with PR link metadata.
+
+M177 performs no PR merge, auto-merge, force push, protected branch update, release creation, workflow mutation, issue closure, source-code patch application, queue status mutation, Codex execution, model execution, validation command execution, retry, resume, or automatic next-item execution.
+
 ## M176 PR Draft Branch Planning
 
 Generate a local branch/PR planning contract:

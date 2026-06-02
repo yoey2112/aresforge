@@ -1,5 +1,18 @@
 # Agent LLM Routing Strategy
 
+## M177 PR Draft Creation Gate Routing Boundary
+
+M177 adds no live agent, local LLM, cloud LLM, or Codex route. It adds a narrow GitHub draft PR creation route that remains dry-run by default and becomes live only after explicit GitHub enablement, autonomy profile allowance, approved branch-plan evidence, branch safety, local duplicate-link checks, and machine gates pass.
+
+Routing rules:
+
+- dry-run routes to M176 branch plan generation, local queue, registry, autonomy, and gate inspection only
+- missing or blocked branch plan, missing head/base branch, duplicate registry PR link, wrong autonomy profile, missing `github_pr_draft_creation`, missing approved branch plan, missing branch without explicit safe branch creation enablement, or failed `github_sync` gate routes to `blocked`
+- successful mocked/live draft PR creation routes to local GitHub link registry PR metadata recording only, not queue completion
+- merge, auto-merge, force push, protected branch update, release, workflow mutation, issue closure, and source patch operations have no route from this command
+
+M177 reports no agent execution, no model execution, no Codex execution, no source patch application, no validation command execution, and no queue status mutation. Live GitHub execution can be true only on the explicitly enabled single draft PR create path.
+
 ## M176 PR Draft Branch Planning Contract Routing Boundary
 
 M176 adds no live agent, local LLM, cloud LLM, or Codex route. It generates local branch and PR draft planning metadata from queue, registry, issue-plan, draft-summary, autonomy-profile, changed-file, and machine-gate evidence only.

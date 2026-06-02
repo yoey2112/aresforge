@@ -407,7 +407,7 @@ def _warnings(
 
 def _expected_title(*, item: dict[str, Any], item_id: str) -> str:
     title = _text(item.get("title")) or item_id
-    if title.lower().startswith("m176"):
+    if re.match(r"^m\d+\b", title, flags=re.IGNORECASE):
         return title
     return f"M176 {title}"
 

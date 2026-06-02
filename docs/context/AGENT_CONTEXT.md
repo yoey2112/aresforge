@@ -1,5 +1,24 @@
 # AresForge Agent Context
 
+## M177 PR Draft Creation Gate Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m177-pr-draft-creation-gate`.
+
+M177 adds `create-pr-draft-gate`, a dry-run-default command that may create exactly one draft pull request only after branch-plan, branch, autonomy, registry, and machine gates pass.
+
+Command:
+
+- `python -m aresforge create-pr-draft-gate --item-id m177-pr-draft-creation-gate --dry-run --format json`
+
+Agent-facing guidance:
+
+- Treat `pr_draft_creation_gate_v1` dry-run output as review evidence only.
+- Live draft PR creation requires `--github-enabled`, non-dry-run behavior, `autonomy_profile=github_issue_sync_enabled`, the `github_pr_draft_creation` capability, an approved M176 branch plan, an existing branch or explicit safe branch creation enablement, no duplicate registry PR link, and passing `github_sync` machine gates.
+- A successful live draft PR create may record only the PR link in `.aresforge/github_link_registry/links.json`; it does not mutate queue status.
+- Do not merge PRs, enable auto-merge, force push, update protected branches, create releases, mutate workflows, close issues, apply source patches, run Codex/models, run validation commands, retry, resume, or start later sprint items from this output.
+
 ## M176 PR Draft Branch Planning Contract Context
 
 Status: Completed locally on `main` after validation.

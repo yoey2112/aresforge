@@ -27,6 +27,7 @@ CAPABILITIES: tuple[str, ...] = (
     "codex_low_risk_execution",
     "github_sync_dry_run",
     "github_issue_sync",
+    "github_pr_draft_creation",
     "source_patch_apply_dry_run",
     "source_patch_application",
     "docs_only_patch_application",
@@ -233,7 +234,7 @@ def autonomy_profile_definitions() -> list[dict[str, Any]]:
         _profile(
             "github_issue_sync_enabled",
             "GitHub Issue Sync Enabled",
-            "Allows narrow issue/comment sync only through explicit future GitHub gates; PR merge and protected operations stay blocked.",
+            "Allows narrow issue/comment sync and draft PR creation only through explicit future GitHub gates; PR merge and protected operations stay blocked.",
             risk_level="high",
             controls={
                 "local_read_inspection": "enabled",
@@ -241,11 +242,12 @@ def autonomy_profile_definitions() -> list[dict[str, Any]]:
                 "local_planning": "enabled",
                 "github_sync_dry_run": "dry_run_only",
                 "github_issue_sync": "enabled",
+                "github_pr_draft_creation": "enabled",
             },
             gates=["github_sync"],
             explicit_flags=["--github-enabled", "--execute", "--approval-marker"],
             local_only_profile=False,
-            next_safe_action="Use only a narrow future issue/comment sync command with explicit approval; never merge PRs or update protected branches.",
+            next_safe_action="Use only narrow future issue/comment sync or draft PR creation commands with explicit approval; never merge PRs or update protected branches.",
         ),
         _profile(
             "experimental_full_local",
@@ -299,7 +301,12 @@ def _profile(
             "requires_explicit_operator_flag": controls.get(capability, "blocked") != "blocked"
             and capability not in {"local_read_inspection", "local_planning"},
             "mutation_allowed": capability
-            in {"queue_status_mutation", "docs_only_patch_application", "github_issue_sync"}
+            in {
+                "queue_status_mutation",
+                "docs_only_patch_application",
+                "github_issue_sync",
+                "github_pr_draft_creation",
+            }
             and controls.get(capability) == "enabled",
             "execution_available_from_inspector": False,
         }
@@ -333,6 +340,7 @@ def _capability_gate(capability: str) -> str:
         "codex_low_risk_execution": "codex_dispatch",
         "github_sync_dry_run": "github_sync",
         "github_issue_sync": "github_sync",
+        "github_pr_draft_creation": "github_sync",
         "source_patch_apply_dry_run": "source_patch_apply_dry_run",
         "source_patch_application": "future explicit source patch apply gate",
         "docs_only_patch_application": "docs_only_patch_apply",
