@@ -181,6 +181,7 @@ from aresforge.operator.pr_draft_creation_gate import create_pr_draft_gate
 from aresforge.operator.pr_draft_branch_planning_contract import plan_pr_draft_branch
 from aresforge.operator.pr_evidence_comment_sync import sync_pr_evidence_comment
 from aresforge.operator.github_sync_recovery_idempotency import inspect_github_sync_recovery
+from aresforge.operator.hub_github_sync_control_panel import inspect_hub_github_sync_control_panel_data
 from aresforge.operator.pull_request_draft_summary_generator import generate_pr_draft_summary
 from aresforge.operator.hub_autonomy_control_center import inspect_hub_autonomy_control_center_data
 from aresforge.operator.self_managed_project_loop_dry_run import run_self_managed_project_loop_dry_run
@@ -1666,6 +1667,27 @@ def build_parser() -> argparse.ArgumentParser:
     hub_autonomy_control_center_parser.add_argument("--output")
     hub_autonomy_control_center_parser.add_argument("--force", action="store_true")
     hub_autonomy_control_center_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+        help="Output format for file writes or stdout rendering.",
+    )
+    hub_github_sync_panel_parser = subparsers.add_parser(
+        "inspect-hub-github-sync-control-panel-data",
+        help="Inspect local Hub GitHub sync control panel data without executing GitHub mutations.",
+    )
+    hub_github_sync_panel_parser.add_argument("--project-id", default="aresforge")
+    hub_github_sync_panel_parser.add_argument(
+        "--item-id",
+        default="m180-hub-github-sync-control-panel",
+    )
+    hub_github_sync_panel_parser.add_argument("--queue-path")
+    hub_github_sync_panel_parser.add_argument("--registry-path")
+    hub_github_sync_panel_parser.add_argument("--repo")
+    hub_github_sync_panel_parser.add_argument("--autonomy-profile", default="github_sync_dry_run")
+    hub_github_sync_panel_parser.add_argument("--output")
+    hub_github_sync_panel_parser.add_argument("--force", action="store_true")
+    hub_github_sync_panel_parser.add_argument(
         "--format",
         choices=["json"],
         default="json",
@@ -5401,6 +5423,25 @@ def main(argv: list[str] | None = None) -> int:
             queue_path=args.queue_path,
             history_path=args.history_path,
             artifacts_root=args.artifacts_root,
+            autonomy_profile=args.autonomy_profile,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-hub-github-sync-control-panel-data":
+        payload = inspect_hub_github_sync_control_panel_data(
+            config,
+            project_id=args.project_id,
+            item_id=args.item_id,
+            queue_path=args.queue_path,
+            registry_path=args.registry_path,
+            repo=args.repo,
             autonomy_profile=args.autonomy_profile,
             output=args.output,
             force=bool(args.force),

@@ -1,5 +1,21 @@
 # Runnable Skeleton
 
+## M180 Hub GitHub Sync Control Panel
+
+- `python -m aresforge inspect-hub-github-sync-control-panel-data --project-id aresforge --format json`
+- emits `hub_github_sync_control_panel_v1`
+- Hub route: `GET /api/github-sync/control-panel`
+- Hub UI section: GitHub Sync
+- reads local queue metadata, `.aresforge/github_link_registry/links.json`, issue sync plans, status-comment dry-run evidence, issue-state reconciliation, closure gates, PR draft branch plans, PR evidence-comment dry runs, recovery/idempotency state, autonomy profile metadata, and machine gates
+- emits safety boundaries and review-only next safe actions
+
+Runnable boundary:
+
+- read-only and dry-run by default
+- no unsafe default execute buttons
+- no GitHub mutation, registry mutation, queue mutation, PR merge, auto-merge, force push, protected branch update, release, workflow mutation, automatic issue closure, source patch application, Codex/model execution, validation command execution, retry execution, resume execution, or automatic next-item execution
+- real GitHub mutation remains separate, explicit, autonomy-profile gated, and machine-gated
+
 ## M179 GitHub Sync Recovery and Idempotency
 
 - `python -m aresforge inspect-github-sync-recovery --project-id aresforge --format json`

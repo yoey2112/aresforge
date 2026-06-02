@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-06-02T16:00:00Z",
+  "updated_at": "2026-06-02T07:45:40.022952+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -9378,6 +9378,67 @@
       "closeout_summary": "",
       "closeout_history": [],
       "updated_at": "2026-06-02T16:00:00Z"
+    },
+    {
+      "item_id": "m180-hub-github-sync-control-panel",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M180 Hub GitHub Sync Control Panel",
+      "description": "Add Hub visibility and controls for GitHub link registry, issue sync, status comments, reconciliation, closure gates, PR drafts, PR evidence comments, recovery actions, safety boundaries, and next safe actions without unsafe default execution.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "dashboard",
+      "tags": [
+        "milestone:m180",
+        "github-loop",
+        "hub-control-panel"
+      ],
+      "dependencies": [
+        "m179-github-sync-recovery-and-idempotency"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [],
+      "evidence_required": [],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: inspect-hub-github-sync-control-panel-data returns deterministic hub_github_sync_control_panel_v1 JSON; Hub API and UI expose link registry, issue sync plans, status comments, reconciliation, closure gates, PR draft plans, PR evidence comments, recovery actions, safety boundaries, and next safe actions; no unsafe default execute buttons; real GitHub mutation remains separate, explicit, autonomy-profile gated, and machine-gated; tests use mocked/local data only.",
+      "started_at": "2026-06-02T07:45:21.069286+00:00",
+      "started_via": "local_operator",
+      "previous_status": "in_progress",
+      "completed_at": "2026-06-02T07:45:40.022952+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M180 Hub GitHub Sync Control Panel implemented and validated locally. Added inspect-hub-github-sync-control-panel-data with stable hub_github_sync_control_panel_v1 JSON, Hub API route /api/github-sync/control-panel, GitHub Sync Hub UI panel, local aggregation of link registry, issue sync plans, status comments, reconciliation, closure gates, PR draft plans, PR evidence comments, recovery actions, safety boundaries, and next safe actions. No unsafe default execute buttons, live GitHub mutation, registry mutation, queue mutation outside completion evidence, PR merge, auto-merge, force push, protected branch update, release, workflow mutation, automatic issue closure, source patch application, Codex/model execution, validation command execution by the panel, retry/resume, or next-item execution was added.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 251 passed; python -m pytest tests/test_hub_ui_foundation.py -> 60 passed; python -m pytest tests/test_hub_github_sync_control_panel.py -> 3 passed; git diff --check -> passed with CRLF warnings only; python -m aresforge inspect-local-project-report -> passed with active_milestone=M180 Hub GitHub Sync Control Panel and item_count=114; python -m aresforge inspect-local-queue-agent-summary -> passed with item_count=114; python -m aresforge inspect-project-queue --project-id aresforge -> passed with item_count=114; python -m aresforge inspect-hub-github-sync-control-panel-data --project-id aresforge --format json -> passed with sync_status=control_panel_ready, blocked=false, machine_gates_passed=true, dry_run=true, github_enabled=false, github_execution_performed=false, mutation_performed=false, local_only=true.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 251 passed; python -m pytest tests/test_hub_ui_foundation.py -> 60 passed; python -m pytest tests/test_hub_github_sync_control_panel.py -> 3 passed; git diff --check -> passed with CRLF warnings only; smoke checks passed for inspect-local-project-report, inspect-local-queue-agent-summary, inspect-project-queue, and inspect-hub-github-sync-control-panel-data."
+      ],
+      "changed_files": [
+        "src/aresforge/operator/hub_github_sync_control_panel.py; src/aresforge/cli.py; src/aresforge/hub/api.py; src/aresforge/hub/server.py; src/aresforge/hub/static/index.html; src/aresforge/hub/static/app.js; src/aresforge/hub/static/js/sections/githubSync.js; tests/test_hub_github_sync_control_panel.py; tests/test_cli.py; tests/test_hub_ui_foundation.py; .aresforge/queue/work_items.json; docs/context/BUILD_STATE.md; docs/context/AGENT_CONTEXT.md; docs/roadmap/ROADMAP.md; docs/operator/LOCAL_OPERATOR_USAGE.md; docs/architecture/RUNNABLE_SKELETON.md; docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md; docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md; docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md"
+      ],
+      "artifact_paths": [],
+      "completion_evidence": {},
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-06-02T07:41:55.006536+00:00",
+      "updated_at": "2026-06-02T07:45:40.022952+00:00"
     }
   ]
 }

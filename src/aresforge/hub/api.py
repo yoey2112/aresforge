@@ -64,6 +64,7 @@ from aresforge.operator.local_project_handoff import generate_local_project_hand
 from aresforge.operator.local_agent_orchestration import generate_agent_orchestration_plan
 from aresforge.operator.orchestration_run_monitor import inspect_orchestration_run_monitor
 from aresforge.operator.hub_autonomy_control_center import inspect_hub_autonomy_control_center_data
+from aresforge.operator.hub_github_sync_control_panel import inspect_hub_github_sync_control_panel_data
 from aresforge.operator.local_llm_escalation import generate_llm_escalation_plan
 from aresforge.operator.local_bootstrap_wizard import (
     apply_bootstrap,
@@ -4138,6 +4139,34 @@ def get_hub_autonomy_control_center_data(config: AppConfig, params: dict[str, st
         return _api_error(
             str(result.get("error", "hub_autonomy_control_center_failed")),
             "Failed to inspect local Hub autonomy control center data.",
+            details=details,
+        )
+    wrapped = dict(payload)
+    wrapped["ok"] = True
+    return wrapped
+
+
+def get_hub_github_sync_control_panel_data(config: AppConfig, params: dict[str, str | None]) -> dict[str, Any]:
+    result = inspect_hub_github_sync_control_panel_data(
+        config,
+        project_id=_normalize_optional_str(params.get("project_id")) or "aresforge",
+        item_id=_normalize_optional_str(params.get("item_id")) or "m180-hub-github-sync-control-panel",
+        queue_path=_normalize_optional_str(params.get("queue_path")),
+        registry_path=_normalize_optional_str(params.get("registry_path")),
+        repo=_normalize_optional_str(params.get("repo")),
+        autonomy_profile=_normalize_optional_str(params.get("autonomy_profile")) or "github_sync_dry_run",
+        output_format="json",
+    )
+    payload = result.get("payload", {}) if isinstance(result.get("payload"), dict) else {}
+    if not result.get("ok", False):
+        if payload:
+            wrapped = dict(payload)
+            wrapped["ok"] = False
+            return wrapped
+        details = result.get("details", {}) if isinstance(result.get("details"), dict) else {}
+        return _api_error(
+            str(result.get("error", "hub_github_sync_control_panel_failed")),
+            "Failed to inspect local Hub GitHub sync control panel data.",
             details=details,
         )
     wrapped = dict(payload)

@@ -1,5 +1,26 @@
 # AresForge Build State
 
+## M180 Hub GitHub Sync Control Panel
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m180-hub-github-sync-control-panel`.
+
+M180 adds a read-only Hub GitHub Sync Control Panel:
+
+- `python -m aresforge inspect-hub-github-sync-control-panel-data --project-id aresforge --format json`
+- stable `hub_github_sync_control_panel_v1` JSON
+- Hub API visibility through `GET /api/github-sync/control-panel`
+- Hub UI GitHub Sync panel for link registry records, issue sync plans, durable status comments, issue-state reconciliation, issue closure gates, PR draft plans, PR evidence comments, recovery/repair/resume guidance, safety boundaries, and next safe actions
+- composes existing M170-M179 local/dry-run/gated command surfaces without executing their live mutation paths
+
+Safety posture:
+
+- read-only and dry-run by default
+- no unsafe default execute buttons in Hub
+- real GitHub mutation remains separate, explicitly enabled, autonomy-profile gated, and machine-gated
+- the panel performs no live GitHub mutation, registry mutation, queue mutation, PR merge, auto-merge, force push, protected branch update, release creation, workflow mutation, automatic issue closure, source patch application, Codex execution, model execution, validation command execution, retry/resume execution, or automatic next-item execution
+
 ## M179 GitHub Sync Recovery and Idempotency
 
 Status: Completed locally on `main` after validation.

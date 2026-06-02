@@ -1,5 +1,11 @@
 # Local LLM Environment Contract
 
+## M180 Hub GitHub Sync Control Panel Boundary
+
+M180 does not change local LLM permissions. It may inspect local queue metadata, the local GitHub link registry, issue sync plans, status-comment dry-run output, reconciliation output, closure gates, PR draft plans, PR evidence-comment dry-run output, recovery actions, autonomy profile metadata, and machine gates to produce Hub control-panel status, but it does not call Ollama, send prompts, run inference, select fallback local models, mutate repository files from model output, mutate queue or registry state, call Codex, apply patches, run validation commands, retry failures, resume orchestration, call GitHub/`gh`, create/update/close issues, create/update/merge PRs, enable auto-merge, force push, update protected branches, create releases, mutate workflows, or start follow-on work.
+
+Local LLM advisory execution remains limited to separate explicit local-provider commands and their machine gates. M180 records GitHub sync control visibility only.
+
 ## M179 GitHub Sync Recovery and Idempotency Boundary
 
 M179 does not change local LLM permissions. It may inspect local queue metadata, the local GitHub link registry, gated preflight artifacts, and read-only machine gates to produce recovery and idempotency recommendations, but it does not call Ollama, send prompts, run inference, select fallback local models, mutate repository files from model output, mutate queue or registry state, call Codex, apply patches, run validation commands, retry failures, resume orchestration, call GitHub/`gh`, create/update/close issues, create/update/merge PRs, enable auto-merge, force push, update protected branches, create releases, mutate workflows, or start follow-on work.

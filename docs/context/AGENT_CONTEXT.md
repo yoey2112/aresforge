@@ -1,5 +1,29 @@
 # AresForge Agent Context
 
+## M180 Hub GitHub Sync Control Panel Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m180-hub-github-sync-control-panel`.
+
+M180 adds `inspect-hub-github-sync-control-panel-data` and a Hub GitHub Sync panel for local/operator visibility across the live self-managed GitHub loop.
+
+Command:
+
+- `python -m aresforge inspect-hub-github-sync-control-panel-data --project-id aresforge --format json`
+
+Hub route:
+
+- `GET /api/github-sync/control-panel`
+
+Agent-facing guidance:
+
+- Treat `hub_github_sync_control_panel_v1` output as status and review evidence only.
+- The panel aggregates the local GitHub link registry, issue sync plans, durable status-comment dry runs, issue-state reconciliation, closure gates, PR draft plans, PR evidence-comment dry runs, recovery actions, safety boundaries, and next safe actions.
+- `next_safe_actions` point to separate review or dry-run commands; they do not authorize live execution.
+- No unsafe default execute buttons exist in the panel.
+- Do not create/update/close issues, create/update/merge PRs, enable auto-merge, force push, update protected branches, create releases, mutate workflows, apply source patches, mutate registry or queue state, run Codex/models, run validation commands, retry, resume, or start later sprint items from this output.
+
 ## M179 GitHub Sync Recovery and Idempotency Context
 
 Status: Completed locally on `main` after validation.

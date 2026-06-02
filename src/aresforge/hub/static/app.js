@@ -39,6 +39,10 @@ import {
   loadAutonomyControlCenter as loadAutonomyControlCenterSection,
 } from "/js/sections/autonomy.js";
 import {
+  bindGitHubSyncActions,
+  loadGitHubSyncControlPanel as loadGitHubSyncControlPanelSection,
+} from "/js/sections/githubSync.js";
+import {
   bindReportsActions,
   copyExportText as copyExportTextSection,
   loadDashboardReport as loadDashboardReportSection,
@@ -696,6 +700,14 @@ async function loadAutonomyControlCenter(filters) {
   });
 }
 
+async function loadGitHubSyncControlPanel(filters) {
+  return loadGitHubSyncControlPanelSection(filters || {
+    project_id: "aresforge",
+    item_id: "m180-hub-github-sync-control-panel",
+    autonomy_profile: "github_sync_dry_run",
+  });
+}
+
 async function loadAgents() {
   setMessage("agents-message", "Loading agents...", "loading");
   const payload = await fetchJson("/api/agents");
@@ -1329,6 +1341,9 @@ async function init() {
   bindAutonomyActions({
     loadAutonomyControlCenterForState: loadAutonomyControlCenter,
   });
+  bindGitHubSyncActions({
+    loadGitHubSyncControlPanelForState: loadGitHubSyncControlPanel,
+  });
   bindEscalationActions({
     loadEscalationPlanForState: loadEscalationPlanSection,
     refreshSummaryAndReport,
@@ -1447,6 +1462,12 @@ async function init() {
     await loadAutonomyControlCenter();
   } catch (error) {
     setMessage("autonomy-message", String(error.message || error), "error");
+  }
+
+  try {
+    await loadGitHubSyncControlPanel();
+  } catch (error) {
+    setMessage("github-sync-message", String(error.message || error), "error");
   }
 
   try {

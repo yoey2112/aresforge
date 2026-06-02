@@ -15,6 +15,7 @@ from aresforge.hub.api import (
     get_handoff_target,
     get_handoff_targets,
     get_hub_autonomy_control_center_data,
+    get_hub_github_sync_control_panel_data,
     get_local_queue_agent_summary,
     get_orchestration_plan,
     get_project,
@@ -54,6 +55,7 @@ NAV_LABELS = [
     "Handoff",
     "Orchestration",
     "Autonomy",
+    "GitHub Sync",
     "Escalation",
     "Reports",
     "Settings",
@@ -744,6 +746,7 @@ def test_frontend_scripts_reference_m39_api_endpoints_and_forms() -> None:
         "/api/handoff/preview",
         "/api/orchestration/plan",
         "/api/autonomy/control-center",
+        "/api/github-sync/control-panel",
         "/api/escalation/plan",
         "/api/reports/dashboard",
         "/api/reports/local-projects",
@@ -1769,6 +1772,15 @@ def test_get_hub_autonomy_control_center_returns_read_only_data(tmp_path: Path) 
     assert payload["github_execution_performed"] is False
     assert payload["codex_execution_performed"] is False
     assert payload["patch_application_performed"] is False
+    assert payload["unsafe_actions_available"] is False
+
+
+def test_get_hub_github_sync_control_panel_returns_read_only_data(tmp_path: Path) -> None:
+    payload = get_hub_github_sync_control_panel_data(_config(tmp_path), {"project_id": "aresforge"})
+    assert payload["record_type"] == "hub_github_sync_control_panel_v1"
+    assert payload["local_only"] is True
+    assert payload["github_execution_performed"] is False
+    assert payload["mutation_performed"] is False
     assert payload["unsafe_actions_available"] is False
 
 

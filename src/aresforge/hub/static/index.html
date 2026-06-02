@@ -28,6 +28,7 @@
         <button class="nav-item" data-section="handoff">Handoff</button>
         <button class="nav-item" data-section="orchestration">Orchestration</button>
         <button class="nav-item" data-section="autonomy">Autonomy</button>
+        <button class="nav-item" data-section="github-sync">GitHub Sync</button>
         <button class="nav-item" data-section="escalation">Escalation</button>
         <button class="nav-item" data-section="reports">Reports</button>
         <button class="nav-item" data-section="settings">Settings</button>
@@ -1789,6 +1790,69 @@
             <h3>Warnings</h3>
             <ul id="autonomy-warnings" class="list"></ul>
             <p id="autonomy-warnings-empty" class="empty">No warnings.</p>
+          </section>
+        </section>
+
+        <section id="panel-github-sync" class="panel" data-panel="github-sync">
+          <h2>GitHub Sync Control Panel</h2>
+          <p>Local visibility for link registry, issue sync, comments, reconciliation, closure gates, PR drafts, recovery, and next safe actions.</p>
+          <p class="boundary-banner">No live mutation controls: real GitHub changes require separate explicit commands and passing machine gates.</p>
+          <p id="github-sync-message" class="message"></p>
+          <form id="github-sync-form" class="form-inline">
+            <input id="github-sync-project-id" name="project_id" value="aresforge" placeholder="project_id" />
+            <input id="github-sync-item-id" name="item_id" value="m180-hub-github-sync-control-panel" placeholder="item_id" />
+            <input id="github-sync-repo" name="repo" placeholder="owner/repo" />
+            <input id="github-sync-autonomy-profile" name="autonomy_profile" value="github_sync_dry_run" placeholder="autonomy_profile" />
+            <button type="submit">Refresh Panel</button>
+            <button id="github-sync-reset" type="button">Use Defaults</button>
+          </form>
+          <div class="cards">
+            <article class="card"><h3>Status</h3><p id="github-sync-status">unknown</p></article>
+            <article class="card"><h3>Repository</h3><p id="github-sync-repository">unknown</p></article>
+            <article class="card"><h3>Issue</h3><p id="github-sync-issue">none</p></article>
+            <article class="card"><h3>PR</h3><p id="github-sync-pr">none</p></article>
+          </div>
+          <section class="subpanel">
+            <h3>Control Sources</h3>
+            <ul id="github-sync-sources" class="list"></ul>
+            <p id="github-sync-sources-empty" class="empty">No GitHub sync source data loaded.</p>
+          </section>
+          <section class="subpanel">
+            <h3>Link Registry</h3>
+            <ul id="github-sync-registry" class="list"></ul>
+            <p id="github-sync-registry-empty" class="empty">No registry links discovered.</p>
+          </section>
+          <section class="subpanel">
+            <h3>Issue Sync Plans</h3>
+            <ul id="github-sync-issue-plans" class="list"></ul>
+            <p id="github-sync-issue-plans-empty" class="empty">No issue sync plans loaded.</p>
+          </section>
+          <section class="subpanel">
+            <h3>Reconciliation</h3>
+            <ul id="github-sync-reconciliation" class="list"></ul>
+            <p id="github-sync-reconciliation-empty" class="empty">No reconciliation entries loaded.</p>
+          </section>
+          <section class="subpanel">
+            <h3>Recovery Actions</h3>
+            <ul id="github-sync-recovery" class="list"></ul>
+            <p id="github-sync-recovery-empty" class="empty">No recovery actions needed.</p>
+          </section>
+          <section class="subpanel">
+            <h3>Next Safe Actions</h3>
+            <p id="github-sync-next-safe-action" class="placeholder">No next safe action loaded.</p>
+            <ul id="github-sync-safe-actions" class="list"></ul>
+            <p id="github-sync-safe-actions-empty" class="empty">No next safe actions loaded.</p>
+          </section>
+          <section class="subpanel">
+            <h3>Safety Boundaries</h3>
+            <ul id="github-sync-boundaries" class="list"></ul>
+            <p id="github-sync-boundaries-empty" class="empty">No safety boundary data loaded.</p>
+            <h3>Blockers</h3>
+            <ul id="github-sync-blockers" class="list"></ul>
+            <p id="github-sync-blockers-empty" class="empty">No blockers.</p>
+            <h3>Warnings</h3>
+            <ul id="github-sync-warnings" class="list"></ul>
+            <p id="github-sync-warnings-empty" class="empty">No warnings.</p>
           </section>
         </section>
 

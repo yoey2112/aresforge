@@ -1,5 +1,24 @@
 # Local Operator Usage
 
+## M180 Hub GitHub Sync Control Panel
+
+Inspect the local Hub GitHub Sync Control Panel:
+
+- `python -m aresforge inspect-hub-github-sync-control-panel-data --project-id aresforge --format json`
+
+Hub route:
+
+- `GET /api/github-sync/control-panel`
+
+Interpretation:
+
+- `record_type=hub_github_sync_control_panel_v1` identifies the M180 payload.
+- `link_registry`, `issue_sync_plans`, `status_comments`, `reconciliation`, `closure_gates`, `pr_draft_plans`, `pr_evidence_comments`, and `recovery_actions` are local review sections.
+- `next_safe_actions` list separate review or dry-run commands. They are not execute buttons and do not authorize live mutation.
+- `safety_boundaries.unsafe_default_execute_buttons=false` confirms the Hub panel does not expose unsafe default execution controls.
+
+M180 performs no live GitHub mutation, registry mutation, queue mutation, PR merge, auto-merge, force push, protected branch update, release creation, workflow mutation, automatic issue closure, source-code patch application, Codex execution, model execution, validation command execution, retry execution, resume execution, or automatic next-item execution.
+
 ## M179 GitHub Sync Recovery and Idempotency
 
 Inspect local recovery and idempotency state:

@@ -1,5 +1,18 @@
 # Agent LLM Routing Strategy
 
+## M180 Hub GitHub Sync Control Panel Routing Boundary
+
+M180 adds no live agent, local LLM, cloud LLM, Codex, or GitHub mutation route. It adds a Hub/CLI aggregation route that reads local GitHub loop evidence from the link registry, issue sync plans, status-comment dry runs, reconciliation, closure gates, PR draft plans, PR evidence-comment dry runs, recovery actions, autonomy metadata, and machine gates.
+
+Routing rules:
+
+- panel refresh routes only to local read/dry-run command surfaces
+- next-safe-action rows route operators to separate review or dry-run commands
+- failed gates or missing evidence route to blocker/warning display only
+- no panel row routes to issue creation, comment update, issue closure, PR creation, PR merge, auto-merge, force push, protected branch update, release creation, workflow mutation, source patch application, retry, resume, or queue completion
+
+M180 reports no agent execution, no model execution, no Codex execution, no GitHub execution, no source patch application, no validation command execution, and no queue or registry mutation.
+
 ## M179 GitHub Sync Recovery and Idempotency Routing Boundary
 
 M179 adds no live agent, local LLM, cloud LLM, or Codex route. It adds a read-only GitHub sync recovery inspection route over local queue metadata, the local GitHub link registry, preflight artifacts, and machine gates.

@@ -205,6 +205,7 @@ def test_cli_has_expected_commands() -> None:
         "sync-pr-evidence-comment",
         "inspect-github-sync-recovery",
         "inspect-hub-autonomy-control-center-data",
+        "inspect-hub-github-sync-control-panel-data",
         "run-self-managed-project-loop",
         "plan-agent-orchestration",
         "init-project-state",
@@ -11271,6 +11272,94 @@ def test_inspect_hub_autonomy_control_center_data_dispatch_json(
         "queue_path": "queue.json",
         "history_path": "history.json",
         "artifacts_root": "artifacts",
+        "autonomy_profile": "github_sync_dry_run",
+        "output": None,
+        "force": False,
+        "output_format": "json",
+    }
+
+
+def test_inspect_hub_github_sync_control_panel_data_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "record_type": "hub_github_sync_control_panel_v1",
+                "project_id": "aresforge",
+                "item_id": "m180-hub-github-sync-control-panel",
+                "github_execution_performed": False,
+                "mutation_performed": False,
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_inspect(
+        _config,
+        *,
+        project_id="aresforge",
+        item_id="m180-hub-github-sync-control-panel",
+        queue_path=None,
+        registry_path=None,
+        repo=None,
+        autonomy_profile="github_sync_dry_run",
+        output=None,
+        force=False,
+        output_format="json",
+    ):
+        seen.update(
+            {
+                "project_id": project_id,
+                "item_id": item_id,
+                "queue_path": queue_path,
+                "registry_path": registry_path,
+                "repo": repo,
+                "autonomy_profile": autonomy_profile,
+                "output": output,
+                "force": force,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "inspect_hub_github_sync_control_panel_data", fake_inspect)
+    exit_code = cli.main(
+        [
+            "inspect-hub-github-sync-control-panel-data",
+            "--project-id",
+            "aresforge",
+            "--item-id",
+            "m180-hub-github-sync-control-panel",
+            "--queue-path",
+            "queue.json",
+            "--registry-path",
+            "links.json",
+            "--repo",
+            "local/aresforge",
+            "--autonomy-profile",
+            "github_sync_dry_run",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["record_type"] == "hub_github_sync_control_panel_v1"
+    assert parsed["github_execution_performed"] is False
+    assert parsed["mutation_performed"] is False
+    assert seen == {
+        "project_id": "aresforge",
+        "item_id": "m180-hub-github-sync-control-panel",
+        "queue_path": "queue.json",
+        "registry_path": "links.json",
+        "repo": "local/aresforge",
         "autonomy_profile": "github_sync_dry_run",
         "output": None,
         "force": False,
