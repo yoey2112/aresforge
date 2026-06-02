@@ -1,5 +1,22 @@
 # AresForge Roadmap
 
+## M176 PR Draft Branch Planning Contract
+
+Status: Completed locally on `main` after validation.
+
+M176 adds:
+
+- `python -m aresforge plan-pr-draft-branch --item-id m176-pr-draft-branch-planning-contract --format json`
+- deterministic `pr_draft_branch_planning_contract_v1` output
+- branch-name and base-branch planning for one queue item
+- linked queue item, linked issue, changed-file evidence, expected draft PR title/body, local registry, autonomy profile, and machine-gate summaries
+- safety gates showing branch creation and PR creation disabled
+
+Boundary:
+
+- planning-only and dry-run/local by design
+- no branch creation, checkout, push, PR creation/update/merge, auto-merge, force push, protected branch update, release, workflow mutation, issue closure, queue mutation, source patch application, Codex execution, model execution, validation command execution, retry, resume, or automatic next-item execution
+
 ## M175 GitHub Issue Closure Safe Execution Gate
 
 Status: Completed locally on `main` after validation.

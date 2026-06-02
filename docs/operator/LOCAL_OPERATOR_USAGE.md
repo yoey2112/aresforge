@@ -1,5 +1,25 @@
 # Local Operator Usage
 
+## M176 PR Draft Branch Planning
+
+Generate a local branch/PR planning contract:
+
+- `python -m aresforge plan-pr-draft-branch --item-id m176-pr-draft-branch-planning-contract --format json`
+
+Key output:
+
+- `record_type=pr_draft_branch_planning_contract_v1`
+- `branch_plan.branch_name` and `branch_plan.base_branch`
+- `linked_queue_items`, `linked_issues`, and `changed_file_evidence`
+- `expected_pr.title` and `expected_pr.body`
+- `branch_creation_allowed=false`, `branch_created=false`, `pr_creation_allowed=false`, and `pull_request_created=false`
+
+Safety:
+
+- The command is planning-only and does not create, checkout, push, or force-push branches.
+- The command does not create, update, merge, or auto-merge pull requests.
+- `--github-enabled` remains advisory in M176 and does not perform GitHub mutation.
+
 ## M175 GitHub Issue Closure Safe Execution Gate
 
 Dry-run the closure gate for one completed queue item:

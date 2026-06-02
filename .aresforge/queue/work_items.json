@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-06-02T12:30:00Z",
+  "updated_at": "2026-06-02T13:15:00Z",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -7740,7 +7740,9 @@
         "local_only": true,
         "unsafe_actions_available": false,
         "commit_hash": "pending-final-commit",
-        "artifacts_created": []
+        "artifacts_created": [
+          ".aresforge/pr_draft_branch_plans/m176.json"
+        ]
       },
       "routing_metadata": {
         "recommended_agent_lane": "",
@@ -8802,6 +8804,146 @@
       "closeout_history": [],
       "created_at": "2026-06-02T12:00:00Z",
       "updated_at": "2026-06-02T12:30:00Z"
+    },
+    {
+      "item_id": "m176-pr-draft-branch-planning-contract",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M176 PR Draft Branch Planning Contract",
+      "description": "Generate a PR draft branch plan without creating branches or pull requests by default.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "sync",
+      "tags": [
+        "milestone:m176",
+        "github-loop",
+        "pr-draft-branch",
+        "machine-gated",
+        "dry-run"
+      ],
+      "dependencies": [
+        "m175-github-issue-closure-safe-execution-gate"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [
+        "tests_run",
+        "smoke_checks",
+        "pr_draft_branch_planning_contract_payload",
+        "machine_gate_results",
+        "non_mutation_flags"
+      ],
+      "evidence_required": [
+        "dry_run_default",
+        "branch_name_plan",
+        "base_branch_plan",
+        "linked_queue_items_and_issues",
+        "changed_file_evidence",
+        "expected_pr_title_body",
+        "branch_and_pr_mutation_disabled",
+        "machine_gate_pass",
+        "non_mutation_flags"
+      ],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: add plan-pr-draft-branch; deterministic pr_draft_branch_planning_contract_v1 JSON; generate branch name, base branch, linked queue item/issue metadata, changed-file evidence, expected draft PR title/body, and safety gates; no branch creation, checkout, push, PR creation/update/merge, auto-merge, force push, protected branch update, release, workflow mutation, issue closure, source patch application, Codex execution, model execution, validation command execution, retry, resume, or next-item execution.",
+      "started_at": "2026-06-02T13:00:00Z",
+      "started_via": "local_operator",
+      "previous_status": "ready",
+      "completed_at": "2026-06-02T13:00:00Z",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M176 PR Draft Branch Planning Contract implemented and validated locally. Added plan-pr-draft-branch with stable pr_draft_branch_planning_contract_v1 JSON, branch/base planning, linked queue and issue context, changed-file evidence, expected draft PR title/body, safety gates, autonomy and machine gate summaries, source-of-truth docs, CLI coverage, and queue evidence. Branch and PR creation remain disabled.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 249 passed; python -m pytest tests/test_pr_draft_branch_planning_contract.py -> 4 passed; git diff --check -> passed with CRLF warnings only; python -m aresforge inspect-local-project-report -> passed with active_milestone=M176 PR Draft Branch Planning Contract and item_count=110; python -m aresforge inspect-local-queue-agent-summary -> passed with item_count=110; python -m aresforge inspect-project-queue --project-id aresforge -> passed with item_count=110; python -m aresforge plan-pr-draft-branch --item-id m176-pr-draft-branch-planning-contract --format json -> passed with status=branch_plan_created, sync_status=dry_run_ready, blocked=false, machine_gates_passed=true, dry_run=true, github_enabled=false, github_execution_performed=false, mutation_performed=false, branch_created=false, branch_pushed=false, pull_request_created=false, pull_request_merged=false, auto_merge_enabled=false, recovery_available=true, local_only=true.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 249 passed",
+        "python -m pytest tests/test_pr_draft_branch_planning_contract.py -> 4 passed",
+        "git diff --check -> passed with CRLF warnings only",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed",
+        "python -m aresforge inspect-project-queue --project-id aresforge -> passed",
+        "python -m aresforge plan-pr-draft-branch --item-id m176-pr-draft-branch-planning-contract --format json -> passed with status=branch_plan_created"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/pr_draft_branch_planning_contract.py",
+        "src/aresforge/cli.py",
+        "tests/test_pr_draft_branch_planning_contract.py",
+        "tests/test_cli.py",
+        ".aresforge/queue/work_items.json",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
+        "docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
+        "docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md"
+      ],
+      "artifact_paths": [
+        ".aresforge/pr_draft_branch_plans/m176.json"
+      ],
+      "github_issue": {
+        "number": 176,
+        "url": "https://github.com/local/aresforge/issues/176",
+        "state": "open"
+      },
+      "completion_evidence": {
+        "command": "plan-pr-draft-branch",
+        "record_type": "pr_draft_branch_planning_contract_v1",
+        "status": "branch_plan_created",
+        "sync_status": "dry_run_ready",
+        "blocked": false,
+        "blocked_reasons": [],
+        "warnings": [
+          "Working tree has local changes; this profile treats dirty state as warning-only unless the caller requires a clean tree.",
+          "Local registry metadata only; no live GitHub issue or PR lookup was performed.",
+          "PR link is intentionally empty until a separate gated PR path records it.",
+          "PR draft branch planning does not create branches, push branches, or create pull requests."
+        ],
+        "machine_gates_passed": true,
+        "dry_run": true,
+        "github_enabled": false,
+        "github_execution_performed": false,
+        "mutation_performed": false,
+        "github_branch_mutation_performed": false,
+        "github_pr_mutation_performed": false,
+        "queue_mutation_performed": false,
+        "codex_execution_performed": false,
+        "model_execution_performed": false,
+        "patch_application_performed": false,
+        "validation_command_execution_performed": false,
+        "recovery_available": true,
+        "local_only": true,
+        "commit_hash": "pending-final-commit",
+        "artifacts_created": [
+          ".aresforge/pr_draft_branch_plans/m176.json"
+        ],
+        "branch_created": false,
+        "branch_pushed": false,
+        "pull_request_created": false,
+        "pull_request_merged": false,
+        "auto_merge_enabled": false
+      },
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-06-02T13:00:00Z",
+      "updated_at": "2026-06-02T13:15:00Z"
     }
   ]
 }

@@ -1,5 +1,11 @@
 # Local LLM Environment Contract
 
+## M176 PR Draft Branch Planning Contract Boundary
+
+M176 does not change local LLM permissions. It may inspect queue metadata, issue sync plans, PR draft summary evidence, autonomy profile policy, machine gates, local GitHub link registry records, and changed-file evidence, but it does not call Ollama, send prompts, run inference, select fallback local models, mutate repository files from model output, mutate queue status, call Codex, apply patches, run validation commands, retry failures, resume orchestration, start follow-on work, create branches, push branches, or create/update/merge PRs.
+
+Local LLM advisory execution remains limited to separate explicit local-provider commands and their machine gates. M176 records branch/PR planning evidence only.
+
 ## M175 GitHub Issue Closure Safe Execution Gate Boundary
 
 M175 does not change local LLM permissions. It may inspect queue metadata, closure recommendation evidence, issue-state reconciliation evidence, autonomy profile policy, machine gates, local GitHub link registry records, and linked issue metadata/state, and it may close one GitHub issue only on the explicit gated live path, but it does not call Ollama, send prompts, run inference, select fallback local models, mutate repository files from model output, mutate queue status, call Codex, apply patches, run validation commands, retry failures, resume orchestration, or start follow-on work.

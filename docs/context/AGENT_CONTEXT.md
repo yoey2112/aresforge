@@ -1,5 +1,24 @@
 # AresForge Agent Context
 
+## M176 PR Draft Branch Planning Contract Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m176-pr-draft-branch-planning-contract`.
+
+M176 adds `plan-pr-draft-branch`, a local planning command that drafts branch and PR metadata without creating branches or pull requests.
+
+Command:
+
+- `python -m aresforge plan-pr-draft-branch --item-id m176-pr-draft-branch-planning-contract --format json`
+
+Agent-facing guidance:
+
+- Treat `pr_draft_branch_planning_contract_v1` output as review evidence only.
+- The plan includes branch name, base branch, linked queue items/issues, changed file evidence, expected draft PR title/body, local registry lookup, autonomy profile summary, machine gates, and explicit safety gates.
+- `--github-enabled` does not authorize live branch or PR mutation in M176; it remains planning-only.
+- Do not create/check out/push branches, create/update/merge PRs, force push, update protected branches, enable auto-merge, create releases, mutate workflows, close issues, apply source patches, mutate queue status, run Codex/models, run validation commands, retry, resume, or start later sprint items from this output.
+
 ## M175 GitHub Issue Closure Safe Execution Gate Context
 
 Status: Completed locally on `main` after validation.

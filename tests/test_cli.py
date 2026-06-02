@@ -200,6 +200,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-github-link-registry",
         "record-github-link",
         "generate-pr-draft-summary",
+        "plan-pr-draft-branch",
         "inspect-hub-autonomy-control-center-data",
         "run-self-managed-project-loop",
         "plan-agent-orchestration",
@@ -9915,6 +9916,120 @@ def test_generate_pr_draft_summary_dispatch_json(
         "queue_path": "queue.json",
         "run_id": "run-166",
         "autonomy_profile": "github_sync_dry_run",
+        "evidence_bundle": "bundle.json",
+        "output": None,
+        "force": False,
+        "output_format": "json",
+    }
+
+
+def test_plan_pr_draft_branch_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "record_type": "pr_draft_branch_planning_contract_v1",
+                "item_id": "m176-pr-draft-branch-planning-contract",
+                "github_execution_performed": False,
+                "mutation_performed": False,
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_plan(
+        _config,
+        *,
+        item_id,
+        project_id="aresforge",
+        queue_path=None,
+        registry_path=None,
+        run_id=None,
+        dry_run=True,
+        github_enabled=False,
+        autonomy_profile="github_sync_dry_run",
+        repo=None,
+        base_branch=None,
+        branch_prefix="codex",
+        evidence_bundle=None,
+        output=None,
+        force=False,
+        output_format="json",
+    ):
+        seen.update(
+            {
+                "item_id": item_id,
+                "project_id": project_id,
+                "queue_path": queue_path,
+                "registry_path": registry_path,
+                "run_id": run_id,
+                "dry_run": dry_run,
+                "github_enabled": github_enabled,
+                "autonomy_profile": autonomy_profile,
+                "repo": repo,
+                "base_branch": base_branch,
+                "branch_prefix": branch_prefix,
+                "evidence_bundle": evidence_bundle,
+                "output": output,
+                "force": force,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "plan_pr_draft_branch", fake_plan)
+    exit_code = cli.main(
+        [
+            "plan-pr-draft-branch",
+            "--item-id",
+            "m176-pr-draft-branch-planning-contract",
+            "--project-id",
+            "aresforge",
+            "--queue-path",
+            "queue.json",
+            "--registry-path",
+            "links.json",
+            "--run-id",
+            "run-176",
+            "--github-enabled",
+            "--autonomy-profile",
+            "github_issue_sync_enabled",
+            "--repo",
+            "local/aresforge",
+            "--base-branch",
+            "main",
+            "--branch-prefix",
+            "codex",
+            "--evidence-bundle",
+            "bundle.json",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["record_type"] == "pr_draft_branch_planning_contract_v1"
+    assert parsed["github_execution_performed"] is False
+    assert parsed["mutation_performed"] is False
+    assert seen == {
+        "item_id": "m176-pr-draft-branch-planning-contract",
+        "project_id": "aresforge",
+        "queue_path": "queue.json",
+        "registry_path": "links.json",
+        "run_id": "run-176",
+        "dry_run": False,
+        "github_enabled": True,
+        "autonomy_profile": "github_issue_sync_enabled",
+        "repo": "local/aresforge",
+        "base_branch": "main",
+        "branch_prefix": "codex",
         "evidence_bundle": "bundle.json",
         "output": None,
         "force": False,

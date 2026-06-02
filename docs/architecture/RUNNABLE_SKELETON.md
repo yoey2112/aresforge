@@ -1,5 +1,14 @@
 # Runnable Skeleton
 
+## M176 PR Draft Branch Planning Contract
+
+- `python -m aresforge plan-pr-draft-branch --item-id m176-pr-draft-branch-planning-contract --format json`
+- emits `pr_draft_branch_planning_contract_v1`
+- reads local queue data, M162 issue sync planning, M166 PR draft summary evidence, M170 link registry metadata, autonomy profile policy, changed-file evidence, and read-only machine gates
+- emits branch plan, expected draft PR payload, linked issue/item context, safety gates, idempotency key, and non-mutation flags
+
+M176 adds no branch creation, checkout, push, force push, protected branch update, PR create/update/merge, auto-merge, release, workflow mutation, issue closure, queue mutation, source patch application, Codex/model execution, validation command execution, retry, resume, or next-item execution.
+
 ## M175 GitHub Issue Closure Safe Execution Gate
 
 - `python -m aresforge gate-github-issue-closure --item-id m175-github-issue-closure-safe-execution-gate --dry-run --format json`

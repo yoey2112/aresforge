@@ -1,5 +1,11 @@
 # Documentation Agent Contract
 
+## M176 Documentation Agent Boundary
+
+M176 does not add documentation-agent or source-code patch mutation. It may update source-of-truth documentation for the milestone and inspect local queue, registry, issue-plan, draft-summary, autonomy, gate, and changed-file metadata, but it does not edit documentation through a documentation agent, generate documentation patches, apply patches, call local LLMs, call Codex, create/update/close issues, create/update/merge PRs, create or push branches, mutate queue status, run validation commands, retry failures, resume orchestration, or start follow-on work.
+
+Documentation mutation remains limited to separate explicit docs-only patch commands that pass their gates. M176 output cannot authorize documentation-agent execution, source patch mutation, queue status mutation, Codex/model execution, branch mutation, PR mutation, issue mutation, or protected GitHub operations.
+
 ## M175 Documentation Agent Boundary
 
 M175 does not add documentation-agent or source-code patch mutation. It may update source-of-truth documentation for the milestone, inspect local queue, registry, recommendation, reconciliation, and linked issue metadata, and close one GitHub issue only on the explicit gated live path, but it does not edit documentation through a documentation agent, generate documentation patches, apply patches, call local LLMs, call Codex, create/update/reopen issues, create/update/merge PRs, mutate queue status, run validation commands, retry failures, resume orchestration, or start follow-on work.
