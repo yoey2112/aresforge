@@ -1,5 +1,21 @@
 # Local Operator Usage
 
+## M179 GitHub Sync Recovery and Idempotency
+
+Inspect local recovery and idempotency state:
+
+- `python -m aresforge inspect-github-sync-recovery --project-id aresforge --format json`
+
+Interpretation:
+
+- `record_type=github_sync_recovery_idempotency_v1` identifies the M179 payload.
+- `registry_completion_proves_noop=true` means local registry or queue metadata proves the operation completed; do not repeat the mutation.
+- `sync_status=partial` on an operation means a gated preflight artifact exists without durable completion evidence.
+- `resume_plan` suggests the matching gated command only when enough local target metadata exists.
+- `repair_plan` asks the operator to verify remote state and repair the local registry before retrying risky creation operations.
+
+M179 performs no GitHub mutation, registry mutation, queue status mutation, PR merge, auto-merge, force push, protected branch update, release creation, workflow mutation, issue closure execution, source-code patch application, Codex execution, model execution, validation command execution, retry execution, resume execution, or automatic next-item execution.
+
 ## M178 PR Evidence Comment Sync
 
 Dry-run the managed PR evidence comment:

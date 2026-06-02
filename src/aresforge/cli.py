@@ -180,6 +180,7 @@ from aresforge.operator.github_link_registry import inspect_github_link_registry
 from aresforge.operator.pr_draft_creation_gate import create_pr_draft_gate
 from aresforge.operator.pr_draft_branch_planning_contract import plan_pr_draft_branch
 from aresforge.operator.pr_evidence_comment_sync import sync_pr_evidence_comment
+from aresforge.operator.github_sync_recovery_idempotency import inspect_github_sync_recovery
 from aresforge.operator.pull_request_draft_summary_generator import generate_pr_draft_summary
 from aresforge.operator.hub_autonomy_control_center import inspect_hub_autonomy_control_center_data
 from aresforge.operator.self_managed_project_loop_dry_run import run_self_managed_project_loop_dry_run
@@ -1629,6 +1630,24 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["json"],
         default="json",
         help="Output format for file writes or stdout rendering.",
+    )
+    github_sync_recovery_parser = subparsers.add_parser(
+        "inspect-github-sync-recovery",
+        help="Inspect local GitHub sync registry/preflight state for recovery plans and idempotent no-op decisions.",
+    )
+    github_sync_recovery_parser.add_argument("--project-id", default="aresforge")
+    github_sync_recovery_parser.add_argument(
+        "--item-id",
+        default="m179-github-sync-recovery-and-idempotency",
+    )
+    github_sync_recovery_parser.add_argument("--queue-path")
+    github_sync_recovery_parser.add_argument("--registry-path")
+    github_sync_recovery_parser.add_argument("--repo")
+    github_sync_recovery_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+        help="Output format for stdout rendering.",
     )
     hub_autonomy_control_center_parser = subparsers.add_parser(
         "inspect-hub-autonomy-control-center-data",
@@ -5349,6 +5368,22 @@ def main(argv: list[str] | None = None) -> int:
             evidence_bundle=args.evidence_bundle,
             output=args.output,
             force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-github-sync-recovery":
+        payload = inspect_github_sync_recovery(
+            config,
+            project_id=args.project_id,
+            item_id=args.item_id,
+            queue_path=args.queue_path,
+            registry_path=args.registry_path,
+            repo=args.repo,
             output_format=args.format,
         )
         if "stdout" in payload:

@@ -1,5 +1,11 @@
 # Local LLM Environment Contract
 
+## M179 GitHub Sync Recovery and Idempotency Boundary
+
+M179 does not change local LLM permissions. It may inspect local queue metadata, the local GitHub link registry, gated preflight artifacts, and read-only machine gates to produce recovery and idempotency recommendations, but it does not call Ollama, send prompts, run inference, select fallback local models, mutate repository files from model output, mutate queue or registry state, call Codex, apply patches, run validation commands, retry failures, resume orchestration, call GitHub/`gh`, create/update/close issues, create/update/merge PRs, enable auto-merge, force push, update protected branches, create releases, mutate workflows, or start follow-on work.
+
+Local LLM advisory execution remains limited to separate explicit local-provider commands and their machine gates. M179 records local recovery inspection evidence only.
+
 ## M178 PR Evidence Comment Sync Boundary
 
 M178 does not change local LLM permissions. It may inspect queue metadata, PR draft summary evidence, autonomy profile policy, machine gates, local GitHub link registry records, linked issue metadata, changed files, and validation bundle metadata, and it may create or update one managed PR evidence comment only on the explicit gated live path, but it does not call Ollama, send prompts, run inference, select fallback local models, mutate repository files from model output, mutate queue status, call Codex, apply patches, run validation commands, retry failures, resume orchestration, merge PRs, enable auto-merge, force push, update protected branches, create releases, mutate workflows, close issues, or start follow-on work.

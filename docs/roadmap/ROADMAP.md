@@ -1,5 +1,24 @@
 # AresForge Roadmap
 
+## M179 GitHub Sync Recovery and Idempotency
+
+Status: Completed locally on `main` after validation.
+
+M179 adds:
+
+- `python -m aresforge inspect-github-sync-recovery --project-id aresforge --format json`
+- deterministic `github_sync_recovery_idempotency_v1` output
+- local recovery inspection across issue creation, status comment sync, issue closure, draft PR creation, and PR evidence comment sync
+- operation-level idempotency keys and registry-backed no-op decisions
+- repair and resume plans for preflight artifacts that lack durable registry completion
+- tests for registry-completed no-op behavior and preflight-only partial recovery without live GitHub access
+
+Boundary:
+
+- read-only and local-only by design
+- completion is inferred only from local registry or queue metadata; live remote verification remains a separate operator action
+- no GitHub mutation, registry mutation, queue mutation, PR merge, auto-merge, force push, protected branch update, release, workflow mutation, issue closure execution, source patch application, Codex execution, model execution, validation command execution, retry execution, resume execution, or automatic next-item execution
+
 ## M178 PR Evidence Comment Sync
 
 Status: Completed locally on `main` after validation.

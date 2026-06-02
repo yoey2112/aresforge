@@ -1,5 +1,18 @@
 # Runnable Skeleton
 
+## M179 GitHub Sync Recovery and Idempotency
+
+- `python -m aresforge inspect-github-sync-recovery --project-id aresforge --format json`
+- emits `github_sync_recovery_idempotency_v1`
+- reads local queue metadata, the local GitHub link registry, read-only machine gates, and gated preflight artifacts
+- inspects issue creation, durable status comment sync, issue closure, draft PR creation, and PR evidence comment sync recovery state
+- emits operation-level idempotency keys, no-op decisions when registry or queue state proves completion, and advisory repair/resume plans for partial preflight-only attempts
+
+Runnable boundary:
+
+- read-only and local-only
+- no GitHub mutation, registry mutation, queue mutation, PR merge, auto-merge, force push, protected branch update, release, workflow mutation, issue closure execution, source patch application, Codex/model execution, validation command execution, retry execution, resume execution, or automatic next-item execution
+
 ## M178 PR Evidence Comment Sync
 
 - `python -m aresforge sync-pr-evidence-comment --item-id m178-pr-evidence-comment-sync --dry-run --format json`

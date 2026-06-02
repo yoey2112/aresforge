@@ -1,5 +1,18 @@
 # Agent LLM Routing Strategy
 
+## M179 GitHub Sync Recovery and Idempotency Routing Boundary
+
+M179 adds no live agent, local LLM, cloud LLM, or Codex route. It adds a read-only GitHub sync recovery inspection route over local queue metadata, the local GitHub link registry, preflight artifacts, and machine gates.
+
+Routing rules:
+
+- registry or queue completion anchors route operations to idempotent no-op guidance
+- preflight artifacts without registry completion route operations to advisory repair and, when target metadata exists, advisory resume plans
+- missing registry/preflight evidence routes operations to not-started guidance only
+- all resume and repair recommendations require separate operator review and the matching gated command
+
+M179 reports no agent execution, no model execution, no Codex execution, no GitHub execution, no source patch application, no validation command execution, and no queue or registry mutation.
+
 ## M178 PR Evidence Comment Sync Routing Boundary
 
 M178 adds no live agent, local LLM, cloud LLM, or Codex route. It adds a narrow GitHub PR evidence comment sync route that remains dry-run by default and becomes live only after explicit GitHub enablement, autonomy profile allowance, linked PR metadata or `--pr-number`, and machine gates pass.

@@ -203,6 +203,7 @@ def test_cli_has_expected_commands() -> None:
         "plan-pr-draft-branch",
         "create-pr-draft-gate",
         "sync-pr-evidence-comment",
+        "inspect-github-sync-recovery",
         "inspect-hub-autonomy-control-center-data",
         "run-self-managed-project-loop",
         "plan-agent-orchestration",

@@ -1,5 +1,25 @@
 # AresForge Build State
 
+## M179 GitHub Sync Recovery and Idempotency
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m179-github-sync-recovery-and-idempotency`.
+
+M179 adds a read-only GitHub sync recovery inspector:
+
+- `python -m aresforge inspect-github-sync-recovery --project-id aresforge --format json`
+- stable `github_sync_recovery_idempotency_v1` JSON
+- scans local queue state, `.aresforge/github_link_registry/links.json`, and gated preflight artifacts for issue creation, durable status comments, issue closure, draft PR creation, and PR evidence comments
+- emits operation-level idempotency keys, registry-completion no-op decisions, and repair/resume plans for preflight-only partial attempts
+- treats durable registry records and linked queue metadata as completion anchors so repeated mutations are skipped when local state proves completion
+
+Safety posture:
+
+- local-only, dry-run/read-only inspection
+- no GitHub mutation, `gh`, registry mutation, queue mutation, PR merge, auto-merge, force push, protected branch update, release creation, workflow mutation, issue closure execution, source patch application, Codex execution, model execution, validation command execution, retry execution, resume execution, or automatic next-item execution
+- any resume or repair entry is advisory and must be followed only through the matching separate gated command
+
 ## M178 PR Evidence Comment Sync
 
 Status: Completed locally on `main` after validation.

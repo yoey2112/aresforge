@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-06-02T14:45:00Z",
+  "updated_at": "2026-06-02T16:00:00Z",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -9242,6 +9242,142 @@
       "closeout_summary": "",
       "closeout_history": [],
       "updated_at": "2026-06-02T15:30:00Z"
+    },
+    {
+      "item_id": "m179-github-sync-recovery-and-idempotency",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M179 GitHub Sync Recovery and Idempotency",
+      "description": "Add recovery and idempotency controls for partially completed GitHub issue creation, status comment sync, issue closure, draft PR creation, and PR evidence comment sync operations.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "sync",
+      "tags": [
+        "milestone:m179",
+        "github-loop",
+        "recovery",
+        "idempotency",
+        "machine-gated"
+      ],
+      "dependencies": [
+        "m178-pr-evidence-comment-sync"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [
+        "tests_run",
+        "smoke_checks",
+        "github_sync_recovery_payload",
+        "idempotency_keys",
+        "resume_repair_plans",
+        "non_mutation_flags"
+      ],
+      "evidence_required": [
+        "detect_partial_issue_creation",
+        "detect_partial_comment_sync",
+        "detect_partial_issue_closure",
+        "detect_partial_pr_draft",
+        "detect_partial_pr_evidence_comment",
+        "skip_registry_completed_mutations",
+        "stable_idempotency_keys",
+        "dry_run_default",
+        "machine_gate_pass",
+        "unsafe_github_operations_blocked",
+        "non_mutation_flags"
+      ],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: add inspect-github-sync-recovery; deterministic github_sync_recovery_idempotency_v1 JSON; detect partial issue creation, comment sync, closure, and PR draft operations from local preflight artifacts and durable registry records; provide resume/repair plans and idempotency keys; do not repeat mutations when registry state proves completion; tests use local fixtures and no live GitHub access; destructive GitHub operations, source patches, queue mutation, Codex/model execution, validation command execution, retry/resume execution, and next-item execution remain blocked.",
+      "created_at": "2026-06-02T16:00:00Z",
+      "started_at": "2026-06-02T16:00:00Z",
+      "started_via": "local_operator",
+      "previous_status": "ready",
+      "github_issue": {
+        "number": 179,
+        "url": "https://github.com/local/aresforge/issues/179",
+        "state": "open"
+      },
+      "completed_at": "2026-06-02T16:00:00Z",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M179 GitHub Sync Recovery and Idempotency implemented and validated locally. Added inspect-github-sync-recovery with stable github_sync_recovery_idempotency_v1 JSON, local registry and preflight artifact inspection, operation-level idempotency keys, registry-completion no-op detection, partial operation repair and resume plans, read-only machine-gate checks, deterministic tests, CLI coverage, source-of-truth docs, and queue evidence. The command is local-only and performs no GitHub mutation, registry mutation, queue mutation, source patch application, Codex/model execution, validation command execution, retry/resume execution, PR merge, auto-merge, force push, protected branch update, release creation, or workflow mutation.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 250 passed; python -m pytest tests/test_github_sync_recovery_idempotency.py -> 3 passed; python -m pytest tests/test_github_status_comment_durable_sync.py -> 5 passed; git diff --check -> passed with CRLF warnings only; python -m aresforge inspect-local-project-report -> passed with active_milestone=M179 GitHub Sync Recovery and Idempotency and item_count=113; python -m aresforge inspect-local-queue-agent-summary -> passed with item_count=113; python -m aresforge inspect-project-queue --project-id aresforge -> passed with item_count=113; python -m aresforge inspect-github-sync-recovery --project-id aresforge --format json -> passed with status=recovery_inspected, sync_status=recovery_inspected, blocked=false, machine_gates_passed=true, dry_run=true, github_enabled=false, github_execution_performed=false, mutation_performed=false, registry_mutation_performed=false, queue_mutation_performed=false, local_only=true, operations_complete_noop=15, operations_partial=0, resume_recommended=0, repair_recommended=0.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 250 passed",
+        "python -m pytest tests/test_github_sync_recovery_idempotency.py -> 3 passed",
+        "python -m pytest tests/test_github_status_comment_durable_sync.py -> 5 passed",
+        "git diff --check -> passed with CRLF warnings only",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed",
+        "python -m aresforge inspect-project-queue --project-id aresforge -> passed",
+        "python -m aresforge inspect-github-sync-recovery --project-id aresforge --format json -> passed with status=recovery_inspected"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/github_sync_recovery_idempotency.py",
+        "src/aresforge/cli.py",
+        "tests/test_github_sync_recovery_idempotency.py",
+        "tests/test_cli.py",
+        ".aresforge/queue/work_items.json",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
+        "docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
+        "docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md"
+      ],
+      "artifact_paths": [],
+      "completion_evidence": {
+        "command": "inspect-github-sync-recovery",
+        "record_type": "github_sync_recovery_idempotency_v1",
+        "status": "recovery_inspected",
+        "sync_status": "recovery_inspected",
+        "blocked": false,
+        "blocked_reasons": [],
+        "warnings": [
+          "Local registry metadata only; no live GitHub issue or PR lookup was performed.",
+          "PR link is intentionally empty until a separate gated PR path records it.",
+          "Working tree has local changes; this profile treats dirty state as warning-only unless the caller requires a clean tree."
+        ],
+        "machine_gates_passed": true,
+        "dry_run": true,
+        "github_enabled": false,
+        "github_execution_performed": false,
+        "mutation_performed": false,
+        "registry_mutation_performed": false,
+        "queue_mutation_performed": false,
+        "codex_execution_performed": false,
+        "model_execution_performed": false,
+        "patch_application_performed": false,
+        "validation_command_execution_performed": false,
+        "recovery_available": true,
+        "local_only": true,
+        "commit_hash": "pending-final-commit",
+        "operations_complete_noop": 15,
+        "operations_partial": 0,
+        "resume_plan_count": 0,
+        "repair_plan_count": 0
+      },
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "updated_at": "2026-06-02T16:00:00Z"
     }
   ]
 }
