@@ -1,5 +1,25 @@
 # Local Operator Usage
 
+## M172 Queue-to-GitHub Issue Backfill
+
+Dry-run the queue backfill plan:
+
+- `python -m aresforge backfill-queue-items-to-github-issues --project-id aresforge --dry-run --format json`
+
+Explicit live path, only when an operator intends gated issue creation:
+
+- `python -m aresforge backfill-queue-items-to-github-issues --project-id aresforge --github-enabled --autonomy-profile github_issue_sync_enabled --repo <owner/repo> --format json`
+
+Interpretation:
+
+- `record_type=queue_to_github_issue_backfill_v1` identifies the M172 payload.
+- `dry_run=true` or `blocked=true` means no GitHub issue was created.
+- `backfill_items` contains one stable per-item record with `sync_status`, issue payload, duplicate-link status, gates, and next safe action.
+- `sync_status=already_linked` means the item was skipped because queue metadata or the local registry already links an issue.
+- Live mode defaults to one issue creation per run for resumable backfill; use `--max-creations` only after reviewing dry-run output.
+
+M172 performs no PR merge, auto-merge, force push, protected branch update, release creation, workflow mutation, issue closure, source-code patch application, queue status mutation, Codex execution, model execution, validation command execution, retry, resume, or automatic next-item execution.
+
 ## M171 GitHub Issue Creation Real-Run Gate
 
 Dry-run the real-run gate for one queue item:

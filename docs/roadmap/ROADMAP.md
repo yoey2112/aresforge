@@ -1,5 +1,25 @@
 # AresForge Roadmap
 
+## M172 Queue-to-GitHub Issue Backfill
+
+Status: Completed locally on `main` after validation.
+
+M172 advances the live self-managed GitHub loop with:
+
+- `python -m aresforge backfill-queue-items-to-github-issues --project-id aresforge --dry-run --format json`
+- deterministic `queue_to_github_issue_backfill_v1` output
+- local queue scanning for backfill candidates
+- queue metadata and local registry duplicate-link skips
+- per-item issue payload generation from the M162 planning contract
+- optional gated live issue creation through the M171 real-run gate
+- resumable one-issue default for live backfill unless an explicit `--max-creations` value is supplied
+
+Boundary:
+
+- dry-run or blocked by default
+- live creation requires explicit GitHub enablement, `github_issue_sync_enabled`, candidate safety, duplicate prevention, and passing machine gates
+- no PR merge, auto-merge, force push, protected branch update, release creation, workflow mutation, issue closure, Codex execution, local LLM/model execution, source patch application, validation command execution, queue status mutation, retry, resume, or automatic next-item execution
+
 ## M171 GitHub Issue Creation Real-Run Gate
 
 Status: Completed locally on `main` after validation.

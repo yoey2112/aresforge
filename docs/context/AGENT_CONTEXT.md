@@ -1,5 +1,25 @@
 # AresForge Agent Context
 
+## M172 Queue-to-GitHub Issue Backfill Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m172-queue-to-github-issue-backfill`.
+
+M172 adds `backfill-queue-items-to-github-issues`, a dry-run-default coordinator that scans queue items, skips already-linked items, generates issue payloads, and can optionally create safe issues through the M171 real-run gate.
+
+Command:
+
+- `python -m aresforge backfill-queue-items-to-github-issues --project-id aresforge --dry-run --format json`
+
+Agent-facing guidance:
+
+- Treat `queue_to_github_issue_backfill_v1` dry-run output as planning and review evidence only.
+- Already-linked detection uses local queue GitHub metadata plus the local GitHub link registry.
+- Live backfill requires `--github-enabled`, non-dry-run behavior, `autonomy_profile=github_issue_sync_enabled`, candidate safety checks, no duplicate registry/queue link, and passing machine gates.
+- Live mode is resumable and defaults to one issue creation per run; successful creation records local registry links and does not mutate queue status.
+- Do not merge PRs, force push, update protected branches, enable auto-merge, create releases, mutate workflows, close issues, apply source patches, mutate queue status, run Codex/models, run validation commands, retry, resume, or start later sprint items from this output.
+
 ## M171 GitHub Issue Creation Real-Run Gate Context
 
 Status: Completed locally on `main` after validation.

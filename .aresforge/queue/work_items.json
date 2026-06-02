@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-06-02T07:00:00Z",
+  "updated_at": "2026-06-02T09:30:00Z",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -8273,6 +8273,131 @@
       "closeout_history": [],
       "created_at": "2026-06-02T08:00:00Z",
       "updated_at": "2026-06-02T08:30:00Z"
+    },
+    {
+      "item_id": "m172-queue-to-github-issue-backfill",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M172 Queue-to-GitHub Issue Backfill",
+      "description": "Plan and execute gated backfill of existing queue items into linked GitHub issues.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "sync",
+      "tags": [
+        "milestone:m172",
+        "github-issue-sync",
+        "github-loop",
+        "backfill",
+        "machine-gated"
+      ],
+      "dependencies": [
+        "m171-github-issue-creation-real-run-gate"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [
+        "tests_run",
+        "smoke_checks",
+        "queue_to_github_issue_backfill_payload",
+        "machine_gate_results",
+        "mocked_github_operations"
+      ],
+      "evidence_required": [
+        "dry_run_plan",
+        "skip_already_linked_items",
+        "issue_payload_generation",
+        "explicit_github_enablement",
+        "machine_gate_pass",
+        "safe_item_backfill",
+        "registry_duplicate_prevention",
+        "resumable_idempotent_records",
+        "non_mutation_flags"
+      ],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: add backfill-queue-items-to-github-issues; deterministic queue_to_github_issue_backfill_v1 JSON; dry-run default; scans local queue items; skips already-linked queue metadata and local registry issue links; generates issue payloads; optional live creation requires --github-enabled, non-dry-run behavior, github_issue_sync_enabled autonomy profile, candidate safety checks, no duplicate link, and passing machine gates; default live creation budget is one issue per run for resumable backfill; tests use mocked GitHub operations and no live GitHub access; successful issue creation records local registry links and does not mutate queue status; no PR merge, auto-merge, force push, protected branch update, release, workflow mutation, issue closure, source patch application, Codex execution, model execution, validation command execution, retry, resume, or next-item execution.",
+      "started_at": "2026-06-02T09:00:00Z",
+      "started_via": "local_operator",
+      "previous_status": "ready",
+      "completed_at": "2026-06-02T09:30:00Z",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M172 Queue-to-GitHub Issue Backfill implemented and validated locally. Added backfill-queue-items-to-github-issues with stable queue_to_github_issue_backfill_v1 JSON, dry-run planning, already-linked queue and registry skip behavior, issue payload generation, batch-level and item-level machine gates, optional mocked live issue creation, local registry recording, resumable one-creation default for live runs, source-of-truth docs, CLI coverage, and queue evidence.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 246 passed; python -m pytest tests/test_queue_to_github_issue_backfill.py -> 4 passed; python -m pytest tests/test_github_issue_creation_real_run_gate.py -> 5 passed; git diff --check -> passed with CRLF warnings only; inspect-local-project-report passed; inspect-local-queue-agent-summary passed; inspect-project-queue --project-id aresforge passed with item_count=106; backfill-queue-items-to-github-issues dry-run smoke passed with status=dry_run_ready, blocked=false, machine_gates_passed=true, dry_run=true, github_enabled=false, github_execution_performed=false, mutation_performed=false, local_only=true, operation_counts create_planned=98, already_linked=8, blocked=0, skipped=0, issue_created=0.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -q -> 246 passed",
+        "python -m pytest tests/test_queue_to_github_issue_backfill.py -> 4 passed",
+        "python -m pytest tests/test_github_issue_creation_real_run_gate.py -> 5 passed",
+        "git diff --check -> passed with CRLF warnings only",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed",
+        "python -m aresforge inspect-project-queue --project-id aresforge -> passed",
+        "python -m aresforge backfill-queue-items-to-github-issues --project-id aresforge --dry-run --format json -> passed with status=dry_run_ready"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/queue_to_github_issue_backfill.py",
+        "src/aresforge/cli.py",
+        "tests/test_queue_to_github_issue_backfill.py",
+        "tests/test_cli.py",
+        ".aresforge/queue/work_items.json",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
+        "docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
+        "docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md"
+      ],
+      "artifact_paths": [
+        ".aresforge/github_link_registry/links.json"
+      ],
+      "github_issue": {
+        "number": 172,
+        "url": "https://github.com/local/aresforge/issues/172",
+        "state": "open"
+      },
+      "completion_evidence": {
+        "command": "backfill-queue-items-to-github-issues",
+        "record_type": "queue_to_github_issue_backfill_v1",
+        "status": "dry_run_ready",
+        "blocked": false,
+        "blocked_reasons": [],
+        "warnings": [
+          "Working tree has local changes; this profile treats dirty state as warning-only unless the caller requires a clean tree.",
+          "Backfill dry-run planned issue payloads only; no live GitHub issue was created."
+        ],
+        "machine_gates_passed": true,
+        "mutation_performed": false,
+        "queue_mutation_performed": false,
+        "codex_execution_performed": false,
+        "model_execution_performed": false,
+        "github_execution_performed": false,
+        "patch_application_performed": false,
+        "local_only": true,
+        "commit_hash": "pending-final-commit",
+        "artifacts_created": []
+      },
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-06-02T09:00:00Z",
+      "updated_at": "2026-06-02T09:30:00Z"
     }
   ]
 }

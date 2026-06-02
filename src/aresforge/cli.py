@@ -170,6 +170,7 @@ from aresforge.operator.github_issue_creation_for_safe_queue_items import (
     create_github_issue_for_safe_queue_item,
 )
 from aresforge.operator.github_issue_creation_real_run_gate import create_github_issue_real_run_gate
+from aresforge.operator.queue_to_github_issue_backfill import backfill_queue_items_to_github_issues
 from aresforge.operator.github_issue_status_comment_sync import sync_github_issue_status_comment
 from aresforge.operator.github_issue_closure_recommendation_gate import recommend_github_issue_closure
 from aresforge.operator.github_link_registry import inspect_github_link_registry, record_github_link
@@ -1339,6 +1340,30 @@ def build_parser() -> argparse.ArgumentParser:
     github_issue_creation_real_run_parser.add_argument("--output")
     github_issue_creation_real_run_parser.add_argument("--force", action="store_true")
     github_issue_creation_real_run_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+        help="Output format for file writes or stdout rendering.",
+    )
+    queue_github_issue_backfill_parser = subparsers.add_parser(
+        "backfill-queue-items-to-github-issues",
+        help="Plan and optionally execute gated backfill of queue items into linked GitHub issues; dry-run by default.",
+    )
+    queue_github_issue_backfill_parser.add_argument("--project-id", default="aresforge")
+    queue_github_issue_backfill_parser.add_argument(
+        "--item-id",
+        default="m172-queue-to-github-issue-backfill",
+    )
+    queue_github_issue_backfill_parser.add_argument("--queue-path")
+    queue_github_issue_backfill_parser.add_argument("--registry-path")
+    queue_github_issue_backfill_parser.add_argument("--dry-run", action="store_true")
+    queue_github_issue_backfill_parser.add_argument("--github-enabled", action="store_true")
+    queue_github_issue_backfill_parser.add_argument("--autonomy-profile", default="github_sync_dry_run")
+    queue_github_issue_backfill_parser.add_argument("--repo")
+    queue_github_issue_backfill_parser.add_argument("--max-creations", type=int)
+    queue_github_issue_backfill_parser.add_argument("--output")
+    queue_github_issue_backfill_parser.add_argument("--force", action="store_true")
+    queue_github_issue_backfill_parser.add_argument(
         "--format",
         choices=["json"],
         default="json",
@@ -4891,6 +4916,28 @@ def main(argv: list[str] | None = None) -> int:
             github_enabled=bool(args.github_enabled),
             autonomy_profile=args.autonomy_profile,
             repo=args.repo,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "backfill-queue-items-to-github-issues":
+        payload = backfill_queue_items_to_github_issues(
+            config,
+            project_id=args.project_id,
+            item_id=args.item_id,
+            queue_path=args.queue_path,
+            registry_path=args.registry_path,
+            dry_run=bool(args.dry_run) or not bool(args.github_enabled),
+            github_enabled=bool(args.github_enabled),
+            autonomy_profile=args.autonomy_profile,
+            repo=args.repo,
+            max_creations=args.max_creations,
             output=args.output,
             force=bool(args.force),
             output_format=args.format,

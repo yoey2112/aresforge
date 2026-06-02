@@ -1,5 +1,21 @@
 # Runnable Skeleton
 
+## M172 Queue-to-GitHub Issue Backfill
+
+- `python -m aresforge backfill-queue-items-to-github-issues --project-id aresforge --dry-run --format json`
+- emits `queue_to_github_issue_backfill_v1`
+- scans queue items for the selected project
+- skips local queue metadata links and local GitHub link registry issue links
+- generates per-item issue payloads from the M162 issue sync plan
+- defaults to dry-run unless `--github-enabled` is supplied
+- live creation routes each candidate through the M171 real-run gate and records local registry links after successful issue creation
+
+Runnable boundary:
+
+- dry-run or blocked by default
+- live backfill defaults to one issue create maximum per invocation unless `--max-creations` is supplied
+- no queue status mutation, PR merge, auto-merge, force push, protected branch update, release creation, workflow mutation, issue closure, Codex execution, local LLM/model execution, source patch application, validation command execution, retry, resume, or automatic next-item execution
+
 ## M171 GitHub Issue Creation Real-Run Gate
 
 - `python -m aresforge create-github-issue-real-run-gate --item-id m171-github-issue-creation-real-run-gate --dry-run --format json`

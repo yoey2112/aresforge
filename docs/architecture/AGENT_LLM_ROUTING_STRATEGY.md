@@ -1,5 +1,19 @@
 # Agent LLM Routing Strategy
 
+## M172 Queue-to-GitHub Issue Backfill Routing Boundary
+
+M172 adds no live agent, local LLM, or Codex route. It adds a queue-to-GitHub issue backfill route that remains dry-run by default and becomes live only after explicit GitHub enablement, autonomy profile allowance, local duplicate-link checks, candidate safety checks, and machine gates pass.
+
+Routing rules:
+
+- dry-run routes to local queue scanning, issue payload planning, registry lookup, and machine-gate inspection only
+- linked queue metadata or existing registry issue links route to `already_linked`
+- blocked queue items or non-create recommendations route to `blocked` or `skipped`
+- wrong autonomy profile or failed `github_sync` gate routes live execution to `blocked`
+- successful mocked/live issue creation routes to local GitHub link registry recording only, not queue completion
+
+M172 reports no agent execution, no model execution, no Codex execution, no source patch application, no validation command execution, and no queue status mutation. Live GitHub execution can be true only on the explicitly enabled gated create path.
+
 ## M171 GitHub Issue Creation Real-Run Gate Routing Boundary
 
 M171 adds no live agent, local LLM, or Codex route. It adds a narrow GitHub issue creation route that remains dry-run by default and becomes live only after explicit GitHub enablement, autonomy profile allowance, local duplicate-link checks, safe queue status, and machine gates pass.
