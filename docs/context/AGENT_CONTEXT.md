@@ -1,5 +1,25 @@
 # AresForge Agent Context
 
+## M161 Codex Loop Validation Evidence Bundle Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m161-codex-loop-validation-evidence-bundle`.
+
+M161 adds `bundle-codex-loop-validation-evidence`, a dry-run evidence bundler for one local Codex loop.
+
+Command:
+
+- `python -m aresforge bundle-codex-loop-validation-evidence --item-id m161-codex-loop-validation-evidence-bundle --dry-run --format json`
+
+Agent-facing guidance:
+
+- Treat `codex_loop_validation_evidence_bundle_v1` output as durable local evidence, not permission to complete the queue or sync GitHub.
+- The bundle includes the Codex loop execution record summary, copied stdout/stderr artifacts, changed files, validation command/result evidence, machine gates, source patch risk classification, retry classification, completion recommendation, and next safe action.
+- `dry_run=true` means validation commands may be selected/skipped by the underlying loop and real Codex did not run.
+- Source patch and retry sections are advisory evidence only; any patch apply, retry, queue completion, or GitHub sync remains separate, explicit, and machine-gated.
+- Do not run live Codex, call models, call GitHub, apply patches, mutate queue state from the bundle output, retry automatically, resume orchestration, merge PRs, force push, mutate workflows, create releases, or start later sprint items from this output.
+
 ## M160 Low-Risk Codex Execution Pilot Item Context
 
 Status: Completed locally on `main` after validation.

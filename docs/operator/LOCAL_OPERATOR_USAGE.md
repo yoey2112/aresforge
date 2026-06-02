@@ -1,5 +1,28 @@
 # Local Operator Usage
 
+## M161 Codex Loop Validation Evidence Bundle
+
+M161 bundles one local Codex loop's execution and validation evidence into a durable local artifact set.
+
+Generate the dry-run evidence bundle:
+
+    python -m aresforge bundle-codex-loop-validation-evidence --item-id m161-codex-loop-validation-evidence-bundle --dry-run --format json
+
+Optionally classify a generated source patch as part of the bundle:
+
+    python -m aresforge bundle-codex-loop-validation-evidence --item-id <item_id> --dry-run --patch-path artifacts/manual/sample-source.patch --format json
+
+Interpretation:
+
+- `record_type=codex_loop_validation_evidence_bundle_v1` identifies the M161 payload.
+- `codex_loop_execution_record` summarizes the composed Codex loop record.
+- `stdout_stderr_artifacts` points to durable copied stdout/stderr artifacts.
+- `validation_evidence` records selected commands, dry-run skip status, validation run entries, and ingestion evidence paths.
+- `machine_gate_results`, `source_patch_risk_classification`, `retry_classification`, and `completion_recommendation` are review evidence only.
+- `completion_recommended=true` is not queue completion; queue mutation remains a separate explicit operator action.
+
+M161 requires `--dry-run` and performs no live Codex execution, local LLM/model execution, GitHub call, source patch application, queue completion, retry, resume, PR merge, force push, workflow mutation, release, or automatic next-item execution.
+
 ## M160 Low-Risk Codex Execution Pilot Item
 
 M160 prepares and optionally executes one low-risk Codex pilot item under M159 preflight and M152 loop controls.

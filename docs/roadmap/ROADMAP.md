@@ -1,5 +1,23 @@
 # AresForge Roadmap
 
+## M161 Codex Loop Validation Evidence Bundle
+
+Status: Completed locally on `main` after validation.
+
+M161 hardens Codex loop auditability with:
+
+- `python -m aresforge bundle-codex-loop-validation-evidence --item-id m161-codex-loop-validation-evidence-bundle --dry-run --format json`
+- deterministic `codex_loop_validation_evidence_bundle_v1` output
+- durable local bundle artifacts containing execution record, stdout/stderr artifacts, changed files, validation evidence, machine gate rollup, source patch risk classification, retry classification, completion recommendation, and next safe action
+- explicit non-execution flags for Codex, model, GitHub, source patch, queue mutation, retry, and next-item behavior
+
+Boundary:
+
+- `--dry-run` is required for bundle generation
+- M161 may write local evidence artifacts only
+- no live Codex, local LLM/model, GitHub operation, source patch application, queue completion, retry, resume, protected-branch update, workflow mutation, PR merge, force push, release creation, or automatic next-item execution is performed
+- completion recommendation remains review evidence; any queue completion or GitHub sync remains separate and machine-gated
+
 ## M160 Low-Risk Codex Execution Pilot Item
 
 Status: Completed locally on `main` after validation.

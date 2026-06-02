@@ -1,5 +1,11 @@
 # Local LLM Environment Contract
 
+## M161 Codex Loop Validation Evidence Bundle Boundary
+
+M161 does not change local LLM permissions. It may bundle Codex loop dry-run evidence, validation metadata, source patch classification, retry classification, and completion recommendation into local artifacts, but it does not call Ollama, send prompts, run inference, select fallback local models, mutate repository files from model output, mutate queue state, call live Codex, call GitHub/`gh`, apply patches, retry failures, resume orchestration, or start follow-on work.
+
+Local LLM advisory execution remains limited to separate explicit local-provider commands and their machine gates. M161 records validation evidence for operator review, not local model execution evidence.
+
 ## M160 Low-Risk Codex Execution Pilot Item Boundary
 
 M160 does not change local LLM permissions. It may invoke the existing low-risk Codex path only when explicit Codex execution flags, low-risk changed paths, M159 preflight, and machine gates pass, but it does not call Ollama, send prompts to local LLM providers, run local inference, select fallback local models, mutate queue state, call GitHub/`gh`, apply patches, push, merge, retry failures, resume orchestration, or start follow-on work.

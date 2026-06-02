@@ -1,5 +1,17 @@
 # Agent LLM Routing Strategy
 
+## M161 Codex Loop Validation Evidence Bundle
+
+M161 does not add a new agent, local LLM, GitHub, or live Codex execution route. It routes existing local Codex loop dry-run evidence into a durable validation evidence bundle for operator review.
+
+Routing rules:
+
+- bundle generation requires `--dry-run`
+- Codex loop evidence routes through the existing dry-run dispatch, ingestion, validation selection, and completion recommendation path
+- stdout/stderr, changed files, validation commands/results, machine gates, source patch classification, retry classification, and completion recommendation are bundled as local evidence
+- source patch and retry outputs are advisory classifications only; no patch apply or retry route is authorized by the bundle
+- queue completion and GitHub sync remain separate explicit gated routes
+
 ## M160 Low-Risk Codex Execution Pilot Item
 
 M160 adds a pilot coordination route for exactly one low-risk Codex item. It does not add a local LLM route and does not route through GitHub automation. Dry-run preparation routes through M159 preflight evidence and M152/M151 loop artifacts without invoking Codex.

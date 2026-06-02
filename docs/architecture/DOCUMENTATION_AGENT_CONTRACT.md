@@ -1,5 +1,11 @@
 # Documentation Agent Contract
 
+## M161 Codex Loop Validation Evidence Bundle Boundary
+
+M161 does not add documentation-agent or source-code patch mutation. It may write local evidence bundle artifacts and classify a supplied source patch as review metadata, but it does not edit documentation through a documentation agent, generate documentation patches, apply patches, call local LLMs, call live Codex, call GitHub/`gh`, push, merge, mutate queue state, retry failures, resume orchestration, or start follow-on work.
+
+Documentation mutation remains limited to separate docs-only Markdown patch commands that pass `docs_only_patch_apply` gates. Source patch classification inside an M161 bundle is evidence only and cannot authorize patch application.
+
 ## M160 Low-Risk Codex Execution Pilot Item Boundary
 
 M160 does not add documentation-agent or source-code patch mutation. It may create local pilot, preflight, dispatch, ingestion, and validation artifacts, but it does not edit documentation through a documentation agent, generate documentation patches, apply patches, call local LLMs, call GitHub/`gh`, push, merge, mutate queue state, retry failures, resume orchestration, or start follow-on work.

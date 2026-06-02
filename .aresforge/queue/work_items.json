@@ -6947,6 +6947,119 @@
       "closeout_history": [],
       "created_at": "2026-06-02T00:18:01.348030+00:00",
       "updated_at": "2026-06-02T00:21:00Z"
+    },
+    {
+      "item_id": "m161-codex-loop-validation-evidence-bundle",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M161 Codex Loop Validation Evidence Bundle",
+      "description": "Bundle Codex loop execution, validation, changed files, gate results, risk classification, retry classification, and completion recommendation into a durable evidence package.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "orchestration",
+      "tags": [
+        "milestone:m161",
+        "codex-loop-validation-evidence",
+        "machine-gated",
+        "local-only"
+      ],
+      "dependencies": [
+        "m160-low-risk-codex-execution-pilot-item"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [
+        "tests_run",
+        "smoke_checks",
+        "codex_loop_execution_record",
+        "validation_evidence",
+        "completion_recommendation"
+      ],
+      "evidence_required": [
+        "codex_loop_execution_record",
+        "stdout_stderr_artifacts",
+        "changed_files",
+        "machine_gate_results",
+        "source_patch_risk_classification",
+        "retry_classification",
+        "completion_recommendation"
+      ],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: add bundle-codex-loop-validation-evidence; deterministic codex_loop_validation_evidence_bundle_v1 JSON; durable local bundle with execution record, stdout/stderr artifacts, changed files, validation commands/results, machine gates, source patch risk classification, retry classification, completion recommendation, and next safe action; no live Codex/local LLM/model/GitHub/source patch apply/queue completion/retry/resume/next-item execution from the bundler.",
+      "started_at": "2026-06-02T00:35:00Z",
+      "started_via": "local_operator",
+      "previous_status": "ready",
+      "completed_at": "2026-06-02T00:43:00Z",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M161 Codex Loop Validation Evidence Bundle implemented and validated locally. Added bundle-codex-loop-validation-evidence with stable codex_loop_validation_evidence_bundle_v1 JSON, durable local bundle artifacts, Codex loop execution record summary, stdout/stderr artifact copies, changed-file evidence, validation command/result evidence, machine gate rollup, source patch risk classification, retry classification, completion recommendation, source-of-truth docs, CLI coverage, targeted tests, and queue evidence. The bundler requires --dry-run and performs no live Codex, local LLM/model, GitHub, source patch application, queue completion from the command itself, retry, resume, or next-item execution.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 234 passed; python -m pytest tests/test_codex_loop_validation_evidence_bundle.py -> 4 passed; python -m pytest tests/test_codex_result_ingestion_validation.py -> 5 passed; inspect-local-project-report passed; inspect-local-queue-agent-summary passed; inspect-project-queue --project-id aresforge passed before closeout; bundle-codex-loop-validation-evidence --dry-run passed with status=evidence_bundle_created, machine_gates_passed=true, codex_execution_performed=false, model_execution_performed=false, github_execution_performed=false, patch_application_performed=false, queue_mutation_performed=false.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 234 passed",
+        "python -m pytest tests/test_codex_loop_validation_evidence_bundle.py -> 4 passed",
+        "python -m pytest tests/test_codex_result_ingestion_validation.py -> 5 passed",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed",
+        "python -m aresforge inspect-project-queue --project-id aresforge -> passed",
+        "python -m aresforge bundle-codex-loop-validation-evidence --item-id m161-codex-loop-validation-evidence-bundle --dry-run --format json -> passed"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/codex_loop_validation_evidence_bundle.py",
+        "src/aresforge/cli.py",
+        "tests/test_codex_loop_validation_evidence_bundle.py",
+        "tests/test_cli.py",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
+        "docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
+        "docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md",
+        ".aresforge/queue/work_items.json"
+      ],
+      "artifact_paths": [
+        ".aresforge/codex_loop_validation_evidence/m161-codex-nce-bundle (dry-run local bundle artifact root; ignored runtime evidence)",
+        ".aresforge/codex_loop_dry_runs/m161-codex-nce-bundle (dry-run local loop artifact root; ignored runtime evidence)",
+        ".aresforge/codex_dispatch/loop_dry_runs/m161-codex-nce-bundle (dry-run dispatch artifact root; ignored runtime evidence)",
+        "artifacts/codex_result_ingestion/m161-codex-loop-validation-evidence-bundle (dry-run ingestion evidence; untracked runtime evidence)"
+      ],
+      "completion_evidence": {
+        "command": "bundle-codex-loop-validation-evidence",
+        "record_type": "codex_loop_validation_evidence_bundle_v1",
+        "status": "evidence_bundle_created",
+        "machine_gates_passed": true,
+        "mutation_performed": false,
+        "queue_mutation_performed": false,
+        "external_execution_performed": false,
+        "codex_execution_performed": false,
+        "model_execution_performed": false,
+        "github_execution_performed": false,
+        "patch_application_performed": false,
+        "local_only": true,
+        "commit_hash": "pending-final-commit"
+      },
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-06-02T00:35:00Z",
+      "updated_at": "2026-06-02T00:35:00Z"
     }
   ]
 }

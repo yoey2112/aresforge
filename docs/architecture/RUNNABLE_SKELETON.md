@@ -1,5 +1,20 @@
 # Runnable Skeleton
 
+## M161 Codex Loop Validation Evidence Bundle
+
+M161 adds a dry-run evidence bundle command:
+
+- `python -m aresforge bundle-codex-loop-validation-evidence --item-id m161-codex-loop-validation-evidence-bundle --dry-run --format json`
+
+The command returns `codex_loop_validation_evidence_bundle_v1` JSON and writes a durable local bundle under `.aresforge/codex_loop_validation_evidence/`. The bundle composes the existing Codex loop dry-run record, stdout/stderr artifact copies, changed-file evidence, validation command/result evidence, machine gates, source patch risk classification, retry classification, completion recommendation, and next safe action.
+
+Runnable boundary:
+
+- `--dry-run` is required
+- optional `--output` writes the bundle record at a chosen local path
+- optional `--patch-path` classifies a local source patch but does not apply it
+- no agent, live Codex, local LLM/model, GitHub, source patch application, queue completion, retry, resume, PR merge, force push, protected-branch update, workflow mutation, release, or next-item execution is performed
+
 ## M160 Low-Risk Codex Execution Pilot Item
 
 M160 adds a low-risk Codex pilot coordinator:
