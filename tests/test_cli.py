@@ -194,6 +194,7 @@ def test_cli_has_expected_commands() -> None:
         "backfill-queue-items-to-github-issues",
         "sync-github-issue-status-comment",
         "sync-github-status-comment-durable",
+        "reconcile-github-issue-state",
         "recommend-github-issue-closure",
         "inspect-github-link-registry",
         "record-github-link",
@@ -9333,6 +9334,103 @@ def test_sync_github_issue_status_comment_dispatch_json(
         "autonomy_profile": "github_sync_dry_run",
         "repo": None,
         "issue_number": 164,
+        "output": None,
+        "force": False,
+        "output_format": "json",
+    }
+
+
+def test_reconcile_github_issue_state_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "record_type": "github_issue_state_reconciliation_v1",
+                "status": "dry_run_ready",
+                "github_execution_performed": False,
+                "mutation_performed": False,
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_reconcile(
+        _config,
+        *,
+        project_id="aresforge",
+        item_id="m174-github-issue-state-reconciliation",
+        queue_path=None,
+        registry_path=None,
+        github_state_path=None,
+        dry_run=True,
+        github_enabled=False,
+        autonomy_profile="github_sync_dry_run",
+        repo=None,
+        output=None,
+        force=False,
+        output_format="json",
+    ):
+        seen.update(
+            {
+                "project_id": project_id,
+                "item_id": item_id,
+                "queue_path": queue_path,
+                "registry_path": registry_path,
+                "github_state_path": github_state_path,
+                "dry_run": dry_run,
+                "github_enabled": github_enabled,
+                "autonomy_profile": autonomy_profile,
+                "repo": repo,
+                "output": output,
+                "force": force,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "reconcile_github_issue_state", fake_reconcile)
+    exit_code = cli.main(
+        [
+            "reconcile-github-issue-state",
+            "--project-id",
+            "aresforge",
+            "--item-id",
+            "m174-github-issue-state-reconciliation",
+            "--queue-path",
+            "queue.json",
+            "--registry-path",
+            "links.json",
+            "--github-state-path",
+            "github-state.json",
+            "--dry-run",
+            "--repo",
+            "local/aresforge",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["record_type"] == "github_issue_state_reconciliation_v1"
+    assert parsed["github_execution_performed"] is False
+    assert parsed["mutation_performed"] is False
+    assert seen == {
+        "project_id": "aresforge",
+        "item_id": "m174-github-issue-state-reconciliation",
+        "queue_path": "queue.json",
+        "registry_path": "links.json",
+        "github_state_path": "github-state.json",
+        "dry_run": True,
+        "github_enabled": False,
+        "autonomy_profile": "github_sync_dry_run",
+        "repo": "local/aresforge",
         "output": None,
         "force": False,
         "output_format": "json",

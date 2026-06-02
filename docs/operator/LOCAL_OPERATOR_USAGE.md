@@ -1,5 +1,25 @@
 # Local Operator Usage
 
+## M174 GitHub Issue State Reconciliation
+
+Dry-run local reconciliation:
+
+- `python -m aresforge reconcile-github-issue-state --project-id aresforge --dry-run --format json`
+
+Dry-run against a mocked GitHub issue-state snapshot:
+
+- `python -m aresforge reconcile-github-issue-state --project-id aresforge --github-state-path path/to/github-state.json --dry-run --format json`
+
+Interpretation:
+
+- `record_type=github_issue_state_reconciliation_v1` identifies the M174 payload.
+- `reconciliation_items` contains one stable per-item record with local link state, observed issue state, and recommendation-only actions.
+- `recommended_actions` may include `create`, `update`, `comment`, `close`, `reopen`, or `skip`.
+- `mutation_performed=false` and `github_issue_mutation_performed=false` confirm that no recommendation was executed.
+- `github_state_source=mocked_state_file` means tests or operators supplied a local JSON snapshot; `github_state_source=not_requested` means no live or mocked GitHub comparison was performed.
+
+M174 performs no PR merge, auto-merge, force push, protected branch update, release creation, workflow mutation, issue create/update/comment/close/reopen execution, source-code patch application, queue status mutation, Codex execution, model execution, validation command execution, retry, resume, or automatic next-item execution.
+
 ## M173 GitHub Status Comment Durable Sync
 
 Dry-run one durable status comment sync:

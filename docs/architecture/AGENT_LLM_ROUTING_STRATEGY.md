@@ -1,5 +1,20 @@
 # Agent LLM Routing Strategy
 
+## M174 GitHub Issue State Reconciliation Routing Boundary
+
+M174 adds no live agent, local LLM, or Codex route. It adds a recommendation-only GitHub issue-state reconciliation route that remains dry-run by default and may read mocked GitHub issue state from a local file or live issue state only after explicit GitHub enablement, autonomy profile allowance, and machine gates pass.
+
+Routing rules:
+
+- dry-run routes to local queue, issue plan, registry, autonomy, and gate inspection, plus optional mocked state-file loading
+- missing GitHub state routes linked issue items to `skip` recommendations unless local queue/registry state supports a safe `create` recommendation for unlinked items
+- open issues for done queue items route to advisory `close`
+- closed issues for active queue items route to advisory `reopen`
+- title/label drift routes to advisory `update`
+- validation/evidence comments route to advisory `comment`
+
+M174 reports no agent execution, no model execution, no Codex execution, no source patch application, no validation command execution, and no queue status mutation. GitHub execution can be true only for an explicitly enabled read-only live issue-state lookup; mutation remains false.
+
 ## M173 GitHub Status Comment Durable Sync Routing Boundary
 
 M173 adds no live agent, local LLM, or Codex route. It adds a durable GitHub status comment sync route that remains dry-run by default and becomes live only after explicit GitHub enablement, autonomy profile allowance, linked issue checks, safe queue status, and machine gates pass.

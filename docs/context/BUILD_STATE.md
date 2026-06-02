@@ -1,5 +1,28 @@
 # AresForge Build State
 
+## M174 GitHub Issue State Reconciliation
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m174-github-issue-state-reconciliation`.
+
+M174 adds dry-run-default GitHub issue state reconciliation:
+
+- `python -m aresforge reconcile-github-issue-state --project-id aresforge --dry-run --format json`
+- stable `github_issue_state_reconciliation_v1` JSON
+- compares local queue item state, M162 issue sync planning, and M170 link registry records against a mocked or explicitly enabled GitHub issue-state snapshot
+- recommends per-item `create`, `update`, `comment`, `close`, `reopen`, or `skip` actions without executing them
+- supports mocked GitHub state files and mocked issue-state clients for deterministic tests without live GitHub access
+- reports stable gate, autonomy, repository, issue, sync, idempotency, recovery, local-only, and next-safe-action fields
+
+Safety posture:
+
+- dry-run remains the default and performs no GitHub mutation
+- no recommended action is executed by this command
+- live GitHub state reads require `--github-enabled`, non-dry-run behavior, `autonomy_profile=github_issue_sync_enabled`, and passing machine gates; even then mutations remain disabled
+- close and reopen are recommendations only; issue closure/reopen execution remains a separate future gated path
+- the command performs no PR merge, auto-merge, force push, protected branch update, release creation, workflow mutation, issue mutation, source-code patch application, queue mutation, Codex execution, local LLM/model execution, validation command execution, retry, resume, or automatic next-item execution
+
 ## M173 GitHub Status Comment Durable Sync
 
 Status: Completed locally on `main` after validation.

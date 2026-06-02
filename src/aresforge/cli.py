@@ -173,6 +173,7 @@ from aresforge.operator.github_issue_creation_real_run_gate import create_github
 from aresforge.operator.queue_to_github_issue_backfill import backfill_queue_items_to_github_issues
 from aresforge.operator.github_issue_status_comment_sync import sync_github_issue_status_comment
 from aresforge.operator.github_status_comment_durable_sync import sync_github_status_comment_durable
+from aresforge.operator.github_issue_state_reconciliation import reconcile_github_issue_state
 from aresforge.operator.github_issue_closure_recommendation_gate import recommend_github_issue_closure
 from aresforge.operator.github_link_registry import inspect_github_link_registry, record_github_link
 from aresforge.operator.pull_request_draft_summary_generator import generate_pr_draft_summary
@@ -1408,6 +1409,30 @@ def build_parser() -> argparse.ArgumentParser:
     github_status_comment_durable_parser.add_argument("--output")
     github_status_comment_durable_parser.add_argument("--force", action="store_true")
     github_status_comment_durable_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+        help="Output format for file writes or stdout rendering.",
+    )
+    github_issue_state_reconciliation_parser = subparsers.add_parser(
+        "reconcile-github-issue-state",
+        help="Reconcile local queue/link registry state against mocked or explicitly enabled GitHub issue state; dry-run by default.",
+    )
+    github_issue_state_reconciliation_parser.add_argument("--project-id", default="aresforge")
+    github_issue_state_reconciliation_parser.add_argument(
+        "--item-id",
+        default="m174-github-issue-state-reconciliation",
+    )
+    github_issue_state_reconciliation_parser.add_argument("--queue-path")
+    github_issue_state_reconciliation_parser.add_argument("--registry-path")
+    github_issue_state_reconciliation_parser.add_argument("--github-state-path")
+    github_issue_state_reconciliation_parser.add_argument("--dry-run", action="store_true")
+    github_issue_state_reconciliation_parser.add_argument("--github-enabled", action="store_true")
+    github_issue_state_reconciliation_parser.add_argument("--autonomy-profile", default="github_sync_dry_run")
+    github_issue_state_reconciliation_parser.add_argument("--repo")
+    github_issue_state_reconciliation_parser.add_argument("--output")
+    github_issue_state_reconciliation_parser.add_argument("--force", action="store_true")
+    github_issue_state_reconciliation_parser.add_argument(
         "--format",
         choices=["json"],
         default="json",
@@ -5008,6 +5033,28 @@ def main(argv: list[str] | None = None) -> int:
             autonomy_profile=args.autonomy_profile,
             repo=args.repo,
             issue_number=args.issue_number,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "reconcile-github-issue-state":
+        payload = reconcile_github_issue_state(
+            config,
+            project_id=args.project_id,
+            item_id=args.item_id,
+            queue_path=args.queue_path,
+            registry_path=args.registry_path,
+            github_state_path=args.github_state_path,
+            dry_run=bool(args.dry_run) or not bool(args.github_enabled),
+            github_enabled=bool(args.github_enabled),
+            autonomy_profile=args.autonomy_profile,
+            repo=args.repo,
             output=args.output,
             force=bool(args.force),
             output_format=args.format,

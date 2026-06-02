@@ -1,5 +1,21 @@
 # Runnable Skeleton
 
+## M174 GitHub Issue State Reconciliation
+
+- `python -m aresforge reconcile-github-issue-state --project-id aresforge --dry-run --format json`
+- emits `github_issue_state_reconciliation_v1`
+- reads local queue metadata, issue sync planning, the GitHub link registry, autonomy profile policy, and machine gates
+- optionally reads a mocked GitHub issue-state JSON file with `--github-state-path`
+- recommends `create`, `update`, `comment`, `close`, `reopen`, or `skip` actions per queue item
+- defaults to dry-run unless `--github-enabled` is supplied
+
+Runnable boundary:
+
+- recommendation-only by default and by design
+- live GitHub reads require explicit enablement, `github_issue_sync_enabled`, and passing gates
+- no recommendation is executed by this command
+- no queue status mutation, PR merge, auto-merge, force push, protected branch update, release creation, workflow mutation, issue mutation, Codex execution, local LLM/model execution, source patch application, validation command execution, retry, resume, or automatic next-item execution
+
 ## M173 GitHub Status Comment Durable Sync
 
 - `python -m aresforge sync-github-status-comment-durable --item-id m173-github-status-comment-durable-sync --dry-run --format json`
