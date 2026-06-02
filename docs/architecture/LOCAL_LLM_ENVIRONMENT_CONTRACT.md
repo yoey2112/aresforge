@@ -1,5 +1,11 @@
 # Local LLM Environment Contract
 
+## M170 GitHub Link Registry Boundary
+
+M170 does not change local LLM permissions. It may inspect and write local queue-item GitHub issue/PR link metadata, but it does not call Ollama, send prompts, run inference, select fallback local models, mutate repository files from model output, mutate queue state, call Codex, call GitHub/`gh`, create/update/merge PRs, close issues, apply patches, run validation commands, retry failures, resume orchestration, or start follow-on work.
+
+Local LLM advisory execution remains limited to separate explicit local-provider commands and their machine gates. M170 records local coordination metadata only.
+
 ## M169 Production Autonomy Readiness Boundary
 
 M169 closes the M155-M169 sprint without expanding local LLM execution. The production autonomy readiness report names M155, M156, M157, M158, M159, M160, M161, M162, M163, M164, M165, M166, M167, M168, and M169 as local evidence sources only.

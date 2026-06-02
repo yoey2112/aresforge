@@ -192,6 +192,8 @@ def test_cli_has_expected_commands() -> None:
         "create-github-issue-for-safe-queue-item",
         "sync-github-issue-status-comment",
         "recommend-github-issue-closure",
+        "inspect-github-link-registry",
+        "record-github-link",
         "generate-pr-draft-summary",
         "inspect-hub-autonomy-control-center-data",
         "run-self-managed-project-loop",
@@ -9144,6 +9146,203 @@ def test_sync_github_issue_status_comment_dispatch_json(
         "issue_number": 164,
         "output": None,
         "force": False,
+        "output_format": "json",
+    }
+
+
+def test_inspect_github_link_registry_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "record_type": "github_link_registry_for_queue_items_v1",
+                "status": "registry_ready",
+                "github_execution_performed": False,
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_inspect(
+        _config,
+        *,
+        project_id="aresforge",
+        item_id="m170-github-link-registry-for-queue-items",
+        registry_path=None,
+        queue_item_id=None,
+        repository=None,
+        issue_number=None,
+        pr_number=None,
+        output_format="json",
+    ):
+        seen.update(
+            {
+                "project_id": project_id,
+                "item_id": item_id,
+                "registry_path": registry_path,
+                "queue_item_id": queue_item_id,
+                "repository": repository,
+                "issue_number": issue_number,
+                "pr_number": pr_number,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "inspect_github_link_registry", fake_inspect)
+    exit_code = cli.main(
+        [
+            "inspect-github-link-registry",
+            "--project-id",
+            "aresforge",
+            "--queue-item-id",
+            "m170-github-link-registry-for-queue-items",
+            "--repository",
+            "local/aresforge",
+            "--issue-number",
+            "170",
+            "--pr-number",
+            "171",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["record_type"] == "github_link_registry_for_queue_items_v1"
+    assert parsed["github_execution_performed"] is False
+    assert seen == {
+        "project_id": "aresforge",
+        "item_id": "m170-github-link-registry-for-queue-items",
+        "registry_path": None,
+        "queue_item_id": "m170-github-link-registry-for-queue-items",
+        "repository": "local/aresforge",
+        "issue_number": 170,
+        "pr_number": 171,
+        "output_format": "json",
+    }
+
+
+def test_record_github_link_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "record_type": "github_link_registry_for_queue_items_v1",
+                "status": "link_recorded",
+                "mutation_performed": True,
+                "github_execution_performed": False,
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_record(
+        _config,
+        *,
+        queue_item_id,
+        repository,
+        project_id="aresforge",
+        item_id="m170-github-link-registry-for-queue-items",
+        registry_path=None,
+        issue_number=None,
+        issue_url=None,
+        pr_number=None,
+        pr_url=None,
+        sync_status="linked",
+        last_sync_result=None,
+        linked_by=None,
+        link_source=None,
+        warning=None,
+        dry_run=False,
+        output_format="json",
+    ):
+        seen.update(
+            {
+                "queue_item_id": queue_item_id,
+                "repository": repository,
+                "project_id": project_id,
+                "item_id": item_id,
+                "registry_path": registry_path,
+                "issue_number": issue_number,
+                "issue_url": issue_url,
+                "pr_number": pr_number,
+                "pr_url": pr_url,
+                "sync_status": sync_status,
+                "last_sync_result": last_sync_result,
+                "linked_by": linked_by,
+                "link_source": link_source,
+                "warning": warning,
+                "dry_run": dry_run,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "record_github_link", fake_record)
+    exit_code = cli.main(
+        [
+            "record-github-link",
+            "--queue-item-id",
+            "m170-github-link-registry-for-queue-items",
+            "--repository",
+            "local/aresforge",
+            "--issue-number",
+            "170",
+            "--issue-url",
+            "https://github.com/local/aresforge/issues/170",
+            "--pr-number",
+            "171",
+            "--pr-url",
+            "https://github.com/local/aresforge/pull/171",
+            "--sync-status",
+            "linked",
+            "--last-sync-result",
+            "local metadata recorded",
+            "--linked-by",
+            "unit-test",
+            "--link-source",
+            "cli-test",
+            "--warning",
+            "pr not created yet in live GitHub",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["record_type"] == "github_link_registry_for_queue_items_v1"
+    assert parsed["github_execution_performed"] is False
+    assert seen == {
+        "queue_item_id": "m170-github-link-registry-for-queue-items",
+        "repository": "local/aresforge",
+        "project_id": "aresforge",
+        "item_id": "m170-github-link-registry-for-queue-items",
+        "registry_path": None,
+        "issue_number": 170,
+        "issue_url": "https://github.com/local/aresforge/issues/170",
+        "pr_number": 171,
+        "pr_url": "https://github.com/local/aresforge/pull/171",
+        "sync_status": "linked",
+        "last_sync_result": "local metadata recorded",
+        "linked_by": "unit-test",
+        "link_source": "cli-test",
+        "warning": ["pr not created yet in live GitHub"],
+        "dry_run": False,
         "output_format": "json",
     }
 

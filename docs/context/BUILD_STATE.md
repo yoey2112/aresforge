@@ -1,5 +1,26 @@
 # AresForge Build State
 
+## M170 GitHub Link Registry for Queue Items
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m170-github-link-registry-for-queue-items`.
+
+M170 adds a durable local GitHub link registry for AresForge queue items:
+
+- `python -m aresforge inspect-github-link-registry --project-id aresforge --format json`
+- `python -m aresforge record-github-link --queue-item-id <item_id> --repository <owner/repo> --issue-number <n> --issue-url <url> --pr-number <n> --pr-url <url> --format json`
+- stable `github_link_registry_for_queue_items_v1` JSON
+- local registry storage at `.aresforge/github_link_registry/links.json`
+- record fields for queue item, repository, issue/PR numbers and URLs, sync status, sync timestamp/result, linked-by/source metadata, warnings, and idempotency key
+- lookup by queue item, issue number, PR number, and repository
+
+Safety posture:
+
+- registry inspection is read-only and local-only
+- `record-github-link` mutates only the local registry file and is idempotent for unchanged material link data
+- the commands perform no live GitHub mutation, `gh`, GitHub API call, PR creation/update/merge, issue closure, queue mutation, Codex execution, local LLM/model execution, source patch application, validation command execution, protected branch update, force push, auto-merge, release, workflow mutation, retry, resume, or automatic next-item execution
+
 ## M169 Sprint Closeout and Production Autonomy Readiness Report
 
 Status: Completed locally on `main` after validation.

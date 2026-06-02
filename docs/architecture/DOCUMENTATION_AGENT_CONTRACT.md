@@ -1,5 +1,11 @@
 # Documentation Agent Contract
 
+## M170 Documentation Agent Boundary
+
+M170 does not add documentation-agent or source-code patch mutation. It may record local queue-item GitHub issue/PR link metadata and update source-of-truth documentation for the milestone, but it does not edit documentation through a documentation agent, generate documentation patches, apply patches, call local LLMs, call Codex, call GitHub/`gh`, create/update/merge PRs, close issues, mutate queue state, run validation commands, retry failures, resume orchestration, or start follow-on work.
+
+Documentation mutation remains limited to separate explicit docs-only patch commands that pass their gates. M170 output cannot authorize documentation, source patch, queue, Codex, model, or GitHub mutation.
+
 ## M169 Documentation Agent Closeout Boundary
 
 M169 closes the M155-M169 sprint with source-of-truth documentation reconciliation for M155, M156, M157, M158, M159, M160, M161, M162, M163, M164, M165, M166, M167, M168, and M169.

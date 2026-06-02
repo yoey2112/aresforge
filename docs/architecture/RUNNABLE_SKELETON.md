@@ -1,5 +1,21 @@
 # Runnable Skeleton
 
+## M170 GitHub Link Registry for Queue Items
+
+- `python -m aresforge inspect-github-link-registry --project-id aresforge --format json`
+- `python -m aresforge record-github-link --queue-item-id <item_id> --repository <owner/repo> --issue-number <n> --issue-url <url> --pr-number <n> --pr-url <url> --format json`
+- emits `github_link_registry_for_queue_items_v1`
+- reads and writes durable local metadata at `.aresforge/github_link_registry/links.json`
+- supports inspect, local add/update, queue-item lookup, issue lookup, PR lookup, and repository filtering
+- stores queue item id, repository, issue/PR numbers and URLs, sync status, sync time/result, linked-by/source metadata, warnings, and idempotency key
+
+Runnable boundary:
+
+- inspection is local-only and read-only
+- record add/update mutates only the local registry file
+- idempotent repeated writes with the same material link data are no-ops
+- no live GitHub mutation, `gh`, GitHub API call, PR creation/update/merge, issue closure, queue mutation, Codex execution, local LLM/model execution, source patch application, validation command execution, protected branch update, force push, auto-merge, release, workflow mutation, retry, resume, or automatic next-item execution
+
 ## M169 Production Autonomy Readiness Report
 
 - `python -m aresforge generate-production-autonomy-readiness-report --project-id aresforge --sprint-start M155 --sprint-end M169 --format json`

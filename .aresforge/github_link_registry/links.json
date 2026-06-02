@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "updated_at": "2026-06-02T07:00:00Z",
+  "links": [
+    {
+      "record_type": "github_link_registry_record_v1",
+      "project_id": "aresforge",
+      "queue_item_id": "m170-github-link-registry-for-queue-items",
+      "repository": "local/aresforge",
+      "issue_number": 170,
+      "issue_url": "https://github.com/local/aresforge/issues/170",
+      "pr_number": null,
+      "pr_url": "",
+      "sync_status": "linked",
+      "last_sync_time": "2026-06-02T07:00:00Z",
+      "last_sync_result": "M170 local registry link recorded; no live GitHub mutation performed.",
+      "linked_by": "local_operator",
+      "link_source": "delegated-batch",
+      "warnings": [
+        "Local registry metadata only; no live GitHub issue or PR lookup was performed.",
+        "PR link is intentionally empty until a separate gated PR path records it."
+      ],
+      "idempotency_key": "link:aresforge:m170-github-link-registry-for-queue-items:local-aresforge",
+      "blocked": false,
+      "blocked_reasons": [],
+      "github_execution_performed": false,
+      "mutation_performed": false,
+      "local_only": true
+    }
+  ]
+}

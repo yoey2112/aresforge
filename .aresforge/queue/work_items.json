@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-06-02T04:15:00Z",
+  "updated_at": "2026-06-02T07:00:00Z",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -8020,6 +8020,132 @@
       "closeout_history": [],
       "created_at": "2026-06-02T06:00:00Z",
       "updated_at": "2026-06-02T06:35:00Z"
+    },
+    {
+      "item_id": "m170-github-link-registry-for-queue-items",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M170 GitHub Link Registry for Queue Items",
+      "description": "Create a durable local registry that links AresForge queue items to GitHub issues and pull requests with idempotent lookup and local add/update support.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "sync",
+      "tags": [
+        "milestone:m170",
+        "github-link-registry",
+        "github-loop",
+        "local-only",
+        "machine-gated"
+      ],
+      "dependencies": [
+        "m169-sprint-closeout-and-production-autonomy-readiness-report"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [
+        "tests_run",
+        "smoke_checks",
+        "github_link_registry_payload",
+        "machine_gate_results"
+      ],
+      "evidence_required": [
+        "registry_schema",
+        "inspect_registry",
+        "add_update_link",
+        "lookup_by_queue_item",
+        "lookup_by_issue",
+        "lookup_by_pr",
+        "idempotent_writes",
+        "non_mutation_flags"
+      ],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: add inspect-github-link-registry and record-github-link; durable local JSON registry stores queue_item_id, repository, issue_number, issue_url, pr_number, pr_url, sync_status, last_sync_time, last_sync_result, linked_by, link_source, and warnings; supports inspect, local add/update, queue-item lookup, issue lookup, PR lookup, and idempotent writes; performs no live GitHub mutation, Codex execution, local LLM/model execution, source patch application, queue mutation, PR merge, protected branch update, force push, auto-merge, release, workflow mutation, retry, resume, or next-item execution.",
+      "started_at": "2026-06-02T07:00:00Z",
+      "started_via": "local_operator",
+      "previous_status": "ready",
+      "completed_at": "2026-06-02T07:30:00Z",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M170 GitHub Link Registry for Queue Items implemented and validated locally. Added durable local GitHub link registry storage, inspect and record CLI commands, idempotent link writes, lookup by queue item, lookup by issue, lookup by PR, targeted tests, source-of-truth docs, and queue evidence. The command surfaces perform no live GitHub mutation, Codex execution, local LLM/model execution, source patch application, queue mutation, PR merge, protected branch update, force push, auto-merge, release, workflow mutation, retry, resume, or next-item execution.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 244 passed; python -m pytest tests/test_github_link_registry.py -> 5 passed; git diff --check -> passed with CRLF warnings only; inspect-local-project-report passed with item_count=104 and active_milestone=M170 GitHub Link Registry for Queue Items; inspect-local-queue-agent-summary passed with item_count=104; inspect-project-queue --project-id aresforge passed with item_count=104; inspect-github-link-registry passed with status=registry_ready, record_count=1, matched_record_count=1, machine_gates_passed=true, mutation_performed=false, queue_mutation_performed=false, github_execution_performed=false, codex_execution_performed=false, model_execution_performed=false, patch_application_performed=false, and local_only=true.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 244 passed",
+        "python -m pytest tests/test_github_link_registry.py -> 5 passed",
+        "git diff --check -> passed with CRLF warnings only",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed",
+        "python -m aresforge inspect-project-queue --project-id aresforge -> passed",
+        "python -m aresforge inspect-github-link-registry --project-id aresforge --format json -> passed with status=registry_ready"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/github_link_registry.py",
+        "src/aresforge/cli.py",
+        "tests/test_github_link_registry.py",
+        "tests/test_cli.py",
+        ".aresforge/github_link_registry/links.json",
+        ".aresforge/queue/work_items.json",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
+        "docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
+        "docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md"
+      ],
+      "artifact_paths": [
+        ".aresforge/github_link_registry/links.json"
+      ],
+      "github_issue": {
+        "number": 170,
+        "url": "https://github.com/local/aresforge/issues/170",
+        "state": "open"
+      },
+      "completion_evidence": {
+        "command": "inspect-github-link-registry",
+        "record_type": "github_link_registry_for_queue_items_v1",
+        "status": "registry_ready",
+        "blocked": false,
+        "blocked_reasons": [],
+        "warnings": [
+          "Local registry metadata only; no live GitHub issue or PR lookup was performed.",
+          "PR link is intentionally empty until a separate gated PR path records it.",
+          "Working tree has local changes; this profile treats dirty state as warning-only unless the caller requires a clean tree."
+        ],
+        "machine_gates_passed": true,
+        "mutation_performed": false,
+        "queue_mutation_performed": false,
+        "codex_execution_performed": false,
+        "model_execution_performed": false,
+        "github_execution_performed": false,
+        "patch_application_performed": false,
+        "local_only": true,
+        "commit_hash": "pending-final-commit",
+        "artifacts_created": [
+          ".aresforge/github_link_registry/links.json"
+        ]
+      },
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-06-02T07:00:00Z",
+      "updated_at": "2026-06-02T07:30:00Z"
     }
   ]
 }

@@ -1,5 +1,29 @@
 # Local Operator Usage
 
+## M170 GitHub Link Registry for Queue Items
+
+Inspect the local queue-item GitHub link registry:
+
+- `python -m aresforge inspect-github-link-registry --project-id aresforge --format json`
+
+Look up one queue item:
+
+- `python -m aresforge inspect-github-link-registry --project-id aresforge --queue-item-id m170-github-link-registry-for-queue-items --format json`
+
+Record or update one local link:
+
+- `python -m aresforge record-github-link --queue-item-id <item_id> --repository <owner/repo> --issue-number <number> --issue-url <url> --pr-number <number> --pr-url <url> --sync-status linked --format json`
+
+Interpretation:
+
+- `record_type=github_link_registry_for_queue_items_v1` identifies the M170 payload.
+- `records` contains local link records with `queue_item_id`, `repository`, `issue_number`, `issue_url`, `pr_number`, `pr_url`, `sync_status`, `last_sync_time`, `last_sync_result`, `linked_by`, `link_source`, `warnings`, and `idempotency_key`.
+- `matched_record_count` reports lookup matches for queue item, issue, PR, or repository filters.
+- `mutation_performed=true` on `record-github-link` means only the local registry file changed.
+- `github_execution_performed=false` confirms no live GitHub operation occurred.
+
+M170 performs no GitHub API calls, `gh` calls, issue mutation, PR creation/update/merge, issue closure, queue mutation, Codex execution, model execution, source patch application, protected branch update, force push, auto-merge, release creation, workflow mutation, retry, resume, or automatic next-item execution.
+
 ## M169 Sprint Closeout and Production Autonomy Readiness Report
 
 Generate the M155-M169 production autonomy closeout report:

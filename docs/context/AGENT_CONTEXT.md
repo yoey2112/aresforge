@@ -1,5 +1,26 @@
 # AresForge Agent Context
 
+## M170 GitHub Link Registry for Queue Items Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m170-github-link-registry-for-queue-items`.
+
+M170 adds a durable local registry for queue-item links to GitHub issues and PRs.
+
+Commands:
+
+- `python -m aresforge inspect-github-link-registry --project-id aresforge --format json`
+- `python -m aresforge record-github-link --queue-item-id <item_id> --repository <owner/repo> --issue-number <n> --issue-url <url> --pr-number <n> --pr-url <url> --format json`
+
+Agent-facing guidance:
+
+- Treat `github_link_registry_for_queue_items_v1` output as local coordination metadata only.
+- The registry file is `.aresforge/github_link_registry/links.json`.
+- Link records include queue item id, repository, issue/PR numbers and URLs, sync status, sync timestamp/result, linked-by/source metadata, warnings, and idempotency key.
+- Lookups by queue item, issue number, PR number, and repository are local reads.
+- Do not call GitHub or `gh`, create/update/merge PRs, close issues, mutate queue state, run live Codex, call local/cloud models, apply patches, run validation commands, retry, resume, push, force push, update protected branches, enable auto-merge, create releases, mutate workflows, or start later sprint items from registry output.
+
 ## M169 Sprint Closeout and Production Autonomy Readiness Report Context
 
 Status: Completed locally on `main` after validation.

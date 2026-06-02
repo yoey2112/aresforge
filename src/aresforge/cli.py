@@ -171,6 +171,7 @@ from aresforge.operator.github_issue_creation_for_safe_queue_items import (
 )
 from aresforge.operator.github_issue_status_comment_sync import sync_github_issue_status_comment
 from aresforge.operator.github_issue_closure_recommendation_gate import recommend_github_issue_closure
+from aresforge.operator.github_link_registry import inspect_github_link_registry, record_github_link
 from aresforge.operator.pull_request_draft_summary_generator import generate_pr_draft_summary
 from aresforge.operator.hub_autonomy_control_center import inspect_hub_autonomy_control_center_data
 from aresforge.operator.self_managed_project_loop_dry_run import run_self_managed_project_loop_dry_run
@@ -1360,6 +1361,54 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["json"],
         default="json",
         help="Output format for file writes or stdout rendering.",
+    )
+    github_link_registry_parser = subparsers.add_parser(
+        "inspect-github-link-registry",
+        help="Inspect the durable local queue-item GitHub issue/PR link registry without mutating GitHub.",
+    )
+    github_link_registry_parser.add_argument("--project-id", default="aresforge")
+    github_link_registry_parser.add_argument(
+        "--item-id",
+        default="m170-github-link-registry-for-queue-items",
+    )
+    github_link_registry_parser.add_argument("--registry-path")
+    github_link_registry_parser.add_argument("--queue-item-id")
+    github_link_registry_parser.add_argument("--repository")
+    github_link_registry_parser.add_argument("--issue-number", type=int)
+    github_link_registry_parser.add_argument("--pr-number", type=int)
+    github_link_registry_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+        help="Output format for stdout rendering.",
+    )
+    record_github_link_parser = subparsers.add_parser(
+        "record-github-link",
+        help="Add or update one local queue-item GitHub issue/PR link registry record without mutating GitHub.",
+    )
+    record_github_link_parser.add_argument("--project-id", default="aresforge")
+    record_github_link_parser.add_argument(
+        "--item-id",
+        default="m170-github-link-registry-for-queue-items",
+    )
+    record_github_link_parser.add_argument("--registry-path")
+    record_github_link_parser.add_argument("--queue-item-id", required=True)
+    record_github_link_parser.add_argument("--repository", required=True)
+    record_github_link_parser.add_argument("--issue-number", type=int)
+    record_github_link_parser.add_argument("--issue-url")
+    record_github_link_parser.add_argument("--pr-number", type=int)
+    record_github_link_parser.add_argument("--pr-url")
+    record_github_link_parser.add_argument("--sync-status", default="linked")
+    record_github_link_parser.add_argument("--last-sync-result")
+    record_github_link_parser.add_argument("--linked-by")
+    record_github_link_parser.add_argument("--link-source")
+    record_github_link_parser.add_argument("--warning", action="append", default=[])
+    record_github_link_parser.add_argument("--dry-run", action="store_true")
+    record_github_link_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+        help="Output format for stdout rendering.",
     )
     pr_draft_summary_parser = subparsers.add_parser(
         "generate-pr-draft-summary",
@@ -4843,6 +4892,50 @@ def main(argv: list[str] | None = None) -> int:
             linked_issue_state=args.linked_issue_state,
             output=args.output,
             force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-github-link-registry":
+        payload = inspect_github_link_registry(
+            config,
+            project_id=args.project_id,
+            item_id=args.item_id,
+            registry_path=args.registry_path,
+            queue_item_id=args.queue_item_id,
+            repository=args.repository,
+            issue_number=args.issue_number,
+            pr_number=args.pr_number,
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "record-github-link":
+        payload = record_github_link(
+            config,
+            project_id=args.project_id,
+            item_id=args.item_id,
+            registry_path=args.registry_path,
+            queue_item_id=args.queue_item_id,
+            repository=args.repository,
+            issue_number=args.issue_number,
+            issue_url=args.issue_url,
+            pr_number=args.pr_number,
+            pr_url=args.pr_url,
+            sync_status=args.sync_status,
+            last_sync_result=args.last_sync_result,
+            linked_by=args.linked_by,
+            link_source=args.link_source,
+            warning=list(args.warning),
+            dry_run=bool(args.dry_run),
             output_format=args.format,
         )
         if "stdout" in payload:

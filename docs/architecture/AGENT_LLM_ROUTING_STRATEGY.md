@@ -1,5 +1,19 @@
 # Agent LLM Routing Strategy
 
+## M170 GitHub Link Registry Routing Boundary
+
+M170 adds no live agent, local LLM, Codex, or live GitHub route. It routes queue-item GitHub issue/PR linkage into a durable local registry for operator review and later gated sync coordination.
+
+Routing rules:
+
+- registry inspection routes to local read-only metadata lookup
+- `record-github-link` routes to local file-backed registry add/update only
+- queue item, issue number, PR number, and repository filters route to local lookup results
+- repeated writes with the same material link data route to `idempotent_noop`
+- registry records route to future review evidence only, not automatic GitHub mutation
+
+M170 reports no agent execution, no model execution, no Codex execution, no GitHub execution, no source patch application, no validation command execution, and no queue mutation.
+
 ## M169 Production Autonomy Readiness Report Routing Boundary
 
 M169 adds no live agent, local LLM, Codex, or GitHub route. It routes M155, M156, M157, M158, M159, M160, M161, M162, M163, M164, M165, M166, M167, M168, and M169 local evidence into a production autonomy readiness report for operator review.
