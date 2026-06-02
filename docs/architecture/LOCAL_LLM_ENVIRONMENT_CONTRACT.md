@@ -1,5 +1,11 @@
 # Local LLM Environment Contract
 
+## M178 PR Evidence Comment Sync Boundary
+
+M178 does not change local LLM permissions. It may inspect queue metadata, PR draft summary evidence, autonomy profile policy, machine gates, local GitHub link registry records, linked issue metadata, changed files, and validation bundle metadata, and it may create or update one managed PR evidence comment only on the explicit gated live path, but it does not call Ollama, send prompts, run inference, select fallback local models, mutate repository files from model output, mutate queue status, call Codex, apply patches, run validation commands, retry failures, resume orchestration, merge PRs, enable auto-merge, force push, update protected branches, create releases, mutate workflows, close issues, or start follow-on work.
+
+Local LLM advisory execution remains limited to separate explicit local-provider commands and their machine gates. M178 records PR evidence comment sync evidence and, on successful live sync, local registry comment metadata only.
+
 ## M177 PR Draft Creation Gate Boundary
 
 M177 does not change local LLM permissions. It may inspect queue metadata, an M176 branch plan, autonomy profile policy, machine gates, local GitHub link registry records, linked issue metadata, and branch existence, and it may create one draft pull request only on the explicit gated live path, but it does not call Ollama, send prompts, run inference, select fallback local models, mutate repository files from model output, mutate queue status, call Codex, apply patches, run validation commands, retry failures, resume orchestration, merge PRs, enable auto-merge, force push, update protected branches, create releases, mutate workflows, close issues, or start follow-on work.

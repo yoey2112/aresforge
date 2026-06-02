@@ -1,5 +1,19 @@
 # Agent LLM Routing Strategy
 
+## M178 PR Evidence Comment Sync Routing Boundary
+
+M178 adds no live agent, local LLM, cloud LLM, or Codex route. It adds a narrow GitHub PR evidence comment sync route that remains dry-run by default and becomes live only after explicit GitHub enablement, autonomy profile allowance, linked PR metadata or `--pr-number`, and machine gates pass.
+
+Routing rules:
+
+- dry-run routes to local queue, issue sync plan, PR draft summary evidence, registry, autonomy, and gate inspection only
+- missing validation/artifact evidence is reported in the generated comment body and blocks live sync, but does not prevent dry-run review output
+- missing linked PR metadata, wrong autonomy profile, missing `github_issue_sync`, or failed `github_sync` gate routes live sync to `blocked`
+- successful mocked/live PR evidence comment sync routes to local GitHub link registry comment metadata recording only, not queue completion
+- merge, auto-merge, force push, protected branch update, release, workflow mutation, issue closure, and source patch operations have no route from this command
+
+M178 reports no agent execution, no model execution, no Codex execution, no source patch application, no validation command execution, and no queue status mutation. Live GitHub execution can be true only on the explicitly enabled single PR evidence comment create/update path.
+
 ## M177 PR Draft Creation Gate Routing Boundary
 
 M177 adds no live agent, local LLM, cloud LLM, or Codex route. It adds a narrow GitHub draft PR creation route that remains dry-run by default and becomes live only after explicit GitHub enablement, autonomy profile allowance, approved branch-plan evidence, branch safety, local duplicate-link checks, and machine gates pass.

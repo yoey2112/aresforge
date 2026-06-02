@@ -1,5 +1,23 @@
 # AresForge Roadmap
 
+## M178 PR Evidence Comment Sync
+
+Status: Completed locally on `main` after validation.
+
+M178 adds:
+
+- `python -m aresforge sync-pr-evidence-comment --item-id m178-pr-evidence-comment-sync --dry-run --format json`
+- deterministic `pr_evidence_comment_sync_v1` output
+- managed PR evidence comment body with validation bundle status, changed files, tests, smoke checks, risk classification, linked issues, blockers, and next safe action
+- mocked PR comment create/update coverage without network access
+- registry-backed idempotent update behavior through a managed comment marker and stored `comment_id`
+
+Boundary:
+
+- dry-run or blocked by default
+- live PR evidence comment sync requires explicit GitHub enablement, `github_issue_sync_enabled`, linked PR metadata or `--pr-number`, and passing `github_sync`
+- no PR merge, auto-merge, force push, protected branch update, release, workflow mutation, issue closure, queue mutation, source patch application, Codex execution, model execution, validation command execution, retry, resume, or automatic next-item execution
+
 ## M177 PR Draft Creation Gate
 
 Status: Completed locally on `main` after validation.

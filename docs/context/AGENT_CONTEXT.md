@@ -1,5 +1,25 @@
 # AresForge Agent Context
 
+## M178 PR Evidence Comment Sync Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m178-pr-evidence-comment-sync`.
+
+M178 adds `sync-pr-evidence-comment`, a dry-run-default command that creates or updates exactly one managed PR evidence comment only after explicit GitHub enablement and gates pass.
+
+Command:
+
+- `python -m aresforge sync-pr-evidence-comment --item-id m178-pr-evidence-comment-sync --dry-run --format json`
+
+Agent-facing guidance:
+
+- Treat `pr_evidence_comment_sync_v1` dry-run output as review evidence only.
+- The generated comment body includes validation bundle status, changed files, tests, smoke checks, risk classification, linked issues, blockers, machine-gate status, and next safe action.
+- Live sync requires `--github-enabled`, non-dry-run behavior, `autonomy_profile=github_issue_sync_enabled`, a linked PR from the local registry or `--pr-number`, and passing `github_sync` machine gates.
+- Live sync may create or update only one managed PR comment and may record only the managed `comment_id` / `comment_url` in `.aresforge/github_link_registry/links.json`.
+- Do not merge PRs, enable auto-merge, force push, update protected branches, create releases, mutate workflows, close issues, apply source patches, mutate queue status, run Codex/models, run validation commands, retry, resume, or start later sprint items from this output.
+
 ## M177 PR Draft Creation Gate Context
 
 Status: Completed locally on `main` after validation.

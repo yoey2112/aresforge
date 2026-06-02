@@ -1,5 +1,17 @@
 # Runnable Skeleton
 
+## M178 PR Evidence Comment Sync
+
+- `python -m aresforge sync-pr-evidence-comment --item-id m178-pr-evidence-comment-sync --dry-run --format json`
+- emits `pr_evidence_comment_sync_v1`
+- reads local queue data, M162 issue sync planning, M166 PR draft summary evidence, M170 link registry metadata, autonomy profile policy, changed-file evidence, validation bundle metadata, and machine gates
+- composes one managed PR evidence comment body with validation, changed files, tests, smoke checks, risk, linked issue, blocker, and next-action sections
+- defaults to dry-run and performs no GitHub mutation
+- live sync requires explicit GitHub enablement, `github_issue_sync_enabled`, a linked PR or `--pr-number`, and passing `github_sync`
+- successful live sync records the managed comment id/url in the local GitHub link registry
+
+M178 adds no PR merge, auto-merge, force push, protected branch update, release, workflow mutation, issue closure, queue mutation, source patch application, Codex/model execution, validation command execution, retry, resume, or next-item execution.
+
 ## M177 PR Draft Creation Gate
 
 - `python -m aresforge create-pr-draft-gate --item-id m177-pr-draft-creation-gate --dry-run --format json`

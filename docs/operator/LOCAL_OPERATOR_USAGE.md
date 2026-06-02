@@ -1,5 +1,25 @@
 # Local Operator Usage
 
+## M178 PR Evidence Comment Sync
+
+Dry-run the managed PR evidence comment:
+
+- `python -m aresforge sync-pr-evidence-comment --item-id m178-pr-evidence-comment-sync --dry-run --format json`
+
+Explicit live path, only when an operator intends gated PR comment sync:
+
+- `python -m aresforge sync-pr-evidence-comment --item-id <item_id> --github-enabled --autonomy-profile github_issue_sync_enabled --repo <owner/repo> --pr-number <number> --format json`
+
+Interpretation:
+
+- `record_type=pr_evidence_comment_sync_v1` identifies the M178 payload.
+- `dry_run=true` or `blocked=true` means no GitHub PR comment was created or updated.
+- `pr_evidence_comment_sync_allowed=true` can appear only on the explicitly enabled non-dry-run path after registry/PR, autonomy, and machine gates pass.
+- `pr_evidence_comment_synced=true` means exactly one managed PR evidence comment create/update was attempted and GitHub reported success.
+- `registry_mutation_performed=true` means only `.aresforge/github_link_registry/links.json` was updated with managed comment metadata.
+
+M178 performs no PR merge, auto-merge, force push, protected branch update, release creation, workflow mutation, issue closure, source-code patch application, queue status mutation, Codex execution, model execution, validation command execution, retry, resume, or automatic next-item execution.
+
 ## M177 PR Draft Creation Gate
 
 Dry-run the draft PR creation gate:
