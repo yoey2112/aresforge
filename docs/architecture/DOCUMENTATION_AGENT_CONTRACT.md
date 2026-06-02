@@ -1,5 +1,11 @@
 # Documentation Agent Contract
 
+## M169 Documentation Agent Closeout Boundary
+
+M169 closes the M155-M169 sprint with source-of-truth documentation reconciliation for M155, M156, M157, M158, M159, M160, M161, M162, M163, M164, M165, M166, M167, M168, and M169.
+
+The production autonomy readiness report is documentation/report evidence only. It performs no documentation-agent runtime execution, no autonomous patch application, no source patch application, no queue mutation, no GitHub mutation, no Codex execution, no model execution, no validation command execution, and no automatic next-item execution.
+
 ## M168 Self-Managed AresForge Project Loop Dry Run Boundary
 
 M168 does not add documentation-agent or source-code patch mutation. It may include documentation-related queue metadata, changed-file evidence, source-of-truth references, and generated local artifacts in the dry-run bundle, but it does not edit documentation through an agent, generate documentation patches, apply patches, call local LLMs, call live Codex, call GitHub/`gh`, create/update/merge PRs, close issues, mutate queue state, run validation commands, retry failures, resume orchestration, or start follow-on work.

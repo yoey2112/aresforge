@@ -1,5 +1,17 @@
 # Agent LLM Routing Strategy
 
+## M169 Production Autonomy Readiness Report Routing Boundary
+
+M169 adds no live agent, local LLM, Codex, or GitHub route. It routes M155, M156, M157, M158, M159, M160, M161, M162, M163, M164, M165, M166, M167, M168, and M169 local evidence into a production autonomy readiness report for operator review.
+
+Routing rules:
+
+- report generation routes through read-only and autonomy-profile machine gates
+- durable run-store, artifact retention, autonomy profile, GitHub issue sync plan, Hub control center, and self-managed dry-run evidence remain local inspection inputs
+- readiness output routes to next-sprint planning only, not automatic execution
+
+M169 reports no live agent execution, no model execution, no live Codex execution, no GitHub execution, no source patch application, no validation command execution, and no queue mutation.
+
 ## M168 Self-Managed AresForge Project Loop Dry Run Routing Boundary
 
 M168 adds no live agent, local LLM, Codex, or GitHub route. It adds a local dry-run route that selects an AresForge queue item and composes route decision metadata, orchestration planning, deterministic dry-run agent output, Codex loop dry-run evidence, GitHub issue sync planning, PR draft summary generation, run-store evidence, and closeout recommendation.

@@ -1,5 +1,19 @@
 # Runnable Skeleton
 
+## M169 Production Autonomy Readiness Report
+
+- `python -m aresforge generate-production-autonomy-readiness-report --project-id aresforge --sprint-start M155 --sprint-end M169 --format json`
+- emits `production_autonomy_readiness_report_v1`
+- reconciles M155, M156, M157, M158, M159, M160, M161, M162, M163, M164, M165, M166, M167, M168, and M169 queue/docs/run-store/artifact/autonomy/GitHub-loop evidence
+- composes durable run-store status, artifact retention status, autonomy profile status, Codex pilot readiness, GitHub issue sync planning status, Hub control center readiness, self-managed dry-run evidence, machine-gate behavior, blockers, warnings, and next sprint recommendations
+- optional `--output` writes one local JSON artifact
+
+Runnable boundary:
+
+- report-only by default
+- no queue mutation, live Codex execution, local LLM/model execution, GitHub execution, source patch application, validation command execution, PR merge, protected branch update, force push, auto-merge, release, workflow mutation, retry, resume, or automatic next-item execution
+- production autonomy remains dry-run/audit/review-ready until separate explicit live gates are implemented
+
 ## M168 Self-Managed AresForge Project Loop Dry Run
 
 - `python -m aresforge run-self-managed-project-loop --project-id aresforge --dry-run --format json`

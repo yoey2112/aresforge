@@ -1,5 +1,24 @@
 # AresForge Agent Context
 
+## M169 Sprint Closeout and Production Autonomy Readiness Report Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m169-sprint-closeout-and-production-autonomy-readiness-report`.
+
+M169 adds `generate-production-autonomy-readiness-report`, a local closeout/readiness report for the M155-M169 production autonomy hardening and self-managed GitHub-loop sprint.
+
+Command:
+
+- `python -m aresforge generate-production-autonomy-readiness-report --project-id aresforge --sprint-start M155 --sprint-end M169 --format json`
+
+Agent-facing guidance:
+
+- Treat `production_autonomy_readiness_report_v1` output as closeout evidence and next-sprint planning input only.
+- The report reconciles M155, M156, M157, M158, M159, M160, M161, M162, M163, M164, M165, M166, M167, M168, and M169 queue/docs/run-store/artifact/autonomy/GitHub-loop evidence.
+- `status=ready` or `status=ready_with_warnings` means local evidence is inspectable; it does not authorize live Codex, GitHub, source patch, model, retry/resume, or queue mutation.
+- Do not merge PRs, force push, update protected branches, enable auto-merge, create releases, mutate workflows, mutate GitHub, mutate queue state, run live Codex, run local/cloud models, apply source patches, run validation commands, retry, resume, or start later sprint items from this report.
+
 ## M168 Self-Managed AresForge Project Loop Dry Run Context
 
 Status: Completed locally on `main` after validation.

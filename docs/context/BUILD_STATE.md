@@ -1,5 +1,25 @@
 # AresForge Build State
 
+## M169 Sprint Closeout and Production Autonomy Readiness Report
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m169-sprint-closeout-and-production-autonomy-readiness-report`.
+
+M169 closes the M155-M169 production autonomy hardening sprint with:
+
+- `python -m aresforge generate-production-autonomy-readiness-report --project-id aresforge --sprint-start M155 --sprint-end M169 --format json`
+- stable `production_autonomy_readiness_report_v1` JSON
+- sprint closeout and capability summaries for M155, M156, M157, M158, M159, M160, M161, M162, M163, M164, M165, M166, M167, M168, and M169
+- local queue, docs, durable run-store, artifact retention, autonomy profile, Codex pilot readiness, GitHub issue sync status, Hub control center, and self-managed dry-run evidence
+- remaining production autonomy blockers, warnings, machine-gate behavior, and next sprint recommendations
+
+Safety posture:
+
+- report generation is local-only and non-mutating unless an optional local `--output` artifact path is supplied
+- the command performs no queue mutation, live Codex execution, local LLM/model execution, GitHub execution, source patch application, validation command execution, PR merge, protected branch update, force push, auto-merge, release creation, workflow mutation, retry, resume, or automatic next-item execution
+- production autonomy is review-ready for local reporting, dry-run loops, Hub visibility, and GitHub issue planning; live mutation and unattended execution remain future explicitly gated work
+
 ## M168 Self-Managed AresForge Project Loop Dry Run
 
 Status: Completed locally on `main` after validation.

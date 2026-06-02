@@ -1,5 +1,24 @@
 # Local Operator Usage
 
+## M169 Sprint Closeout and Production Autonomy Readiness Report
+
+Generate the M155-M169 production autonomy closeout report:
+
+- `python -m aresforge generate-production-autonomy-readiness-report --project-id aresforge --sprint-start M155 --sprint-end M169 --format json`
+
+Write a local report artifact:
+
+- `python -m aresforge generate-production-autonomy-readiness-report --project-id aresforge --sprint-start M155 --sprint-end M169 --output .aresforge/production_autonomy_readiness_reports/m169.json --force --format json`
+
+Interpretation:
+
+- `record_type=production_autonomy_readiness_report_v1` identifies the M169 payload.
+- `sprint_closeout_summary`, `capability_summary`, `queue_summary`, `run_store_summary`, `artifact_retention_summary`, `autonomy_profile_summary`, `github_issue_sync_status`, `hub_control_center_summary`, and `self_managed_dry_run_summary` show whether M155, M156, M157, M158, M159, M160, M161, M162, M163, M164, M165, M166, M167, M168, and M169 evidence is locally aligned.
+- `remaining_blockers` lists production autonomy boundaries that still require separate explicit machine-gated milestones.
+- `next_safe_action` is planning guidance only and does not start another sprint item.
+
+M169 performs no queue mutation, live Codex execution, local LLM/model execution, GitHub execution, source patch application, validation command execution, PR merge, protected branch update, force push, auto-merge, release creation, workflow mutation, retry, resume, or automatic next-item execution.
+
 ## M168 Self-Managed AresForge Project Loop Dry Run
 
 Dry-run AresForge managing one of its own local queue items:

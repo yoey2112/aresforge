@@ -1,5 +1,11 @@
 # Local LLM Environment Contract
 
+## M169 Production Autonomy Readiness Boundary
+
+M169 closes the M155-M169 sprint without expanding local LLM execution. The production autonomy readiness report names M155, M156, M157, M158, M159, M160, M161, M162, M163, M164, M165, M166, M167, M168, and M169 as local evidence sources only.
+
+The report may inspect autonomy profiles and existing local model policy metadata, but it performs no local LLM/model execution, no Codex execution, no GitHub execution, no source patch application, no queue mutation, and no automatic next-item execution. Local LLM output remains advisory/prototype-scoped unless a separate explicit command and machine gates allow it.
+
 ## M168 Self-Managed AresForge Project Loop Dry Run Boundary
 
 M168 does not change local LLM permissions. It may record route decision metadata and inspect local model execution flags from composed evidence, but it does not call Ollama, send prompts, run inference, select fallback models, apply model output, mutate repository files, mutate queue state, call live Codex, call GitHub/`gh`, create/update/merge PRs, close issues, apply patches, run validation commands, retry failures, resume orchestration, or start follow-on work.

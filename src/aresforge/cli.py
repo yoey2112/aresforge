@@ -174,6 +174,7 @@ from aresforge.operator.github_issue_closure_recommendation_gate import recommen
 from aresforge.operator.pull_request_draft_summary_generator import generate_pr_draft_summary
 from aresforge.operator.hub_autonomy_control_center import inspect_hub_autonomy_control_center_data
 from aresforge.operator.self_managed_project_loop_dry_run import run_self_managed_project_loop_dry_run
+from aresforge.operator.production_autonomy_readiness_report import generate_production_autonomy_readiness_report
 from aresforge.operator.local_milestone_lifecycle import (
     check_local_milestone_readiness,
     generate_local_milestone_closeout,
@@ -2553,6 +2554,28 @@ def build_parser() -> argparse.ArgumentParser:
     autonomy_readiness_report_parser.add_argument("--output")
     autonomy_readiness_report_parser.add_argument("--force", action="store_true")
     autonomy_readiness_report_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+    )
+    production_autonomy_readiness_report_parser = subparsers.add_parser(
+        "generate-production-autonomy-readiness-report",
+        help="Generate the M169 sprint closeout and production autonomy readiness report without executing agents, models, Codex, or GitHub.",
+    )
+    production_autonomy_readiness_report_parser.add_argument("--project-id", default="aresforge")
+    production_autonomy_readiness_report_parser.add_argument("--sprint-start", default="M155")
+    production_autonomy_readiness_report_parser.add_argument("--sprint-end", default="M169")
+    production_autonomy_readiness_report_parser.add_argument(
+        "--item-id",
+        default="m169-sprint-closeout-and-production-autonomy-readiness-report",
+    )
+    production_autonomy_readiness_report_parser.add_argument("--queue-path")
+    production_autonomy_readiness_report_parser.add_argument("--history-path")
+    production_autonomy_readiness_report_parser.add_argument("--artifacts-root")
+    production_autonomy_readiness_report_parser.add_argument("--autonomy-profile", default="github_sync_dry_run")
+    production_autonomy_readiness_report_parser.add_argument("--output")
+    production_autonomy_readiness_report_parser.add_argument("--force", action="store_true")
+    production_autonomy_readiness_report_parser.add_argument(
         "--format",
         choices=["json"],
         default="json",
@@ -6147,6 +6170,27 @@ def main(argv: list[str] | None = None) -> int:
             sprint_end=args.sprint_end,
             item_id=args.item_id,
             queue_path=args.queue_path,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "generate-production-autonomy-readiness-report":
+        payload = generate_production_autonomy_readiness_report(
+            config,
+            project_id=args.project_id,
+            sprint_start=args.sprint_start,
+            sprint_end=args.sprint_end,
+            item_id=args.item_id,
+            queue_path=args.queue_path,
+            history_path=args.history_path,
+            artifacts_root=args.artifacts_root,
+            autonomy_profile=args.autonomy_profile,
             output=args.output,
             force=bool(args.force),
             output_format=args.format,

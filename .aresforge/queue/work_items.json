@@ -7886,6 +7886,140 @@
       "closeout_history": [],
       "created_at": "2026-06-02T05:00:00Z",
       "updated_at": "2026-06-02T05:30:00Z"
+    },
+    {
+      "item_id": "m169-sprint-closeout-and-production-autonomy-readiness-report",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M169 Sprint Closeout and Production Autonomy Readiness Report",
+      "description": "Close M155-M169 with docs sync, production autonomy readiness report, capability summary, remaining blockers, warnings, and next sprint recommendations.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "documentation",
+      "tags": [
+        "milestone:m169",
+        "production-autonomy-readiness",
+        "sprint-closeout",
+        "github-loop",
+        "machine-gated"
+      ],
+      "dependencies": [
+        "m168-self-managed-aresforge-project-loop-dry-run"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [
+        "tests_run",
+        "smoke_checks",
+        "production_autonomy_readiness_report_payload",
+        "machine_gate_results"
+      ],
+      "evidence_required": [
+        "docs_sync",
+        "queue_state",
+        "run_store_summary",
+        "artifact_retention_summary",
+        "autonomy_profile_summary",
+        "codex_pilot_readiness",
+        "github_issue_sync_status",
+        "hub_control_center_summary",
+        "self_managed_dry_run_summary",
+        "remaining_blockers",
+        "next_sprint_recommendations",
+        "non_mutation_flags"
+      ],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: add generate-production-autonomy-readiness-report; deterministic production_autonomy_readiness_report_v1 JSON; reconcile docs, queue state, run store, artifact retention, autonomy profiles, Codex pilot readiness, GitHub issue sync status, Hub control center, self-managed dry-run results, remaining blockers, warnings, and next sprint recommendations; no live GitHub mutation, Codex execution, local LLM/model execution, source patch application, queue mutation, PR merge, protected branch update, force push, auto-merge, release, workflow mutation, retry, resume, or next-item execution.",
+      "started_at": "2026-06-02T06:00:00Z",
+      "started_via": "local_operator",
+      "previous_status": "ready",
+      "completed_at": "2026-06-02T06:30:00Z",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M169 Sprint Closeout and Production Autonomy Readiness Report implemented and validated locally. Added generate-production-autonomy-readiness-report with stable production_autonomy_readiness_report_v1 JSON, source-of-truth docs sync, queue/run-store/artifact retention/autonomy profile/Codex pilot/GitHub issue sync/Hub control center/self-managed dry-run summaries, remaining blockers, next sprint recommendations, CLI coverage, targeted tests, and queue evidence. The command performs no queue mutation, live Codex execution, local LLM/model execution, GitHub execution, source patch application, validation command execution, PR merge, protected branch update, force push, auto-merge, release, workflow mutation, retry, resume, or next-item execution.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 242 passed; python -m pytest tests/test_production_autonomy_readiness_report.py -> 3 passed; python -m pytest tests/test_self_managed_aresforge_project_loop_dry_run.py -> 3 passed; python -m pytest tests/test_hub_ui_foundation.py -> 59 passed; git diff --check -> passed with CRLF warnings only; inspect-local-project-report passed; inspect-local-queue-agent-summary passed; inspect-project-queue --project-id aresforge passed with item_count=103; generate-production-autonomy-readiness-report passed with status=ready_with_warnings, blocked=false, machine_gates_passed=true, mutation_performed=false, queue_mutation_performed=false, codex_execution_performed=false, model_execution_performed=false, github_execution_performed=false, patch_application_performed=false, and local_only=true. Warnings were local evidence warnings for dirty implementation tree, orphan artifact review, missing selected-item evidence bundles/PR summaries, and status-only control-center recommendations.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 242 passed",
+        "python -m pytest tests/test_production_autonomy_readiness_report.py -> 3 passed",
+        "python -m pytest tests/test_self_managed_aresforge_project_loop_dry_run.py -> 3 passed",
+        "python -m pytest tests/test_hub_ui_foundation.py -> 59 passed",
+        "git diff --check -> passed with CRLF warnings only",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed",
+        "python -m aresforge inspect-project-queue --project-id aresforge -> passed",
+        "python -m aresforge generate-production-autonomy-readiness-report --project-id aresforge --sprint-start M155 --sprint-end M169 --format json -> passed with status=ready_with_warnings"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/production_autonomy_readiness_report.py",
+        "src/aresforge/cli.py",
+        "tests/test_production_autonomy_readiness_report.py",
+        "tests/test_cli.py",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
+        "docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
+        "docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md",
+        ".aresforge/queue/work_items.json"
+      ],
+      "artifact_paths": [
+        ".aresforge/production_autonomy_readiness_reports (optional output path; default command writes no artifact)"
+      ],
+      "github_issue": {
+        "number": 169,
+        "url": "https://github.com/local/aresforge/issues/169",
+        "state": "open"
+      },
+      "completion_evidence": {
+        "command": "generate-production-autonomy-readiness-report",
+        "record_type": "production_autonomy_readiness_report_v1",
+        "status": "ready_with_warnings",
+        "blocked": false,
+        "blocked_reasons": [],
+        "warnings": [
+          "Autonomy Control Center recommendations are status-only and do not authorize mutation.",
+          "No PR draft summary artifacts were discovered for the selected item.",
+          "No local evidence bundles were discovered for the selected item.",
+          "No orchestration run record is available for monitor display.",
+          "Profile entries are policy metadata only and do not execute the capabilities they describe.",
+          "Queue item is already done; autonomy profile inspection remains valid as a capability contract.",
+          "Working tree has local changes; this profile treats dirty state as warning-only unless the caller requires a clean tree.",
+          "orchestration_runs has 4 orphan artifact(s) not referenced by the durable store."
+        ],
+        "machine_gates_passed": true,
+        "mutation_performed": false,
+        "queue_mutation_performed": false,
+        "codex_execution_performed": false,
+        "model_execution_performed": false,
+        "github_execution_performed": false,
+        "patch_application_performed": false,
+        "local_only": true,
+        "commit_hash": "pending-final-commit",
+        "artifacts_created": []
+      },
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-06-02T06:00:00Z",
+      "updated_at": "2026-06-02T06:35:00Z"
     }
   ]
 }
