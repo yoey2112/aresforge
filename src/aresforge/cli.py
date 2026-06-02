@@ -165,6 +165,7 @@ from aresforge.operator.offline_state_template import generate_offline_closeout_
 from aresforge.operator.local_handoff_package import generate_handoff_package
 from aresforge.operator.local_doc_reconciliation import generate_doc_reconciliation_plan
 from aresforge.operator.local_github_sync_planner import generate_github_sync_plan
+from aresforge.operator.github_issue_sync_plan import plan_github_issue_sync
 from aresforge.operator.local_milestone_lifecycle import (
     check_local_milestone_readiness,
     generate_local_milestone_closeout,
@@ -1274,6 +1275,24 @@ def build_parser() -> argparse.ArgumentParser:
         "--force",
         action="store_true",
         help="Overwrite existing output file.",
+    )
+    github_issue_sync_plan_parser = subparsers.add_parser(
+        "plan-github-issue-sync",
+        help="Generate a local-only GitHub issue sync plan from queue items.",
+    )
+    github_issue_sync_plan_parser.add_argument("--project-id", default="aresforge")
+    github_issue_sync_plan_parser.add_argument(
+        "--item-id",
+        default="m162-github-issue-sync-plan-from-queue-items",
+    )
+    github_issue_sync_plan_parser.add_argument("--queue-path")
+    github_issue_sync_plan_parser.add_argument("--output")
+    github_issue_sync_plan_parser.add_argument("--force", action="store_true")
+    github_issue_sync_plan_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+        help="Output format for file writes or stdout rendering.",
     )
     local_milestone_template_parser = subparsers.add_parser(
         "generate-local-milestone-template",
@@ -4606,6 +4625,22 @@ def main(argv: list[str] | None = None) -> int:
         if bool(payload.get("ok")) and not bool(payload.get("wrote_output_file")):
             print(payload["stdout"])
             return 0
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "plan-github-issue-sync":
+        payload = plan_github_issue_sync(
+            config,
+            project_id=args.project_id,
+            item_id=args.item_id,
+            queue_path=args.queue_path,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 

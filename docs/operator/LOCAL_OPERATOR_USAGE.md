@@ -1,5 +1,27 @@
 # Local Operator Usage
 
+## M162 GitHub Issue Sync Plan from Queue Items
+
+M162 generates a local-only plan for syncing queue items to GitHub issues later.
+
+Generate the JSON plan:
+
+    python -m aresforge plan-github-issue-sync --project-id aresforge --format json
+
+Optionally write a local artifact:
+
+    python -m aresforge plan-github-issue-sync --project-id aresforge --output .aresforge/github_issue_sync/m162-plan.json --force --format json
+
+Interpretation:
+
+- `record_type=github_issue_sync_plan_from_queue_items_v1` identifies the M162 payload.
+- `issue_mapping_contract` documents how queue fields map to issue title, body, labels, milestone, and comments.
+- `issue_sync_items` contains one local issue draft per queue item in the selected project.
+- `operation_recommendations` contains `create`, `update`, `comment`, or `skip` recommendations.
+- `linked_issue` is detected only from local queue metadata; the command does not query GitHub.
+
+M162 performs no GitHub operations, `gh` calls, issue creation/update/commenting, label or milestone mutation, Codex execution, model execution, source patch application, queue mutation, retry, resume, PR merge, force push, workflow mutation, release, or automatic next-item execution.
+
 ## M161 Codex Loop Validation Evidence Bundle
 
 M161 bundles one local Codex loop's execution and validation evidence into a durable local artifact set.

@@ -1,5 +1,26 @@
 # AresForge Build State
 
+## M162 GitHub Issue Sync Plan from Queue Items
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m162-github-issue-sync-plan-from-queue-items`.
+
+M162 adds a local-only GitHub issue sync planner:
+
+- `python -m aresforge plan-github-issue-sync --project-id aresforge --format json`
+- stable `github_issue_sync_plan_from_queue_items_v1` JSON
+- maps local queue fields into future GitHub issue title, body, labels, milestone, and comments
+- detects already-linked issues from local metadata fields such as `github_issue`, `github_issue_number`, `issue_url`, and `external_links`
+- emits create, update, comment, and skip recommendations without calling GitHub
+
+Safety posture:
+
+- the planner reads the local queue and source-of-truth docs only
+- it checks the read-only machine gate for planner evidence
+- it performs no `gh`, GitHub API, issue mutation, label/milestone/comment mutation, Codex, model, queue mutation, source patch application, retry, resume, protected-branch update, workflow mutation, PR merge, force push, release creation, or automatic next-item execution
+- recommendations are review evidence only; any future live issue sync remains a separate explicit machine-gated milestone
+
 ## M161 Codex Loop Validation Evidence Bundle
 
 Status: Completed locally on `main` after validation.

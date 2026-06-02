@@ -7060,6 +7060,119 @@
       "closeout_history": [],
       "created_at": "2026-06-02T00:35:00Z",
       "updated_at": "2026-06-02T00:35:00Z"
+    },
+    {
+      "item_id": "m162-github-issue-sync-plan-from-queue-items",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M162 GitHub Issue Sync Plan from Queue Items",
+      "description": "Generate a local-only GitHub issue sync plan from queue items without creating or updating GitHub issues.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "sync",
+      "tags": [
+        "milestone:m162",
+        "github-issue-sync",
+        "queue-items",
+        "local-only",
+        "machine-gated"
+      ],
+      "dependencies": [
+        "m161-codex-loop-validation-evidence-bundle"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [
+        "tests_run",
+        "smoke_checks",
+        "github_issue_sync_plan"
+      ],
+      "evidence_required": [
+        "queue_to_issue_field_mapping",
+        "linked_issue_detection",
+        "create_update_comment_skip_recommendations",
+        "machine_gate_results",
+        "non_mutation_flags"
+      ],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: add plan-github-issue-sync; deterministic github_issue_sync_plan_from_queue_items_v1 JSON; map queue item fields to issue title/body/labels/milestone/comments; detect already-linked issues from local metadata; recommend create/update/comment/skip; no live GitHub mutation, gh, GitHub API, Codex, local LLM/model, source patch application, queue mutation from planner, retry, resume, or next-item execution.",
+      "started_at": "2026-06-02T00:52:00Z",
+      "started_via": "local_operator",
+      "previous_status": "ready",
+      "completed_at": "2026-06-02T00:58:00Z",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M162 GitHub Issue Sync Plan from Queue Items implemented and validated locally. Added plan-github-issue-sync with stable github_issue_sync_plan_from_queue_items_v1 JSON, queue-to-issue title/body/labels/milestone/comment mapping, linked issue metadata detection, create/update/comment/skip recommendations, read-only machine gate evidence, source-of-truth docs, CLI coverage, targeted tests, and queue evidence. The planner performs no live GitHub lookup, gh, GitHub API, issue/comment/label/milestone mutation, Codex, local LLM/model, source patch application, queue mutation from the planner itself, retry, resume, or next-item execution.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 235 passed; python -m pytest tests/test_github_issue_sync_plan.py -> 4 passed; python -m pytest tests/test_codex_loop_validation_evidence_bundle.py -> 4 passed; git diff --check -> passed with CRLF warnings only; inspect-local-project-report passed; inspect-local-queue-agent-summary passed; inspect-project-queue --project-id aresforge passed with item_count=96; plan-github-issue-sync --project-id aresforge --format json passed with status=plan_generated, machine_gates_passed=true, github_execution_performed=false, mutation_performed=false, queue_mutation_performed=false, local_only=true, operation_counts create=96 update=0 comment=0 skip=0, and dirty-worktree warning while implementation changes were present.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 235 passed",
+        "python -m pytest tests/test_github_issue_sync_plan.py -> 4 passed",
+        "python -m pytest tests/test_codex_loop_validation_evidence_bundle.py -> 4 passed",
+        "git diff --check -> passed with CRLF warnings only",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed",
+        "python -m aresforge inspect-project-queue --project-id aresforge -> passed",
+        "python -m aresforge plan-github-issue-sync --project-id aresforge --format json -> passed"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/github_issue_sync_plan.py",
+        "src/aresforge/cli.py",
+        "tests/test_github_issue_sync_plan.py",
+        "tests/test_cli.py",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
+        "docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
+        "docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md",
+        ".aresforge/queue/work_items.json"
+      ],
+      "artifact_paths": [
+        ".aresforge/github_issue_sync/m162-plan.json (optional output path; default command writes no artifact)"
+      ],
+      "completion_evidence": {
+        "command": "plan-github-issue-sync",
+        "record_type": "github_issue_sync_plan_from_queue_items_v1",
+        "status": "plan_generated",
+        "machine_gates_passed": true,
+        "mutation_performed": false,
+        "queue_mutation_performed": false,
+        "codex_execution_performed": false,
+        "model_execution_performed": false,
+        "github_execution_performed": false,
+        "patch_application_performed": false,
+        "local_only": true,
+        "operation_counts": {
+          "create": 96,
+          "update": 0,
+          "comment": 0,
+          "skip": 0
+        },
+        "commit_hash": "pending-final-commit"
+      },
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-06-02T00:52:00Z",
+      "updated_at": "2026-06-02T00:58:00Z"
     }
   ]
 }

@@ -1,5 +1,11 @@
 # Local LLM Environment Contract
 
+## M162 GitHub Issue Sync Plan Boundary
+
+M162 does not change local LLM permissions. It may map local queue metadata into future GitHub issue drafts and sync recommendations, but it does not call Ollama, send prompts, run inference, select fallback local models, mutate repository files, mutate queue state, call Codex, call GitHub/`gh`, create or update issues, post comments, apply labels or milestones, apply patches, retry failures, resume orchestration, or start follow-on work.
+
+Local LLM advisory execution remains limited to separate explicit local-provider commands and their machine gates. M162 records GitHub issue sync planning evidence only.
+
 ## M161 Codex Loop Validation Evidence Bundle Boundary
 
 M161 does not change local LLM permissions. It may bundle Codex loop dry-run evidence, validation metadata, source patch classification, retry classification, and completion recommendation into local artifacts, but it does not call Ollama, send prompts, run inference, select fallback local models, mutate repository files from model output, mutate queue state, call live Codex, call GitHub/`gh`, apply patches, retry failures, resume orchestration, or start follow-on work.

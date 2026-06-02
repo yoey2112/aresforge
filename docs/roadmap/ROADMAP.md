@@ -1,5 +1,25 @@
 # AresForge Roadmap
 
+## M162 GitHub Issue Sync Plan from Queue Items
+
+Status: Completed locally on `main` after validation.
+
+M162 hardens the self-managed GitHub loop with:
+
+- `python -m aresforge plan-github-issue-sync --project-id aresforge --format json`
+- deterministic `github_issue_sync_plan_from_queue_items_v1` output
+- queue-to-issue field mapping for title, body, labels, milestone, and comments
+- local linked-issue detection from queue metadata
+- create/update/comment/skip recommendations for operator review
+- explicit non-mutation flags for GitHub, queue, Codex, model, and patch behavior
+
+Boundary:
+
+- local queue inspection and planning only
+- no live GitHub lookup, `gh`, GitHub API call, issue creation/update/comment, label or milestone mutation
+- no Codex, local LLM/model, source patch application, queue mutation, retry, resume, protected-branch update, workflow mutation, PR merge, force push, release creation, or automatic next-item execution
+- future live issue sync remains separate, explicit, and machine-gated
+
 ## M161 Codex Loop Validation Evidence Bundle
 
 Status: Completed locally on `main` after validation.

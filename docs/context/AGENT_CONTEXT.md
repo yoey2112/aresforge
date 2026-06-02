@@ -1,5 +1,25 @@
 # AresForge Agent Context
 
+## M162 GitHub Issue Sync Plan from Queue Items Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m162-github-issue-sync-plan-from-queue-items`.
+
+M162 adds `plan-github-issue-sync`, a local-only planner that converts local queue items into future GitHub issue sync recommendations.
+
+Command:
+
+- `python -m aresforge plan-github-issue-sync --project-id aresforge --format json`
+
+Agent-facing guidance:
+
+- Treat `github_issue_sync_plan_from_queue_items_v1` output as review evidence only.
+- The plan maps queue item title/description/status/priority/type/tags/dependencies/notes/validation evidence to issue title, body, labels, milestone, and candidate comments.
+- Existing issue links are detected only from local metadata such as `github_issue`, `github_issue_number`, `issue_url`, or `external_links`; no live GitHub lookup is performed.
+- `create`, `update`, `comment`, and `skip` recommendations do not authorize mutation.
+- Do not call GitHub, run `gh`, create or update issues, post comments, change labels or milestones, run Codex/models, apply patches, mutate queue state, retry, resume, merge PRs, force push, mutate workflows, create releases, or start later sprint items from this output.
+
 ## M161 Codex Loop Validation Evidence Bundle Context
 
 Status: Completed locally on `main` after validation.

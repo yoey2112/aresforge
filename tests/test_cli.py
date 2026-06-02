@@ -187,6 +187,7 @@ def test_cli_has_expected_commands() -> None:
         "check-local-milestone-readiness",
         "generate-local-milestone-closeout",
         "plan-github-sync",
+        "plan-github-issue-sync",
         "plan-agent-orchestration",
         "init-project-state",
         "add-local-queue-item",
@@ -8892,6 +8893,71 @@ def test_run_github_sync_agent_dispatch_json(
         "artifact_path": "artifacts/manual/github-sync-comment.json",
         "output": "artifacts/github_sync_agent/m137.json",
         "force": True,
+        "output_format": "json",
+    }
+
+
+def test_plan_github_issue_sync_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "record_type": "github_issue_sync_plan_from_queue_items_v1",
+                "project_id": "aresforge",
+                "status": "plan_generated",
+                "github_execution_performed": False,
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_plan(
+        _config,
+        *,
+        project_id="aresforge",
+        item_id="m162-github-issue-sync-plan-from-queue-items",
+        queue_path=None,
+        output=None,
+        force=False,
+        output_format="json",
+    ):
+        seen["project_id"] = project_id
+        seen["item_id"] = item_id
+        seen["queue_path"] = queue_path
+        seen["output"] = output
+        seen["force"] = force
+        seen["output_format"] = output_format
+        return payload
+
+    monkeypatch.setattr(cli, "plan_github_issue_sync", fake_plan)
+    exit_code = cli.main(
+        [
+            "plan-github-issue-sync",
+            "--project-id",
+            "aresforge",
+            "--queue-path",
+            "queue.json",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["record_type"] == "github_issue_sync_plan_from_queue_items_v1"
+    assert parsed["github_execution_performed"] is False
+    assert seen == {
+        "project_id": "aresforge",
+        "item_id": "m162-github-issue-sync-plan-from-queue-items",
+        "queue_path": "queue.json",
+        "output": None,
+        "force": False,
         "output_format": "json",
     }
 

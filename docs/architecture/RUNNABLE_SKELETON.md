@@ -1,5 +1,20 @@
 # Runnable Skeleton
 
+## M162 GitHub Issue Sync Plan from Queue Items
+
+M162 adds a local GitHub issue sync planning command:
+
+- `python -m aresforge plan-github-issue-sync --project-id aresforge --format json`
+
+The command returns `github_issue_sync_plan_from_queue_items_v1` JSON. It reads local queue items, maps queue fields to future GitHub issue title/body/labels/milestone/comments, detects already-linked issues from local metadata, and recommends create/update/comment/skip operations.
+
+Runnable boundary:
+
+- local planning only
+- optional `--output` writes one local JSON artifact
+- linked issue detection is local metadata inspection only
+- no `gh`, GitHub API call, issue/comment/label/milestone mutation, Codex, local LLM/model, source patch application, queue mutation, retry, resume, PR merge, force push, protected-branch update, workflow mutation, release, or next-item execution is performed
+
 ## M161 Codex Loop Validation Evidence Bundle
 
 M161 adds a dry-run evidence bundle command:

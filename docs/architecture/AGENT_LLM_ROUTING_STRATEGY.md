@@ -1,5 +1,19 @@
 # Agent LLM Routing Strategy
 
+## M162 GitHub Issue Sync Plan Routing Boundary
+
+M162 does not add a new agent, local LLM, Codex, or live GitHub route. It routes local queue metadata into a deterministic issue sync plan for operator review.
+
+Routing rules:
+
+- queue items route to local issue drafts with title, body, labels, milestone, and candidate comments
+- local linked-issue metadata routes items toward update/comment recommendations
+- unlinked queue items route toward create recommendations
+- blocked or cancelled queue items route toward skip recommendations
+- all recommendations remain local evidence and do not authorize live GitHub mutation
+
+M162 reports no agent execution, no model execution, no Codex execution, no GitHub execution, no source patch application, and no queue mutation.
+
 ## M161 Codex Loop Validation Evidence Bundle
 
 M161 does not add a new agent, local LLM, GitHub, or live Codex execution route. It routes existing local Codex loop dry-run evidence into a durable validation evidence bundle for operator review.

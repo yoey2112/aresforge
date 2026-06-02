@@ -1,5 +1,11 @@
 # Documentation Agent Contract
 
+## M162 GitHub Issue Sync Plan Boundary
+
+M162 does not add documentation-agent or source-code patch mutation. It may read local queue metadata and source-of-truth docs to prepare future GitHub issue sync recommendations, but it does not edit documentation through a documentation agent, generate documentation patches, apply patches, call local LLMs, call Codex, call GitHub/`gh`, create or update issues, post comments, mutate labels or milestones, push, merge, mutate queue state, retry failures, resume orchestration, or start follow-on work.
+
+Documentation mutation remains limited to separate docs-only Markdown patch commands that pass `docs_only_patch_apply` gates. M162 output is planning evidence only and cannot authorize documentation or GitHub mutation.
+
 ## M161 Codex Loop Validation Evidence Bundle Boundary
 
 M161 does not add documentation-agent or source-code patch mutation. It may write local evidence bundle artifacts and classify a supplied source patch as review metadata, but it does not edit documentation through a documentation agent, generate documentation patches, apply patches, call local LLMs, call live Codex, call GitHub/`gh`, push, merge, mutate queue state, retry failures, resume orchestration, or start follow-on work.
