@@ -5,6 +5,240 @@
   "generated": true,
   "project_id": "aresforge",
   "created_at": "2026-05-31T00:00:00Z",
-  "updated_at": "2026-05-31T00:00:00Z",
-  "records": []
+  "updated_at": "2026-06-02T03:08:35Z",
+  "records": [
+    {
+      "record_type": "orchestration_run_history_record",
+      "run_id": "self-managed-loop-aresforge-20260602T030835049209Z",
+      "project_id": "aresforge",
+      "item_id": "m168-self-managed-aresforge-project-loop-dry-run",
+      "status": "dry_run_completed",
+      "blocked": false,
+      "blocked_reasons": [],
+      "warnings": [
+        "Working tree has local changes; this profile treats dirty state as warning-only unless the caller requires a clean tree.",
+        "Queue item is already done; autonomy profile inspection remains valid as a capability contract.",
+        "Profile entries are policy metadata only and do not execute the capabilities they describe.",
+        "M151 used synthetic dry-run Codex output; no real Codex process was invoked.",
+        "No source patch artifact was supplied; source patch risk is recorded as not applicable.",
+        "Codex loop evidence was not blocked; retry classification records no retry required.",
+        "M161 dry-run evidence bundling did not invoke real Codex, models, GitHub, source patch apply, queue completion, retry, or next-item execution.",
+        "Queue item is already done; bundle remains reproducible validation evidence.",
+        "Draft PR summary generation does not create, update, or merge pull requests.",
+        "Self-managed project loop output is a dry-run artifact bundle, not execution approval."
+      ],
+      "machine_gates_checked": [
+        {
+          "gate_profile": "read_only_agent",
+          "passed": true,
+          "blocked": false,
+          "blocked_reasons": [],
+          "checks_failed": [],
+          "required_for_self_managed_loop": true
+        },
+        {
+          "gate_profile": "local_artifact_write",
+          "passed": true,
+          "blocked": false,
+          "blocked_reasons": [],
+          "checks_failed": [],
+          "required_for_self_managed_loop": true
+        },
+        {
+          "step_id": "step-01-queue-planner-agent",
+          "agent_id": "queue-planner-agent",
+          "gate_profile": "read_only_agent",
+          "passed": true,
+          "blocked": false,
+          "blocked_reasons": [],
+          "checks_failed": []
+        },
+        {
+          "step_id": "step-02-validation-agent",
+          "agent_id": "validation-agent",
+          "gate_profile": "read_only_agent",
+          "passed": true,
+          "blocked": false,
+          "blocked_reasons": [],
+          "checks_failed": []
+        },
+        {
+          "step_id": "step-03-artifact-registry-agent",
+          "agent_id": "artifact-registry-agent",
+          "gate_profile": "read_only_agent",
+          "passed": true,
+          "blocked": false,
+          "blocked_reasons": [],
+          "checks_failed": []
+        },
+        {
+          "step_id": "step-04-completion-recommendation-agent",
+          "agent_id": "completion-recommendation-agent",
+          "gate_profile": "read_only_agent",
+          "passed": true,
+          "blocked": false,
+          "blocked_reasons": [],
+          "checks_failed": []
+        },
+        {
+          "gate_profile": "read_only_agent",
+          "passed": true,
+          "blocked": false,
+          "blocked_reasons": [],
+          "checks_failed": []
+        },
+        {
+          "gate_profile": "local_artifact_write",
+          "passed": true,
+          "blocked": false,
+          "blocked_reasons": [],
+          "checks_failed": []
+        },
+        {
+          "gate_profile": "codex_dispatch",
+          "passed": true,
+          "blocked": false,
+          "blocked_reasons": [],
+          "checks_failed": []
+        },
+        {
+          "gate_profile": "read_only_agent",
+          "passed": true,
+          "blocked": false,
+          "blocked_reasons": [],
+          "checks_failed": []
+        },
+        {
+          "gate_profile": "read_only_agent",
+          "passed": true,
+          "blocked": false,
+          "blocked_reasons": [],
+          "checks_failed": []
+        },
+        {
+          "gate_profile": "local_artifact_write",
+          "passed": true,
+          "blocked": false,
+          "blocked_reasons": [],
+          "checks_failed": []
+        },
+        {
+          "gate_profile": "read_only_agent",
+          "passed": true,
+          "blocked": false,
+          "blocked_reasons": [],
+          "checks_failed": []
+        }
+      ],
+      "machine_gates_passed": true,
+      "artifacts_created": [
+        "C:\\Projects\\aresforge\\.aresforge\\self_managed_project_loop\\self-managed-loop-aresforge-20260602T030835049209Z\\orchestration-plan.json",
+        "C:\\Projects\\aresforge\\.aresforge\\self_managed_project_loop\\self-managed-loop-aresforge-20260602T030835049209Z\\multi-agent-orchestration-dry-run.json",
+        "C:\\Projects\\aresforge\\.aresforge\\codex_loop_validation_evidence\\m168-self--op-dry-run\\run-e-20260602t030835575909z",
+        "C:\\Projects\\aresforge\\.aresforge\\self_managed_project_loop\\self-managed-loop-aresforge-20260602T030835049209Z\\codex-loop-validation-evidence-bundle.json",
+        "C:\\Projects\\aresforge\\.aresforge\\codex_loop_validation_evidence\\m168-self--op-dry-run\\run-e-20260602t030835575909z\\codex-loop-execution-record.json",
+        "C:\\Projects\\aresforge\\.aresforge\\codex_loop_validation_evidence\\m168-self--op-dry-run\\run-e-20260602t030835575909z\\stdout-artifact.md",
+        "C:\\Projects\\aresforge\\.aresforge\\codex_loop_validation_evidence\\m168-self--op-dry-run\\run-e-20260602t030835575909z\\stderr-artifact.txt",
+        "C:\\Projects\\aresforge\\.aresforge\\codex_dispatch\\loop_dry_runs\\m168-self--op-dry-run\\run-n-20260602t030835583907z\\codex-dispatch-artifact.json",
+        "C:\\Projects\\aresforge\\.aresforge\\codex_loop_dry_runs\\m168-self--op-dry-run\\run-n-20260602t030835583907z\\dispatch-execution-record.json",
+        "C:\\Projects\\aresforge\\.aresforge\\codex_loop_dry_runs\\m168-self--op-dry-run\\run-n-20260602t030835583907z\\ingestion-execution-record.json",
+        "C:\\Projects\\aresforge\\.aresforge\\codex_loop_dry_runs\\m168-self--op-dry-run\\run-n-20260602t030835583907z\\queue-snapshot.json",
+        "C:\\Projects\\aresforge\\.aresforge\\codex_loop_dry_runs\\m168-self--op-dry-run\\run-n-20260602t030835583907z\\synthetic-codex-result.md",
+        "C:\\Projects\\aresforge\\artifacts\\codex_dispatch\\executions\\dispatch-execution-record\\m168-self-managed-aresforge-project-loop-dry-run-stderr.txt",
+        "C:\\Projects\\aresforge\\artifacts\\codex_dispatch\\executions\\dispatch-execution-record\\m168-self-managed-aresforge-project-loop-dry-run-stdout.txt",
+        "C:\\Projects\\aresforge\\artifacts\\codex_result_ingestion\\m168-self-managed-aresforge-project-loop-dry-run\\20260602T030835726581Z\\completion-recommendation.json",
+        "C:\\Projects\\aresforge\\artifacts\\codex_result_ingestion\\m168-self-managed-aresforge-project-loop-dry-run\\20260602T030835726581Z\\dispatch-evidence.json",
+        "C:\\Projects\\aresforge\\artifacts\\codex_result_ingestion\\m168-self-managed-aresforge-project-loop-dry-run\\20260602T030835726581Z\\extracted-codex-result.md",
+        "C:\\Projects\\aresforge\\artifacts\\codex_result_ingestion\\m168-self-managed-aresforge-project-loop-dry-run\\20260602T030835726581Z\\machine-gate-result.json",
+        "C:\\Projects\\aresforge\\.aresforge\\codex_loop_validation_evidence\\m168-self--op-dry-run\\run-e-20260602t030835575909z\\source-patch-risk-classification.json",
+        "C:\\Projects\\aresforge\\.aresforge\\codex_loop_validation_evidence\\m168-self--op-dry-run\\run-e-20260602t030835575909z\\retry-classification.json",
+        "C:\\Projects\\aresforge\\.aresforge\\self_managed_project_loop\\self-managed-loop-aresforge-20260602T030835049209Z\\github-issue-sync-plan.json",
+        "C:\\Projects\\aresforge\\.aresforge\\self_managed_project_loop\\self-managed-loop-aresforge-20260602T030835049209Z\\pull-request-draft-summary.json",
+        "C:\\Projects\\aresforge\\.aresforge\\self_managed_project_loop\\self-managed-loop-aresforge-20260602T030835049209Z\\pull-request-draft-summary.md",
+        "C:\\Projects\\aresforge\\.aresforge\\self_managed_project_loop\\self-managed-loop-aresforge-20260602T030835049209Z\\self-managed-project-loop-dry-run.json"
+      ],
+      "mutation_performed": false,
+      "queue_mutation_performed": false,
+      "external_execution_performed": false,
+      "codex_execution_performed": false,
+      "model_execution_performed": false,
+      "github_execution_performed": false,
+      "patch_application_performed": false,
+      "local_only": true,
+      "next_safe_action": "Review the local dry-run bundle, then use separate explicit gated commands for any queue completion or GitHub action.",
+      "generated": true,
+      "autonomy_profile": "orchestration_run_history"
+    },
+    {
+      "record_type": "orchestration_run_history_record",
+      "generated": true,
+      "run_id": "m168-self-managed-aresforge-project-loop-dry-run-20260602T030835231676Z",
+      "item_id": "m168-self-managed-aresforge-project-loop-dry-run",
+      "project_id": "aresforge",
+      "status": "completed",
+      "blocked": false,
+      "blocked_reasons": [],
+      "warnings": [],
+      "started_at": "2026-06-02T03:08:35Z",
+      "completed_at": "2026-06-02T03:08:35Z",
+      "steps_total": 4,
+      "steps_attempted": 4,
+      "steps_completed": 4,
+      "steps_blocked": 0,
+      "machine_gates_checked": [
+        {
+          "step_id": "step-01-queue-planner-agent",
+          "agent_id": "queue-planner-agent",
+          "gate_profile": "read_only_agent",
+          "passed": true,
+          "blocked": false,
+          "blocked_reasons": [],
+          "checks_failed": []
+        },
+        {
+          "step_id": "step-02-validation-agent",
+          "agent_id": "validation-agent",
+          "gate_profile": "read_only_agent",
+          "passed": true,
+          "blocked": false,
+          "blocked_reasons": [],
+          "checks_failed": []
+        },
+        {
+          "step_id": "step-03-artifact-registry-agent",
+          "agent_id": "artifact-registry-agent",
+          "gate_profile": "read_only_agent",
+          "passed": true,
+          "blocked": false,
+          "blocked_reasons": [],
+          "checks_failed": []
+        },
+        {
+          "step_id": "step-04-completion-recommendation-agent",
+          "agent_id": "completion-recommendation-agent",
+          "gate_profile": "read_only_agent",
+          "passed": true,
+          "blocked": false,
+          "blocked_reasons": [],
+          "checks_failed": []
+        }
+      ],
+      "machine_gates_passed": true,
+      "autonomy_profile": "orchestration_run_history",
+      "artifacts_created": [
+        "C:\\Projects\\aresforge\\.aresforge\\self_managed_project_loop\\self-managed-loop-aresforge-20260602T030835049209Z\\multi-agent-orchestration-dry-run.json"
+      ],
+      "artifact_path": "C:\\Projects\\aresforge\\.aresforge\\self_managed_project_loop\\self-managed-loop-aresforge-20260602T030835049209Z\\multi-agent-orchestration-dry-run.json",
+      "mutation_performed": false,
+      "queue_mutation_performed": false,
+      "external_execution_performed": false,
+      "model_execution_performed": false,
+      "codex_execution_performed": false,
+      "github_execution_performed": false,
+      "patch_application_performed": false,
+      "local_only": true,
+      "next_safe_action": "Review the orchestration result artifact and proceed only through explicit gated follow-on commands.",
+      "history_recorded_at": "2026-06-02T03:08:35Z"
+    }
+  ]
 }

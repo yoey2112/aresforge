@@ -1,5 +1,25 @@
 # AresForge Build State
 
+## M168 Self-Managed AresForge Project Loop Dry Run
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m168-self-managed-aresforge-project-loop-dry-run`.
+
+M168 adds a local dry-run command for AresForge's own project loop:
+
+- `python -m aresforge run-self-managed-project-loop --project-id aresforge --dry-run --format json`
+- stable `self_managed_aresforge_project_loop_dry_run_v1` JSON
+- selects an AresForge queue item, records route decision metadata, writes a dry-run orchestration plan, checks machine gates, creates a local multi-agent dry-run artifact, bundles Codex loop dry-run evidence, writes a GitHub issue sync plan, writes a PR draft summary, appends a durable local run-store entry, and emits a closeout recommendation
+- local artifacts are written under `.aresforge/self_managed_project_loop/<run_id>/`
+
+Safety posture:
+
+- `--dry-run` is required
+- the command may write local review artifacts and a local run-store entry only
+- it performs no live GitHub mutation, `gh`, PR creation/update/merge, issue closure, queue mutation, Codex execution, local LLM/model execution, source patch application, validation command execution, protected-branch update, force push, auto-merge, release creation, workflow mutation, retry, resume, or automatic next-item execution
+- closeout and GitHub sync outputs are recommendations for operator review only
+
 ## M167 Hub Autonomy Control Center v1
 
 Status: Completed locally on `main` after validation.

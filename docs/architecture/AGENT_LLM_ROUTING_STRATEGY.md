@@ -1,5 +1,18 @@
 # Agent LLM Routing Strategy
 
+## M168 Self-Managed AresForge Project Loop Dry Run Routing Boundary
+
+M168 adds no live agent, local LLM, Codex, or GitHub route. It adds a local dry-run route that selects an AresForge queue item and composes route decision metadata, orchestration planning, deterministic dry-run agent output, Codex loop dry-run evidence, GitHub issue sync planning, PR draft summary generation, run-store evidence, and closeout recommendation.
+
+Routing rules:
+
+- `--dry-run` is required; non-dry-run input routes to `blocked`
+- queue selection routes to the requested item, then the M168 item, then the first eligible local AresForge queue item
+- route decisions remain advisory and set `recommended_execution_target=dry-run`
+- GitHub issue sync, PR summary, and closeout outputs remain review evidence only
+
+M168 reports no live agent execution, no model execution, no live Codex execution, no GitHub execution, no source patch application, no validation command execution, and no queue mutation.
+
 ## M167 Hub Autonomy Control Center Routing Boundary
 
 M167 adds no new agent, local LLM, Codex, or live GitHub route. It adds a local Hub/CLI aggregation route that reads autonomy profile, durable run-store, orchestration monitor, local evidence, GitHub issue sync plan, issue closure recommendation, and PR draft summary artifact state.

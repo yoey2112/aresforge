@@ -173,6 +173,7 @@ from aresforge.operator.github_issue_status_comment_sync import sync_github_issu
 from aresforge.operator.github_issue_closure_recommendation_gate import recommend_github_issue_closure
 from aresforge.operator.pull_request_draft_summary_generator import generate_pr_draft_summary
 from aresforge.operator.hub_autonomy_control_center import inspect_hub_autonomy_control_center_data
+from aresforge.operator.self_managed_project_loop_dry_run import run_self_managed_project_loop_dry_run
 from aresforge.operator.local_milestone_lifecycle import (
     check_local_milestone_readiness,
     generate_local_milestone_closeout,
@@ -1394,6 +1395,23 @@ def build_parser() -> argparse.ArgumentParser:
     hub_autonomy_control_center_parser.add_argument("--output")
     hub_autonomy_control_center_parser.add_argument("--force", action="store_true")
     hub_autonomy_control_center_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+        help="Output format for file writes or stdout rendering.",
+    )
+    self_managed_project_loop_parser = subparsers.add_parser(
+        "run-self-managed-project-loop",
+        help="Dry-run AresForge taking a local queue item through its self-managed project loop.",
+    )
+    self_managed_project_loop_parser.add_argument("--project-id", default="aresforge")
+    self_managed_project_loop_parser.add_argument("--item-id")
+    self_managed_project_loop_parser.add_argument("--queue-path")
+    self_managed_project_loop_parser.add_argument("--dry-run", action="store_true")
+    self_managed_project_loop_parser.add_argument("--autonomy-profile", default="github_sync_dry_run")
+    self_managed_project_loop_parser.add_argument("--output")
+    self_managed_project_loop_parser.add_argument("--force", action="store_true")
+    self_managed_project_loop_parser.add_argument(
         "--format",
         choices=["json"],
         default="json",
@@ -4838,6 +4856,24 @@ def main(argv: list[str] | None = None) -> int:
             queue_path=args.queue_path,
             history_path=args.history_path,
             artifacts_root=args.artifacts_root,
+            autonomy_profile=args.autonomy_profile,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "run-self-managed-project-loop":
+        payload = run_self_managed_project_loop_dry_run(
+            config,
+            project_id=args.project_id,
+            item_id=args.item_id,
+            queue_path=args.queue_path,
+            dry_run=bool(args.dry_run),
             autonomy_profile=args.autonomy_profile,
             output=args.output,
             force=bool(args.force),

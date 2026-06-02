@@ -1,5 +1,24 @@
 # Local Operator Usage
 
+## M168 Self-Managed AresForge Project Loop Dry Run
+
+Dry-run AresForge managing one of its own local queue items:
+
+- `python -m aresforge run-self-managed-project-loop --project-id aresforge --dry-run --format json`
+
+The command returns `self_managed_aresforge_project_loop_dry_run_v1` JSON and writes local review artifacts under `.aresforge/self_managed_project_loop/<run_id>/`.
+
+Interpretation:
+
+- `selected_queue_item` shows which AresForge queue item was used.
+- `route_decision` records the advisory lane and confirms dry-run execution target.
+- `orchestration_plan` and `orchestration_dry_run` show the local plan and deterministic multi-agent dry-run evidence.
+- `codex_loop_dry_run` and `evidence_bundle` capture dry-run Codex loop validation evidence without live Codex.
+- `github_issue_sync_plan`, `pull_request_summary_draft`, and `closeout_recommendation` are review-only plans and recommendations.
+- `run_store_entry.created=true` means a local durable run-store record was appended.
+
+M168 requires `--dry-run`. It performs no live GitHub mutation, `gh`, PR creation/update/merge, issue closure, queue mutation, live Codex execution, local LLM/model execution, source patch application, validation command execution, protected branch update, force push, auto-merge, release, workflow mutation, retry, resume, or automatic next-item execution.
+
 ## M167 Hub Autonomy Control Center v1
 
 Inspect the local autonomy control center:

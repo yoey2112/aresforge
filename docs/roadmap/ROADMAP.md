@@ -1,5 +1,24 @@
 # AresForge Roadmap
 
+## M168 Self-Managed AresForge Project Loop Dry Run
+
+Status: Completed locally on `main` after validation.
+
+M168 hardens the self-managed GitHub loop with:
+
+- `python -m aresforge run-self-managed-project-loop --project-id aresforge --dry-run --format json`
+- deterministic `self_managed_aresforge_project_loop_dry_run_v1` output
+- local dry-run artifact bundle under `.aresforge/self_managed_project_loop/<run_id>/`
+- queue item selection, route decision, orchestration plan, machine gate rollup, multi-agent dry-run, Codex loop evidence bundle, GitHub issue sync plan, PR draft summary, run-store entry, and closeout recommendation
+- explicit non-execution flags for queue, Codex, model, GitHub, source patch, validation command, and unsafe repository actions
+
+Boundary:
+
+- dry-run is required
+- local evidence artifact and run-store persistence only
+- no live GitHub mutation, `gh`, PR creation/update/merge, issue closure, queue mutation, Codex execution, local LLM/model execution, source patch application, validation command execution, protected-branch update, force push, auto-merge, release, workflow mutation, retry, resume, or automatic next-item execution
+- future live project-loop actions remain separate, explicit, and machine-gated
+
 ## M167 Hub Autonomy Control Center v1
 
 Status: Completed locally on `main` after validation.

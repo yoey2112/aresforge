@@ -193,6 +193,7 @@ def test_cli_has_expected_commands() -> None:
         "recommend-github-issue-closure",
         "generate-pr-draft-summary",
         "inspect-hub-autonomy-control-center-data",
+        "run-self-managed-project-loop",
         "plan-agent-orchestration",
         "init-project-state",
         "add-local-queue-item",
@@ -10325,6 +10326,85 @@ def test_inspect_hub_autonomy_control_center_data_dispatch_json(
         "queue_path": "queue.json",
         "history_path": "history.json",
         "artifacts_root": "artifacts",
+        "autonomy_profile": "github_sync_dry_run",
+        "output": None,
+        "force": False,
+        "output_format": "json",
+    }
+
+
+def test_run_self_managed_project_loop_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": True,
+        "stdout": json.dumps(
+            {
+                "record_type": "self_managed_aresforge_project_loop_dry_run_v1",
+                "project_id": "aresforge",
+                "github_execution_performed": False,
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_run(
+        _config,
+        *,
+        project_id="aresforge",
+        item_id=None,
+        queue_path=None,
+        dry_run=False,
+        autonomy_profile="github_sync_dry_run",
+        output=None,
+        force=False,
+        output_format="json",
+    ):
+        seen.update(
+            {
+                "project_id": project_id,
+                "item_id": item_id,
+                "queue_path": queue_path,
+                "dry_run": dry_run,
+                "autonomy_profile": autonomy_profile,
+                "output": output,
+                "force": force,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "run_self_managed_project_loop_dry_run", fake_run)
+    exit_code = cli.main(
+        [
+            "run-self-managed-project-loop",
+            "--project-id",
+            "aresforge",
+            "--item-id",
+            "m168-self-managed-aresforge-project-loop-dry-run",
+            "--queue-path",
+            "queue.json",
+            "--dry-run",
+            "--autonomy-profile",
+            "github_sync_dry_run",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["record_type"] == "self_managed_aresforge_project_loop_dry_run_v1"
+    assert parsed["github_execution_performed"] is False
+    assert seen == {
+        "project_id": "aresforge",
+        "item_id": "m168-self-managed-aresforge-project-loop-dry-run",
+        "queue_path": "queue.json",
+        "dry_run": True,
         "autonomy_profile": "github_sync_dry_run",
         "output": None,
         "force": False,

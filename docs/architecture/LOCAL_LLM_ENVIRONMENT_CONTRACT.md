@@ -1,5 +1,11 @@
 # Local LLM Environment Contract
 
+## M168 Self-Managed AresForge Project Loop Dry Run Boundary
+
+M168 does not change local LLM permissions. It may record route decision metadata and inspect local model execution flags from composed evidence, but it does not call Ollama, send prompts, run inference, select fallback models, apply model output, mutate repository files, mutate queue state, call live Codex, call GitHub/`gh`, create/update/merge PRs, close issues, apply patches, run validation commands, retry failures, resume orchestration, or start follow-on work.
+
+Local LLM advisory execution remains limited to separate explicit local-provider commands and their machine gates. M168 records self-managed loop dry-run evidence only.
+
 ## M167 Hub Autonomy Control Center Boundary
 
 M167 does not change local LLM permissions. The Hub Autonomy Control Center may read local LLM/model execution flags already present in evidence and run records, but it does not call Ollama, send prompts, run inference, select models, apply model output, mutate queue state, call Codex, call GitHub/`gh`, create/update/merge PRs, close issues, apply patches, retry failures, resume orchestration, or start follow-on work.

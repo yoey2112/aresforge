@@ -7762,6 +7762,130 @@
       "closeout_history": [],
       "created_at": "2026-06-02T04:00:00Z",
       "updated_at": "2026-06-02T04:15:00Z"
+    },
+    {
+      "item_id": "m168-self-managed-aresforge-project-loop-dry-run",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M168 Self-Managed AresForge Project Loop Dry Run",
+      "description": "Dry-run AresForge managing one of its own queue items from queue selection through route decision, orchestration planning, gates, run store entry, Codex loop dry run, evidence bundle, GitHub issue sync plan, PR summary draft, and closeout recommendation.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "sync",
+      "tags": [
+        "milestone:m168",
+        "self-managed-project-loop",
+        "github-loop",
+        "dry-run",
+        "machine-gated"
+      ],
+      "dependencies": [
+        "m167-hub-autonomy-control-center-v1"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [
+        "tests_run",
+        "smoke_checks",
+        "self_managed_project_loop_dry_run_payload",
+        "machine_gate_results"
+      ],
+      "evidence_required": [
+        "queue_item_selection",
+        "route_decision",
+        "orchestration_plan",
+        "run_store_entry",
+        "codex_loop_dry_run",
+        "evidence_bundle",
+        "github_issue_sync_plan",
+        "pr_summary_draft",
+        "closeout_recommendation",
+        "non_mutation_flags"
+      ],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: add run-self-managed-project-loop; deterministic self_managed_aresforge_project_loop_dry_run_v1 JSON; dry-run one AresForge queue item through route decision, orchestration planning, machine gates, local run-store entry, Codex loop dry-run evidence, GitHub issue sync plan, PR summary draft, and closeout recommendation; no live GitHub mutation, Codex execution, local LLM/model execution, source patch application, queue mutation, PR merge, protected branch update, force push, auto-merge, release, workflow mutation, retry, resume, or next-item execution.",
+      "started_at": "2026-06-02T05:00:00Z",
+      "started_via": "local_operator",
+      "previous_status": "ready",
+      "completed_at": "2026-06-02T05:30:00Z",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M168 Self-Managed AresForge Project Loop Dry Run implemented and validated locally. Added run-self-managed-project-loop with stable self_managed_aresforge_project_loop_dry_run_v1 JSON, local dry-run artifact bundle, route decision, orchestration plan, multi-agent dry-run, Codex loop evidence bundle, GitHub issue sync plan, PR draft summary, issue closeout recommendation, durable run-store entry, source-of-truth docs, CLI coverage, targeted tests, and queue evidence. The command requires --dry-run and performs no live GitHub mutation, Codex execution, local LLM/model execution, source patch application, validation command execution, queue mutation, PR merge, protected branch update, force push, auto-merge, release, workflow mutation, retry, resume, or next-item execution.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 241 passed; python -m pytest tests/test_self_managed_aresforge_project_loop_dry_run.py -> 3 passed; python -m pytest tests/test_multi_agent_orchestrator.py -> 6 passed; python -m pytest tests/test_github_issue_sync_plan.py -> 4 passed; git diff --check -> passed with CRLF warnings only; inspect-local-project-report passed; inspect-local-queue-agent-summary passed; inspect-project-queue --project-id aresforge passed with item_count=102; run-self-managed-project-loop passed with status=dry_run_completed, machine_gates_passed=true, run_store_entry.created=true, mutation_performed=false, queue_mutation_performed=false, codex_execution_performed=false, model_execution_performed=false, github_execution_performed=false, patch_application_performed=false, and local_only=true.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 241 passed",
+        "python -m pytest tests/test_self_managed_aresforge_project_loop_dry_run.py -> 3 passed",
+        "python -m pytest tests/test_multi_agent_orchestrator.py -> 6 passed",
+        "python -m pytest tests/test_github_issue_sync_plan.py -> 4 passed",
+        "git diff --check -> passed with CRLF warnings only",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed",
+        "python -m aresforge inspect-project-queue --project-id aresforge -> passed",
+        "python -m aresforge run-self-managed-project-loop --project-id aresforge --dry-run --format json -> passed"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/self_managed_project_loop_dry_run.py",
+        "src/aresforge/cli.py",
+        "tests/test_self_managed_aresforge_project_loop_dry_run.py",
+        "tests/test_cli.py",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
+        "docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
+        "docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md",
+        ".aresforge/queue/work_items.json"
+      ],
+      "artifact_paths": [
+        ".aresforge/self_managed_project_loop/self-managed-loop-aresforge-20260602T030835049209Z/self-managed-project-loop-dry-run.json"
+      ],
+      "github_issue": {
+        "number": 168,
+        "url": "https://github.com/local/aresforge/issues/168",
+        "state": "open"
+      },
+      "completion_evidence": {
+        "command": "run-self-managed-project-loop",
+        "record_type": "self_managed_aresforge_project_loop_dry_run_v1",
+        "status": "dry_run_completed",
+        "machine_gates_passed": true,
+        "mutation_performed": false,
+        "queue_mutation_performed": false,
+        "codex_execution_performed": false,
+        "model_execution_performed": false,
+        "github_execution_performed": false,
+        "patch_application_performed": false,
+        "local_only": true,
+        "commit_hash": "pending-final-commit",
+        "artifacts_created": [
+          ".aresforge/self_managed_project_loop/self-managed-loop-aresforge-20260602T030835049209Z/self-managed-project-loop-dry-run.json"
+        ],
+        "run_id": "self-managed-loop-aresforge-20260602T030835049209Z",
+        "run_store_entry_created": true
+      },
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-06-02T05:00:00Z",
+      "updated_at": "2026-06-02T05:30:00Z"
     }
   ]
 }
