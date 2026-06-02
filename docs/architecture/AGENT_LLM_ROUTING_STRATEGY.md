@@ -1,5 +1,17 @@
 # Agent LLM Routing Strategy
 
+## M165 GitHub Issue Closure Recommendation Gate Routing Boundary
+
+M165 does not add a new agent, local LLM, Codex, or live GitHub route. It adds a local recommendation route for one linked issue based on queue completion, validation evidence, artifact evidence, linked issue metadata/state, autonomy profile inspection, and machine gates.
+
+Routing rules:
+
+- done queue items with complete evidence and linked open/unknown issue metadata route to `close` recommendation
+- missing evidence, incomplete queue status, unsatisfied dependencies, blockers, absent linked issue metadata, already closed issues, or gate failures route to `keep_open`
+- `close` remains advisory only and never authorizes issue closure
+
+M165 reports no agent execution, no model execution, no Codex execution, no GitHub execution, no source patch application, and no queue mutation.
+
 ## M164 GitHub Issue Status Comment Sync Routing Boundary
 
 M164 does not add a new agent, local LLM, or Codex route. It adds a narrow GitHub issue status comment sync route for one queue item, using local queue status, run monitor evidence, validation evidence, artifact references, and machine gates.

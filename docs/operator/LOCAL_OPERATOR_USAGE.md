@@ -1,5 +1,23 @@
 # Local Operator Usage
 
+## M165 GitHub Issue Closure Recommendation Gate
+
+M165 recommends whether one locally linked GitHub issue should be closed or kept open. It never closes the issue.
+
+Run the recommendation gate:
+
+    python -m aresforge recommend-github-issue-closure --item-id m165-github-issue-closure-recommendation-gate --format json
+
+Interpretation:
+
+- `record_type=github_issue_closure_recommendation_gate_v1` identifies the M165 payload.
+- `issue_closure_recommendation` is `close` or `keep_open`.
+- `closure_recommended=true` requires queue `done` status, done dependencies, validation evidence, artifact evidence, linked issue metadata/state, and passing machine gates.
+- `issue_closure_allowed=false` and `issue_closed=false` confirm the command did not and cannot close the issue.
+- `blocked_reasons` and `warnings` explain why the issue should remain open or what needs operator review.
+
+M165 does not call GitHub, run `gh`, mutate the local queue, merge PRs, update protected branches, force push, enable auto-merge, create releases, mutate workflows, run Codex, run models, apply patches, retry, resume, or start another item.
+
 ## M164 GitHub Issue Status Comment Sync
 
 M164 prepares or performs synchronization of one marked GitHub issue status comment for one local queue item. Dry-run is the default operator path.

@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-06-02T01:07:17Z",
+  "updated_at": "2026-06-02T02:15:00Z",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -7396,6 +7396,126 @@
       "closeout_history": [],
       "created_at": "2026-06-02T01:20:00Z",
       "updated_at": "2026-06-02T01:22:00Z"
+    },
+    {
+      "item_id": "m165-github-issue-closure-recommendation-gate",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M165 GitHub Issue Closure Recommendation Gate",
+      "description": "Recommend GitHub issue closure only when queue completion, validation evidence, artifact bundle, machine gates, linked issue state, and blockers or warnings support closure.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "sync",
+      "tags": [
+        "milestone:m165",
+        "github-issue-sync",
+        "issue-closure",
+        "recommendation-only",
+        "machine-gated"
+      ],
+      "dependencies": [
+        "m164-github-issue-status-comment-sync"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [
+        "tests_run",
+        "smoke_checks",
+        "github_issue_closure_recommendation",
+        "machine_gate_results"
+      ],
+      "evidence_required": [
+        "queue_done_status",
+        "validation_evidence",
+        "artifact_bundle",
+        "machine_gate_results",
+        "linked_issue_state",
+        "non_mutation_flags"
+      ],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: add recommend-github-issue-closure; deterministic github_issue_closure_recommendation_gate_v1 JSON; recommend close/keep_open from queue done status, validation evidence, artifact bundle, machine gates, linked issue state, and blockers/warnings; no automatic issue closure unless a future explicitly enabled gate exists; no queue mutation, Codex, model, source patch, PR merge, protected branch update, force push, auto-merge, release, workflow mutation, retry, resume, or next-item execution.",
+      "started_at": "2026-06-02T02:00:00Z",
+      "started_via": "local_operator",
+      "previous_status": "ready",
+      "completed_at": "2026-06-02T02:15:00Z",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M165 GitHub Issue Closure Recommendation Gate implemented and validated locally. Added recommend-github-issue-closure with stable github_issue_closure_recommendation_gate_v1 JSON, recommendation-only close/keep_open behavior, queue done/dependency checks, validation evidence checks, artifact evidence checks, linked issue metadata/state checks, autonomy profile inspection, read-only machine-gate enforcement, source-of-truth docs, CLI coverage, targeted tests, and queue evidence. The command performs no live GitHub lookup, gh, GitHub API, issue closure, queue mutation, Codex, local LLM/model, source patch application, validation command execution, PR merge, protected branch update, force push, auto-merge, release, workflow mutation, retry, resume, or next-item execution.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 238 passed; python -m pytest tests/test_github_issue_closure_recommendation_gate.py -> 4 passed; python -m pytest tests/test_github_issue_status_comment_sync.py -> 6 passed; git diff --check -> passed with CRLF warnings only; inspect-local-project-report passed; inspect-local-queue-agent-summary passed; inspect-project-queue --project-id aresforge passed with item_count=99; recommend-github-issue-closure passed with status=close_recommended, machine_gates_passed=true, closure_recommended=true, issue_closure_allowed=false, issue_closed=false, mutation_performed=false, queue_mutation_performed=false, codex_execution_performed=false, model_execution_performed=false, github_execution_performed=false, patch_application_performed=false, and local_only=true.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 238 passed",
+        "python -m pytest tests/test_github_issue_closure_recommendation_gate.py -> 4 passed",
+        "python -m pytest tests/test_github_issue_status_comment_sync.py -> 6 passed",
+        "git diff --check -> passed with CRLF warnings only",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed",
+        "python -m aresforge inspect-project-queue --project-id aresforge -> passed",
+        "python -m aresforge recommend-github-issue-closure --item-id m165-github-issue-closure-recommendation-gate --format json -> passed"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/github_issue_closure_recommendation_gate.py",
+        "src/aresforge/cli.py",
+        "tests/test_github_issue_closure_recommendation_gate.py",
+        "tests/test_cli.py",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
+        "docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
+        "docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md",
+        ".aresforge/queue/work_items.json"
+      ],
+      "artifact_paths": [
+        ".aresforge/github_issue_closure_recommendations/m165.json (optional output path; default command writes no artifact)"
+      ],
+      "github_issue": {
+        "number": 165,
+        "url": "https://github.com/local/aresforge/issues/165",
+        "state": "open"
+      },
+      "completion_evidence": {
+        "command": "recommend-github-issue-closure",
+        "record_type": "github_issue_closure_recommendation_gate_v1",
+        "status": "close_recommended",
+        "machine_gates_passed": true,
+        "mutation_performed": false,
+        "queue_mutation_performed": false,
+        "codex_execution_performed": false,
+        "model_execution_performed": false,
+        "github_execution_performed": false,
+        "patch_application_performed": false,
+        "local_only": true,
+        "closure_recommended": true,
+        "issue_closure_allowed": false,
+        "issue_closed": false,
+        "commit_hash": "pending-final-commit",
+        "artifacts_created": [
+          ".aresforge/github_issue_closure_recommendations/m165.json (optional output path; default command writes no artifact)"
+        ]
+      },
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-06-02T02:00:00Z",
+      "updated_at": "2026-06-02T02:15:00Z"
     }
   ]
 }

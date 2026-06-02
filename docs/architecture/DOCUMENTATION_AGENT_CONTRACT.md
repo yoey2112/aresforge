@@ -1,5 +1,11 @@
 # Documentation Agent Contract
 
+## M165 GitHub Issue Closure Recommendation Gate Boundary
+
+M165 does not add documentation-agent or source-code patch mutation. It may read local queue metadata and source-of-truth docs indirectly through related planning surfaces, and it may recommend close or keep-open for one linked GitHub issue from local evidence, but it does not edit documentation through a documentation agent, generate documentation patches, apply patches, call local LLMs, call Codex, call GitHub/`gh`, close issues, mutate queue state, push, merge, mutate workflows, retry failures, resume orchestration, or start follow-on work.
+
+Documentation mutation remains limited to separate docs-only Markdown patch commands that pass `docs_only_patch_apply` gates. M165 output cannot authorize documentation, source patch, queue, or GitHub mutation.
+
 ## M164 GitHub Issue Status Comment Sync Boundary
 
 M164 does not add documentation-agent or source-code patch mutation. It may read local queue metadata, run monitor evidence, validation evidence, artifact references, and source-of-truth docs indirectly through related planning surfaces, and it may create or update one marked GitHub issue status comment only on the explicit gated live path, but it does not edit documentation through a documentation agent, generate documentation patches, apply patches, call local LLMs, call Codex, mutate queue state, push, merge, mutate workflows, retry failures, resume orchestration, or start follow-on work.

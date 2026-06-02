@@ -190,6 +190,7 @@ def test_cli_has_expected_commands() -> None:
         "plan-github-issue-sync",
         "create-github-issue-for-safe-queue-item",
         "sync-github-issue-status-comment",
+        "recommend-github-issue-closure",
         "plan-agent-orchestration",
         "init-project-state",
         "add-local-queue-item",
@@ -9137,6 +9138,90 @@ def test_sync_github_issue_status_comment_dispatch_json(
         "autonomy_profile": "github_sync_dry_run",
         "repo": None,
         "issue_number": 164,
+        "output": None,
+        "force": False,
+        "output_format": "json",
+    }
+
+
+def test_recommend_github_issue_closure_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "record_type": "github_issue_closure_recommendation_gate_v1",
+                "item_id": "m165-github-issue-closure-recommendation-gate",
+                "status": "close_recommended",
+                "github_execution_performed": False,
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_recommend(
+        _config,
+        *,
+        item_id,
+        project_id="aresforge",
+        queue_path=None,
+        run_id=None,
+        autonomy_profile="github_sync_dry_run",
+        linked_issue_state=None,
+        output=None,
+        force=False,
+        output_format="json",
+    ):
+        seen.update(
+            {
+                "item_id": item_id,
+                "project_id": project_id,
+                "queue_path": queue_path,
+                "run_id": run_id,
+                "autonomy_profile": autonomy_profile,
+                "linked_issue_state": linked_issue_state,
+                "output": output,
+                "force": force,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "recommend_github_issue_closure", fake_recommend)
+    exit_code = cli.main(
+        [
+            "recommend-github-issue-closure",
+            "--item-id",
+            "m165-github-issue-closure-recommendation-gate",
+            "--project-id",
+            "aresforge",
+            "--queue-path",
+            "queue.json",
+            "--run-id",
+            "run-165",
+            "--linked-issue-state",
+            "open",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["record_type"] == "github_issue_closure_recommendation_gate_v1"
+    assert parsed["github_execution_performed"] is False
+    assert seen == {
+        "item_id": "m165-github-issue-closure-recommendation-gate",
+        "project_id": "aresforge",
+        "queue_path": "queue.json",
+        "run_id": "run-165",
+        "autonomy_profile": "github_sync_dry_run",
+        "linked_issue_state": "open",
         "output": None,
         "force": False,
         "output_format": "json",

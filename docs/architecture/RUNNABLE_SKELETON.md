@@ -1,5 +1,21 @@
 # Runnable Skeleton
 
+## M165 GitHub Issue Closure Recommendation Gate
+
+M165 adds an advisory-only closure recommendation command:
+
+- `python -m aresforge recommend-github-issue-closure --item-id m165-github-issue-closure-recommendation-gate --format json`
+
+The command returns `github_issue_closure_recommendation_gate_v1` JSON. It reads one local queue item, reuses M162 linked-issue metadata, inspects validation and artifact evidence, checks linked issue state from local metadata or `--linked-issue-state`, inspects the selected autonomy profile, and evaluates the read-only machine gate before recommending `close` or `keep_open`.
+
+Runnable boundary:
+
+- recommendation-only and safe for local smoke checks
+- optional `--output` writes one local JSON artifact
+- no live GitHub lookup or issue closure is performed
+- future closure requires a separate explicitly enabled machine-gated command
+- no queue mutation, Codex, local LLM/model, source patch application, validation command execution, PR merge, protected branch update, force push, auto-merge, release, workflow mutation, retry, resume, or next-item execution is performed
+
 ## M164 GitHub Issue Status Comment Sync
 
 M164 adds a dry-run-default status comment sync command:

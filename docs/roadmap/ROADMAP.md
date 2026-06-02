@@ -1,5 +1,23 @@
 # AresForge Roadmap
 
+## M165 GitHub Issue Closure Recommendation Gate
+
+Status: Completed locally on `main` after validation.
+
+M165 hardens the self-managed GitHub loop with:
+
+- `python -m aresforge recommend-github-issue-closure --item-id m165-github-issue-closure-recommendation-gate --format json`
+- deterministic `github_issue_closure_recommendation_gate_v1` output
+- local close/keep-open recommendation from queue done status, dependency completion, validation evidence, artifact evidence, linked issue metadata/state, autonomy profile inspection, and machine gates
+- explicit recommendation-only flags: `issue_closure_allowed=false`, `issue_closed=false`, and `github_execution_performed=false`
+- blocked reasons and warnings explaining why an issue should remain open
+
+Boundary:
+
+- local recommendation only
+- no live GitHub lookup, `gh`, GitHub API call, issue close, comment sync, issue update, PR merge, force push, protected-branch update, auto-merge, release, workflow mutation, Codex, local LLM/model, source patch application, queue mutation, retry, resume, or automatic next-item execution
+- future live issue closure remains a separate explicitly enabled machine-gated milestone
+
 ## M164 GitHub Issue Status Comment Sync
 
 Status: Completed locally on `main` after validation.

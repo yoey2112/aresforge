@@ -1,5 +1,11 @@
 # Local LLM Environment Contract
 
+## M165 GitHub Issue Closure Recommendation Gate Boundary
+
+M165 does not change local LLM permissions. It may recommend close or keep-open for one locally linked GitHub issue from queue completion, validation evidence, artifact evidence, local linked issue metadata/state, autonomy profile inspection, and machine gates, but it does not call Ollama, send prompts, run inference, select fallback local models, mutate repository files, mutate queue state, call Codex, call GitHub/`gh`, apply patches, retry failures, resume orchestration, close issues, or start follow-on work.
+
+Local LLM advisory execution remains limited to separate explicit local-provider commands and their machine gates. M165 records issue closure recommendation evidence only.
+
 ## M164 GitHub Issue Status Comment Sync Boundary
 
 M164 does not change local LLM permissions. It may prepare or perform one explicitly enabled GitHub issue status comment create/update after local queue checks, run evidence inspection, autonomy profile allowance, linked issue checks, and machine gates pass, but it does not call Ollama, send prompts, run inference, select fallback local models, mutate repository files, mutate queue state, call Codex, apply patches, retry failures, resume orchestration, or start follow-on work.

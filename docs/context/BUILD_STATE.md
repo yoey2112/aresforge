@@ -1,5 +1,24 @@
 # AresForge Build State
 
+## M165 GitHub Issue Closure Recommendation Gate
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m165-github-issue-closure-recommendation-gate`.
+
+M165 adds an advisory-only GitHub issue closure recommendation command:
+
+- `python -m aresforge recommend-github-issue-closure --item-id m165-github-issue-closure-recommendation-gate --format json`
+- stable `github_issue_closure_recommendation_gate_v1` JSON
+- recommends `close` only when local queue completion, validation evidence, artifact evidence, linked issue metadata/state, autonomy profile inspection, and machine gates support closure
+- recommends `keep_open` when required evidence is missing, the item is not done, dependencies/blockers remain, linked issue metadata is absent, the linked issue is already closed, or gates block
+
+Safety posture:
+
+- recommendation-only and local-only; no live GitHub lookup or mutation is performed
+- issue closure remains disabled until a separate future explicitly enabled machine-gated close path exists
+- the command performs no queue mutation, Codex execution, local LLM/model execution, source patch application, validation command execution, PR merge, protected-branch update, force push, auto-merge, release creation, workflow mutation, retry, resume, or automatic next-item execution
+
 ## M164 GitHub Issue Status Comment Sync
 
 Status: Completed locally on `main` after validation.

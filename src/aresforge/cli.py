@@ -170,6 +170,7 @@ from aresforge.operator.github_issue_creation_for_safe_queue_items import (
     create_github_issue_for_safe_queue_item,
 )
 from aresforge.operator.github_issue_status_comment_sync import sync_github_issue_status_comment
+from aresforge.operator.github_issue_closure_recommendation_gate import recommend_github_issue_closure
 from aresforge.operator.local_milestone_lifecycle import (
     check_local_milestone_readiness,
     generate_local_milestone_closeout,
@@ -1333,6 +1334,24 @@ def build_parser() -> argparse.ArgumentParser:
     github_issue_status_comment_parser.add_argument("--output")
     github_issue_status_comment_parser.add_argument("--force", action="store_true")
     github_issue_status_comment_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+        help="Output format for file writes or stdout rendering.",
+    )
+    github_issue_closure_recommendation_parser = subparsers.add_parser(
+        "recommend-github-issue-closure",
+        help="Recommend close or keep-open for one linked GitHub issue without mutating GitHub.",
+    )
+    github_issue_closure_recommendation_parser.add_argument("--item-id", required=True)
+    github_issue_closure_recommendation_parser.add_argument("--project-id", default="aresforge")
+    github_issue_closure_recommendation_parser.add_argument("--queue-path")
+    github_issue_closure_recommendation_parser.add_argument("--run-id")
+    github_issue_closure_recommendation_parser.add_argument("--autonomy-profile", default="github_sync_dry_run")
+    github_issue_closure_recommendation_parser.add_argument("--linked-issue-state")
+    github_issue_closure_recommendation_parser.add_argument("--output")
+    github_issue_closure_recommendation_parser.add_argument("--force", action="store_true")
+    github_issue_closure_recommendation_parser.add_argument(
         "--format",
         choices=["json"],
         default="json",
@@ -4720,6 +4739,25 @@ def main(argv: list[str] | None = None) -> int:
             autonomy_profile=args.autonomy_profile,
             repo=args.repo,
             issue_number=args.issue_number,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "recommend-github-issue-closure":
+        payload = recommend_github_issue_closure(
+            config,
+            item_id=args.item_id,
+            project_id=args.project_id,
+            queue_path=args.queue_path,
+            run_id=args.run_id,
+            autonomy_profile=args.autonomy_profile,
+            linked_issue_state=args.linked_issue_state,
             output=args.output,
             force=bool(args.force),
             output_format=args.format,
