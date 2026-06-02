@@ -1,5 +1,24 @@
 # AresForge Agent Context
 
+## M166 Pull Request Draft Summary Generator Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m166-pull-request-draft-summary-generator`.
+
+M166 adds `generate-pr-draft-summary`, a local artifact generator that drafts PR summary content from queue and evidence context without creating a pull request.
+
+Command:
+
+- `python -m aresforge generate-pr-draft-summary --item-id m166-pull-request-draft-summary-generator --format json`
+
+Agent-facing guidance:
+
+- Treat `pull_request_draft_summary_generator_v1` output as operator review evidence only.
+- The draft includes summary, changed files, tests, smoke checks, risks, rollback notes, linked issue references, artifact paths, remaining blockers, and a Markdown PR body.
+- `pr_creation_allowed=false`, `pull_request_created=false`, and `github_execution_performed=false` must remain true for M166.
+- Do not create PRs, update PR bodies, merge PRs, push, force push, update protected branches, enable auto-merge, create releases, mutate workflows, run Codex/models, apply patches, mutate queue state, retry, resume, or start later sprint items from this output.
+
 ## M165 GitHub Issue Closure Recommendation Gate Context
 
 Status: Completed locally on `main` after validation.

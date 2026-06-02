@@ -1,5 +1,21 @@
 # Runnable Skeleton
 
+## M166 Pull Request Draft Summary Generator
+
+M166 adds a local draft PR summary command:
+
+- `python -m aresforge generate-pr-draft-summary --item-id m166-pull-request-draft-summary-generator --format json`
+
+The command returns `pull_request_draft_summary_generator_v1` JSON and writes JSON plus Markdown artifacts under `.aresforge/pr_draft_summaries/`. It reads one local queue item, optional Codex evidence bundle metadata, changed files, validation evidence, artifact paths, linked issue metadata, autonomy profile inspection, and machine gates before producing operator-review PR body content.
+
+Runnable boundary:
+
+- safe for local smoke checks and local artifact generation
+- optional `--output` writes the JSON artifact at a chosen local path and a sibling Markdown artifact
+- no pull request is created, updated, merged, pushed, or auto-merged
+- future PR creation requires a separate explicitly enabled machine-gated command
+- no queue mutation, Codex, local LLM/model, source patch application, validation command execution, release, workflow mutation, retry, resume, protected-branch update, force push, or next-item execution is performed
+
 ## M165 GitHub Issue Closure Recommendation Gate
 
 M165 adds an advisory-only closure recommendation command:

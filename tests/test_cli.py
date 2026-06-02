@@ -191,6 +191,7 @@ def test_cli_has_expected_commands() -> None:
         "create-github-issue-for-safe-queue-item",
         "sync-github-issue-status-comment",
         "recommend-github-issue-closure",
+        "generate-pr-draft-summary",
         "plan-agent-orchestration",
         "init-project-state",
         "add-local-queue-item",
@@ -9222,6 +9223,89 @@ def test_recommend_github_issue_closure_dispatch_json(
         "run_id": "run-165",
         "autonomy_profile": "github_sync_dry_run",
         "linked_issue_state": "open",
+        "output": None,
+        "force": False,
+        "output_format": "json",
+    }
+
+
+def test_generate_pr_draft_summary_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": True,
+        "stdout": json.dumps(
+            {
+                "record_type": "pull_request_draft_summary_generator_v1",
+                "item_id": "m166-pull-request-draft-summary-generator",
+                "github_execution_performed": False,
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_generate(
+        _config,
+        *,
+        item_id,
+        project_id="aresforge",
+        queue_path=None,
+        run_id=None,
+        autonomy_profile="github_sync_dry_run",
+        evidence_bundle=None,
+        output=None,
+        force=False,
+        output_format="json",
+    ):
+        seen.update(
+            {
+                "item_id": item_id,
+                "project_id": project_id,
+                "queue_path": queue_path,
+                "run_id": run_id,
+                "autonomy_profile": autonomy_profile,
+                "evidence_bundle": evidence_bundle,
+                "output": output,
+                "force": force,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "generate_pr_draft_summary", fake_generate)
+    exit_code = cli.main(
+        [
+            "generate-pr-draft-summary",
+            "--item-id",
+            "m166-pull-request-draft-summary-generator",
+            "--project-id",
+            "aresforge",
+            "--queue-path",
+            "queue.json",
+            "--run-id",
+            "run-166",
+            "--evidence-bundle",
+            "bundle.json",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["record_type"] == "pull_request_draft_summary_generator_v1"
+    assert parsed["github_execution_performed"] is False
+    assert seen == {
+        "item_id": "m166-pull-request-draft-summary-generator",
+        "project_id": "aresforge",
+        "queue_path": "queue.json",
+        "run_id": "run-166",
+        "autonomy_profile": "github_sync_dry_run",
+        "evidence_bundle": "bundle.json",
         "output": None,
         "force": False,
         "output_format": "json",

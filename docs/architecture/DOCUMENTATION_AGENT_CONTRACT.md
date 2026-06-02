@@ -1,5 +1,11 @@
 # Documentation Agent Contract
 
+## M166 Pull Request Draft Summary Generator Boundary
+
+M166 does not add documentation-agent or source-code patch mutation. It may read local queue metadata, validation evidence, changed files, linked issue references, artifact paths, and Codex evidence bundle metadata to generate local PR summary artifacts, but it does not edit documentation through a documentation agent, generate documentation patches, apply patches, call local LLMs, call Codex, call GitHub/`gh`, create PRs, update PRs, push, merge, mutate queue state, mutate workflows, retry failures, resume orchestration, or start follow-on work.
+
+Documentation mutation remains limited to separate docs-only Markdown patch commands that pass `docs_only_patch_apply` gates. M166 output cannot authorize documentation, source patch, queue, or GitHub mutation.
+
 ## M165 GitHub Issue Closure Recommendation Gate Boundary
 
 M165 does not add documentation-agent or source-code patch mutation. It may read local queue metadata and source-of-truth docs indirectly through related planning surfaces, and it may recommend close or keep-open for one linked GitHub issue from local evidence, but it does not edit documentation through a documentation agent, generate documentation patches, apply patches, call local LLMs, call Codex, call GitHub/`gh`, close issues, mutate queue state, push, merge, mutate workflows, retry failures, resume orchestration, or start follow-on work.

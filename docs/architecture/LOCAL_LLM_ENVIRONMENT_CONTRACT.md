@@ -1,5 +1,11 @@
 # Local LLM Environment Contract
 
+## M166 Pull Request Draft Summary Generator Boundary
+
+M166 does not change local LLM permissions. It may generate local JSON and Markdown draft PR summary artifacts from queue evidence, Codex evidence bundle metadata, changed files, validation output, linked issue references, risks, rollback notes, and artifact paths, but it does not call Ollama, send prompts, run inference, select fallback local models, mutate repository files from model output, mutate queue state, call Codex, call GitHub/`gh`, create PRs, update PRs, merge PRs, apply patches, retry failures, resume orchestration, or start follow-on work.
+
+Local LLM advisory execution remains limited to separate explicit local-provider commands and their machine gates. M166 records PR summary review evidence only.
+
 ## M165 GitHub Issue Closure Recommendation Gate Boundary
 
 M165 does not change local LLM permissions. It may recommend close or keep-open for one locally linked GitHub issue from queue completion, validation evidence, artifact evidence, local linked issue metadata/state, autonomy profile inspection, and machine gates, but it does not call Ollama, send prompts, run inference, select fallback local models, mutate repository files, mutate queue state, call Codex, call GitHub/`gh`, apply patches, retry failures, resume orchestration, close issues, or start follow-on work.

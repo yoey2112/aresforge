@@ -1,5 +1,23 @@
 # AresForge Roadmap
 
+## M166 Pull Request Draft Summary Generator
+
+Status: Completed locally on `main` after validation.
+
+M166 hardens the self-managed GitHub loop with:
+
+- `python -m aresforge generate-pr-draft-summary --item-id m166-pull-request-draft-summary-generator --format json`
+- deterministic `pull_request_draft_summary_generator_v1` output
+- local JSON and Markdown draft PR summary artifacts
+- summary synthesis from queue context, Codex evidence bundle metadata, changed files, validation output, tests, smoke checks, risks, rollback notes, linked issue references, artifact paths, and remaining blockers
+- explicit non-creation flags for GitHub PR behavior and all execution/mutation paths
+
+Boundary:
+
+- summary artifact generation only
+- no PR creation, PR update, PR merge, push, force push, protected-branch update, auto-merge, release, workflow mutation, GitHub API call, `gh`, Codex execution, local LLM/model execution, source patch application, queue mutation, retry, resume, or automatic next-item execution
+- future live PR creation remains separate, explicit, and machine-gated
+
 ## M165 GitHub Issue Closure Recommendation Gate
 
 Status: Completed locally on `main` after validation.

@@ -1,5 +1,18 @@
 # Agent LLM Routing Strategy
 
+## M166 Pull Request Draft Summary Generator Routing Boundary
+
+M166 does not add a new agent, local LLM, Codex, or live GitHub route. It adds a local PR summary artifact route for one queue item based on queue context, Codex evidence bundle metadata when present, changed files, validation output, artifact paths, linked issue references, risks, rollback notes, and machine gates.
+
+Routing rules:
+
+- complete local evidence routes to `draft_summary_created`
+- missing queue items, missing validation evidence, missing artifact references, blocked evidence bundles, or gate failures route to `blocked`
+- generated Markdown and JSON artifacts route to operator review only
+- PR creation remains unauthorized and must wait for a separate future machine-gated route
+
+M166 reports no agent execution, no model execution, no Codex execution, no GitHub execution, no source patch application, and no queue mutation.
+
 ## M165 GitHub Issue Closure Recommendation Gate Routing Boundary
 
 M165 does not add a new agent, local LLM, Codex, or live GitHub route. It adds a local recommendation route for one linked issue based on queue completion, validation evidence, artifact evidence, linked issue metadata/state, autonomy profile inspection, and machine gates.

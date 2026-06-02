@@ -1,5 +1,23 @@
 # Local Operator Usage
 
+## M166 Pull Request Draft Summary Generator
+
+M166 generates local draft PR summary artifacts. It never creates or updates a pull request.
+
+Generate the draft summary:
+
+    python -m aresforge generate-pr-draft-summary --item-id m166-pull-request-draft-summary-generator --format json
+
+Interpretation:
+
+- `record_type=pull_request_draft_summary_generator_v1` identifies the M166 payload.
+- `draft_pr_summary` and `draft_pr_body_markdown` contain the operator-review PR summary.
+- The draft includes summary, changed files, tests, smoke checks, risks, rollback notes, linked issue references, artifact paths, and remaining blockers.
+- `pr_creation_allowed=false`, `pull_request_created=false`, and `github_execution_performed=false` confirm the command did not create or mutate a PR.
+- `artifacts_created` points to the local JSON and Markdown summary artifacts.
+
+M166 does not call GitHub, run `gh`, create PRs, update PRs, merge PRs, push, force push, update protected branches, enable auto-merge, create releases, mutate workflows, mutate the local queue, run Codex, run models, apply patches, retry, resume, or start another item.
+
 ## M165 GitHub Issue Closure Recommendation Gate
 
 M165 recommends whether one locally linked GitHub issue should be closed or kept open. It never closes the issue.
