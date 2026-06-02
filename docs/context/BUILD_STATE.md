@@ -1,5 +1,26 @@
 # AresForge Build State
 
+## M184 Sprint Closeout and Live GitHub Loop Readiness Report
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m184-sprint-closeout-and-live-github-loop-readiness-report`.
+
+M184 closes the M170-M184 live self-managed GitHub loop sprint with:
+
+- `python -m aresforge generate-live-github-loop-readiness-report --project-id aresforge --sprint-start M170 --sprint-end M184 --format json`
+- stable `live_github_loop_readiness_report_v1` JSON
+- source-of-truth doc sync checks across BUILD_STATE, AGENT_CONTEXT, ROADMAP, LOCAL_OPERATOR_USAGE, RUNNABLE_SKELETON, AGENT_LLM_ROUTING_STRATEGY, LOCAL_LLM_ENVIRONMENT_CONTRACT, and DOCUMENTATION_AGENT_CONTRACT
+- sprint reconciliation for M170, M171, M172, M173, M174, M175, M176, M177, M178, M179, M180, M181, M182, M183, and M184 queue evidence
+- readiness summaries for the local GitHub link registry, issue creation/backfill/status-comment/reconciliation/closure gates, PR branch/draft/evidence gates, recovery/idempotency, Hub GitHub Sync Control Panel, and the M183 safety audit
+- warnings, blockers, safety boundaries, machine-gate behavior, and next-sprint recommendations
+
+Safety posture:
+
+- read-only, local-only, and dry-run by default
+- no live GitHub mutation, `gh`, registry mutation, queue mutation outside M184 completion evidence, PR merge, auto-merge, force push, protected branch update, release creation, workflow mutation, automatic issue closure, source patch application, Codex/model execution, validation command execution by the report, retry/resume execution, or automatic next-item execution
+- real GitHub mutation remains limited to separate commands that require explicit enablement, autonomy profile allowance, idempotency checks, and passing machine gates
+
 ## M183 GitHub Automation Safety Audit
 
 Status: Completed locally on `main` after validation.

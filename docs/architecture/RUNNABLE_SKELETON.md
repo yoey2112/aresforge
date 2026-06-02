@@ -1,5 +1,19 @@
 # Runnable Skeleton
 
+## M184 Sprint Closeout and Live GitHub Loop Readiness Report
+
+- `python -m aresforge generate-live-github-loop-readiness-report --project-id aresforge --sprint-start M170 --sprint-end M184 --format json`
+- emits `live_github_loop_readiness_report_v1`
+- reads local queue metadata, source-of-truth docs, `.aresforge/github_link_registry/links.json`, GitHub sync recovery/idempotency state, Hub GitHub Sync Control Panel output, M183 GitHub automation safety audit output, and machine safety gates
+- reconciles M170, M171, M172, M173, M174, M175, M176, M177, M178, M179, M180, M181, M182, M183, and M184
+- reports capabilities, readiness, warnings, blockers, safety boundaries, machine-gate behavior, and next-sprint recommendations
+
+Runnable boundary:
+
+- read-only and local-only
+- no GitHub mutation, `gh`, registry mutation, queue mutation, PR merge, auto-merge, force push, protected branch update, release, workflow mutation, automatic issue closure, source patch application, Codex/model execution, validation command execution, retry execution, resume execution, or automatic next-item execution
+- live GitHub mutation remains outside the readiness report and requires separate explicit gated commands
+
 ## M183 GitHub Automation Safety Audit
 
 - `python -m aresforge audit-github-automation-safety --project-id aresforge --format json`

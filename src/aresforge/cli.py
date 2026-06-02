@@ -189,6 +189,7 @@ from aresforge.operator.self_managed_project_loop_dry_run import run_self_manage
 from aresforge.operator.self_managed_issue_loop_real_run import run_self_managed_issue_loop
 from aresforge.operator.self_managed_pr_draft_loop_dry_run import run_self_managed_pr_draft_loop
 from aresforge.operator.production_autonomy_readiness_report import generate_production_autonomy_readiness_report
+from aresforge.operator.live_github_loop_readiness_report import generate_live_github_loop_readiness_report
 from aresforge.operator.local_milestone_lifecycle import (
     check_local_milestone_readiness,
     generate_local_milestone_closeout,
@@ -1714,6 +1715,29 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["json"],
         default="json",
         help="Output format for stdout rendering.",
+    )
+    live_github_loop_readiness_report_parser = subparsers.add_parser(
+        "generate-live-github-loop-readiness-report",
+        help="Generate the M184 sprint closeout and live GitHub loop readiness report without GitHub mutation.",
+    )
+    live_github_loop_readiness_report_parser.add_argument("--project-id", default="aresforge")
+    live_github_loop_readiness_report_parser.add_argument("--sprint-start", default="M170")
+    live_github_loop_readiness_report_parser.add_argument("--sprint-end", default="M184")
+    live_github_loop_readiness_report_parser.add_argument(
+        "--item-id",
+        default="m184-sprint-closeout-and-live-github-loop-readiness-report",
+    )
+    live_github_loop_readiness_report_parser.add_argument("--queue-path")
+    live_github_loop_readiness_report_parser.add_argument("--registry-path")
+    live_github_loop_readiness_report_parser.add_argument("--repo")
+    live_github_loop_readiness_report_parser.add_argument("--autonomy-profile", default="github_sync_dry_run")
+    live_github_loop_readiness_report_parser.add_argument("--output")
+    live_github_loop_readiness_report_parser.add_argument("--force", action="store_true")
+    live_github_loop_readiness_report_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+        help="Output format for file writes or stdout rendering.",
     )
     self_managed_project_loop_parser = subparsers.add_parser(
         "run-self-managed-project-loop",
@@ -5534,6 +5558,27 @@ def main(argv: list[str] | None = None) -> int:
             registry_path=args.registry_path,
             repo=args.repo,
             autonomy_profile=args.autonomy_profile,
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "generate-live-github-loop-readiness-report":
+        payload = generate_live_github_loop_readiness_report(
+            config,
+            project_id=args.project_id,
+            sprint_start=args.sprint_start,
+            sprint_end=args.sprint_end,
+            item_id=args.item_id,
+            queue_path=args.queue_path,
+            registry_path=args.registry_path,
+            repo=args.repo,
+            autonomy_profile=args.autonomy_profile,
+            output=args.output,
+            force=bool(args.force),
             output_format=args.format,
         )
         if "stdout" in payload:

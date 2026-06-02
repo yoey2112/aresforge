@@ -1,5 +1,11 @@
 # Local LLM Environment Contract
 
+## M184 Live GitHub Loop Readiness Boundary
+
+M184 does not change local LLM permissions. It may inspect source-of-truth docs, local queue metadata for M170, M171, M172, M173, M174, M175, M176, M177, M178, M179, M180, M181, M182, M183, and M184, the local GitHub link registry, GitHub sync recovery/idempotency evidence, Hub GitHub Sync Control Panel data, M183 safety-audit evidence, and machine gates, but it does not call Ollama, send prompts, run inference, select fallback local models, mutate repository files from model output, mutate queue or registry state, call Codex, apply patches, run validation commands, retry failures, resume orchestration, call GitHub/`gh`, create/update/close issues, create/update/merge PRs, enable auto-merge, force push, update protected branches, create releases, mutate workflows, or start follow-on work.
+
+Local LLM advisory execution remains limited to separate explicit local-provider commands and their machine gates. M184 records closeout and live GitHub loop readiness evidence only.
+
 ## M183 GitHub Automation Safety Audit Boundary
 
 M183 does not change local LLM permissions. It may inspect local queue metadata, the local GitHub link registry, GitHub sync recovery/idempotency evidence, Hub GitHub Sync Control Panel data, targeted test indicators, machine gates, and implemented GitHub automation capability metadata, but it does not call Ollama, send prompts, run inference, select fallback local models, mutate repository files from model output, mutate queue or registry state, call Codex, apply patches, run validation commands, retry failures, resume orchestration, call GitHub/`gh`, create/update/close issues, create/update/merge PRs, enable auto-merge, force push, update protected branches, create releases, mutate workflows, or start follow-on work.

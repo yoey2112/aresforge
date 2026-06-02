@@ -1,5 +1,21 @@
 # Local Operator Usage
 
+## M184 Live GitHub Loop Readiness Report
+
+Generate the sprint closeout and live GitHub loop readiness report:
+
+- `python -m aresforge generate-live-github-loop-readiness-report --project-id aresforge --sprint-start M170 --sprint-end M184 --format json`
+
+Interpretation:
+
+- `record_type=live_github_loop_readiness_report_v1` identifies the M184 payload.
+- `sprint_closeout_summary`, `capability_summary`, and `queue_summary` reconcile M170, M171, M172, M173, M174, M175, M176, M177, M178, M179, M180, M181, M182, M183, and M184.
+- `docs_sync` shows whether source-of-truth docs mention the full sprint range.
+- `readiness_summary`, `github_safety`, `registry_health`, `recovery_health`, and `hub_control_panel_health` summarize live-loop readiness from local evidence.
+- `github_execution_performed=false`, `mutation_performed=false`, `registry_mutation_performed=false`, and `queue_mutation_performed=false` confirm the report was non-mutating.
+
+M184 performs no live GitHub mutation, `gh`, registry mutation, queue status mutation, PR merge, auto-merge, force push, protected branch update, release creation, workflow mutation, automatic issue closure, source-code patch application, Codex execution, model execution, validation command execution, retry execution, resume execution, or automatic next-item execution.
+
 ## M183 GitHub Automation Safety Audit
 
 Audit the GitHub automation safety posture:

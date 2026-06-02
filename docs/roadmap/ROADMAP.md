@@ -1,5 +1,25 @@
 # AresForge Roadmap
 
+## M184 Sprint Closeout and Live GitHub Loop Readiness Report
+
+Status: Completed locally on `main` after validation.
+
+M184 adds:
+
+- `python -m aresforge generate-live-github-loop-readiness-report --project-id aresforge --sprint-start M170 --sprint-end M184 --format json`
+- deterministic `live_github_loop_readiness_report_v1` output
+- sprint closeout reconciliation for M170, M171, M172, M173, M174, M175, M176, M177, M178, M179, M180, M181, M182, M183, and M184
+- source-of-truth documentation sync status
+- local readiness summaries for link registry, recovery/idempotency, Hub GitHub Sync Control Panel, machine gates, and the GitHub automation safety audit
+- explicit warnings, blockers, safety boundaries, and next-sprint recommendations
+
+Boundary:
+
+- read-only/local-only closeout evidence
+- no live GitHub mutation or `gh`
+- no PR merge, auto-merge, force push, protected branch update, release, workflow mutation, automatic issue closure, source patch application, queue/registry mutation, Codex/model execution, validation command execution, retry, resume, or automatic next-item execution
+- live GitHub work remains separate, explicit, autonomy-profile gated, idempotency-gated, and machine-gated
+
 ## M183 GitHub Automation Safety Audit
 
 Status: Completed locally on `main` after validation.

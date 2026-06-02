@@ -1,5 +1,26 @@
 # AresForge Agent Context
 
+## M184 Sprint Closeout and Live GitHub Loop Readiness Report Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m184-sprint-closeout-and-live-github-loop-readiness-report`.
+
+M184 adds `generate-live-github-loop-readiness-report`, a local/read-only closeout and readiness report for the M170-M184 live self-managed GitHub loop sprint.
+
+Command:
+
+- `python -m aresforge generate-live-github-loop-readiness-report --project-id aresforge --sprint-start M170 --sprint-end M184 --format json`
+
+Agent-facing guidance:
+
+- Treat `live_github_loop_readiness_report_v1` output as closeout evidence and next-sprint planning input only.
+- The report reconciles M170, M171, M172, M173, M174, M175, M176, M177, M178, M179, M180, M181, M182, M183, and M184 queue/doc evidence.
+- The report composes local GitHub link registry, recovery/idempotency, Hub GitHub Sync Control Panel, machine safety gates, and M183 safety-audit output.
+- `dry_run=true`, `github_enabled=false`, `github_execution_performed=false`, and `mutation_performed=false` are required report invariants.
+- Do not infer live GitHub authorization from this report. Any live issue, comment, closure, draft PR, or PR evidence comment sync must use the separate matching gated command.
+- Do not merge PRs, enable auto-merge, force push, update protected branches, create releases, mutate workflows, automatically close issues, apply source patches, mutate queue or registry state, run Codex/models, run validation commands, retry, resume, or start later sprint items from this output.
+
 ## M183 GitHub Automation Safety Audit Context
 
 Status: Completed locally on `main` after validation.

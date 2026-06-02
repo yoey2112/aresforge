@@ -1,5 +1,18 @@
 # Agent LLM Routing Strategy
 
+## M184 Live GitHub Loop Readiness Routing Boundary
+
+M184 adds no live agent, local LLM, cloud LLM, Codex, or GitHub mutation route. It adds a closeout/readiness report route over source-of-truth docs, local queue records, GitHub link registry state, recovery/idempotency state, Hub GitHub Sync Control Panel data, M183 GitHub automation safety audit output, and machine gates.
+
+Routing rules:
+
+- readiness routes only to local queue, docs, registry, recovery/idempotency, Hub control-panel, safety-audit, and machine-gate inspection
+- M170, M171, M172, M173, M174, M175, M176, M177, M178, M179, M180, M181, M182, M183, and M184 are reconciled as evidence, not executed
+- mutation-capable GitHub commands remain separate gated surfaces and are not invoked by the report
+- no readiness output routes to issue creation, comment update, issue closure, PR creation, PR merge, auto-merge, force push, protected branch update, release creation, workflow mutation, source patch application, retry, resume, queue completion, Codex/model execution, or next-item execution
+
+M184 reports no agent execution, no model execution, no Codex execution, no GitHub execution, no source patch application, no validation command execution, and no queue or registry mutation.
+
 ## M183 GitHub Automation Safety Audit Routing Boundary
 
 M183 adds no live agent, local LLM, cloud LLM, Codex, or GitHub mutation route. It adds a read-only audit route over implemented GitHub automation capabilities, dry-run defaults, blocked operations, machine gates, idempotency, registry health, recovery paths, test indicators, and remaining risks.
