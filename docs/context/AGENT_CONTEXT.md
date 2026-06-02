@@ -1,5 +1,25 @@
 # AresForge Agent Context
 
+## M181 Self-Managed Issue Loop Real Run Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m181-self-managed-issue-loop-real-run`.
+
+M181 adds `run-self-managed-issue-loop`, a dry-run-default coordinator for AresForge managing one safe queue item through the live GitHub issue-loop gates.
+
+Command:
+
+- `python -m aresforge run-self-managed-issue-loop --project-id aresforge --dry-run --format json`
+
+Agent-facing guidance:
+
+- Treat `self_managed_issue_loop_real_run_v1` dry-run output as review evidence unless `github_enabled=true`, `dry_run=false`, and per-step mutation gates passed.
+- The loop composes local link lookup, M171 issue creation gate, M173 durable status comment sync, M174 issue-state reconciliation, M179 recovery/idempotency inspection, and M165 closure recommendation.
+- Closure remains recommendation-only in this loop; do not close issues from this output.
+- Live issue creation and status-comment sync require explicit GitHub enablement, `github_issue_sync_enabled`, safe queue state, idempotency checks, and machine gates.
+- Do not merge PRs, enable auto-merge, force push, update protected branches, create releases, mutate workflows, automatically close issues, apply source patches, mutate queue state, run Codex/models, run validation commands, retry, resume, or start later sprint items from this output.
+
 ## M180 Hub GitHub Sync Control Panel Context
 
 Status: Completed locally on `main` after validation.

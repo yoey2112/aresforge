@@ -1,5 +1,20 @@
 # Runnable Skeleton
 
+## M181 Self-Managed Issue Loop Real Run
+
+- `python -m aresforge run-self-managed-issue-loop --project-id aresforge --dry-run --format json`
+- emits `self_managed_issue_loop_real_run_v1`
+- selects one safe AresForge queue item
+- reads local queue metadata, `.aresforge/github_link_registry/links.json`, autonomy profile metadata, and machine gates
+- composes M171 issue creation gate, M173 durable status comment sync, M174 issue-state reconciliation, M179 recovery/idempotency inspection, and M165 closure recommendation
+- defaults to dry-run unless `--github-enabled` is supplied
+- real issue/comment sync requires `github_issue_sync_enabled` and per-step machine gates
+
+Runnable boundary:
+
+- closure recommendation is recommendation-only and does not close issues
+- no PR merge, auto-merge, force push, protected branch update, release, workflow mutation, source patch application, queue mutation, Codex/model execution, validation command execution, retry, resume, or automatic next-item execution
+
 ## M180 Hub GitHub Sync Control Panel
 
 - `python -m aresforge inspect-hub-github-sync-control-panel-data --project-id aresforge --format json`

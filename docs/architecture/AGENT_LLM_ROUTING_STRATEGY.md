@@ -1,5 +1,18 @@
 # Agent LLM Routing Strategy
 
+## M181 Self-Managed Issue Loop Real Run Routing Boundary
+
+M181 adds no live agent, local LLM, cloud LLM, or Codex route. It adds a GitHub issue-loop coordinator that composes local registry lookup, issue creation gating, durable status-comment sync, reconciliation, recovery/idempotency, and closure recommendation.
+
+Routing rules:
+
+- dry-run routes to local queue, registry, autonomy, and read-only machine gates
+- live mutation-capable routes are limited to gated issue creation and managed status-comment sync after explicit GitHub enablement and `github_issue_sync_enabled`
+- loop-level blockers route downstream mutation-capable steps back to dry-run/blocked review instead of attempting GitHub calls
+- reconciliation and closure recommendation remain read-only/recommendation-only inside the coordinator
+
+M181 reports no agent execution, no model execution, no Codex execution, no source patch application, no validation command execution, and no queue mutation. Live GitHub execution can be true only for explicitly enabled gated issue/comment sync steps.
+
 ## M180 Hub GitHub Sync Control Panel Routing Boundary
 
 M180 adds no live agent, local LLM, cloud LLM, Codex, or GitHub mutation route. It adds a Hub/CLI aggregation route that reads local GitHub loop evidence from the link registry, issue sync plans, status-comment dry runs, reconciliation, closure gates, PR draft plans, PR evidence-comment dry runs, recovery actions, autonomy metadata, and machine gates.

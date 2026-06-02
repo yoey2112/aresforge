@@ -1,5 +1,24 @@
 # AresForge Roadmap
 
+## M181 Self-Managed Issue Loop Real Run
+
+Status: Completed locally on `main` after validation.
+
+M181 adds:
+
+- `python -m aresforge run-self-managed-issue-loop --project-id aresforge --dry-run --format json`
+- deterministic `self_managed_issue_loop_real_run_v1` output
+- one-item self-managed GitHub issue loop coordination for AresForge queue items
+- local link lookup, gated issue creation, durable status comment sync, issue-state reconciliation, recovery/idempotency inspection, and closure recommendation
+- tests for dry-run default behavior, live-profile blocking, mocked real issue/comment sync, local registry idempotency, and CLI dispatch without live GitHub access
+
+Boundary:
+
+- dry-run or blocked by default
+- live issue/comment mutation requires explicit GitHub enablement, `github_issue_sync_enabled`, safe queue status, duplicate-link prevention, and machine gates
+- reconciliation and closure recommendation remain recommendation/read-only inside the coordinator
+- no automatic issue closure, PR merge, auto-merge, force push, protected branch update, release, workflow mutation, source patch application, queue mutation, Codex/model execution, validation command execution, retry, resume, or automatic next-item execution
+
 ## M180 Hub GitHub Sync Control Panel
 
 Status: Completed locally on `main` after validation.

@@ -185,6 +185,7 @@ from aresforge.operator.hub_github_sync_control_panel import inspect_hub_github_
 from aresforge.operator.pull_request_draft_summary_generator import generate_pr_draft_summary
 from aresforge.operator.hub_autonomy_control_center import inspect_hub_autonomy_control_center_data
 from aresforge.operator.self_managed_project_loop_dry_run import run_self_managed_project_loop_dry_run
+from aresforge.operator.self_managed_issue_loop_real_run import run_self_managed_issue_loop
 from aresforge.operator.production_autonomy_readiness_report import generate_production_autonomy_readiness_report
 from aresforge.operator.local_milestone_lifecycle import (
     check_local_milestone_readiness,
@@ -1705,6 +1706,29 @@ def build_parser() -> argparse.ArgumentParser:
     self_managed_project_loop_parser.add_argument("--output")
     self_managed_project_loop_parser.add_argument("--force", action="store_true")
     self_managed_project_loop_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+        help="Output format for file writes or stdout rendering.",
+    )
+    self_managed_issue_loop_parser = subparsers.add_parser(
+        "run-self-managed-issue-loop",
+        help="Run one self-managed AresForge GitHub issue loop through gated issue sync steps; dry-run by default.",
+    )
+    self_managed_issue_loop_parser.add_argument("--project-id", default="aresforge")
+    self_managed_issue_loop_parser.add_argument("--item-id")
+    self_managed_issue_loop_parser.add_argument("--queue-path")
+    self_managed_issue_loop_parser.add_argument("--registry-path")
+    self_managed_issue_loop_parser.add_argument("--github-state-path")
+    self_managed_issue_loop_parser.add_argument("--dry-run", action="store_true")
+    self_managed_issue_loop_parser.add_argument("--github-enabled", action="store_true")
+    self_managed_issue_loop_parser.add_argument("--autonomy-profile", default="github_sync_dry_run")
+    self_managed_issue_loop_parser.add_argument("--repo")
+    self_managed_issue_loop_parser.add_argument("--issue-number", type=int)
+    self_managed_issue_loop_parser.add_argument("--linked-issue-state")
+    self_managed_issue_loop_parser.add_argument("--output")
+    self_managed_issue_loop_parser.add_argument("--force", action="store_true")
+    self_managed_issue_loop_parser.add_argument(
         "--format",
         choices=["json"],
         default="json",
@@ -5461,6 +5485,30 @@ def main(argv: list[str] | None = None) -> int:
             queue_path=args.queue_path,
             dry_run=bool(args.dry_run),
             autonomy_profile=args.autonomy_profile,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "run-self-managed-issue-loop":
+        payload = run_self_managed_issue_loop(
+            config,
+            project_id=args.project_id,
+            item_id=args.item_id,
+            queue_path=args.queue_path,
+            registry_path=args.registry_path,
+            github_state_path=args.github_state_path,
+            dry_run=bool(args.dry_run) or not bool(args.github_enabled),
+            github_enabled=bool(args.github_enabled),
+            autonomy_profile=args.autonomy_profile,
+            repo=args.repo,
+            issue_number=args.issue_number,
+            linked_issue_state=args.linked_issue_state,
             output=args.output,
             force=bool(args.force),
             output_format=args.format,

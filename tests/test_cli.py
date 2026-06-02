@@ -207,6 +207,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-hub-autonomy-control-center-data",
         "inspect-hub-github-sync-control-panel-data",
         "run-self-managed-project-loop",
+        "run-self-managed-issue-loop",
         "plan-agent-orchestration",
         "init-project-state",
         "add-local-queue-item",
@@ -11440,6 +11441,114 @@ def test_run_self_managed_project_loop_dispatch_json(
         "queue_path": "queue.json",
         "dry_run": True,
         "autonomy_profile": "github_sync_dry_run",
+        "output": None,
+        "force": False,
+        "output_format": "json",
+    }
+
+
+def test_run_self_managed_issue_loop_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "record_type": "self_managed_issue_loop_real_run_v1",
+                "project_id": "aresforge",
+                "item_id": "m181-self-managed-issue-loop-real-run",
+                "github_execution_performed": False,
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_run(
+        _config,
+        *,
+        project_id="aresforge",
+        item_id=None,
+        queue_path=None,
+        registry_path=None,
+        github_state_path=None,
+        dry_run=True,
+        github_enabled=False,
+        autonomy_profile="github_sync_dry_run",
+        repo=None,
+        issue_number=None,
+        linked_issue_state=None,
+        output=None,
+        force=False,
+        output_format="json",
+    ):
+        seen.update(
+            {
+                "project_id": project_id,
+                "item_id": item_id,
+                "queue_path": queue_path,
+                "registry_path": registry_path,
+                "github_state_path": github_state_path,
+                "dry_run": dry_run,
+                "github_enabled": github_enabled,
+                "autonomy_profile": autonomy_profile,
+                "repo": repo,
+                "issue_number": issue_number,
+                "linked_issue_state": linked_issue_state,
+                "output": output,
+                "force": force,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "run_self_managed_issue_loop", fake_run)
+    exit_code = cli.main(
+        [
+            "run-self-managed-issue-loop",
+            "--project-id",
+            "aresforge",
+            "--item-id",
+            "m181-self-managed-issue-loop-real-run",
+            "--queue-path",
+            "queue.json",
+            "--registry-path",
+            "links.json",
+            "--github-state-path",
+            "issues.json",
+            "--dry-run",
+            "--autonomy-profile",
+            "github_sync_dry_run",
+            "--repo",
+            "local/aresforge",
+            "--issue-number",
+            "181",
+            "--linked-issue-state",
+            "open",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["record_type"] == "self_managed_issue_loop_real_run_v1"
+    assert parsed["github_execution_performed"] is False
+    assert seen == {
+        "project_id": "aresforge",
+        "item_id": "m181-self-managed-issue-loop-real-run",
+        "queue_path": "queue.json",
+        "registry_path": "links.json",
+        "github_state_path": "issues.json",
+        "dry_run": True,
+        "github_enabled": False,
+        "autonomy_profile": "github_sync_dry_run",
+        "repo": "local/aresforge",
+        "issue_number": 181,
+        "linked_issue_state": "open",
         "output": None,
         "force": False,
         "output_format": "json",

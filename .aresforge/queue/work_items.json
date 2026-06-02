@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-06-02T07:45:40.022952+00:00",
+  "updated_at": "2026-06-02T07:59:51.557552+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -9439,6 +9439,90 @@
       "closeout_history": [],
       "created_at": "2026-06-02T07:41:55.006536+00:00",
       "updated_at": "2026-06-02T07:45:40.022952+00:00"
+    },
+    {
+      "item_id": "m181-self-managed-issue-loop-real-run",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M181 Self-Managed Issue Loop Real Run",
+      "description": "Run a real, machine-gated self-managed GitHub issue loop for AresForge itself through link lookup, issue creation gate, status comment sync, reconciliation, recovery, and closure recommendation while preserving dry-run defaults and blocking destructive operations.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "sync",
+      "tags": [
+        "milestone:m181",
+        "github-loop",
+        "self-managed",
+        "machine-gated"
+      ],
+      "dependencies": [
+        "m180-hub-github-sync-control-panel"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [],
+      "evidence_required": [],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: add run-self-managed-issue-loop with deterministic self_managed_issue_loop_real_run_v1 JSON; default dry-run; live issue/comment sync requires explicit GitHub enablement, github_issue_sync_enabled autonomy profile, duplicate-link prevention, and machine gates; closure remains recommendation-only; tests use mocked GitHub clients and require no live network.",
+      "started_at": "",
+      "started_via": "",
+      "previous_status": "in_progress",
+      "completed_at": "2026-06-02T07:59:51.557552+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M181 Self-Managed Issue Loop Real Run implemented and validated locally. Added run-self-managed-issue-loop with stable self_managed_issue_loop_real_run_v1 JSON, one-item link lookup, gated issue creation, durable status-comment sync, recommendation/read-only reconciliation, recovery/idempotency inspection, closure recommendation, explicit GitHub enablement requirements, machine-gate summaries, dry-run default behavior, mocked real-run tests, and source-of-truth documentation updates. No automatic issue closure, PR merge, auto-merge, force push, protected branch update, release creation, workflow mutation, source patch application, queue mutation outside completion evidence, Codex/model execution, validation command execution by the loop, retry/resume, or next-item execution was added.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 252 passed; python -m pytest tests/test_self_managed_issue_loop_real_run.py -> 4 passed; python -m pytest tests/test_github_issue_creation_real_run_gate.py -> 5 passed; git diff --check -> passed with CRLF warnings only; inspect-local-project-report -> passed with active_milestone=M181 and item_count=115; inspect-local-queue-agent-summary -> passed with item_count=115; inspect-project-queue --project-id aresforge -> passed with item_count=115; run-self-managed-issue-loop --project-id aresforge --dry-run --format json -> passed with sync_status=dry_run_completed, blocked=false, machine_gates_passed=true, github_enabled=false, github_execution_performed=false, mutation_performed=false, local_only=true.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 252 passed",
+        "python -m pytest tests/test_self_managed_issue_loop_real_run.py -> 4 passed",
+        "python -m pytest tests/test_github_issue_creation_real_run_gate.py -> 5 passed",
+        "git diff --check -> passed with CRLF warnings only",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed",
+        "python -m aresforge inspect-project-queue --project-id aresforge -> passed",
+        "python -m aresforge run-self-managed-issue-loop --project-id aresforge --dry-run --format json -> passed with sync_status=dry_run_completed"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/self_managed_issue_loop_real_run.py",
+        "src/aresforge/cli.py",
+        "tests/test_self_managed_issue_loop_real_run.py",
+        "tests/test_cli.py",
+        ".aresforge/queue/work_items.json",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
+        "docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
+        "docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md"
+      ],
+      "artifact_paths": [
+        "tests/test_self_managed_issue_loop_real_run.py",
+        "src/aresforge/operator/self_managed_issue_loop_real_run.py"
+      ],
+      "completion_evidence": {},
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-06-02T07:58:50.849989+00:00",
+      "updated_at": "2026-06-02T07:59:51.557552+00:00"
     }
   ]
 }

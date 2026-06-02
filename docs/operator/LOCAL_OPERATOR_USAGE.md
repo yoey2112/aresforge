@@ -1,5 +1,25 @@
 # Local Operator Usage
 
+## M181 Self-Managed Issue Loop Real Run
+
+Dry-run the self-managed issue loop:
+
+- `python -m aresforge run-self-managed-issue-loop --project-id aresforge --dry-run --format json`
+
+Explicit live path, only when an operator intends gated GitHub issue/comment sync:
+
+- `python -m aresforge run-self-managed-issue-loop --project-id aresforge --item-id <item_id> --github-enabled --autonomy-profile github_issue_sync_enabled --repo <owner/repo> --format json`
+
+Interpretation:
+
+- `record_type=self_managed_issue_loop_real_run_v1` identifies the M181 payload.
+- `loop_steps` shows link lookup, issue creation gate, status comment sync, issue-state reconciliation, recovery/idempotency, and closure recommendation.
+- `dry_run=true` or `blocked=true` means no GitHub mutation was performed.
+- `github_execution_performed=true` can occur only on explicitly enabled mutation-capable steps after gates pass.
+- `closure_recommendation.recommendation_only=true` means the loop did not close the issue.
+
+M181 performs no automatic issue closure, PR merge, auto-merge, force push, protected branch update, release creation, workflow mutation, source-code patch application, queue status mutation, Codex execution, model execution, validation command execution, retry, resume, or automatic next-item execution.
+
 ## M180 Hub GitHub Sync Control Panel
 
 Inspect the local Hub GitHub Sync Control Panel:
