@@ -1,5 +1,25 @@
 # AresForge Agent Context
 
+## M159 Real Codex Execution Preflight Hardening Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m159-real-codex-execution-preflight-hardening`.
+
+M159 adds `preflight-real-codex-execution`, a dry-run-only preflight that decides whether future real Codex execution should remain blocked.
+
+Command:
+
+- `python -m aresforge preflight-real-codex-execution --item-id m159-real-codex-execution-preflight-hardening --dry-run --format json`
+
+Agent-facing guidance:
+
+- Treat `real_codex_execution_preflight_hardening_v1` output as readiness evidence only.
+- `ok=true` from the CLI means the preflight record was generated; inspect `blocked`, `blocked_reasons`, and `real_codex_execution_preflight_passed` before considering any separate future Codex command.
+- Dirty worktree state is a future-execution blocker even though the preflight command itself can still complete successfully.
+- The preflight composes autonomy profile policy, worktree guard evidence, machine gates, run-store readiness, artifact readiness, validation profile selection, retry policy, and source patch default-deny policy.
+- Do not run Codex, call models, call GitHub, run validation commands, apply patches, mutate queue state, retry, resume, merge PRs, force push, mutate workflows, create releases, or start follow-on work from this preflight output.
+
 ## M158 Operator Autonomy Configuration Profile Context
 
 Status: Completed locally on `main` after validation.

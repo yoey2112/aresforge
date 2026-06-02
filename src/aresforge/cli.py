@@ -242,6 +242,7 @@ from aresforge.operator.source_patch_risk_classifier import classify_source_patc
 from aresforge.operator.source_patch_apply_plan import plan_source_patch_apply
 from aresforge.operator.source_patch_apply_dry_run import dry_run_source_patch_apply
 from aresforge.operator.end_to_end_codex_loop_dry_run import run_end_to_end_codex_loop_dry_run
+from aresforge.operator.real_codex_execution_preflight_hardening import preflight_real_codex_execution
 from aresforge.operator.github_sync_agent import run_github_sync_agent
 from aresforge.operator.multi_agent_orchestrator import run_multi_agent_orchestration
 from aresforge.operator.llm_decision_matrix import inspect_llm_decision_matrix
@@ -2696,6 +2697,31 @@ def build_parser() -> argparse.ArgumentParser:
     dry_run_source_patch_apply_parser.add_argument("--output")
     dry_run_source_patch_apply_parser.add_argument("--force", action="store_true")
     dry_run_source_patch_apply_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+    )
+    preflight_real_codex_execution_parser = subparsers.add_parser(
+        "preflight-real-codex-execution",
+        help="Dry-run hardening preflight for future real Codex execution without invoking Codex.",
+    )
+    preflight_real_codex_execution_parser.add_argument(
+        "--item-id",
+        default="m159-real-codex-execution-preflight-hardening",
+    )
+    preflight_real_codex_execution_parser.add_argument("--project-id", default="aresforge")
+    preflight_real_codex_execution_parser.add_argument("--dry-run", action="store_true")
+    preflight_real_codex_execution_parser.add_argument("--autonomy-profile")
+    preflight_real_codex_execution_parser.add_argument(
+        "--validation-profile",
+        choices=sorted(CODEX_RESULT_VALIDATION_PROFILES),
+    )
+    preflight_real_codex_execution_parser.add_argument("--changed-path", action="append", default=[])
+    preflight_real_codex_execution_parser.add_argument("--queue-path")
+    preflight_real_codex_execution_parser.add_argument("--history-path")
+    preflight_real_codex_execution_parser.add_argument("--output")
+    preflight_real_codex_execution_parser.add_argument("--force", action="store_true")
+    preflight_real_codex_execution_parser.add_argument(
         "--format",
         choices=["json"],
         default="json",
@@ -6068,6 +6094,27 @@ def main(argv: list[str] | None = None) -> int:
             item_id=args.item_id,
             project_id=args.project_id,
             queue_path=args.queue_path,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "preflight-real-codex-execution":
+        payload = preflight_real_codex_execution(
+            config,
+            item_id=args.item_id,
+            project_id=args.project_id,
+            dry_run=bool(args.dry_run),
+            autonomy_profile=args.autonomy_profile,
+            validation_profile=args.validation_profile,
+            changed_paths=args.changed_path,
+            queue_path=args.queue_path,
+            history_path=args.history_path,
             output=args.output,
             force=bool(args.force),
             output_format=args.format,

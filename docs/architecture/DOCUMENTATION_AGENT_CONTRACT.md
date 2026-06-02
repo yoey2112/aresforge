@@ -1,5 +1,11 @@
 # Documentation Agent Contract
 
+## M159 Real Codex Execution Preflight Hardening Boundary
+
+M159 preflight does not add documentation-agent or source-code mutation. It may report validation and source patch policy metadata for future Codex output, but it does not edit documentation, generate patches, apply patches, execute documentation agents, call models, call Codex, call GitHub/`gh`, mutate queue state, run validation commands, retry failures, resume orchestration, or start follow-on work.
+
+Documentation mutation remains limited to separate docs-only Markdown patch commands that pass `docs_only_patch_apply` gates. Source patch application remains default-deny and outside M159.
+
 ## M158 Operator Autonomy Configuration Profile Boundary
 
 M158 autonomy profile inspection does not add documentation-agent mutation. Profiles may mark docs-only patch application or documentation-adjacent local planning as enabled, dry-run-only, or blocked, but those labels are inspectable policy metadata only. Documentation mutation remains limited to separate docs-only Markdown patch commands that pass `docs_only_patch_apply` gates.

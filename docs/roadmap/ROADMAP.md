@@ -1,5 +1,24 @@
 # AresForge Roadmap
 
+## M159 Real Codex Execution Preflight Hardening
+
+Status: Completed locally on `main` after validation.
+
+M159 hardens future real Codex readiness checks with:
+
+- `python -m aresforge preflight-real-codex-execution --item-id m159-real-codex-execution-preflight-hardening --dry-run --format json`
+- deterministic `real_codex_execution_preflight_hardening_v1` output
+- composed readiness checks for autonomy profile, worktree guard, read-only/operator-autonomy gates, durable run store, artifact capture roots, validation profile, retry policy, source patch risk policy, and dirty tree state
+- explicit distinction between CLI generation success and future real Codex readiness
+- stable non-execution flags for Codex, model, GitHub, validation command, source patch, and queue behavior
+
+Boundary:
+
+- `--dry-run` is required
+- M159 never invokes Codex or local models
+- no GitHub operation, validation command execution, source patch application, queue mutation, retry, resume, protected-branch update, workflow mutation, PR merge, force push, release creation, or automatic next-item execution
+- future real Codex execution remains separate, explicit, low-risk-scoped, clean-worktree-gated, artifact-captured, and validation-backed
+
 ## M158 Operator Autonomy Configuration Profile
 
 Status: Completed locally on `main` after validation.

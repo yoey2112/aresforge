@@ -1,5 +1,21 @@
 # Runnable Skeleton
 
+## M159 Real Codex Execution Preflight Hardening
+
+M159 adds a dry-run real Codex preflight command:
+
+- `python -m aresforge preflight-real-codex-execution --item-id m159-real-codex-execution-preflight-hardening --dry-run --format json`
+
+The command returns `real_codex_execution_preflight_hardening_v1` JSON. It composes the selected autonomy profile, worktree guard, local machine gates, durable run-store readiness, artifact capture roots, validation profile, retry policy, source patch risk policy, and dirty-tree detection into one future-execution readiness record.
+
+Runnable boundary:
+
+- `--dry-run` is required
+- command success means the preflight record was generated; `blocked` controls future real Codex readiness
+- optional `--output` writes one local preflight artifact
+- real Codex execution remains a separate explicit low-risk command with required flags and machine gates
+- no agent, Codex, local LLM/model, GitHub, validation command, source patch, queue mutation, retry, resume, PR merge, force push, protected-branch update, workflow mutation, release, or next-item execution is performed
+
 ## M158 Operator Autonomy Configuration Profile
 
 M158 adds a local autonomy profile inspection command:

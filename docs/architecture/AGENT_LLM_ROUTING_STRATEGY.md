@@ -1,5 +1,18 @@
 # Agent LLM Routing Strategy
 
+## M159 Real Codex Execution Preflight Hardening
+
+M159 does not add a new agent, Codex, local LLM, or GitHub execution route. It adds a dry-run preflight route that composes local policy and readiness evidence before any separate real Codex command can be considered.
+
+Routing implications:
+
+- future real Codex remains routed only through explicit low-risk Codex commands with required operator flags
+- dirty worktree, missing artifact readiness, invalid run-store state, unsuitable autonomy profile, or failed local gates route to blocked preflight output
+- validation profile selection routes to planning evidence only; M159 does not run validation commands
+- retry policy routes to stop/manual-review guidance only; no automatic retry route is introduced
+- source patch output routes to default-deny policy and separate future dry-run/apply boundaries, not automatic application
+- M159 reports no agent execution, no model execution, no Codex execution, no GitHub execution, no patch application, and no queue mutation by the preflight command itself
+
 ## M158 Operator Autonomy Configuration Profile
 
 M158 does not add a new agent, Codex, local LLM, or GitHub execution route. It adds an explicit profile layer that lets operators and future orchestration code inspect whether a capability is currently `enabled`, `dry_run_only`, or `blocked`.

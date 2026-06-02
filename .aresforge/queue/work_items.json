@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-06-01T23:50:00Z",
+  "updated_at": "2026-06-02T00:04:52.429020+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -6781,6 +6781,70 @@
       "closeout_history": [],
       "created_at": "2026-06-01T00:00:00Z",
       "updated_at": "2026-06-01T00:00:00Z"
+    },
+    {
+      "item_id": "m159-real-codex-execution-preflight-hardening",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M159 Real Codex Execution Preflight Hardening",
+      "description": "Harden real Codex execution preflight checks using autonomy profile, worktree guard, machine gates, run store readiness, artifact presence, validation profile, retry policy, source patch risk policy, and dirty tree detection without running Codex.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "orchestration",
+      "tags": [
+        "milestone:m159",
+        "codex-execution",
+        "preflight",
+        "machine-gated"
+      ],
+      "dependencies": [
+        "m158-operator-autonomy-configuration-profile"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [],
+      "evidence_required": [],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: add preflight-real-codex-execution; deterministic real_codex_execution_preflight_hardening_v1 JSON; require --dry-run; combine autonomy profile, worktree guard, machine gates, run store, artifact readiness, validation profile, retry policy, source patch risk policy, and dirty tree detection; do not execute Codex/local LLM/model/GitHub/validation commands/source patches/queue progression/retry/resume/next-item work from preflight.",
+      "started_at": "2026-06-02T00:04:35.950070+00:00",
+      "started_via": "local_operator",
+      "previous_status": "in_progress",
+      "completed_at": "2026-06-02T00:04:52.429020+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M159 Real Codex Execution Preflight Hardening implemented and validated locally. Added preflight-real-codex-execution with stable real_codex_execution_preflight_hardening_v1 JSON, dry-run requirement, autonomy profile composition, worktree guard/dirty-tree blocking, read-only and operator-autonomy machine gates, durable run-store readiness, artifact readiness, validation profile selection, retry policy, source patch default-deny policy, source-of-truth docs, CLI coverage, targeted tests, and queue evidence. The preflight performs no Codex, local LLM/model, GitHub, validation command, source patch, queue mutation from the preflight itself, retry, resume, or next-item execution.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 232 passed; python -m pytest tests/test_real_codex_execution_preflight_hardening.py -> 4 passed; python -m pytest tests/test_codex_execution_sandbox_worktree_guard.py -> 4 passed; python -m pytest tests/test_operator_autonomy_configuration_profile.py -> 4 passed; git diff --check -> passed with CRLF warnings only; inspect-local-project-report passed; inspect-local-queue-agent-summary passed; inspect-project-queue --project-id aresforge passed; preflight-real-codex-execution --dry-run passed with command ok and status=blocked because dirty tree blocks future real Codex.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 232 passed; python -m pytest tests/test_real_codex_execution_preflight_hardening.py -> 4 passed; python -m pytest tests/test_codex_execution_sandbox_worktree_guard.py -> 4 passed; python -m pytest tests/test_operator_autonomy_configuration_profile.py -> 4 passed; git diff --check -> passed with CRLF warnings only; python -m aresforge inspect-local-project-report -> passed; python -m aresforge inspect-local-queue-agent-summary -> passed; python -m aresforge inspect-project-queue --project-id aresforge -> passed; python -m aresforge preflight-real-codex-execution --item-id m159-real-codex-execution-preflight-hardening --dry-run --format json -> passed, status=blocked, machine_gates_passed=true, codex_execution_performed=false"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/real_codex_execution_preflight_hardening.py; src/aresforge/cli.py; tests/test_real_codex_execution_preflight_hardening.py; tests/test_cli.py; docs/context/BUILD_STATE.md; docs/context/AGENT_CONTEXT.md; docs/roadmap/ROADMAP.md; docs/operator/LOCAL_OPERATOR_USAGE.md; docs/architecture/RUNNABLE_SKELETON.md; docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md; docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md; docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md; .aresforge/queue/work_items.json"
+      ],
+      "artifact_paths": [
+        ".aresforge/codex_execution/preflight/m159-preflight.json (optional output path; default command writes no artifact)"
+      ],
+      "completion_evidence": {},
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-06-02T00:02:50.148488+00:00",
+      "updated_at": "2026-06-02T00:04:52.429020+00:00"
     }
   ]
 }

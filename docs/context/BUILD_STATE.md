@@ -1,5 +1,25 @@
 # AresForge Build State
 
+## M159 Real Codex Execution Preflight Hardening
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m159-real-codex-execution-preflight-hardening`.
+
+M159 adds a dry-run-only preflight hardening command for future real Codex execution:
+
+- `python -m aresforge preflight-real-codex-execution --item-id m159-real-codex-execution-preflight-hardening --dry-run --format json`
+- stable `real_codex_execution_preflight_hardening_v1` JSON with autonomy profile, worktree guard, read-only/operator-autonomy machine gates, durable run-store readiness, artifact readiness, validation profile, retry policy, source patch risk policy, dirty-tree detection, and future required gate metadata
+- default candidate autonomy profile is `codex_low_risk_enabled`, but the command itself remains non-executing
+- command success means the preflight record was generated; the record's `blocked` and `blocked_reasons` fields decide whether future real Codex should remain blocked
+- dirty worktree state, missing required artifact roots, invalid run store, unsuitable autonomy profile, missing queue item, or failed local gates block future real Codex readiness
+
+Safety posture:
+
+- preflight requires `--dry-run` and never invokes Codex, local models, GitHub, validation commands, source patch apply, queue mutation, retry, resume, or next-item execution
+- source patch application remains default-deny; M159 reports policy only and performs no patch classification or apply check unless a future separate command is invoked
+- real Codex remains limited to a separate explicit low-risk command with operator flags, clean worktree, captured artifacts, machine gates, and validation evidence
+
 ## M158 Operator Autonomy Configuration Profile
 
 Status: Completed locally on `main` after validation.

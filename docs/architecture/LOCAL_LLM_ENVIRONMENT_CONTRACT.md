@@ -1,5 +1,11 @@
 # Local LLM Environment Contract
 
+## M159 Real Codex Execution Preflight Hardening Boundary
+
+M159 preflight does not change local LLM permissions. It may report an autonomy profile that describes local model advisory capability, but the preflight command itself does not call Ollama, send prompts, run inference, select fallback models, mutate repository files, mutate queue state, call Codex, call GitHub/`gh`, apply patches, run validation commands, retry failures, resume orchestration, or start follow-on work.
+
+Local LLM advisory execution remains limited to separate explicit local-provider commands and their machine gates. M159 records readiness and blockers for future Codex consideration only.
+
 ## M158 Operator Autonomy Configuration Profile Boundary
 
 M158 autonomy profile inspection does not change local LLM permissions. Profiles may mark `local_model_advisory_execution` as `enabled`, `dry_run_only`, or `blocked`, but those labels are policy metadata only. Any real local model execution still requires the separate local LLM advisory/coding command path, explicit operator intent, local provider constraints, and a passing `local_llm_execution` machine gate.

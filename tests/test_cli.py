@@ -110,6 +110,7 @@ def test_cli_has_expected_commands() -> None:
         "classify-source-patch-risk",
         "plan-source-patch-apply",
         "dry-run-source-patch-apply",
+        "preflight-real-codex-execution",
         "run-end-to-end-codex-loop",
         "inspect-codex-dispatch-run",
         "list-codex-dispatch-runs",
@@ -10515,6 +10516,102 @@ def test_dry_run_source_patch_apply_dispatch_json(
         "project_id": "aresforge",
         "queue_path": ".aresforge/queue/work_items.json",
         "output": ".aresforge/source_patch_apply_dry_runs/m150-dry-run.json",
+        "force": True,
+        "output_format": "json",
+    }
+
+
+def test_preflight_real_codex_execution_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "record_type": "real_codex_execution_preflight_hardening_v1",
+                "project_id": "aresforge",
+                "status": "blocked",
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_preflight(
+        _config,
+        *,
+        item_id="m159-real-codex-execution-preflight-hardening",
+        project_id="aresforge",
+        dry_run=False,
+        autonomy_profile=None,
+        validation_profile=None,
+        changed_paths=None,
+        queue_path=None,
+        history_path=None,
+        output=None,
+        force=False,
+        output_format="json",
+    ):
+        seen.update(
+            {
+                "item_id": item_id,
+                "project_id": project_id,
+                "dry_run": dry_run,
+                "autonomy_profile": autonomy_profile,
+                "validation_profile": validation_profile,
+                "changed_paths": changed_paths,
+                "queue_path": queue_path,
+                "history_path": history_path,
+                "output": output,
+                "force": force,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "preflight_real_codex_execution", fake_preflight)
+    exit_code = cli.main(
+        [
+            "preflight-real-codex-execution",
+            "--item-id",
+            "m159",
+            "--project-id",
+            "aresforge",
+            "--dry-run",
+            "--autonomy-profile",
+            "codex_low_risk_enabled",
+            "--validation-profile",
+            "queue_system",
+            "--changed-path",
+            "src/aresforge/operator/example.py",
+            "--queue-path",
+            ".aresforge/queue/work_items.json",
+            "--history-path",
+            ".aresforge/orchestrator/run_history.json",
+            "--output",
+            ".aresforge/codex_execution/preflight/m159-preflight.json",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["record_type"] == "real_codex_execution_preflight_hardening_v1"
+    assert seen == {
+        "item_id": "m159",
+        "project_id": "aresforge",
+        "dry_run": True,
+        "autonomy_profile": "codex_low_risk_enabled",
+        "validation_profile": "queue_system",
+        "changed_paths": ["src/aresforge/operator/example.py"],
+        "queue_path": ".aresforge/queue/work_items.json",
+        "history_path": ".aresforge/orchestrator/run_history.json",
+        "output": ".aresforge/codex_execution/preflight/m159-preflight.json",
         "force": True,
         "output_format": "json",
     }

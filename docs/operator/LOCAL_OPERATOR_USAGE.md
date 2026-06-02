@@ -1,5 +1,28 @@
 # Local Operator Usage
 
+## M159 Real Codex Execution Preflight Hardening
+
+M159 checks whether future real Codex execution could be considered without running Codex.
+
+Run the dry-run preflight:
+
+    python -m aresforge preflight-real-codex-execution --item-id m159-real-codex-execution-preflight-hardening --dry-run --format json
+
+Write a local preflight artifact:
+
+    python -m aresforge preflight-real-codex-execution --item-id <item_id> --dry-run --output .aresforge/codex_execution/preflight/m159-preflight.json --force --format json
+
+Interpretation:
+
+- `record_type=real_codex_execution_preflight_hardening_v1` identifies the M159 payload.
+- `ok=true` means the dry-run preflight record was generated, not that Codex may run.
+- `blocked=true` and `blocked_reasons` describe why future real Codex remains unsafe.
+- `machine_gates_checked` includes the read-only and operator-autonomy gates used by the preflight itself.
+- `worktree_guard_summary.dirty_tree_detected=true` blocks future real Codex until the worktree is reviewed or clean.
+- `artifact_readiness`, `run_store_readiness`, `validation_profile`, `retry_policy`, and `source_patch_risk_policy` describe required evidence and default-deny policy.
+
+M159 requires `--dry-run` and performs no Codex execution, local LLM/model execution, GitHub call, validation command execution, source patch application, queue mutation, retry, resume, PR merge, force push, workflow mutation, release, or automatic next-item execution.
+
 ## M158 Operator Autonomy Configuration Profile
 
 M158 inspects named autonomy profiles that describe which autonomous capabilities are enabled, blocked, or dry-run only.
