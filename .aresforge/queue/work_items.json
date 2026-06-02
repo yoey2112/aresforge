@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-06-02T00:21:00Z",
+  "updated_at": "2026-06-02T01:07:17Z",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -7173,6 +7173,117 @@
       "closeout_history": [],
       "created_at": "2026-06-02T00:52:00Z",
       "updated_at": "2026-06-02T00:58:00Z"
+    },
+    {
+      "item_id": "m163-github-issue-creation-for-safe-queue-items",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M163 GitHub Issue Creation for Safe Queue Items",
+      "description": "Create GitHub issues for safe queue items only when explicit GitHub sync enablement and machine gates pass.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "sync",
+      "tags": [
+        "milestone:m163",
+        "github-issue-sync",
+        "safe-queue-items",
+        "machine-gated"
+      ],
+      "dependencies": [
+        "m162-github-issue-sync-plan-from-queue-items"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [
+        "tests_run",
+        "smoke_checks",
+        "github_issue_creation_dry_run",
+        "machine_gate_results"
+      ],
+      "evidence_required": [
+        "safe_queue_item_status_check",
+        "duplicate_linked_issue_block",
+        "autonomy_profile_allowance",
+        "machine_gate_results",
+        "mocked_github_issue_creation",
+        "non_mutation_flags"
+      ],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: add create-github-issue-for-safe-queue-item; deterministic github_issue_creation_for_safe_queue_items_v1 JSON; dry-run by default; real creation requires --github-enabled, autonomy_profile=github_issue_sync_enabled, passing github_sync machine gate, no linked issue metadata, and safe queue item status; tests mock GitHub; no queue mutation, Codex, model, source patch, PR merge, protected branch update, force push, auto-merge, release, workflow mutation, retry, resume, or next-item execution.",
+      "started_at": "2026-06-02T01:06:00Z",
+      "started_via": "local_operator",
+      "previous_status": "ready",
+      "completed_at": "2026-06-02T01:07:17Z",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M163 GitHub Issue Creation for Safe Queue Items implemented and validated locally. Added create-github-issue-for-safe-queue-item with stable github_issue_creation_for_safe_queue_items_v1 JSON, dry-run-by-default behavior, M162 issue draft composition, duplicate linked-issue blocking, safe queue status checks, M158 autonomy profile allowance, M131 github_sync machine-gate enforcement, mocked GitHub issue creation tests, source-of-truth docs, CLI coverage, and queue evidence. Real issue creation requires --github-enabled, autonomy_profile=github_issue_sync_enabled, no linked issue metadata, safe queue item status, and passing machine gates. The command performs no queue mutation, Codex, local LLM/model, source patch application, validation command execution, PR merge, protected branch update, force push, auto-merge, release, workflow mutation, retry, resume, or next-item execution.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 236 passed; python -m pytest tests/test_github_issue_creation_for_safe_queue_items.py -> 5 passed; python -m pytest tests/test_github_issue_sync_plan.py -> 4 passed; python -m pytest tests/test_machine_safety_gate_engine.py -> 8 passed; git diff --check -> passed with CRLF warnings only; inspect-local-project-report passed; inspect-local-queue-agent-summary passed; inspect-project-queue --project-id aresforge passed; create-github-issue-for-safe-queue-item --dry-run passed with status=dry_run_ready, machine_gates_passed=true, mutation_performed=false, queue_mutation_performed=false, codex_execution_performed=false, model_execution_performed=false, github_execution_performed=false, patch_application_performed=false, and local_only=true.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 236 passed",
+        "python -m pytest tests/test_github_issue_creation_for_safe_queue_items.py -> 5 passed",
+        "python -m pytest tests/test_github_issue_sync_plan.py -> 4 passed",
+        "python -m pytest tests/test_machine_safety_gate_engine.py -> 8 passed",
+        "git diff --check -> passed with CRLF warnings only",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed",
+        "python -m aresforge inspect-project-queue --project-id aresforge -> passed",
+        "python -m aresforge create-github-issue-for-safe-queue-item --item-id m163-github-issue-creation-for-safe-queue-items --dry-run --format json -> passed"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/github_issue_creation_for_safe_queue_items.py",
+        "src/aresforge/cli.py",
+        "tests/test_github_issue_creation_for_safe_queue_items.py",
+        "tests/test_cli.py",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
+        "docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
+        "docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md",
+        ".aresforge/queue/work_items.json"
+      ],
+      "artifact_paths": [
+        "artifacts/github_issue_creation/gates (live-path preflight records; ignored runtime evidence, created only for real gated attempts)",
+        ".aresforge/github_issue_creation/m163.json (optional output path; default command writes no artifact)"
+      ],
+      "completion_evidence": {
+        "command": "create-github-issue-for-safe-queue-item",
+        "record_type": "github_issue_creation_for_safe_queue_items_v1",
+        "status": "dry_run_ready",
+        "machine_gates_passed": true,
+        "mutation_performed": false,
+        "queue_mutation_performed": false,
+        "codex_execution_performed": false,
+        "model_execution_performed": false,
+        "github_execution_performed": false,
+        "patch_application_performed": false,
+        "local_only": true,
+        "issue_created": false,
+        "commit_hash": "pending-final-commit"
+      },
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-06-02T01:06:00Z",
+      "updated_at": "2026-06-02T01:07:17Z"
     }
   ]
 }

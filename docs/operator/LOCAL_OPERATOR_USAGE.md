@@ -1,5 +1,27 @@
 # Local Operator Usage
 
+## M163 GitHub Issue Creation for Safe Queue Items
+
+M163 prepares or performs creation of one GitHub issue for one safe local queue item. Dry-run is the default operator path.
+
+Dry-run the M163 item:
+
+    python -m aresforge create-github-issue-for-safe-queue-item --item-id m163-github-issue-creation-for-safe-queue-items --dry-run --format json
+
+Real issue creation requires explicit GitHub enablement and the live autonomy profile:
+
+    python -m aresforge create-github-issue-for-safe-queue-item --item-id <item_id> --github-enabled --autonomy-profile github_issue_sync_enabled --format json
+
+Interpretation:
+
+- `record_type=github_issue_creation_for_safe_queue_items_v1` identifies the M163 payload.
+- `issue_draft` is derived from the M162 queue-to-issue mapping.
+- `linked_issue` and `duplicate_linked_issue_blocked` show whether local metadata prevented duplicate creation.
+- `machine_gates_checked` reports the read-only gate for dry-run and the `github_sync` gate for live creation.
+- `issue_created=true` and `github_execution_performed=true` can occur only on the explicit live path after all gates pass.
+
+M163 does not mutate the local queue, link the created issue back to queue metadata, merge PRs, update protected branches, force push, enable auto-merge, create releases, mutate workflows, run Codex, run models, apply patches, retry, resume, or start another item.
+
 ## M162 GitHub Issue Sync Plan from Queue Items
 
 M162 generates a local-only plan for syncing queue items to GitHub issues later.

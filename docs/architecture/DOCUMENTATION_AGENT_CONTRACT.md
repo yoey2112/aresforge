@@ -1,5 +1,11 @@
 # Documentation Agent Contract
 
+## M163 GitHub Issue Creation Boundary
+
+M163 does not add documentation-agent or source-code patch mutation. It may read local queue metadata and source-of-truth docs indirectly through M162 issue draft planning, and it may create one GitHub issue only on the explicit gated live path, but it does not edit documentation through a documentation agent, generate documentation patches, apply patches, call local LLMs, call Codex, mutate queue state, push, merge, mutate workflows, retry failures, resume orchestration, or start follow-on work.
+
+Documentation mutation remains limited to separate docs-only Markdown patch commands that pass `docs_only_patch_apply` gates. M163 output cannot authorize documentation or source patch mutation.
+
 ## M162 GitHub Issue Sync Plan Boundary
 
 M162 does not add documentation-agent or source-code patch mutation. It may read local queue metadata and source-of-truth docs to prepare future GitHub issue sync recommendations, but it does not edit documentation through a documentation agent, generate documentation patches, apply patches, call local LLMs, call Codex, call GitHub/`gh`, create or update issues, post comments, mutate labels or milestones, push, merge, mutate queue state, retry failures, resume orchestration, or start follow-on work.

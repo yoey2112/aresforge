@@ -1,5 +1,25 @@
 # AresForge Build State
 
+## M163 GitHub Issue Creation for Safe Queue Items
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m163-github-issue-creation-for-safe-queue-items`.
+
+M163 adds a dry-run-default GitHub issue creation command for one safe local queue item:
+
+- `python -m aresforge create-github-issue-for-safe-queue-item --item-id m163-github-issue-creation-for-safe-queue-items --dry-run --format json`
+- stable `github_issue_creation_for_safe_queue_items_v1` JSON
+- composes the M162 local issue draft, linked-issue detection, M158 autonomy profile policy, and M131 `github_sync` machine gate
+- blocks duplicate creation when local queue metadata already links a GitHub issue
+- supports mocked real issue creation only when explicit GitHub enablement, `github_issue_sync_enabled` autonomy profile, safe queue status, and machine gates pass
+
+Safety posture:
+
+- dry-run remains the default and performs no GitHub mutation
+- real issue creation is one-item-only and requires `--github-enabled`, non-dry-run invocation, `autonomy_profile=github_issue_sync_enabled`, a passing `github_sync` machine gate, no linked issue metadata, and safe queue status
+- the command performs no queue mutation, Codex execution, local LLM/model execution, source patch application, validation command execution, PR merge, protected branch update, force push, auto-merge, release creation, workflow mutation, retry, resume, or automatic next-item execution
+
 ## M162 GitHub Issue Sync Plan from Queue Items
 
 Status: Completed locally on `main` after validation.

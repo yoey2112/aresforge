@@ -1,5 +1,20 @@
 # Runnable Skeleton
 
+## M163 GitHub Issue Creation for Safe Queue Items
+
+M163 adds a dry-run-default issue creation command:
+
+- `python -m aresforge create-github-issue-for-safe-queue-item --item-id m163-github-issue-creation-for-safe-queue-items --dry-run --format json`
+
+The command returns `github_issue_creation_for_safe_queue_items_v1` JSON. It reads one local queue item, reuses M162 issue draft mapping and linked-issue detection, inspects the selected autonomy profile, and checks machine gates before any live issue creation can occur.
+
+Runnable boundary:
+
+- dry-run by default and safe for local smoke checks
+- live creation requires `--github-enabled`, no `--dry-run`, `--autonomy-profile github_issue_sync_enabled`, no linked issue metadata, safe queue item status, and a passing `github_sync` machine gate
+- optional `--output` writes one local JSON artifact
+- no queue mutation, issue-link backfill, Codex, local LLM/model, source patch application, validation command execution, PR merge, protected branch update, force push, auto-merge, release, workflow mutation, retry, resume, or next-item execution is performed
+
 ## M162 GitHub Issue Sync Plan from Queue Items
 
 M162 adds a local GitHub issue sync planning command:

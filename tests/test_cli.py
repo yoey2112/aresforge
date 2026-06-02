@@ -188,6 +188,7 @@ def test_cli_has_expected_commands() -> None:
         "generate-local-milestone-closeout",
         "plan-github-sync",
         "plan-github-issue-sync",
+        "create-github-issue-for-safe-queue-item",
         "plan-agent-orchestration",
         "init-project-state",
         "add-local-queue-item",
@@ -8956,6 +8957,92 @@ def test_plan_github_issue_sync_dispatch_json(
         "project_id": "aresforge",
         "item_id": "m162-github-issue-sync-plan-from-queue-items",
         "queue_path": "queue.json",
+        "output": None,
+        "force": False,
+        "output_format": "json",
+    }
+
+
+def test_create_github_issue_for_safe_queue_item_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "record_type": "github_issue_creation_for_safe_queue_items_v1",
+                "item_id": "m163-github-issue-creation-for-safe-queue-items",
+                "status": "dry_run_ready",
+                "github_execution_performed": False,
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_create(
+        _config,
+        *,
+        item_id,
+        project_id="aresforge",
+        queue_path=None,
+        dry_run=True,
+        github_enabled=False,
+        autonomy_profile="github_sync_dry_run",
+        repo=None,
+        output=None,
+        force=False,
+        output_format="json",
+    ):
+        seen.update(
+            {
+                "item_id": item_id,
+                "project_id": project_id,
+                "queue_path": queue_path,
+                "dry_run": dry_run,
+                "github_enabled": github_enabled,
+                "autonomy_profile": autonomy_profile,
+                "repo": repo,
+                "output": output,
+                "force": force,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "create_github_issue_for_safe_queue_item", fake_create)
+    exit_code = cli.main(
+        [
+            "create-github-issue-for-safe-queue-item",
+            "--item-id",
+            "m163-github-issue-creation-for-safe-queue-items",
+            "--project-id",
+            "aresforge",
+            "--queue-path",
+            "queue.json",
+            "--dry-run",
+            "--repo",
+            "local/aresforge",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["record_type"] == "github_issue_creation_for_safe_queue_items_v1"
+    assert parsed["github_execution_performed"] is False
+    assert seen == {
+        "item_id": "m163-github-issue-creation-for-safe-queue-items",
+        "project_id": "aresforge",
+        "queue_path": "queue.json",
+        "dry_run": True,
+        "github_enabled": False,
+        "autonomy_profile": "github_sync_dry_run",
+        "repo": "local/aresforge",
         "output": None,
         "force": False,
         "output_format": "json",

@@ -1,5 +1,24 @@
 # AresForge Agent Context
 
+## M163 GitHub Issue Creation for Safe Queue Items Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m163-github-issue-creation-for-safe-queue-items`.
+
+M163 adds `create-github-issue-for-safe-queue-item`, a dry-run-default command that can create exactly one GitHub issue for one safe local queue item only after explicit GitHub enablement and machine gates pass.
+
+Command:
+
+- `python -m aresforge create-github-issue-for-safe-queue-item --item-id m163-github-issue-creation-for-safe-queue-items --dry-run --format json`
+
+Agent-facing guidance:
+
+- Treat `github_issue_creation_for_safe_queue_items_v1` dry-run output as review evidence only.
+- Real issue creation requires `--github-enabled`, non-dry-run behavior, `autonomy_profile=github_issue_sync_enabled`, a passing `github_sync` machine gate, no linked issue metadata, and safe queue item status.
+- Duplicate issue creation is blocked from local linked-issue metadata; the command does not mutate the queue to add links after creation.
+- Do not merge PRs, update protected branches, force push, enable auto-merge, create releases, mutate workflows, run Codex/models, apply patches, mutate queue state, retry, resume, or start later sprint items from this output.
+
 ## M162 GitHub Issue Sync Plan from Queue Items Context
 
 Status: Completed locally on `main` after validation.

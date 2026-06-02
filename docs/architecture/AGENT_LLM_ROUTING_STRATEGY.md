@@ -1,5 +1,18 @@
 # Agent LLM Routing Strategy
 
+## M163 GitHub Issue Creation Routing Boundary
+
+M163 does not add a new agent, local LLM, or Codex route. It adds a narrow GitHub issue creation route for one safe queue item, using local M162 issue draft metadata and machine gates.
+
+Routing rules:
+
+- default routing is dry-run issue creation evidence only
+- real GitHub routing requires `--github-enabled`, `github_issue_sync_enabled` autonomy profile, no linked issue metadata, safe queue item status, and a passing `github_sync` machine gate
+- linked, blocked, cancelled, missing, or gate-blocked queue items route to blocked output before any GitHub client call
+- created issue metadata routes to operator review only; queue issue-link mutation remains a separate explicit future action
+
+M163 reports no agent execution, no model execution, no Codex execution, no source patch application, and no queue mutation. `github_execution_performed=true` can appear only on the explicit live issue creation path after gates pass.
+
 ## M162 GitHub Issue Sync Plan Routing Boundary
 
 M162 does not add a new agent, local LLM, Codex, or live GitHub route. It routes local queue metadata into a deterministic issue sync plan for operator review.

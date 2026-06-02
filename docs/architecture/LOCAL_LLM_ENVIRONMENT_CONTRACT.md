@@ -1,5 +1,11 @@
 # Local LLM Environment Contract
 
+## M163 GitHub Issue Creation Boundary
+
+M163 does not change local LLM permissions. It may prepare or perform one explicitly enabled GitHub issue creation after local queue checks, autonomy profile allowance, duplicate-linked-issue checks, and machine gates pass, but it does not call Ollama, send prompts, run inference, select fallback local models, mutate repository files, mutate queue state, call Codex, apply patches, retry failures, resume orchestration, or start follow-on work.
+
+Local LLM advisory execution remains limited to separate explicit local-provider commands and their machine gates. M163 records GitHub issue creation evidence only.
+
 ## M162 GitHub Issue Sync Plan Boundary
 
 M162 does not change local LLM permissions. It may map local queue metadata into future GitHub issue drafts and sync recommendations, but it does not call Ollama, send prompts, run inference, select fallback local models, mutate repository files, mutate queue state, call Codex, call GitHub/`gh`, create or update issues, post comments, apply labels or milestones, apply patches, retry failures, resume orchestration, or start follow-on work.

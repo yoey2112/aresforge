@@ -1,5 +1,25 @@
 # AresForge Roadmap
 
+## M163 GitHub Issue Creation for Safe Queue Items
+
+Status: Completed locally on `main` after validation.
+
+M163 hardens the self-managed GitHub loop with:
+
+- `python -m aresforge create-github-issue-for-safe-queue-item --item-id m163-github-issue-creation-for-safe-queue-items --dry-run --format json`
+- deterministic `github_issue_creation_for_safe_queue_items_v1` output
+- one-queue-item issue creation planning from M162 issue drafts
+- local duplicate-linked-issue prevention
+- explicit autonomy profile and `github_sync` machine-gate composition before live creation
+- mocked GitHub client support for deterministic tests without live network access
+- explicit non-mutation flags for queue, Codex, model, and patch behavior
+
+Boundary:
+
+- dry-run by default
+- real issue creation requires `--github-enabled`, non-dry-run behavior, `github_issue_sync_enabled` autonomy profile, safe queue item status, no linked issue metadata, and a passing `github_sync` machine gate
+- no queue mutation, Codex, local LLM/model, source patch application, validation command execution, PR merge, force push, protected-branch update, auto-merge, release creation, workflow mutation, retry, resume, or automatic next-item execution
+
 ## M162 GitHub Issue Sync Plan from Queue Items
 
 Status: Completed locally on `main` after validation.
