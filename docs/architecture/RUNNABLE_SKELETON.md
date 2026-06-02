@@ -1,5 +1,21 @@
 # Runnable Skeleton
 
+## M182 Self-Managed PR Draft Loop Dry Run
+
+- `python -m aresforge run-self-managed-pr-draft-loop --project-id aresforge --dry-run --format json`
+- emits `self_managed_pr_draft_loop_dry_run_v1`
+- selects one safe AresForge queue item
+- reads local queue metadata, `.aresforge/github_link_registry/links.json`, autonomy profile metadata, and machine gates
+- composes M176 PR branch planning, M177 draft PR gate, M178 PR evidence comment planning/sync, and M179 recovery/idempotency inspection
+- defaults to dry-run unless `--github-enabled` is supplied
+- real draft PR/comment sync requires `github_issue_sync_enabled`, approved branch planning, branch safety, idempotency checks, and per-step machine gates
+
+Runnable boundary:
+
+- no live PR creation by default
+- no PR merge, auto-merge, force push, protected branch update, release, workflow mutation, automatic issue closure, source patch application, queue mutation, Codex/model execution, validation command execution, retry, resume, or automatic next-item execution
+- recovery and idempotency plans are advisory and do not execute repair or resume
+
 ## M181 Self-Managed Issue Loop Real Run
 
 - `python -m aresforge run-self-managed-issue-loop --project-id aresforge --dry-run --format json`

@@ -208,6 +208,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-hub-github-sync-control-panel-data",
         "run-self-managed-project-loop",
         "run-self-managed-issue-loop",
+        "run-self-managed-pr-draft-loop",
         "plan-agent-orchestration",
         "init-project-state",
         "add-local-queue-item",
@@ -11549,6 +11550,132 @@ def test_run_self_managed_issue_loop_dispatch_json(
         "repo": "local/aresforge",
         "issue_number": 181,
         "linked_issue_state": "open",
+        "output": None,
+        "force": False,
+        "output_format": "json",
+    }
+
+
+def test_run_self_managed_pr_draft_loop_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "record_type": "self_managed_pr_draft_loop_dry_run_v1",
+                "project_id": "aresforge",
+                "item_id": "m182-self-managed-pr-draft-loop-dry-run",
+                "github_execution_performed": False,
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_run(
+        _config,
+        *,
+        project_id="aresforge",
+        item_id=None,
+        queue_path=None,
+        registry_path=None,
+        dry_run=True,
+        github_enabled=False,
+        autonomy_profile="github_sync_dry_run",
+        repo=None,
+        issue_number=None,
+        pr_number=None,
+        base_branch=None,
+        branch_prefix="codex",
+        evidence_bundle=None,
+        approved_branch_plan=False,
+        safe_branch_creation_enabled=False,
+        output=None,
+        force=False,
+        output_format="json",
+    ):
+        seen.update(
+            {
+                "project_id": project_id,
+                "item_id": item_id,
+                "queue_path": queue_path,
+                "registry_path": registry_path,
+                "dry_run": dry_run,
+                "github_enabled": github_enabled,
+                "autonomy_profile": autonomy_profile,
+                "repo": repo,
+                "issue_number": issue_number,
+                "pr_number": pr_number,
+                "base_branch": base_branch,
+                "branch_prefix": branch_prefix,
+                "evidence_bundle": evidence_bundle,
+                "approved_branch_plan": approved_branch_plan,
+                "safe_branch_creation_enabled": safe_branch_creation_enabled,
+                "output": output,
+                "force": force,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "run_self_managed_pr_draft_loop", fake_run)
+    exit_code = cli.main(
+        [
+            "run-self-managed-pr-draft-loop",
+            "--project-id",
+            "aresforge",
+            "--item-id",
+            "m182-self-managed-pr-draft-loop-dry-run",
+            "--queue-path",
+            "queue.json",
+            "--registry-path",
+            "links.json",
+            "--dry-run",
+            "--autonomy-profile",
+            "github_sync_dry_run",
+            "--repo",
+            "local/aresforge",
+            "--issue-number",
+            "182",
+            "--pr-number",
+            "282",
+            "--base-branch",
+            "main",
+            "--branch-prefix",
+            "codex",
+            "--evidence-bundle",
+            "bundle.json",
+            "--approved-branch-plan",
+            "--safe-branch-creation-enabled",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["record_type"] == "self_managed_pr_draft_loop_dry_run_v1"
+    assert parsed["github_execution_performed"] is False
+    assert seen == {
+        "project_id": "aresforge",
+        "item_id": "m182-self-managed-pr-draft-loop-dry-run",
+        "queue_path": "queue.json",
+        "registry_path": "links.json",
+        "dry_run": True,
+        "github_enabled": False,
+        "autonomy_profile": "github_sync_dry_run",
+        "repo": "local/aresforge",
+        "issue_number": 182,
+        "pr_number": 282,
+        "base_branch": "main",
+        "branch_prefix": "codex",
+        "evidence_bundle": "bundle.json",
+        "approved_branch_plan": True,
+        "safe_branch_creation_enabled": True,
         "output": None,
         "force": False,
         "output_format": "json",

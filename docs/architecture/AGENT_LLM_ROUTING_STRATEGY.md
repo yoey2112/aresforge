@@ -1,5 +1,18 @@
 # Agent LLM Routing Strategy
 
+## M182 Self-Managed PR Draft Loop Dry Run Routing Boundary
+
+M182 adds no live agent, local LLM, cloud LLM, or Codex route. It adds a PR draft loop coordinator that composes local registry lookup, branch planning, draft PR gating, PR evidence comment planning/sync, and recovery/idempotency inspection.
+
+Routing rules:
+
+- dry-run routes to local queue, registry, autonomy, branch plan, PR gate, PR evidence comment planning, recovery, and read-only machine gates
+- live mutation-capable routes are limited to gated draft PR creation and managed PR evidence comment sync after explicit GitHub enablement and `github_issue_sync_enabled`
+- loop-level blockers route downstream mutation-capable steps back to dry-run/blocked review instead of attempting GitHub calls
+- recovery and idempotency remain advisory inside the coordinator
+
+M182 reports no agent execution, no model execution, no Codex execution, no source patch application, no validation command execution, and no queue mutation. Live GitHub execution can be true only for explicitly enabled gated draft PR/comment sync steps.
+
 ## M181 Self-Managed Issue Loop Real Run Routing Boundary
 
 M181 adds no live agent, local LLM, cloud LLM, or Codex route. It adds a GitHub issue-loop coordinator that composes local registry lookup, issue creation gating, durable status-comment sync, reconciliation, recovery/idempotency, and closure recommendation.

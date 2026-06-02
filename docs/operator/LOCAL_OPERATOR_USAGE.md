@@ -1,5 +1,25 @@
 # Local Operator Usage
 
+## M182 Self-Managed PR Draft Loop Dry Run
+
+Dry-run the self-managed PR draft loop:
+
+- `python -m aresforge run-self-managed-pr-draft-loop --project-id aresforge --dry-run --format json`
+
+Explicit live path, only when an operator intends gated draft PR creation and PR evidence comment sync:
+
+- `python -m aresforge run-self-managed-pr-draft-loop --project-id aresforge --item-id <item_id> --github-enabled --autonomy-profile github_issue_sync_enabled --repo <owner/repo> --approved-branch-plan --safe-branch-creation-enabled --format json`
+
+Interpretation:
+
+- `record_type=self_managed_pr_draft_loop_dry_run_v1` identifies the M182 payload.
+- `loop_steps` shows link lookup, branch planning, draft PR gate, PR evidence comment planning/sync, and recovery/idempotency planning.
+- `dry_run=true` or `blocked=true` means no GitHub mutation was performed.
+- `github_execution_performed=true` can occur only on explicitly enabled mutation-capable steps after gates pass.
+- `pull_request_created=true` means only a draft PR creation path was attempted; merge and auto-merge remain blocked.
+
+M182 performs no PR merge, auto-merge, force push, protected branch update, release creation, workflow mutation, automatic issue closure, source-code patch application, queue status mutation, Codex execution, model execution, validation command execution, retry, resume, or automatic next-item execution.
+
 ## M181 Self-Managed Issue Loop Real Run
 
 Dry-run the self-managed issue loop:

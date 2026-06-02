@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-06-02T07:59:51.557552+00:00",
+  "updated_at": "2026-06-02T08:16:35.398519+00:00",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -9523,6 +9523,87 @@
       "closeout_history": [],
       "created_at": "2026-06-02T07:58:50.849989+00:00",
       "updated_at": "2026-06-02T07:59:51.557552+00:00"
+    },
+    {
+      "item_id": "m182-self-managed-pr-draft-loop-dry-run",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M182 Self-Managed PR Draft Loop Dry Run",
+      "description": "Dry-run a self-managed PR draft loop through PR branch planning, draft PR gating, PR evidence comment planning, and recovery/idempotency planning without live PR creation by default.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "sync",
+      "tags": [
+        "milestone:m182",
+        "github-loop",
+        "pr-draft",
+        "self-managed",
+        "machine-gated"
+      ],
+      "dependencies": [
+        "m181-self-managed-issue-loop-real-run"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [],
+      "evidence_required": [],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: add run-self-managed-pr-draft-loop; deterministic self_managed_pr_draft_loop_dry_run_v1 JSON; dry-run default; compose branch planning, draft PR gate, PR evidence comment planning, recovery/idempotency planning; live PR/comment mutation requires explicit GitHub enablement, github_issue_sync_enabled autonomy profile, idempotency checks, and machine gates; tests use mocked GitHub clients and require no live network.",
+      "started_at": "",
+      "started_via": "",
+      "previous_status": "in_progress",
+      "completed_at": "2026-06-02T08:16:35.398519+00:00",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M182 Self-Managed PR Draft Loop Dry Run implemented and validated locally. Added run-self-managed-pr-draft-loop with stable self_managed_pr_draft_loop_dry_run_v1 JSON, one-item link lookup, PR branch planning, draft PR gate dry-run/gated creation, PR evidence comment planning/gated sync, recovery/idempotency planning, explicit GitHub enablement requirements, machine-gate summaries, dry-run default behavior, mocked real-run tests, and source-of-truth documentation updates. No PR merge, auto-merge, force push, protected branch update, release creation, workflow mutation, automatic issue closure, source patch application, queue mutation outside completion evidence, Codex/model execution, validation command execution by the loop, retry/resume, or next-item execution was added.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 253 passed; python -m pytest tests/test_self_managed_pr_draft_loop_dry_run.py -> 4 passed; python -m pytest tests/test_pr_draft_creation_gate.py -> 5 passed; git diff --check -> passed with CRLF warnings only.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 253 passed",
+        "python -m pytest tests/test_self_managed_pr_draft_loop_dry_run.py -> 4 passed",
+        "python -m pytest tests/test_pr_draft_creation_gate.py -> 5 passed",
+        "git diff --check -> passed with CRLF warnings only"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/self_managed_pr_draft_loop_dry_run.py",
+        "src/aresforge/cli.py",
+        "tests/test_self_managed_pr_draft_loop_dry_run.py",
+        "tests/test_cli.py",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
+        "docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
+        "docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md",
+        ".aresforge/queue/work_items.json"
+      ],
+      "artifact_paths": [
+        "src/aresforge/operator/self_managed_pr_draft_loop_dry_run.py",
+        "tests/test_self_managed_pr_draft_loop_dry_run.py"
+      ],
+      "completion_evidence": {},
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-06-02T08:13:27.428321+00:00",
+      "updated_at": "2026-06-02T08:16:35.398519+00:00"
     }
   ]
 }

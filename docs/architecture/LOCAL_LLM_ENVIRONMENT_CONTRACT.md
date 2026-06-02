@@ -1,5 +1,11 @@
 # Local LLM Environment Contract
 
+## M182 Self-Managed PR Draft Loop Dry Run Boundary
+
+M182 does not change local LLM permissions. It may inspect local queue metadata, the local GitHub link registry, autonomy profile policy, machine gates, branch planning, draft PR gate, PR evidence comment, and recovery/idempotency outputs, and it may create a draft PR or managed PR evidence comment only on explicitly enabled gated paths, but it does not call Ollama, send prompts, run inference, select fallback local models, mutate repository files from model output, mutate queue state, call Codex, apply patches, run validation commands, retry failures, resume orchestration, close issues automatically, merge PRs, enable auto-merge, force push, update protected branches, create releases, mutate workflows, or start follow-on work.
+
+Local LLM advisory execution remains limited to separate explicit local-provider commands and their machine gates. M182 records self-managed PR draft loop evidence and, on successful live PR/comment sync, local registry metadata only.
+
 ## M181 Self-Managed Issue Loop Real Run Boundary
 
 M181 does not change local LLM permissions. It may inspect local queue metadata, the local GitHub link registry, autonomy profile policy, machine gates, issue creation/status-comment/reconciliation/recovery/closure-recommendation outputs, and it may create a GitHub issue or managed status comment only on explicitly enabled gated paths, but it does not call Ollama, send prompts, run inference, select fallback local models, mutate repository files from model output, mutate queue state, call Codex, apply patches, run validation commands, retry failures, resume orchestration, close issues automatically, merge PRs, enable auto-merge, force push, update protected branches, create releases, mutate workflows, or start follow-on work.

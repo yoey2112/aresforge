@@ -1,5 +1,26 @@
 # AresForge Build State
 
+## M182 Self-Managed PR Draft Loop Dry Run
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m182-self-managed-pr-draft-loop-dry-run`.
+
+M182 adds a dry-run-default self-managed PR draft loop coordinator:
+
+- `python -m aresforge run-self-managed-pr-draft-loop --project-id aresforge --dry-run --format json`
+- stable `self_managed_pr_draft_loop_dry_run_v1` JSON
+- selects one safe AresForge queue item and composes local link lookup, PR branch planning, draft PR creation gate, PR evidence comment planning, and recovery/idempotency inspection
+- supports explicitly enabled mocked live draft PR creation and PR evidence comment sync through the existing M177/M178 gated clients while tests avoid live GitHub access
+- keeps PR merge, auto-merge, force push, protected branch updates, releases, workflow mutation, issue closure, source patches, queue mutation, Codex/model execution, validation execution, retry/resume, and next-item execution blocked
+
+Safety posture:
+
+- dry-run remains the default and performs no GitHub mutation
+- real PR draft/comment mutation requires `--github-enabled`, non-dry-run behavior, `autonomy_profile=github_issue_sync_enabled`, approved branch planning, branch safety, idempotency checks, and passing machine gates
+- the loop performs no live PR creation by default and never merges pull requests
+- recovery/idempotency output is advisory and must be followed only through the matching separate gated command
+
 ## M181 Self-Managed Issue Loop Real Run
 
 Status: Completed locally on `main` after validation.
