@@ -1,5 +1,21 @@
 # Local Operator Usage
 
+## M183 GitHub Automation Safety Audit
+
+Audit the GitHub automation safety posture:
+
+- `python -m aresforge audit-github-automation-safety --project-id aresforge --format json`
+
+Interpretation:
+
+- `record_type=github_automation_safety_audit_v1` identifies the M183 payload.
+- `capabilities` lists the M170-M182 GitHub automation surfaces, their default behavior, allowed operations, blocked operations, idempotency anchors, recovery paths, and targeted test indicators.
+- `machine_gate_coverage`, `idempotency_coverage`, `registry_health`, and `recovery_health` summarize whether the local safety evidence is complete enough for review.
+- `remaining_risks` is operator review guidance; it does not authorize execution.
+- `github_execution_performed=false`, `mutation_performed=false`, `registry_mutation_performed=false`, and `queue_mutation_performed=false` confirm the audit was non-mutating.
+
+M183 performs no live GitHub mutation, `gh`, registry mutation, queue status mutation, PR merge, auto-merge, force push, protected branch update, release creation, workflow mutation, automatic issue closure, source-code patch application, Codex execution, model execution, validation command execution, retry execution, resume execution, or automatic next-item execution.
+
 ## M182 Self-Managed PR Draft Loop Dry Run
 
 Dry-run the self-managed PR draft loop:

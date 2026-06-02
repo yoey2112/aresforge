@@ -1,5 +1,11 @@
 # Local LLM Environment Contract
 
+## M183 GitHub Automation Safety Audit Boundary
+
+M183 does not change local LLM permissions. It may inspect local queue metadata, the local GitHub link registry, GitHub sync recovery/idempotency evidence, Hub GitHub Sync Control Panel data, targeted test indicators, machine gates, and implemented GitHub automation capability metadata, but it does not call Ollama, send prompts, run inference, select fallback local models, mutate repository files from model output, mutate queue or registry state, call Codex, apply patches, run validation commands, retry failures, resume orchestration, call GitHub/`gh`, create/update/close issues, create/update/merge PRs, enable auto-merge, force push, update protected branches, create releases, mutate workflows, or start follow-on work.
+
+Local LLM advisory execution remains limited to separate explicit local-provider commands and their machine gates. M183 records GitHub automation safety audit evidence only.
+
 ## M182 Self-Managed PR Draft Loop Dry Run Boundary
 
 M182 does not change local LLM permissions. It may inspect local queue metadata, the local GitHub link registry, autonomy profile policy, machine gates, branch planning, draft PR gate, PR evidence comment, and recovery/idempotency outputs, and it may create a draft PR or managed PR evidence comment only on explicitly enabled gated paths, but it does not call Ollama, send prompts, run inference, select fallback local models, mutate repository files from model output, mutate queue state, call Codex, apply patches, run validation commands, retry failures, resume orchestration, close issues automatically, merge PRs, enable auto-merge, force push, update protected branches, create releases, mutate workflows, or start follow-on work.

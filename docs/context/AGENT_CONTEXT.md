@@ -1,5 +1,25 @@
 # AresForge Agent Context
 
+## M183 GitHub Automation Safety Audit Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m183-github-automation-safety-audit`.
+
+M183 adds `audit-github-automation-safety`, a read-only/local-only safety audit over the implemented GitHub automation loop.
+
+Command:
+
+- `python -m aresforge audit-github-automation-safety --project-id aresforge --format json`
+
+Agent-facing guidance:
+
+- Treat `github_automation_safety_audit_v1` output as audit and review evidence only.
+- The audit inspects M170-M182 capabilities, dry-run defaults, allowed and blocked operations, machine-gate coverage, targeted test indicators, idempotency anchors, registry health, recovery paths, and remaining risks.
+- `github_execution_performed=false` and `mutation_performed=false` are required audit invariants.
+- Do not infer live GitHub authorization from this audit. Any live issue, comment, closure, draft PR, or PR evidence comment sync must use the separate matching gated command.
+- Do not merge PRs, enable auto-merge, force push, update protected branches, create releases, mutate workflows, automatically close issues, apply source patches, mutate queue state, run Codex/models, run validation commands, retry, resume, or start later sprint items from this output.
+
 ## M182 Self-Managed PR Draft Loop Dry Run Context
 
 Status: Completed locally on `main` after validation.

@@ -206,6 +206,7 @@ def test_cli_has_expected_commands() -> None:
         "inspect-github-sync-recovery",
         "inspect-hub-autonomy-control-center-data",
         "inspect-hub-github-sync-control-panel-data",
+        "audit-github-automation-safety",
         "run-self-managed-project-loop",
         "run-self-managed-issue-loop",
         "run-self-managed-pr-draft-loop",

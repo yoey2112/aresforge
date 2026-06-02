@@ -1,5 +1,19 @@
 # Runnable Skeleton
 
+## M183 GitHub Automation Safety Audit
+
+- `python -m aresforge audit-github-automation-safety --project-id aresforge --format json`
+- emits `github_automation_safety_audit_v1`
+- reads local queue metadata, `.aresforge/github_link_registry/links.json`, GitHub sync recovery/idempotency state, Hub GitHub Sync Control Panel output, test-file indicators, and machine safety gates
+- audits implemented M170-M182 GitHub automation capabilities, allowed operations, blocked operations, default dry-run behavior, gate coverage, idempotency anchors, registry health, recovery paths, and remaining risks
+- reports mutation-capable commands as separate gated surfaces only
+
+Runnable boundary:
+
+- read-only and local-only
+- no GitHub mutation, `gh`, registry mutation, queue mutation, PR merge, auto-merge, force push, protected branch update, release, workflow mutation, automatic issue closure, source patch application, Codex/model execution, validation command execution, retry execution, resume execution, or automatic next-item execution
+- live GitHub mutation remains outside the audit and requires separate explicit gated commands
+
 ## M182 Self-Managed PR Draft Loop Dry Run
 
 - `python -m aresforge run-self-managed-pr-draft-loop --project-id aresforge --dry-run --format json`

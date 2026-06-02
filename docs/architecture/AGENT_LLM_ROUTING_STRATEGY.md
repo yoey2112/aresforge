@@ -1,5 +1,18 @@
 # Agent LLM Routing Strategy
 
+## M183 GitHub Automation Safety Audit Routing Boundary
+
+M183 adds no live agent, local LLM, cloud LLM, Codex, or GitHub mutation route. It adds a read-only audit route over implemented GitHub automation capabilities, dry-run defaults, blocked operations, machine gates, idempotency, registry health, recovery paths, test indicators, and remaining risks.
+
+Routing rules:
+
+- audit routes only to local queue, registry, recovery/idempotency, Hub control-panel, test-file indicator, and machine-gate inspection
+- mutation-capable GitHub commands are listed as separate gated surfaces, not executed
+- remaining risks route to operator review guidance only
+- no audit output routes to issue creation, comment update, issue closure, PR creation, PR merge, auto-merge, force push, protected branch update, release creation, workflow mutation, source patch application, retry, resume, queue completion, Codex/model execution, or next-item execution
+
+M183 reports no agent execution, no model execution, no Codex execution, no GitHub execution, no source patch application, no validation command execution, and no queue or registry mutation.
+
 ## M182 Self-Managed PR Draft Loop Dry Run Routing Boundary
 
 M182 adds no live agent, local LLM, cloud LLM, or Codex route. It adds a PR draft loop coordinator that composes local registry lookup, branch planning, draft PR gating, PR evidence comment planning/sync, and recovery/idempotency inspection.

@@ -1,5 +1,24 @@
 # AresForge Roadmap
 
+## M183 GitHub Automation Safety Audit
+
+Status: Completed locally on `main` after validation.
+
+M183 adds:
+
+- `python -m aresforge audit-github-automation-safety --project-id aresforge --format json`
+- deterministic `github_automation_safety_audit_v1` output
+- audit coverage for M170-M182 GitHub link registry, issue creation/backfill/status-comment/reconciliation/closure gates, PR branch/draft/evidence gates, recovery/idempotency, Hub control panel, and self-managed issue/PR loops
+- allowed-operation and blocked-operation summaries
+- machine-gate, idempotency, registry-health, recovery-path, targeted-test, and remaining-risk summaries
+
+Boundary:
+
+- read-only/local-only audit evidence
+- no live GitHub mutation or `gh`
+- no PR merge, auto-merge, force push, protected branch update, release, workflow mutation, automatic issue closure, source patch application, queue/registry mutation, Codex/model execution, validation command execution, retry, resume, or automatic next-item execution
+- live GitHub work remains separate, explicit, autonomy-profile gated, idempotency-gated, and machine-gated
+
 ## M182 Self-Managed PR Draft Loop Dry Run
 
 Status: Completed locally on `main` after validation.

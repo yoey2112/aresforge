@@ -1,5 +1,11 @@
 # Documentation Agent Contract
 
+## M183 Documentation Agent Boundary
+
+M183 does not add documentation-agent or source-code patch mutation. It may update source-of-truth documentation for the milestone and inspect local queue, registry, recovery/idempotency, Hub control-panel, machine-gate, test-indicator, and GitHub automation capability metadata, but it does not edit documentation through a documentation agent, generate documentation patches, apply patches, call local LLMs, call Codex, call GitHub/`gh`, create/update/close issues, create/update/merge PRs, enable auto-merge, force push, update protected branches, create releases, mutate workflows, mutate queue or registry state, run validation commands, retry failures, resume orchestration, or start follow-on work.
+
+Documentation mutation remains limited to separate explicit docs-only patch commands that pass their gates. M183 output cannot authorize documentation-agent execution, source patch mutation, queue or registry mutation, Codex/model execution, GitHub mutation, retry execution, or resume execution.
+
 ## M182 Documentation Agent Boundary
 
 M182 does not add documentation-agent or source-code patch mutation. It may update source-of-truth documentation for the milestone and inspect local queue, registry, autonomy, machine-gate, branch planning, draft PR gate, PR evidence comment, and recovery/idempotency metadata, and it may create a draft PR or managed PR evidence comment only on explicitly enabled gated paths, but it does not edit documentation through a documentation agent, generate documentation patches, apply patches, call local LLMs, call Codex, close issues automatically, merge PRs, enable auto-merge, force push, update protected branches, create releases, mutate workflows, mutate queue state, run validation commands, retry failures, resume orchestration, or start follow-on work.

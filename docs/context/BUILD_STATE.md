@@ -1,5 +1,25 @@
 # AresForge Build State
 
+## M183 GitHub Automation Safety Audit
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m183-github-automation-safety-audit`.
+
+M183 adds a read-only GitHub automation safety audit:
+
+- `python -m aresforge audit-github-automation-safety --project-id aresforge --format json`
+- stable `github_automation_safety_audit_v1` JSON
+- audits M170-M182 GitHub loop capabilities, allowed operations, blocked operations, dry-run defaults, machine-gate coverage, targeted test indicators, idempotency anchors, registry health, recovery paths, Hub control-panel health, and remaining risks
+- composes existing local inspectors for the GitHub link registry, GitHub sync recovery/idempotency, Hub GitHub Sync Control Panel, and machine safety gates
+- reports mutation-capable surfaces as gated capabilities only; it does not execute or authorize those operations
+
+Safety posture:
+
+- read-only, local-only, and dry-run by default
+- no live GitHub mutation, `gh`, registry mutation, queue mutation outside completion evidence, PR merge, auto-merge, force push, protected branch update, release creation, workflow mutation, automatic issue closure, source patch application, Codex/model execution, validation command execution by the audit, retry/resume execution, or automatic next-item execution
+- real GitHub mutation remains limited to separate commands that require explicit enablement, `github_issue_sync_enabled` where applicable, idempotency checks, and passing machine gates
+
 ## M182 Self-Managed PR Draft Loop Dry Run
 
 Status: Completed locally on `main` after validation.

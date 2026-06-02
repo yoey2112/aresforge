@@ -182,6 +182,7 @@ from aresforge.operator.pr_draft_branch_planning_contract import plan_pr_draft_b
 from aresforge.operator.pr_evidence_comment_sync import sync_pr_evidence_comment
 from aresforge.operator.github_sync_recovery_idempotency import inspect_github_sync_recovery
 from aresforge.operator.hub_github_sync_control_panel import inspect_hub_github_sync_control_panel_data
+from aresforge.operator.github_automation_safety_audit import audit_github_automation_safety
 from aresforge.operator.pull_request_draft_summary_generator import generate_pr_draft_summary
 from aresforge.operator.hub_autonomy_control_center import inspect_hub_autonomy_control_center_data
 from aresforge.operator.self_managed_project_loop_dry_run import run_self_managed_project_loop_dry_run
@@ -1694,6 +1695,25 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["json"],
         default="json",
         help="Output format for file writes or stdout rendering.",
+    )
+    github_automation_safety_audit_parser = subparsers.add_parser(
+        "audit-github-automation-safety",
+        help="Audit GitHub automation capabilities, blocked operations, gates, idempotency, recovery, and remaining risks without mutation.",
+    )
+    github_automation_safety_audit_parser.add_argument("--project-id", default="aresforge")
+    github_automation_safety_audit_parser.add_argument(
+        "--item-id",
+        default="m183-github-automation-safety-audit",
+    )
+    github_automation_safety_audit_parser.add_argument("--queue-path")
+    github_automation_safety_audit_parser.add_argument("--registry-path")
+    github_automation_safety_audit_parser.add_argument("--repo")
+    github_automation_safety_audit_parser.add_argument("--autonomy-profile", default="github_sync_dry_run")
+    github_automation_safety_audit_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+        help="Output format for stdout rendering.",
     )
     self_managed_project_loop_parser = subparsers.add_parser(
         "run-self-managed-project-loop",
@@ -5497,6 +5517,23 @@ def main(argv: list[str] | None = None) -> int:
             autonomy_profile=args.autonomy_profile,
             output=args.output,
             force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "audit-github-automation-safety":
+        payload = audit_github_automation_safety(
+            config,
+            project_id=args.project_id,
+            item_id=args.item_id,
+            queue_path=args.queue_path,
+            registry_path=args.registry_path,
+            repo=args.repo,
+            autonomy_profile=args.autonomy_profile,
             output_format=args.format,
         )
         if "stdout" in payload:
