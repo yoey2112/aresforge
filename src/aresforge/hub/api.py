@@ -63,6 +63,7 @@ from aresforge.operator.local_handoff_package import generate_handoff_package
 from aresforge.operator.local_project_handoff import generate_local_project_handoff
 from aresforge.operator.local_agent_orchestration import generate_agent_orchestration_plan
 from aresforge.operator.orchestration_run_monitor import inspect_orchestration_run_monitor
+from aresforge.operator.hub_autonomy_control_center import inspect_hub_autonomy_control_center_data
 from aresforge.operator.local_llm_escalation import generate_llm_escalation_plan
 from aresforge.operator.local_bootstrap_wizard import (
     apply_bootstrap,
@@ -4108,6 +4109,35 @@ def get_orchestration_run_monitor(config: AppConfig, params: dict[str, str | Non
         return _api_error(
             str(result.get("error", "orchestration_run_monitor_failed")),
             "Failed to inspect local orchestration run monitor.",
+            details=details,
+        )
+    wrapped = dict(payload)
+    wrapped["ok"] = True
+    return wrapped
+
+
+def get_hub_autonomy_control_center_data(config: AppConfig, params: dict[str, str | None]) -> dict[str, Any]:
+    result = inspect_hub_autonomy_control_center_data(
+        config,
+        project_id=_normalize_optional_str(params.get("project_id")) or "aresforge",
+        item_id=_normalize_optional_str(params.get("item_id")) or "m167-hub-autonomy-control-center-v1",
+        run_id=_normalize_optional_str(params.get("run_id")),
+        queue_path=_normalize_optional_str(params.get("queue_path")),
+        history_path=_normalize_optional_str(params.get("history_path")),
+        artifacts_root=_normalize_optional_str(params.get("artifacts_root")),
+        autonomy_profile=_normalize_optional_str(params.get("autonomy_profile")) or "github_sync_dry_run",
+        output_format="json",
+    )
+    payload = result.get("payload", {}) if isinstance(result.get("payload"), dict) else {}
+    if not result.get("ok", False):
+        if payload:
+            wrapped = dict(payload)
+            wrapped["ok"] = False
+            return wrapped
+        details = result.get("details", {}) if isinstance(result.get("details"), dict) else {}
+        return _api_error(
+            str(result.get("error", "hub_autonomy_control_center_failed")),
+            "Failed to inspect local Hub autonomy control center data.",
             details=details,
         )
     wrapped = dict(payload)

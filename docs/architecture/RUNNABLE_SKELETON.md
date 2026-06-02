@@ -1,5 +1,23 @@
 # Runnable Skeleton
 
+## M167 Hub Autonomy Control Center v1
+
+M167 adds a read-only Hub control-center command:
+
+- `python -m aresforge inspect-hub-autonomy-control-center-data --project-id aresforge --format json`
+
+The command returns `hub_autonomy_control_center_v1` JSON and composes local autonomy profile state, durable orchestration run-store state, orchestration run monitor summaries, discovered evidence bundles, GitHub issue sync dry-run plans/status, issue closure recommendation evidence, existing PR draft summary artifacts, machine gates, and next safe actions.
+
+Hub integration:
+
+- `GET /api/autonomy/control-center`
+- Autonomy panel in the local Hub UI
+
+Execution boundary:
+
+- no GitHub mutation, PR creation/update/merge, issue closure, queue mutation, Codex execution, model execution, source patch application, validation command execution, retry, resume, release creation, workflow mutation, protected-branch update, force push, auto-merge, or automatic next-item execution
+- future-action gates are displayed as status evidence; they do not authorize execution
+
 ## M166 Pull Request Draft Summary Generator
 
 M166 adds a local draft PR summary command:

@@ -172,6 +172,7 @@ from aresforge.operator.github_issue_creation_for_safe_queue_items import (
 from aresforge.operator.github_issue_status_comment_sync import sync_github_issue_status_comment
 from aresforge.operator.github_issue_closure_recommendation_gate import recommend_github_issue_closure
 from aresforge.operator.pull_request_draft_summary_generator import generate_pr_draft_summary
+from aresforge.operator.hub_autonomy_control_center import inspect_hub_autonomy_control_center_data
 from aresforge.operator.local_milestone_lifecycle import (
     check_local_milestone_readiness,
     generate_local_milestone_closeout,
@@ -1371,6 +1372,28 @@ def build_parser() -> argparse.ArgumentParser:
     pr_draft_summary_parser.add_argument("--output")
     pr_draft_summary_parser.add_argument("--force", action="store_true")
     pr_draft_summary_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+        help="Output format for file writes or stdout rendering.",
+    )
+    hub_autonomy_control_center_parser = subparsers.add_parser(
+        "inspect-hub-autonomy-control-center-data",
+        help="Inspect local Hub autonomy control center data without executing unsafe actions.",
+    )
+    hub_autonomy_control_center_parser.add_argument("--project-id", default="aresforge")
+    hub_autonomy_control_center_parser.add_argument(
+        "--item-id",
+        default="m167-hub-autonomy-control-center-v1",
+    )
+    hub_autonomy_control_center_parser.add_argument("--run-id")
+    hub_autonomy_control_center_parser.add_argument("--queue-path")
+    hub_autonomy_control_center_parser.add_argument("--history-path")
+    hub_autonomy_control_center_parser.add_argument("--artifacts-root")
+    hub_autonomy_control_center_parser.add_argument("--autonomy-profile", default="github_sync_dry_run")
+    hub_autonomy_control_center_parser.add_argument("--output")
+    hub_autonomy_control_center_parser.add_argument("--force", action="store_true")
+    hub_autonomy_control_center_parser.add_argument(
         "--format",
         choices=["json"],
         default="json",
@@ -4796,6 +4819,26 @@ def main(argv: list[str] | None = None) -> int:
             run_id=args.run_id,
             autonomy_profile=args.autonomy_profile,
             evidence_bundle=args.evidence_bundle,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "inspect-hub-autonomy-control-center-data":
+        payload = inspect_hub_autonomy_control_center_data(
+            config,
+            project_id=args.project_id,
+            item_id=args.item_id,
+            run_id=args.run_id,
+            queue_path=args.queue_path,
+            history_path=args.history_path,
+            artifacts_root=args.artifacts_root,
+            autonomy_profile=args.autonomy_profile,
             output=args.output,
             force=bool(args.force),
             output_format=args.format,

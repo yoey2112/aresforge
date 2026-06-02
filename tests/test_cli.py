@@ -192,6 +192,7 @@ def test_cli_has_expected_commands() -> None:
         "sync-github-issue-status-comment",
         "recommend-github-issue-closure",
         "generate-pr-draft-summary",
+        "inspect-hub-autonomy-control-center-data",
         "plan-agent-orchestration",
         "init-project-state",
         "add-local-queue-item",
@@ -10237,6 +10238,96 @@ def test_inspect_orchestration_run_monitor_dispatch_json(
         "artifacts_root": "artifacts/multi-agent-orchestration",
         "output": ".aresforge/orchestrator/run_monitor/m153-monitor.json",
         "force": True,
+        "output_format": "json",
+    }
+
+
+def test_inspect_hub_autonomy_control_center_data_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "record_type": "hub_autonomy_control_center_v1",
+                "project_id": "aresforge",
+                "github_execution_performed": False,
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_inspect(
+        _config,
+        *,
+        project_id="aresforge",
+        item_id="m167-hub-autonomy-control-center-v1",
+        run_id=None,
+        queue_path=None,
+        history_path=None,
+        artifacts_root=None,
+        autonomy_profile="github_sync_dry_run",
+        output=None,
+        force=False,
+        output_format="json",
+    ):
+        seen.update(
+            {
+                "project_id": project_id,
+                "item_id": item_id,
+                "run_id": run_id,
+                "queue_path": queue_path,
+                "history_path": history_path,
+                "artifacts_root": artifacts_root,
+                "autonomy_profile": autonomy_profile,
+                "output": output,
+                "force": force,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "inspect_hub_autonomy_control_center_data", fake_inspect)
+    exit_code = cli.main(
+        [
+            "inspect-hub-autonomy-control-center-data",
+            "--project-id",
+            "aresforge",
+            "--item-id",
+            "m167-hub-autonomy-control-center-v1",
+            "--run-id",
+            "run-167",
+            "--queue-path",
+            "queue.json",
+            "--history-path",
+            "history.json",
+            "--artifacts-root",
+            "artifacts",
+            "--autonomy-profile",
+            "github_sync_dry_run",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["record_type"] == "hub_autonomy_control_center_v1"
+    assert parsed["github_execution_performed"] is False
+    assert seen == {
+        "project_id": "aresforge",
+        "item_id": "m167-hub-autonomy-control-center-v1",
+        "run_id": "run-167",
+        "queue_path": "queue.json",
+        "history_path": "history.json",
+        "artifacts_root": "artifacts",
+        "autonomy_profile": "github_sync_dry_run",
+        "output": None,
+        "force": False,
         "output_format": "json",
     }
 

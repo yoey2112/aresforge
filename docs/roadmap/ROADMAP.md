@@ -1,5 +1,23 @@
 # AresForge Roadmap
 
+## M167 Hub Autonomy Control Center v1
+
+Status: Completed locally on `main` after validation.
+
+M167 hardens the self-managed GitHub loop with:
+
+- `python -m aresforge inspect-hub-autonomy-control-center-data --project-id aresforge --format json`
+- deterministic `hub_autonomy_control_center_v1` output
+- Hub API endpoint `GET /api/autonomy/control-center`
+- Hub UI Autonomy panel for autonomy profile, run-store status, orchestration runs, evidence bundles, GitHub sync plan/status, issue closure recommendations, PR draft summary artifacts, machine gates, and next safe actions
+- explicit dry-run labels for high-risk and future actions
+
+Boundary:
+
+- read-only local status composition unless an explicit output artifact path is supplied
+- no GitHub mutation, PR creation/update/merge, issue closure, queue mutation, Codex execution, model execution, source patch application, validation command execution, retry, resume, release, workflow mutation, protected-branch update, force push, auto-merge, or automatic next-item execution
+- future-action gates are visible as advisory status evidence and do not authorize live execution
+
 ## M166 Pull Request Draft Summary Generator
 
 Status: Completed locally on `main` after validation.

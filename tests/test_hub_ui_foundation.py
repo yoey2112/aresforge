@@ -14,6 +14,7 @@ from aresforge.hub.api import (
     get_handoff_preview,
     get_handoff_target,
     get_handoff_targets,
+    get_hub_autonomy_control_center_data,
     get_local_queue_agent_summary,
     get_orchestration_plan,
     get_project,
@@ -52,6 +53,7 @@ NAV_LABELS = [
     "Agents",
     "Handoff",
     "Orchestration",
+    "Autonomy",
     "Escalation",
     "Reports",
     "Settings",
@@ -238,6 +240,7 @@ def test_app_js_imports_section_modules() -> None:
     assert 'from "/js/sections/repos.js"' in app_text
     assert 'from "/js/sections/workspace.js"' in app_text
     assert 'from "/js/sections/orchestration.js"' in app_text
+    assert 'from "/js/sections/autonomy.js"' in app_text
     assert 'from "/js/sections/escalation.js"' in app_text
     assert 'from "/js/sections/projectFactory/index.js"' in app_text
 
@@ -315,6 +318,8 @@ def test_index_contains_required_navigation_labels_and_m39_sections() -> None:
     assert "Add Or Update Handoff Target" in index_text
     assert "Refresh Handoff Preview" in index_text
     assert "Generate/view plan-only orchestration guidance" in index_text
+    assert "Autonomy Control Center" in index_text
+    assert "Refresh Control Center" in index_text
     assert "Generate/view plan-only escalation classification" in index_text
     assert "Action Center Preview" in index_text
     assert "Quick Workflow Cards" in index_text
@@ -738,6 +743,7 @@ def test_frontend_scripts_reference_m39_api_endpoints_and_forms() -> None:
         "/api/handoff-targets",
         "/api/handoff/preview",
         "/api/orchestration/plan",
+        "/api/autonomy/control-center",
         "/api/escalation/plan",
         "/api/reports/dashboard",
         "/api/reports/local-projects",
@@ -777,6 +783,7 @@ def test_frontend_scripts_reference_m39_api_endpoints_and_forms() -> None:
         "handoff-target-form",
         "local-project-handoff-form",
         "orchestration-form",
+        "autonomy-form",
         "escalation-form",
     ):
         assert form_id in combined_text
@@ -784,6 +791,7 @@ def test_frontend_scripts_reference_m39_api_endpoints_and_forms() -> None:
         "bootstrap-refresh-status",
         "bootstrap-refresh-plan",
         "bootstrap-apply",
+        "autonomy-reset",
         "reports-refresh",
         "reports-copy-json",
         "reports-export-json",
@@ -1752,6 +1760,16 @@ def test_get_orchestration_plan_returns_plan_only_with_empty_inputs(tmp_path: Pa
     assert isinstance(payload["selected_work_items"], list)
     assert "recommended_assignments" in payload
     assert payload["boundary_confirmations"]
+
+
+def test_get_hub_autonomy_control_center_returns_read_only_data(tmp_path: Path) -> None:
+    payload = get_hub_autonomy_control_center_data(_config(tmp_path), {"project_id": "aresforge"})
+    assert payload["record_type"] == "hub_autonomy_control_center_v1"
+    assert payload["local_only"] is True
+    assert payload["github_execution_performed"] is False
+    assert payload["codex_execution_performed"] is False
+    assert payload["patch_application_performed"] is False
+    assert payload["unsafe_actions_available"] is False
 
 
 def test_post_orchestration_plan_supports_filters(tmp_path: Path) -> None:

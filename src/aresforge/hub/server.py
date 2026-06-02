@@ -39,6 +39,7 @@ from aresforge.hub.api import (
     get_local_queue_agent_summary,
     get_local_queue_routed_views,
     get_local_queue_routing_dashboard,
+    get_hub_autonomy_control_center_data,
     get_orchestration_run_monitor,
     get_orchestration_plan,
     get_operator_run_history,
@@ -771,6 +772,21 @@ def _build_handler(config: AppConfig, static_root: Path) -> type[BaseHTTPRequest
                         "run_id": query_values.get("run_id", [None])[0],
                         "history_path": query_values.get("history_path", [None])[0],
                         "artifacts_root": query_values.get("artifacts_root", [None])[0],
+                    },
+                )
+                _render_json(self, _status_from_payload(payload), payload)
+                return True
+            if method == "GET" and path == "/api/autonomy/control-center":
+                payload = get_hub_autonomy_control_center_data(
+                    config,
+                    {
+                        "project_id": query_values.get("project_id", [None])[0],
+                        "item_id": query_values.get("item_id", [None])[0],
+                        "run_id": query_values.get("run_id", [None])[0],
+                        "queue_path": query_values.get("queue_path", [None])[0],
+                        "history_path": query_values.get("history_path", [None])[0],
+                        "artifacts_root": query_values.get("artifacts_root", [None])[0],
+                        "autonomy_profile": query_values.get("autonomy_profile", [None])[0],
                     },
                 )
                 _render_json(self, _status_from_payload(payload), payload)

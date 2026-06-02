@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-06-02T03:30:00Z",
+  "updated_at": "2026-06-02T04:15:00Z",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -7638,6 +7638,130 @@
       "closeout_history": [],
       "created_at": "2026-06-02T03:00:00Z",
       "updated_at": "2026-06-02T03:30:00Z"
+    },
+    {
+      "item_id": "m167-hub-autonomy-control-center-v1",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M167 Hub Autonomy Control Center v1",
+      "description": "Add a Hub control center for autonomy profile, orchestration run store, run evidence, GitHub sync status, gates, and next safe actions.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "dashboard",
+      "tags": [
+        "milestone:m167",
+        "hub-autonomy-control-center",
+        "github-loop",
+        "read-only",
+        "machine-gated"
+      ],
+      "dependencies": [
+        "m166-pull-request-draft-summary-generator"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [
+        "tests_run",
+        "smoke_checks",
+        "hub_autonomy_control_center_payload",
+        "machine_gate_results"
+      ],
+      "evidence_required": [
+        "autonomy_profile",
+        "run_store_status",
+        "orchestration_runs",
+        "evidence_bundles",
+        "github_sync_status",
+        "issue_closure_recommendations",
+        "pr_draft_summaries",
+        "machine_gates",
+        "non_mutation_flags"
+      ],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: add inspect-hub-autonomy-control-center-data and Hub UI/API surface; deterministic hub_autonomy_control_center_v1 JSON; surface autonomy profile, run store status, orchestration runs, evidence bundles, GitHub sync plans/status, issue closure recommendations, PR draft summaries, machine gates, and next safe action; avoid unsafe execute buttons; high-risk actions are dry-run labels or future-gated recommendations only; no queue mutation, Codex, model, source patch, GitHub mutation, PR merge, protected branch update, force push, auto-merge, release, workflow mutation, retry, resume, or next-item execution.",
+      "started_at": "2026-06-02T04:00:00Z",
+      "started_via": "local_operator",
+      "previous_status": "ready",
+      "completed_at": "2026-06-02T04:15:00Z",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M167 Hub Autonomy Control Center v1 implemented and validated locally. Added inspect-hub-autonomy-control-center-data with stable hub_autonomy_control_center_v1 JSON, Hub API endpoint, Hub UI Autonomy panel, read-only aggregation of autonomy profile, durable run-store status, orchestration run monitor data, evidence bundle discovery, GitHub issue sync dry-run status, issue closure recommendation, PR draft summary discovery, machine gates, dry-run labels, source-of-truth docs, CLI coverage, targeted tests, and queue evidence. The control center performs no GitHub mutation, PR creation/update/merge, issue closure, queue mutation, Codex execution, local LLM/model execution, source patch application, validation command execution, protected branch update, force push, auto-merge, release, workflow mutation, retry, resume, or next-item execution.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 240 passed; python -m pytest tests/test_hub_ui_foundation.py -> 59 passed; python -m pytest tests/test_hub_autonomy_control_center.py -> 3 passed; python -m pytest tests/test_durable_orchestration_run_store.py -> 4 passed; git diff --check -> passed with CRLF warnings only; inspect-local-project-report passed; inspect-local-queue-agent-summary passed; inspect-project-queue --project-id aresforge passed with item_count=101; inspect-hub-autonomy-control-center-data passed with status=control_center_ready, machine_gates_passed=true for required read-only/profile gates, github_sync future-action gate displayed as status-only blocked, mutation_performed=false, queue_mutation_performed=false, codex_execution_performed=false, model_execution_performed=false, github_execution_performed=false, patch_application_performed=false, and local_only=true.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 240 passed",
+        "python -m pytest tests/test_hub_ui_foundation.py -> 59 passed",
+        "python -m pytest tests/test_hub_autonomy_control_center.py -> 3 passed",
+        "python -m pytest tests/test_durable_orchestration_run_store.py -> 4 passed",
+        "git diff --check -> passed with CRLF warnings only",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed",
+        "python -m aresforge inspect-project-queue --project-id aresforge -> passed",
+        "python -m aresforge inspect-hub-autonomy-control-center-data --project-id aresforge --format json -> passed"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/hub_autonomy_control_center.py",
+        "src/aresforge/cli.py",
+        "src/aresforge/hub/api.py",
+        "src/aresforge/hub/server.py",
+        "src/aresforge/hub/static/index.html",
+        "src/aresforge/hub/static/app.js",
+        "src/aresforge/hub/static/js/sections/autonomy.js",
+        "tests/test_hub_autonomy_control_center.py",
+        "tests/test_cli.py",
+        "tests/test_hub_ui_foundation.py",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
+        "docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
+        "docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md",
+        ".aresforge/queue/work_items.json"
+      ],
+      "artifact_paths": [],
+      "github_issue": {
+        "number": 167,
+        "url": "https://github.com/local/aresforge/issues/167",
+        "state": "open"
+      },
+      "completion_evidence": {
+        "command": "inspect-hub-autonomy-control-center-data",
+        "record_type": "hub_autonomy_control_center_v1",
+        "status": "control_center_ready",
+        "machine_gates_passed": true,
+        "mutation_performed": false,
+        "queue_mutation_performed": false,
+        "codex_execution_performed": false,
+        "model_execution_performed": false,
+        "github_execution_performed": false,
+        "patch_application_performed": false,
+        "local_only": true,
+        "unsafe_actions_available": false,
+        "commit_hash": "pending-final-commit",
+        "artifacts_created": []
+      },
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-06-02T04:00:00Z",
+      "updated_at": "2026-06-02T04:15:00Z"
     }
   ]
 }

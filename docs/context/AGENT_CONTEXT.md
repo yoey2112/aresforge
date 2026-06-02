@@ -1,5 +1,24 @@
 # AresForge Agent Context
 
+## M167 Hub Autonomy Control Center v1 Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m167-hub-autonomy-control-center-v1`.
+
+M167 adds `inspect-hub-autonomy-control-center-data`, a local read-only aggregator for Hub autonomy status.
+
+Command:
+
+- `python -m aresforge inspect-hub-autonomy-control-center-data --project-id aresforge --format json`
+
+Agent-facing guidance:
+
+- Treat `hub_autonomy_control_center_v1` output as status and review evidence only.
+- The control center composes autonomy profile state, durable run-store status, orchestration run monitor data, local evidence bundles, GitHub issue sync dry-run plans, issue closure recommendations, existing PR draft summaries, machine gates, and next safe actions.
+- `github_sync` future-action gate failures may appear as advisory status without authorizing live GitHub work.
+- Do not call GitHub, run `gh`, create/update/merge PRs, close issues, push, force push, update protected branches, enable auto-merge, create releases, mutate workflows, mutate queue state, run Codex, run models, apply patches, retry, resume, or start later sprint items from this output.
+
 ## M166 Pull Request Draft Summary Generator Context
 
 Status: Completed locally on `main` after validation.

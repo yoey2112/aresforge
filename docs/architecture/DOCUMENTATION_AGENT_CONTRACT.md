@@ -1,5 +1,11 @@
 # Documentation Agent Contract
 
+## M167 Hub Autonomy Control Center Boundary
+
+M167 does not add documentation-agent or source-code patch mutation. It may read local documentation/evidence artifact metadata and report whether source-of-truth docs or documentation-agent evidence are present, but it does not edit documentation through an agent, generate documentation patches, apply patches, call local LLMs, call Codex, call GitHub/`gh`, create/update/merge PRs, close issues, mutate queue state, retry failures, resume orchestration, or start follow-on work.
+
+Documentation mutation remains limited to separate explicit docs-only patch commands that pass their gates.
+
 ## M166 Pull Request Draft Summary Generator Boundary
 
 M166 does not add documentation-agent or source-code patch mutation. It may read local queue metadata, validation evidence, changed files, linked issue references, artifact paths, and Codex evidence bundle metadata to generate local PR summary artifacts, but it does not edit documentation through a documentation agent, generate documentation patches, apply patches, call local LLMs, call Codex, call GitHub/`gh`, create PRs, update PRs, push, merge, mutate queue state, mutate workflows, retry failures, resume orchestration, or start follow-on work.

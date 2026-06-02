@@ -35,6 +35,10 @@ import {
   loadOrchestrationPlan as loadOrchestrationPlanSection,
 } from "/js/sections/orchestration.js";
 import {
+  bindAutonomyActions,
+  loadAutonomyControlCenter as loadAutonomyControlCenterSection,
+} from "/js/sections/autonomy.js";
+import {
   bindReportsActions,
   copyExportText as copyExportTextSection,
   loadDashboardReport as loadDashboardReportSection,
@@ -684,6 +688,14 @@ async function loadQueue() {
   });
 }
 
+async function loadAutonomyControlCenter(filters) {
+  return loadAutonomyControlCenterSection(filters || {
+    project_id: "aresforge",
+    item_id: "m167-hub-autonomy-control-center-v1",
+    autonomy_profile: "github_sync_dry_run",
+  });
+}
+
 async function loadAgents() {
   setMessage("agents-message", "Loading agents...", "loading");
   const payload = await fetchJson("/api/agents");
@@ -1314,6 +1326,9 @@ async function init() {
     loadOrchestrationPlanForState: loadOrchestrationPlanSection,
     refreshSummaryAndReport,
   });
+  bindAutonomyActions({
+    loadAutonomyControlCenterForState: loadAutonomyControlCenter,
+  });
   bindEscalationActions({
     loadEscalationPlanForState: loadEscalationPlanSection,
     refreshSummaryAndReport,
@@ -1426,6 +1441,12 @@ async function init() {
     await loadOrchestrationPlanSection({}, false);
   } catch (error) {
     setMessage("orchestration-message", String(error.message || error), "error");
+  }
+
+  try {
+    await loadAutonomyControlCenter();
+  } catch (error) {
+    setMessage("autonomy-message", String(error.message || error), "error");
   }
 
   try {

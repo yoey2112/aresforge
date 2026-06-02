@@ -1,5 +1,11 @@
 # Local LLM Environment Contract
 
+## M167 Hub Autonomy Control Center Boundary
+
+M167 does not change local LLM permissions. The Hub Autonomy Control Center may read local LLM/model execution flags already present in evidence and run records, but it does not call Ollama, send prompts, run inference, select models, apply model output, mutate queue state, call Codex, call GitHub/`gh`, create/update/merge PRs, close issues, apply patches, retry failures, resume orchestration, or start follow-on work.
+
+Local LLM advisory execution remains limited to separate explicit local-provider commands and their machine gates.
+
 ## M166 Pull Request Draft Summary Generator Boundary
 
 M166 does not change local LLM permissions. It may generate local JSON and Markdown draft PR summary artifacts from queue evidence, Codex evidence bundle metadata, changed files, validation output, linked issue references, risks, rollback notes, and artifact paths, but it does not call Ollama, send prompts, run inference, select fallback local models, mutate repository files from model output, mutate queue state, call Codex, call GitHub/`gh`, create PRs, update PRs, merge PRs, apply patches, retry failures, resume orchestration, or start follow-on work.

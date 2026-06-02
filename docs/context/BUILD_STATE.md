@@ -1,5 +1,24 @@
 # AresForge Build State
 
+## M167 Hub Autonomy Control Center v1
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m167-hub-autonomy-control-center-v1`.
+
+M167 adds a read-only Hub Autonomy Control Center:
+
+- `python -m aresforge inspect-hub-autonomy-control-center-data --project-id aresforge --format json`
+- stable `hub_autonomy_control_center_v1` JSON
+- Hub API visibility through `GET /api/autonomy/control-center`
+- Hub UI panel for autonomy profile, durable run-store status, orchestration runs, evidence bundles, GitHub issue sync plans/status, issue closure recommendations, PR draft summaries, machine gates, and next safe actions
+
+Safety posture:
+
+- the control center performs no GitHub mutation, PR creation/update/merge, issue closure, queue mutation, Codex execution, model execution, source patch application, validation command execution, retry, resume, release creation, workflow mutation, protected-branch update, force push, auto-merge, or automatic next-item execution
+- high-risk and future actions are surfaced only as dry-run labels or future-gated recommendations
+- future-action gates such as `github_sync` are displayed as advisory gate status; read-only/profile gates control the control center's own readiness
+
 ## M166 Pull Request Draft Summary Generator
 
 Status: Completed locally on `main` after validation.

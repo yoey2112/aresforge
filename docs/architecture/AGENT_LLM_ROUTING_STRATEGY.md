@@ -1,5 +1,11 @@
 # Agent LLM Routing Strategy
 
+## M167 Hub Autonomy Control Center Routing Boundary
+
+M167 adds no new agent, local LLM, Codex, or live GitHub route. It adds a local Hub/CLI aggregation route that reads autonomy profile, durable run-store, orchestration monitor, local evidence, GitHub issue sync plan, issue closure recommendation, and PR draft summary artifact state.
+
+The control center reports dry-run and future-gated next actions only. It does not dispatch agents, call local/cloud models, invoke Codex, call GitHub or `gh`, create/update/merge PRs, close issues, mutate queue state, apply patches, retry, resume, or start follow-on work.
+
 ## M166 Pull Request Draft Summary Generator Routing Boundary
 
 M166 does not add a new agent, local LLM, Codex, or live GitHub route. It adds a local PR summary artifact route for one queue item based on queue context, Codex evidence bundle metadata when present, changed files, validation output, artifact paths, linked issue references, risks, rollback notes, and machine gates.

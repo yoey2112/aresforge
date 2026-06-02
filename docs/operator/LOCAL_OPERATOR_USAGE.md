@@ -1,5 +1,19 @@
 # Local Operator Usage
 
+## M167 Hub Autonomy Control Center v1
+
+Inspect the local autonomy control center:
+
+- `python -m aresforge inspect-hub-autonomy-control-center-data --project-id aresforge --format json`
+
+The command returns `hub_autonomy_control_center_v1` JSON for Hub/operator review. It surfaces the selected autonomy profile, durable run-store status, orchestration runs, evidence bundles, GitHub issue sync dry-run status, issue closure recommendations, PR draft summaries, machine gates, and next safe actions.
+
+Hub route:
+
+- `GET /api/autonomy/control-center`
+
+M167 is read-only by default. It does not call GitHub or `gh`, create/update/merge PRs, close issues, push, force push, update protected branches, enable auto-merge, create releases, mutate workflows, mutate queue state, run Codex, run models, apply patches, retry, resume, or start another item. High-risk actions appear only as dry-run or future-gated labels.
+
 ## M166 Pull Request Draft Summary Generator
 
 M166 generates local draft PR summary artifacts. It never creates or updates a pull request.

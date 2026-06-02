@@ -27,6 +27,7 @@
         <button class="nav-item" data-section="agents">Agents</button>
         <button class="nav-item" data-section="handoff">Handoff</button>
         <button class="nav-item" data-section="orchestration">Orchestration</button>
+        <button class="nav-item" data-section="autonomy">Autonomy</button>
         <button class="nav-item" data-section="escalation">Escalation</button>
         <button class="nav-item" data-section="reports">Reports</button>
         <button class="nav-item" data-section="settings">Settings</button>
@@ -1727,6 +1728,67 @@
             <h3>Next Actions</h3>
             <ul id="orchestration-actions" class="list"></ul>
             <p id="orchestration-actions-empty" class="empty">No next actions.</p>
+          </section>
+        </section>
+
+        <section id="panel-autonomy" class="panel" data-panel="autonomy">
+          <h2>Autonomy Control Center</h2>
+          <p>Local status center for autonomy profile, run evidence, GitHub sync plans, gates, and next safe actions.</p>
+          <p class="boundary-banner">Read-only by default: high-risk actions are dry-run labels or future-gated recommendations only.</p>
+          <p id="autonomy-message" class="message"></p>
+          <form id="autonomy-form" class="form-inline">
+            <input id="autonomy-project-id" name="project_id" value="aresforge" placeholder="project_id" />
+            <input id="autonomy-item-id" name="item_id" value="m167-hub-autonomy-control-center-v1" placeholder="item_id" />
+            <input id="autonomy-run-id" name="run_id" placeholder="run_id" />
+            <input id="autonomy-profile-input" name="autonomy_profile" value="github_sync_dry_run" placeholder="autonomy_profile" />
+            <button type="submit">Refresh Control Center</button>
+            <button id="autonomy-reset" type="button">Use Defaults</button>
+          </form>
+          <div class="cards">
+            <article class="card"><h3>Status</h3><p id="autonomy-status">unknown</p></article>
+            <article class="card"><h3>Autonomy Profile</h3><p id="autonomy-profile">unknown</p></article>
+            <article class="card"><h3>Run Store</h3><p id="autonomy-run-store">unknown</p></article>
+            <article class="card"><h3>GitHub Sync</h3><p id="autonomy-github-sync">unknown</p></article>
+            <article class="card"><h3>Issue Closure</h3><p id="autonomy-closure">unknown</p></article>
+          </div>
+          <section class="subpanel">
+            <h3>Machine Gates</h3>
+            <ul id="autonomy-gates" class="list"></ul>
+            <p id="autonomy-gates-empty" class="empty">No gate data available.</p>
+          </section>
+          <section class="subpanel">
+            <h3>Orchestration Runs</h3>
+            <ul id="autonomy-runs" class="list"></ul>
+            <p id="autonomy-runs-empty" class="empty">No orchestration runs available.</p>
+          </section>
+          <section class="subpanel">
+            <h3>Evidence Bundles</h3>
+            <ul id="autonomy-evidence" class="list"></ul>
+            <p id="autonomy-evidence-empty" class="empty">No evidence bundles discovered.</p>
+          </section>
+          <section class="subpanel">
+            <h3>PR Draft Summaries</h3>
+            <ul id="autonomy-pr-drafts" class="list"></ul>
+            <p id="autonomy-pr-drafts-empty" class="empty">No PR draft summaries discovered.</p>
+          </section>
+          <section class="subpanel">
+            <h3>GitHub Sync Recommendations</h3>
+            <ul id="autonomy-github-recommendations" class="list"></ul>
+            <p id="autonomy-github-recommendations-empty" class="empty">No GitHub sync recommendations available.</p>
+          </section>
+          <section class="subpanel">
+            <h3>Next Safe Actions</h3>
+            <p id="autonomy-next-safe-action" class="placeholder">No next safe action loaded.</p>
+            <ul id="autonomy-safe-actions" class="list"></ul>
+            <p id="autonomy-safe-actions-empty" class="empty">No safe actions available.</p>
+          </section>
+          <section class="subpanel">
+            <h3>Blockers</h3>
+            <ul id="autonomy-blockers" class="list"></ul>
+            <p id="autonomy-blockers-empty" class="empty">No blockers.</p>
+            <h3>Warnings</h3>
+            <ul id="autonomy-warnings" class="list"></ul>
+            <p id="autonomy-warnings-empty" class="empty">No warnings.</p>
           </section>
         </section>
 
