@@ -189,6 +189,7 @@ def test_cli_has_expected_commands() -> None:
         "plan-github-sync",
         "plan-github-issue-sync",
         "create-github-issue-for-safe-queue-item",
+        "sync-github-issue-status-comment",
         "plan-agent-orchestration",
         "init-project-state",
         "add-local-queue-item",
@@ -9043,6 +9044,99 @@ def test_create_github_issue_for_safe_queue_item_dispatch_json(
         "github_enabled": False,
         "autonomy_profile": "github_sync_dry_run",
         "repo": "local/aresforge",
+        "output": None,
+        "force": False,
+        "output_format": "json",
+    }
+
+
+def test_sync_github_issue_status_comment_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "record_type": "github_issue_status_comment_sync_v1",
+                "item_id": "m164-github-issue-status-comment-sync",
+                "status": "dry_run_ready",
+                "github_execution_performed": False,
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_sync(
+        _config,
+        *,
+        item_id,
+        project_id="aresforge",
+        queue_path=None,
+        run_id=None,
+        dry_run=True,
+        github_enabled=False,
+        autonomy_profile="github_sync_dry_run",
+        repo=None,
+        issue_number=None,
+        output=None,
+        force=False,
+        output_format="json",
+    ):
+        seen.update(
+            {
+                "item_id": item_id,
+                "project_id": project_id,
+                "queue_path": queue_path,
+                "run_id": run_id,
+                "dry_run": dry_run,
+                "github_enabled": github_enabled,
+                "autonomy_profile": autonomy_profile,
+                "repo": repo,
+                "issue_number": issue_number,
+                "output": output,
+                "force": force,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "sync_github_issue_status_comment", fake_sync)
+    exit_code = cli.main(
+        [
+            "sync-github-issue-status-comment",
+            "--item-id",
+            "m164-github-issue-status-comment-sync",
+            "--project-id",
+            "aresforge",
+            "--queue-path",
+            "queue.json",
+            "--run-id",
+            "run-164",
+            "--issue-number",
+            "164",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["record_type"] == "github_issue_status_comment_sync_v1"
+    assert parsed["github_execution_performed"] is False
+    assert seen == {
+        "item_id": "m164-github-issue-status-comment-sync",
+        "project_id": "aresforge",
+        "queue_path": "queue.json",
+        "run_id": "run-164",
+        "dry_run": True,
+        "github_enabled": False,
+        "autonomy_profile": "github_sync_dry_run",
+        "repo": None,
+        "issue_number": 164,
         "output": None,
         "force": False,
         "output_format": "json",

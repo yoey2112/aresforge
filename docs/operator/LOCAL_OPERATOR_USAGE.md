@@ -1,5 +1,27 @@
 # Local Operator Usage
 
+## M164 GitHub Issue Status Comment Sync
+
+M164 prepares or performs synchronization of one marked GitHub issue status comment for one local queue item. Dry-run is the default operator path.
+
+Dry-run the M164 item:
+
+    python -m aresforge sync-github-issue-status-comment --item-id m164-github-issue-status-comment-sync --dry-run --format json
+
+Live status comment sync requires explicit GitHub enablement and the live autonomy profile:
+
+    python -m aresforge sync-github-issue-status-comment --item-id <item_id> --github-enabled --autonomy-profile github_issue_sync_enabled --issue-number <number> --format json
+
+Interpretation:
+
+- `record_type=github_issue_status_comment_sync_v1` identifies the M164 payload.
+- `status_comment_body` is the marked comment body that can be created or updated.
+- `queue_summary`, `orchestration_run_summary`, `validation_evidence`, `artifact_links_or_paths`, and `machine_gate_status` explain what evidence the comment contains.
+- `machine_gates_checked` reports the read-only gate for dry-run and the `github_sync` gate for live sync.
+- `status_comment_synced=true` and `github_execution_performed=true` can occur only on the explicit live path after all gates pass.
+
+M164 does not mutate the local queue, merge PRs, update protected branches, force push, enable auto-merge, create releases, mutate workflows, run Codex, run models, apply patches, retry, resume, or start another item.
+
 ## M163 GitHub Issue Creation for Safe Queue Items
 
 M163 prepares or performs creation of one GitHub issue for one safe local queue item. Dry-run is the default operator path.

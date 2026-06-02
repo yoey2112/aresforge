@@ -1,5 +1,25 @@
 # AresForge Roadmap
 
+## M164 GitHub Issue Status Comment Sync
+
+Status: Completed locally on `main` after validation.
+
+M164 hardens the self-managed GitHub loop with:
+
+- `python -m aresforge sync-github-issue-status-comment --item-id m164-github-issue-status-comment-sync --dry-run --format json`
+- deterministic `github_issue_status_comment_sync_v1` output
+- marked status comment body generation for GitHub issue create/update sync
+- queue status, orchestration run summary, validation evidence, artifact links/paths, machine gate status, and next safe action in the comment body
+- M162 linked-issue detection, M158 autonomy profile allowance, and M131 `github_sync` gate composition before live comment sync
+- mocked GitHub comment create/update support for deterministic tests without live network access
+- explicit non-mutation flags for queue, Codex, model, and patch behavior
+
+Boundary:
+
+- dry-run by default
+- live status comment sync requires `--github-enabled`, non-dry-run behavior, `github_issue_sync_enabled` autonomy profile, linked issue metadata or `--issue-number`, safe queue item status, and a passing `github_sync` machine gate
+- no queue mutation, Codex, local LLM/model, source patch application, validation command execution, PR merge, force push, protected-branch update, auto-merge, release creation, workflow mutation, retry, resume, or automatic next-item execution
+
 ## M163 GitHub Issue Creation for Safe Queue Items
 
 Status: Completed locally on `main` after validation.

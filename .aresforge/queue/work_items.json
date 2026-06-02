@@ -7284,6 +7284,118 @@
       "closeout_history": [],
       "created_at": "2026-06-02T01:06:00Z",
       "updated_at": "2026-06-02T01:07:17Z"
+    },
+    {
+      "item_id": "m164-github-issue-status-comment-sync",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M164 GitHub Issue Status Comment Sync",
+      "description": "Post or update GitHub issue status comments with queue state, run evidence, validation results, artifact links or paths, machine gate status, and next safe action.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "sync",
+      "tags": [
+        "milestone:m164",
+        "github-issue-sync",
+        "status-comment",
+        "machine-gated"
+      ],
+      "dependencies": [
+        "m163-github-issue-creation-for-safe-queue-items"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [
+        "tests_run",
+        "smoke_checks",
+        "github_issue_status_comment_dry_run",
+        "machine_gate_results"
+      ],
+      "evidence_required": [
+        "queue_status",
+        "orchestration_run_summary",
+        "validation_evidence",
+        "artifact_links_or_paths",
+        "machine_gate_status",
+        "next_safe_action",
+        "mocked_github_comment_create_update",
+        "non_mutation_flags"
+      ],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: add sync-github-issue-status-comment; deterministic github_issue_status_comment_sync_v1 JSON; status comment body includes queue status, orchestration run summary, validation evidence, artifact links/paths, machine gate status, and next safe action; dry-run by default; live sync requires --github-enabled, autonomy_profile=github_issue_sync_enabled, linked issue metadata or --issue-number, safe queue item status, and passing github_sync machine gate; tests mock GitHub; no queue mutation, Codex, model, source patch, PR merge, protected branch update, force push, auto-merge, release, workflow mutation, retry, resume, or next-item execution.",
+      "started_at": "2026-06-02T01:20:00Z",
+      "started_via": "local_operator",
+      "previous_status": "ready",
+      "completed_at": "2026-06-02T01:22:00Z",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M164 GitHub Issue Status Comment Sync implemented and validated locally. Added sync-github-issue-status-comment with stable github_issue_status_comment_sync_v1 JSON, dry-run-by-default behavior, status comment marker/body composition, queue status summary, orchestration run monitor summary, validation evidence, artifact references, M158 autonomy profile allowance, M131 github_sync machine-gate enforcement, mocked GitHub status comment create/update tests, source-of-truth docs, CLI coverage, and queue evidence. Live status comment sync requires --github-enabled, autonomy_profile=github_issue_sync_enabled, linked issue metadata or --issue-number, safe queue item status, and passing machine gates. The command performs no queue mutation, Codex, local LLM/model, source patch application, validation command execution, PR merge, protected branch update, force push, auto-merge, release, workflow mutation, retry, resume, or next-item execution.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 237 passed; python -m pytest tests/test_github_issue_status_comment_sync.py -> 6 passed; python -m pytest tests/test_github_issue_creation_for_safe_queue_items.py -> 5 passed; git diff --check -> passed with CRLF warnings only; inspect-local-project-report passed; inspect-local-queue-agent-summary passed; inspect-project-queue --project-id aresforge passed with item_count=98; sync-github-issue-status-comment --dry-run passed with status=dry_run_ready, machine_gates_passed=true, mutation_performed=false, queue_mutation_performed=false, codex_execution_performed=false, model_execution_performed=false, github_execution_performed=false, patch_application_performed=false, and local_only=true.",
+      "tests_run": [
+        "python -m pytest tests/test_github_issue_status_comment_sync.py -> 6 passed",
+        "python -m pytest tests/test_cli.py -> 237 passed",
+        "python -m pytest tests/test_github_issue_creation_for_safe_queue_items.py -> 5 passed",
+        "git diff --check -> passed with CRLF warnings only",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed",
+        "python -m aresforge inspect-project-queue --project-id aresforge -> passed",
+        "python -m aresforge sync-github-issue-status-comment --item-id m164-github-issue-status-comment-sync --dry-run --format json -> passed"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/github_issue_status_comment_sync.py",
+        "src/aresforge/cli.py",
+        "tests/test_github_issue_status_comment_sync.py",
+        "tests/test_cli.py",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
+        "docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
+        "docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md",
+        ".aresforge/queue/work_items.json"
+      ],
+      "artifact_paths": [
+        "artifacts/github_issue_status_comment_sync/gates (live-path preflight records; ignored runtime evidence, created only for real gated attempts)",
+        ".aresforge/github_issue_status_comments/m164.json (optional output path; default command writes no artifact)"
+      ],
+      "completion_evidence": {
+        "command": "sync-github-issue-status-comment",
+        "record_type": "github_issue_status_comment_sync_v1",
+        "status": "dry_run_ready",
+        "machine_gates_passed": true,
+        "mutation_performed": false,
+        "queue_mutation_performed": false,
+        "codex_execution_performed": false,
+        "model_execution_performed": false,
+        "github_execution_performed": false,
+        "patch_application_performed": false,
+        "local_only": true,
+        "status_comment_synced": false,
+        "commit_hash": "pending-final-commit"
+      },
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-06-02T01:20:00Z",
+      "updated_at": "2026-06-02T01:22:00Z"
     }
   ]
 }

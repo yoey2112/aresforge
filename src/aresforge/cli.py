@@ -169,6 +169,7 @@ from aresforge.operator.github_issue_sync_plan import plan_github_issue_sync
 from aresforge.operator.github_issue_creation_for_safe_queue_items import (
     create_github_issue_for_safe_queue_item,
 )
+from aresforge.operator.github_issue_status_comment_sync import sync_github_issue_status_comment
 from aresforge.operator.local_milestone_lifecycle import (
     check_local_milestone_readiness,
     generate_local_milestone_closeout,
@@ -1311,6 +1312,27 @@ def build_parser() -> argparse.ArgumentParser:
     github_issue_creation_parser.add_argument("--output")
     github_issue_creation_parser.add_argument("--force", action="store_true")
     github_issue_creation_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+        help="Output format for file writes or stdout rendering.",
+    )
+    github_issue_status_comment_parser = subparsers.add_parser(
+        "sync-github-issue-status-comment",
+        help="Create or update one GitHub issue status comment only when explicit gates pass; dry-run by default.",
+    )
+    github_issue_status_comment_parser.add_argument("--item-id", required=True)
+    github_issue_status_comment_parser.add_argument("--project-id", default="aresforge")
+    github_issue_status_comment_parser.add_argument("--queue-path")
+    github_issue_status_comment_parser.add_argument("--run-id")
+    github_issue_status_comment_parser.add_argument("--dry-run", action="store_true")
+    github_issue_status_comment_parser.add_argument("--github-enabled", action="store_true")
+    github_issue_status_comment_parser.add_argument("--autonomy-profile", default="github_sync_dry_run")
+    github_issue_status_comment_parser.add_argument("--repo")
+    github_issue_status_comment_parser.add_argument("--issue-number", type=int)
+    github_issue_status_comment_parser.add_argument("--output")
+    github_issue_status_comment_parser.add_argument("--force", action="store_true")
+    github_issue_status_comment_parser.add_argument(
         "--format",
         choices=["json"],
         default="json",
@@ -4676,6 +4698,28 @@ def main(argv: list[str] | None = None) -> int:
             github_enabled=bool(args.github_enabled),
             autonomy_profile=args.autonomy_profile,
             repo=args.repo,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "sync-github-issue-status-comment":
+        payload = sync_github_issue_status_comment(
+            config,
+            item_id=args.item_id,
+            project_id=args.project_id,
+            queue_path=args.queue_path,
+            run_id=args.run_id,
+            dry_run=bool(args.dry_run) or not bool(args.github_enabled),
+            github_enabled=bool(args.github_enabled),
+            autonomy_profile=args.autonomy_profile,
+            repo=args.repo,
+            issue_number=args.issue_number,
             output=args.output,
             force=bool(args.force),
             output_format=args.format,

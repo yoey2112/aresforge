@@ -1,5 +1,20 @@
 # Runnable Skeleton
 
+## M164 GitHub Issue Status Comment Sync
+
+M164 adds a dry-run-default status comment sync command:
+
+- `python -m aresforge sync-github-issue-status-comment --item-id m164-github-issue-status-comment-sync --dry-run --format json`
+
+The command returns `github_issue_status_comment_sync_v1` JSON. It reads one local queue item, reuses M162 linked-issue metadata, reads M153 orchestration monitor evidence, inspects the selected autonomy profile, builds a marked status comment body, and checks machine gates before any live comment create/update can occur.
+
+Runnable boundary:
+
+- dry-run by default and safe for local smoke checks
+- live status comment sync requires `--github-enabled`, no `--dry-run`, `--autonomy-profile github_issue_sync_enabled`, linked issue metadata or `--issue-number`, safe queue item status, and a passing `github_sync` machine gate
+- optional `--output` writes one local JSON artifact
+- no queue mutation, Codex, local LLM/model, source patch application, validation command execution, PR merge, protected branch update, force push, auto-merge, release, workflow mutation, retry, resume, or next-item execution is performed
+
 ## M163 GitHub Issue Creation for Safe Queue Items
 
 M163 adds a dry-run-default issue creation command:

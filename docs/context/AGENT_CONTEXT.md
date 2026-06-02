@@ -1,5 +1,24 @@
 # AresForge Agent Context
 
+## M164 GitHub Issue Status Comment Sync Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m164-github-issue-status-comment-sync`.
+
+M164 adds `sync-github-issue-status-comment`, a dry-run-default command that creates or updates exactly one marked GitHub issue status comment only after explicit GitHub enablement and machine gates pass.
+
+Command:
+
+- `python -m aresforge sync-github-issue-status-comment --item-id m164-github-issue-status-comment-sync --dry-run --format json`
+
+Agent-facing guidance:
+
+- Treat `github_issue_status_comment_sync_v1` dry-run output as review evidence only.
+- The generated `status_comment_body` includes queue status, orchestration run summary, validation evidence, artifact links/paths, machine gate status, and next safe action.
+- Live comment sync requires `--github-enabled`, non-dry-run behavior, `autonomy_profile=github_issue_sync_enabled`, linked issue metadata or `--issue-number`, safe queue item status, and a passing `github_sync` machine gate.
+- Do not merge PRs, update protected branches, force push, enable auto-merge, create releases, mutate workflows, run Codex/models, apply patches, mutate queue state, retry, resume, or start later sprint items from this output.
+
 ## M163 GitHub Issue Creation for Safe Queue Items Context
 
 Status: Completed locally on `main` after validation.

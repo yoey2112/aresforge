@@ -1,5 +1,25 @@
 # AresForge Build State
 
+## M164 GitHub Issue Status Comment Sync
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m164-github-issue-status-comment-sync`.
+
+M164 adds a dry-run-default GitHub issue status comment sync command:
+
+- `python -m aresforge sync-github-issue-status-comment --item-id m164-github-issue-status-comment-sync --dry-run --format json`
+- stable `github_issue_status_comment_sync_v1` JSON
+- composes local queue status, M153 orchestration run monitor evidence, validation evidence, artifact links/paths, M162 linked-issue planning, M158 autonomy profile policy, and M131 machine gates
+- generates a marked status comment body for create/update synchronization
+- supports mocked live create/update only when explicit GitHub enablement, `github_issue_sync_enabled` autonomy profile, linked issue metadata or `--issue-number`, safe queue status, and machine gates pass
+
+Safety posture:
+
+- dry-run remains the default and performs no GitHub mutation
+- live status comment sync is one-item/one-comment scoped and requires `--github-enabled`, non-dry-run invocation, `autonomy_profile=github_issue_sync_enabled`, a linked issue number or `--issue-number`, safe queue status, and a passing `github_sync` machine gate
+- the command performs no queue mutation, Codex execution, local LLM/model execution, source patch application, validation command execution, PR merge, protected branch update, force push, auto-merge, release creation, workflow mutation, retry, resume, or automatic next-item execution
+
 ## M163 GitHub Issue Creation for Safe Queue Items
 
 Status: Completed locally on `main` after validation.

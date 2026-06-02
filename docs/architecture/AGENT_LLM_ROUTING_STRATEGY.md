@@ -1,5 +1,18 @@
 # Agent LLM Routing Strategy
 
+## M164 GitHub Issue Status Comment Sync Routing Boundary
+
+M164 does not add a new agent, local LLM, or Codex route. It adds a narrow GitHub issue status comment sync route for one queue item, using local queue status, run monitor evidence, validation evidence, artifact references, and machine gates.
+
+Routing rules:
+
+- default routing is dry-run status comment evidence only
+- real GitHub routing requires `--github-enabled`, `github_issue_sync_enabled` autonomy profile, linked issue metadata or `--issue-number`, safe queue item status, and a passing `github_sync` machine gate
+- missing, blocked, cancelled, unsafe-status, or gate-blocked queue items route to blocked output before any GitHub client call
+- synced comment metadata routes to operator review only; queue completion or issue-link mutation remains a separate explicit future action
+
+M164 reports no agent execution, no model execution, no Codex execution, no source patch application, and no queue mutation. `github_execution_performed=true` can appear only on the explicit live status comment sync path after gates pass.
+
 ## M163 GitHub Issue Creation Routing Boundary
 
 M163 does not add a new agent, local LLM, or Codex route. It adds a narrow GitHub issue creation route for one safe queue item, using local M162 issue draft metadata and machine gates.
