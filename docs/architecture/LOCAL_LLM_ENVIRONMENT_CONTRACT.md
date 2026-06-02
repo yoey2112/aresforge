@@ -1,5 +1,11 @@
 # Local LLM Environment Contract
 
+## M173 GitHub Status Comment Durable Sync Boundary
+
+M173 does not change local LLM permissions. It may inspect queue metadata, issue sync plans, orchestration run evidence, autonomy profile policy, machine gates, and the local GitHub link registry, and it may create or update one GitHub issue status comment only on the explicit gated live path, but it does not call Ollama, send prompts, run inference, select fallback local models, mutate repository files from model output, mutate queue status, call Codex, apply patches, run validation commands, retry failures, resume orchestration, or start follow-on work.
+
+Local LLM advisory execution remains limited to separate explicit local-provider commands and their machine gates. M173 records durable status-comment sync evidence and, on successful live sync, local registry comment metadata only.
+
 ## M172 Queue-to-GitHub Issue Backfill Boundary
 
 M172 does not change local LLM permissions. It may inspect queue metadata, issue sync plans, autonomy profile policy, machine gates, and the local GitHub link registry, and it may create gated GitHub issues only on the explicit live path, but it does not call Ollama, send prompts, run inference, select fallback local models, mutate repository files from model output, mutate queue status, call Codex, apply patches, run validation commands, retry failures, resume orchestration, or start follow-on work.

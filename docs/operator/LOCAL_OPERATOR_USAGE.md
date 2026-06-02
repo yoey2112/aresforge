@@ -1,5 +1,25 @@
 # Local Operator Usage
 
+## M173 GitHub Status Comment Durable Sync
+
+Dry-run one durable status comment sync:
+
+- `python -m aresforge sync-github-status-comment-durable --item-id m173-github-status-comment-durable-sync --dry-run --format json`
+
+Explicit live path, only when an operator intends gated comment create/update:
+
+- `python -m aresforge sync-github-status-comment-durable --item-id <item_id> --github-enabled --autonomy-profile github_issue_sync_enabled --repo <owner/repo> --format json`
+
+Interpretation:
+
+- `record_type=github_status_comment_durable_sync_v1` identifies the M173 payload.
+- `dry_run=true` or `blocked=true` means no GitHub comment was created or updated.
+- `status_comment_body` is the managed body containing queue state, run state, validation evidence, artifact paths, machine gates, and next safe action.
+- `managed_comment_id` comes from the local registry when present, or from the created/found comment after live sync.
+- `registry_mutation_performed=true` means only `.aresforge/github_link_registry/links.json` was updated with durable comment metadata.
+
+M173 performs no PR merge, auto-merge, force push, protected branch update, release creation, workflow mutation, issue closure, source-code patch application, queue status mutation, Codex execution, model execution, validation command execution, retry, resume, or automatic next-item execution.
+
 ## M172 Queue-to-GitHub Issue Backfill
 
 Dry-run the queue backfill plan:

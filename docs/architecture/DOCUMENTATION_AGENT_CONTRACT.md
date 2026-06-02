@@ -1,5 +1,11 @@
 # Documentation Agent Contract
 
+## M173 Documentation Agent Boundary
+
+M173 does not add documentation-agent or source-code patch mutation. It may update source-of-truth documentation for the milestone, inspect local queue and registry metadata, and create/update one managed GitHub status comment only on the explicit gated live path, but it does not edit documentation through a documentation agent, generate documentation patches, apply patches, call local LLMs, call Codex, create/update/merge PRs, close issues, mutate queue status, run validation commands, retry failures, resume orchestration, or start follow-on work.
+
+Documentation mutation remains limited to separate explicit docs-only patch commands that pass their gates. M173 output cannot authorize documentation-agent execution, source patch mutation, queue status mutation, Codex/model execution, PR mutation, issue closure, or protected GitHub operations.
+
 ## M172 Documentation Agent Boundary
 
 M172 does not add documentation-agent or source-code patch mutation. It may update source-of-truth documentation for the milestone, inspect local queue and registry metadata, and create gated GitHub issues only on the explicit live path, but it does not edit documentation through a documentation agent, generate documentation patches, apply patches, call local LLMs, call Codex, create/update/merge PRs, close issues, mutate queue status, run validation commands, retry failures, resume orchestration, or start follow-on work.

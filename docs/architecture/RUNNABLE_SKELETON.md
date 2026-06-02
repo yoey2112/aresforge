@@ -1,5 +1,21 @@
 # Runnable Skeleton
 
+## M173 GitHub Status Comment Durable Sync
+
+- `python -m aresforge sync-github-status-comment-durable --item-id m173-github-status-comment-durable-sync --dry-run --format json`
+- emits `github_status_comment_durable_sync_v1`
+- reads local queue metadata, issue sync planning, orchestration run monitor evidence, autonomy profile policy, machine gates, and the GitHub link registry
+- composes one managed status comment body with queue, run, validation, artifact, gate, and next-action sections
+- defaults to dry-run unless `--github-enabled` is supplied
+- live sync stores `comment_id` and `comment_url` in the local GitHub link registry after successful create/update
+- future live syncs update by durable registry `comment_id` when available
+
+Runnable boundary:
+
+- dry-run or blocked by default
+- one issue status comment maximum per invocation
+- no queue status mutation, PR merge, auto-merge, force push, protected branch update, release creation, workflow mutation, issue closure, Codex execution, local LLM/model execution, source patch application, validation command execution, retry, resume, or automatic next-item execution
+
 ## M172 Queue-to-GitHub Issue Backfill
 
 - `python -m aresforge backfill-queue-items-to-github-issues --project-id aresforge --dry-run --format json`

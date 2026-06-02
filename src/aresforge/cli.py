@@ -172,6 +172,7 @@ from aresforge.operator.github_issue_creation_for_safe_queue_items import (
 from aresforge.operator.github_issue_creation_real_run_gate import create_github_issue_real_run_gate
 from aresforge.operator.queue_to_github_issue_backfill import backfill_queue_items_to_github_issues
 from aresforge.operator.github_issue_status_comment_sync import sync_github_issue_status_comment
+from aresforge.operator.github_status_comment_durable_sync import sync_github_status_comment_durable
 from aresforge.operator.github_issue_closure_recommendation_gate import recommend_github_issue_closure
 from aresforge.operator.github_link_registry import inspect_github_link_registry, record_github_link
 from aresforge.operator.pull_request_draft_summary_generator import generate_pr_draft_summary
@@ -1390,6 +1391,28 @@ def build_parser() -> argparse.ArgumentParser:
         default="json",
         help="Output format for file writes or stdout rendering.",
     )
+    github_status_comment_durable_parser = subparsers.add_parser(
+        "sync-github-status-comment-durable",
+        help="Durably create or update one managed GitHub issue status comment and record comment_id locally; dry-run by default.",
+    )
+    github_status_comment_durable_parser.add_argument("--item-id", required=True)
+    github_status_comment_durable_parser.add_argument("--project-id", default="aresforge")
+    github_status_comment_durable_parser.add_argument("--queue-path")
+    github_status_comment_durable_parser.add_argument("--registry-path")
+    github_status_comment_durable_parser.add_argument("--run-id")
+    github_status_comment_durable_parser.add_argument("--dry-run", action="store_true")
+    github_status_comment_durable_parser.add_argument("--github-enabled", action="store_true")
+    github_status_comment_durable_parser.add_argument("--autonomy-profile", default="github_sync_dry_run")
+    github_status_comment_durable_parser.add_argument("--repo")
+    github_status_comment_durable_parser.add_argument("--issue-number", type=int)
+    github_status_comment_durable_parser.add_argument("--output")
+    github_status_comment_durable_parser.add_argument("--force", action="store_true")
+    github_status_comment_durable_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+        help="Output format for file writes or stdout rendering.",
+    )
     github_issue_closure_recommendation_parser = subparsers.add_parser(
         "recommend-github-issue-closure",
         help="Recommend close or keep-open for one linked GitHub issue without mutating GitHub.",
@@ -1444,6 +1467,8 @@ def build_parser() -> argparse.ArgumentParser:
     record_github_link_parser.add_argument("--issue-url")
     record_github_link_parser.add_argument("--pr-number", type=int)
     record_github_link_parser.add_argument("--pr-url")
+    record_github_link_parser.add_argument("--comment-id")
+    record_github_link_parser.add_argument("--comment-url")
     record_github_link_parser.add_argument("--sync-status", default="linked")
     record_github_link_parser.add_argument("--last-sync-result")
     record_github_link_parser.add_argument("--linked-by")
@@ -4970,6 +4995,29 @@ def main(argv: list[str] | None = None) -> int:
         emit_json(payload)
         return 0 if bool(payload.get("ok")) else 1
 
+    if args.command == "sync-github-status-comment-durable":
+        payload = sync_github_status_comment_durable(
+            config,
+            item_id=args.item_id,
+            project_id=args.project_id,
+            queue_path=args.queue_path,
+            registry_path=args.registry_path,
+            run_id=args.run_id,
+            dry_run=bool(args.dry_run) or not bool(args.github_enabled),
+            github_enabled=bool(args.github_enabled),
+            autonomy_profile=args.autonomy_profile,
+            repo=args.repo,
+            issue_number=args.issue_number,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
     if args.command == "recommend-github-issue-closure":
         payload = recommend_github_issue_closure(
             config,
@@ -5019,6 +5067,8 @@ def main(argv: list[str] | None = None) -> int:
             issue_url=args.issue_url,
             pr_number=args.pr_number,
             pr_url=args.pr_url,
+            comment_id=args.comment_id,
+            comment_url=args.comment_url,
             sync_status=args.sync_status,
             last_sync_result=args.last_sync_result,
             linked_by=args.linked_by,

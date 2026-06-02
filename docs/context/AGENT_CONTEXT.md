@@ -1,5 +1,25 @@
 # AresForge Agent Context
 
+## M173 GitHub Status Comment Durable Sync Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m173-github-status-comment-durable-sync`.
+
+M173 adds `sync-github-status-comment-durable`, a dry-run-default command that creates or updates exactly one managed GitHub issue status comment and records the managed `comment_id` in the local GitHub link registry after successful live sync.
+
+Command:
+
+- `python -m aresforge sync-github-status-comment-durable --item-id m173-github-status-comment-durable-sync --dry-run --format json`
+
+Agent-facing guidance:
+
+- Treat `github_status_comment_durable_sync_v1` dry-run output as review evidence only.
+- The generated status comment body includes queue state, orchestration run state, validation evidence, artifact paths, machine gates, and next safe action.
+- Live sync requires `--github-enabled`, non-dry-run behavior, `autonomy_profile=github_issue_sync_enabled`, linked issue metadata or `--issue-number`, safe queue status, and passing machine gates.
+- The local registry is the idempotency anchor: when `comment_id` exists, live sync updates that managed comment; otherwise it searches for the marker and creates only if no managed comment is found.
+- Do not merge PRs, force push, update protected branches, enable auto-merge, create releases, mutate workflows, close issues, apply source patches, mutate queue status, run Codex/models, run validation commands, retry, resume, or start later sprint items from this output.
+
 ## M172 Queue-to-GitHub Issue Backfill Context
 
 Status: Completed locally on `main` after validation.

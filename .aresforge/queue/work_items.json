@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-06-02T09:30:00Z",
+  "updated_at": "2026-06-02T10:45:00Z",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -8398,6 +8398,141 @@
       "closeout_history": [],
       "created_at": "2026-06-02T09:00:00Z",
       "updated_at": "2026-06-02T09:30:00Z"
+    },
+    {
+      "item_id": "m173-github-status-comment-durable-sync",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M173 GitHub Status Comment Durable Sync",
+      "description": "Create durable, idempotent GitHub status comment sync for queue/run/evidence state.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "sync",
+      "tags": [
+        "milestone:m173",
+        "github-issue-sync",
+        "github-loop",
+        "status-comment",
+        "durable",
+        "machine-gated"
+      ],
+      "dependencies": [
+        "m172-queue-to-github-issue-backfill"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [
+        "tests_run",
+        "smoke_checks",
+        "github_status_comment_durable_sync_payload",
+        "machine_gate_results",
+        "mocked_github_operations",
+        "registry_comment_id_persistence"
+      ],
+      "evidence_required": [
+        "dry_run_default",
+        "explicit_github_enablement",
+        "autonomy_profile_allowance",
+        "machine_gate_pass",
+        "linked_issue_required",
+        "managed_comment_marker",
+        "comment_id_registry_persistence",
+        "idempotent_update_by_registry_comment_id",
+        "non_mutation_flags"
+      ],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: add sync-github-status-comment-durable; deterministic github_status_comment_durable_sync_v1 JSON; dry-run default; composes queue state, orchestration run state, validation evidence, artifact paths, machine gates, and next safe action; creates or updates a single managed status comment per linked issue; persists comment_id/comment_url in the local GitHub link registry after successful live sync; tests use mocked GitHub operations and no live GitHub access; no PR merge, auto-merge, force push, protected branch update, release, workflow mutation, issue closure, source patch application, Codex execution, model execution, validation command execution, retry, resume, or next-item execution.",
+      "started_at": "2026-06-02T10:00:00Z",
+      "started_via": "local_operator",
+      "previous_status": "ready",
+      "completed_at": "2026-06-02T10:30:00Z",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M173 GitHub Status Comment Durable Sync implemented and validated locally. Added sync-github-status-comment-durable with stable github_status_comment_durable_sync_v1 JSON, dry-run default, durable managed status comment body composition, registry-aware issue/comment lookup, mocked create/update support, update-by-registry-comment-id idempotency, local registry comment_id/comment_url persistence after successful live sync, source-of-truth docs, CLI coverage, and queue evidence.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 246 passed; python -m pytest tests/test_github_status_comment_durable_sync.py -> 5 passed; python -m pytest tests/test_github_link_registry.py -> 5 passed; git diff --check -> passed with CRLF warnings only; inspect-local-project-report passed with item_count=107 and active_milestone=M173 GitHub Status Comment Durable Sync; inspect-local-queue-agent-summary passed with item_count=107; inspect-project-queue --project-id aresforge passed with item_count=107; sync-github-status-comment-durable dry-run smoke passed with status=dry_run_ready, sync_status=dry_run_ready, blocked=false, machine_gates_passed=true, dry_run=true, github_enabled=false, github_execution_performed=false, mutation_performed=false, registry_mutation_performed=false, queue_mutation_performed=false, codex_execution_performed=false, model_execution_performed=false, patch_application_performed=false, recovery_available=true, and local_only=true.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 246 passed",
+        "python -m pytest tests/test_github_status_comment_durable_sync.py -> 5 passed",
+        "python -m pytest tests/test_github_link_registry.py -> 5 passed",
+        "git diff --check -> passed with CRLF warnings only",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed",
+        "python -m aresforge inspect-project-queue --project-id aresforge -> passed",
+        "python -m aresforge sync-github-status-comment-durable --item-id m173-github-status-comment-durable-sync --dry-run --format json -> passed with status=dry_run_ready"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/github_status_comment_durable_sync.py",
+        "src/aresforge/operator/github_link_registry.py",
+        "src/aresforge/cli.py",
+        "tests/test_github_status_comment_durable_sync.py",
+        "tests/test_cli.py",
+        ".aresforge/queue/work_items.json",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
+        "docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
+        "docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md"
+      ],
+      "artifact_paths": [
+        ".aresforge/github_link_registry/links.json"
+      ],
+      "github_issue": {
+        "number": 173,
+        "url": "https://github.com/local/aresforge/issues/173",
+        "state": "open"
+      },
+      "completion_evidence": {
+        "command": "sync-github-status-comment-durable",
+        "record_type": "github_status_comment_durable_sync_v1",
+        "status": "dry_run_ready",
+        "sync_status": "dry_run_ready",
+        "blocked": false,
+        "blocked_reasons": [],
+        "warnings": [
+          "Working tree has local changes; this profile treats dirty state as warning-only unless the caller requires a clean tree.",
+          "Local registry metadata only; no live GitHub issue or PR lookup was performed.",
+          "No orchestration run record is available for monitor display.",
+          "Queue item is already done; autonomy profile inspection remains valid as a capability contract."
+        ],
+        "machine_gates_passed": true,
+        "dry_run": true,
+        "github_enabled": false,
+        "mutation_performed": false,
+        "registry_mutation_performed": false,
+        "queue_mutation_performed": false,
+        "codex_execution_performed": false,
+        "model_execution_performed": false,
+        "github_execution_performed": false,
+        "patch_application_performed": false,
+        "recovery_available": true,
+        "local_only": true,
+        "commit_hash": "pending-final-commit",
+        "artifacts_created": []
+      },
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-06-02T10:00:00Z",
+      "updated_at": "2026-06-02T10:45:00Z"
     }
   ]
 }

@@ -1,5 +1,27 @@
 # AresForge Build State
 
+## M173 GitHub Status Comment Durable Sync
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m173-github-status-comment-durable-sync`.
+
+M173 adds durable, idempotent GitHub status comment sync:
+
+- `python -m aresforge sync-github-status-comment-durable --item-id m173-github-status-comment-durable-sync --dry-run --format json`
+- stable `github_status_comment_durable_sync_v1` JSON
+- composes queue state, orchestration run state, validation evidence, artifact paths, machine gates, and next safe action into one managed status comment body
+- looks up linked issues from local queue metadata, M162 issue sync planning, and the M170 link registry
+- uses the local GitHub link registry as the durable idempotency anchor and stores `comment_id` / `comment_url` after successful live sync
+- supports mocked create/update behavior for deterministic tests without live GitHub access
+- updates by durable registry `comment_id` when present, otherwise finds the managed marker before creating a comment
+
+Safety posture:
+
+- dry-run remains the default and performs no GitHub mutation
+- live comment create/update requires `--github-enabled`, non-dry-run invocation, `autonomy_profile=github_issue_sync_enabled`, linked issue metadata or `--issue-number`, safe queue status, and passing machine gates
+- the command performs no PR merge, auto-merge, force push, protected branch update, release creation, workflow mutation, issue closure, source-code patch application, queue status mutation, Codex execution, local LLM/model execution, validation command execution, retry, resume, or automatic next-item execution
+
 ## M172 Queue-to-GitHub Issue Backfill
 
 Status: Completed locally on `main` after validation.

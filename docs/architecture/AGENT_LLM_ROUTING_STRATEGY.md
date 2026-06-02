@@ -1,5 +1,19 @@
 # Agent LLM Routing Strategy
 
+## M173 GitHub Status Comment Durable Sync Routing Boundary
+
+M173 adds no live agent, local LLM, or Codex route. It adds a durable GitHub status comment sync route that remains dry-run by default and becomes live only after explicit GitHub enablement, autonomy profile allowance, linked issue checks, safe queue status, and machine gates pass.
+
+Routing rules:
+
+- dry-run routes to local queue, issue plan, registry, run monitor, autonomy, and gate inspection only
+- missing queue items, unsafe queue status, blocked dependencies, missing issue metadata in live mode, wrong autonomy profile, or failed gates route to `blocked`
+- existing registry `comment_id` routes live execution to update that managed comment
+- missing registry `comment_id` routes live execution to marker lookup, then update or create exactly one managed comment
+- successful mocked/live sync routes to local GitHub link registry recording of `comment_id` only, not queue completion
+
+M173 reports no agent execution, no model execution, no Codex execution, no source patch application, no validation command execution, and no queue status mutation. Live GitHub execution can be true only on the explicitly enabled single-comment create/update path.
+
 ## M172 Queue-to-GitHub Issue Backfill Routing Boundary
 
 M172 adds no live agent, local LLM, or Codex route. It adds a queue-to-GitHub issue backfill route that remains dry-run by default and becomes live only after explicit GitHub enablement, autonomy profile allowance, local duplicate-link checks, candidate safety checks, and machine gates pass.
