@@ -1,5 +1,11 @@
 # Local LLM Environment Contract
 
+## M160 Low-Risk Codex Execution Pilot Item Boundary
+
+M160 does not change local LLM permissions. It may invoke the existing low-risk Codex path only when explicit Codex execution flags, low-risk changed paths, M159 preflight, and machine gates pass, but it does not call Ollama, send prompts to local LLM providers, run local inference, select fallback local models, mutate queue state, call GitHub/`gh`, apply patches, push, merge, retry failures, resume orchestration, or start follow-on work.
+
+Local LLM advisory execution remains limited to separate explicit local-provider commands and their machine gates. M160 records Codex pilot evidence, not local LLM provider execution evidence.
+
 ## M159 Real Codex Execution Preflight Hardening Boundary
 
 M159 preflight does not change local LLM permissions. It may report an autonomy profile that describes local model advisory capability, but the preflight command itself does not call Ollama, send prompts, run inference, select fallback models, mutate repository files, mutate queue state, call Codex, call GitHub/`gh`, apply patches, run validation commands, retry failures, resume orchestration, or start follow-on work.

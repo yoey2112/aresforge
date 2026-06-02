@@ -1,5 +1,27 @@
 # Local Operator Usage
 
+## M160 Low-Risk Codex Execution Pilot Item
+
+M160 prepares and optionally executes one low-risk Codex pilot item under M159 preflight and M152 loop controls.
+
+Dry-run the pilot:
+
+    python -m aresforge prepare-low-risk-codex-pilot --item-id m160-low-risk-codex-execution-pilot-item --dry-run --format json
+
+Optional real execution requires explicit flags and low-risk scope:
+
+    python -m aresforge prepare-low-risk-codex-pilot --item-id <item_id> --execution-enabled --allow-low-risk-code --changed-path src/example.py --validation-profile queue_system --format json
+
+Interpretation:
+
+- `record_type=low_risk_codex_execution_pilot_item_v1` identifies the M160 payload.
+- `low_risk_verification` reports queue/tag/dependency/path-scope eligibility.
+- `preflight_decisions` records M159 preflight status, blockers, and gates.
+- `pilot_loop_result` records dry-run or explicit real low-risk loop evidence.
+- `codex_execution_performed=true` can occur only on the explicit real path after gates pass.
+
+M160 never pushes to GitHub, creates or merges PRs, updates protected branches, enables auto-merge, creates releases, applies source patches through AresForge, completes queue items, retries automatically, resumes orchestration, or starts another item.
+
 ## M159 Real Codex Execution Preflight Hardening
 
 M159 checks whether future real Codex execution could be considered without running Codex.

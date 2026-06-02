@@ -192,7 +192,7 @@ def run_end_to_end_codex_loop_dry_run(
         / ".aresforge"
         / "codex_dispatch"
         / ("loop_real_runs" if real_profile else "loop_dry_runs")
-        / _safe_id(normalized_item_id)
+        / _path_id(normalized_item_id)
         / _run_dir_id(run_id)
         / "codex-dispatch-artifact.json"
     ).resolve()
@@ -835,14 +835,21 @@ def _payload(result: dict[str, Any]) -> dict[str, Any]:
 
 def _run_root(config: AppConfig, item_id: str, run_id: str, *, real_profile: bool) -> Path:
     root = "codex_loop_real_runs" if real_profile else "codex_loop_dry_runs"
-    return (config.repo_root / ".aresforge" / root / _safe_id(item_id) / _run_dir_id(run_id)).resolve()
+    return (config.repo_root / ".aresforge" / root / _path_id(item_id) / _run_dir_id(run_id)).resolve()
 
 
 def _run_dir_id(run_id: str) -> str:
     safe = _safe_id(run_id)
-    if len(safe) <= 72:
+    if len(safe) <= 36:
         return safe
-    return f"run-{safe[-28:]}"
+    return f"run-{safe[-24:]}"
+
+
+def _path_id(value: str) -> str:
+    safe = _safe_id(value)
+    if len(safe) <= 24:
+        return safe
+    return f"{safe[:10]}-{safe[-10:]}"
 
 
 def _is_real_profile(

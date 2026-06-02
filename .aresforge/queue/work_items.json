@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-06-02T00:04:52.429020+00:00",
+  "updated_at": "2026-06-02T00:21:00Z",
   "work_items": [
     {
       "item_id": "m15-home-dashboard-api-wiring",
@@ -6845,6 +6845,108 @@
       "closeout_history": [],
       "created_at": "2026-06-02T00:02:50.148488+00:00",
       "updated_at": "2026-06-02T00:04:52.429020+00:00"
+    },
+    {
+      "item_id": "m160-low-risk-codex-execution-pilot-item",
+      "project_id": "aresforge",
+      "repo_id": "aresforge-main",
+      "title": "M160 Low-Risk Codex Execution Pilot Item",
+      "description": "Prepare and optionally execute one low-risk Codex pilot item under strict M159 preflight, low-risk scope, and machine-gated controls; dry-run by default and stop before GitHub push or merge.",
+      "status": "done",
+      "priority": "high",
+      "item_type": "orchestration",
+      "tags": [
+        "milestone:m160",
+        "codex-execution",
+        "low-risk-codex-pilot",
+        "risk:low",
+        "machine-gated"
+      ],
+      "dependencies": [
+        "m159-real-codex-execution-preflight-hardening"
+      ],
+      "depends_on": [],
+      "blocked_by": [],
+      "completion_requires": [],
+      "evidence_required": [],
+      "assigned_agent": "",
+      "source": "delegated-batch",
+      "notes": "Acceptance criteria: add prepare-low-risk-codex-pilot; deterministic low_risk_codex_execution_pilot_item_v1 JSON; dry-run by default; compose M159 preflight and M152 low-risk Codex loop; real execution requires explicit flags, low-risk changed paths, passing preflight and gates; no GitHub push/merge/protected branch/release/source patch/queue completion/retry/next-item execution.",
+      "started_at": "2026-06-02T00:18:01.348030+00:00",
+      "started_via": "local_operator",
+      "previous_status": "ready",
+      "completed_at": "2026-06-02T00:21:00Z",
+      "completed_by": "local_operator",
+      "completion_commit": "pending-final-commit",
+      "validation_summary": "M160 Low-Risk Codex Execution Pilot Item implemented and validated locally. Added prepare-low-risk-codex-pilot with stable low_risk_codex_execution_pilot_item_v1 JSON, dry-run-by-default behavior, low-risk queue/path verification, M159 preflight decision capture, M152/M151 loop composition, optional explicit real Codex execution through mocked-testable runners, bounded artifact path ids, source-of-truth docs, CLI coverage, targeted tests, and queue evidence. The dry-run path performs no Codex, local LLM/model, GitHub, validation command execution, source patch application, queue mutation from the pilot command itself, retry, resume, or next-item execution.",
+      "evidence_note": "Validation passed: python -m pytest tests/test_cli.py -> 233 passed; python -m pytest tests/test_low_risk_codex_execution_pilot_item.py -> 4 passed; python -m pytest tests/test_real_codex_execution_preflight_hardening.py -> 4 passed; python -m pytest tests/test_end_to_end_codex_loop_real_low_risk.py -> 4 passed; git diff --check -> passed with CRLF warnings only; inspect-local-project-report passed; inspect-local-queue-agent-summary passed; inspect-project-queue --project-id aresforge passed; prepare-low-risk-codex-pilot --dry-run passed with command ok, low-risk gate passed, machine_gates_passed=true, codex_execution_performed=false, github_execution_performed=false, patch_application_performed=false, and status=dry_run_prepared_real_execution_blocked because the implementation worktree is dirty.",
+      "tests_run": [
+        "python -m pytest tests/test_cli.py -> 233 passed",
+        "python -m pytest tests/test_low_risk_codex_execution_pilot_item.py -> 4 passed",
+        "python -m pytest tests/test_real_codex_execution_preflight_hardening.py -> 4 passed",
+        "python -m pytest tests/test_end_to_end_codex_loop_real_low_risk.py -> 4 passed",
+        "git diff --check -> passed with CRLF warnings only",
+        "python -m aresforge inspect-local-project-report -> passed",
+        "python -m aresforge inspect-local-queue-agent-summary -> passed",
+        "python -m aresforge inspect-project-queue --project-id aresforge -> passed",
+        "python -m aresforge prepare-low-risk-codex-pilot --item-id m160-low-risk-codex-execution-pilot-item --dry-run --format json -> passed"
+      ],
+      "changed_files": [
+        "src/aresforge/operator/low_risk_codex_execution_pilot_item.py",
+        "src/aresforge/operator/end_to_end_codex_loop_dry_run.py",
+        "src/aresforge/cli.py",
+        "tests/test_low_risk_codex_execution_pilot_item.py",
+        "tests/test_cli.py",
+        "docs/context/BUILD_STATE.md",
+        "docs/context/AGENT_CONTEXT.md",
+        "docs/roadmap/ROADMAP.md",
+        "docs/operator/LOCAL_OPERATOR_USAGE.md",
+        "docs/architecture/RUNNABLE_SKELETON.md",
+        "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
+        "docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
+        "docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md",
+        ".aresforge/queue/work_items.json"
+      ],
+      "artifact_paths": [
+        ".aresforge/codex_loop_dry_runs/m160-low-r-pilot-item (dry-run local artifact root; ignored runtime evidence)",
+        ".aresforge/codex_dispatch/loop_dry_runs/m160-low-r-pilot-item (dry-run dispatch artifact root; ignored runtime evidence)",
+        "artifacts/codex_result_ingestion/m160-low-risk-codex-execution-pilot-item (dry-run ingestion evidence; untracked runtime evidence)"
+      ],
+      "completion_evidence": {
+        "command": "prepare-low-risk-codex-pilot",
+        "record_type": "low_risk_codex_execution_pilot_item_v1",
+        "status": "dry_run_prepared_real_execution_blocked",
+        "machine_gates_passed": true,
+        "mutation_performed": false,
+        "queue_mutation_performed": false,
+        "external_execution_performed": false,
+        "codex_execution_performed": false,
+        "model_execution_performed": false,
+        "github_execution_performed": false,
+        "patch_application_performed": false,
+        "local_only": true,
+        "commit_hash": "pending-final-commit"
+      },
+      "routing_metadata": {
+        "recommended_agent_lane": "",
+        "recommended_engine": "",
+        "recommended_model": "",
+        "fallback_engine": "",
+        "fallback_model": "",
+        "routing_policy_source": "",
+        "routing_reason": "",
+        "risk_level": "unknown",
+        "complexity_level": "unknown",
+        "escalation_reason": "",
+        "project_ai_mode": "",
+        "operator_override": false
+      },
+      "closed_at": "",
+      "closed_by": "",
+      "closeout_summary": "",
+      "closeout_history": [],
+      "created_at": "2026-06-02T00:18:01.348030+00:00",
+      "updated_at": "2026-06-02T00:21:00Z"
     }
   ]
 }

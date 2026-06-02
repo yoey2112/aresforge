@@ -111,6 +111,7 @@ def test_cli_has_expected_commands() -> None:
         "plan-source-patch-apply",
         "dry-run-source-patch-apply",
         "preflight-real-codex-execution",
+        "prepare-low-risk-codex-pilot",
         "run-end-to-end-codex-loop",
         "inspect-codex-dispatch-run",
         "list-codex-dispatch-runs",
@@ -10612,6 +10613,122 @@ def test_preflight_real_codex_execution_dispatch_json(
         "queue_path": ".aresforge/queue/work_items.json",
         "history_path": ".aresforge/orchestrator/run_history.json",
         "output": ".aresforge/codex_execution/preflight/m159-preflight.json",
+        "force": True,
+        "output_format": "json",
+    }
+
+
+def test_prepare_low_risk_codex_pilot_dispatch_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    payload = {
+        "ok": True,
+        "local_only": True,
+        "format": "json",
+        "wrote_output_file": False,
+        "stdout": json.dumps(
+            {
+                "record_type": "low_risk_codex_execution_pilot_item_v1",
+                "project_id": "aresforge",
+                "status": "dry_run_prepared",
+            }
+        ),
+        "payload": {},
+    }
+    seen: dict[str, object] = {}
+
+    def fake_prepare(
+        _config,
+        *,
+        item_id="m160-low-risk-codex-execution-pilot-item",
+        project_id="aresforge",
+        dry_run=True,
+        execution_enabled=False,
+        allow_low_risk_code=False,
+        autonomy_profile=None,
+        validation_profile="queue_system",
+        changed_paths=None,
+        codex_command=None,
+        timeout_seconds=None,
+        queue_path=None,
+        history_path=None,
+        output=None,
+        force=False,
+        output_format="json",
+    ):
+        seen.update(
+            {
+                "item_id": item_id,
+                "project_id": project_id,
+                "dry_run": dry_run,
+                "execution_enabled": execution_enabled,
+                "allow_low_risk_code": allow_low_risk_code,
+                "autonomy_profile": autonomy_profile,
+                "validation_profile": validation_profile,
+                "changed_paths": changed_paths,
+                "codex_command": codex_command,
+                "timeout_seconds": timeout_seconds,
+                "queue_path": queue_path,
+                "history_path": history_path,
+                "output": output,
+                "force": force,
+                "output_format": output_format,
+            }
+        )
+        return payload
+
+    monkeypatch.setattr(cli, "prepare_low_risk_codex_pilot", fake_prepare)
+    exit_code = cli.main(
+        [
+            "prepare-low-risk-codex-pilot",
+            "--item-id",
+            "m160",
+            "--project-id",
+            "aresforge",
+            "--dry-run",
+            "--execution-enabled",
+            "--allow-low-risk-code",
+            "--autonomy-profile",
+            "codex_low_risk_enabled",
+            "--validation-profile",
+            "queue_system",
+            "--changed-path",
+            "src/aresforge/operator/example.py",
+            "--codex-command-arg",
+            "codex",
+            "--codex-command-arg",
+            "exec",
+            "--timeout-seconds",
+            "30",
+            "--queue-path",
+            ".aresforge/queue/work_items.json",
+            "--history-path",
+            ".aresforge/orchestrator/run_history.json",
+            "--output",
+            ".aresforge/codex_execution/pilot/m160.json",
+            "--force",
+            "--format",
+            "json",
+        ]
+    )
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert parsed["record_type"] == "low_risk_codex_execution_pilot_item_v1"
+    assert seen == {
+        "item_id": "m160",
+        "project_id": "aresforge",
+        "dry_run": True,
+        "execution_enabled": True,
+        "allow_low_risk_code": True,
+        "autonomy_profile": "codex_low_risk_enabled",
+        "validation_profile": "queue_system",
+        "changed_paths": ["src/aresforge/operator/example.py"],
+        "codex_command": ["codex", "exec"],
+        "timeout_seconds": 30,
+        "queue_path": ".aresforge/queue/work_items.json",
+        "history_path": ".aresforge/orchestrator/run_history.json",
+        "output": ".aresforge/codex_execution/pilot/m160.json",
         "force": True,
         "output_format": "json",
     }

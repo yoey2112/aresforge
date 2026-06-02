@@ -1,5 +1,11 @@
 # Documentation Agent Contract
 
+## M160 Low-Risk Codex Execution Pilot Item Boundary
+
+M160 does not add documentation-agent or source-code patch mutation. It may create local pilot, preflight, dispatch, ingestion, and validation artifacts, but it does not edit documentation through a documentation agent, generate documentation patches, apply patches, call local LLMs, call GitHub/`gh`, push, merge, mutate queue state, retry failures, resume orchestration, or start follow-on work.
+
+Documentation mutation remains limited to separate docs-only Markdown patch commands that pass `docs_only_patch_apply` gates. Source/code changes from any explicit low-risk Codex pilot remain local evidence and must not be applied through AresForge patch automation from M160 output.
+
 ## M159 Real Codex Execution Preflight Hardening Boundary
 
 M159 preflight does not add documentation-agent or source-code mutation. It may report validation and source patch policy metadata for future Codex output, but it does not edit documentation, generate patches, apply patches, execute documentation agents, call models, call Codex, call GitHub/`gh`, mutate queue state, run validation commands, retry failures, resume orchestration, or start follow-on work.

@@ -1,5 +1,20 @@
 # Runnable Skeleton
 
+## M160 Low-Risk Codex Execution Pilot Item
+
+M160 adds a low-risk Codex pilot coordinator:
+
+- `python -m aresforge prepare-low-risk-codex-pilot --item-id m160-low-risk-codex-execution-pilot-item --dry-run --format json`
+
+The command returns `low_risk_codex_execution_pilot_item_v1` JSON. It verifies the pilot queue item is low risk, captures M159 preflight decisions, runs the existing loop in dry-run mode by default, and can optionally invoke the existing M152 low-risk real Codex path only with explicit flags and safe changed-path scope.
+
+Runnable boundary:
+
+- dry-run is default
+- real execution requires `--execution-enabled`, `--allow-low-risk-code`, declared low-risk `--changed-path` values, passing M159 preflight, and machine gates
+- optional `--output` writes one local pilot artifact
+- no GitHub push, PR creation, PR merge, protected branch update, auto-merge, release creation, source patch application, queue completion, retry, resume, or next-item execution is performed
+
 ## M159 Real Codex Execution Preflight Hardening
 
 M159 adds a dry-run real Codex preflight command:

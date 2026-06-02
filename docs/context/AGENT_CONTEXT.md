@@ -1,5 +1,25 @@
 # AresForge Agent Context
 
+## M160 Low-Risk Codex Execution Pilot Item Context
+
+Status: Completed locally on `main` after validation.
+
+Queue item: `m160-low-risk-codex-execution-pilot-item`.
+
+M160 adds `prepare-low-risk-codex-pilot`, a coordinator for preparing and optionally executing one low-risk Codex pilot item.
+
+Command:
+
+- `python -m aresforge prepare-low-risk-codex-pilot --item-id m160-low-risk-codex-execution-pilot-item --dry-run --format json`
+
+Agent-facing guidance:
+
+- Treat `low_risk_codex_execution_pilot_item_v1` output as local pilot evidence.
+- Dry-run is default and does not invoke real Codex.
+- Real execution requires explicit execution flags, low-risk changed paths, passing M159 preflight, and the existing M152 machine-gated loop.
+- If `blocked=true`, inspect `low_risk_verification`, `preflight_decisions`, and `pilot_loop_result` before any retry.
+- Do not push to GitHub, create or merge PRs, update protected branches, enable auto-merge, create releases, apply source patches, mutate queue state, retry, resume, or start later sprint items from this output.
+
 ## M159 Real Codex Execution Preflight Hardening Context
 
 Status: Completed locally on `main` after validation.

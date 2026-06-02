@@ -1,5 +1,16 @@
 # Agent LLM Routing Strategy
 
+## M160 Low-Risk Codex Execution Pilot Item
+
+M160 adds a pilot coordination route for exactly one low-risk Codex item. It does not add a local LLM route and does not route through GitHub automation. Dry-run preparation routes through M159 preflight evidence and M152/M151 loop artifacts without invoking Codex.
+
+Routing implications:
+
+- default route is dry-run pilot evidence only
+- real Codex routing requires explicit operator flags, low-risk changed paths, passing M159 preflight, and the existing M152 machine-gated loop
+- dirty worktree, non-low-risk tags, unsatisfied dependencies, high-risk changed paths, or failed preflight route to blocked output
+- M160 reports Codex execution only when the explicit real path actually invokes the configured Codex command; model, GitHub, patch, queue, retry, resume, and next-item execution remain false
+
 ## M159 Real Codex Execution Preflight Hardening
 
 M159 does not add a new agent, Codex, local LLM, or GitHub execution route. It adds a dry-run preflight route that composes local policy and readiness evidence before any separate real Codex command can be considered.

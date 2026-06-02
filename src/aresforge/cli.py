@@ -243,6 +243,7 @@ from aresforge.operator.source_patch_apply_plan import plan_source_patch_apply
 from aresforge.operator.source_patch_apply_dry_run import dry_run_source_patch_apply
 from aresforge.operator.end_to_end_codex_loop_dry_run import run_end_to_end_codex_loop_dry_run
 from aresforge.operator.real_codex_execution_preflight_hardening import preflight_real_codex_execution
+from aresforge.operator.low_risk_codex_execution_pilot_item import prepare_low_risk_codex_pilot
 from aresforge.operator.github_sync_agent import run_github_sync_agent
 from aresforge.operator.multi_agent_orchestrator import run_multi_agent_orchestration
 from aresforge.operator.llm_decision_matrix import inspect_llm_decision_matrix
@@ -2722,6 +2723,36 @@ def build_parser() -> argparse.ArgumentParser:
     preflight_real_codex_execution_parser.add_argument("--output")
     preflight_real_codex_execution_parser.add_argument("--force", action="store_true")
     preflight_real_codex_execution_parser.add_argument(
+        "--format",
+        choices=["json"],
+        default="json",
+    )
+    low_risk_codex_pilot_parser = subparsers.add_parser(
+        "prepare-low-risk-codex-pilot",
+        help="Prepare and optionally execute one low-risk Codex pilot item under M159/M152 machine gates.",
+    )
+    low_risk_codex_pilot_parser.add_argument(
+        "--item-id",
+        default="m160-low-risk-codex-execution-pilot-item",
+    )
+    low_risk_codex_pilot_parser.add_argument("--project-id", default="aresforge")
+    low_risk_codex_pilot_parser.add_argument("--dry-run", action="store_true")
+    low_risk_codex_pilot_parser.add_argument("--execution-enabled", action="store_true")
+    low_risk_codex_pilot_parser.add_argument("--allow-low-risk-code", action="store_true")
+    low_risk_codex_pilot_parser.add_argument("--autonomy-profile")
+    low_risk_codex_pilot_parser.add_argument(
+        "--validation-profile",
+        choices=sorted(CODEX_RESULT_VALIDATION_PROFILES),
+        default="queue_system",
+    )
+    low_risk_codex_pilot_parser.add_argument("--changed-path", action="append", default=[])
+    low_risk_codex_pilot_parser.add_argument("--codex-command-arg", action="append", default=[])
+    low_risk_codex_pilot_parser.add_argument("--timeout-seconds", type=int)
+    low_risk_codex_pilot_parser.add_argument("--queue-path")
+    low_risk_codex_pilot_parser.add_argument("--history-path")
+    low_risk_codex_pilot_parser.add_argument("--output")
+    low_risk_codex_pilot_parser.add_argument("--force", action="store_true")
+    low_risk_codex_pilot_parser.add_argument(
         "--format",
         choices=["json"],
         default="json",
@@ -6113,6 +6144,31 @@ def main(argv: list[str] | None = None) -> int:
             autonomy_profile=args.autonomy_profile,
             validation_profile=args.validation_profile,
             changed_paths=args.changed_path,
+            queue_path=args.queue_path,
+            history_path=args.history_path,
+            output=args.output,
+            force=bool(args.force),
+            output_format=args.format,
+        )
+        if "stdout" in payload:
+            print(payload["stdout"])
+            return 0 if bool(payload.get("ok")) else 1
+        emit_json(payload)
+        return 0 if bool(payload.get("ok")) else 1
+
+    if args.command == "prepare-low-risk-codex-pilot":
+        payload = prepare_low_risk_codex_pilot(
+            config,
+            item_id=args.item_id,
+            project_id=args.project_id,
+            dry_run=bool(args.dry_run) or not bool(args.execution_enabled),
+            execution_enabled=bool(args.execution_enabled),
+            allow_low_risk_code=bool(args.allow_low_risk_code),
+            autonomy_profile=args.autonomy_profile,
+            validation_profile=args.validation_profile,
+            changed_paths=args.changed_path,
+            codex_command=args.codex_command_arg or None,
+            timeout_seconds=args.timeout_seconds,
             queue_path=args.queue_path,
             history_path=args.history_path,
             output=args.output,

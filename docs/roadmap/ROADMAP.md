@@ -1,5 +1,24 @@
 # AresForge Roadmap
 
+## M160 Low-Risk Codex Execution Pilot Item
+
+Status: Completed locally on `main` after validation.
+
+M160 prepares the first low-risk Codex pilot item under strict controls:
+
+- `python -m aresforge prepare-low-risk-codex-pilot --item-id m160-low-risk-codex-execution-pilot-item --dry-run --format json`
+- deterministic `low_risk_codex_execution_pilot_item_v1` output
+- low-risk queue item verification from tags, dependencies, and declared changed-path scope
+- M159 real-Codex preflight composition before any real pilot can run
+- M152 low-risk Codex loop reuse for dry-run evidence or explicit real execution with mocked-test coverage
+- explicit GitHub stop boundary and non-mutation flags
+
+Boundary:
+
+- dry-run is the default and performs no real Codex execution
+- real execution requires `--execution-enabled`, `--allow-low-risk-code`, one or more low-risk `--changed-path` values, passing preflight, and machine gates
+- no GitHub push, PR creation/merge, protected-branch update, auto-merge, release, source patch application, queue completion, retry, resume, or automatic next-item execution
+
 ## M159 Real Codex Execution Preflight Hardening
 
 Status: Completed locally on `main` after validation.
