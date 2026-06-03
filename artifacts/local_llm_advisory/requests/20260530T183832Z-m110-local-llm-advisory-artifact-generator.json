@@ -1,0 +1,118 @@
+{
+  "ok": true,
+  "artifact_type": "local_llm_advisory_request",
+  "generated": true,
+  "generated_at": "2026-05-30T18:38:32Z",
+  "blocked": false,
+  "blocked_reasons": [],
+  "item_id": "m110-local-llm-advisory-artifact-generator",
+  "title": "M110 Local LLM Advisory Artifact Generator",
+  "project_id": "aresforge",
+  "milestone": "m110",
+  "queue_status": "ready",
+  "requested_model_profile": "qwen2.5:32b",
+  "reasoning_scope": "implementation_advisory_review",
+  "source_documents": [
+    "docs/context/BUILD_STATE.md",
+    "docs/context/AGENT_CONTEXT.md",
+    "docs/roadmap/ROADMAP.md",
+    "docs/operator/LOCAL_OPERATOR_USAGE.md",
+    "docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md",
+    "docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md",
+    "docs/architecture/RUNNABLE_SKELETON.md",
+    "M97 queue-to-agent dispatch plan payload",
+    ".aresforge/queue/work_items.json queue item context"
+  ],
+  "queue_context": {
+    "item_id": "m110-local-llm-advisory-artifact-generator",
+    "title": "M110 Local LLM Advisory Artifact Generator",
+    "description": "Prepare a local reasoning advisory request package for an operator-selected queue item without executing models or services.",
+    "notes": "Acceptance criteria: local-only advisory request package; selected lane must be local_llm_advisory; generated artifact preserves execution_allowed=false; includes queue context, source documents, advisory prompt, expected response shape, operator review checklist, and blocked reasons; no Ollama, local model, Codex, GitHub, network, external agent, patch application, issue creation, automatic queue mutation, or automatic next-item execution.",
+    "tags": [
+      "milestone:m110",
+      "local-llm-advisory",
+      "local-only"
+    ],
+    "priority": "high",
+    "item_type": "architecture",
+    "dependencies": [
+      "m109-manual-codex-dispatch-runner-contract"
+    ],
+    "blocked_by": [],
+    "selected_lane": "local_llm_advisory",
+    "lane_selection_reason": "Decision matrix recommends local reasoning advisory review.",
+    "routing_confidence": {
+      "score": 73,
+      "level": "medium",
+      "reason": "base local advisory confidence 50; +15: reasoning work favors local advisory; +10: low/medium risk fits advisory review; +10: small/medium task size fits advisory review; -12: local model profile is missing"
+    },
+    "planned_artifact_intent": {
+      "artifact_type": "local_llm_advisory_plan",
+      "generator_milestone": "M99",
+      "intent": "Prepare a future local advisory dry-run validation plan.",
+      "full_prompt_generated": false
+    },
+    "readiness_summary": {
+      "readiness_status": "ready",
+      "can_start": true
+    },
+    "decision_matrix_summary": {
+      "recommended_engine": "local_reasoning_llm",
+      "recommended_lane": "architect_planner",
+      "recommended_model": "qwen2.5:32b",
+      "confidence_score": 73,
+      "confidence_level": "medium"
+    }
+  },
+  "advisory_prompt": "AresForge Local LLM Advisory Request\n\nThis is an operator-reviewed advisory request package only.\nDo not mutate files, apply patches, execute commands, call tools, call network services, or mark queue work complete.\n\nItem: m110-local-llm-advisory-artifact-generator\nTitle: M110 Local LLM Advisory Artifact Generator\nRequested model profile: qwen2.5:32b\nReasoning scope: implementation_advisory_review\nSelected lane: local_llm_advisory\nLane selection reason: Decision matrix recommends local reasoning advisory review.\n\nReview focus:\n- Identify design risks, missing validation, and safety concerns.\n- Suggest operator-reviewed implementation or review considerations.\n- Keep recommendations advisory and non-mutating.\n- Preserve execution_allowed=false and local-only boundaries.\n\nSource documents to consider:\n- docs/context/BUILD_STATE.md\n- docs/context/AGENT_CONTEXT.md\n- docs/roadmap/ROADMAP.md\n- docs/operator/LOCAL_OPERATOR_USAGE.md\n- docs/architecture/LOCAL_LLM_ENVIRONMENT_CONTRACT.md\n- docs/architecture/AGENT_LLM_ROUTING_STRATEGY.md\n- docs/architecture/RUNNABLE_SKELETON.md\n- M97 queue-to-agent dispatch plan payload\n- .aresforge/queue/work_items.json queue item context\n\nReturn a structured advisory response with the expected response shape embedded in this artifact.",
+  "expected_response_shape": {
+    "summary": "string",
+    "risks": [
+      "string"
+    ],
+    "recommendations": [
+      "string"
+    ],
+    "validation_suggestions": [
+      "string"
+    ],
+    "files_to_inspect": [
+      "string"
+    ],
+    "questions_for_operator": [
+      "string"
+    ],
+    "mutation_allowed": false,
+    "execution_allowed": false,
+    "patch_application_allowed": false
+  },
+  "operator_review_checklist": [
+    "Confirm the queue item is the intended advisory target.",
+    "Confirm the M97 selected lane is local_llm_advisory.",
+    "Confirm local_only=true and execution_allowed=false are present.",
+    "Confirm the generated prompt asks only for advisory review.",
+    "Confirm no model invocation occurred while generating this artifact.",
+    "Confirm no patch application, queue mutation, GitHub, Codex, or network action occurred.",
+    "Create or review a separate approval gate before any later local LLM invocation milestone."
+  ],
+  "local_only": true,
+  "execution_allowed": false,
+  "local_llm_execution_performed": false,
+  "codex_execution_performed": false,
+  "network_execution_performed": false,
+  "patch_application_allowed": false,
+  "output_path": "",
+  "selected_lane": "local_llm_advisory",
+  "dispatch_plan_version": "m97.1",
+  "advisory_artifact_generator_version": "m110.1",
+  "boundary_confirmations": [
+    "M110 local LLM advisory request artifact generation is local-only.",
+    "M110 prepares a request package only; it does not invoke Ollama or local LLMs.",
+    "M110 does not execute Codex or Codex CLI.",
+    "M110 does not call GitHub APIs, gh, network services, external agents, or documentation agents.",
+    "M110 does not apply patches or mutate source files from model output.",
+    "M110 does not auto-start, auto-complete, auto-dispatch, or mutate queue items.",
+    "Any later local LLM invocation requires explicit operator approval outside M110."
+  ],
+  "next_safe_action": "Review the advisory request artifact for m110-local-llm-advisory-artifact-generator; do not invoke a local LLM until a separate operator-approved execution milestone authorizes it."
+}

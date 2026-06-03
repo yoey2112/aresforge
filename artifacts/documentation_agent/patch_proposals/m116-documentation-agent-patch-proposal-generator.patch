@@ -1,0 +1,36 @@
+# Documentation Agent Patch Proposal
+
+This is a proposal artifact only. Do not apply automatically.
+
+Item: m116-documentation-agent-patch-proposal-generator
+Title: M116 Documentation Agent Patch Proposal Generator
+Milestone: m116
+
+## Source Documents Reviewed
+- docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md (exists=True)
+- docs/architecture/RUNNABLE_SKELETON.md (exists=True)
+- docs/context/BUILD_STATE.md (exists=True)
+- docs/context/AGENT_CONTEXT.md (exists=True)
+- docs/roadmap/ROADMAP.md (exists=True)
+- docs/operator/LOCAL_OPERATOR_USAGE.md (exists=True)
+
+## Detected Documentation Gaps
+- No high-confidence missing documentation references detected.
+
+## Proposed Documentation Changes
+- selected_source_documents: No high-confidence missing references found for m116-documentation-agent-patch-proposal-generator; operator may still review generated proposal notes.
+
+## Proposed Patch Sketch
+
+```diff
+diff --git a/docs/operator/LOCAL_OPERATOR_USAGE.md b/docs/operator/LOCAL_OPERATOR_USAGE.md
+--- a/docs/operator/LOCAL_OPERATOR_USAGE.md
++++ b/docs/operator/LOCAL_OPERATOR_USAGE.md
+@@ proposal only @@
++## m116 M116 Documentation Agent Patch Proposal Generator
++Record m116-documentation-agent-patch-proposal-generator documentation-agent patch proposal behavior.
++Confirm approval_required=true and patch_application_allowed=false.
++Confirm generated proposals require operator review before any patch intake or apply path.
+```
+
+Patch application allowed: false

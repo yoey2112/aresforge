@@ -1,0 +1,119 @@
+{
+  "gate_result_type": "machine_safety_gate_evaluation",
+  "item_id": "m151-end-to-end-codex-loop-dry-run",
+  "gate_profile": "queue_status_mutation",
+  "passed": false,
+  "blocked": true,
+  "blocked_reasons": [
+    "Working tree must be acceptable for the requested profile."
+  ],
+  "warnings": [],
+  "checks": [
+    {
+      "check_id": "gate_profile_known",
+      "passed": true,
+      "message": "Gate profile must be one of: read_only_agent, local_artifact_write, queue_status_mutation, docs_only_patch_apply, source_patch_apply_dry_run, local_llm_execution, codex_dispatch, github_sync, multi_agent_orchestration.",
+      "warning_only": false
+    },
+    {
+      "check_id": "queue_item_exists",
+      "passed": true,
+      "message": "Queue item must exist in the local queue.",
+      "warning_only": false
+    },
+    {
+      "check_id": "item_status_valid",
+      "passed": true,
+      "message": "Queue item status must be one of: proposed, ready, in_progress, blocked, done, cancelled.",
+      "warning_only": false
+    },
+    {
+      "check_id": "dependencies_satisfied",
+      "passed": true,
+      "message": "Dependencies must exist and be done; blocked_by must be empty.",
+      "warning_only": false
+    },
+    {
+      "check_id": "required_artifacts_exist",
+      "passed": true,
+      "message": "Profile-required artifacts, patches, records, and logs must exist.",
+      "warning_only": false
+    },
+    {
+      "check_id": "artifact_schema_valid",
+      "passed": true,
+      "message": "Supplied artifact JSON must be an object and confirm local-only/non-execution when those fields are present.",
+      "warning_only": false
+    },
+    {
+      "check_id": "execution_record_valid",
+      "passed": true,
+      "message": "Supplied execution record JSON must be an object with local_only=true and no blocked execution flags.",
+      "warning_only": false
+    },
+    {
+      "check_id": "forbidden_capabilities_not_used",
+      "passed": true,
+      "message": "Artifacts and execution records must not report forbidden capabilities as used.",
+      "warning_only": false
+    },
+    {
+      "check_id": "working_tree_acceptable",
+      "passed": false,
+      "message": "Working tree must be acceptable for the requested profile.",
+      "warning_only": false
+    },
+    {
+      "check_id": "file_path_allowlist_respected",
+      "passed": true,
+      "message": "Supplied artifact, patch, execution-record, and patch-target paths must stay inside the profile allowlist.",
+      "warning_only": false
+    },
+    {
+      "check_id": "docs_only_patch_check",
+      "passed": true,
+      "message": "Docs-only patch profiles may target only docs/ and approved source-of-truth queue metadata.",
+      "warning_only": false
+    },
+    {
+      "check_id": "tests_reported_or_runnable",
+      "passed": true,
+      "message": "Profiles that can mutate or execute must include test evidence or runnable validation commands.",
+      "warning_only": false
+    },
+    {
+      "check_id": "warnings_below_threshold",
+      "passed": true,
+      "message": "Warnings must stay at or below threshold 5.",
+      "warning_only": false,
+      "observed": 0
+    },
+    {
+      "check_id": "rollback_transaction_log_available",
+      "passed": true,
+      "message": "Queue/status/orchestration mutation profiles require a local transaction or rollback log.",
+      "warning_only": false
+    },
+    {
+      "check_id": "external_execution_explicitly_allowed",
+      "passed": true,
+      "message": "External execution profiles require explicit allowance; this evaluation still performs no external execution.",
+      "warning_only": false
+    }
+  ],
+  "required_next_steps": [
+    "Resolve blocker: Working tree must be acceptable for the requested profile."
+  ],
+  "autonomy_allowed": false,
+  "human_review_required": true,
+  "machine_gate_version": "m131.1",
+  "local_only": true,
+  "execution_performed": false,
+  "mutation_performed": false,
+  "next_safe_action": "Machine safety gate blocked; resolve required next steps before any queue mutation, patch application, dispatch, sync, or orchestration.",
+  "evaluated_at": "2026-05-31T21:42:12Z",
+  "queue_path": "C:\\Projects\\aresforge\\.aresforge\\codex_loop_dry_runs\\m151-end-to-end-codex-loop-dry-run\\m151-end-to-end-codex-loop-dry-run-20260531t214212441415z\\queue-snapshot.json",
+  "artifact_path": "",
+  "patch_path": "",
+  "execution_record_path": ""
+}

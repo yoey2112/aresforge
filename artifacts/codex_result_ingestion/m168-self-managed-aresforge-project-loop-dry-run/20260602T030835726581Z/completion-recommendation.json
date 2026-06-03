@@ -1,0 +1,63 @@
+{
+  "recommendation_record_type": "queue_completion_recommendation",
+  "recommendation_version": "m113.1",
+  "recommended_complete": false,
+  "blocked": true,
+  "blocked_reasons": [
+    "Required evidence is missing: self_managed_project_loop_dry_run_payload",
+    "Required evidence is missing: machine_gate_results",
+    "Required evidence is missing: queue_item_selection",
+    "Required evidence is missing: route_decision",
+    "Required evidence is missing: orchestration_plan",
+    "Required evidence is missing: run_store_entry",
+    "Required evidence is missing: codex_loop_dry_run",
+    "Required evidence is missing: evidence_bundle",
+    "Required evidence is missing: github_issue_sync_plan",
+    "Required evidence is missing: pr_summary_draft",
+    "Required evidence is missing: closeout_recommendation",
+    "Required evidence is missing: non_mutation_flags"
+  ],
+  "item_id": "m168-self-managed-aresforge-project-loop-dry-run",
+  "title": "M168 Self-Managed AresForge Project Loop Dry Run",
+  "project_id": "aresforge",
+  "milestone": "m168",
+  "evidence_path": "C:\\Projects\\aresforge\\artifacts\\codex_result_ingestion\\m168-self-managed-aresforge-project-loop-dry-run\\20260602T030835726581Z\\dispatch-evidence.json",
+  "evidence_valid": true,
+  "required_evidence_present": false,
+  "missing_evidence": [
+    "self_managed_project_loop_dry_run_payload",
+    "machine_gate_results",
+    "queue_item_selection",
+    "route_decision",
+    "orchestration_plan",
+    "run_store_entry",
+    "codex_loop_dry_run",
+    "evidence_bundle",
+    "github_issue_sync_plan",
+    "pr_summary_draft",
+    "closeout_recommendation",
+    "non_mutation_flags"
+  ],
+  "tests_passed_reported": true,
+  "smoke_checks_passed_reported": true,
+  "warnings_or_blockers": [
+    "No blockers. M151 dry-run did not invoke real Codex.",
+    "No blockers."
+  ],
+  "commit_hash_present": true,
+  "confidence": "medium",
+  "operator_decision_required": true,
+  "queue_mutation_performed": false,
+  "local_only": true,
+  "execution_allowed": false,
+  "recorded_at": "2026-06-02T03:08:35Z",
+  "next_safe_action": "Resolve blocked reasons and re-run the recommendation before any queue completion decision.",
+  "boundary_confirmations": [
+    "M113 queue completion recommendation is local-only.",
+    "M113 reads local queue state and a local dispatch evidence record only.",
+    "M113 does not execute Codex, Codex CLI, local LLMs, documentation agents, or external agents.",
+    "M113 does not call GitHub APIs, gh, network services, issues, PRs, or workflows.",
+    "M113 does not apply patches or mutate repository files.",
+    "M113 does not mark queue items complete or start follow-on work."
+  ]
+}

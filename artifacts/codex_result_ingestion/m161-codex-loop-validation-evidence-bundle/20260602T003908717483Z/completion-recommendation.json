@@ -1,0 +1,51 @@
+{
+  "recommendation_record_type": "queue_completion_recommendation",
+  "recommendation_version": "m113.1",
+  "recommended_complete": false,
+  "blocked": true,
+  "blocked_reasons": [
+    "Required evidence is missing: codex_loop_execution_record",
+    "Required evidence is missing: validation_evidence",
+    "Required evidence is missing: stdout_stderr_artifacts",
+    "Required evidence is missing: machine_gate_results",
+    "Required evidence is missing: source_patch_risk_classification",
+    "Required evidence is missing: retry_classification"
+  ],
+  "item_id": "m161-codex-loop-validation-evidence-bundle",
+  "title": "M161 Codex Loop Validation Evidence Bundle",
+  "project_id": "aresforge",
+  "milestone": "m161",
+  "evidence_path": "C:\\Projects\\aresforge\\artifacts\\codex_result_ingestion\\m161-codex-loop-validation-evidence-bundle\\20260602T003908717483Z\\dispatch-evidence.json",
+  "evidence_valid": true,
+  "required_evidence_present": false,
+  "missing_evidence": [
+    "codex_loop_execution_record",
+    "validation_evidence",
+    "stdout_stderr_artifacts",
+    "machine_gate_results",
+    "source_patch_risk_classification",
+    "retry_classification"
+  ],
+  "tests_passed_reported": true,
+  "smoke_checks_passed_reported": true,
+  "warnings_or_blockers": [
+    "No blockers. M151 dry-run did not invoke real Codex.",
+    "No blockers."
+  ],
+  "commit_hash_present": true,
+  "confidence": "medium",
+  "operator_decision_required": true,
+  "queue_mutation_performed": false,
+  "local_only": true,
+  "execution_allowed": false,
+  "recorded_at": "2026-06-02T00:39:08Z",
+  "next_safe_action": "Resolve blocked reasons and re-run the recommendation before any queue completion decision.",
+  "boundary_confirmations": [
+    "M113 queue completion recommendation is local-only.",
+    "M113 reads local queue state and a local dispatch evidence record only.",
+    "M113 does not execute Codex, Codex CLI, local LLMs, documentation agents, or external agents.",
+    "M113 does not call GitHub APIs, gh, network services, issues, PRs, or workflows.",
+    "M113 does not apply patches or mutate repository files.",
+    "M113 does not mark queue items complete or start follow-on work."
+  ]
+}

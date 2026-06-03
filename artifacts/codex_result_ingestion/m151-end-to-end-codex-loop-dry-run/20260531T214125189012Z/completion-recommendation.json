@@ -1,0 +1,40 @@
+{
+  "recommendation_record_type": "queue_completion_recommendation",
+  "recommendation_version": "m113.1",
+  "recommended_complete": false,
+  "blocked": true,
+  "blocked_reasons": [
+    "Required evidence is missing: machine_gate_evidence"
+  ],
+  "item_id": "m151-end-to-end-codex-loop-dry-run",
+  "title": "M151 End-to-End Codex Loop Dry Run",
+  "project_id": "aresforge",
+  "milestone": "m151",
+  "evidence_path": "C:\\Projects\\aresforge\\artifacts\\codex_result_ingestion\\m151-end-to-end-codex-loop-dry-run\\20260531T214125189012Z\\dispatch-evidence.json",
+  "evidence_valid": true,
+  "required_evidence_present": false,
+  "missing_evidence": [
+    "machine_gate_evidence"
+  ],
+  "tests_passed_reported": true,
+  "smoke_checks_passed_reported": true,
+  "warnings_or_blockers": [
+    "No blockers."
+  ],
+  "commit_hash_present": true,
+  "confidence": "medium",
+  "operator_decision_required": true,
+  "queue_mutation_performed": false,
+  "local_only": true,
+  "execution_allowed": false,
+  "recorded_at": "2026-05-31T21:41:25Z",
+  "next_safe_action": "Resolve blocked reasons and re-run the recommendation before any queue completion decision.",
+  "boundary_confirmations": [
+    "M113 queue completion recommendation is local-only.",
+    "M113 reads local queue state and a local dispatch evidence record only.",
+    "M113 does not execute Codex, Codex CLI, local LLMs, documentation agents, or external agents.",
+    "M113 does not call GitHub APIs, gh, network services, issues, PRs, or workflows.",
+    "M113 does not apply patches or mutate repository files.",
+    "M113 does not mark queue items complete or start follow-on work."
+  ]
+}

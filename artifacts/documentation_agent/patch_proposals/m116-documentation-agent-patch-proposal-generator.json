@@ -1,0 +1,56 @@
+{
+  "ok": true,
+  "artifact_type": "documentation_agent_patch_proposal",
+  "artifact_version": "m116.1",
+  "generated": true,
+  "generated_at": "2026-05-30T19:42:56.519523+00:00",
+  "blocked": false,
+  "blocked_reasons": [],
+  "item_id": "m116-documentation-agent-patch-proposal-generator",
+  "title": "M116 Documentation Agent Patch Proposal Generator",
+  "project_id": "aresforge",
+  "milestone": "m116",
+  "queue_status": "in_progress",
+  "source_documents_reviewed": [
+    "docs/architecture/DOCUMENTATION_AGENT_CONTRACT.md",
+    "docs/architecture/RUNNABLE_SKELETON.md",
+    "docs/context/BUILD_STATE.md",
+    "docs/context/AGENT_CONTEXT.md",
+    "docs/roadmap/ROADMAP.md",
+    "docs/operator/LOCAL_OPERATOR_USAGE.md"
+  ],
+  "detected_doc_gaps": [],
+  "proposed_doc_changes": [
+    {
+      "document": "selected_source_documents",
+      "change_type": "review_confirmation",
+      "summary": "No high-confidence missing references found for m116-documentation-agent-patch-proposal-generator; operator may still review generated proposal notes.",
+      "application_status": "proposal_only"
+    }
+  ],
+  "proposed_patch_path": "C:\\Projects\\aresforge\\artifacts\\documentation_agent\\patch_proposals\\m116-documentation-agent-patch-proposal-generator.patch",
+  "operator_review_checklist": [
+    "Confirm the patch proposal targets source-of-truth documentation only.",
+    "Confirm the proposal is advisory and has not been applied.",
+    "Confirm approval_required=true and patch_application_allowed=false.",
+    "Review detected gaps against current queue and validation evidence.",
+    "Create an M101 approval gate before any M111 patch intake review.",
+    "Use a separate explicit apply workflow for any future patch application."
+  ],
+  "approval_required": true,
+  "patch_application_allowed": false,
+  "patch_application_performed": false,
+  "local_only": true,
+  "execution_allowed": false,
+  "output_path": "C:\\Projects\\aresforge\\artifacts\\documentation_agent\\patch_proposals\\m116-documentation-agent-patch-proposal-generator.json",
+  "boundary_confirmations": [
+    "M116 documentation-agent patch proposal generation is local-only.",
+    "M116 reads queue and documentation files to produce review metadata.",
+    "M116 may write local proposal artifacts only.",
+    "M116 does not apply generated patches.",
+    "M116 does not execute a documentation agent runtime or model.",
+    "M116 does not call Codex, Ollama, local LLMs, GitHub APIs, gh, or network services.",
+    "M116 does not mutate queue status except when the operator separately completes the M116 item."
+  ],
+  "next_safe_action": "Review the proposed documentation patch artifact, then create an approval gate before M111 patch intake."
+}
